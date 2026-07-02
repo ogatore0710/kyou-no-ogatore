@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>きょうのオガトレ｜かたさ診断</title>
+<meta name="description" content="30秒のかたさ診断で、あなたに合ったオガトレのストレッチ動画を処方。きょうの1本と続けた日数も。">
+<style>
+  :root{
+    --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#8A877D;
+    --teal:#2BB3A3; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
+    --bg:#FFFBF2; --card:#FFFFFF; --line:#F0EAD8; --radius:22px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    background:var(--bg);color:var(--ink);font-size:17px;line-height:1.7;
+    max-width:480px;margin:0 auto;padding:20px 18px 60px;min-height:100vh}
+  h1{font-size:22px;letter-spacing:.02em}
+  .logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .logo .sun{font-size:26px}
+  .tagline{color:var(--sub);font-size:13px;margin-bottom:18px}
+  .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px;
+    border:1.5px solid var(--line);box-shadow:0 2px 10px rgba(160,140,80,.06)}
+  .btn{display:block;width:100%;border:none;border-radius:18px;padding:16px 18px;font-size:17px;
+    font-weight:700;font-family:inherit;cursor:pointer;text-align:center;text-decoration:none;color:var(--ink)}
+  .btn-primary{background:var(--yellow);font-size:19px;box-shadow:0 4px 0 #E8BE1E}
+  .btn-primary:active{transform:translateY(3px);box-shadow:0 1px 0 #E8BE1E}
+  .btn-ghost{background:var(--teal-soft);color:#177065}
+  .btn-line{background:none;border:2px solid var(--line);color:var(--sub);font-weight:600;font-size:15px}
+  .hidden{display:none}
+  /* 診断 */
+  .qnum{color:var(--teal);font-weight:800;font-size:14px;letter-spacing:.1em}
+  .qtitle{font-size:20px;font-weight:800;margin:6px 0 4px}
+  .qnote{color:var(--sub);font-size:14px;margin-bottom:14px}
+  .opt{display:block;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;
+    padding:14px 16px;margin-bottom:10px;font-size:16.5px;font-family:inherit;text-align:left;cursor:pointer;font-weight:600}
+  .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}
+  .opt .emo{margin-right:8px}
+  .dots{display:flex;gap:6px;justify-content:center;margin:14px 0 2px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+  .dot.on{background:var(--teal)}
+  /* 結果 */
+  .type-emo{font-size:56px;text-align:center;margin:6px 0}
+  .type-name{font-size:26px;font-weight:900;text-align:center;letter-spacing:.02em}
+  .type-copy{text-align:center;color:var(--sub);font-size:15px;margin:8px 0 2px}
+  .type-hope{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;margin-top:12px}
+  .rx-head{font-size:15px;font-weight:800;color:#177065;margin:4px 0 10px}
+  .video{display:flex;gap:12px;align-items:center;background:var(--card);border:1.5px solid var(--line);
+    border-radius:16px;padding:10px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
+  .video img{width:112px;border-radius:10px;flex-shrink:0}
+  .video .vt{font-size:13.5px;font-weight:700;line-height:1.45}
+  .video .vs{font-size:12px;color:var(--sub);margin-top:2px}
+  .badge{display:inline-block;background:var(--coral-soft);color:#B4462F;font-size:11.5px;
+    font-weight:800;border-radius:8px;padding:1px 8px;margin-bottom:4px}
+  /* きょうの1本 */
+  .seg{display:flex;background:var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
+  .seg button{flex:1;border:none;border-radius:11px;padding:9px;font-size:15px;font-weight:800;
+    font-family:inherit;background:none;color:var(--sub);cursor:pointer}
+  .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .streak{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .streak .num{font-size:34px;font-weight:900;color:var(--teal)}
+  .streak .lbl{font-size:13px;color:var(--sub)}
+  .done-btn{background:var(--teal);color:#fff;box-shadow:0 4px 0 #1E8A7D}
+  .done-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #1E8A7D}
+  .done-btn.did{background:var(--line);color:var(--sub);box-shadow:none}
+  .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:26px;line-height:2}
+  .foot a{color:var(--teal)}
+  section{animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div class="logo"><span class="sun" id="logoEmo">🌞</span><h1>きょうのオガトレ</h1></div>
+<div class="tagline">体が硬くても、だいじょうぶ。きょうの1本、ここにあります。</div>
+
+<!-- ===== ホーム ===== -->
+<section id="home">
+  <div class="card" style="background:linear-gradient(135deg,#FFF3C4,#FFE8E2);border:none">
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px">🔍 かたさ診断</div>
+    <div style="font-size:14px;color:#6B6857;margin-bottom:14px">タップだけ・30秒。あなたの「かたさタイプ」と、まずやるべきストレッチがわかります。</div>
+    <button class="btn btn-primary" onclick="startQuiz()">診断をはじめる</button>
+    <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:13.5px">
+      前回の結果: <a href="#" onclick="showResult(state.type);return false" style="color:#177065;font-weight:800" id="lastTypeName"></a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:15px;font-weight:800;margin-bottom:10px">📺 きょうの1本</div>
+    <div class="seg">
+      <button id="segAsa" onclick="setMode('asa')">🌅 あさ</button>
+      <button id="segYoru" onclick="setMode('yoru')">🌙 よる</button>
+    </div>
+    <div id="todayVideo"></div>
+  </div>
+
+  <div class="card">
+    <div class="streak">
+      <div>
+        <div class="lbl">つづけた日数</div>
+        <div><span class="num" id="streakNum">0</span><span style="font-weight:800">日</span></div>
+        <div class="lbl" id="totalDays"></div>
+      </div>
+      <div style="flex:1">
+        <button class="btn done-btn" id="doneBtn" onclick="markDone()">きょうやった！</button>
+      </div>
+    </div>
+    <div id="cheer" style="text-align:center;font-size:14px;margin-top:10px;color:var(--sub)"></div>
+  </div>
+</section>
+
+<!-- ===== 診断 ===== -->
+<section id="quiz" class="hidden">
+  <div class="card">
+    <div class="qnum" id="qnum"></div>
+    <div class="qtitle" id="qtitle"></div>
+    <div class="qnote" id="qnote"></div>
+    <div id="opts"></div>
+    <div class="dots" id="dots"></div>
+    <button class="btn btn-line" style="margin-top:10px" onclick="goHome()">やめて戻る</button>
+  </div>
+</section>
+
+<!-- ===== 結果 ===== -->
+<section id="result" class="hidden">
+  <div class="card" style="background:linear-gradient(160deg,#FFFDF5,#FFF3C4)">
+    <div style="text-align:center;font-size:13px;font-weight:800;color:var(--sub)">あなたのかたさタイプは…</div>
+    <div class="type-emo" id="rEmo"></div>
+    <div class="type-name" id="rName"></div>
+    <div class="type-copy" id="rCopy"></div>
+    <div class="type-hope" id="rHope"></div>
+  </div>
+  <div class="card">
+    <div class="rx-head" id="rxHead"></div>
+    <div id="rxList"></div>
+    <div id="worryExtra"></div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px">💡 まずは2週間、この順番で。1日1本でOK。痛みは「イタ気持ちいい」までにしてね。</div>
+  </div>
+  <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ →</button>
+  <button class="btn btn-ghost" onclick="startQuiz()">もう一回診断する</button>
+</section>
+
+<div class="foot">
+  きょうのオガトレ（プロトタイプ）<br>
+  動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank">オガトレ</a>」チャンネルで再生されます
+</div>
+
+<script>
+// ================= データ =================
+const V = {
+  momo7:   {id:"CyWthETY73s", t:"もも裏が『超』硬い人向け 7分", s:"座り姿勢改善・腰痛ひざ痛にも"},
+  kaikyaku:{id:"Re5FPU5_37g", t:"開脚できるようになるストレッチ", s:"2週間で開脚ベターっ・2851万回再生"},
+  asa10:   {id:"2EfFlQev4rg", t:"朝専用・極上10分ストレッチ", s:"疲れないカラダを作る定番"},
+  koka9:   {id:"-Y5bOC_ecB0", t:"股関節が『超』硬い人向け 毎日9分", s:"875万回再生のルーティン定番"},
+  kominka: {id:"LMz4DV66bV8", t:"股関節 毎日9分・古民家ver.", s:"ガチガチでも柔らかくなる"},
+  kenko12: {id:"ZYTlwh_FhoU", t:"肩甲骨・基本版12分", s:"2300万回再生の看板ストレッチ"},
+  yoru15:  {id:"HCVb47eWgqA", t:"夜専用15分・肩甲骨をゆるめる", s:"2300万回再生の新作"},
+  asa5:    {id:"VTMYfFnkHh4", t:"朝専用5分・肩甲骨ほぐし", s:"忙しい朝はこれだけでOK"},
+  ashi1:   {id:"6U4fgJu0ZMw", t:"足首が『超』硬い人向け", s:"引っ張ってつまむだけ簡単"},
+  ashi2:   {id:"86u3S-epkRg", t:"足首『超超』硬い人向け", s:"足の裏までしっかりほぐす"},
+  fukura5: {id:"gdvjMR61Z4k", t:"ふくらはぎスッキリ 毎日5分", s:"疲労回復・むくみ解消"},
+  honki9:  {id:"q8jr0KhoML4", t:"ガチガチな体が生まれ変わる本気の9分", s:"2026年版・全身リセット"},
+  yoru9umi:{id:"NrJIhK_gOXc", t:"夜専用・極上9分 in水族館", s:"一日の疲れを消し去る"},
+  yoru9ice:{id:"_2g_qWssAEI", t:"夜専用・極上9分 in氷の水族館", s:"気仙沼の絶景でリラックス"},
+  asa9shi: {id:"H9ctJbhTR0Y", t:"朝専用・極上9分 in四国水族館", s:"最高の朝をつくる"},
+  jiritsu10:{id:"XkgsF39kkRw", t:"寝る前の自律神経調整10分", s:"頭痛・不眠・イライラ・むくみに"},
+  ashisuki:{id:"4SsJx5W8hNQ", t:"寝る前に足スッキリ9分", s:"むくみを流す下半身ストレッチ"},
+  katakori:{id:"7FY6SR6cyts", t:"ガチガチ肩こりは肩甲骨から治す 12分", s:"根本解消・理学療法士監修"},
+  yotsu12: {id:"vZ4LYE0Ahe8", t:"しぶとい腰痛をなくす 毎日12分", s:"骨盤から背骨までととのえる"},
+  nagomi7: {id:"aIIU5R2l-kQ", t:"座ったまま7分・和みストレッチ", s:"股関節・背骨・肩甲骨がととのう"},
+};
+
+const QUESTIONS = [
+  {k:"momo", title:"立って前屈。手はどこまでいく？", note:"ひざを曲げずに、ゆっくり倒れてみて",
+   opts:[["🙆","床にペタッとつく",0],["👌","つま先にさわれる",1],["🫠","すねの途中まで",2],["🪵","ひざから下に行かない",3]]},
+  {k:"koka", title:"あぐらで座ると、ひざは？", note:"床に座って、足の裏を合わせてみて",
+   opts:[["🧘","床にペタッと近い",0],["🙂","ちょっと浮く",1],["⛰️","山みたいに浮く",2],["🚨","そもそもあぐらがつらい",3]]},
+  {k:"kenko",title:"背中で両手、つなげる？", note:"片手は上から、片手は下から",
+   opts:[["🤝","左右どちらもつなげる",0],["✋","片側だけつなげる",1],["😅","指先がかすめる程度",2],["🧱","まったく届く気がしない",3]]},
+  {k:"ashi", title:"かかとを付けたまま、しゃがめる?", note:"和式トイレのポーズ。無理はしないでね",
+   opts:[["🐸","余裕でしゃがめる",0],["🫨","しゃがめるけど、ぐらぐら",1],["🐧","かかとが浮いちゃう",2],["🎳","後ろにコロンと転がる",3]]},
+  {k:"worry",title:"いちばんの悩みは？", note:"処方箋の仕上げに使います",
+   opts:[["🪨","肩こり・首こり","katakori"],["⚡","腰痛","yotsu"],["😴","疲れ・眠りの浅さ","tsukare"],["🤸","とにかく柔らかくなりたい","yawaraka"]]},
+];
+
+const TYPES = {
+  momo: {emo:"🪵", name:"立派な一枚板", area:"もも裏",
+    copy:"前屈すると、つま先がとても遠い。それはあなたの脚が長い…わけではなく、もも裏が固まっているサイン。",
+    hope:"でも一枚板は、磨けば必ずしなります。もも裏は変化が出やすい場所。2週間後の前屈で、床が近くなってるはず。",
+    rx:["momo7","kaikyaku","asa10"]},
+  koka: {emo:"🚪", name:"開かずのとびら", area:"股関節",
+    copy:"あぐらでひざが山になるのは、股関節のとびらが閉まっているから。正座の国の住人にありがちです。",
+    hope:"とびらは、毎日すこしずつ油をさせば開きます。股関節は9分の習慣がいちばん効く場所。あせらずコツコツ。",
+    rx:["koka9","kominka","kaikyaku"]},
+  kenko:{emo:"🪽", name:"羽根おやすみ中", area:"肩甲骨",
+    copy:"背中で手がつながらないのは、肩甲骨まわりの羽根がすっかり冬眠しているから。デスクワークの勲章です。",
+    hope:"羽根は、動かせば必ず目を覚まします。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。",
+    rx:["kenko12","yoru15","asa5"]},
+  ashi: {emo:"🐧", name:"棒立ちペンギン", area:"足首",
+    copy:"しゃがむと後ろにコロン。それは足首がカチッと固まっている証拠。ペンギンは可愛いけど、転ぶと痛い。",
+    hope:"足首がゆるむと、歩くのも立つのも軽くなります。つまむだけの簡単ストレッチから始めましょう。",
+    rx:["ashi1","ashi2","fukura5"]},
+  robot:{emo:"🤖", name:"休日のロボット", area:"全身",
+    copy:"全体的に、カタい。でも言いかえれば、どこを伸ばしても効く「伸びしろの宝庫」ということ。",
+    hope:"ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、体は必ず応えてくれます。",
+    rx:["honki9","asa10","yoru9umi"]},
+  yawara:{emo:"🌷", name:"のびしろ満点さん", area:"メンテナンス",
+    copy:"おっと、けっこう柔らかい！ここから先は「かたくならない体」を守るメンテナンスの時間です。",
+    hope:"柔らかさは資産。朝と夜の習慣で守っていきましょう。悩みに合わせた1本もどうぞ。",
+    rx:["asa10","yoru9umi","nagomi7"]},
+};
+
+const WORRY = {
+  katakori:{v:"katakori", label:"肩こりさんへ、もう1本"},
+  yotsu:   {v:"yotsu12",  label:"腰痛さんへ、もう1本"},
+  tsukare: {v:"jiritsu10",label:"おつかれさんへ、もう1本"},
+  yawaraka:null,
+};
+
+const TODAY_ASA = ["asa10","asa5","asa9shi","honki9","nagomi7"];
+const TODAY_YORU= ["yoru9umi","yoru15","jiritsu10","yoru9ice","ashisuki"];
+
+// ================= 状態 =================
+const store = {
+  get(k,d){ try{const v=JSON.parse(localStorage.getItem("kyono_"+k)); return v??d}catch(e){return d} },
+  set(k,v){ localStorage.setItem("kyono_"+k, JSON.stringify(v)) }
+};
+let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
+
+// ================= 画面制御 =================
+function show(id){ for(const s of ["home","quiz","result"]) document.getElementById(s).classList.toggle("hidden", s!==id); window.scrollTo(0,0); }
+function goHome(){ show("home"); renderHome(); }
+
+// ---- 診断 ----
+function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; renderQ(); show("quiz"); }
+function renderQ(){
+  const q = QUESTIONS[state.qi];
+  document.getElementById("qnum").textContent = `Q${state.qi+1} / ${QUESTIONS.length}`;
+  document.getElementById("qtitle").textContent = q.title;
+  document.getElementById("qnote").textContent = q.note;
+  const box = document.getElementById("opts"); box.innerHTML="";
+  q.opts.forEach(o=>{
+    const b=document.createElement("button"); b.className="opt";
+    b.innerHTML=`<span class="emo">${o[0]}</span>${o[1]}`;
+    b.onclick=()=>answer(q.k,o[2]); box.appendChild(b);
+  });
+  const dots=document.getElementById("dots"); dots.innerHTML="";
+  QUESTIONS.forEach((_,i)=>{const d=document.createElement("div");d.className="dot"+(i<=state.qi?" on":"");dots.appendChild(d)});
+}
+function answer(k,val){
+  if(k==="worry"){ state.worry=val; finishQuiz(); return; }
+  state.scores[k]=val; state.qi++; renderQ();
+}
+function decideType(){
+  const s=state.scores;
+  const total=s.momo+s.koka+s.kenko+s.ashi;
+  if(total>=9) return "robot";
+  if(total<=2) return "yawara";
+  const order=["momo","koka","kenko","ashi"];
+  let best=order[0]; for(const k of order){ if(s[k]>s[best]) best=k; }
+  if(s[best]<=1) return "yawara";
+  return best;
+}
+function finishQuiz(){
+  const t=decideType();
+  state.type={key:t, worry:state.worry, at:new Date().toISOString().slice(0,10)};
+  store.set("type", state.type);
+  showResult(state.type);
+}
+function videoCard(vk, badge){
+  const v=V[vk];
+  return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" target="_blank">
+    <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="">
+    <div>${badge?`<span class="badge">${badge}</span><br>`:""}<span class="vt">${v.t}</span><div class="vs">${v.s}</div></div></a>`;
+}
+function showResult(saved){
+  const T=TYPES[saved.key];
+  document.getElementById("rEmo").textContent=T.emo;
+  document.getElementById("rName").textContent=T.name;
+  document.getElementById("rCopy").textContent=T.copy;
+  document.getElementById("rHope").textContent="🌱 "+T.hope;
+  document.getElementById("rxHead").textContent=`💊 処方箋: まず「${T.area}」から。この3本を2週間`;
+  const list=document.getElementById("rxList");
+  list.innerHTML = T.rx.map((vk,i)=>videoCard(vk, ["1本目","2本目","3本目"][i])).join("");
+  const w=WORRY[saved.worry];
+  document.getElementById("worryExtra").innerHTML = (w&&w.v&&!T.rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
+  show("result");
+}
+
+// ---- きょうの1本 ----
+function autoMode(){ const h=new Date().getHours(); return (h>=4&&h<15)?"asa":"yoru"; }
+function setMode(m){ state.mode=m; store.set("mode_manual",{m,d:todayStr()}); renderToday(); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function dayIndex(){ const d=new Date(); return Math.floor((d - new Date(d.getFullYear(),0,0))/86400000); }
+function renderToday(){
+  const manual=store.get("mode_manual",null);
+  const m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || autoMode();
+  state.mode=m;
+  document.getElementById("segAsa").classList.toggle("on",m==="asa");
+  document.getElementById("segYoru").classList.toggle("on",m==="yoru");
+  document.getElementById("logoEmo").textContent = m==="asa"?"🌞":"🌙";
+  const list = m==="asa"?TODAY_ASA:TODAY_YORU;
+  const vk = list[dayIndex()%list.length];
+  document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる");
+}
+
+// ---- 継続カウンター ----
+function renderStreak(){
+  const st=store.get("streak",{count:0,last:null,total:0});
+  document.getElementById("streakNum").textContent=st.count;
+  document.getElementById("totalDays").textContent = st.total>0?`これまで合計 ${st.total}日`:"";
+  const did = st.last===todayStr();
+  const btn=document.getElementById("doneBtn");
+  btn.textContent = did?"きょうはやった！えらい！":"きょうやった！";
+  btn.classList.toggle("did",did);
+  btn.disabled=did;
+}
+function markDone(){
+  const st=store.get("streak",{count:0,last:null,total:0});
+  if(st.last===todayStr()) return;
+  const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  st.count = (st.last===y)?st.count+1:1;
+  st.total=(st.total||0)+1; st.last=todayStr();
+  store.set("streak",st); renderStreak();
+  const cheers=["🎉 ナイスご自愛！","💪 その30秒が体を変える！","🌱 続けてるの、ほんとにえらい","🔥 きょうも勝ち！","🧘 体は正直。ちゃんと応えてくれます"];
+  document.getElementById("cheer").textContent = cheers[Math.floor(Math.random()*cheers.length)];
+}
+
+// ---- ホーム描画 ----
+function renderHome(){
+  renderToday(); renderStreak();
+  const lr=document.getElementById("lastResult");
+  if(state.type&&TYPES[state.type.key]){
+    lr.classList.remove("hidden");
+    document.getElementById("lastTypeName").textContent = TYPES[state.type.key].emo+" "+TYPES[state.type.key].name;
+  }
+}
+renderHome();
+</script>
+</body>
+</html>
