@@ -155,6 +155,16 @@
   動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank">オガトレ</a>」チャンネルで再生されます
 </div>
 
+<div id="cardModal" class="hidden" style="position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--card);border-radius:24px;padding:18px;max-width:420px;width:100%">
+    <div style="font-size:15px;font-weight:800;text-align:center;margin-bottom:10px">🖼 きょうの記録カード</div>
+    <img id="cardImg" alt="記録カード" style="width:100%;border-radius:16px;border:1.5px solid var(--line)">
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 10px">画像を長押しでも保存できます</div>
+    <button class="btn btn-primary" style="font-size:16px;margin-bottom:8px" onclick="shareCard()">共有して写真に保存</button>
+    <button class="btn btn-line" onclick="closeCard()">とじる</button>
+  </div>
+</div>
+
 <canvas id="cardCanvas" width="1000" height="1000" style="display:none"></canvas>
 
 <script>
@@ -394,50 +404,86 @@ function markDone(){
   document.getElementById("cheer").textContent = cheers[Math.floor(Math.random()*cheers.length)];
 }
 
-// ---- 記録カード（画像書き出し） ----
+// ---- 記録カード（画像書き出し・日替わりテーマ＋節目スペシャル） ----
+const CARD_THEMES = [
+  {name:"きいろ", bg:["#FFF8E1","#FFE9E0"], main:"#2BB3A3", deco:["#FFD93B","#FF8A70","#2BB3A3"]},
+  {name:"そら",   bg:["#E8F6FF","#EDF9F2"], main:"#3D8FD1", deco:["#8FCBFF","#2BB3A3","#FFD93B"]},
+  {name:"ゆうやけ",bg:["#FFF0E4","#FFE3EC"], main:"#E2703A", deco:["#FF8A70","#F2B8C6","#FFD93B"]},
+  {name:"みどり", bg:["#EFF8E8","#E4F4EF"], main:"#4E9F3D", deco:["#9BD770","#2BB3A3","#FFD93B"]},
+  {name:"さくら", bg:["#FFF0F4","#FFF7E8"], main:"#D4537E", deco:["#F2A9C0","#FFD93B","#FF8A70"]},
+];
+const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
+const MILESTONES=[7,14,21,30,50,66,100,150,200,300,365,500,730,1000];
+
+let charaImg=null, charaTried=false;
+function loadChara(cb){
+  if(charaTried){cb();return}
+  charaTried=true;
+  const im=new Image();
+  im.onload=()=>{charaImg=im;cb()}; im.onerror=()=>cb();
+  im.src="assets/chara.png";
+}
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
-function makeCard(){
+let lastBlob=null;
+function makeCard(){ loadChara(drawCard); }
+function drawCard(){
   const st=getStreakData();
   const T = state.type ? TYPES[state.type.key] : null;
+  const milestone = MILESTONES.includes(st.count);
+  const th = milestone ? GOLD : CARD_THEMES[dayIndex()%CARD_THEMES.length];
   const c=document.getElementById("cardCanvas"), ctx=c.getContext("2d");
   // 背景
   const g=ctx.createLinearGradient(0,0,1000,1000);
-  g.addColorStop(0,"#FFF8E1"); g.addColorStop(1,"#FFE9E0");
+  g.addColorStop(0,th.bg[0]); g.addColorStop(1,th.bg[1]);
   ctx.fillStyle=g; ctx.fillRect(0,0,1000,1000);
-  // かざり玉
-  const dots=[["#FFD93B",120,140,26],["#2BB3A3",880,110,18],["#FF8A70",850,860,24],["#FFD93B",130,880,16],["#2BB3A3",90,520,12],["#FF8A70",930,470,14]];
-  dots.forEach(d=>{ctx.fillStyle=d[0];ctx.beginPath();ctx.arc(d[1],d[2],d[3],0,7);ctx.fill()});
+  // かざり
+  const pos=[[120,140,26],[880,110,18],[850,860,24],[130,880,16],[90,520,12],[930,470,14],[500,80,10],[500,930,10]];
+  pos.forEach((p,i)=>{ctx.fillStyle=th.deco[i%th.deco.length];ctx.beginPath();ctx.arc(p[0],p[1],p[2],0,7);ctx.fill()});
+  if(milestone){ // 金の紙吹雪
+    for(let i=0;i<26;i++){ctx.save();const x=(i*137)%1000,y=(i*211)%1000;ctx.translate(x,y);ctx.rotate(i);ctx.fillStyle=th.deco[i%3];ctx.fillRect(-7,-3,14,6);ctx.restore();}
+  }
   // 白カード
-  ctx.fillStyle="rgba(255,255,255,.92)"; roundRect(ctx,90,180,820,640,48); ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,.93)"; roundRect(ctx,90,180,820,640,48); ctx.fill();
   const F='"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN",sans-serif';
   ctx.textAlign="center"; ctx.fillStyle="#8A877D";
-  ctx.font="700 34px "+F; ctx.fillText("きょうのオガトレ 記録カード",500,270);
+  ctx.font="700 34px "+F;
+  ctx.fillText(milestone?"🏆 節目たっせい！おめでとう！":"きょうのオガトレ 記録カード",500,268);
   // 日数
-  ctx.fillStyle="#2BB3A3"; ctx.font="900 200px "+F;
+  ctx.fillStyle=th.main; ctx.font="900 200px "+F;
   ctx.fillText(String(st.count),500,520);
   ctx.fillStyle="#3A3A35"; ctx.font="800 52px "+F;
   ctx.fillText("日 つづいた！",500,600);
   ctx.fillStyle="#8A877D"; ctx.font="600 34px "+F;
   ctx.fillText(`これまで合計 ${st.total}日`,500,668);
-  // タイプ
-  if(T){ ctx.font="700 40px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`${T.emo} ${T.name} として修行中`,500,760); }
-  // 日付・クレジット
+  if(T){ ctx.font="700 40px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`${T.emo} ${T.name} として修行中`,500,758); }
+  // キャライラスト（assets/chara.png があれば右下に）
+  if(charaImg){
+    const w=210, h=w*charaImg.height/charaImg.width;
+    ctx.drawImage(charaImg, 910-w, 820-h, w, h);
+  }
   ctx.fillStyle="#8A877D"; ctx.font="600 30px "+F;
   const d=new Date();
-  ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,500,880);
+  ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,500,878);
   ctx.font="700 30px "+F; ctx.fillStyle="#B4462F";
-  ctx.fillText("YouTube オガトレ と一緒に、きょうもご自愛",500,940);
-  // 出力
-  c.toBlob(async blob=>{
-    const file=new File([blob],`kyono-ogatore-${todayStr()}.png`,{type:"image/png"});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file], title:"きょうのオガトレ 記録カード"}); return; }catch(e){}
-    }
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob); a.download=file.name; a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  ctx.fillText("YouTube オガトレ と一緒に、きょうもご自愛",500,938);
+  // プレビュー表示
+  c.toBlob(blob=>{
+    lastBlob=blob;
+    document.getElementById("cardImg").src=URL.createObjectURL(blob);
+    document.getElementById("cardModal").classList.remove("hidden");
   },"image/png");
 }
+async function shareCard(){
+  if(!lastBlob) return;
+  const file=new File([lastBlob],`kyono-ogatore-${todayStr()}.png`,{type:"image/png"});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:"きょうのオガトレ 記録カード"}); return; }catch(e){}
+  }
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(lastBlob); a.download=file.name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); }
 
 // ---- ホーム描画 ----
 function renderHome(){
