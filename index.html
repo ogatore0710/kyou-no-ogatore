@@ -27,7 +27,8 @@
   .btn-primary:active{transform:translateY(3px);box-shadow:0 1px 0 #E8BE1E}
   .btn-ghost{background:var(--teal-soft);color:#177065}
   .btn-line{background:none;border:2px solid var(--line);color:var(--sub);font-weight:600;font-size:15px}
-  .hidden{display:none}
+  .hidden{display:none !important}
+  #cardModal{position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
   .qnum{color:var(--teal);font-weight:800;font-size:14px;letter-spacing:.1em}
   .qtitle{font-size:20px;font-weight:800;margin:6px 0 4px}
@@ -155,7 +156,7 @@
   動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank">オガトレ</a>」チャンネルで再生されます
 </div>
 
-<div id="cardModal" class="hidden" style="position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px">
+<div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
   <div style="background:var(--card);border-radius:24px;padding:18px;max-width:420px;width:100%">
     <div style="font-size:15px;font-weight:800;text-align:center;margin-bottom:10px">🖼 きょうの記録カード</div>
     <img id="cardImg" alt="記録カード" style="width:100%;border-radius:16px;border:1.5px solid var(--line)">
