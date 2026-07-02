@@ -28,7 +28,7 @@
   .btn-ghost{background:var(--teal-soft);color:#177065}
   .btn-line{background:none;border:2px solid var(--line);color:var(--sub);font-weight:600;font-size:15px}
   .hidden{display:none !important}
-  #cardModal{position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+  #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
   .qnum{color:var(--teal);font-weight:800;font-size:14px;letter-spacing:.1em}
   .qtitle{font-size:20px;font-weight:800;margin:6px 0 4px}
@@ -159,8 +159,8 @@
 <div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
   <div style="background:var(--card);border-radius:24px;padding:18px;max-width:420px;width:100%">
     <div style="font-size:15px;font-weight:800;text-align:center;margin-bottom:10px">🖼 きょうの記録カード</div>
-    <img id="cardImg" alt="記録カード" style="width:100%;border-radius:16px;border:1.5px solid var(--line)">
-    <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 10px">画像を長押しでも保存できます</div>
+    <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 10px">保存は下のボタンがいちばん確実（長押し→「写真に追加」でもOK）</div>
     <button class="btn btn-primary" style="font-size:16px;margin-bottom:8px" onclick="shareCard()">共有して写真に保存</button>
     <button class="btn btn-line" onclick="closeCard()">とじる</button>
   </div>
@@ -468,11 +468,9 @@ function drawCard(){
   ctx.font="700 30px "+F; ctx.fillStyle="#B4462F";
   ctx.fillText("YouTube オガトレ と一緒に、きょうもご自愛",500,938);
   // プレビュー表示
-  c.toBlob(blob=>{
-    lastBlob=blob;
-    document.getElementById("cardImg").src=URL.createObjectURL(blob);
-    document.getElementById("cardModal").classList.remove("hidden");
-  },"image/png");
+  document.getElementById("cardImg").src=c.toDataURL("image/png");
+  document.getElementById("cardModal").classList.remove("hidden");
+  c.toBlob(blob=>{ lastBlob=blob; },"image/png");
 }
 async function shareCard(){
   if(!lastBlob) return;
