@@ -33,9 +33,10 @@
   .qtitle{font-size:20px;font-weight:800;margin:6px 0 4px}
   .qnote{color:var(--sub);font-size:14px;margin-bottom:14px}
   .opt{display:block;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;
-    padding:14px 16px;margin-bottom:10px;font-size:16.5px;font-family:inherit;text-align:left;cursor:pointer;font-weight:600}
+    padding:12px 16px;margin-bottom:10px;font-size:16.5px;font-family:inherit;text-align:left;cursor:pointer;font-weight:600}
   .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}
   .opt .emo{margin-right:8px}
+  .opt .crit{display:block;font-size:12px;color:var(--sub);font-weight:500;margin-top:2px;padding-left:2px;line-height:1.5}
   .dots{display:flex;gap:6px;justify-content:center;margin:14px 0 2px}
   .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
   .dot.on{background:var(--teal)}
@@ -44,6 +45,8 @@
   .type-name{font-size:26px;font-weight:900;text-align:center;letter-spacing:.02em}
   .type-copy{text-align:center;color:var(--sub);font-size:15px;margin:8px 0 2px}
   .type-hope{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;margin-top:12px}
+  .pt-note{background:var(--teal-soft);border-radius:14px;padding:12px 14px;font-size:14px;margin-top:10px;line-height:1.75}
+  .pt-note b{color:#177065}
   .rx-head{font-size:15px;font-weight:800;color:#177065;margin:4px 0 10px}
   .video{display:flex;gap:12px;align-items:center;background:var(--card);border:1.5px solid var(--line);
     border-radius:16px;padding:10px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
@@ -52,6 +55,7 @@
   .video .vs{font-size:12px;color:var(--sub);margin-top:2px}
   .badge{display:inline-block;background:var(--coral-soft);color:#B4462F;font-size:11.5px;
     font-weight:800;border-radius:8px;padding:1px 8px;margin-bottom:4px}
+  .rotate-note{font-size:12px;color:var(--sub);text-align:center;margin-top:4px}
   /* きょうの1本 */
   .seg{display:flex;background:var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
   .seg button{flex:1;border:none;border-radius:11px;padding:9px;font-size:15px;font-weight:800;
@@ -106,6 +110,10 @@
       </div>
     </div>
     <div id="cheer" style="text-align:center;font-size:14px;margin-top:10px;color:var(--sub)"></div>
+    <button class="btn btn-ghost" style="margin-top:12px;font-size:15px" onclick="makeCard()">🖼 記録カードを画像でのこす</button>
+    <div style="font-size:11.5px;color:var(--sub);text-align:center;margin-top:8px">
+      記録はこの端末の中だけに保存されます。<br>ホーム画面に追加しておくと消えにくく、画像保存が確実なバックアップになります。
+    </div>
   </div>
 </section>
 
@@ -129,12 +137,14 @@
     <div class="type-name" id="rName"></div>
     <div class="type-copy" id="rCopy"></div>
     <div class="type-hope" id="rHope"></div>
+    <div class="pt-note" id="rPT"></div>
   </div>
   <div class="card">
     <div class="rx-head" id="rxHead"></div>
     <div id="rxList"></div>
     <div id="worryExtra"></div>
-    <div style="font-size:13px;color:var(--sub);margin-top:6px">💡 まずは2週間、この順番で。1日1本でOK。痛みは「イタ気持ちいい」までにしてね。</div>
+    <div class="rotate-note">🔄 2本目・3本目は3日ごとに自動で入れ替わります</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px">💡 まずは2週間、1日1本でOK。痛みは「イタ気持ちいい」までにしてね。</div>
   </div>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ →</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回診断する</button>
@@ -145,10 +155,13 @@
   動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank">オガトレ</a>」チャンネルで再生されます
 </div>
 
+<canvas id="cardCanvas" width="1000" height="1000" style="display:none"></canvas>
+
 <script>
-// ================= データ =================
+// ================= 動画データ（ogatore.db 由来の実ID） =================
 const V = {
   momo7:   {id:"CyWthETY73s", t:"もも裏が『超』硬い人向け 7分", s:"座り姿勢改善・腰痛ひざ痛にも"},
+  momoKai: {id:"3_z8R2l4CKE", t:"もも裏・解説ver.", s:"なぜ硬いかが分かると効きが変わる"},
   kaikyaku:{id:"Re5FPU5_37g", t:"開脚できるようになるストレッチ", s:"2週間で開脚ベターっ・2851万回再生"},
   asa10:   {id:"2EfFlQev4rg", t:"朝専用・極上10分ストレッチ", s:"疲れないカラダを作る定番"},
   koka9:   {id:"-Y5bOC_ecB0", t:"股関節が『超』硬い人向け 毎日9分", s:"875万回再生のルーティン定番"},
@@ -158,8 +171,10 @@ const V = {
   asa5:    {id:"VTMYfFnkHh4", t:"朝専用5分・肩甲骨ほぐし", s:"忙しい朝はこれだけでOK"},
   ashi1:   {id:"6U4fgJu0ZMw", t:"足首が『超』硬い人向け", s:"引っ張ってつまむだけ簡単"},
   ashi2:   {id:"86u3S-epkRg", t:"足首『超超』硬い人向け", s:"足の裏までしっかりほぐす"},
+  ashi10:  {id:"t3C-N5_828k", t:"足首・10分一緒にストレッチ", s:"画面を観ながらじっくり"},
   fukura5: {id:"gdvjMR61Z4k", t:"ふくらはぎスッキリ 毎日5分", s:"疲労回復・むくみ解消"},
   honki9:  {id:"q8jr0KhoML4", t:"ガチガチな体が生まれ変わる本気の9分", s:"2026年版・全身リセット"},
+  yaruki22:{id:"oV0Rqt76bhM", t:"やる気がある時専用・全身22分", s:"徹底的にほぐす本気ルーティン"},
   yoru9umi:{id:"NrJIhK_gOXc", t:"夜専用・極上9分 in水族館", s:"一日の疲れを消し去る"},
   yoru9ice:{id:"_2g_qWssAEI", t:"夜専用・極上9分 in氷の水族館", s:"気仙沼の絶景でリラックス"},
   asa9shi: {id:"H9ctJbhTR0Y", t:"朝専用・極上9分 in四国水族館", s:"最高の朝をつくる"},
@@ -170,44 +185,72 @@ const V = {
   nagomi7: {id:"aIIU5R2l-kQ", t:"座ったまま7分・和みストレッチ", s:"股関節・背骨・肩甲骨がととのう"},
 };
 
+// ================= 診断（選択肢に理学療法士の目安つき） =================
 const QUESTIONS = [
   {k:"momo", title:"立って前屈。手はどこまでいく？", note:"ひざを曲げずに、ゆっくり倒れてみて",
-   opts:[["🙆","床にペタッとつく",0],["👌","つま先にさわれる",1],["🫠","すねの途中まで",2],["🪵","ひざから下に行かない",3]]},
-  {k:"koka", title:"あぐらで座ると、ひざは？", note:"床に座って、足の裏を合わせてみて",
-   opts:[["🧘","床にペタッと近い",0],["🙂","ちょっと浮く",1],["⛰️","山みたいに浮く",2],["🚨","そもそもあぐらがつらい",3]]},
-  {k:"kenko",title:"背中で両手、つなげる？", note:"片手は上から、片手は下から",
-   opts:[["🤝","左右どちらもつなげる",0],["✋","片側だけつなげる",1],["😅","指先がかすめる程度",2],["🧱","まったく届く気がしない",3]]},
-  {k:"ashi", title:"かかとを付けたまま、しゃがめる?", note:"和式トイレのポーズ。無理はしないでね",
-   opts:[["🐸","余裕でしゃがめる",0],["🫨","しゃがめるけど、ぐらぐら",1],["🐧","かかとが浮いちゃう",2],["🎳","後ろにコロンと転がる",3]]},
+   opts:[
+    ["🙆","床にペタッとつく","手のひら全体が床につく（指床間距離 0cm以下）",0],
+    ["👌","つま先にさわれる","指先が足先〜床すれすれ（目安 0〜10cm）",1],
+    ["🫠","すねの途中まで","指先がすねの中ほどで止まる（目安 10〜25cm）",2],
+    ["🪵","ひざから下に行かない","指先がひざ上で止まる（目安 25cm以上）",3]]},
+  {k:"koka", title:"あぐらで座ると、ひざは？", note:"床に座って、足の裏どうしを合わせてみて",
+   opts:[
+    ["🧘","床にペタッと近い","ひざと床のすき間が こぶし1個未満",0],
+    ["🙂","ちょっと浮く","すき間 こぶし1〜2個ぶん",1],
+    ["⛰️","山みたいに浮く","すき間 こぶし3個以上",2],
+    ["🚨","そもそもあぐらがつらい","骨盤が立たず、体が後ろに倒れてしまう",3]]},
+  {k:"kenko",title:"背中で両手、つなげる？", note:"片手は上から、片手は下から背中へ",
+   opts:[
+    ["🤝","左右どちらもつなげる","上下を入れ替えても指が組める",0],
+    ["✋","片側だけつなげる","得意な側だけ指先が届く",1],
+    ["😅","指先がかすめる程度","指先どうしの距離が 5cm以内",2],
+    ["🧱","まったく届く気がしない","指先どうしの距離が 10cm以上",3]]},
+  {k:"ashi", title:"かかとを付けたまま、しゃがめる？", note:"和式トイレのポーズ。無理はしないでね",
+   opts:[
+    ["🐸","余裕でしゃがめる","かかとを付けたまま深くしゃがみ、保持できる",0],
+    ["🫨","しゃがめるけど、ぐらぐら","しゃがめるが姿勢を保てない",1],
+    ["🐧","かかとが浮いちゃう","足首の曲がり（背屈）が足りないサイン",2],
+    ["🎳","後ろにコロンと転がる","足首＋股関節の複合的な硬さのサイン",3]]},
   {k:"worry",title:"いちばんの悩みは？", note:"処方箋の仕上げに使います",
-   opts:[["🪨","肩こり・首こり","katakori"],["⚡","腰痛","yotsu"],["😴","疲れ・眠りの浅さ","tsukare"],["🤸","とにかく柔らかくなりたい","yawaraka"]]},
+   opts:[
+    ["🪨","肩こり・首こり","デスクワーク・スマホ首のお供に","katakori"],
+    ["⚡","腰痛","骨盤まわりからケアします","yotsu"],
+    ["😴","疲れ・眠りの浅さ","自律神経をととのえます","tsukare"],
+    ["🤸","とにかく柔らかくなりたい","王道の柔軟コースへ","yawaraka"]]},
 ];
 
+// ================= タイプ（解説つき・処方はローテーション制） =================
 const TYPES = {
   momo: {emo:"🪵", name:"立派な一枚板", area:"もも裏",
     copy:"前屈すると、つま先がとても遠い。それはあなたの脚が長い…わけではなく、もも裏が固まっているサイン。",
     hope:"でも一枚板は、磨けば必ずしなります。もも裏は変化が出やすい場所。2週間後の前屈で、床が近くなってるはず。",
-    rx:["momo7","kaikyaku","asa10"]},
+    pt:"<b>解説:</b> 硬いのは<b>ハムストリングス（もも裏の筋肉）</b>。ここが硬いと骨盤が後ろに倒れたまま固定され、前屈で腰だけが無理に曲がります。放っておくと<b>腰痛や座り姿勢の悪化</b>につながる場所。逆に言えば、もも裏をゆるめるだけで前屈も腰もラクになります。",
+    rx:["momo7"], pool:["kaikyaku","momoKai","asa10","yotsu12","nagomi7"]},
   koka: {emo:"🚪", name:"開かずのとびら", area:"股関節",
     copy:"あぐらでひざが山になるのは、股関節のとびらが閉まっているから。正座の国の住人にありがちです。",
     hope:"とびらは、毎日すこしずつ油をさせば開きます。股関節は9分の習慣がいちばん効く場所。あせらずコツコツ。",
-    rx:["koka9","kominka","kaikyaku"]},
+    pt:"<b>解説:</b> 硬いのは<b>内もも（内転筋）とお尻（大臀筋・梨状筋）</b>。股関節を外に開く動きが制限されて、あぐら・開脚が苦手になります。股関節は体の土台なので、ここが動くと<b>歩く・座る・立つ全部がラクに</b>。腰への負担も減ります。",
+    rx:["koka9"], pool:["kominka","kaikyaku","nagomi7","ashisuki","yotsu12"]},
   kenko:{emo:"🪽", name:"羽根おやすみ中", area:"肩甲骨",
     copy:"背中で手がつながらないのは、肩甲骨まわりの羽根がすっかり冬眠しているから。デスクワークの勲章です。",
     hope:"羽根は、動かせば必ず目を覚まします。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。",
-    rx:["kenko12","yoru15","asa5"]},
+    pt:"<b>解説:</b> 硬いのは<b>肩甲骨まわり（僧帽筋・広背筋・大胸筋など）</b>。肩甲骨の動きが小さくなると、首と肩の筋肉が代わりに働き続けて<b>肩こり・巻き肩・浅い呼吸</b>の原因に。肩甲骨を動かす習慣がつくと、背中が軽くなって姿勢も変わります。",
+    rx:["kenko12"], pool:["yoru15","asa5","katakori","nagomi7"]},
   ashi: {emo:"🐧", name:"棒立ちペンギン", area:"足首",
     copy:"しゃがむと後ろにコロン。それは足首がカチッと固まっている証拠。ペンギンは可愛いけど、転ぶと痛い。",
     hope:"足首がゆるむと、歩くのも立つのも軽くなります。つまむだけの簡単ストレッチから始めましょう。",
-    rx:["ashi1","ashi2","fukura5"]},
+    pt:"<b>解説:</b> 硬いのは<b>足首の背屈（すねに向けて曲げる動き）＝ふくらはぎ・アキレス腱まわり</b>。ここが硬いと、しゃがむ動作でかかとが浮き、<b>つまずき・むくみ・ふくらはぎの張り</b>につながります。足首は毎日使う関節なので、ゆるめた効果を実感しやすい場所です。",
+    rx:["ashi1"], pool:["ashi2","fukura5","ashi10","ashisuki"]},
   robot:{emo:"🤖", name:"休日のロボット", area:"全身",
     copy:"全体的に、カタい。でも言いかえれば、どこを伸ばしても効く「伸びしろの宝庫」ということ。",
     hope:"ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、体は必ず応えてくれます。",
-    rx:["honki9","asa10","yoru9umi"]},
-  yawara:{emo:"🌷", name:"のびしろ満点さん", area:"メンテナンス",
-    copy:"おっと、けっこう柔らかい！ここから先は「かたくならない体」を守るメンテナンスの時間です。",
+    pt:"<b>解説:</b> 特定の場所というより<b>全身が複合的に硬い状態</b>。この場合は部位を絞るより、全身をまんべんなく動かすルーティンで底上げするのが近道です。<b>どこを伸ばしても効く＝変化を感じやすい</b>ので、実はいちばん楽しいスタート地点だったりします。",
+    rx:["honki9"], pool:["asa10","yoru9umi","yaruki22","nagomi7","yoru9ice"]},
+  yawara:{emo:"🦸", name:"柔らかいマン", area:"メンテナンス",
+    copy:"おっと、けっこう柔らかい！あなたはもう「柔らかいマン」。ここから先は、その柔らかさを守るステージです。",
     hope:"柔らかさは資産。朝と夜の習慣で守っていきましょう。悩みに合わせた1本もどうぞ。",
-    rx:["asa10","yoru9umi","nagomi7"]},
+    pt:"<b>解説:</b> 関節の可動域は良好です。次の課題は<b>「維持」と「使い方」</b>。柔らかくても、支える筋力や毎日の習慣が崩れると体は硬さに戻ります。朝晩の軽いルーティンで可動域を守りつつ、悩みのある部位を先回りでケアしましょう。",
+    rx:[], pool:["asa10","yoru9umi","nagomi7","asa9shi","jiritsu10","honki9"]},
 };
 
 const WORRY = {
@@ -241,8 +284,8 @@ function renderQ(){
   const box = document.getElementById("opts"); box.innerHTML="";
   q.opts.forEach(o=>{
     const b=document.createElement("button"); b.className="opt";
-    b.innerHTML=`<span class="emo">${o[0]}</span>${o[1]}`;
-    b.onclick=()=>answer(q.k,o[2]); box.appendChild(b);
+    b.innerHTML=`<span class="emo">${o[0]}</span>${o[1]}<span class="crit">${o[2]}</span>`;
+    b.onclick=()=>answer(q.k,o[3]); box.appendChild(b);
   });
   const dots=document.getElementById("dots"); dots.innerHTML="";
   QUESTIONS.forEach((_,i)=>{const d=document.createElement("div");d.className="dot"+(i<=state.qi?" on":"");dots.appendChild(d)});
@@ -267,10 +310,22 @@ function finishQuiz(){
   store.set("type", state.type);
   showResult(state.type);
 }
+
+// ---- 処方のローテーション（3日ごとに2・3本目が入れ替わる） ----
+function rotationIndex(){ return Math.floor(Date.now()/86400000/3); }
+function currentRx(typeKey){
+  const T=TYPES[typeKey];
+  const need=3-T.rx.length;
+  const r=rotationIndex();
+  const picks=[];
+  for(let i=0;i<need;i++) picks.push(T.pool[(r+i)%T.pool.length]);
+  return T.rx.concat(picks);
+}
+
 function videoCard(vk, badge){
   const v=V[vk];
   return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" target="_blank">
-    <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="">
+    <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
     <div>${badge?`<span class="badge">${badge}</span><br>`:""}<span class="vt">${v.t}</span><div class="vs">${v.s}</div></div></a>`;
 }
 function showResult(saved){
@@ -279,18 +334,19 @@ function showResult(saved){
   document.getElementById("rName").textContent=T.name;
   document.getElementById("rCopy").textContent=T.copy;
   document.getElementById("rHope").textContent="🌱 "+T.hope;
+  document.getElementById("rPT").innerHTML="📋 <b>理学療法士のひとくち解説</b><br>"+T.pt;
   document.getElementById("rxHead").textContent=`💊 処方箋: まず「${T.area}」から。この3本を2週間`;
-  const list=document.getElementById("rxList");
-  list.innerHTML = T.rx.map((vk,i)=>videoCard(vk, ["1本目","2本目","3本目"][i])).join("");
+  const rx=currentRx(saved.key);
+  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, ["1本目","2本目","3本目"][i])).join("");
   const w=WORRY[saved.worry];
-  document.getElementById("worryExtra").innerHTML = (w&&w.v&&!T.rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
+  document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
   show("result");
 }
 
 // ---- きょうの1本 ----
 function autoMode(){ const h=new Date().getHours(); return (h>=4&&h<15)?"asa":"yoru"; }
 function setMode(m){ state.mode=m; store.set("mode_manual",{m,d:todayStr()}); renderToday(); }
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function dayIndex(){ const d=new Date(); return Math.floor((d - new Date(d.getFullYear(),0,0))/86400000); }
 function renderToday(){
   const manual=store.get("mode_manual",null);
@@ -304,26 +360,83 @@ function renderToday(){
   document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる");
 }
 
-// ---- 継続カウンター ----
+// ---- 継続カウンター（日付リストで頑丈に保存） ----
+function getStreakData(){
+  let st=store.get("streak2",null);
+  if(!st){
+    const old=store.get("streak",null);
+    st = old ? {dates: old.last?[old.last]:[], count:old.count||0, total:old.total||0} : {dates:[],count:0,total:0};
+  }
+  return st;
+}
 function renderStreak(){
-  const st=store.get("streak",{count:0,last:null,total:0});
+  const st=getStreakData();
   document.getElementById("streakNum").textContent=st.count;
   document.getElementById("totalDays").textContent = st.total>0?`これまで合計 ${st.total}日`:"";
-  const did = st.last===todayStr();
+  const did = st.dates.includes(todayStr());
   const btn=document.getElementById("doneBtn");
   btn.textContent = did?"きょうはやった！えらい！":"きょうやった！";
   btn.classList.toggle("did",did);
   btn.disabled=did;
 }
 function markDone(){
-  const st=store.get("streak",{count:0,last:null,total:0});
-  if(st.last===todayStr()) return;
-  const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
-  st.count = (st.last===y)?st.count+1:1;
-  st.total=(st.total||0)+1; st.last=todayStr();
-  store.set("streak",st); renderStreak();
-  const cheers=["🎉 ナイスご自愛！","💪 その30秒が体を変える！","🌱 続けてるの、ほんとにえらい","🔥 きょうも勝ち！","🧘 体は正直。ちゃんと応えてくれます"];
+  const st=getStreakData();
+  const today=todayStr();
+  if(st.dates.includes(today)) return;
+  const y=new Date(Date.now()-86400000);
+  const yesterday=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,"0")}-${String(y.getDate()).padStart(2,"0")}`;
+  st.count = st.dates.includes(yesterday) ? st.count+1 : 1;
+  st.total=(st.total||0)+1;
+  st.dates.push(today);
+  if(st.dates.length>800) st.dates=st.dates.slice(-800);
+  store.set("streak2",st); renderStreak();
+  const cheers=["🎉 ナイスご自愛！","💪 その数分が体を変える！","🌱 続けてるの、ほんとにえらい","🔥 きょうも勝ち！","🧘 体は正直。ちゃんと応えてくれます"];
   document.getElementById("cheer").textContent = cheers[Math.floor(Math.random()*cheers.length)];
+}
+
+// ---- 記録カード（画像書き出し） ----
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function makeCard(){
+  const st=getStreakData();
+  const T = state.type ? TYPES[state.type.key] : null;
+  const c=document.getElementById("cardCanvas"), ctx=c.getContext("2d");
+  // 背景
+  const g=ctx.createLinearGradient(0,0,1000,1000);
+  g.addColorStop(0,"#FFF8E1"); g.addColorStop(1,"#FFE9E0");
+  ctx.fillStyle=g; ctx.fillRect(0,0,1000,1000);
+  // かざり玉
+  const dots=[["#FFD93B",120,140,26],["#2BB3A3",880,110,18],["#FF8A70",850,860,24],["#FFD93B",130,880,16],["#2BB3A3",90,520,12],["#FF8A70",930,470,14]];
+  dots.forEach(d=>{ctx.fillStyle=d[0];ctx.beginPath();ctx.arc(d[1],d[2],d[3],0,7);ctx.fill()});
+  // 白カード
+  ctx.fillStyle="rgba(255,255,255,.92)"; roundRect(ctx,90,180,820,640,48); ctx.fill();
+  const F='"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN",sans-serif';
+  ctx.textAlign="center"; ctx.fillStyle="#8A877D";
+  ctx.font="700 34px "+F; ctx.fillText("きょうのオガトレ 記録カード",500,270);
+  // 日数
+  ctx.fillStyle="#2BB3A3"; ctx.font="900 200px "+F;
+  ctx.fillText(String(st.count),500,520);
+  ctx.fillStyle="#3A3A35"; ctx.font="800 52px "+F;
+  ctx.fillText("日 つづいた！",500,600);
+  ctx.fillStyle="#8A877D"; ctx.font="600 34px "+F;
+  ctx.fillText(`これまで合計 ${st.total}日`,500,668);
+  // タイプ
+  if(T){ ctx.font="700 40px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`${T.emo} ${T.name} として修行中`,500,760); }
+  // 日付・クレジット
+  ctx.fillStyle="#8A877D"; ctx.font="600 30px "+F;
+  const d=new Date();
+  ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,500,880);
+  ctx.font="700 30px "+F; ctx.fillStyle="#B4462F";
+  ctx.fillText("YouTube オガトレ と一緒に、きょうもご自愛",500,940);
+  // 出力
+  c.toBlob(async blob=>{
+    const file=new File([blob],`kyono-ogatore-${todayStr()}.png`,{type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:"きょうのオガトレ 記録カード"}); return; }catch(e){}
+    }
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=file.name; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  },"image/png");
 }
 
 // ---- ホーム描画 ----
