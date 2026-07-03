@@ -22,7 +22,7 @@
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-weight:700;
     background:var(--bg);color:var(--ink);font-size:18px;line-height:1.75;
-    max-width:480px;margin:0 auto;padding:20px 18px 60px;min-height:100vh}
+    max-width:480px;margin:0 auto;padding:20px 18px 120px;min-height:100vh}
   h1{font-size:24px;letter-spacing:.02em;font-weight:900}
   .logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
   .logo img{width:52px;height:52px;object-fit:contain}
@@ -86,6 +86,45 @@
   .hint{font-size:11.5px;color:var(--sub);text-align:center;margin-top:8px}
   .foot{text-align:center;color:var(--sub);font-size:12.5px;margin-top:26px;line-height:2}
   .foot a{color:var(--teal)}
+  /* タブバー */
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1.5px solid var(--line);
+    display:flex;z-index:40;padding:6px 4px calc(8px + env(safe-area-inset-bottom))}
+  .tabbar button{flex:1;border:none;background:none;font-family:inherit;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:800;color:#B9B4A6;padding:4px 0}
+  .tabbar button svg{width:24px;height:24px}
+  .tabbar button .ic-fill{fill:#EAE4D3}
+  .tabbar button.on{color:var(--ink)}
+  .tabbar button.on .ic-fill{fill:var(--yellow)}
+  /* きろく */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .cal-head button{border:none;background:var(--line);border-radius:10px;width:36px;height:36px;font-size:17px;font-weight:900;color:var(--ink);cursor:pointer;font-family:inherit}
+  .cal-title{font-size:16.5px;font-weight:900}
+  .cal{width:100%;border-collapse:collapse;table-layout:fixed}
+  .cal th{font-size:11.5px;color:var(--sub);padding:4px 0;font-weight:800}
+  .cal td{text-align:center;padding:3px 0}
+  .cal .d{width:36px;height:36px;line-height:36px;border-radius:50%;display:inline-block;font-size:14px;font-weight:800}
+  .cal .d.done{background:var(--teal);color:#fff}
+  .cal .d.today{box-shadow:inset 0 0 0 2.5px var(--pink)}
+  .cal .d.mute{color:#D5CFBE}
+  .bar{background:var(--line);border-radius:99px;height:14px;overflow:hidden;margin-top:8px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--teal),#7BD0C4);border-radius:99px;transition:width .4s}
+  /* 再生リスト */
+  .pl{display:flex;gap:12px;align-items:center;background:var(--card);border:1.5px solid var(--line);
+    border-radius:16px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
+  .pl svg{width:34px;height:34px;flex-shrink:0}
+  .pl .pt{font-size:15px;font-weight:800;line-height:1.45}
+  .pl .ps{font-size:12.5px;color:var(--sub)}
+  .group-label{font-size:13.5px;font-weight:900;color:var(--sub);margin:16px 2px 8px}
+  .group-label:first-child{margin-top:0}
+  /* さがす */
+  .searchbox{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:12px}
+  .searchbox svg{width:20px;height:20px;flex-shrink:0}
+  .searchbox input{border:none;outline:none;flex:1;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;min-width:0}
+  .searchbox input::placeholder{color:#C9C3B2;font-size:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:5px 14px;font-size:13.5px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
+  .chip.on{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
   section{animation:fade .25s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
@@ -170,10 +209,62 @@
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回診断する</button>
 </section>
 
+<!-- ===== きろく ===== -->
+<section id="history" class="hidden">
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>つづけた記録</div>
+    <div style="display:flex;gap:20px;align-items:flex-end">
+      <div><div class="lbl" style="font-size:13px;color:var(--sub)">連続</div><span class="num" style="font-size:36px;font-weight:900;color:var(--pink)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
+      <div><div class="lbl" style="font-size:13px;color:var(--sub)">合計</div><span style="font-size:36px;font-weight:900;color:var(--teal)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
+    </div>
+    <div id="msNote" style="font-size:14px;margin-top:12px"></div>
+    <div class="bar"><div id="msBar" style="width:0%"></div></div>
+  </div>
+  <div class="card">
+    <div class="cal-head">
+      <button onclick="calMove(-1)">‹</button>
+      <div class="cal-title" id="calTitle"></div>
+      <button onclick="calMove(1)">›</button>
+    </div>
+    <table class="cal">
+      <thead><tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr></thead>
+      <tbody id="calBody"></tbody>
+    </table>
+    <div class="hint">ホームで「きょうやった！」を押した日に印がつきます</div>
+  </div>
+</section>
+
+<!-- ===== 再生リスト ===== -->
+<section id="playlists" class="hidden">
+  <div id="plList"></div>
+  <div class="hint">タップするとYouTubeの再生リストが開きます。連続再生はテレビで流すのもおすすめ📺</div>
+</section>
+
+<!-- ===== さがす ===== -->
+<section id="search" class="hidden">
+  <div class="searchbox">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#B9B4A6" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>
+    <input id="q" placeholder="キーワードで探す（例: 肩こり／朝／むくみ）" oninput="renderSearch()">
+  </div>
+  <div class="chips" id="chips"></div>
+  <div id="vlist"></div>
+  <div class="card" id="reqBox" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
+    <div style="font-size:14.5px;margin-bottom:12px" id="reqMsg">やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮</div>
+    <a class="btn btn-ghost" id="reqBtn" style="font-size:15px" href="#">このキーワードでリクエストする</a>
+  </div>
+</section>
+
 <div class="foot">
   きょうのオガトレ（プロトタイプ）<br>
   動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank">オガトレ</a>」チャンネルで再生されます
 </div>
+
+<nav class="tabbar">
+  <button id="tab-home" class="on" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path class="ic-fill" d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20z"/><path d="M9.5 21v-6h5v6" stroke-linecap="round"/></svg>ホーム</button>
+  <button id="tab-history" onclick="switchTab('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5"/></svg>きろく</button>
+  <button id="tab-playlists" onclick="switchTab('playlists')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="7" width="14" height="13" rx="3"/><path d="M6.5 4.5h11M8.5 12v5l4-2.5z"/></svg>リスト</button>
+  <button id="tab-search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle class="ic-fill" cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>さがす</button>
+</nav>
 
 <div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
   <div style="background:var(--card);border-radius:24px;padding:18px;max-width:420px;width:100%">
@@ -204,29 +295,29 @@ const ICON_PT = `<svg viewBox="0 0 24 24" fill="none" stroke="#177065" stroke-wi
 
 // ================= 動画データ（ogatore.db 由来の実ID） =================
 const V = {
-  momo7:   {id:"CyWthETY73s", t:"もも裏が『超』硬い人向け 7分", s:"座り姿勢改善・腰痛ひざ痛にも"},
-  momoKai: {id:"3_z8R2l4CKE", t:"もも裏・解説ver.", s:"なぜ硬いかが分かると効きが変わる"},
-  kaikyaku:{id:"Re5FPU5_37g", t:"開脚できるようになるストレッチ", s:"2週間で開脚ベターっ・2851万回再生"},
-  asa10:   {id:"2EfFlQev4rg", t:"朝専用・極上10分ストレッチ", s:"疲れないカラダを作る定番"},
-  koka9:   {id:"-Y5bOC_ecB0", t:"股関節が『超』硬い人向け 毎日9分", s:"875万回再生のルーティン定番"},
-  kominka: {id:"LMz4DV66bV8", t:"股関節 毎日9分・古民家ver.", s:"ガチガチでも柔らかくなる"},
-  kenko12: {id:"ZYTlwh_FhoU", t:"肩甲骨・基本版12分", s:"2300万回再生の看板ストレッチ"},
-  yoru15:  {id:"HCVb47eWgqA", t:"夜専用15分・肩甲骨をゆるめる", s:"2300万回再生の新作"},
-  asa5:    {id:"VTMYfFnkHh4", t:"朝専用5分・肩甲骨ほぐし", s:"忙しい朝はこれだけでOK"},
-  ashi1:   {id:"6U4fgJu0ZMw", t:"足首が『超』硬い人向け", s:"引っ張ってつまむだけ簡単"},
-  ashi2:   {id:"86u3S-epkRg", t:"足首『超超』硬い人向け", s:"足の裏までしっかりほぐす"},
-  ashi10:  {id:"t3C-N5_828k", t:"足首・10分一緒にストレッチ", s:"画面を観ながらじっくり"},
-  fukura5: {id:"gdvjMR61Z4k", t:"ふくらはぎスッキリ 毎日5分", s:"疲労回復・むくみ解消"},
-  honki9:  {id:"q8jr0KhoML4", t:"ガチガチな体が生まれ変わる本気の9分", s:"2026年版・全身リセット"},
-  yaruki22:{id:"oV0Rqt76bhM", t:"やる気がある時専用・全身22分", s:"徹底的にほぐす本気ルーティン"},
-  yoru9umi:{id:"NrJIhK_gOXc", t:"夜専用・極上9分 in水族館", s:"一日の疲れを消し去る"},
-  yoru9ice:{id:"_2g_qWssAEI", t:"夜専用・極上9分 in氷の水族館", s:"気仙沼の絶景でリラックス"},
-  asa9shi: {id:"H9ctJbhTR0Y", t:"朝専用・極上9分 in四国水族館", s:"最高の朝をつくる"},
-  jiritsu10:{id:"XkgsF39kkRw", t:"寝る前の自律神経調整10分", s:"頭痛・不眠・イライラ・むくみに"},
-  ashisuki:{id:"4SsJx5W8hNQ", t:"寝る前に足スッキリ9分", s:"むくみを流す下半身ストレッチ"},
-  katakori:{id:"7FY6SR6cyts", t:"ガチガチ肩こりは肩甲骨から治す 12分", s:"根本解消・理学療法士監修"},
-  yotsu12: {id:"vZ4LYE0Ahe8", t:"しぶとい腰痛をなくす 毎日12分", s:"骨盤から背骨までととのえる"},
-  nagomi7: {id:"aIIU5R2l-kQ", t:"座ったまま7分・和みストレッチ", s:"股関節・背骨・肩甲骨がととのう"},
+  momo7:   {id:"CyWthETY73s", t:"もも裏が『超』硬い人向け 7分", s:"座り姿勢改善・腰痛ひざ痛にも", tags:["もも裏","腰","10分以内"], kw:"前屈 ハムストリングス ももうら ぜんくつ"},
+  momoKai: {id:"3_z8R2l4CKE", t:"もも裏・解説ver.", s:"なぜ硬いかが分かると効きが変わる", tags:["もも裏"], kw:"解説 前屈 ぜんくつ"},
+  kaikyaku:{id:"Re5FPU5_37g", t:"開脚できるようになるストレッチ", s:"2週間で開脚ベターっ・2851万回再生", tags:["開脚","股関節"], kw:"かいきゃく べたー"},
+  asa10:   {id:"2EfFlQev4rg", t:"朝専用・極上10分ストレッチ", s:"疲れないカラダを作る定番", tags:["朝","全身","10分以内"], kw:"あさ 目覚め"},
+  koka9:   {id:"-Y5bOC_ecB0", t:"股関節が『超』硬い人向け 毎日9分", s:"875万回再生のルーティン定番", tags:["股関節","10分以内"], kw:"こかんせつ あぐら"},
+  kominka: {id:"LMz4DV66bV8", t:"股関節 毎日9分・古民家ver.", s:"ガチガチでも柔らかくなる", tags:["股関節","10分以内"], kw:"こかんせつ あぐら"},
+  kenko12: {id:"ZYTlwh_FhoU", t:"肩甲骨・基本版12分", s:"2300万回再生の看板ストレッチ", tags:["肩・肩甲骨"], kw:"けんこうこつ かたこり 猫背"},
+  yoru15:  {id:"HCVb47eWgqA", t:"夜専用15分・肩甲骨をゆるめる", s:"2300万回再生の新作", tags:["夜・寝る前","肩・肩甲骨"], kw:"けんこうこつ よる かたこり"},
+  asa5:    {id:"VTMYfFnkHh4", t:"朝専用5分・肩甲骨ほぐし", s:"忙しい朝はこれだけでOK", tags:["朝","肩・肩甲骨","10分以内"], kw:"けんこうこつ 時短 いそがしい"},
+  ashi1:   {id:"6U4fgJu0ZMw", t:"足首が『超』硬い人向け", s:"引っ張ってつまむだけ簡単", tags:["足首・ふくらはぎ","10分以内"], kw:"あしくび しゃがめない"},
+  ashi2:   {id:"86u3S-epkRg", t:"足首『超超』硬い人向け", s:"足の裏までしっかりほぐす", tags:["足首・ふくらはぎ"], kw:"あしくび 足裏 足底"},
+  ashi10:  {id:"t3C-N5_828k", t:"足首・10分一緒にストレッチ", s:"画面を観ながらじっくり", tags:["足首・ふくらはぎ","10分以内"], kw:"あしくび"},
+  fukura5: {id:"gdvjMR61Z4k", t:"ふくらはぎスッキリ 毎日5分", s:"疲労回復・むくみ解消", tags:["足首・ふくらはぎ","10分以内"], kw:"むくみ 疲労 脚やせ"},
+  honki9:  {id:"q8jr0KhoML4", t:"ガチガチな体が生まれ変わる本気の9分", s:"2026年版・全身リセット", tags:["全身","10分以内"], kw:"ぜんしん リセット"},
+  yaruki22:{id:"oV0Rqt76bhM", t:"やる気がある時専用・全身22分", s:"徹底的にほぐす本気ルーティン", tags:["全身"], kw:"ぜんしん じっくり ロング"},
+  yoru9umi:{id:"NrJIhK_gOXc", t:"夜専用・極上9分 in水族館", s:"一日の疲れを消し去る", tags:["夜・寝る前","全身","10分以内"], kw:"よる 疲れ 水族館 癒し"},
+  yoru9ice:{id:"_2g_qWssAEI", t:"夜専用・極上9分 in氷の水族館", s:"気仙沼の絶景でリラックス", tags:["夜・寝る前","全身","10分以内"], kw:"よる リラックス 癒し"},
+  asa9shi: {id:"H9ctJbhTR0Y", t:"朝専用・極上9分 in四国水族館", s:"最高の朝をつくる", tags:["朝","全身","10分以内"], kw:"あさ 癒し"},
+  jiritsu10:{id:"XkgsF39kkRw", t:"寝る前の自律神経調整10分", s:"頭痛・不眠・イライラ・むくみに", tags:["夜・寝る前","自律神経","10分以内"], kw:"眠れない 不眠 頭痛 快眠 ストレス"},
+  ashisuki:{id:"4SsJx5W8hNQ", t:"寝る前に足スッキリ9分", s:"むくみを流す下半身ストレッチ", tags:["夜・寝る前","足首・ふくらはぎ","10分以内"], kw:"むくみ 脚やせ 下半身"},
+  katakori:{id:"7FY6SR6cyts", t:"ガチガチ肩こりは肩甲骨から治す 12分", s:"根本解消・理学療法士監修", tags:["首・肩こり","肩・肩甲骨"], kw:"かたこり 首こり スマホ首"},
+  yotsu12: {id:"vZ4LYE0Ahe8", t:"しぶとい腰痛をなくす 毎日12分", s:"骨盤から背骨までととのえる", tags:["腰"], kw:"ようつう 骨盤 背骨"},
+  nagomi7: {id:"aIIU5R2l-kQ", t:"座ったまま7分・和みストレッチ", s:"股関節・背骨・肩甲骨がととのう", tags:["座ったまま","股関節","肩・肩甲骨","10分以内"], kw:"いす デスクワーク シニア"},
 };
 
 // ================= 診断（選択肢に理学療法士の目安つき） =================
@@ -315,7 +406,19 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-function show(id){ for(const s of ["home","quiz","result"]) document.getElementById(s).classList.toggle("hidden", s!==id); window.scrollTo(0,0); }
+const SECTIONS=["home","quiz","result","history","playlists","search"];
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search"};
+function show(id){
+  for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
+  for(const t of ["home","history","playlists","search"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
+  window.scrollTo(0,0);
+}
+function switchTab(t){
+  if(t==="home"){ goHome(); return; }
+  if(t==="history") renderHistory();
+  if(t==="search") renderSearch();
+  show(t);
+}
 function goHome(){ show("home"); renderHome(); }
 
 // ---- 診断 ----
@@ -581,7 +684,113 @@ function renderHome(){
     document.getElementById("lastTypeName").textContent = TYPES[state.type.key].name;
   }
 }
+
+// ================= きろく（カレンダー） =================
+let calDate=null;
+function renderHistory(){
+  const st=getStreakData();
+  document.getElementById("histStreak").textContent=st.count;
+  document.getElementById("histTotal").textContent=st.total;
+  const next=MILESTONES.find(m=>m>st.count);
+  if(next){
+    document.getElementById("msNote").innerHTML=`つぎの節目 <b style="color:var(--teal)">${next}日</b> まで、あと <b style="color:var(--pink)">${next-st.count}日</b>`;
+    document.getElementById("msBar").style.width=Math.min(100,Math.round(st.count/next*100))+"%";
+  }else{
+    document.getElementById("msNote").textContent="全部の節目を達成！すごすぎます";
+    document.getElementById("msBar").style.width="100%";
+  }
+  if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
+  renderCal();
+}
+function calMove(n){ calDate.setMonth(calDate.getMonth()+n); renderCal(); }
+function renderCal(){
+  const y=calDate.getFullYear(), m=calDate.getMonth();
+  document.getElementById("calTitle").textContent=`${y}年${m+1}月`;
+  const done=new Set(getStreakData().dates);
+  const today=todayStr();
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  let html="<tr>", cell=0;
+  for(let i=0;i<first;i++){ html+="<td></td>"; cell++; }
+  for(let d=1;d<=days;d++){
+    const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const cls=["d", done.has(ds)?"done":"", ds===today?"today":"", ds>today?"mute":""].join(" ");
+    html+=`<td><span class="${cls}">${d}</span></td>`;
+    if(++cell%7===0&&d<days) html+="</tr><tr>";
+  }
+  html+="</tr>";
+  document.getElementById("calBody").innerHTML=html;
+}
+
+// ================= 再生リスト =================
+const ICON_PL=`<svg viewBox="0 0 24 24" fill="none" stroke="#2BB3A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="13" rx="3" fill="#DFF5F2"/><path d="M6.5 4.5h11"/><path d="M8.5 12v5l4-2.5z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>`;
+const PLAYLISTS=[
+ {g:"連続再生（流しっぱなしでOK・テレビにも）", items:[
+  ["PLH9L1OmHFdn0","朝ストレッチ 連続30分","起きてすぐ全身がラクになる"],
+  ["PLR-edMOCBxCU","夜ストレッチ 連続30分","寝る前に一日の疲れをリセット"],
+  ["PLRMzTino89Do","座ったまま 連続20分","デスクワークの肩こり・腰痛に"],
+  ["PLP2Rn_9fit2w","全身 連続35分","ガチガチをじっくりほぐす"],
+  ["PLCedjuxOvo3U","股関節&開脚 連続30分","硬い人もやわらかくなる"],
+  ["PLU0WWzgSTv8I","腰痛解消 連続30分","骨盤・股関節から治す"],
+  ["PLSrJDB_YqUGY","肩こり解消 連続30分","肩甲骨から根本解消"],
+  ["PLCGGUq5s6fsk","自律神経ととのえ 連続30分","頭痛・不眠・快眠に"]]},
+ {g:"姿勢の悩みから探す", items:[
+  ["PLulTZBLbo7Ajl2zYMWNLdss2y-dNM89e2","反り腰をしっかり解消","まとめ・7本"],
+  ["PLulTZBLbo7AjTVW4Om1w0h6M519j39U8Z","猫背をしっかり解消","まとめ・3本"],
+  ["PLulTZBLbo7AivbuPAwkb5pavWkHB_ipO1","巻き肩をしっかり解消","まとめ・3本"],
+  ["PLulTZBLbo7Aiow918VD7SLHuillp8CwSd","スウェイバックをしっかり解消","まとめ・3本"],
+  ["PLulTZBLbo7AgZeU3lf1rhjVJtWHNbsyX0","しっかり「原因」解決ストレッチ","まとめ・7本"],
+  ["PLulTZBLbo7AgARmY-lbKKGo0jMWaQ7uBq","様々な症状撃退シリーズ","11本"]]},
+ {g:"シリーズで深掘り", items:[
+  ["PLulTZBLbo7Ag4nbI2bqoRKDbUTEB0mcHr","「開脚できる」シリーズ","3本"],
+  ["PLulTZBLbo7AgYjXzkaJZkFY_UY6649rAp","「肩甲骨」超硬い人向けシリーズ","4本"],
+  ["PLulTZBLbo7Agf_o6Ro3t98N6cRmcIoeXX","理学療法士による「解説」シリーズ","なぜ硬いかが分かる・8本"]]},
+];
+function renderPlaylists(){
+  document.getElementById("plList").innerHTML = PLAYLISTS.map(gr=>
+    `<div class="group-label">${gr.g}</div>`+
+    gr.items.map(p=>`<a class="pl" href="https://www.youtube.com/playlist?list=${p[0]}" target="_blank">${ICON_PL}<div><div class="pt">${p[1]}</div><div class="ps">${p[2]}</div></div></a>`).join("")
+  ).join("");
+}
+
+// ================= さがす =================
+const TAGS=["朝","夜・寝る前","全身","肩・肩甲骨","首・肩こり","股関節","開脚","もも裏","腰","足首・ふくらはぎ","座ったまま","自律神経","10分以内"];
+let activeTag=null;
+function buildChips(){
+  document.getElementById("chips").innerHTML = TAGS.map(t=>
+    `<button class="chip" id="chip-${t}" onclick="toggleChip('${t}')">${t}</button>`).join("");
+}
+function toggleChip(t){
+  activeTag = activeTag===t ? null : t;
+  TAGS.forEach(x=>document.getElementById("chip-"+x).classList.toggle("on", x===activeTag));
+  renderSearch();
+}
+function renderSearch(){
+  const q=(document.getElementById("q").value||"").trim().toLowerCase();
+  const hits=Object.keys(V).filter(k=>{
+    const v=V[k];
+    if(activeTag && !(v.tags||[]).includes(activeTag)) return false;
+    if(!q) return true;
+    const hay=(v.t+" "+v.s+" "+(v.tags||[]).join(" ")+" "+(v.kw||"")).toLowerCase();
+    return q.split(/\s+/).every(w=>hay.includes(w));
+  });
+  document.getElementById("vlist").innerHTML = hits.length
+    ? hits.map(k=>videoCard(k, (V[k].tags||[])[0])).join("")
+    : `<div class="card" style="text-align:center;color:var(--sub);font-size:14.5px">この条件のストレッチは、まだ無いみたい…</div>`;
+  const kwText=[q, activeTag].filter(Boolean).join(" ");
+  document.getElementById("reqMsg").innerHTML = hits.length
+    ? "やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮"
+    : "ごめんなさい、まだ無かった…！<br>リクエストを送ってもらえたら、動画づくりの参考にします📮";
+  const subject=encodeURIComponent("ストレッチのリクエスト（きょうのオガトレ）");
+  const body=encodeURIComponent(`こんなストレッチの動画が欲しいです：\n${kwText||"（ここに書いてください）"}\n\n--\nきょうのオガトレ「さがす」から送信`);
+  document.getElementById("reqBtn").href=`mailto:ogata@ogatore.jp?subject=${subject}&body=${body}`;
+  document.getElementById("reqBtn").textContent = kwText ? `「${kwText}」をリクエストする` : "リクエストを送る";
+}
+
 renderHome();
+renderPlaylists();
+buildChips();
+renderSearch();
 </script>
 </body>
 </html>
