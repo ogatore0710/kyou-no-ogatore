@@ -97,13 +97,13 @@
   <h1>きょうのオガトレ</h1>
   <span class="mark" id="logoMark"></span>
 </div>
-<div class="tagline">体が硬くても、だいじょうぶ。きょうの1本、ここにあります。</div>
+<div class="tagline">体がガチガチでも、だいじょうぶ！きょうの1本、一緒にやっていきましょう🙌</div>
 
 <!-- ===== ホーム ===== -->
 <section id="home">
   <div class="card" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさ診断</div>
-    <div style="font-size:14px;color:#6B6857;margin-bottom:14px">タップだけ・30秒。あなたの「かたさタイプ」と、まずやるべきストレッチがわかります。</div>
+    <div style="font-size:14px;color:#6B6857;margin-bottom:14px">タップだけ・30秒！あなたの「かたさタイプ」と、まずやるべきストレッチがわかります💡</div>
     <button class="btn btn-primary" onclick="startQuiz()">診断をはじめる</button>
     <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:13.5px">
       前回の結果: <a href="#" onclick="showResult(state.type);return false" style="color:#177065;font-weight:800" id="lastTypeName"></a>
@@ -164,7 +164,7 @@
     <div id="rxList"></div>
     <div id="worryExtra"></div>
     <div class="rotate-note">2本目・3本目は3日ごとに自動で入れ替わります</div>
-    <div style="font-size:13px;color:var(--sub);margin-top:6px">まずは2週間、1日1本でOK。痛みは「イタ気持ちいい」までにしてね。</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px">まずは2週間、1日1本でOK！痛みは「イタ気持ちいい」で止めましょう😌</div>
   </div>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回診断する</button>
@@ -377,9 +377,9 @@ function showResult(saved){
   document.getElementById("rIllust").innerHTML=TYPE_ART[saved.key];
   document.getElementById("rName").textContent=T.name;
   document.getElementById("rCopy").textContent=T.copy;
-  document.getElementById("rHope").textContent=T.hope;
+  document.getElementById("rHope").textContent="🌱 "+T.hope;
   document.getElementById("rPT").innerHTML=`<div class="pt-head">${ICON_PT}理学療法士のひとくち解説</div>`+T.pt;
-  document.getElementById("rxHead").innerHTML=`${ICON_RX}処方箋: まず「${T.area}」から。この3本を2週間`;
+  document.getElementById("rxHead").innerHTML=`${ICON_RX}処方箋: まずは「${T.area}」から！この3本を2週間`;
   const rx=currentRx(saved.key);
   document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, ["1本目","2本目","3本目"][i])).join("");
   const w=WORRY[saved.worry];
@@ -419,7 +419,7 @@ function renderStreak(){
   document.getElementById("totalDays").textContent = st.total>0?`これまで合計 ${st.total}日`:"";
   const did = st.dates.includes(todayStr());
   const btn=document.getElementById("doneBtn");
-  btn.textContent = did?"きょうはやった！えらい！":"きょうやった！";
+  btn.textContent = did?"きょうの分、完了！お疲れ様でした✨":"きょうやった！";
   btn.classList.toggle("did",did);
   btn.disabled=did;
 }
@@ -434,7 +434,7 @@ function markDone(){
   st.dates.push(today);
   if(st.dates.length>800) st.dates=st.dates.slice(-800);
   store.set("streak2",st); renderStreak();
-  const cheers=["ナイスご自愛！","その数分が体を変える！","続けてるの、ほんとにえらい","きょうも勝ち！","体は正直。ちゃんと応えてくれます"];
+  const cheers=["ナイスご自愛！🎉","その数分が、体を変えます💪","続けてるの、ほんとにすごい🌱","イタ気持ちいい、できました？😊","体は正直。ちゃんと応えてくれますよ！"];
   document.getElementById("cheer").textContent = cheers[Math.floor(Math.random()*cheers.length)];
 }
 
@@ -449,7 +449,7 @@ const CARD_THEMES = [
 const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
 const MILESTONES=[7,14,21,30,50,66,100,150,200,300,365,500,730,1000];
 
-const CHARA_FILES=["assets/chara.png","assets/chara-2.png","assets/chara-3.png"];
+const CHARA_FILES=["assets/chara-good.png","assets/chara-kaikyaku.png"];
 let charaImg=null, charaTried=false;
 function loadChara(cb){
   if(charaTried){cb();return}
@@ -532,29 +532,29 @@ function drawCard(){
   ctx.fillText("きょうのオガトレ",500,190);
   // 見出し
   ctx.fillStyle="#8A877D"; ctx.font="700 33px "+F;
-  if(milestone){ drawCrown(ctx,500,270,110,"#FFD700"); ctx.fillText("節目たっせい！おめでとう！",500,340); }
-  else ctx.fillText("記録カード",500,280);
-  // 日数
-  ctx.fillStyle=th.main; ctx.font="900 210px "+F;
-  ctx.fillText(String(st.count),500,milestone?560:540);
+  if(milestone){ drawCrown(ctx,500,258,100,"#FFD700"); ctx.fillText("節目たっせい！おめでとうございます！",500,330); }
+  else ctx.fillText("記録カード",500,278);
+  // 日数（文字はすべて上側ゾーンに集約）
+  ctx.fillStyle=th.main; ctx.font="900 205px "+F;
+  ctx.fillText(String(st.count),500,milestone?555:528);
   ctx.fillStyle="#3A3A35"; ctx.font="800 52px "+F;
-  ctx.fillText("日 つづいた！",500,milestone?630:615);
+  ctx.fillText("日 つづいた！",500,milestone?630:606);
   ctx.fillStyle="#8A877D"; ctx.font="700 33px "+F;
-  ctx.fillText(`これまで合計 ${st.total}日`,500,milestone?690:678);
-  if(T){ ctx.font="800 38px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`『${T.name}』として修行中`,500,milestone?752:748); }
-  // キャラ（表情は日替わり）
+  ctx.fillText(`これまで合計 ${st.total}日`,500,milestone?688:666);
+  if(T){ ctx.font="800 38px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`『${T.name}』として修行中`,500,milestone?742:730); }
+  // キャラ（グッド／開脚を1日交代・右下の専用ゾーンで文字と重ねない）
   if(charaImg){
-    const w=250, h=w*charaImg.height/charaImg.width;
-    ctx.drawImage(charaImg, 895-w, 828-h, w, h);
+    const w=milestone?215:255, h=w*charaImg.height/charaImg.width;
+    ctx.drawImage(charaImg, 965-w, 985-h, w, h);
   }
-  // 日付・フッター
-  ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F;
+  // 日付・フッター（左寄せでキャラと住み分け）
   const d=new Date();
   ctx.textAlign="left";
-  ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,120,905);
-  ctx.textAlign="center";
+  ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F;
+  ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,120,912);
   ctx.fillStyle=th.main; ctx.font="800 31px "+F;
-  ctx.fillText("YouTube オガトレ と、きょうもご自愛",500,955);
+  ctx.fillText("きょうもご自愛！ YouTube オガトレ",120,962);
+  ctx.textAlign="center";
   // プレビュー表示
   document.getElementById("cardImg").src=c.toDataURL("image/png");
   document.getElementById("cardModal").classList.remove("hidden");
