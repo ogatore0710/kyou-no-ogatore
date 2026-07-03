@@ -79,7 +79,7 @@
 </head>
 <body>
 
-<div class="logo"><span class="sun" id="logoEmo">🌞</span><h1>きょうのオガトレ</h1></div>
+<div class="logo"><img src="assets/chara.png" alt="" style="width:52px;height:52px;object-fit:contain"><h1>きょうのオガトレ</h1><span class="sun" id="logoEmo" style="font-size:22px">🌞</span></div>
 <div class="tagline">体が硬くても、だいじょうぶ。きょうの1本、ここにあります。</div>
 
 <!-- ===== ホーム ===== -->
@@ -419,13 +419,14 @@ const CARD_THEMES = [
 const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
 const MILESTONES=[7,14,21,30,50,66,100,150,200,300,365,500,730,1000];
 
+const CHARA_FILES=["assets/chara.png","assets/chara-2.png","assets/chara-3.png"];
 let charaImg=null, charaTried=false;
 function loadChara(cb){
   if(charaTried){cb();return}
   charaTried=true;
   const im=new Image();
   im.onload=()=>{charaImg=im;cb()}; im.onerror=()=>cb();
-  im.src="assets/chara.png";
+  im.src=CHARA_FILES[dayIndex()%CHARA_FILES.length];
 }
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 let lastBlob=null;
@@ -468,8 +469,8 @@ function drawCard(){
   if(T){ ctx.font="700 40px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`${T.emo} ${T.name} として修行中`,500,758); }
   // キャライラスト（assets/chara.png があれば右下に）
   if(charaImg){
-    const w=210, h=w*charaImg.height/charaImg.width;
-    ctx.drawImage(charaImg, 910-w, 820-h, w, h);
+    const w=250, h=w*charaImg.height/charaImg.width;
+    ctx.drawImage(charaImg, 895-w, 828-h, w, h);
   }
   ctx.fillStyle="#8A877D"; ctx.font="600 30px "+F;
   const d=new Date();
