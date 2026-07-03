@@ -122,7 +122,8 @@
   .searchbox svg{width:20px;height:20px;flex-shrink:0}
   .searchbox input{border:none;outline:none;flex:1;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;min-width:0}
   .searchbox input::placeholder{color:#C9C3B2;font-size:14px}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .chips{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+  .chip{white-space:nowrap}
   .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:5px 14px;font-size:13.5px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
   .chip.on{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
   section{animation:fade .25s ease}
@@ -247,7 +248,12 @@
     <input id="q" placeholder="キーワードで探す（例: 肩こり／朝／むくみ）" oninput="renderSearch()">
   </div>
   <div class="chips" id="chips"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <select id="ySel" onchange="renderSearch()" style="border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:13.5px;font-weight:800;color:var(--sub)"></select>
+    <div id="hitCount" style="font-size:12.5px;color:var(--sub);font-weight:800"></div>
+  </div>
   <div id="vlist"></div>
+  <button class="btn btn-line hidden" id="moreBtn" style="margin-bottom:14px" onclick="moreResults()"></button>
   <div class="card" id="reqBox" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
     <div style="font-size:14.5px;margin-bottom:12px" id="reqMsg">やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮</div>
     <a class="btn btn-ghost" id="reqBtn" style="font-size:15px" href="#">このキーワードでリクエストする</a>
@@ -278,6 +284,7 @@
 
 <canvas id="cardCanvas" width="1000" height="1000" style="display:none"></canvas>
 
+<script src="videos.js"></script>
 <script>
 // ================= 自作アイコン（タイプ別イラスト・SVG） =================
 const TYPE_ART = {
@@ -469,12 +476,12 @@ function currentRx(typeKey){
   return T.rx.concat(picks);
 }
 
-function videoCard(vk, badge){
-  const v=V[vk];
+function vHTML(v, badge){
   return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" target="_blank">
     <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
     <div>${badge?`<span class="badge">${badge}</span><br>`:""}<span class="vt">${v.t}</span><div class="vs">${v.s}</div></div></a>`;
 }
+function videoCard(vk, badge){ return vHTML(V[vk], badge); }
 function showResult(saved){
   const T=TYPES[saved.key];
   document.getElementById("rIllust").innerHTML=TYPE_ART[saved.key];
@@ -753,32 +760,48 @@ function renderPlaylists(){
   ).join("");
 }
 
-// ================= さがす =================
-const TAGS=["朝","夜・寝る前","全身","肩・肩甲骨","首・肩こり","股関節","開脚","もも裏","腰","足首・ふくらはぎ","座ったまま","自律神経","10分以内"];
-let activeTag=null;
+// ================= さがす（全動画カタログ・videos.js） =================
+const TAGS=["朝","夜・寝る前","座ったまま","全身","肩・肩甲骨","首・肩こり","姿勢・背中","股関節","開脚","もも裏","太もも・お尻","腰","ひざ・O脚","足首・足うら","むくみ","引き締め","筋膜・マッサージ","自律神経","スポーツ・運動前後","ショート","10分以内","その他"];
+let activeTag=null, searchLimit=24;
 function buildChips(){
-  document.getElementById("chips").innerHTML = TAGS.map(t=>
-    `<button class="chip" id="chip-${t}" onclick="toggleChip('${t}')">${t}</button>`).join("");
+  document.getElementById("chips").innerHTML = TAGS.map((t,i)=>
+    `<button class="chip" id="chip${i}" onclick="toggleChip(${i})">${t}</button>`).join("");
+  const years=[...new Set(CATALOG.map(v=>v.y))].sort((a,b)=>b-a);
+  document.getElementById("ySel").innerHTML = `<option value="">すべての年</option>`+
+    years.map(y=>`<option value="${y}">${y}年</option>`).join("");
 }
-function toggleChip(t){
+function toggleChip(i){
+  const t=TAGS[i];
   activeTag = activeTag===t ? null : t;
-  TAGS.forEach(x=>document.getElementById("chip-"+x).classList.toggle("on", x===activeTag));
+  TAGS.forEach((x,j)=>document.getElementById("chip"+j).classList.toggle("on", x===activeTag));
   renderSearch();
 }
-function renderSearch(){
+function currentHits(){
   const q=(document.getElementById("q").value||"").trim().toLowerCase();
-  const hits=Object.keys(V).filter(k=>{
-    const v=V[k];
+  const yr=document.getElementById("ySel").value;
+  return CATALOG.filter(v=>{
     if(activeTag && !(v.tags||[]).includes(activeTag)) return false;
+    if(yr && String(v.y)!==yr) return false;
     if(!q) return true;
-    const hay=(v.t+" "+v.s+" "+(v.tags||[]).join(" ")+" "+(v.kw||"")).toLowerCase();
+    const hay=(v.t+" "+(v.tags||[]).join(" ")+" "+v.y+"年").toLowerCase();
     return q.split(/\s+/).every(w=>hay.includes(w));
   });
-  document.getElementById("vlist").innerHTML = hits.length
-    ? hits.map(k=>videoCard(k, (V[k].tags||[])[0])).join("")
+}
+function renderSearch(){ searchLimit=24; drawResults(); }
+function moreResults(){ searchLimit+=48; drawResults(); }
+function drawResults(){
+  const hits=currentHits();
+  const shown=hits.slice(0,searchLimit);
+  document.getElementById("hitCount").textContent=`${hits.length}本`;
+  document.getElementById("vlist").innerHTML = shown.length
+    ? shown.map(v=>vHTML(v,(v.tags||[])[0])).join("")
     : `<div class="card" style="text-align:center;color:var(--sub);font-size:14.5px">この条件のストレッチは、まだ無いみたい…</div>`;
+  const more=document.getElementById("moreBtn");
+  more.classList.toggle("hidden", hits.length<=searchLimit);
+  more.textContent=`さらに表示（あと${Math.max(0,hits.length-searchLimit)}本）`;
+  const q=(document.getElementById("q").value||"").trim();
   const kwText=[q, activeTag].filter(Boolean).join(" ");
-  document.getElementById("reqMsg").innerHTML = hits.length
+  document.getElementById("reqMsg").innerHTML = shown.length
     ? "やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮"
     : "ごめんなさい、まだ無かった…！<br>リクエストを送ってもらえたら、動画づくりの参考にします📮";
   const subject=encodeURIComponent("ストレッチのリクエスト（きょうのオガトレ）");
