@@ -53,6 +53,12 @@ def fmt_dur(sec):
     if sec < 60: return f"{sec}秒"
     return f"{round(sec/60)}分"
 
+# 非公開・削除済み動画（scripts/check_public.py が生成）
+try:
+    PRIVATE = set(json.load(open(os.path.join(os.path.dirname(__file__), "private_videos.json")))["ids"])
+except Exception:
+    PRIVATE = set()
+
 con = sqlite3.connect(DB)
 rows = con.execute("""
   SELECT v.video_id, v.title, v.published_year, v.duration_sec, v.is_short, COALESCE(s.views,0)
@@ -62,6 +68,7 @@ rows = con.execute("""
 catalog, excluded, untagged = [], [], []
 for vid, title, year, dur, is_short, views in rows:
     if not title: continue
+    if vid in PRIVATE: continue
     if any(re.search(p, title) for p in EXCLUDE):
         excluded.append(title); continue
     tags = [t for t, p in RULES if re.search(p, title)][:3]

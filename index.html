@@ -299,9 +299,22 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#DFF5F2"/><path d="M12 7.5V12l3 2.5"/></svg>つづける設定</div>
-    <div style="font-size:14px;margin-bottom:10px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:#177065;font-weight:800">変える</a></div>
-    <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:14.5px;display:block;text-align:center;text-decoration:none">📅 カレンダーに毎日の予定を入れる</a>
-    <div class="hint">このアプリは通知を出さないので、生活の合図（おふろ上がり等）＋カレンダーが「思い出すしかけ」です</div>
+    <div style="font-size:14px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:#177065;font-weight:800">変える</a></div>
+    <div style="font-size:14px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:15px;font-weight:800;color:var(--ink);background:var(--card)"></div>
+    <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:14.5px;display:block;text-align:center;text-decoration:none">📅 この時間の毎日リマインダーをカレンダーに入れる</a>
+    <div class="hint" style="text-align:left">↑ いちばん簡単。スマホの標準カレンダーが毎日その時間に通知してくれます（取り込み後は「予定あり」から削除もできます）</div>
+    <details style="margin-top:12px;background:var(--bg);border-radius:12px;padding:10px 14px">
+      <summary style="font-size:14px;font-weight:800;cursor:pointer">もっと確実にしたい人へ: 毎日じどうでアプリがひらく設定（iPhone・2分）</summary>
+      <ol style="font-size:13.5px;line-height:1.9;padding-left:18px;margin:10px 0 4px">
+        <li>「ショートカット」アプリ → 下の「オートメーション」→「＋」</li>
+        <li>「時刻」を選んで、やる時間に設定（毎日）</li>
+        <li>「すぐに実行」を選ぶ（確認なしで動きます）</li>
+        <li>アクションで「URLを開く」→ 下のURLを貼り付けて完了！</li>
+      </ol>
+      <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:12.5px;color:var(--sub);background:var(--card)">
+      <div style="font-size:12.5px;color:var(--sub);margin-top:8px">Androidは、このページをChromeのメニューから「ホーム画面に追加」＋上のカレンダー登録の組み合わせがおすすめです</div>
+    </details>
+    <div class="hint" style="text-align:left">アプリ自体からのプッシュ通知は、正式公開のときにサーバーを用意すると可能になります（いまは端末の標準機能を間借りする方式）</div>
   </div>
 </section>
 
@@ -734,10 +747,16 @@ function renderAnchor(){
 }
 function setAnchor(k){ store.set("anchor",k); renderAnchor(); }
 function resetAnchor(){ store.set("anchor",null); goHome(); window.scrollTo(0,0); }
+function saveIcsTime(){ store.set("icstime", document.getElementById("icsTime").value||null); renderIcs(); }
 function renderIcs(){
   const a=store.get("anchor",null);
   document.getElementById("anchorNow").textContent = a&&ANCHORS[a]?ANCHORS[a].t:"未設定";
-  const tm=(a&&ANCHORS[a]?ANCHORS[a]:ANCHORS.free).tm;
+  const def=(a&&ANCHORS[a]?ANCHORS[a]:ANCHORS.free).tm;
+  const saved=store.get("icstime",null);
+  const hhmm = saved || def.slice(0,2)+":"+def.slice(2,4);
+  document.getElementById("icsTime").value=hhmm;
+  document.getElementById("appUrl").value=location.origin+location.pathname;
+  const tm=hhmm.replace(":","")+"00";
   const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//kyono-ogatore//JP","BEGIN:VEVENT","UID:kyono-ogatore-daily","DTSTART;TZID=Asia/Tokyo:20260701T"+tm,"RRULE:FREQ=DAILY","SUMMARY:きょうのオガトレ（1本だけ）","BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:ストレッチの時間です","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
   document.getElementById("icsLink").href="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
 }
