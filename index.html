@@ -126,6 +126,18 @@
   .chip{white-space:nowrap}
   .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:5px 14px;font-size:13.5px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
   .chip.on{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+  /* きょうのひとこと */
+  .qbubble{display:flex;gap:10px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:14px;font-size:14px;line-height:1.6}
+  .qbubble img{width:36px;height:36px;border-radius:50%;background:var(--yellow);flex-shrink:0;object-fit:cover}
+  .qbubble .ql{display:block;font-size:11px;color:var(--sub);font-weight:900}
+  /* とどくメーター */
+  .reach-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .reach-btn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:10px 2px;font-family:inherit;font-size:13.5px;font-weight:800;color:var(--sub);cursor:pointer}
+  .reach-btn.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  .rtrack{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:10px}
+  .rbar{width:16px;height:100%;display:flex;align-items:flex-end}
+  .rbar>div{width:100%;background:linear-gradient(180deg,#7BD0C4,var(--teal));border-radius:4px}
+  .anchor-row .opt{margin-bottom:8px}
   section{animation:fade .25s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
@@ -138,9 +150,25 @@
   <span class="mark" id="logoMark"></span>
 </div>
 <div class="tagline">体がガチガチでも、だいじょうぶ！きょうの1本、一緒にやっていきましょう🙌</div>
+<div class="qbubble" id="qbubble"></div>
 
 <!-- ===== ホーム ===== -->
 <section id="home">
+  <div class="card hidden" id="welcomeBack" style="background:linear-gradient(135deg,#E7F8F1,#FFF9DC);border:none">
+    <div style="font-size:15px" id="wbText"></div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="wbClose()">ゆるっと再開する</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="wbClose();startQuiz()">いまの体で、かたさチェックする</button>
+  </div>
+  <div class="card hidden" id="anchorCard">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 7.5V12l3 2.5"/></svg>いつやる派？</div>
+    <div style="font-size:13.5px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めた人は続きやすい——研究でも出ています。あなたの合図をひとつ選んでください（あとで変えられます）</div>
+    <div class="anchor-row">
+      <button class="opt" onclick="setAnchor('asa')">朝おきて、そのまま</button>
+      <button class="opt" onclick="setAnchor('furo')">おふろ上がりに</button>
+      <button class="opt" onclick="setAnchor('neru')">寝るまえ、ふとんの上で</button>
+      <button class="opt" onclick="setAnchor('free')">きめてない・そのつど</button>
+    </div>
+  </div>
   <div class="card" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさ診断</div>
     <div style="font-size:14px;color:#6B6857;margin-bottom:14px">タップだけ・30秒！あなたの「かたさタイプ」と、まずやるべきストレッチがわかります💡</div>
@@ -152,6 +180,7 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="4" fill="#DFF5F2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>きょうの1本</div>
+    <div id="anchorGreet" style="font-size:13.5px;color:var(--sub);margin:-4px 0 8px;font-weight:800"></div>
     <div class="seg">
       <button id="segAsa" onclick="setMode('asa')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="4.5" fill="#FFD93B" stroke="#3A3A35"/><path d="M12 3.5v2.5M4 13H2M22 13h-2M5.5 6.5l1.8 1.8M18.5 6.5l-1.8 1.8"/></svg>あさ</button>
       <button id="segYoru" onclick="setMode('yoru')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 14.5A8 8 0 0 1 9.5 5 8 8 0 1 0 19 14.5z" fill="#B8A9F0" stroke="#3A3A35" stroke-width="2.2" stroke-linejoin="round"/></svg>よる</button>
@@ -161,19 +190,32 @@
 
   <div class="card">
     <div class="streak">
-      <div>
-        <div class="lbl">つづけた日数</div>
-        <div><span class="num" id="streakNum">0</span><span style="font-weight:900">日</span></div>
-        <div class="lbl" id="totalDays"></div>
+      <div style="flex-shrink:0">
+        <div class="lbl">つづけた日数（通算）</div>
+        <div><span class="num" id="streakNum">0</span><span style="font-weight:900">日目</span></div>
       </div>
-      <div style="flex:1">
-        <button class="btn done-btn" id="doneBtn" onclick="markDone()">きょうやった！</button>
+      <div style="flex:1;min-width:0">
+        <button class="btn done-btn" id="doneBtn" onclick="markDone()" style="font-size:15px">きょうやった！</button>
       </div>
     </div>
+    <div class="lbl" id="totalDays" style="margin-top:6px"></div>
     <div id="cheer" style="text-align:center;font-size:14px;margin-top:10px;color:var(--sub)"></div>
+    <div id="memoRow" class="hidden" style="margin-top:10px">
+      <input id="memoInput" maxlength="40" placeholder="きょうのひとことメモ（『初めてつま先さわれた』など）" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14.5px;font-weight:700;color:var(--ink);background:var(--card)">
+      <button class="btn btn-line" style="margin-top:8px;font-size:14px" onclick="saveMemo()">メモをのこす</button>
+      <div id="memoSaved" style="font-size:12.5px;color:var(--teal);margin-top:6px;min-height:14px"></div>
+    </div>
+    <div id="plateauNote" style="font-size:13.5px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" style="margin-top:12px;font-size:15px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
     <div class="hint">記録はこの端末の中だけに保存されます。<br>ホーム画面に追加しておくと消えにくく、画像保存が確実なバックアップになります。</div>
+  </div>
+
+  <div class="card" style="text-align:center;background:linear-gradient(135deg,#FFEDF3,#FFF9DC);border:none">
+    <div style="font-size:14px;margin-bottom:10px">YouTubeのいいねは1回しか押せないから、<br>ここでは毎日おくれるようにしました</div>
+    <button class="btn btn-ghost" id="thanksBtn" onclick="sendThanks()">💛 きょうのありがとう</button>
+    <div id="thanksNote" style="font-size:13px;margin-top:8px;color:var(--sub);min-height:16px"></div>
+    <div style="font-size:12.5px;color:var(--sub);margin-top:2px"><span id="thanksTotal"></span></div>
   </div>
 </section>
 
@@ -204,7 +246,7 @@
     <div id="rxList"></div>
     <div id="worryExtra"></div>
     <div class="rotate-note">2本目・3本目は3日ごとに自動で入れ替わります</div>
-    <div style="font-size:13px;color:var(--sub);margin-top:6px">まずは2週間、1日1本でOK！痛みは「イタ気持ちいい」で止めましょう😌</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 ペースの公式見解: <b>毎日が理想、でも週3でも効きます</b>。1日1回で十分。痛い日・熱っぽい日は休むのが正解——休むのも、つづけてるうちです。痛みは「イタ気持ちいい」で止めましょう😌</div>
   </div>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回診断する</button>
@@ -215,11 +257,12 @@
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>つづけた記録</div>
     <div style="display:flex;gap:20px;align-items:flex-end">
-      <div><div class="lbl" style="font-size:13px;color:var(--sub)">連続</div><span class="num" style="font-size:36px;font-weight:900;color:var(--pink)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
-      <div><div class="lbl" style="font-size:13px;color:var(--sub)">合計</div><span style="font-size:36px;font-weight:900;color:var(--teal)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
+      <div><div class="lbl" style="font-size:13px;color:var(--sub)">通算</div><span class="num" style="font-size:36px;font-weight:900;color:var(--teal)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
+      <div><div class="lbl" style="font-size:13px;color:var(--sub)">いま連続</div><span style="font-size:36px;font-weight:900;color:var(--pink)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
     </div>
     <div id="msNote" style="font-size:14px;margin-top:12px"></div>
     <div class="bar"><div id="msBar" style="width:0%"></div></div>
+    <div id="histFreeze" style="font-size:12.5px;color:var(--sub);margin-top:8px"></div>
   </div>
   <div class="card">
     <div class="cal-head">
@@ -231,7 +274,34 @@
       <thead><tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr></thead>
       <tbody id="calBody"></tbody>
     </table>
-    <div class="hint">ホームで「きょうやった！」を押した日に印がつきます</div>
+    <div class="hint">ホームで「きょうやった！」を押した日に印がつきます。休んだ日に×はつきません——休むのも、つづけてるうちです</div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
+    <div style="font-size:13.5px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈。手はどこまで届いた？週1回はかると、伸びていく証拠が見えます</div>
+    <div class="reach-row">
+      <button class="reach-btn" id="rlv1" onclick="setReach(1)">ひざ</button>
+      <button class="reach-btn" id="rlv2" onclick="setReach(2)">すね</button>
+      <button class="reach-btn" id="rlv3" onclick="setReach(3)">足首</button>
+      <button class="reach-btn" id="rlv4" onclick="setReach(4)">つま先</button>
+      <button class="reach-btn" id="rlv5" onclick="setReach(5)">ゆか</button>
+    </div>
+    <div id="reachMsg" style="font-size:13.5px;margin:10px 0 2px;min-height:18px"></div>
+    <div id="reachNow" style="font-size:14px;margin-top:4px"></div>
+    <div class="rtrack" id="reachTrend"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="3" fill="#FFEDF3"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>ひとことにっき</div>
+    <div id="diaryList"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#DFF5F2"/><path d="M12 7.5V12l3 2.5"/></svg>つづける設定</div>
+    <div style="font-size:14px;margin-bottom:10px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:#177065;font-weight:800">変える</a></div>
+    <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:14.5px;display:block;text-align:center;text-decoration:none">📅 カレンダーに毎日の予定を入れる</a>
+    <div class="hint">このアプリは通知を出さないので、生活の合図（おふろ上がり等）＋カレンダーが「思い出すしかけ」です</div>
   </div>
 </section>
 
@@ -404,6 +474,12 @@ const WORRY = {
 
 const TODAY_ASA = ["asa10","asa5","asa9shi","honki9","nagomi7"];
 const TODAY_YORU= ["yoru9umi","yoru15","jiritsu10","yoru9ice","ashisuki"];
+const TINY=[
+ {id:"stslxBCATuQ",t:"30秒・肩甲骨はがし"},
+ {id:"3z1FkIZsV1k",t:"3秒・首すじストレッチ"},
+ {id:"SVuP1gdT_EY",t:"1分・骨盤しめエクサ"},
+ {id:"gMIlRS_lbYA",t:"5分・朝のガチガチほぐし"},
+];
 
 // ================= 状態 =================
 const store = {
@@ -491,7 +567,7 @@ function showResult(saved){
   document.getElementById("rPT").innerHTML=`<div class="pt-head">${ICON_PT}理学療法士のひとくち解説</div>`+T.pt;
   document.getElementById("rxHead").innerHTML=`${ICON_RX}処方箋: まずは「${T.area}」から！この3本を2週間`;
   const rx=currentRx(saved.key);
-  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, ["1本目","2本目","3本目"][i])).join("");
+  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, ["①まずほぐす","②メインの1本","③しあげ"][i])).join("");
   const w=WORRY[saved.worry];
   document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
   show("result");
@@ -511,7 +587,10 @@ function renderToday(){
   document.getElementById("logoMark").innerHTML = m==="asa"?MARK_SUN:MARK_MOON;
   const list = m==="asa"?TODAY_ASA:TODAY_YORU;
   const vk = list[dayIndex()%list.length];
-  document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる");
+  const tiny=TINY[dayIndex()%TINY.length];
+  document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる")
+    +`<div style="font-size:13px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" style="color:var(--sub);font-weight:800;text-decoration:none">👥 コメント欄で、なかまの記録をのぞく →</a></div>`
+    +`<div style="font-size:13.5px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:#177065;font-weight:900">${tiny.t}</a> だけでOK。それでも堂々と「きょうやった！」です</div>`;
 }
 
 // ---- 継続カウンター（日付リストで頑丈に保存） ----
@@ -525,27 +604,160 @@ function getStreakData(){
 }
 function renderStreak(){
   const st=getStreakData();
-  document.getElementById("streakNum").textContent=st.count;
-  document.getElementById("totalDays").textContent = st.total>0?`これまで合計 ${st.total}日`:"";
+  document.getElementById("streakNum").textContent=st.total||0;
+  const bits=[];
+  if(st.count>=2) bits.push(`いま${st.count}日連続`);
+  if(st.total>0) bits.push(`おやすみ券 のこり${freezeLeft()}枚`);
+  document.getElementById("totalDays").textContent = st.total>0 ? bits.join("・") : "きょうが1日目になります";
   const did = st.dates.includes(todayStr());
   const btn=document.getElementById("doneBtn");
   btn.textContent = did?"きょうの分、完了！お疲れ様でした✨":"きょうやった！";
   btn.classList.toggle("did",did);
   btn.disabled=did;
+  const memos=store.get("memos",{});
+  const row=document.getElementById("memoRow");
+  row.classList.toggle("hidden", !did);
+  if(did) document.getElementById("memoInput").value=memos[todayStr()]||"";
+  const pn=document.getElementById("plateauNote");
+  if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 このあたりで「効いてるのかな？」と感じる人がとても多いです。体の中では変わり続けてますよ。<a href="#" onclick="switchTab('history');return false" style="color:#177065;font-weight:800">とどくメーター</a>ではかると、証拠が見えます`;
+  else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁です。ここを超えた人から「目に見える変化」の報告がぐっと増えます。あとちょっと！`;
+  else pn.innerHTML="";
 }
+function currentTodayId(){ const list=state.mode==="asa"?TODAY_ASA:TODAY_YORU; return V[list[dayIndex()%list.length]].id; }
 function markDone(){
   const st=getStreakData();
   const today=todayStr();
   if(st.dates.includes(today)) return;
-  const y=new Date(Date.now()-86400000);
-  const yesterday=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,"0")}-${String(y.getDate()).padStart(2,"0")}`;
-  st.count = st.dates.includes(yesterday) ? st.count+1 : 1;
+  const last=st.dates.length?st.dates[st.dates.length-1]:null;
+  const gap=last?daysBetween(last,today):null;
+  let note="";
+  if(gap===null||gap<=0){ st.count=Math.max(1,gap===0?st.count:1); }
+  else if(gap===1){ st.count++; }
+  else if(gap-1<=freezeLeft()){
+    useFreeze(gap-1); st.count++;
+    note=`おやすみ券を${gap-1}枚つかったので、連続はつながってます（今月のこり${freezeLeft()}枚）`;
+  } else {
+    const ch=(store.get("chapters",1))+1; store.set("chapters",ch);
+    st.count=1;
+    note=`第${ch}章のスタート！通算はぜんぶ残ってます。戻ってくる人が、いちばん強い`;
+  }
   st.total=(st.total||0)+1;
   st.dates.push(today);
-  if(st.dates.length>800) st.dates=st.dates.slice(-800);
+  if(st.dates.length>1200) st.dates=st.dates.slice(-1200);
   store.set("streak2",st); renderStreak();
-  const cheers=["ナイスご自愛！🎉","その数分が、体を変えます💪","続けてるの、ほんとにすごい🌱","イタ気持ちいい、できました？😊","体は正直。ちゃんと応えてくれますよ！"];
-  document.getElementById("cheer").textContent = cheers[Math.floor(Math.random()*cheers.length)];
+  const ms=MS.find(x=>x.d===st.total);
+  const cheerEl=document.getElementById("cheer");
+  if(ms){
+    cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
+      +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
+      +(ms.q?`<div style="margin-top:6px;font-size:12.5px;color:var(--sub)">${ms.q}</div>`:"")
+      +`<div style="margin-top:8px"><a href="#" onclick="makeCard();return false" style="color:#177065;font-weight:800">ゴールドカードをのこす</a>　<a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" style="color:#177065;font-weight:800">コメント欄に報告する</a></div>`;
+  } else {
+    const cheers=["ナイスご自愛！🎉","がんばったね、お疲れ様でした✨","その数分が、体を変えます💪","イタ気持ちいい、できました？😊","体は正直。ちゃんと応えてくれますよ！","昨日の自分より、1ミリ前へ🌱"];
+    cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
+  }
+}
+function saveMemo(){
+  const t=document.getElementById("memoInput").value.trim().slice(0,40);
+  const memos=store.get("memos",{});
+  if(t) memos[todayStr()]=t; else delete memos[todayStr()];
+  const keys=Object.keys(memos).sort();
+  if(keys.length>400) keys.slice(0,keys.length-400).forEach(k=>delete memos[k]);
+  store.set("memos",memos);
+  document.getElementById("memoSaved").textContent = t?"メモをのこしました。きょうの記録カードにも入ります📝":"メモを消しました";
+}
+// ---- ありがとうボタン（1日1回・熱量の受け皿） ----
+function renderThanks(){
+  const th=store.get("thanks",{total:0,last:""});
+  document.getElementById("thanksTotal").textContent = th.total>0?`これまでのありがとう ×${th.total}（記録カードにきざまれます）`:"";
+  const b=document.getElementById("thanksBtn");
+  const sent=th.last===todayStr();
+  b.disabled=sent;
+  b.textContent= sent?"きょうのありがとう、おくりました💛":"💛 きょうのありがとう";
+}
+function sendThanks(){
+  const th=store.get("thanks",{total:0,last:""});
+  if(th.last===todayStr()) return;
+  th.total++; th.last=todayStr(); store.set("thanks",th);
+  renderThanks();
+  document.getElementById("thanksNote").textContent=["その気持ち、ちゃんとたまっていきます","こちらこそ、ありがとうございます","明日もいっしょにやりましょうね"][th.total%3];
+}
+// ---- とどくメーター（前屈セルフチェック） ----
+const REACH_LV=["","ひざまで","すねまで","足首まで","つま先タッチ","ゆかにベタッ"];
+function getReach(){ return store.get("reach",[]); }
+function setReach(lv){
+  const arr=getReach();
+  const today=todayStr();
+  const best=arr.length?Math.max(...arr.map(r=>r.lv)):0;
+  const i=arr.findIndex(r=>r.d===today);
+  if(i>=0) arr[i].lv=lv; else arr.push({d:today,lv});
+  if(arr.length>200) arr.splice(0,arr.length-200);
+  store.set("reach",arr);
+  renderReach();
+  const msg=document.getElementById("reachMsg");
+  if(lv>best&&best>0) msg.innerHTML=`<b style="color:var(--pink)">🎉 じこベスト更新！「${REACH_LV[lv]}」</b> 記録カードにも入ります`;
+  else if(lv>=4&&best===0) msg.innerHTML=`<b style="color:var(--pink)">最初から「${REACH_LV[lv]}」！すばらしい</b>`;
+  else msg.textContent="記録しました。つづけていれば、じわじわ伸びますからね";
+}
+function renderReach(){
+  const arr=getReach();
+  const today=todayStr();
+  for(let i=1;i<=5;i++){
+    const on=arr.length&&arr[arr.length-1].d===today&&arr[arr.length-1].lv===i;
+    document.getElementById("rlv"+i).classList.toggle("on",!!on);
+  }
+  const now=document.getElementById("reachNow");
+  if(!arr.length){ now.textContent="まだ記録がありません。いまの体で1回はかってみましょう"; document.getElementById("reachTrend").innerHTML=""; return; }
+  const latest=arr[arr.length-1], best=Math.max(...arr.map(r=>r.lv));
+  now.innerHTML=`いまの記録: <b>${REACH_LV[latest.lv]}</b>（${latest.d.slice(5).replace("-","/")}）・じこベスト: <b style="color:var(--teal)">${REACH_LV[best]}</b>`;
+  document.getElementById("reachTrend").innerHTML = arr.slice(-14).map(r=>`<div class="rbar"><div style="height:${r.lv*20}%"></div></div>`).join("");
+}
+// ---- ひとことにっき ----
+function renderDiary(){
+  const memos=store.get("memos",{});
+  const keys=Object.keys(memos).sort().reverse().slice(0,7);
+  document.getElementById("diaryList").innerHTML = keys.length
+    ? keys.map(k=>`<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px"><span style="color:var(--sub);font-weight:800;flex-shrink:0">${k.slice(5).replace("-","/")}</span><span>${memos[k].replace(/</g,"&lt;")}</span></div>`).join("")
+    : `<div style="font-size:13.5px;color:var(--sub)">ホームで「きょうやった！」のあとに、ひとことメモをのこせます。あとで読み返すと、ぜんぶ宝物です</div>`;
+}
+// ---- いつやる派（生活アンカー）＋カレンダー ----
+const ANCHORS={
+  asa:{t:"朝おきて、そのまま", g:"おはようございます！朝の1本、いきましょう", tm:"073000"},
+  furo:{t:"おふろ上がりに", g:"おふろ上がりの1本、いきましょう", tm:"203000"},
+  neru:{t:"寝るまえ、ふとんの上で", g:"寝るまえの1本で、きょうをしめくくりましょう", tm:"213000"},
+  free:{t:"きめてない・そのつど", g:"すきな時間に、きょうの1本をどうぞ", tm:"200000"},
+};
+function renderAnchor(){
+  const a=store.get("anchor",null);
+  document.getElementById("anchorCard").classList.toggle("hidden", !!a);
+  document.getElementById("anchorGreet").textContent = a&&ANCHORS[a]?ANCHORS[a].g:"";
+}
+function setAnchor(k){ store.set("anchor",k); renderAnchor(); }
+function resetAnchor(){ store.set("anchor",null); goHome(); window.scrollTo(0,0); }
+function renderIcs(){
+  const a=store.get("anchor",null);
+  document.getElementById("anchorNow").textContent = a&&ANCHORS[a]?ANCHORS[a].t:"未設定";
+  const tm=(a&&ANCHORS[a]?ANCHORS[a]:ANCHORS.free).tm;
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//kyono-ogatore//JP","BEGIN:VEVENT","UID:kyono-ogatore-daily","DTSTART;TZID=Asia/Tokyo:20260701T"+tm,"RRULE:FREQ=DAILY","SUMMARY:きょうのオガトレ（1本だけ）","BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:ストレッチの時間です","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  document.getElementById("icsLink").href="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
+}
+// ---- おかえり（復帰を祝う） ----
+function welcomeCheck(){
+  const st=getStreakData();
+  const wb=document.getElementById("welcomeBack");
+  if(!st.dates.length||st.dates.includes(todayStr())){ wb.classList.add("hidden"); return; }
+  const gap=daysBetween(st.dates[st.dates.length-1],todayStr());
+  const showIt = gap>=3 && store.get("wb_seen","")!==todayStr();
+  wb.classList.toggle("hidden",!showIt);
+  if(showIt){
+    document.getElementById("wbText").innerHTML=`<b style="font-size:17px">おかえりなさい！${gap}日ぶりですね🌱</b><br><br>数日あいても習慣はこわれない——研究でちゃんとわかっています。体が少し硬く戻った気がしても、数日で取り返せますよ。<br><b>通算${st.total}日は、ぜんぶ残ってます。</b>`;
+  }
+}
+function wbClose(){ store.set("wb_seen",todayStr()); document.getElementById("welcomeBack").classList.add("hidden"); }
+// ---- きょうのひとこと（尾形さんの声かけ） ----
+const QUOTES=["頑張ろうね","がんばったね、お疲れ様でした","痛気持ちいいところで止めましょうね","腹筋、無理に使わなくていいですよ","きつい方は、足首を触ってくださいね","呼吸、止めないでね","昨日より1ミリ前に進んでたら、それでOK","休むのも、ストレッチのうちです","3・2・1、はい、お疲れ様でした","体は正直。ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で、十分です","つづけてるあなたが、いちばんすごい","お膝、いたわってあげてくださいね"];
+function renderQuote(){
+  document.getElementById("qbubble").innerHTML=`<img src="assets/chara.png" alt=""><div><span class="ql">きょうのひとこと</span>「${QUOTES[dayIndex()%QUOTES.length]}」</div>`;
 }
 
 // ---- 記録カード（女性向けポップ・日替わり5テーマ＋節目ゴールド） ----
@@ -557,7 +769,37 @@ const CARD_THEMES = [
   {name:"レモン",   bg:["#FFF9DC","#FFEFE6"], main:"#DFA400", deco:["#FFE47A","#FFC0A0","#9BDFC9"]},
 ];
 const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
-const MILESTONES=[7,14,21,30,50,66,100,150,200,300,365,500,730,1000];
+const MS=[
+ {d:3,  t:"『気がする』チェックポイント", m:"「ちょっと軽い気がする」——それ、気のせいじゃないですよ", q:"1週間くらいで、腰に手が入りにくくなってて効果実感しました！（先輩の声）"},
+ {d:4,  t:"三日坊主、超えました", m:"何度も三日坊主だった人が、いまここを超えました。えらい！", q:"4日目終わって三日坊主回避しました！（先輩の声）"},
+ {d:7,  t:"1週間たっせい", m:"最初の壁、突破です", q:"お風呂上がりに1日1回を1週間続けただけで、長座体前屈50cm→64cmになりました（先輩の声）"},
+ {d:14, t:"2週間たっせい", m:"2週間は「完成」じゃなくて「本番のはじまり」。ここからが楽しいところです", q:"2週間で完全に、では私はなかったです。でも1ヶ月以上で確実に変わりました（先輩の声）"},
+ {d:21, t:"3週間たっせい", m:"", q:"ずっと三日坊主だったんだけど、初めて3週間続けられてうれしい…（先輩の声）"},
+ {d:30, t:"1ヶ月たっせい", m:"目に見える変化が出はじめる時期に入りました", q:"開脚90度→2ヶ月で150度。すぐ結果が出なくても続けた人の記録です（先輩の声）"},
+ {d:50, t:"50日たっせい", m:"", q:""},
+ {d:66, t:"習慣化の記念日", m:"習慣が身につくまで平均66日、という研究があります。きょう、ストレッチはあなたの習慣になりました", q:""},
+ {d:100,t:"100日たっせい", m:"もう体の一部ですね", q:"1日の締めくくりとして、もはや歯磨きと同じ習慣と化している（先輩の声）"},
+ {d:150,t:"150日たっせい", m:"", q:""},
+ {d:200,t:"200日たっせい", m:"", q:""},
+ {d:300,t:"300日たっせい", m:"", q:""},
+ {d:365,t:"1年たっせい", m:"1年前のあなたと、もう別の体です。ほんとうにすごい", q:""},
+ {d:500,t:"500日たっせい", m:"", q:""},
+ {d:730,t:"2年たっせい", m:"", q:""},
+ {d:1000,t:"1000日たっせい", m:"生活の一部どころか、人生の一部ですね", q:""},
+ {d:1900,t:"1900日——伝説の域", m:"1900日続けた先輩は、高校生から社会人になっていました。あなたの記録も、もう物語です", q:""},
+];
+const MILESTONES=MS.map(x=>x.d);
+// ---- おやすみ券（月3枚・自動でつかわれる） ----
+const FREEZE_PER_MONTH=3;
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+function getFreeze(){
+  let f=store.get("freeze",null);
+  const m=todayStr().slice(0,7);
+  if(!f||f.m!==m){ f={m,used:0}; store.set("freeze",f); }
+  return f;
+}
+function freezeLeft(){ return Math.max(0,FREEZE_PER_MONTH-getFreeze().used); }
+function useFreeze(n){ const f=getFreeze(); f.used=Math.min(FREEZE_PER_MONTH,f.used+n); store.set("freeze",f); }
 
 const CHARA_FILES=["assets/chara-good.png","assets/chara-kaikyaku.png"];
 let charaImg=null, charaTried=false;
@@ -608,7 +850,8 @@ function makeCard(){
 function drawCard(){
   const st=getStreakData();
   const T = state.type ? TYPES[state.type.key] : null;
-  const milestone = MILESTONES.includes(st.count);
+  const milestone = MILESTONES.includes(st.total);
+  const msInfo = milestone ? MS.find(x=>x.d===st.total) : null;
   const th = milestone ? GOLD : CARD_THEMES[dayIndex()%CARD_THEMES.length];
   const c=document.getElementById("cardCanvas"), ctx=c.getContext("2d");
   const F='"M PLUS 1p","Hiragino Kaku Gothic ProN",sans-serif';
@@ -642,24 +885,33 @@ function drawCard(){
   ctx.fillText("きょうのオガトレ",500,190);
   // 見出し
   ctx.fillStyle="#8A877D"; ctx.font="700 33px "+F;
-  if(milestone){ drawCrown(ctx,500,258,100,"#FFD700"); ctx.fillText("節目たっせい！おめでとうございます！",500,330); }
+  if(milestone){ drawCrown(ctx,500,258,100,"#FFD700"); ctx.fillText(`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`,500,330); }
   else ctx.fillText("記録カード",500,278);
   // 日数（文字はすべて上側ゾーンに集約）
   ctx.fillStyle=th.main; ctx.font="900 205px "+F;
-  ctx.fillText(String(st.count),500,milestone?555:528);
+  ctx.fillText(String(st.total),500,milestone?555:528);
   ctx.fillStyle="#3A3A35"; ctx.font="800 52px "+F;
-  ctx.fillText("日 つづいた！",500,milestone?630:606);
+  ctx.fillText("日目！",500,milestone?630:606);
   ctx.fillStyle="#8A877D"; ctx.font="700 33px "+F;
-  ctx.fillText(`これまで合計 ${st.total}日`,500,milestone?688:666);
+  ctx.fillText(st.count>=2?`いま${st.count}日連続`:"休み休みでも、つづいてる",500,milestone?688:666);
   if(T){ ctx.font="800 38px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`『${T.name}』として修行中`,500,milestone?742:730); }
   // キャラ（グッド／開脚を1日交代・右下の専用ゾーンで文字と重ねない）
   if(charaImg){
     const w=milestone?215:255, h=w*charaImg.height/charaImg.width;
     ctx.drawImage(charaImg, 965-w, 985-h, w, h);
   }
+  // 左下: ひとことメモ・前屈・ありがとう（キャラと住み分け）
+  ctx.textAlign="left";
+  const memo=(store.get("memos",{}))[todayStr()];
+  if(memo&&!milestone){ ctx.font="700 27px "+F; ctx.fillStyle="#6B6857"; ctx.fillText(`「${memo.slice(0,21)}」`,120,832); }
+  const _extras=[];
+  const _ra=getReach();
+  if(_ra.length&&daysBetween(_ra[_ra.length-1].d,todayStr())<=14) _extras.push(`前屈: ${REACH_LV[_ra[_ra.length-1].lv]}`);
+  const _tk=store.get("thanks",{total:0});
+  if(_tk.total>0) _extras.push(`ありがとう ×${_tk.total}`);
+  if(_extras.length){ ctx.font="700 26px "+F; ctx.fillStyle="#8A877D"; ctx.fillText(_extras.join(" ／ "),120,872); }
   // 日付・フッター（左寄せでキャラと住み分け）
   const d=new Date();
-  ctx.textAlign="left";
   ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F;
   ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,120,912);
   ctx.fillStyle=th.main; ctx.font="800 31px "+F;
@@ -684,7 +936,7 @@ function closeCard(){ document.getElementById("cardModal").classList.add("hidden
 
 // ---- ホーム描画 ----
 function renderHome(){
-  renderToday(); renderStreak();
+  renderToday(); renderStreak(); renderThanks(); renderQuote(); renderAnchor(); welcomeCheck();
   const lr=document.getElementById("lastResult");
   if(state.type&&TYPES[state.type.key]){
     lr.classList.remove("hidden");
@@ -698,16 +950,18 @@ function renderHistory(){
   const st=getStreakData();
   document.getElementById("histStreak").textContent=st.count;
   document.getElementById("histTotal").textContent=st.total;
-  const next=MILESTONES.find(m=>m>st.count);
+  const next=MILESTONES.find(m=>m>st.total);
   if(next){
-    document.getElementById("msNote").innerHTML=`つぎの節目 <b style="color:var(--teal)">${next}日</b> まで、あと <b style="color:var(--pink)">${next-st.count}日</b>`;
-    document.getElementById("msBar").style.width=Math.min(100,Math.round(st.count/next*100))+"%";
+    const ms=MS.find(x=>x.d===next);
+    document.getElementById("msNote").innerHTML=`つぎの節目「<b style="color:var(--teal)">${ms.t}</b>」（通算${next}日）まで、あと <b style="color:var(--pink)">${next-st.total}日</b>`;
+    document.getElementById("msBar").style.width=Math.min(100,Math.round(st.total/next*100))+"%";
   }else{
     document.getElementById("msNote").textContent="全部の節目を達成！すごすぎます";
     document.getElementById("msBar").style.width="100%";
   }
+  document.getElementById("histFreeze").textContent=`おやすみ券: 今月のこり${freezeLeft()}枚。休んだ日に自動でつかわれて、連続がつながります（毎月3枚もらえます）`;
   if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
-  renderCal();
+  renderCal(); renderReach(); renderDiary(); renderIcs();
 }
 function calMove(n){ calDate.setMonth(calDate.getMonth()+n); renderCal(); }
 function renderCal(){
@@ -761,7 +1015,7 @@ function renderPlaylists(){
 }
 
 // ================= さがす（全動画カタログ・videos.js） =================
-const TAGS=["朝","夜・寝る前","座ったまま","全身","肩・肩甲骨","首・肩こり","姿勢・背中","股関節","開脚","もも裏","太もも・お尻","腰","ひざ・O脚","足首・足うら","むくみ","引き締め","筋膜・マッサージ","自律神経","スポーツ・運動前後","ショート","10分以内","その他"];
+const TAGS=["朝","夜・寝る前","座ったまま","全身","肩・肩甲骨","首・肩こり","姿勢・背中","股関節","開脚","もも裏","太もも・お尻","腰","ひざ・O脚","足首・足うら","むくみ","引き締め","筋膜・マッサージ","自律神経","スポーツ・運動前後","水族館ロケ","古民家ロケ","ショート","10分以内","その他"];
 let activeTag=null, searchLimit=24;
 function buildChips(){
   document.getElementById("chips").innerHTML = TAGS.map((t,i)=>

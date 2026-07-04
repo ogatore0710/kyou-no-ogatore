@@ -67,6 +67,9 @@ for vid, title, year, dur, is_short, views in rows:
     tags = [t for t, p in RULES if re.search(p, title)][:3]
     if dur and dur <= 600: tags.append("10分以内")
     if is_short: tags.append("ショート")
+    import re as _re
+    if _re.search(r"水族館", title): tags.append("水族館ロケ")
+    if _re.search(r"古民家", title): tags.append("古民家ロケ")
     if not [t for t in tags if t != "10分以内"]:
         tags.insert(0, "その他"); untagged.append(title)
     sub = "・".join(x for x in [f"{year}年", fmt_dur(dur), fmt_views(views)] if x)
