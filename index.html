@@ -51,7 +51,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-  @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-num.woff2") format("woff2");font-display:swap}
+  @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-card.woff2?v=2") format("woff2");font-display:swap}
   :root{
     --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#6E6B5F;
     --teal:#2BB3A3; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
@@ -1331,7 +1331,7 @@ function drawCard(){
   ctx.textAlign="center"; ctx.fillStyle="#FFFFFF"; ctx.font="900 34px "+F;
   ctx.fillText("#きょうのオガトレ",500,190);
   // 見出し（節目のときだけ）
-  if(milestone){ ctx.fillStyle="#8A877D"; ctx.font="700 33px "+F; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font="700 27px "+F; ctx.fillText(msTxt,500,330); }
+  if(milestone){ ctx.fillStyle="#8A877D"; ctx.font='36px "BananaNum","M PLUS 1p",sans-serif'; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font='29px "BananaNum","M PLUS 1p",sans-serif'; ctx.fillText(msTxt,500,330); }
   // 中身の行を先に確定して、少ない日は全体を下げてバランスをとる
   const memo=(store.get("memos",{}))[todayStr()];
   const _tk=store.get("thanks",{total:0});
@@ -1347,10 +1347,10 @@ function drawCard(){
   ctx.fillStyle="#3A3A35"; ctx.font="80px "+FB;
   ctx.fillText("日目！",500,milestone?646:598+shift);
   // タイプ＋連続を1行に
-  ctx.fillStyle="#6B6857"; ctx.font="800 36px "+F;
+  ctx.fillStyle="#6B6857"; ctx.font='38px "BananaNum","M PLUS 1p",sans-serif';
   if(tline) ctx.fillText(tline,500,milestone?706:668+shift);
   // ひとことメモ or 前屈・ありがとう（カード内・1行だけ）
-  if(inCard){ ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F; ctx.fillText(inCard,500,milestone?752:(tline?730:662+shift)); }
+  if(inCard){ ctx.fillStyle="#8A877D"; ctx.font=memo?("700 30px "+F):'32px "BananaNum","M PLUS 1p",sans-serif'; ctx.fillText(inCard,500,milestone?756:(tline?734:666+shift)); }
   // キャラ（グッド／開脚を1日交代・右下の専用ゾーンで文字と重ねない）
   if(charaImg){
     const w=milestone?215:255, h=w*charaImg.height/charaImg.width;
