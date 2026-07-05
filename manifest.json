@@ -1,13 +1,21 @@
 {
-  "name": "きょうのオガトレ",
+  "name": "#きょうのオガトレ",
   "short_name": "きょうのオガトレ",
-  "description": "かたさ診断ときょうの1本。体が硬くても、だいじょうぶ。",
+  "description": "みんなで一緒にストレッチを習慣化",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#FFFAF3",
   "theme_color": "#FFD93B",
   "icons": [
-    {"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png"}
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

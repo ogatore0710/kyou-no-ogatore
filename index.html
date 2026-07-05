@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>#きょうのオガトレ｜みんなで一緒にストレッチを習慣化</title>
-<meta name="description" content="30秒のかたさ診断で、あなたに合ったオガトレのストレッチ動画を処方。きょうの1本と続けた日数も。">
+<meta name="description" content="タップするだけ３０秒のかたさチェック✅あなたに合うオガトレのストレッチが見つかります">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="#きょうのオガトレ">
+<meta property="og:description" content="みんなで一緒にストレッチを習慣化">
+<meta property="og:image" content="assets/icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="きょうのオガトレ">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="icon" type="image/png" href="assets/icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -18,6 +25,7 @@
     --teal:#2BB3A3; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
     --pink:#E56A9A; --pink-soft:#FFEDF3;
     --bg:#FFFAF3; --card:#FFFFFF; --line:#F2EADB; --radius:22px;
+    --sub2:#6B6857; --tealink:#177065; 
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-weight:700;
@@ -37,8 +45,40 @@
     font-weight:900;font-family:inherit;cursor:pointer;text-align:center;text-decoration:none;color:var(--ink)}
   .btn-primary{background:var(--yellow);font-size:20px;box-shadow:0 4px 0 #E8BE1E}
   .btn-primary:active{transform:translateY(3px);box-shadow:0 1px 0 #E8BE1E}
-  .btn-ghost{background:var(--teal-soft);color:#177065}
+  .btn-ghost{background:var(--teal-soft);color:var(--tealink)}
   .btn-line{background:none;border:2px solid var(--line);color:var(--sub);font-weight:700;font-size:15px}
+  .grad-warm{background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none}
+  .grad-mint{background:linear-gradient(135deg,#E7F8F1,#FFF9DC);border:none}
+  .grad-pink{background:linear-gradient(135deg,#FFEDF3,#FFF9DC);border:none}
+  .grad-soft{background:linear-gradient(160deg,#FFFDF5,#FFEDF3)}
+  /* 夜用ダークモード */
+  body.dark{--bg:#211E19;--card:#2C2822;--ink:#F2EDE1;--sub:#B9B2A0;--line:#3D382F;
+    --yellow-soft:#3A3423;--teal-soft:#22403B;--pink-soft:#3A2730;--coral-soft:#3A2A24;
+    --sub2:#C6BFAE;--tealink:#7BD0C4}
+  body.dark .grad-warm{background:linear-gradient(135deg,#37301C,#33232B);}
+  body.dark .grad-mint{background:linear-gradient(135deg,#22403B,#33301C)}
+  body.dark .grad-pink{background:linear-gradient(135deg,#33232B,#33301C)}
+  body.dark .grad-soft{background:linear-gradient(160deg,#2C2822,#33232B)}
+  body.dark [stroke="#3A3A35"]{stroke:#EDE7D9}
+  body.dark .card{box-shadow:none}
+  body.dark .tabbar{background:rgba(33,30,25,.97);border-top-color:#3D382F}
+  body.dark .tabbar button{color:#847D6C}
+  body.dark .tabbar button.on{color:var(--ink)}
+  body.dark .tabbar button .ic-fill{fill:#3D382F}
+  body.dark .tabbar button.on .ic-fill{fill:var(--yellow)}
+  body.dark .cal .d.mute{color:#57523F}
+  body.dark .seg button.on{box-shadow:none}
+  body.dark .chip-a{background:#37301C;border-color:#5C4F1E;color:#E8C74C}
+  body.dark .chip-b{background:#1F3532;border-color:#2E5A52;color:#7BD0C4}
+  body.dark .chip-c{background:#3A2730;border-color:#5E3A4C;color:#F09BC0}
+  body.dark .chip-d{background:#2C2740;border-color:#4A4070;color:#B8A9F0}
+  body.dark .chip-a.on{color:#211E19}
+  body.dark .badge{background:#3A2A24;color:#F0A58E}
+  body.dark .searchbox input::placeholder{color:#6B6557}
+  body.dark .btn-primary{color:#211E19}
+  body.dark .btn-primary:active{box-shadow:0 1px 0 #8A6D00}
+  body.dark .btn-primary{box-shadow:0 4px 0 #8A6D00}
+  body.dark .logosub{color:#9B9484}
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
@@ -59,10 +99,10 @@
   .type-copy{text-align:center;color:var(--sub);font-size:15.5px;margin:8px 0 2px}
   .type-hope{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15.5px;margin-top:12px}
   .pt-note{background:var(--teal-soft);border-radius:14px;padding:12px 14px;font-size:15px;margin-top:10px;line-height:1.75}
-  .pt-note b{color:#177065}
+  .pt-note b{color:var(--tealink)}
   .pt-head{display:flex;align-items:center;gap:6px;font-weight:900;margin-bottom:2px}
   .pt-head svg{width:18px;height:18px}
-  .rx-head{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:900;color:#177065;margin:4px 0 10px}
+  .rx-head{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:900;color:var(--tealink);margin:4px 0 10px}
   .rx-head svg{width:20px;height:20px}
   .video{display:flex;gap:12px;align-items:center;background:var(--card);border:1.5px solid var(--line);
     border-radius:16px;padding:10px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
@@ -127,7 +167,7 @@
   .chip{white-space:nowrap}
   .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:5px 14px;font-size:14px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
   .chip-a{background:#FFF6D8;border-color:#F2DE8A;color:#8A6D00}
-  .chip-b{background:#E7F8F1;border-color:#BFE8DC;color:#177065}
+  .chip-b{background:#E7F8F1;border-color:#BFE8DC;color:var(--tealink)}
   .chip-c{background:#FFEDF3;border-color:#F5C6D8;color:#C2477E}
   .chip-d{background:#F1EDFF;border-color:#D6CCF5;color:#6A58B5}
   .chip-a.on{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
@@ -163,7 +203,7 @@
 
 <!-- ===== ホーム ===== -->
 <section id="home">
-  <div class="card hidden" id="welcomeBack" style="background:linear-gradient(135deg,#E7F8F1,#FFF9DC);border:none">
+  <div class="card grad-mint hidden" id="welcomeBack">
     <div style="font-size:15px" id="wbText"></div>
     <button class="btn btn-primary" style="margin-top:12px" onclick="wbClose()">ゆるっと再開する</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="wbClose();startQuiz()">いまの体でかたさチェック✅</button>
@@ -178,13 +218,14 @@
       <button class="opt" onclick="setAnchor('free')">きめてない・そのつど</button>
     </div>
   </div>
-  <div class="card" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさ診断</div>
-    <div style="font-size:15px;color:#6B6857;margin-bottom:14px">タップするだけ３０秒でチェック✅<br>あなたに合うストレッチがわかります</div>
-    <button class="btn btn-primary" onclick="startQuiz()">診断をはじめる</button>
+  <div class="card grad-warm">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさチェック</div>
+    <div style="font-size:15px;color:var(--sub2);margin-bottom:14px">タップするだけ３０秒でチェック✅<br>あなたに合うストレッチがわかります</div>
+    <button class="btn btn-primary" onclick="startQuiz()">チェックをはじめる</button>
     <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:14px">
-      前回の結果: <a href="#" onclick="showResult(state.type);return false" style="color:#177065;font-weight:800" id="lastTypeName"></a>
+      前回の結果: <a href="#" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
     </div>
+    <div class="hint" style="margin-top:10px">※あそび感覚のセルフチェックです<br>強い痛みや持病がある方は無理せず医療機関へ</div>
   </div>
 
   <div class="card">
@@ -220,7 +261,7 @@
     <div class="hint">記録はこのスマホの中だけに残ります<br>カード画像を保存しておくと安心です</div>
   </div>
 
-  <div class="card" style="text-align:center;background:linear-gradient(135deg,#FFEDF3,#FFF9DC);border:none">
+  <div class="card grad-pink" style="text-align:center">
     <div style="font-size:15px;margin-bottom:10px">YouTubeのいいねは1回だけ<br>ここでは毎日おくれます</div>
     <button class="btn btn-ghost" id="thanksBtn" onclick="sendThanks()">💛 きょうのありがとう</button>
     <div id="thanksNote" style="font-size:14px;margin-top:8px;color:var(--sub);min-height:16px"></div>
@@ -242,7 +283,7 @@
 
 <!-- ===== 結果 ===== -->
 <section id="result" class="hidden">
-  <div class="card" style="background:linear-gradient(160deg,#FFFDF5,#FFEDF3)">
+  <div class="card grad-soft">
     <div style="text-align:center;font-size:14px;font-weight:900;color:var(--sub)">あなたのかたさタイプは…</div>
     <div class="type-illust" id="rIllust"></div>
     <div class="type-name" id="rName"></div>
@@ -256,9 +297,10 @@
     <div id="worryExtra"></div>
     <div class="rotate-note">2本目・3本目は3日ごとに自動で入れ替わります</div>
     <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想。週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
+    <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
   </div>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
-  <button class="btn btn-ghost" onclick="startQuiz()">もう一回診断する</button>
+  <button class="btn btn-ghost" onclick="startQuiz()">もう一回チェックする</button>
 </section>
 
 <!-- ===== きろく ===== -->
@@ -308,7 +350,14 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#DFF5F2"/><path d="M12 7.5V12l3 2.5"/></svg>つづける設定</div>
-    <div style="font-size:15px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:#177065;font-weight:800">変える</a></div>
+    <div style="font-size:15px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:var(--tealink);font-weight:800">変える</a></div>
+    <div style="font-size:15px;margin:4px 0 6px">画面のみため</div>
+    <div class="seg" style="margin-bottom:12px">
+      <button id="th-auto" onclick="setTheme('auto')">じどう</button>
+      <button id="th-light" onclick="setTheme('light')">明るい</button>
+      <button id="th-dark" onclick="setTheme('dark')">暗い</button>
+    </div>
+    <div class="hint" style="text-align:left;margin:-6px 0 12px">じどう=夜（19時〜朝5時）とスマホがダーク設定のとき暗くなります</div>
     <div style="font-size:15px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:15px;font-weight:800;color:var(--ink);background:var(--card)"></div>
     <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 この時間の毎日リマインダーをカレンダーに入れる</a>
     <div class="hint" style="text-align:left">↑ スマホのカレンダーが毎日その時間に知らせてくれます</div>
@@ -346,15 +395,23 @@
   </div>
   <div id="vlist"></div>
   <button class="btn btn-line hidden" id="moreBtn" style="margin-bottom:14px" onclick="moreResults()"></button>
-  <div class="card" id="reqBox" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
+  <div class="card grad-warm" id="reqBox">
     <div style="font-size:15px;margin-bottom:12px" id="reqMsg">やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮</div>
     <a class="btn btn-ghost" id="reqBtn" style="font-size:15px" href="#">このキーワードでリクエストする</a>
   </div>
 </section>
 
 <div class="foot">
-  きょうのオガトレ（プロトタイプ）<br>
-  動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank">オガトレ</a>」チャンネルで再生されます
+  #きょうのオガトレ β版<br>
+  動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank" style="color:var(--tealink)">オガトレ</a>」チャンネルで再生されます
+  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800">このアプリについて</summary>
+    <div style="text-align:left;margin-top:8px;line-height:1.9">
+    ・運営: オガトレ（理学療法士 尾形竜之介）<br>
+    ・記録はぜんぶあなたのスマホの中だけ サーバーには何も送りません<br>
+    ・アクセス解析もありません<br>
+    ・医療・診断行為ではありません 効果には個人差があります<br>
+    ・ご意見は「さがす」のいちばん下のリクエストからどうぞ</div>
+  </details>
 </div>
 
 <nav class="tabbar">
@@ -506,7 +563,7 @@ const TINY=[
 // ================= 状態 =================
 const store = {
   get(k,d){ try{const v=JSON.parse(localStorage.getItem("kyono_"+k)); return v??d}catch(e){return d} },
-  set(k,v){ localStorage.setItem("kyono_"+k, JSON.stringify(v)) }
+  set(k,v){ try{ localStorage.setItem("kyono_"+k, JSON.stringify(v)) }catch(e){} }
 };
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
@@ -587,7 +644,7 @@ function showResult(saved){
   document.getElementById("rCopy").textContent=T.copy;
   document.getElementById("rHope").textContent="🌱 "+T.hope;
   document.getElementById("rPT").innerHTML=`<div class="pt-head">${ICON_PT}理学療法士のひとくち解説</div>`+T.pt;
-  document.getElementById("rxHead").innerHTML=`${ICON_RX}処方箋: まずは「${T.area}」から！この3本を2週間`;
+  document.getElementById("rxHead").innerHTML=`${ICON_RX}おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`;
   const rx=currentRx(saved.key);
   document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, ["①まずほぐす","②メインの1本","③しあげ"][i])).join("");
   const w=WORRY[saved.worry];
@@ -612,7 +669,7 @@ function renderToday(){
   const tiny=TINY[dayIndex()%TINY.length];
   document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる")
     +`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" style="color:var(--sub);font-weight:800;text-decoration:none">コメント欄で仲間の記録をみる👀</a></div>`
-    +`<div style="font-size:14px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:#177065;font-weight:900">${tiny.t}</a> だけでOK</div>`;
+    +`<div style="font-size:14px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:var(--tealink);font-weight:900">${tiny.t}</a> だけでOK</div>`;
 }
 
 // ---- 継続カウンター（日付リストで頑丈に保存） ----
@@ -641,7 +698,7 @@ function renderStreak(){
   row.classList.toggle("hidden", !did);
   if(did) document.getElementById("memoInput").value=memos[todayStr()]||"";
   const pn=document.getElementById("plateauNote");
-  if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期です。体は変わり続けていますよ。<a href="#" onclick="switchTab('history');return false" style="color:#177065;font-weight:800">とどくメーター</a>で確かめてみて`;
+  if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期です。体は変わり続けていますよ。<a href="#" onclick="switchTab('history');return false" style="color:var(--tealink);font-weight:800">とどくメーター</a>で確かめてみて`;
   else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁。ここを超えると変化の報告がぐっと増えます。あとちょっと！`;
   else pn.innerHTML="";
 }
@@ -673,7 +730,7 @@ function markDone(){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
       +(ms.q?`<div style="margin-top:6px;font-size:13.5px;color:var(--sub)">${ms.q}</div>`:"")
-      +`<div style="margin-top:8px"><a href="#" onclick="makeCard();return false" style="color:#177065;font-weight:800">ゴールドカードをのこす</a>　<a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" style="color:#177065;font-weight:800">コメント欄に報告する</a></div>`;
+      +`<div style="margin-top:8px"><a href="#" onclick="makeCard();return false" style="color:var(--tealink);font-weight:800">ゴールドカードをのこす</a>　<a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -782,6 +839,19 @@ function welcomeCheck(){
   }
 }
 function wbClose(){ store.set("wb_seen",todayStr()); document.getElementById("welcomeBack").classList.add("hidden"); }
+// ---- 画面のみため（夜用ダークモード） ----
+function applyTheme(){
+  const p=store.get("theme","auto");
+  const h=new Date().getHours();
+  const osDark=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark = p==="dark" || (p==="auto" && (osDark || h>=19 || h<5));
+  document.body.classList.toggle("dark",dark);
+  const mc=document.querySelector('meta[name="theme-color"]');
+  if(mc) mc.setAttribute("content", dark?"#211E19":"#FFD93B");
+  for(const k of ["auto","light","dark"]){ const b=document.getElementById("th-"+k); if(b) b.classList.toggle("on",p===k); }
+}
+function setTheme(p){ store.set("theme",p); applyTheme(); }
+
 // ---- きょうのひとこと（尾形さんの声かけ） ----
 const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","つづけてるあなたがいちばんすごい","お膝もいたわってあげてくださいね"];
 function renderQuote(){
@@ -1042,12 +1112,13 @@ function renderPlaylists(){
 
 // ================= さがす（全動画カタログ・videos.js） =================
 const TAGS=["朝","夜・寝る前","座ったまま","全身","肩・肩甲骨","首・肩こり","姿勢・背中","股関節","開脚","もも裏","太もも・お尻","腰","ひざ・O脚","足首・足うら","むくみ","引き締め","筋膜・マッサージ","自律神経","スポーツ・運動前後","水族館ロケ","古民家ロケ","ショート","10分以内","その他"];
+const CAT=(typeof CATALOG==="undefined")?[]:CATALOG;
 let activeTag=null, searchLimit=24;
 const TAG_COLOR={"朝":"a","夜・寝る前":"a","座ったまま":"a","全身":"b","肩・肩甲骨":"b","首・肩こり":"b","姿勢・背中":"b","股関節":"b","開脚":"b","もも裏":"b","太もも・お尻":"b","腰":"b","ひざ・O脚":"b","足首・足うら":"b","むくみ":"c","引き締め":"c","筋膜・マッサージ":"c","自律神経":"c","スポーツ・運動前後":"c"};
 function buildChips(){
   document.getElementById("chips").innerHTML = TAGS.map((t,i)=>
     `<button class="chip chip-${TAG_COLOR[t]||"d"}" id="chip${i}" onclick="toggleChip(${i})">${t}</button>`).join("");
-  const years=[...new Set(CATALOG.map(v=>v.y))].filter(Boolean).sort((a,b)=>b-a);
+  const years=[...new Set(CAT.map(v=>v.y))].filter(Boolean).sort((a,b)=>b-a);
   document.getElementById("ySel").innerHTML = `<option value="">すべての年</option>`+
     years.map(y=>`<option value="${y}">${y}年</option>`).join("");
 }
@@ -1060,7 +1131,7 @@ function toggleChip(i){
 function currentHits(){
   const q=(document.getElementById("q").value||"").trim().toLowerCase();
   const yr=document.getElementById("ySel").value;
-  return CATALOG.filter(v=>{
+  return CAT.filter(v=>{
     if(activeTag && !(v.tags||[]).includes(activeTag)) return false;
     if(yr && String(v.y)!==yr) return false;
     if(!q) return true;
@@ -1091,10 +1162,12 @@ function drawResults(){
   document.getElementById("reqBtn").textContent = kwText ? `「${kwText}」をリクエストする` : "リクエストを送る";
 }
 
+applyTheme();
 renderHome();
 renderPlaylists();
 buildChips();
 renderSearch();
+if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
