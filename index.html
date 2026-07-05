@@ -120,10 +120,15 @@
   .video>div{min-width:0}
   @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
   @media (max-width:340px){ h1{font-size:19px} .cal .d{width:32px;height:32px;line-height:32px} .reach-btn{font-size:12.5px;padding:10px 0} }
+  #appSplash{position:fixed;inset:0;background:var(--bg);z-index:99;display:none;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
+  .spl-badge{width:92px;height:92px;margin:0 auto;background:var(--yellow);border-radius:26px;transform:rotate(-8deg);
+    box-shadow:0 5px 0 #E8BE1E;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:900;color:#fff}
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
   .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
+  .q-art{text-align:center;margin:8px 0 2px}
+  .q-art svg{width:150px;height:110px}
   .qtitle{font-size:22px;font-weight:900;margin:6px 0 4px}
   .qnote{color:var(--sub);font-size:15px;margin-bottom:14px}
   .opt{display:block;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;
@@ -234,6 +239,13 @@
 </style>
 </head>
 <body>
+<div id="appSplash">
+  <div style="text-align:center">
+    <div class="spl-badge">#</div>
+    <div style="font-size:34px;font-weight:900;line-height:1.3;margin-top:20px;letter-spacing:.02em">きょうの<br>オガトレ</div>
+    <div style="font-size:11.5px;color:var(--sub);letter-spacing:.06em;margin-top:12px;font-weight:800">みんなで一緒にストレッチを習慣化</div>
+  </div>
+</div>
 
 <div class="logo">
   <img src="assets/chara.png" alt="">
@@ -248,6 +260,7 @@
 <!-- ===== ホーム ===== -->
 <section id="home">
   <div class="card grad-mint hidden" id="welcomeBack">
+    <img src="assets/chara.png" alt="" style="width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 8px">
     <div style="font-size:15px" id="wbText"></div>
     <button class="btn btn-primary" style="margin-top:12px" onclick="wbClose()">ゆるっと再開する</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="wbClose();startQuiz()">いまの体でかたさチェック✅</button>
@@ -264,7 +277,10 @@
   </div>
   <div class="card grad-warm">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさチェック</div>
-    <div style="font-size:15px;color:var(--sub2);margin-bottom:14px">タップするだけ３０秒でチェック✅<br>あなたに合うストレッチがわかります</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <div style="flex:1;font-size:15px;color:var(--sub2)">タップするだけ３０秒でチェック✅<br>あなたに合うストレッチがわかります</div>
+      <img src="assets/chara-3.png" alt="" style="width:74px;height:74px;object-fit:contain;flex-shrink:0">
+    </div>
     <button class="btn btn-primary" onclick="startQuiz()">チェックをはじめる</button>
     <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:14px">
       前回の結果: <a href="#" class="tapx" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
@@ -306,6 +322,7 @@
   </div>
 
   <div class="card grad-pink" style="text-align:center">
+    <img src="assets/chara-good.png" alt="" style="width:80px;height:76px;object-fit:contain;display:block;margin:0 auto 6px">
     <div style="font-size:15px;margin-bottom:10px">YouTubeのいいねは1回だけ<br>ここでは毎日おくれます</div>
     <button class="btn btn-ghost" id="thanksBtn" onclick="sendThanks()">💛 きょうのありがとう</button>
     <div id="thanksNote" style="font-size:14px;margin-top:8px;color:var(--sub);min-height:16px"></div>
@@ -317,6 +334,7 @@
 <section id="quiz" class="hidden">
   <div class="card">
     <div class="qnum" id="qnum"></div>
+    <div class="q-art" id="qArt"></div>
     <div class="qtitle" id="qtitle"></div>
     <div class="qnote" id="qnote"></div>
     <div id="opts"></div>
@@ -375,6 +393,22 @@
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
     <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈✋手はどこまで届きましたか？<br>週1回の記録でOK！</div>
+    <div style="text-align:center;margin:4px 0 10px">
+      <svg viewBox="0 0 340 160" style="width:100%;max-width:330px" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 150h300" stroke="#E0D8C4"/>
+        <circle cx="118" cy="44" r="13" fill="#FFE3C9"/>
+        <path d="M130 52Q166 64 178 86"/>
+        <path d="M180 86L180 150M194 86L194 150"/>
+        <path d="M128 58Q110 94 106 122" stroke="#2BB3A3"/>
+        <circle cx="105" cy="128" r="4" fill="#2BB3A3" stroke="none"/>
+        <g stroke="#CFC9B8" stroke-width="2.5" stroke-dasharray="1 5">
+          <path d="M200 108h28M200 122h28M200 134h28M200 144h28"/>
+        </g>
+        <g fill="#6E6B5F" stroke="none" font-weight="800" font-size="11">
+          <text x="234" y="112">ひざ</text><text x="234" y="126">すね</text><text x="234" y="138">足首</text><text x="234" y="148">つま先</text><text x="292" y="147">ゆか</text>
+        </g>
+      </svg>
+    </div>
     <div class="reach-row">
       <button class="reach-btn" id="rlv1" onclick="setReach(1)">ひざ</button>
       <button class="reach-btn" id="rlv2" onclick="setReach(2)">すね</button>
@@ -454,7 +488,7 @@
   動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank" style="color:var(--tealink)">オガトレ</a>」チャンネルで再生されます
   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800">このアプリについて</summary>
     <div style="text-align:left;margin-top:8px;line-height:1.9">
-    ・運営: オガトレ（理学療法士 尾形竜之介）<br>
+    ・運営: 株式会社OGATORE（理学療法士 尾形竜之介）<br>
     ・記録はぜんぶあなたのスマホの中だけ サーバーには何も送りません<br>
     ・アクセス解析もありません<br>
     ・医療・診断行為ではありません 効果には個人差があります<br>
@@ -643,12 +677,27 @@ window.addEventListener("popstate",e=>{
 });
 function goHome(){ show("home"); renderHome(); }
 
+// ---- チェック質問のポーズ図解（書き下ろしSVG） ----
+const QUIZ_ART=[
+ // Q1 立って前屈
+ `<svg viewBox="0 0 140 100" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 90h100" stroke="#E0D8C4"/><circle cx="94" cy="30" r="11" fill="#FFE3C9"/><path d="M85 37Q66 44 62 60" fill="none"/><path d="M62 60L62 90M70 60L70 90"/><path d="M83 42Q76 62 74 76" stroke="#2BB3A3"/><circle cx="74" cy="80" r="3" fill="#2BB3A3" stroke="none"/><path d="M74 84v4" stroke="#E56A9A" stroke-dasharray="2 4"/></svg>`,
+ // Q2 あぐら（ひざが浮く）
+ `<svg viewBox="0 0 140 100" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 90h100" stroke="#E0D8C4"/><circle cx="70" cy="26" r="11" fill="#FFE3C9"/><path d="M70 37V58" /><path d="M70 50Q50 56 42 70Q56 74 70 66Q84 74 98 70Q90 56 70 50z" fill="#DFF5F2"/><path d="M42 70v8M98 70v8" stroke="#E56A9A"/><path d="M36 62q-4-4-2-8M104 62q4-4 2-8" stroke="#E56A9A" stroke-width="3"/></svg>`,
+ // Q3 バンザイ（耳より前で止まる）
+ `<svg viewBox="0 0 140 100" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 92h100" stroke="#E0D8C4"/><circle cx="70" cy="38" r="11" fill="#FFE3C9"/><path d="M70 49V80M70 80L60 92M70 80L80 92"/><path d="M70 54L48 40Q44 30 50 22" stroke="#2BB3A3"/><path d="M70 54L92 40Q96 30 90 22" stroke="#2BB3A3"/><path d="M50 18l-2-6M90 18l2-6" stroke="#E56A9A" stroke-dasharray="2 4"/></svg>`,
+ // Q4 しゃがむ（かかとが浮く）
+ `<svg viewBox="0 0 140 100" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 90h100" stroke="#E0D8C4"/><circle cx="56" cy="32" r="11" fill="#FFE3C9"/><path d="M58 43Q52 54 58 62"/><path d="M58 62L80 62"/><path d="M80 62L76 82"/><path d="M92 86L74 80" /><path d="M74 80v6" stroke="#E56A9A" stroke-dasharray="2 3"/><path d="M60 48L86 44" stroke="#2BB3A3"/><circle cx="106" cy="40" r="9" fill="#FFF3C4" stroke="#DFA400" stroke-width="3"/><path d="M106 36v5M106 44.5v.5" stroke="#DFA400" stroke-width="2.5"/></svg>`,
+ // Q5 いちばんの悩み
+ `<svg viewBox="0 0 140 100" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M70 82C46 66 34 52 40 38q6-12 20-6q6 3 10 10q4-7 10-10q14-6 20 6c6 14-6 28-30 44z" fill="#FFEDF3" stroke="#E56A9A"/><path d="M60 40q4-6 10-4" stroke="#F5AFC6" stroke-width="3"/></svg>`,
+];
+
 // ---- 診断 ----
 function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; renderQ(); navTo("quiz"); }
 function renderQ(){
   const q = QUESTIONS[state.qi];
   document.getElementById("qnum").textContent = `Q${state.qi+1} / ${QUESTIONS.length}`;
   document.getElementById("qtitle").textContent = q.title;
+  document.getElementById("qArt").innerHTML = QUIZ_ART[state.qi]||"";
   document.getElementById("qnote").textContent = q.note;
   const box = document.getElementById("opts"); box.innerHTML="";
   q.opts.forEach(o=>{
@@ -1268,7 +1317,7 @@ function drawResults(){
     : "";
   document.getElementById("vlist").innerHTML = shown.length
     ? shown.map(v=>vHTML(v,(v.tags||[])[0])).join("")
-    : `<div class="card" style="text-align:center;color:var(--sub);font-size:15px">この条件のストレッチはまだ無いみたい…</div>`;
+    : `<div class="card" style="text-align:center;color:var(--sub);font-size:15px"><img src="assets/chara-2.png" alt="" style="width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 6px">この条件のストレッチはまだ無いみたい…</div>`;
   const more=document.getElementById("moreBtn");
   more.classList.toggle("hidden", hits.length<=searchLimit);
   more.textContent=`さらに表示（あと${Math.max(0,hits.length-searchLimit)}本）`;
@@ -1284,6 +1333,15 @@ function drawResults(){
 }
 
 applyTheme();
+// ホーム画面アプリとして起動したときだけ、スプラッシュをひと呼吸ながく
+(function(){
+  const standalone = navigator.standalone || (window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
+  const sp=document.getElementById("appSplash");
+  if(standalone&&sp){
+    sp.style.display="flex";
+    setTimeout(()=>{ sp.style.opacity="0"; setTimeout(()=>sp.remove(),550); },1400);
+  } else if(sp){ sp.remove(); }
+})();
 renderHome();
 renderPlaylists();
 buildChips();
