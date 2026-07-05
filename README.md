@@ -46,7 +46,7 @@
 - カタログ再生成: `python3 scripts/check_public.py`（非公開動画の検出・約2分）→ `python3 scripts/build_catalog.py`（ogatore.db から。月次DB更新後にセットで回す）
 
 ## 配備
-- プロトタイプ確認: `cp index.html videos.js ~/srv/navi/` → http://100.111.99.112:8787/navi/ （Tailscale内・本人用）
+- プロトタイプ確認: `cp index.html videos.js ~/srv/navi/` → Tailscale内の確認用URL（本人のみ）
 - 公開時の選択肢: GitHub Pages（公開リポジトリ）／ ogatore.net にファイルを置くだけ
 - 公開前チェック: 免責文言（遊びのセルフチェック・痛みがある人は医療機関へ）／「診断・処方箋」語の調整／リクエスト送信先=kyou-no@ogatore.jp（Workspaceでエイリアス作成が必要）
 
