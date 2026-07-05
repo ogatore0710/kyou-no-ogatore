@@ -8,7 +8,10 @@
 <meta name="robots" content="noindex">
 <meta property="og:title" content="#きょうのオガトレ">
 <meta property="og:description" content="みんなで一緒にストレッチを習慣化">
-<meta property="og:image" content="assets/icon-512.png">
+<meta property="og:url" content="https://ogatore0710.github.io/kyou-no-ogatore/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://ogatore0710.github.io/kyou-no-ogatore/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="きょうのオガトレ">
@@ -79,6 +82,13 @@
   body.dark .btn-primary:active{box-shadow:0 1px 0 #8A6D00}
   body.dark .btn-primary{box-shadow:0 4px 0 #8A6D00}
   body.dark .logosub{color:#9B9484}
+  body.dark [stroke="#177065"]{stroke:var(--tealink)}
+  body.dark [fill="#177065"]{fill:var(--tealink)}
+  .tapx{display:inline-block;padding:10px 4px;margin:-10px -4px}
+  #memoInput::placeholder{font-size:14px}
+  .video>div{min-width:0}
+  @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
+  @media (max-width:340px){ h1{font-size:19px} .cal .d{width:32px;height:32px;line-height:32px} .reach-btn{font-size:12.5px;padding:10px 0} }
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
@@ -139,7 +149,7 @@
   .tabbar button.on .ic-fill{fill:var(--yellow)}
   /* きろく */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .cal-head button{border:none;background:var(--line);border-radius:10px;width:36px;height:36px;font-size:17px;font-weight:900;color:var(--ink);cursor:pointer;font-family:inherit}
+  .cal-head button{border:none;background:var(--line);border-radius:10px;width:44px;height:44px;font-size:17px;font-weight:900;color:var(--ink);cursor:pointer;font-family:inherit}
   .cal-title{font-size:16.5px;font-weight:900}
   .cal{width:100%;border-collapse:collapse;table-layout:fixed}
   .cal th{font-size:11.5px;color:var(--sub);padding:4px 0;font-weight:800}
@@ -165,7 +175,7 @@
   .searchbox input::placeholder{color:#C9C3B2;font-size:15px}
   .chips{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
   .chip{white-space:nowrap}
-  .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:5px 14px;font-size:14px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
+  .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:10px 16px;font-size:14px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
   .chip-a{background:#FFF6D8;border-color:#F2DE8A;color:#8A6D00}
   .chip-b{background:#E7F8F1;border-color:#BFE8DC;color:var(--tealink)}
   .chip-c{background:#FFEDF3;border-color:#F5C6D8;color:#C2477E}
@@ -210,7 +220,7 @@
   </div>
   <div class="card hidden" id="anchorCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 7.5V12l3 2.5"/></svg>いつやる派？</div>
-    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります。<br>合図をひとつ選んでください（あとで変えられます）</div>
+    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります！<br>合図をひとつ選んでください（あとで変えられます）</div>
     <div class="anchor-row">
       <button class="opt" onclick="setAnchor('asa')">朝おきてそのまま</button>
       <button class="opt" onclick="setAnchor('furo')">おふろ上がりに</button>
@@ -223,7 +233,7 @@
     <div style="font-size:15px;color:var(--sub2);margin-bottom:14px">タップするだけ３０秒でチェック✅<br>あなたに合うストレッチがわかります</div>
     <button class="btn btn-primary" onclick="startQuiz()">チェックをはじめる</button>
     <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:14px">
-      前回の結果: <a href="#" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
+      前回の結果: <a href="#" class="tapx" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
     </div>
     <div class="hint" style="margin-top:10px">※目安をつかむセルフチェックです<br>強い痛みや持病がある方は無理せず医療機関へ</div>
   </div>
@@ -251,7 +261,7 @@
     <div class="lbl" id="totalDays" style="margin-top:6px"></div>
     <div id="cheer" style="text-align:center;font-size:15px;margin-top:10px;color:var(--sub)"></div>
     <div id="memoRow" class="hidden" style="margin-top:10px">
-      <input id="memoInput" maxlength="40" placeholder="ひとことメモ（例: 初めてつま先さわれた）" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:15px;font-weight:700;color:var(--ink);background:var(--card)">
+      <input id="memoInput" maxlength="40" placeholder="ひとことメモをどうぞ" enterkeyhint="done" onkeydown="if(event.key==='Enter'){saveMemo();this.blur()}" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--card)">
       <button class="btn btn-line" style="margin-top:8px;font-size:15px" onclick="saveMemo()">メモをのこす</button>
       <div id="memoSaved" style="font-size:13.5px;color:var(--teal);margin-top:6px;min-height:14px"></div>
     </div>
@@ -296,7 +306,7 @@
     <div id="rxList"></div>
     <div id="worryExtra"></div>
     <div class="rotate-note">2本目・3本目は3日ごとに自動で入れ替わります</div>
-    <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想。週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
+    <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想！週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
     <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
   </div>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
@@ -350,17 +360,19 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#DFF5F2"/><path d="M12 7.5V12l3 2.5"/></svg>つづける設定</div>
-    <div style="font-size:15px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:var(--tealink);font-weight:800">変える</a></div>
+    <div style="font-size:15px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" class="tapx" onclick="resetAnchor();return false" style="color:var(--tealink);font-weight:800">変える</a></div>
     <div style="font-size:15px;margin:4px 0 6px">画面のみため</div>
     <div class="seg" style="margin-bottom:12px">
       <button id="th-auto" onclick="setTheme('auto')">じどう</button>
       <button id="th-light" onclick="setTheme('light')">明るい</button>
       <button id="th-dark" onclick="setTheme('dark')">暗い</button>
     </div>
-    <div class="hint" style="text-align:left;margin:-6px 0 12px">じどう=夜（19時〜朝5時）とスマホがダーク設定のとき暗くなります</div>
-    <div style="font-size:15px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:15px;font-weight:800;color:var(--ink);background:var(--card)"></div>
-    <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 この時間の毎日リマインダーをカレンダーに入れる</a>
+    <div class="hint" style="text-align:left;margin:-6px 0 12px">じどう=夜（19時〜朝5時）またはスマホがダーク設定のとき暗くなります</div>
+    <div style="font-size:15px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--ink);background:var(--card)"></div>
+    <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 iPhone/Appleカレンダーに入れる</a>
+    <a class="btn btn-line" id="gcalLink" target="_blank" style="font-size:15px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>
     <div class="hint" style="text-align:left">↑ スマホのカレンダーが毎日その時間に知らせてくれます</div>
+    <div class="hint" style="text-align:left;color:var(--pink)" id="icsNote"></div>
     <details style="margin-top:12px;background:var(--bg);border-radius:12px;padding:10px 14px">
       <summary style="font-size:15px;font-weight:800;cursor:pointer">毎日じどうでアプリがひらく設定（iPhone）</summary>
       <ol style="font-size:14px;line-height:1.9;padding-left:18px;margin:10px 0 4px">
@@ -369,7 +381,7 @@
         <li>「すぐに実行」を選ぶ</li>
         <li>「URLを開く」に下のURLを貼って完了</li>
       </ol>
-      <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--sub);background:var(--card)">
+      <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:16px;color:var(--sub);background:var(--card)">
       <div style="font-size:13.5px;color:var(--sub);margin-top:8px">Androidの方は「ホーム画面に追加」＋カレンダー登録がおすすめです</div>
     </details>
 
@@ -379,18 +391,18 @@
 <!-- ===== 再生リスト ===== -->
 <section id="playlists" class="hidden">
   <div id="plList"></div>
-  <div class="hint">タップするとYouTubeで開きます。テレビで流すのもおすすめ📺</div>
+  <div class="hint">タップするとYouTubeで開きます！テレビで流すのもおすすめ📺</div>
 </section>
 
 <!-- ===== さがす ===== -->
 <section id="search" class="hidden">
   <div class="searchbox">
     <svg viewBox="0 0 24 24" fill="none" stroke="#B9B4A6" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>
-    <input id="q" placeholder="キーワードで探す（例: 肩こり／朝／むくみ）" oninput="renderSearch()">
+    <input id="q" placeholder="例: 肩こり／朝／むくみ" enterkeyhint="search" oninput="renderSearch()">
   </div>
   <div class="chips" id="chips"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <select id="ySel" onchange="renderSearch()" style="border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:14px;font-weight:800;color:var(--sub)"></select>
+    <select id="ySel" onchange="renderSearch()" style="border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--sub)"></select>
     <div id="hitCount" style="font-size:13.5px;color:var(--sub);font-weight:800"></div>
   </div>
   <div id="vlist"></div>
@@ -460,17 +472,17 @@ const V = {
   kenko12: {id:"ZYTlwh_FhoU", t:"肩甲骨・基本版12分", s:"2300万回再生の看板ストレッチ", tags:["肩・肩甲骨"], kw:"けんこうこつ かたこり 猫背"},
   yoru15:  {id:"HCVb47eWgqA", t:"夜専用15分・肩甲骨をゆるめる", s:"2300万回再生の新作", tags:["夜・寝る前","肩・肩甲骨"], kw:"けんこうこつ よる かたこり"},
   asa5:    {id:"VTMYfFnkHh4", t:"朝専用5分・肩甲骨ほぐし", s:"忙しい朝はこれだけでOK", tags:["朝","肩・肩甲骨","10分以内"], kw:"けんこうこつ 時短 いそがしい"},
-  ashi1:   {id:"6U4fgJu0ZMw", t:"足首が『超』硬い人向け", s:"引っ張ってつまむだけ簡単", tags:["足首・ふくらはぎ","10分以内"], kw:"あしくび しゃがめない"},
-  ashi2:   {id:"86u3S-epkRg", t:"足首『超超』硬い人向け", s:"足の裏までしっかりほぐす", tags:["足首・ふくらはぎ"], kw:"あしくび 足裏 足底"},
-  ashi10:  {id:"t3C-N5_828k", t:"足首・10分一緒にストレッチ", s:"画面を観ながらじっくり", tags:["足首・ふくらはぎ","10分以内"], kw:"あしくび"},
-  fukura5: {id:"gdvjMR61Z4k", t:"ふくらはぎスッキリ 毎日5分", s:"疲労回復・むくみ解消", tags:["足首・ふくらはぎ","10分以内"], kw:"むくみ 疲労 脚やせ"},
+  ashi1:   {id:"6U4fgJu0ZMw", t:"足首が『超』硬い人向け", s:"引っ張ってつまむだけ簡単", tags:["足首・足うら","10分以内"], kw:"あしくび しゃがめない"},
+  ashi2:   {id:"86u3S-epkRg", t:"足首『超超』硬い人向け", s:"足の裏までしっかりほぐす", tags:["足首・足うら"], kw:"あしくび 足裏 足底"},
+  ashi10:  {id:"t3C-N5_828k", t:"足首・10分一緒にストレッチ", s:"画面を観ながらじっくり", tags:["足首・足うら","10分以内"], kw:"あしくび"},
+  fukura5: {id:"gdvjMR61Z4k", t:"ふくらはぎスッキリ 毎日5分", s:"疲労回復・むくみ解消", tags:["足首・足うら","10分以内"], kw:"むくみ 疲労 脚やせ"},
   honki9:  {id:"q8jr0KhoML4", t:"ガチガチな体が生まれ変わる本気の9分", s:"2026年版・全身リセット", tags:["全身","10分以内"], kw:"ぜんしん リセット"},
   yaruki22:{id:"oV0Rqt76bhM", t:"やる気がある時専用・全身22分", s:"徹底的にほぐす本気ルーティン", tags:["全身"], kw:"ぜんしん じっくり ロング"},
   yoru9umi:{id:"NrJIhK_gOXc", t:"夜専用・極上9分 in水族館", s:"一日の疲れを消し去る", tags:["夜・寝る前","全身","10分以内"], kw:"よる 疲れ 水族館 癒し"},
   yoru9ice:{id:"_2g_qWssAEI", t:"夜専用・極上9分 in氷の水族館", s:"気仙沼の絶景でリラックス", tags:["夜・寝る前","全身","10分以内"], kw:"よる リラックス 癒し"},
   asa9shi: {id:"H9ctJbhTR0Y", t:"朝専用・極上9分 in四国水族館", s:"最高の朝をつくる", tags:["朝","全身","10分以内"], kw:"あさ 癒し"},
   jiritsu10:{id:"XkgsF39kkRw", t:"寝る前の自律神経調整10分", s:"頭痛・不眠・イライラ・むくみに", tags:["夜・寝る前","自律神経","10分以内"], kw:"眠れない 不眠 頭痛 快眠 ストレス"},
-  ashisuki:{id:"4SsJx5W8hNQ", t:"寝る前に足スッキリ9分", s:"むくみを流す下半身ストレッチ", tags:["夜・寝る前","足首・ふくらはぎ","10分以内"], kw:"むくみ 脚やせ 下半身"},
+  ashisuki:{id:"4SsJx5W8hNQ", t:"寝る前に足スッキリ9分", s:"むくみを流す下半身ストレッチ", tags:["夜・寝る前","足首・足うら","10分以内"], kw:"むくみ 脚やせ 下半身"},
   katakori:{id:"7FY6SR6cyts", t:"ガチガチ肩こりは肩甲骨から治す 12分", s:"根本解消・理学療法士監修", tags:["首・肩こり","肩・肩甲骨"], kw:"かたこり 首こり スマホ首"},
   yotsu12: {id:"vZ4LYE0Ahe8", t:"しぶとい腰痛をなくす 毎日12分", s:"骨盤から背骨までととのえる", tags:["腰"], kw:"ようつう 骨盤 背骨"},
   nagomi7: {id:"aIIU5R2l-kQ", t:"座ったまま7分・和みストレッチ", s:"股関節・背骨・肩甲骨がととのう", tags:["座ったまま","股関節","肩・肩甲骨","10分以内"], kw:"いす デスクワーク シニア"},
@@ -502,7 +514,7 @@ const QUESTIONS = [
     ["しゃがめるけど、ぐらぐら","しゃがめるが姿勢を保てない",1],
     ["かかとが浮いちゃう","足首の曲がり（背屈）が足りないサイン",2],
     ["後ろにコロンと転がる","足首＋股関節の複合的な硬さのサイン",3]]},
-  {k:"worry",title:"いちばんの悩みは？", note:"処方箋の仕上げに使います",
+  {k:"worry",title:"いちばんの悩みは？", note:"あなたに合うおすすめの仕上げに使います",
    opts:[
     ["肩こり・首こり","デスクワーク・スマホ首のお供に","katakori"],
     ["腰痛","骨盤まわりからケアします","yotsu"],
@@ -528,7 +540,7 @@ const TYPES = {
     pt:"<b>解説:</b> 硬いのは<b>肩甲骨まわり（僧帽筋・広背筋・大胸筋など）</b>。肩甲骨の動きが小さくなると、首と肩の筋肉が代わりに働き続けて<b>肩こり・巻き肩・浅い呼吸</b>の原因に。肩甲骨を動かす習慣がつくと、背中が軽くなって姿勢も変わります。",
     rx:["kenko12"], pool:["yoru15","asa5","katakori","nagomi7"]},
   ashi: {name:"棒立ちペンギン", area:"足首",
-    copy:"しゃがむと後ろにコロン。それは足首がカチッと固まっている証拠。ペンギンは可愛いけど、転ぶと痛い。",
+    copy:"しゃがむとかかとがプカッ あるいは後ろにコロン。それは足首がカチッと固まっている証拠。ペンギンは可愛いけど、転ぶと痛い。",
     hope:"足首がゆるむと、歩くのも立つのも軽くなります。つまむだけの簡単ストレッチから始めましょう。",
     pt:"<b>解説:</b> 硬いのは<b>足首の背屈（すねに向けて曲げる動き）＝ふくらはぎ・アキレス腱まわり</b>。ここが硬いと、しゃがむ動作でかかとが浮き、<b>つまずき・むくみ・ふくらはぎの張り</b>につながります。足首は毎日使う関節なので、ゆるめた効果を実感しやすい場所です。",
     rx:["ashi1"], pool:["ashi2","fukura5","ashi10","ashisuki"]},
@@ -545,9 +557,9 @@ const TYPES = {
 };
 
 const WORRY = {
-  katakori:{v:"katakori", label:"肩こりさんへ、もう1本"},
-  yotsu:   {v:"yotsu12",  label:"腰痛さんへ、もう1本"},
-  tsukare: {v:"jiritsu10",label:"おつかれさんへ、もう1本"},
+  katakori:{v:"katakori", label:"肩こりさんへ もう1本"},
+  yotsu:   {v:"yotsu12",  label:"腰痛さんへ もう1本"},
+  tsukare: {v:"jiritsu10",label:"おつかれさんへ もう1本"},
   yawaraka:null,
 };
 
@@ -563,7 +575,7 @@ const TINY=[
 // ================= 状態 =================
 const store = {
   get(k,d){ try{const v=JSON.parse(localStorage.getItem("kyono_"+k)); return v??d}catch(e){return d} },
-  set(k,v){ try{ localStorage.setItem("kyono_"+k, JSON.stringify(v)) }catch(e){} }
+  set(k,v){ try{ localStorage.setItem("kyono_"+k, JSON.stringify(v)); return true }catch(e){ return false } }
 };
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
@@ -575,16 +587,28 @@ function show(id){
   for(const t of ["home","history","playlists","search"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
   window.scrollTo(0,0);
 }
+function navTo(id){
+  try{ if(!(history.state&&history.state.id===id)) history.pushState({id},""); }catch(e){}
+  show(id);
+}
 function switchTab(t){
   if(t==="home"){ goHome(); return; }
   if(t==="history") renderHistory();
   if(t==="search") renderSearch();
-  show(t);
+  navTo(t);
 }
+window.addEventListener("popstate",e=>{
+  const id=(e.state&&e.state.id)||"home";
+  const target=SECTIONS.includes(id)?id:"home";
+  if(target==="history") renderHistory();
+  if(target==="search") renderSearch();
+  if(target==="home") renderHome();
+  show(target);
+});
 function goHome(){ show("home"); renderHome(); }
 
 // ---- 診断 ----
-function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; renderQ(); show("quiz"); }
+function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; renderQ(); navTo("quiz"); }
 function renderQ(){
   const q = QUESTIONS[state.qi];
   document.getElementById("qnum").textContent = `Q${state.qi+1} / ${QUESTIONS.length}`;
@@ -600,6 +624,7 @@ function renderQ(){
   QUESTIONS.forEach((_,i)=>{const d=document.createElement("div");d.className="dot"+(i<=state.qi?" on":"");dots.appendChild(d)});
 }
 function answer(k,val){
+  document.querySelectorAll("#opts .opt").forEach(b=>b.disabled=true);
   if(k==="worry"){ state.worry=val; finishQuiz(); return; }
   state.scores[k]=val; state.qi++; renderQ();
 }
@@ -621,7 +646,7 @@ function finishQuiz(){
 }
 
 // ---- 処方のローテーション（3日ごとに2・3本目が入れ替わる） ----
-function rotationIndex(){ return Math.floor(Date.now()/86400000/3); }
+function rotationIndex(){ return Math.floor((Date.now()+9*3600*1000)/86400000/3); }
 function currentRx(typeKey){
   const T=TYPES[typeKey];
   const need=3-T.rx.length;
@@ -644,19 +669,20 @@ function showResult(saved){
   document.getElementById("rCopy").textContent=T.copy;
   document.getElementById("rHope").textContent="🌱 "+T.hope;
   document.getElementById("rPT").innerHTML=`<div class="pt-head">${ICON_PT}理学療法士のひとくち解説</div>`+T.pt;
-  document.getElementById("rxHead").innerHTML=`${ICON_RX}おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`;
+  const fixed=T.rx.length>0;
+  document.getElementById("rxHead").innerHTML=`${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
   const rx=currentRx(saved.key);
-  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, ["①まずほぐす","②メインの1本","③しあげ"][i])).join("");
+  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("");
   const w=WORRY[saved.worry];
   document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
-  show("result");
+  navTo("result");
 }
 
 // ---- きょうの1本 ----
 function autoMode(){ const h=new Date().getHours(); return (h>=4&&h<15)?"asa":"yoru"; }
 function setMode(m){ state.mode=m; store.set("mode_manual",{m,d:todayStr()}); renderToday(); }
 function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
-function dayIndex(){ const d=new Date(); return Math.floor((d - new Date(d.getFullYear(),0,0))/86400000); }
+function dayIndex(){ return Math.floor((Date.now()+9*3600*1000)/86400000); }
 function renderToday(){
   const manual=store.get("mode_manual",null);
   const m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || autoMode();
@@ -668,7 +694,7 @@ function renderToday(){
   const vk = list[dayIndex()%list.length];
   const tiny=TINY[dayIndex()%TINY.length];
   document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる")
-    +`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" style="color:var(--sub);font-weight:800;text-decoration:none">コメント欄で仲間の記録をみる👀</a></div>`
+    +`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">コメント欄で仲間の記録をみる👀</a></div>`
     +`<div style="font-size:14px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:var(--tealink);font-weight:900">${tiny.t}</a> だけでOK</div>`;
 }
 
@@ -698,8 +724,8 @@ function renderStreak(){
   row.classList.toggle("hidden", !did);
   if(did) document.getElementById("memoInput").value=memos[todayStr()]||"";
   const pn=document.getElementById("plateauNote");
-  if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期です。体は変わり続けていますよ。<a href="#" onclick="switchTab('history');return false" style="color:var(--tealink);font-weight:800">とどくメーター</a>で確かめてみて`;
-  else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁。ここを超えると変化の報告がぐっと増えます。あとちょっと！`;
+  if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期！体は変わり続けていますよ <a href="#" onclick="switchTab('history');return false" style="color:var(--tealink);font-weight:800">とどくメーター</a>で確かめてみて`;
+  else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁！ここを超えると変化の報告がぐっと増えます あとちょっと！`;
   else pn.innerHTML="";
 }
 function currentTodayId(){ const list=state.mode==="asa"?TODAY_ASA:TODAY_YORU; return V[list[dayIndex()%list.length]].id; }
@@ -712,20 +738,28 @@ function markDone(){
   let note="";
   if(gap===null||gap<=0){ st.count=Math.max(1,gap===0?st.count:1); }
   else if(gap===1){ st.count++; }
-  else if(gap-1<=freezeLeft()){
-    useFreeze(gap-1); st.count++;
-    note=`おやすみ券を${gap-1}枚つかったので連続はつながってます（今月のこり${freezeLeft()}枚）`;
-  } else {
+  else {
+    const missed=[];
+    for(let i=1;i<gap;i++){
+      const dd=new Date(new Date(last).getTime()+i*86400000);
+      missed.push(`${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,"0")}-${String(dd.getDate()).padStart(2,"0")}`);
+    }
+    if(tryUseFreezes(missed)){
+      st.count++;
+      note=`おやすみ券を${gap-1}枚つかったので連続はつながってます`;
+    } else {
     const ch=(store.get("chapters",1))+1; store.set("chapters",ch);
     st.count=1;
     note=`第${ch}章のスタート！通算はぜんぶ残ってます✨戻ってくる人がいちばん強い`;
+    }
   }
   st.total=(st.total||0)+1;
   st.dates.push(today);
   if(st.dates.length>1200) st.dates=st.dates.slice(-1200);
-  store.set("streak2",st); renderStreak();
+  const saved_ok=store.set("streak2",st); renderStreak();
   const ms=MS.find(x=>x.d===st.total);
   const cheerEl=document.getElementById("cheer");
+  if(!saved_ok){ cheerEl.textContent="⚠️ この画面設定では記録を保存できないみたい（プライベートモードかも）記録カードで残してね"; return; }
   if(ms){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
@@ -796,15 +830,15 @@ function renderDiary(){
   const memos=store.get("memos",{});
   const keys=Object.keys(memos).sort().reverse().slice(0,7);
   document.getElementById("diaryList").innerHTML = keys.length
-    ? keys.map(k=>`<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15px"><span style="color:var(--sub);font-weight:800;flex-shrink:0">${k.slice(5).replace("-","/")}</span><span>${memos[k].replace(/</g,"&lt;")}</span></div>`).join("")
+    ? keys.map(k=>`<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15px"><span style="color:var(--sub);font-weight:800;flex-shrink:0">${k.slice(5).replace("-","/")}</span><span style="overflow-wrap:anywhere">${memos[k].replace(/</g,"&lt;")}</span></div>`).join("")
     : `<div style="font-size:14px;color:var(--sub)">「きょうやった！」のあとにメモをのこせます</div>`;
 }
 // ---- いつやる派（生活アンカー）＋カレンダー ----
 const ANCHORS={
-  asa:{t:"朝おきてそのまま", g:"おはようございます☀️朝の一本いきましょう！", tm:"073000"},
-  furo:{t:"おふろ上がりに", g:"おふろ上がりの一本いきましょう♨️", tm:"203000"},
-  neru:{t:"寝るまえふとんの上で", g:"寝るまえの一本で今日をしめくくりましょう🌙", tm:"213000"},
-  free:{t:"きめてない・そのつど", g:"すきな時間にきょうの一本をどうぞ🌿", tm:"200000"},
+  asa:{t:"朝おきてそのまま", g:"おはようございます☀️朝の1本いきましょう！", tm:"073000"},
+  furo:{t:"おふろ上がりに", g:"おふろ上がりの1本いきましょう♨️", tm:"203000"},
+  neru:{t:"寝るまえふとんの上で", g:"寝るまえの1本できょうをしめくくりましょう🌙", tm:"213000"},
+  free:{t:"きめてない・そのつど", g:"すきな時間にきょうの1本をどうぞ🌿", tm:"200000"},
 };
 function renderAnchor(){
   const a=store.get("anchor",null);
@@ -823,8 +857,17 @@ function renderIcs(){
   document.getElementById("icsTime").value=hhmm;
   document.getElementById("appUrl").value=location.origin+location.pathname;
   const tm=hhmm.replace(":","")+"00";
-  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//kyono-ogatore//JP","BEGIN:VEVENT","UID:kyono-ogatore-daily","DTSTART;TZID=Asia/Tokyo:20260701T"+tm,"RRULE:FREQ=DAILY","SUMMARY:きょうのオガトレ（1本だけ）","BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:ストレッチの時間です","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//kyono-ogatore//JP","BEGIN:VEVENT","UID:kyono-ogatore-daily","DTSTAMP:"+stamp,"DTSTART:20260701T"+tm,"RRULE:FREQ=DAILY","SUMMARY:きょうのオガトレ（1本だけ）","BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:ストレッチの時間です","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
   document.getElementById("icsLink").href="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
+  // Googleカレンダー派向けリンク
+  const end=String(Number(tm.slice(0,2))).padStart(2,"0")+tm.slice(2,4);
+  const endHH=String((Number(tm.slice(0,2))))+"";
+  const gEnd="20260701T"+String(Number(tm.slice(0,2))).padStart(2,"0")+String(Math.min(59,Number(tm.slice(2,4))+10)).padStart(2,"0")+"00";
+  document.getElementById("gcalLink").href="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("きょうのオガトレ（1本だけ）")+"&dates=20260701T"+tm+"/"+gEnd+"&recur=RRULE:FREQ=DAILY";
+  // ホーム画面版iOSではdataダウンロードが無反応になるため案内
+  const note=document.getElementById("icsNote");
+  if(note) note.textContent = navigator.standalone ? "ホーム画面版ではAppleカレンダー登録はSafariで開いてから！Googleカレンダーはこのままいけます" : "";
 }
 // ---- おかえり（復帰を祝う） ----
 function welcomeCheck(){
@@ -835,7 +878,7 @@ function welcomeCheck(){
   const showIt = gap>=3 && store.get("wb_seen","")!==todayStr();
   wb.classList.toggle("hidden",!showIt);
   if(showIt){
-    document.getElementById("wbText").innerHTML=`<b style="font-size:17px">おかえりなさい！${gap}日ぶりですね🌱</b><br><br>休んでも習慣はこわれません。<br>体は数日で取り返せます。<br><b>通算${st.total}日は残っています。</b>`;
+    document.getElementById("wbText").innerHTML=`<b style="font-size:17px">おかえりなさい！${gap}日ぶりですね🌱</b><br><br>休んでも習慣はこわれません<br>体は数日で取り返せます<br><b>通算${st.total}日は残っています。</b>`;
   }
 }
 function wbClose(){ store.set("wb_seen",todayStr()); document.getElementById("welcomeBack").classList.add("hidden"); }
@@ -868,14 +911,14 @@ const CARD_THEMES = [
 ];
 const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
 const MS=[
- {d:3,  t:"『気がする』チェックポイント", m:"「ちょっと軽い気がする」それ気のせいじゃないですよ！", q:"1週間くらいで、腰に手が入りにくくなってて効果実感しました！（先輩の声）"},
- {d:4,  t:"三日坊主、超えました", m:"何度も三日坊主だった人がいまここを超えました！えらい！", q:"4日目終わって三日坊主回避しました！（先輩の声）"},
+ {d:3,  t:"『気がする』チェックポイント", m:"「ちょっと軽い気がする」それ気のせいじゃないですよ！", q:"2日やっただけで腰痛なくなりました。何だったんだろう（先輩の声）"},
+ {d:4,  t:"三日坊主 超えました", m:"何度も三日坊主だった人がいまここを超えました！えらい！", q:"4日目終わって三日坊主回避しました！（先輩の声）"},
  {d:7,  t:"1週間たっせい", m:"最初の壁突破です！", q:"お風呂上がりに1日1回を1週間続けただけで、長座体前屈50cm→64cmになりました（先輩の声）"},
  {d:14, t:"2週間たっせい", m:"2週間は完成じゃなくて本番のはじまり！ここからが楽しいところ", q:"2週間で完全に、では私はなかったです。でも1ヶ月以上で確実に変わりました（先輩の声）"},
  {d:21, t:"3週間たっせい", m:"", q:"ずっと三日坊主だったんだけど、初めて3週間続けられてうれしい…（先輩の声）"},
  {d:30, t:"1ヶ月たっせい", m:"目に見える変化が出はじめる時期に入りました", q:"開脚90度→2ヶ月で150度。すぐ結果が出なくても続けた人の記録です（先輩の声）"},
  {d:50, t:"50日たっせい", m:"", q:""},
- {d:66, t:"習慣化の記念日", m:"習慣が身につくまで平均66日という研究があります。きょうストレッチはあなたの習慣になりました🎉", q:""},
+ {d:66, t:"習慣化の記念日", m:"習慣が身につくまで平均66日という研究があります そしてきょうが66日目！ストレッチはあなたの習慣になりました🎉", q:""},
  {d:100,t:"100日たっせい", m:"もう体の一部ですね", q:"1日の締めくくりとして、もはや歯磨きと同じ習慣と化している（先輩の声）"},
  {d:150,t:"150日たっせい", m:"", q:""},
  {d:200,t:"200日たっせい", m:"", q:""},
@@ -884,20 +927,35 @@ const MS=[
  {d:500,t:"500日たっせい", m:"", q:""},
  {d:730,t:"2年たっせい", m:"", q:""},
  {d:1000,t:"1000日たっせい", m:"生活の一部どころか人生の一部ですね", q:""},
- {d:1900,t:"1900日——伝説の域", m:"1900日続けた先輩は高校生から社会人になっていました。あなたの記録ももう物語です", q:""},
+ {d:1900,t:"1900日——伝説の域", m:"1900日続けた先輩は高校生から社会人になっていました✨あなたの記録ももう物語です", q:""},
 ];
 const MILESTONES=MS.map(x=>x.d);
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
 function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
-function getFreeze(){
-  let f=store.get("freeze",null);
-  const m=todayStr().slice(0,7);
-  if(!f||f.m!==m){ f={m,used:0}; store.set("freeze",f); }
-  return f;
+function freezeMap(){
+  let m=store.get("freeze2",null);
+  if(!m){
+    m={};
+    const old=store.get("freeze",null);
+    if(old&&old.m) m[old.m]=old.used||0;
+    store.set("freeze2",m);
+  }
+  return m;
 }
-function freezeLeft(){ return Math.max(0,FREEZE_PER_MONTH-getFreeze().used); }
-function useFreeze(n){ const f=getFreeze(); f.used=Math.min(FREEZE_PER_MONTH,f.used+n); store.set("freeze",f); }
+function freezeLeft(){ const mo=todayStr().slice(0,7); return Math.max(0,FREEZE_PER_MONTH-(freezeMap()[mo]||0)); }
+function tryUseFreezes(missedDates){
+  // 欠席日それぞれを「その日が属する月」の券で払えるかを判定してから消費する
+  const m=freezeMap(); const need={};
+  for(const d of missedDates){ const mo=d.slice(0,7); need[mo]=(need[mo]||0)+1; }
+  for(const mo in need){ if((m[mo]||0)+need[mo]>FREEZE_PER_MONTH) return false; }
+  for(const mo in need){ m[mo]=(m[mo]||0)+need[mo]; }
+  // 古い月のキーは掃除（直近3ヶ月だけ残す）
+  const keep=Object.keys(m).sort().slice(-3);
+  for(const k of Object.keys(m)){ if(!keep.includes(k)) delete m[k]; }
+  store.set("freeze2",m);
+  return true;
+}
 
 const CHARA_FILES=["assets/chara-good.png","assets/chara-kaikyaku.png"];
 let charaImg=null, charaTried=false;
@@ -947,7 +1005,14 @@ async function ensureCardFonts(){
     try{ await Promise.all(specs.map(x=>document.fonts.load(x))); }catch(e){}
   }
 }
-function makeCard(){ ensureCardFonts().then(()=>loadChara(drawCard)); }
+function makeCard(){
+  if(getStreakData().total===0){
+    const c=document.getElementById("cheer");
+    if(c) c.textContent="まずはきょうの1本のあとに「きょうやった！」を押してみて😊";
+    return;
+  }
+  ensureCardFonts().then(()=>loadChara(drawCard));
+}
 function drawCard(){
   const st=getStreakData();
   const T = state.type ? TYPES[state.type.key] : null;
@@ -1057,10 +1122,10 @@ function renderHistory(){
     document.getElementById("msNote").innerHTML=`つぎの節目「<b style="color:var(--teal)">${ms.t}</b>」（通算${next}日）まで、あと <b style="color:var(--pink)">${next-st.total}日</b>`;
     document.getElementById("msBar").style.width=Math.min(100,Math.round(st.total/next*100))+"%";
   }else{
-    document.getElementById("msNote").textContent="全部の節目を達成！すごすぎます";
+    document.getElementById("msNote").textContent="全部の節目をたっせい！すごすぎます";
     document.getElementById("msBar").style.width="100%";
   }
-  document.getElementById("histFreeze").textContent=`おやすみ券 のこり${freezeLeft()}枚（毎月3枚）。休んだ日に自動でつかわれて連続がつながります`;
+  document.getElementById("histFreeze").textContent=`おやすみ券 のこり${freezeLeft()}枚（毎月3枚）休んだ日に自動でつかわれて連続がつながります`;
   if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
   renderCal(); renderReach(); renderDiary(); renderIcs();
 }
@@ -1172,6 +1237,20 @@ renderHome();
 renderPlaylists();
 buildChips();
 renderSearch();
+// PWA復帰・日付またぎで画面を最新化
+let lastDay=todayStr();
+function refreshDay(){
+  applyTheme();
+  if(todayStr()!==lastDay){
+    lastDay=todayStr(); state.mode=null;
+    const vis=SECTIONS.find(x=>!document.getElementById(x).classList.contains("hidden"));
+    if(vis==="home") renderHome();
+    else if(vis==="history") renderHistory();
+  }
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshDay(); });
+window.addEventListener("pageshow",e=>{ if(e.persisted) refreshDay(); });
+setInterval(refreshDay,60000);
 if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
