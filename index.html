@@ -1047,7 +1047,7 @@ const TAG_COLOR={"朝":"a","夜・寝る前":"a","座ったまま":"a","全身":
 function buildChips(){
   document.getElementById("chips").innerHTML = TAGS.map((t,i)=>
     `<button class="chip chip-${TAG_COLOR[t]||"d"}" id="chip${i}" onclick="toggleChip(${i})">${t}</button>`).join("");
-  const years=[...new Set(CATALOG.map(v=>v.y))].sort((a,b)=>b-a);
+  const years=[...new Set(CATALOG.map(v=>v.y))].filter(Boolean).sort((a,b)=>b-a);
   document.getElementById("ySel").innerHTML = `<option value="">すべての年</option>`+
     years.map(y=>`<option value="${y}">${y}年</option>`).join("");
 }

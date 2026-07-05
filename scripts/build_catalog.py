@@ -13,7 +13,7 @@ OUT = os.path.expanduser("~/Claude/kyou-no-ogatore/videos.js")
 EXCLUDE = [
     r"どうなった", r"検証", r"対決", r"質問", r"Q&A", r"ルームツアー",
     r"本気で踊ってみた", r"歌って", r"記念", r"登録者", r"生配信", r"ライブ", r"お知らせ", r"報告",
-    r"ラジオ体操って",
+    r"ラジオ体操って", r"オガトレHIT", r"フルコンボ",
     r"ご挨拶", r"あいさつ", r"開設", r"紹介動画", r"チャンネルの", r"vlog", r"Vlog", r"VLOG",
     r"密着", r"晒", r"レビュー", r"開封", r"買ってみた", r"行ってみた", r"食べ", r"グッズ",
     r"募集", r"発表", r"公開収録", r"サブチャンネル", r"切り抜き", r"総集編?メイキング", r"メイキング",
@@ -79,7 +79,7 @@ for vid, title, year, dur, is_short, views in rows:
     if _re.search(r"古民家", title): tags.append("古民家ロケ")
     if not [t for t in tags if t != "10分以内"]:
         tags.insert(0, "その他"); untagged.append(title)
-    sub = "・".join(x for x in [f"{year}年", fmt_dur(dur), fmt_views(views)] if x)
+    sub = "・".join(x for x in [(f"{year}年" if year else ""), fmt_dur(dur), fmt_views(views)] if x)
     catalog.append({"id": vid, "t": title, "y": year, "s": sub, "tags": tags})
 
 with open(OUT, "w") as f:
