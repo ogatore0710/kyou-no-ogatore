@@ -120,7 +120,7 @@
   .video>div{min-width:0}
   @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
   @media (max-width:340px){ h1{font-size:19px} .cal .d{width:32px;height:32px;line-height:32px} .reach-btn{font-size:12.5px;padding:10px 0} }
-  #appSplash{position:fixed;inset:0;background:var(--bg);z-index:99;display:none;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
+  #appSplash{position:fixed;inset:0;background:var(--bg);z-index:99;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
   #appSplash .spl-inner{opacity:0;transition:opacity .35s ease}
   .spl-badge{width:92px;height:92px;margin:0 auto;background:var(--yellow);border-radius:26px;transform:rotate(-8deg);
     box-shadow:0 5px 0 #E8BE1E;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:900;color:#fff}
@@ -248,6 +248,18 @@
     <div style="font-size:11.5px;color:var(--sub);letter-spacing:.06em;margin-top:12px;font-weight:800">みんなで一緒にストレッチを習慣化</div>
   </div>
 </div>
+<script>
+(function(){
+  try{
+    var p=JSON.parse(localStorage.getItem("kyono_theme")||'"auto"');
+    var h=new Date().getHours();
+    var osD=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches;
+    if(p==="dark"||(p==="auto"&&(osD||h>=19||h<5))) document.body.classList.add("dark");
+    var sa=navigator.standalone||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
+    if(!sa){ var sp=document.getElementById("appSplash"); if(sp) sp.parentNode.removeChild(sp); }
+  }catch(e){}
+})();
+</script>
 
 <div class="logo">
   <img src="assets/chara.png" alt="">
@@ -279,11 +291,13 @@
   </div>
   <div class="card grad-warm">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさチェック</div>
+    <div id="ckBody">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
       <div style="flex:1;font-size:15px;color:var(--sub2)">タップするだけ３０秒でチェック✅<br>あなたに合うストレッチがわかります</div>
       <img src="assets/chara-3.png" alt="" style="width:74px;height:74px;object-fit:contain;flex-shrink:0">
     </div>
-    <button class="btn btn-primary" onclick="startQuiz()">チェックをはじめる</button>
+    </div>
+    <button class="btn btn-primary" id="ckBtn" onclick="startQuiz()">チェックをはじめる</button>
     <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:14px">
       前回の結果: <a href="#" class="tapx" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
     </div>
@@ -454,7 +468,10 @@
       <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:16px;color:var(--sub);background:var(--card)">
       <div style="font-size:13.5px;color:var(--sub);margin-top:8px">Androidの方は「ホーム画面に追加」＋カレンダー登録がおすすめです</div>
     </details>
-
+    <div style="font-size:15px;margin:16px 0 8px">記録のお引っこし・バックアップ</div>
+    <button class="btn btn-line" style="font-size:15px" onclick="exportData()">📦 記録をコピーする</button>
+    <button class="btn btn-line" style="font-size:15px;margin-top:8px" onclick="importData()">📥 記録を取りこむ</button>
+    <div class="hint" style="text-align:left">機種変のときは 前のスマホで「コピー」→ 新しいスマホで「取りこむ」に貼り付け</div>
   </div>
 </section>
 
@@ -797,7 +814,8 @@ function showResult(saved){
   const fixed=T.rx.length>0;
   document.getElementById("rxHead").innerHTML=`${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
   const rx=currentRx(saved.key);
-  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("");
+  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("")
+    +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank">▶ 3本つづけて再生する</a>`;
   const w=WORRY[saved.worry];
   document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
   navTo("result");
@@ -1007,6 +1025,27 @@ function welcomeCheck(){
   }
 }
 function wbClose(){ store.set("wb_seen",todayStr()); document.getElementById("welcomeBack").classList.add("hidden"); }
+// ---- 記録のお引っ越し ----
+function exportData(){
+  const out={};
+  for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith("kyono_")) out[k]=localStorage.getItem(k); }
+  const str="KYONO1:"+btoa(unescape(encodeURIComponent(JSON.stringify(out))));
+  const done=()=>alert("コピーしました！\n新しいスマホでこのアプリをひらいて「記録を取りこむ」に貼り付けてください");
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(str).then(done,()=>prompt("この文字列を全部コピーしてください",str)); }
+  else prompt("この文字列を全部コピーしてください",str);
+}
+function importData(){
+  const str=prompt("前のスマホでコピーした文字列を貼り付けてください");
+  if(!str) return;
+  try{
+    const j=JSON.parse(decodeURIComponent(escape(atob(str.replace(/^KYONO1:/,"").trim()))));
+    let cnt=0;
+    for(const k in j){ if(k.startsWith("kyono_")){ localStorage.setItem(k,j[k]); cnt++; } }
+    if(!cnt) throw 0;
+    alert("取りこみました！"); location.reload();
+  }catch(e){ alert("読みとれませんでした\n文字列がぜんぶコピーできているか確認してください"); }
+}
+
 // ---- 画面のみため（夜用ダークモード） ----
 function applyTheme(){
   const p=store.get("theme","auto");
@@ -1229,7 +1268,13 @@ function closeCard(){ document.getElementById("cardModal").classList.add("hidden
 function renderHome(){
   renderToday(); renderStreak(); renderThanks(); renderQuote(); renderAnchor(); welcomeCheck();
   const lr=document.getElementById("lastResult");
-  if(state.type&&TYPES[state.type.key]){
+  const done2=!!(state.type&&TYPES[state.type.key]);
+  document.getElementById("ckBody").classList.toggle("hidden",done2);
+  const cb=document.getElementById("ckBtn");
+  cb.textContent = done2?"もう一回チェックする":"チェックをはじめる";
+  cb.classList.toggle("btn-primary",!done2);
+  cb.classList.toggle("btn-ghost",done2);
+  if(done2){
     lr.classList.remove("hidden");
     document.getElementById("lastTypeName").textContent = TYPES[state.type.key].name;
   }
@@ -1375,14 +1420,12 @@ function drawResults(){
 applyTheme();
 // ホーム画面アプリとして起動したときだけ、スプラッシュをひと呼吸ながく
 (function(){
-  const standalone = navigator.standalone || (window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
   const sp=document.getElementById("appSplash");
-  if(standalone&&sp){
-    sp.style.display="flex";
-    // iOS標準スプラッシュが消えるまで無地→ロゴをふわっと→静かに退場（二重写し防止）
-    setTimeout(()=>{ sp.querySelector(".spl-inner").style.opacity="1"; },420);
-    setTimeout(()=>{ sp.style.opacity="0"; setTimeout(()=>sp.remove(),550); },1900);
-  } else if(sp){ sp.remove(); }
+  if(sp){
+    // 起動直後から被せてある → ロゴをふわっと → 静かに退場（ホームのチラ見え防止）
+    setTimeout(()=>{ const i=sp.querySelector(".spl-inner"); if(i) i.style.opacity="1"; },350);
+    setTimeout(()=>{ sp.style.opacity="0"; setTimeout(()=>sp.remove(),550); },1800);
+  }
 })();
 renderHome();
 renderPlaylists();
