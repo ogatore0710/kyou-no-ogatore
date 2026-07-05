@@ -225,7 +225,7 @@
     <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:14px">
       前回の結果: <a href="#" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
     </div>
-    <div class="hint" style="margin-top:10px">※あそび感覚のセルフチェックです<br>強い痛みや持病がある方は無理せず医療機関へ</div>
+    <div class="hint" style="margin-top:10px">※目安をつかむセルフチェックです<br>強い痛みや持病がある方は無理せず医療機関へ</div>
   </div>
 
   <div class="card">
@@ -1158,7 +1158,7 @@ function drawResults(){
     : "ごめんなさい まだ無かった…！<br>リクエストを送ってもらえたら動画づくりの参考にします📮";
   const subject=encodeURIComponent("ストレッチのリクエスト（きょうのオガトレ）");
   const body=encodeURIComponent(`こんなストレッチの動画が欲しいです：\n${kwText||"（ここに書いてください）"}\n\n--\nきょうのオガトレ「さがす」から送信`);
-  document.getElementById("reqBtn").href=`mailto:ogata@ogatore.jp?subject=${subject}&body=${body}`;
+  document.getElementById("reqBtn").href=`mailto:kyou-no@ogatore.jp?subject=${subject}&body=${body}`;
   document.getElementById("reqBtn").textContent = kwText ? `「${kwText}」をリクエストする` : "リクエストを送る";
 }
 
