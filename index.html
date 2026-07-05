@@ -51,6 +51,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
+  @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-num.woff2") format("woff2");font-display:swap}
   :root{
     --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#6E6B5F;
     --teal:#2BB3A3; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
@@ -1277,10 +1278,10 @@ function drawCrown(ctx,x,y,w,color){
 }
 let lastBlob=null;
 async function ensureCardFonts(){
-  const specs=['900 100px "M PLUS 1p"','800 52px "M PLUS 1p"','700 34px "M PLUS 1p"'];
+  const specs=['900 100px "M PLUS 1p"','800 52px "M PLUS 1p"','700 34px "M PLUS 1p"','100px "BananaNum"'];
   try{ await Promise.all(specs.map(x=>document.fonts.load(x))); await document.fonts.ready; }catch(e){}
   for(let i=0;i<10;i++){
-    if(document.fonts.check('900 100px "M PLUS 1p"')) return;
+    if(document.fonts.check('900 100px "M PLUS 1p"')&&document.fonts.check('100px "BananaNum"')) return;
     await new Promise(r=>setTimeout(r,200));
     try{ await Promise.all(specs.map(x=>document.fonts.load(x))); }catch(e){}
   }
@@ -1340,13 +1341,14 @@ function drawCard(){
   const inCard = memo ? `「${memo.slice(0,18)}」` : (_bits.length?_bits.join("・"):null);
   const shift = milestone?0:((tline?0:46)+(inCard?0:46));
   // 日数
-  ctx.fillStyle=th.main; ctx.font="900 215px "+F;
+  const FB='"BananaNum","M PLUS 1p",sans-serif';
+  ctx.fillStyle=th.main; ctx.font="220px "+FB;
   ctx.fillText(String(st.total),500,milestone?560:505+shift);
-  ctx.fillStyle="#3A3A35"; ctx.font="800 54px "+F;
-  ctx.fillText("日目！",500,milestone?638:588+shift);
+  ctx.fillStyle="#3A3A35"; ctx.font="80px "+FB;
+  ctx.fillText("日目！",500,milestone?646:598+shift);
   // タイプ＋連続を1行に
   ctx.fillStyle="#6B6857"; ctx.font="800 36px "+F;
-  if(tline) ctx.fillText(tline,500,milestone?700:662+shift);
+  if(tline) ctx.fillText(tline,500,milestone?706:668+shift);
   // ひとことメモ or 前屈・ありがとう（カード内・1行だけ）
   if(inCard){ ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F; ctx.fillText(inCard,500,milestone?752:(tline?730:662+shift)); }
   // キャラ（グッド／開脚を1日交代・右下の専用ゾーンで文字と重ねない）
