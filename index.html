@@ -574,12 +574,12 @@ const QUESTIONS = [
     ["ちょっと浮く","すき間 こぶし1〜2個ぶん",1],
     ["山みたいに浮く","すき間 こぶし3個以上",2],
     ["そもそもあぐらがつらい","骨盤が立たず、体が後ろに倒れてしまう",3]]},
-  {k:"kenko",title:"背中で両手、つなげる？", note:"片手は上から、片手は下から背中へ",
+  {k:"kenko",title:"指先を鎖骨において ひじはどこまで上がる？", note:"ひじを体の前で ゆっくり上げてみて",
    opts:[
-    ["左右どちらもつなげる","上下を入れ替えても指が組める",0],
-    ["片側だけつなげる","得意な側だけ指先が届く",1],
-    ["指先がかすめる程度","指先どうしの距離が 5cm以内",2],
-    ["まったく届く気がしない","指先どうしの距離が 10cm以上",3]]},
+    ["眉より高く上がる","ひじが眉の高さをこえる",0],
+    ["鼻くらいまで","ひじが鼻の高さで止まる",1],
+    ["あごくらいまで","ひじがあごの高さで止まる",2],
+    ["あごまで上がらない","ひじがあごより下で止まる",3]]},
   {k:"ashi", title:"かかとを付けたまま、しゃがめる？", note:"和式トイレのポーズ。無理はしないでね",
    opts:[
     ["余裕でしゃがめる","かかとを付けたまま深くしゃがみ、保持できる",0],
@@ -683,7 +683,29 @@ function goHome(){ show("home"); renderHome(); }
 const QUIZ_ART=[
  `<img src="assets/check/q1.jpg" alt="立って前屈のお手本">`,
  `<img src="assets/check/q2.jpg" alt="あぐらのお手本">`,
- `<img src="assets/check/q3.jpg" alt="背中で両手のお手本">`,
+  // Q3 肘上げ（あご/鼻/眉のレベル線）※実写が撮れたら差し替え
+ `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
+   <g stroke="#CFC9B8" stroke-width="2.5" stroke-dasharray="2 6">
+     <path d="M168 40h66M168 54h66M168 66h66"/>
+   </g>
+   <g fill="#6E6B5F" stroke="none" font-weight="800" font-size="11">
+     <text x="240" y="44">まゆ</text><text x="240" y="58">鼻</text><text x="240" y="70">あご</text>
+   </g>
+   <path d="M116 108L112 148M130 108L134 148" stroke="#55524A" stroke-width="9"/>
+   <path d="M123 104L123 72" stroke="#3A3A35" stroke-width="15"/>
+   <circle cx="123" cy="52" r="15" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
+   <path d="M110 46q5-10 15-9q9 2 11 9q-7-3-13-2q-8 0-13 2z" fill="#3A3A35"/>
+   <circle cx="118" cy="53" r="2" fill="#3A3A35"/><circle cx="128" cy="53" r="2" fill="#3A3A35"/>
+   <path d="M120 60q3 3 6 0" stroke="#3A3A35" stroke-width="2.2"/>
+   <path d="M112 74L104 90" stroke="#E8B48C" stroke-width="7"/>
+   <path d="M134 76Q150 70 152 56" stroke="#E8B48C" stroke-width="8"/>
+   <path d="M152 56Q146 66 136 70" stroke="#E8B48C" stroke-width="7"/>
+   <circle cx="134" cy="72" r="4" fill="#E8B48C"/>
+   <circle cx="153" cy="54" r="7" stroke="#E56A9A" stroke-width="3.5"/>
+   <path d="M162 50V26" stroke="#E56A9A" stroke-width="4"/>
+   <path d="M156 32l6 -8l6 8" stroke="#E56A9A" stroke-width="3.5"/>
+ </svg>`,
  // Q4 深くしゃがむ: かかとの浮きをズーム円で拡大
  `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
    <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
