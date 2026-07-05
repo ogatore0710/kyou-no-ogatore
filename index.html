@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#8A877D;
+    --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#6E6B5F;
     --teal:#2BB3A3; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
     --pink:#E56A9A; --pink-soft:#FFEDF3;
     --bg:#FFFAF3; --card:#FFFFFF; --line:#F2EADB; --radius:22px;
@@ -42,13 +42,13 @@
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
-  .qnum{color:var(--pink);font-weight:900;font-size:14px;letter-spacing:.1em}
+  .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
   .qtitle{font-size:22px;font-weight:900;margin:6px 0 4px}
   .qnote{color:var(--sub);font-size:15px;margin-bottom:14px}
   .opt{display:block;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;
     padding:12px 16px;margin-bottom:10px;font-size:17.5px;font-family:inherit;text-align:left;cursor:pointer;font-weight:800}
   .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}
-  .opt .crit{display:block;font-size:12.5px;color:var(--sub);font-weight:700;margin-top:2px;line-height:1.5}
+  .opt .crit{display:block;font-size:13.5px;color:var(--sub);font-weight:700;margin-top:2px;line-height:1.5}
   .dots{display:flex;gap:6px;justify-content:center;margin:14px 0 2px}
   .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
   .dot.on{background:var(--pink)}
@@ -58,7 +58,7 @@
   .type-name{font-size:29px;font-weight:900;text-align:center;letter-spacing:.02em}
   .type-copy{text-align:center;color:var(--sub);font-size:15.5px;margin:8px 0 2px}
   .type-hope{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15.5px;margin-top:12px}
-  .pt-note{background:var(--teal-soft);border-radius:14px;padding:12px 14px;font-size:14.5px;margin-top:10px;line-height:1.75}
+  .pt-note{background:var(--teal-soft);border-radius:14px;padding:12px 14px;font-size:15px;margin-top:10px;line-height:1.75}
   .pt-note b{color:#177065}
   .pt-head{display:flex;align-items:center;gap:6px;font-weight:900;margin-bottom:2px}
   .pt-head svg{width:18px;height:18px}
@@ -67,11 +67,11 @@
   .video{display:flex;gap:12px;align-items:center;background:var(--card);border:1.5px solid var(--line);
     border-radius:16px;padding:10px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
   .video img{width:112px;border-radius:10px;flex-shrink:0}
-  .video .vt{font-size:14.5px;font-weight:800;line-height:1.45}
-  .video .vs{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .video .vt{font-size:15px;font-weight:800;line-height:1.45}
+  .video .vs{font-size:13.5px;color:var(--sub);margin-top:2px}
   .badge{display:inline-block;background:var(--coral-soft);color:#B4462F;font-size:11.5px;
     font-weight:800;border-radius:8px;padding:1px 8px;margin-bottom:4px}
-  .rotate-note{font-size:12px;color:var(--sub);text-align:center;margin-top:4px}
+  .rotate-note{font-size:13px;color:var(--sub);text-align:center;margin-top:4px}
   /* きょうの1本 */
   .seg{display:flex;background:var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
   .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:11px;padding:9px;font-size:16px;font-weight:900;
@@ -80,12 +80,12 @@
   .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
   .streak{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .streak .num{font-size:38px;font-weight:900;color:var(--pink)}
-  .streak .lbl{font-size:14px;color:var(--sub)}
+  .streak .lbl{font-size:15px;color:var(--sub)}
   .done-btn{background:var(--teal);color:#fff;box-shadow:0 4px 0 #1E8A7D}
   .done-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #1E8A7D}
   .done-btn.did{background:var(--line);color:var(--sub);box-shadow:none}
-  .hint{font-size:11.5px;color:var(--sub);text-align:center;margin-top:8px}
-  .foot{text-align:center;color:var(--sub);font-size:12.5px;margin-top:26px;line-height:2}
+  .hint{font-size:13px;color:var(--sub);text-align:center;margin-top:8px;line-height:1.7}
+  .foot{text-align:center;color:var(--sub);font-size:13.5px;margin-top:26px;line-height:2}
   .foot a{color:var(--teal)}
   /* タブバー */
   .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
@@ -104,7 +104,7 @@
   .cal{width:100%;border-collapse:collapse;table-layout:fixed}
   .cal th{font-size:11.5px;color:var(--sub);padding:4px 0;font-weight:800}
   .cal td{text-align:center;padding:3px 0}
-  .cal .d{width:36px;height:36px;line-height:36px;border-radius:50%;display:inline-block;font-size:14px;font-weight:800}
+  .cal .d{width:36px;height:36px;line-height:36px;border-radius:50%;display:inline-block;font-size:15px;font-weight:800}
   .cal .d.done{background:var(--teal);color:#fff}
   .cal .d.today{box-shadow:inset 0 0 0 2.5px var(--pink)}
   .cal .d.mute{color:#D5CFBE}
@@ -115,17 +115,17 @@
     border-radius:16px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
   .pl svg{width:34px;height:34px;flex-shrink:0}
   .pl .pt{font-size:15px;font-weight:800;line-height:1.45}
-  .pl .ps{font-size:12.5px;color:var(--sub)}
-  .group-label{font-size:13.5px;font-weight:900;color:var(--sub);margin:16px 2px 8px}
+  .pl .ps{font-size:13.5px;color:var(--sub)}
+  .group-label{font-size:14px;font-weight:900;color:var(--sub);margin:16px 2px 8px}
   .group-label:first-child{margin-top:0}
   /* さがす */
   .searchbox{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:12px}
   .searchbox svg{width:20px;height:20px;flex-shrink:0}
   .searchbox input{border:none;outline:none;flex:1;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;min-width:0}
-  .searchbox input::placeholder{color:#C9C3B2;font-size:14px}
+  .searchbox input::placeholder{color:#C9C3B2;font-size:15px}
   .chips{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
   .chip{white-space:nowrap}
-  .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:5px 14px;font-size:13.5px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
+  .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:5px 14px;font-size:14px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
   .chip-a{background:#FFF6D8;border-color:#F2DE8A;color:#8A6D00}
   .chip-b{background:#E7F8F1;border-color:#BFE8DC;color:#177065}
   .chip-c{background:#FFEDF3;border-color:#F5C6D8;color:#C2477E}
@@ -135,12 +135,12 @@
   .chip-c.on{background:var(--pink);border-color:var(--pink);color:#fff}
   .chip-d.on{background:#8B7BD8;border-color:#8B7BD8;color:#fff}
   /* きょうのひとこと */
-  .qbubble{display:flex;gap:10px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:14px;font-size:14px;line-height:1.6}
+  .qbubble{display:flex;gap:10px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:14px;font-size:15.5px;line-height:1.7}
   .qbubble img{width:36px;height:36px;border-radius:50%;background:var(--yellow);flex-shrink:0;object-fit:cover}
   .qbubble .ql{display:block;font-size:11px;color:var(--sub);font-weight:900}
   /* とどくメーター */
   .reach-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-  .reach-btn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:10px 2px;font-family:inherit;font-size:13.5px;font-weight:800;color:var(--sub);cursor:pointer}
+  .reach-btn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:10px 2px;font-family:inherit;font-size:14px;font-weight:800;color:var(--sub);cursor:pointer}
   .reach-btn.on{background:var(--teal);border-color:var(--teal);color:#fff}
   .rtrack{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:10px}
   .rbar{width:16px;height:100%;display:flex;align-items:flex-end}
@@ -170,7 +170,7 @@
   </div>
   <div class="card hidden" id="anchorCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 7.5V12l3 2.5"/></svg>いつやる派？</div>
-    <div style="font-size:13.5px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めた人は続きやすい——研究でも出ています。あなたの合図をひとつ選んでください（あとで変えられます）</div>
+    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります。<br>合図をひとつ選んでください（あとで変えられます）</div>
     <div class="anchor-row">
       <button class="opt" onclick="setAnchor('asa')">朝おきて、そのまま</button>
       <button class="opt" onclick="setAnchor('furo')">おふろ上がりに</button>
@@ -180,16 +180,16 @@
   </div>
   <div class="card" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさ診断</div>
-    <div style="font-size:14px;color:#6B6857;margin-bottom:14px">タップだけ・30秒！あなたの「かたさタイプ」と、まずやるべきストレッチがわかります💡</div>
+    <div style="font-size:15px;color:#6B6857;margin-bottom:14px">タップするだけ・30秒。<br>あなたに合うストレッチがわかります💡</div>
     <button class="btn btn-primary" onclick="startQuiz()">診断をはじめる</button>
-    <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:13.5px">
+    <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:14px">
       前回の結果: <a href="#" onclick="showResult(state.type);return false" style="color:#177065;font-weight:800" id="lastTypeName"></a>
     </div>
   </div>
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="4" fill="#DFF5F2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>きょうの1本</div>
-    <div id="anchorGreet" style="font-size:13.5px;color:var(--sub);margin:-4px 0 8px;font-weight:800"></div>
+    <div id="anchorGreet" style="font-size:14px;color:var(--sub);margin:-4px 0 8px;font-weight:800"></div>
     <div class="seg">
       <button id="segAsa" onclick="setMode('asa')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="4.5" fill="#FFD93B" stroke="#3A3A35"/><path d="M12 3.5v2.5M4 13H2M22 13h-2M5.5 6.5l1.8 1.8M18.5 6.5l-1.8 1.8"/></svg>あさ</button>
       <button id="segYoru" onclick="setMode('yoru')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 14.5A8 8 0 0 1 9.5 5 8 8 0 1 0 19 14.5z" fill="#B8A9F0" stroke="#3A3A35" stroke-width="2.2" stroke-linejoin="round"/></svg>よる</button>
@@ -208,23 +208,23 @@
       </div>
     </div>
     <div class="lbl" id="totalDays" style="margin-top:6px"></div>
-    <div id="cheer" style="text-align:center;font-size:14px;margin-top:10px;color:var(--sub)"></div>
+    <div id="cheer" style="text-align:center;font-size:15px;margin-top:10px;color:var(--sub)"></div>
     <div id="memoRow" class="hidden" style="margin-top:10px">
-      <input id="memoInput" maxlength="40" placeholder="きょうのひとことメモ（『初めてつま先さわれた』など）" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14.5px;font-weight:700;color:var(--ink);background:var(--card)">
-      <button class="btn btn-line" style="margin-top:8px;font-size:14px" onclick="saveMemo()">メモをのこす</button>
-      <div id="memoSaved" style="font-size:12.5px;color:var(--teal);margin-top:6px;min-height:14px"></div>
+      <input id="memoInput" maxlength="40" placeholder="ひとことメモ（例: 初めてつま先さわれた）" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:15px;font-weight:700;color:var(--ink);background:var(--card)">
+      <button class="btn btn-line" style="margin-top:8px;font-size:15px" onclick="saveMemo()">メモをのこす</button>
+      <div id="memoSaved" style="font-size:13.5px;color:var(--teal);margin-top:6px;min-height:14px"></div>
     </div>
-    <div id="plateauNote" style="font-size:13.5px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
+    <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" style="margin-top:12px;font-size:15px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
-    <div class="hint">記録はこの端末の中だけに保存されます。<br>ホーム画面に追加しておくと消えにくく、画像保存が確実なバックアップになります。</div>
+    <div class="hint">記録はこのスマホの中だけに残ります。<br>カード画像を保存しておくと安心です。</div>
   </div>
 
   <div class="card" style="text-align:center;background:linear-gradient(135deg,#FFEDF3,#FFF9DC);border:none">
-    <div style="font-size:14px;margin-bottom:10px">YouTubeのいいねは1回しか押せないから、<br>ここでは毎日おくれるようにしました</div>
+    <div style="font-size:15px;margin-bottom:10px">YouTubeのいいねは1回だけ。<br>ここでは毎日おくれます</div>
     <button class="btn btn-ghost" id="thanksBtn" onclick="sendThanks()">💛 きょうのありがとう</button>
-    <div id="thanksNote" style="font-size:13px;margin-top:8px;color:var(--sub);min-height:16px"></div>
-    <div style="font-size:12.5px;color:var(--sub);margin-top:2px"><span id="thanksTotal"></span></div>
+    <div id="thanksNote" style="font-size:14px;margin-top:8px;color:var(--sub);min-height:16px"></div>
+    <div style="font-size:13.5px;color:var(--sub);margin-top:2px"><span id="thanksTotal"></span></div>
   </div>
 </section>
 
@@ -243,7 +243,7 @@
 <!-- ===== 結果 ===== -->
 <section id="result" class="hidden">
   <div class="card" style="background:linear-gradient(160deg,#FFFDF5,#FFEDF3)">
-    <div style="text-align:center;font-size:13px;font-weight:900;color:var(--sub)">あなたのかたさタイプは…</div>
+    <div style="text-align:center;font-size:14px;font-weight:900;color:var(--sub)">あなたのかたさタイプは…</div>
     <div class="type-illust" id="rIllust"></div>
     <div class="type-name" id="rName"></div>
     <div class="type-copy" id="rCopy"></div>
@@ -255,7 +255,7 @@
     <div id="rxList"></div>
     <div id="worryExtra"></div>
     <div class="rotate-note">2本目・3本目は3日ごとに自動で入れ替わります</div>
-    <div style="font-size:13px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 ペースの公式見解: <b>毎日が理想、でも週3でも効きます</b>。1日1回で十分。痛い日・熱っぽい日は休むのが正解——休むのも、つづけてるうちです。痛みは「イタ気持ちいい」で止めましょう😌</div>
+    <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想。週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
   </div>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回診断する</button>
@@ -266,12 +266,12 @@
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>つづけた記録</div>
     <div style="display:flex;gap:20px;align-items:flex-end">
-      <div><div class="lbl" style="font-size:13px;color:var(--sub)">通算</div><span class="num" style="font-size:36px;font-weight:900;color:var(--teal)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
-      <div><div class="lbl" style="font-size:13px;color:var(--sub)">いま連続</div><span style="font-size:36px;font-weight:900;color:var(--pink)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
+      <div><div class="lbl" style="font-size:14px;color:var(--sub)">通算</div><span class="num" style="font-size:36px;font-weight:900;color:var(--teal)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
+      <div><div class="lbl" style="font-size:14px;color:var(--sub)">いま連続</div><span style="font-size:36px;font-weight:900;color:var(--pink)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
     </div>
-    <div id="msNote" style="font-size:14px;margin-top:12px"></div>
+    <div id="msNote" style="font-size:15px;margin-top:12px"></div>
     <div class="bar"><div id="msBar" style="width:0%"></div></div>
-    <div id="histFreeze" style="font-size:12.5px;color:var(--sub);margin-top:8px"></div>
+    <div id="histFreeze" style="font-size:13.5px;color:var(--sub);margin-top:8px"></div>
   </div>
   <div class="card">
     <div class="cal-head">
@@ -283,12 +283,12 @@
       <thead><tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr></thead>
       <tbody id="calBody"></tbody>
     </table>
-    <div class="hint">ホームで「きょうやった！」を押した日に印がつきます。休んだ日に×はつきません——休むのも、つづけてるうちです</div>
+    <div class="hint">「きょうやった！」を押した日に印がつきます。<br>休んだ日に×はつきません</div>
   </div>
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
-    <div style="font-size:13.5px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈。手はどこまで届いた？週1回はかると、伸びていく証拠が見えます</div>
+    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈。手はどこまで届きましたか？<br>週1回の記録でOKです</div>
     <div class="reach-row">
       <button class="reach-btn" id="rlv1" onclick="setReach(1)">ひざ</button>
       <button class="reach-btn" id="rlv2" onclick="setReach(2)">すね</button>
@@ -296,8 +296,8 @@
       <button class="reach-btn" id="rlv4" onclick="setReach(4)">つま先</button>
       <button class="reach-btn" id="rlv5" onclick="setReach(5)">ゆか</button>
     </div>
-    <div id="reachMsg" style="font-size:13.5px;margin:10px 0 2px;min-height:18px"></div>
-    <div id="reachNow" style="font-size:14px;margin-top:4px"></div>
+    <div id="reachMsg" style="font-size:14px;margin:10px 0 2px;min-height:18px"></div>
+    <div id="reachNow" style="font-size:15px;margin-top:4px"></div>
     <div class="rtrack" id="reachTrend"></div>
   </div>
 
@@ -308,29 +308,29 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#DFF5F2"/><path d="M12 7.5V12l3 2.5"/></svg>つづける設定</div>
-    <div style="font-size:14px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:#177065;font-weight:800">変える</a></div>
-    <div style="font-size:14px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:15px;font-weight:800;color:var(--ink);background:var(--card)"></div>
-    <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:14.5px;display:block;text-align:center;text-decoration:none">📅 この時間の毎日リマインダーをカレンダーに入れる</a>
-    <div class="hint" style="text-align:left">↑ いちばん簡単。スマホの標準カレンダーが毎日その時間に通知してくれます（取り込み後は「予定あり」から削除もできます）</div>
+    <div style="font-size:15px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" onclick="resetAnchor();return false" style="color:#177065;font-weight:800">変える</a></div>
+    <div style="font-size:15px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:15px;font-weight:800;color:var(--ink);background:var(--card)"></div>
+    <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 この時間の毎日リマインダーをカレンダーに入れる</a>
+    <div class="hint" style="text-align:left">↑ スマホのカレンダーが毎日その時間に知らせてくれます</div>
     <details style="margin-top:12px;background:var(--bg);border-radius:12px;padding:10px 14px">
-      <summary style="font-size:14px;font-weight:800;cursor:pointer">もっと確実にしたい人へ: 毎日じどうでアプリがひらく設定（iPhone・2分）</summary>
-      <ol style="font-size:13.5px;line-height:1.9;padding-left:18px;margin:10px 0 4px">
-        <li>「ショートカット」アプリ → 下の「オートメーション」→「＋」</li>
-        <li>「時刻」を選んで、やる時間に設定（毎日）</li>
-        <li>「すぐに実行」を選ぶ（確認なしで動きます）</li>
-        <li>アクションで「URLを開く」→ 下のURLを貼り付けて完了！</li>
+      <summary style="font-size:15px;font-weight:800;cursor:pointer">毎日じどうでアプリがひらく設定（iPhone）</summary>
+      <ol style="font-size:14px;line-height:1.9;padding-left:18px;margin:10px 0 4px">
+        <li>「ショートカット」アプリ →「オートメーション」→「＋」</li>
+        <li>「時刻」を選ぶ（毎日・やる時間）</li>
+        <li>「すぐに実行」を選ぶ</li>
+        <li>「URLを開く」に下のURLを貼って完了</li>
       </ol>
-      <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:12.5px;color:var(--sub);background:var(--card)">
-      <div style="font-size:12.5px;color:var(--sub);margin-top:8px">Androidは、このページをChromeのメニューから「ホーム画面に追加」＋上のカレンダー登録の組み合わせがおすすめです</div>
+      <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--sub);background:var(--card)">
+      <div style="font-size:13.5px;color:var(--sub);margin-top:8px">Androidの方は「ホーム画面に追加」＋カレンダー登録がおすすめです</div>
     </details>
-    <div class="hint" style="text-align:left">アプリ自体からのプッシュ通知は、正式公開のときにサーバーを用意すると可能になります（いまは端末の標準機能を間借りする方式）</div>
+
   </div>
 </section>
 
 <!-- ===== 再生リスト ===== -->
 <section id="playlists" class="hidden">
   <div id="plList"></div>
-  <div class="hint">タップするとYouTubeの再生リストが開きます。連続再生はテレビで流すのもおすすめ📺</div>
+  <div class="hint">タップするとYouTubeで開きます。テレビで流すのもおすすめ📺</div>
 </section>
 
 <!-- ===== さがす ===== -->
@@ -341,13 +341,13 @@
   </div>
   <div class="chips" id="chips"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <select id="ySel" onchange="renderSearch()" style="border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:13.5px;font-weight:800;color:var(--sub)"></select>
-    <div id="hitCount" style="font-size:12.5px;color:var(--sub);font-weight:800"></div>
+    <select id="ySel" onchange="renderSearch()" style="border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:14px;font-weight:800;color:var(--sub)"></select>
+    <div id="hitCount" style="font-size:13.5px;color:var(--sub);font-weight:800"></div>
   </div>
   <div id="vlist"></div>
   <button class="btn btn-line hidden" id="moreBtn" style="margin-bottom:14px" onclick="moreResults()"></button>
   <div class="card" id="reqBox" style="background:linear-gradient(135deg,#FFF3C4,#FFEDF3);border:none">
-    <div style="font-size:14.5px;margin-bottom:12px" id="reqMsg">やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮</div>
+    <div style="font-size:15px;margin-bottom:12px" id="reqMsg">やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮</div>
     <a class="btn btn-ghost" id="reqBtn" style="font-size:15px" href="#">このキーワードでリクエストする</a>
   </div>
 </section>
@@ -611,8 +611,8 @@ function renderToday(){
   const vk = list[dayIndex()%list.length];
   const tiny=TINY[dayIndex()%TINY.length];
   document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる")
-    +`<div style="font-size:13px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" style="color:var(--sub);font-weight:800;text-decoration:none">👥 コメント欄で、なかまの記録をのぞく →</a></div>`
-    +`<div style="font-size:13.5px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:#177065;font-weight:900">${tiny.t}</a> だけでOK。それでも堂々と「きょうやった！」です</div>`;
+    +`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" style="color:var(--sub);font-weight:800;text-decoration:none">👥 コメント欄で、なかまの記録をのぞく →</a></div>`
+    +`<div style="font-size:14px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:#177065;font-weight:900">${tiny.t}</a> だけでOK</div>`;
 }
 
 // ---- 継続カウンター（日付リストで頑丈に保存） ----
@@ -641,8 +641,8 @@ function renderStreak(){
   row.classList.toggle("hidden", !did);
   if(did) document.getElementById("memoInput").value=memos[todayStr()]||"";
   const pn=document.getElementById("plateauNote");
-  if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 このあたりで「効いてるのかな？」と感じる人がとても多いです。体の中では変わり続けてますよ。<a href="#" onclick="switchTab('history');return false" style="color:#177065;font-weight:800">とどくメーター</a>ではかると、証拠が見えます`;
-  else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁です。ここを超えた人から「目に見える変化」の報告がぐっと増えます。あとちょっと！`;
+  if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期です。体は変わり続けていますよ。<a href="#" onclick="switchTab('history');return false" style="color:#177065;font-weight:800">とどくメーター</a>で確かめてみて`;
+  else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁。ここを超えると変化の報告がぐっと増えます。あとちょっと！`;
   else pn.innerHTML="";
 }
 function currentTodayId(){ const list=state.mode==="asa"?TODAY_ASA:TODAY_YORU; return V[list[dayIndex()%list.length]].id; }
@@ -672,7 +672,7 @@ function markDone(){
   if(ms){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
-      +(ms.q?`<div style="margin-top:6px;font-size:12.5px;color:var(--sub)">${ms.q}</div>`:"")
+      +(ms.q?`<div style="margin-top:6px;font-size:13.5px;color:var(--sub)">${ms.q}</div>`:"")
       +`<div style="margin-top:8px"><a href="#" onclick="makeCard();return false" style="color:#177065;font-weight:800">ゴールドカードをのこす</a>　<a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" style="color:#177065;font-weight:800">コメント欄に報告する</a></div>`;
   } else {
     const cheers=["ナイスご自愛！🎉","がんばったね、お疲れ様でした✨","その数分が、体を変えます💪","イタ気持ちいい、できました？😊","体は正直。ちゃんと応えてくれますよ！","昨日の自分より、1ミリ前へ🌱"];
@@ -719,7 +719,7 @@ function setReach(lv){
   const msg=document.getElementById("reachMsg");
   if(lv>best&&best>0) msg.innerHTML=`<b style="color:var(--pink)">🎉 じこベスト更新！「${REACH_LV[lv]}」</b> 記録カードにも入ります`;
   else if(lv>=4&&best===0) msg.innerHTML=`<b style="color:var(--pink)">最初から「${REACH_LV[lv]}」！すばらしい</b>`;
-  else msg.textContent="記録しました。つづけていれば、じわじわ伸びますからね";
+  else msg.textContent="記録しました。じわじわ伸びていきますよ";
 }
 function renderReach(){
   const arr=getReach();
@@ -729,7 +729,7 @@ function renderReach(){
     document.getElementById("rlv"+i).classList.toggle("on",!!on);
   }
   const now=document.getElementById("reachNow");
-  if(!arr.length){ now.textContent="まだ記録がありません。いまの体で1回はかってみましょう"; document.getElementById("reachTrend").innerHTML=""; return; }
+  if(!arr.length){ now.textContent="まだ記録がありません。1回はかってみましょう"; document.getElementById("reachTrend").innerHTML=""; return; }
   const latest=arr[arr.length-1], best=Math.max(...arr.map(r=>r.lv));
   now.innerHTML=`いまの記録: <b>${REACH_LV[latest.lv]}</b>（${latest.d.slice(5).replace("-","/")}）・じこベスト: <b style="color:var(--teal)">${REACH_LV[best]}</b>`;
   document.getElementById("reachTrend").innerHTML = arr.slice(-14).map(r=>`<div class="rbar"><div style="height:${r.lv*20}%"></div></div>`).join("");
@@ -739,8 +739,8 @@ function renderDiary(){
   const memos=store.get("memos",{});
   const keys=Object.keys(memos).sort().reverse().slice(0,7);
   document.getElementById("diaryList").innerHTML = keys.length
-    ? keys.map(k=>`<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px"><span style="color:var(--sub);font-weight:800;flex-shrink:0">${k.slice(5).replace("-","/")}</span><span>${memos[k].replace(/</g,"&lt;")}</span></div>`).join("")
-    : `<div style="font-size:13.5px;color:var(--sub)">ホームで「きょうやった！」のあとに、ひとことメモをのこせます。あとで読み返すと、ぜんぶ宝物です</div>`;
+    ? keys.map(k=>`<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15px"><span style="color:var(--sub);font-weight:800;flex-shrink:0">${k.slice(5).replace("-","/")}</span><span>${memos[k].replace(/</g,"&lt;")}</span></div>`).join("")
+    : `<div style="font-size:14px;color:var(--sub)">「きょうやった！」のあとにメモをのこせます</div>`;
 }
 // ---- いつやる派（生活アンカー）＋カレンダー ----
 const ANCHORS={
@@ -778,7 +778,7 @@ function welcomeCheck(){
   const showIt = gap>=3 && store.get("wb_seen","")!==todayStr();
   wb.classList.toggle("hidden",!showIt);
   if(showIt){
-    document.getElementById("wbText").innerHTML=`<b style="font-size:17px">おかえりなさい！${gap}日ぶりですね🌱</b><br><br>数日あいても習慣はこわれない——研究でちゃんとわかっています。体が少し硬く戻った気がしても、数日で取り返せますよ。<br><b>通算${st.total}日は、ぜんぶ残ってます。</b>`;
+    document.getElementById("wbText").innerHTML=`<b style="font-size:17px">おかえりなさい！${gap}日ぶりですね🌱</b><br><br>休んでも習慣はこわれません。<br>体は数日で取り返せます。<br><b>通算${st.total}日は残っています。</b>`;
   }
 }
 function wbClose(){ store.set("wb_seen",todayStr()); document.getElementById("welcomeBack").classList.add("hidden"); }
@@ -985,7 +985,7 @@ function renderHistory(){
     document.getElementById("msNote").textContent="全部の節目を達成！すごすぎます";
     document.getElementById("msBar").style.width="100%";
   }
-  document.getElementById("histFreeze").textContent=`おやすみ券: 今月のこり${freezeLeft()}枚。休んだ日に自動でつかわれて、連続がつながります（毎月3枚もらえます）`;
+  document.getElementById("histFreeze").textContent=`おやすみ券 のこり${freezeLeft()}枚（毎月3枚）。休んだ日に自動でつかわれて連続がつながります`;
   if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
   renderCal(); renderReach(); renderDiary(); renderIcs();
 }
@@ -1076,7 +1076,7 @@ function drawResults(){
   document.getElementById("hitCount").textContent=`${hits.length}本`;
   document.getElementById("vlist").innerHTML = shown.length
     ? shown.map(v=>vHTML(v,(v.tags||[])[0])).join("")
-    : `<div class="card" style="text-align:center;color:var(--sub);font-size:14.5px">この条件のストレッチは、まだ無いみたい…</div>`;
+    : `<div class="card" style="text-align:center;color:var(--sub);font-size:15px">この条件のストレッチは、まだ無いみたい…</div>`;
   const more=document.getElementById("moreBtn");
   more.classList.toggle("hidden", hits.length<=searchLimit);
   more.textContent=`さらに表示（あと${Math.max(0,hits.length-searchLimit)}本）`;
