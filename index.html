@@ -129,7 +129,7 @@
   /* 診断 */
   .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
   .q-art{text-align:center;margin:8px 0 2px}
-  .q-art svg{width:176px;height:129px}
+  .q-art svg{width:100%;max-width:290px;height:auto}
   .qtitle{font-size:22px;font-weight:900;margin:6px 0 4px}
   .qnote{color:var(--sub);font-size:15px;margin-bottom:14px}
   .opt{display:block;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;
@@ -680,66 +680,82 @@ function goHome(){ show("home"); renderHome(); }
 
 // ---- チェック質問のポーズ図解（書き下ろしSVG） ----
 const QUIZ_ART=[
- // Q1 立って前屈（ひざピンで手はどこまで）
- `<svg viewBox="0 0 150 110" fill="none" stroke-linecap="round" stroke-linejoin="round">
-   <path d="M18 100h114" stroke="#E0D8C4" stroke-width="4"/>
-   <path d="M86 60L86 100M97 60L97 100" stroke="#3A3A35" stroke-width="6"/>
-   <path d="M88 60Q90 40 72 32" stroke="#3A3A35" stroke-width="11"/>
-   <circle cx="60" cy="30" r="12" fill="#FFE3C9" stroke="#3A3A35" stroke-width="3.5"/>
-   <path d="M50 23q5-7 13-5q6 2 7 7q-6-3-11-2q-6 0-9 0z" fill="#3A3A35" stroke="#3A3A35" stroke-width="1.5"/>
-   <circle cx="54" cy="31" r="1.7" fill="#3A3A35"/>
-   <path d="M66 38Q60 60 58 80" stroke="#E8B48C" stroke-width="5.5"/>
-   <circle cx="58" cy="85" r="3.5" fill="#E8B48C"/>
-   <path d="M58 91v6" stroke="#E56A9A" stroke-width="3" stroke-dasharray="2 3"/>
-   <path d="M55 95l3 4l3 -4" stroke="#E56A9A" stroke-width="2.5"/>
+ // Q1 立って前屈: 立ち姿(ゴースト)→前屈(本体)＋動きの矢印
+ `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
+   <g stroke="#DDD6C4" stroke-width="10" opacity=".8">
+     <path d="M185 104V60"/><circle cx="185" cy="46" r="13" fill="#EFE9DA" stroke-width="4"/>
+     <path d="M183 70L183 96" stroke-width="6"/>
+   </g>
+   <path d="M168 42Q150 34 138 58" stroke="#F5AFC6" stroke-width="4" fill="none"/>
+   <path d="M134 50l3 10l10 -4" stroke="#F5AFC6" stroke-width="4" fill="none"/>
+   <path d="M185 106L185 148M196 106L196 148" stroke="#55524A" stroke-width="9"/>
+   <path d="M188 102Q182 84 148 88" stroke="#3A3A35" stroke-width="15"/>
+   <circle cx="131" cy="94" r="15" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
+   <path d="M120 86q4-9 14-7q8 2 9 8q-6-3-12-2q-7 0-11 1z" fill="#3A3A35"/>
+   <circle cx="126" cy="96" r="2" fill="#3A3A35"/>
+   <path d="M146 94Q140 116 139 134" stroke="#E8B48C" stroke-width="8"/>
+   <circle cx="139" cy="139" r="4.5" fill="#E8B48C"/>
+   <path d="M139 145v-1" stroke="#E56A9A" stroke-width="3"/>
+   <path d="M134 145l5 5l5 -5" stroke="#E56A9A" stroke-width="3.5"/>
+   <path d="M203 126q8 -1 10 -7M203 134q8 -1 10 -7" stroke="#2BB3A3" stroke-width="3.5"/>
  </svg>`,
- // Q2 あぐら（ひざが浮くか）
- `<svg viewBox="0 0 150 110" fill="none" stroke-linecap="round" stroke-linejoin="round">
-   <path d="M18 100h114" stroke="#E0D8C4" stroke-width="4"/>
-   <circle cx="75" cy="30" r="13" fill="#FFE3C9" stroke="#3A3A35" stroke-width="3.5"/>
-   <path d="M62 26q5-10 15-9q9 1 11 9q-7-4-13-3q-8 1-13 3z" fill="#3A3A35" stroke="#3A3A35" stroke-width="2"/>
-   <circle cx="70" cy="31" r="1.7" fill="#3A3A35"/><circle cx="80" cy="31" r="1.7" fill="#3A3A35"/>
-   <path d="M72 36q3 3 6 0" stroke="#3A3A35" stroke-width="2.2"/>
-   <path d="M75 43L75 64" stroke="#3A3A35" stroke-width="13"/>
-   <path d="M75 62Q52 66 44 80Q60 86 75 76Q90 86 106 80Q98 66 75 62z" fill="#6E6B5F" stroke="#55524A" stroke-width="4"/>
-   <circle cx="49" cy="74" r="4" fill="#E8B48C"/><circle cx="101" cy="74" r="4" fill="#E8B48C"/>
-   <path d="M44 92l0 -7M106 92l0 -7" stroke="#E56A9A" stroke-width="3"/>
-   <path d="M41 88l3 -5l3 5M103 88l3 -5l3 5" stroke="#E56A9A" stroke-width="2.5" fill="none"/>
+ // Q2 あぐら: 正面・ひざの浮きに上矢印＋すき間の点線
+ `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
+   <circle cx="150" cy="52" r="17" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
+   <path d="M133 46q7-13 20-11q11 2 13 11q-9-4-16-3q-10 0-17 3z" fill="#3A3A35"/>
+   <circle cx="143" cy="53" r="2.2" fill="#3A3A35"/><circle cx="157" cy="53" r="2.2" fill="#3A3A35"/>
+   <path d="M145 60q5 4 10 0" stroke="#3A3A35" stroke-width="3"/>
+   <path d="M150 70L150 98" stroke="#3A3A35" stroke-width="17"/>
+   <path d="M150 96Q116 102 104 120Q128 138 150 128Q172 138 196 120Q184 102 150 96z" fill="#55524A" stroke="#454239" stroke-width="4"/>
+   <ellipse cx="143" cy="131" rx="7" ry="5" fill="#E8B48C"/><ellipse cx="157" cy="131" rx="7" ry="5" fill="#E8B48C"/>
+   <circle cx="106" cy="116" r="5.5" fill="#E8B48C"/><circle cx="194" cy="116" r="5.5" fill="#E8B48C"/>
+   <path d="M96 148v-6M104 148v-6M112 148v-6" stroke="#F5AFC6" stroke-width="3"/>
+   <path d="M188 148v-6M196 148v-6M204 148v-6" stroke="#F5AFC6" stroke-width="3"/>
+   <path d="M104 144V128M196 144V128" stroke="#E56A9A" stroke-width="4"/>
+   <path d="M99 133l5 -7l5 7M191 133l5 -7l5 7" stroke="#E56A9A" stroke-width="3.5"/>
  </svg>`,
- // Q3 バンザイ（腕が耳のラインまで上がるか）
- `<svg viewBox="0 0 150 110" fill="none" stroke-linecap="round" stroke-linejoin="round">
-   <path d="M18 102h114" stroke="#E0D8C4" stroke-width="4"/>
-   <path d="M66 12V46" stroke="#F5AFC6" stroke-width="2.5" stroke-dasharray="3 5"/>
-   <circle cx="66" cy="42" r="13" fill="#FFE3C9" stroke="#3A3A35" stroke-width="3.5"/>
-   <path d="M53 38q5-10 15-9q9 1 11 9q-7-4-13-3q-8 1-13 3z" fill="#3A3A35" stroke="#3A3A35" stroke-width="2"/>
-   <circle cx="61" cy="43" r="1.7" fill="#3A3A35"/><circle cx="71" cy="43" r="1.7" fill="#3A3A35"/>
-   <path d="M63 49q3 3 6 0" stroke="#3A3A35" stroke-width="2.2"/>
-   <path d="M66 55L66 80" stroke="#3A3A35" stroke-width="13"/>
-   <path d="M61 80L58 102M71 80L74 102" stroke="#3A3A35" stroke-width="6"/>
-   <path d="M58 58Q44 46 46 26" stroke="#E8B48C" stroke-width="5.5"/>
-   <path d="M74 58Q88 46 86 26" stroke="#E8B48C" stroke-width="5.5"/>
-   <circle cx="46" cy="21" r="4" fill="#E8B48C"/><circle cx="86" cy="21" r="4" fill="#E8B48C"/>
-   <path d="M72 16q6 2 10 6" stroke="#E56A9A" stroke-width="3"/>
+ // Q3 バンザイ: 横向き・腕を上げる動き＋耳ラインの点線
+ `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
+   <path d="M148 8V34" stroke="#E56A9A" stroke-width="3" stroke-dasharray="4 5"/>
+   <path d="M152 108L150 148M162 108L164 148" stroke="#55524A" stroke-width="9"/>
+   <path d="M157 104L154 72" stroke="#3A3A35" stroke-width="15"/>
+   <circle cx="150" cy="55" r="15" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
+   <path d="M139 47q4-10 15-8q9 2 10 9q-7-3-13-2q-7 0-12 1z" fill="#3A3A35"/>
+   <circle cx="144" cy="57" r="2.2" fill="#3A3A35"/>
+   <g stroke="#DDD6C4" stroke-width="8" opacity=".8"><path d="M152 76Q128 72 116 80"/></g>
+   <path d="M112 74q6 -22 18 -34" stroke="#F5AFC6" stroke-width="4"/>
+   <path d="M124 44l6 -6l2 9" stroke="#F5AFC6" stroke-width="4"/>
+   <path d="M152 74Q138 52 132 30" stroke="#E8B48C" stroke-width="8"/>
+   <circle cx="130" cy="24" r="5" fill="#E8B48C"/>
+   <path d="M134 20L146 14" stroke="#E56A9A" stroke-width="3.5"/>
+   <path d="M136 24l-4 -5l6 -2" stroke="#E56A9A" stroke-width="3"/>
  </svg>`,
- // Q4 深くしゃがむ（かかとが浮くか）
- `<svg viewBox="0 0 150 110" fill="none" stroke-linecap="round" stroke-linejoin="round">
-   <path d="M18 100h114" stroke="#E0D8C4" stroke-width="4"/>
-   <circle cx="56" cy="38" r="12" fill="#FFE3C9" stroke="#3A3A35" stroke-width="3.5"/>
-   <path d="M46 31q5-7 13-5q6 2 7 7q-6-3-11-2q-6 0-9 0z" fill="#3A3A35" stroke="#3A3A35" stroke-width="1.5"/>
-   <circle cx="51" cy="39" r="1.7" fill="#3A3A35"/>
-   <path d="M60 48Q58 60 64 68" stroke="#3A3A35" stroke-width="11"/>
-   <path d="M64 68L88 68" stroke="#3A3A35" stroke-width="7"/>
-   <path d="M88 68L86 90" stroke="#3A3A35" stroke-width="6"/>
-   <path d="M82 92L98 98" stroke="#3A3A35" stroke-width="5"/>
-   <path d="M81 94v5" stroke="#E56A9A" stroke-width="3" stroke-dasharray="2 3"/>
-   <path d="M78 97l3 4l3 -4" stroke="#E56A9A" stroke-width="2.5"/>
-   <path d="M62 52L86 46" stroke="#E8B48C" stroke-width="5.5"/>
-   <circle cx="90" cy="45" r="4" fill="#E8B48C"/>
-   <circle cx="112" cy="42" r="10" fill="#FFF3C4" stroke="#DFA400" stroke-width="3"/>
-   <path d="M112 37v6M112 46.5v.5" stroke="#DFA400" stroke-width="2.5"/>
+ // Q4 深くしゃがむ: かかとの浮きをズーム円で拡大
+ `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
+   <path d="M120 112L152 110" stroke="#55524A" stroke-width="10"/>
+   <path d="M120 112L134 142" stroke="#55524A" stroke-width="9"/>
+   <path d="M120 148L142 144" stroke="#3A3A35" stroke-width="6"/>
+   <path d="M141 146v4" stroke="#E56A9A" stroke-width="3"/>
+   <path d="M152 112Q150 88 158 76" stroke="#3A3A35" stroke-width="15"/>
+   <circle cx="152" cy="60" r="15" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
+   <path d="M141 52q4-10 15-8q9 2 10 9q-7-3-13-2q-7 0-12 1z" fill="#3A3A35"/>
+   <circle cx="146" cy="62" r="2.2" fill="#3A3A35"/>
+   <path d="M156 80L118 86" stroke="#E8B48C" stroke-width="8"/>
+   <circle cx="113" cy="87" r="5" fill="#E8B48C"/>
+   <path d="M158 140q14 10 32 4" stroke="#CFC9B8" stroke-width="2.5" stroke-dasharray="3 4"/>
+   <circle cx="224" cy="110" r="34" fill="#FFFFFF" stroke="#3A3A35" stroke-width="3.5"/>
+   <path d="M204 128h40" stroke="#E0D8C4" stroke-width="4"/>
+   <path d="M209 124L235 118" stroke="#3A3A35" stroke-width="6"/>
+   <path d="M234 120v8" stroke="#E56A9A" stroke-width="3.5" stroke-dasharray="2 3"/>
+   <path d="M229 122l5 6l5 -6" stroke="#E56A9A" stroke-width="3"/>
+   <text x="224" y="98" fill="#E56A9A" font-size="12" font-weight="800" text-anchor="middle" stroke="none">かかと</text>
  </svg>`,
  // Q5 いちばんの悩み
- `<svg viewBox="0 0 150 110" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M75 92C49 74 36 58 42 42q7-13 22-7q6 3 11 11q5-8 11-11q15-6 22 7c6 16-7 32-33 50z" fill="#FFEDF3" stroke="#E56A9A"/><path d="M63 44q5-7 12-5" stroke="#F5AFC6" stroke-width="3"/></svg>`,
+ `<svg viewBox="0 0 300 170" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M150 140C114 115 96 92 104 70q10-18 30-10q8 4 16 15q8-11 16-15q20-8 30 10c8 22-10 45-46 70z" fill="#FFEDF3" stroke="#E56A9A" stroke-width="5"/><path d="M132 74q7-10 17-7" stroke="#F5AFC6" stroke-width="4"/></svg>`,
 ];
 
 // ---- 診断 ----
