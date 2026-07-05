@@ -124,6 +124,14 @@
   #appSplash .spl-inner{opacity:0;transition:opacity .35s ease}
   .spl-badge{width:92px;height:92px;margin:0 auto;background:var(--yellow);border-radius:26px;transform:rotate(-8deg);
     box-shadow:0 5px 0 #E8BE1E;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:900;color:#fff}
+  .stepn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;
+    background:var(--yellow);color:#3A3A35;font-weight:900;font-size:16px;flex-shrink:0}
+  .gstep{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;font-size:15px;line-height:1.75}
+  .gflow{display:flex;align-items:center;justify-content:center;gap:6px;margin:12px 0;flex-wrap:wrap}
+  .gflow .gf{background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:13.5px;font-weight:800;text-align:center;min-width:84px}
+  .gflow .ga{color:var(--sub);font-weight:900}
+  .gmock{pointer-events:none;user-select:none}
+  .gcardmini{background:linear-gradient(135deg,#FFF6D8,#FFE8B0);border-radius:14px;padding:14px;text-align:center;color:#B8860B;font-weight:900}
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
@@ -503,6 +511,82 @@
   </div>
 </section>
 
+<!-- ===== つかいかた ===== -->
+<section id="guide" class="hidden">
+
+  <div class="card grad-warm" style="text-align:center">
+    <img src="assets/chara.png" alt="" style="width:84px;height:84px;object-fit:contain">
+    <div style="font-size:19px;font-weight:900;margin-top:6px">おぼえるのはこれだけ！</div>
+    <div style="font-size:16px;margin-top:8px;line-height:1.9"><b>1日1本うごいて<br>「きょうやった！」を押す</b></div>
+    <div style="font-size:14px;color:var(--sub2);margin-top:6px">あとはぜんぶ このアプリが覚えてます</div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 16v.5M12 13c0-2 2.5-2 2.5-4a2.5 2.5 0 1 0-5 0"/></svg>はじめての日にやること</div>
+    <div class="gstep"><span class="stepn">1</span><div><b>かたさチェック（３０秒）</b><br>5問タップするだけ 写真のお手本つき<br><img src="assets/check/q1.jpg" alt="" style="width:110px;border-radius:12px;border:1.5px solid var(--line);margin-top:6px"></div></div>
+    <div class="gstep"><span class="stepn">2</span><div><b>あなたの「かたさタイプ」が出ます</b><br>タイプに合わせた おすすめ3本つき</div></div>
+    <div class="gstep"><span class="stepn">3</span><div><b>まず1本 動画をやってみる</b><br>おわったらホームの「きょうやった！」を押す</div></div>
+    <button class="btn btn-primary" style="font-size:17px" onclick="startQuiz()">チェックをはじめる</button>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="4" fill="#DFF5F2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>2日目からの毎日</div>
+    <div class="gflow">
+      <div class="gf">アプリを<br>ひらく</div><div class="ga">→</div>
+      <div class="gf">きょうの1本を<br>▶ 再生</div><div class="ga">→</div>
+      <div class="gf">きょう<br>やった！✅</div>
+    </div>
+    <div style="font-size:14.5px;line-height:1.9">チェック済みの人は「<b>あなた用</b>」に あなたのおすすめが日替わりで出ます 気分をかえたい日は「あさ」「よる」へどうぞ</div>
+    <div class="seg gmock" style="margin-top:10px;max-width:320px">
+      <button class="on" style="font-size:14px">あなた用</button><button style="font-size:14px">あさ</button><button style="font-size:14px">よる</button>
+    </div>
+    <div style="font-size:14.5px;margin-top:10px;line-height:1.9">おわったら✍️ <b>ひとことメモ</b>も残せます（「初めてつま先さわれた」など）あとで読み返すと たからものです</div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>つづけるしくみ（ここがやさしい）</div>
+    <div class="gstep"><span class="stepn">🎫</span><div><b>おやすみ券が毎月3枚</b><br>休んでも じどうで使われて連続がつながる<br>使い切っても<b>通算日数はぜったい消えません</b></div></div>
+    <div class="gstep"><span class="stepn">👑</span><div><b>節目の日はゴールドカード</b><br>3日 7日 2週間 1ヶ月…とお祝いが待ってます</div></div>
+    <div class="gcardmini gmock" style="max-width:240px;margin:4px auto 10px">👑 7日目！<br><span style="font-size:12.5px">記録カードがゴールドに</span></div>
+    <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「きろく」タブでできること</div>
+    <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
+    <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
+    <div class="gstep"><span class="stepn">📝</span><div><b>ひとことにっき</b>…毎日のメモを読み返せます</div></div>
+    <div class="gstep"><span class="stepn">⏰</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
+    <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">きろくタブをひらく</button>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><circle cx="9" cy="10.5" r="1.8" fill="#3A3A35"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードのつくりかた</div>
+    <div class="gstep"><span class="stepn">1</span><div>「きょうやった！」のあと <b>「記録カードを画像でのこす」</b>を押す</div></div>
+    <div class="gstep"><span class="stepn">2</span><div><b>「共有して写真に保存」</b>を押す（画像の長押しでもOK）</div></div>
+    <div class="gstep"><span class="stepn">3</span><div>できた画像は<b>動画のコメント欄やSNSに貼ってもOK</b> 仲間が待ってます👀</div></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9c-4-1.5-7-4.5-7-9V6z" fill="#DFF5F2"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>記録が消えない3つの守り</div>
+    <div class="gstep"><span class="stepn">1</span><div><b>ホーム画面についか</b>する（共有ボタン→「ホーム画面に追加」）これがいちばん大事！アプリ版は記録がずっと残ります</div></div>
+    <div class="gstep"><span class="stepn">2</span><div><b>記録カードを画像で保存</b>…写真フォルダが自動でバックアップに</div></div>
+    <div class="gstep"><span class="stepn">3</span><div><b>機種変のとき</b>…きろく→つづける設定→「記録をコピー」→新しいスマホで「取りこむ」</div></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFEDF3"/><path d="M9 10q0-3 3-3t3 3q0 2-3 3v1M12 17v.5"/></svg>よくあるしつもん</div>
+    <div style="font-size:14.5px;line-height:1.9">
+      <b>Q. 通知はこないの？</b><br>きません（そのぶん軽くて安心）カレンダー登録が通知がわりです<br><br>
+      <b>Q. 記録はどこに保存されてるの？</b><br>ぜんぶあなたのスマホの中だけ サーバーには何も送りません<br><br>
+      <b>Q. 動画はどこで再生されるの？</b><br>ぜんぶYouTubeのオガトレチャンネルでひらきます<br><br>
+      <b>Q. まちがえて「きょうやった！」を押しちゃった</b><br>だいじょうぶ そのままでOK！あしたまた会いましょう<br><br>
+      <b>Q. やりたいストレッチが見つからない</b><br>「さがす」のいちばん下からリクエストを送れます📮
+    </div>
+  </div>
+
+</section>
+
 <div class="foot">
   #きょうのオガトレ β版<br>
   動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank" style="color:var(--tealink)">オガトレ</a>」チャンネルで再生されます
@@ -520,6 +604,7 @@
   <button id="tab-home" class="on" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path class="ic-fill" d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20z"/><path d="M9.5 21v-6h5v6" stroke-linecap="round"/></svg>ホーム</button>
   <button id="tab-history" onclick="switchTab('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5"/></svg>きろく</button>
   <button id="tab-playlists" onclick="switchTab('playlists')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="7" width="14" height="13" rx="3"/><path d="M6.5 4.5h11M8.5 12v5l4-2.5z"/></svg>リスト</button>
+  <button id="tab-guide" onclick="switchTab('guide')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="ic-fill" d="M4 5.5Q8 3.5 12 5.5Q16 3.5 20 5.5V19q-4-2-8 0q-4-2-8 0z"/><path d="M12 5.5V19"/></svg>つかいかた</button>
   <button id="tab-search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle class="ic-fill" cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>さがす</button>
 </nav>
 
@@ -670,11 +755,11 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-const SECTIONS=["home","quiz","result","history","playlists","search"];
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search"};
+const SECTIONS=["home","quiz","result","history","playlists","search","guide"];
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide"};
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
-  for(const t of ["home","history","playlists","search"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
+  for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
   window.scrollTo(0,0);
 }
 function navTo(id){
@@ -842,8 +927,8 @@ function renderToday(){
   if(m==="mine"&&typed){
     const rx=currentRx(state.type.key);
     const i=dayIndex()%rx.length;
-    vk=rx[i]; badge=`あなた用 ${["①","②","③"][i]||""}`;
-    extra=`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" class="tapx" style="color:var(--tealink);font-weight:900;text-decoration:none">▶ 3本つづけて再生</a>　<a href="#" onclick="showResult(state.type);return false" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">3本の一覧→</a></div>`;
+    vk=rx[i]; badge="きょうのあなた用";
+    extra=`<div style="font-size:14px;margin-top:2px"><a href="#" onclick="showResult(state.type);return false" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">あなたのおすすめ3本を見る→</a></div>`;
   } else {
     const list = m==="asa"?TODAY_ASA:TODAY_YORU;
     vk = list[dayIndex()%list.length];
