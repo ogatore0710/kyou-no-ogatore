@@ -308,6 +308,7 @@
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="4" fill="#DFF5F2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>きょうの1本</div>
     <div id="anchorGreet" style="font-size:14px;color:var(--sub);margin:-4px 0 8px;font-weight:800"></div>
     <div class="seg">
+      <button id="segMine" class="hidden" onclick="setMode('mine')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21C7 17.5 4 14 4.8 10.6q1-4 5-3q1.4.4 2.2 2.4q.8-2 2.2-2.4q4-1 5 3C20 14 17 17.5 12 21z" fill="#FFEDF3" stroke="#E56A9A"/></svg>あなた用</button>
       <button id="segAsa" onclick="setMode('asa')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="4.5" fill="#FFD93B" stroke="#3A3A35"/><path d="M12 3.5v2.5M4 13H2M22 13h-2M5.5 6.5l1.8 1.8M18.5 6.5l-1.8 1.8"/></svg>あさ</button>
       <button id="segYoru" onclick="setMode('yoru')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 14.5A8 8 0 0 1 9.5 5 8 8 0 1 0 19 14.5z" fill="#B8A9F0" stroke="#3A3A35" stroke-width="2.2" stroke-linejoin="round"/></svg>よる</button>
     </div>
@@ -828,15 +829,28 @@ function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.g
 function dayIndex(){ return Math.floor((Date.now()+9*3600*1000)/86400000); }
 function renderToday(){
   const manual=store.get("mode_manual",null);
-  const m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || autoMode();
+  const typed = !!(state.type&&TYPES[state.type.key]);
+  document.getElementById("segMine").classList.toggle("hidden",!typed);
+  const m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || (typed?"mine":autoMode());
   state.mode=m;
+  document.getElementById("segMine").classList.toggle("on",m==="mine");
   document.getElementById("segAsa").classList.toggle("on",m==="asa");
   document.getElementById("segYoru").classList.toggle("on",m==="yoru");
-  document.getElementById("logoMark").innerHTML = m==="asa"?MARK_SUN:MARK_MOON;
-  const list = m==="asa"?TODAY_ASA:TODAY_YORU;
-  const vk = list[dayIndex()%list.length];
+  document.getElementById("logoMark").innerHTML = m==="yoru"?MARK_MOON:MARK_SUN;
   const tiny=TINY[dayIndex()%TINY.length];
-  document.getElementById("todayVideo").innerHTML = videoCard(vk, m==="asa"?"きょうのあさ":"きょうのよる")
+  let vk, badge, extra="";
+  if(m==="mine"&&typed){
+    const rx=currentRx(state.type.key);
+    const i=dayIndex()%rx.length;
+    vk=rx[i]; badge=`あなた用 ${["①","②","③"][i]||""}`;
+    extra=`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" class="tapx" style="color:var(--tealink);font-weight:900;text-decoration:none">▶ 3本つづけて再生</a>　<a href="#" onclick="showResult(state.type);return false" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">3本の一覧→</a></div>`;
+  } else {
+    const list = m==="asa"?TODAY_ASA:TODAY_YORU;
+    vk = list[dayIndex()%list.length];
+    badge = m==="asa"?"きょうのあさ":"きょうのよる";
+  }
+  document.getElementById("todayVideo").innerHTML = videoCard(vk, badge)
+    +extra
     +`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">コメント欄で仲間の記録をみる👀</a></div>`
     +`<div style="font-size:14px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:var(--tealink);font-weight:900">${tiny.t}</a> だけでOK</div>`;
 }
@@ -871,7 +885,10 @@ function renderStreak(){
   else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁！ここを超えると変化の報告がぐっと増えます あとちょっと！`;
   else pn.innerHTML="";
 }
-function currentTodayId(){ const list=state.mode==="asa"?TODAY_ASA:TODAY_YORU; return V[list[dayIndex()%list.length]].id; }
+function currentTodayId(){
+  if(state.mode==="mine"&&state.type&&TYPES[state.type.key]){ const rx=currentRx(state.type.key); return V[rx[dayIndex()%rx.length]].id; }
+  const list=state.mode==="asa"?TODAY_ASA:TODAY_YORU; return V[list[dayIndex()%list.length]].id;
+}
 function markDone(){
   const st=getStreakData();
   const today=todayStr();
@@ -1446,6 +1463,7 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshD
 window.addEventListener("pageshow",e=>{ if(e.persisted) refreshDay(); });
 setInterval(refreshDay,60000);
 if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 </script>
 </body>
 </html>
