@@ -103,7 +103,10 @@
   body.dark .chip-b{background:#1F3532;border-color:#2E5A52;color:#7BD0C4}
   body.dark .chip-c{background:#3A2730;border-color:#5E3A4C;color:#F09BC0}
   body.dark .chip-d{background:#2C2740;border-color:#4A4070;color:#B8A9F0}
-  body.dark .chip-a.on{color:#211E19}
+  body.dark .chip-a.on{background:var(--yellow);border-color:var(--yellow);color:#211E19}
+  body.dark .chip-b.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  body.dark .chip-c.on{background:var(--pink);border-color:var(--pink);color:#fff}
+  body.dark .chip-d.on{background:#8B7BD8;border-color:#8B7BD8;color:#fff}
   body.dark .badge{background:#3A2A24;color:#F0A58E}
   body.dark .searchbox input::placeholder{color:#6B6557}
   body.dark .btn-primary{color:#211E19}
@@ -201,7 +204,10 @@
   .searchbox svg{width:20px;height:20px;flex-shrink:0}
   .searchbox input{border:none;outline:none;flex:1;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;min-width:0}
   .searchbox input::placeholder{color:#C9C3B2;font-size:15px}
-  .chips{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+  .catrow{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .catbtn{flex-shrink:0;border:none;background:var(--line);border-radius:12px;padding:10px 13px;font-family:inherit;font-size:14px;font-weight:900;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .catbtn.on{background:var(--yellow);color:#3A3A35}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
   .chip{white-space:nowrap}
   .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:10px 16px;font-size:14px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
   .chip-a{background:#FFF6D8;border-color:#F2DE8A;color:#8A6D00}
@@ -428,7 +434,9 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="#B9B4A6" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>
     <input id="q" placeholder="例: 肩こり／朝／むくみ" enterkeyhint="search" oninput="renderSearch()">
   </div>
+  <div class="catrow" id="catRow"></div>
   <div class="chips" id="chips"></div>
+  <div id="filterNow" style="margin-bottom:8px"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <select id="ySel" onchange="renderSearch()" style="border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--sub)"></select>
     <div id="hitCount" style="font-size:13.5px;color:var(--sub);font-weight:800"></div>
@@ -1212,19 +1220,31 @@ function renderPlaylists(){
 const TAGS=["朝","夜・寝る前","座ったまま","全身","肩・肩甲骨","首・肩こり","姿勢・背中","股関節","開脚","もも裏","太もも・お尻","腰","ひざ・O脚","足首・足うら","むくみ","引き締め","筋膜・マッサージ","自律神経","スポーツ・運動前後","水族館ロケ","古民家ロケ","ショート","10分以内","その他"];
 const CAT=(typeof CATALOG==="undefined")?[]:CATALOG;
 let activeTag=null, searchLimit=24;
-const TAG_COLOR={"朝":"a","夜・寝る前":"a","座ったまま":"a","全身":"b","肩・肩甲骨":"b","首・肩こり":"b","姿勢・背中":"b","股関節":"b","開脚":"b","もも裏":"b","太もも・お尻":"b","腰":"b","ひざ・O脚":"b","足首・足うら":"b","むくみ":"c","引き締め":"c","筋膜・マッサージ":"c","自律神経":"c","スポーツ・運動前後":"c"};
+const TAG_COLOR={"朝":"a","夜・寝る前":"a","座ったまま":"a","10分以内":"a","ショート":"a","全身":"b","肩・肩甲骨":"b","首・肩こり":"b","姿勢・背中":"b","股関節":"b","開脚":"b","もも裏":"b","太もも・お尻":"b","腰":"b","ひざ・O脚":"b","足首・足うら":"b","むくみ":"c","引き締め":"c","筋膜・マッサージ":"c","自律神経":"c","スポーツ・運動前後":"c"};
+const TAG_CATS=[
+ {key:"b", name:"からだの場所", tags:["全身","肩・肩甲骨","首・肩こり","姿勢・背中","股関節","開脚","もも裏","太もも・お尻","腰","ひざ・O脚","足首・足うら"]},
+ {key:"a", name:"時間・シーン", tags:["朝","夜・寝る前","座ったまま","10分以内","ショート"]},
+ {key:"c", name:"目的", tags:["むくみ","引き締め","筋膜・マッサージ","自律神経","スポーツ・運動前後"]},
+ {key:"d", name:"その他", tags:["水族館ロケ","古民家ロケ","その他"]},
+];
+let activeCat="b";
 function buildChips(){
-  document.getElementById("chips").innerHTML = TAGS.map((t,i)=>
-    `<button class="chip chip-${TAG_COLOR[t]||"d"}" id="chip${i}" onclick="toggleChip(${i})">${t}</button>`).join("");
+  renderCats();
   const years=[...new Set(CAT.map(v=>v.y))].filter(Boolean).sort((a,b)=>b-a);
   document.getElementById("ySel").innerHTML = `<option value="">すべての年</option>`+
     years.map(y=>`<option value="${y}">${y}年</option>`).join("");
 }
-function toggleChip(i){
-  const t=TAGS[i];
+function renderCats(){
+  document.getElementById("catRow").innerHTML = TAG_CATS.map(c=>
+    `<button class="catbtn${c.key===activeCat?" on":""}" onclick="setCat('${c.key}')">${c.name}</button>`).join("");
+  const cat=TAG_CATS.find(c=>c.key===activeCat);
+  document.getElementById("chips").innerHTML = cat.tags.map(t=>
+    `<button class="chip chip-${TAG_COLOR[t]||"d"}${t===activeTag?" on":""}" onclick="toggleChipByName('${t}')">${t}</button>`).join("");
+}
+function setCat(k){ activeCat=k; renderCats(); }
+function toggleChipByName(t){
   activeTag = activeTag===t ? null : t;
-  TAGS.forEach((x,j)=>document.getElementById("chip"+j).classList.toggle("on", x===activeTag));
-  renderSearch();
+  renderCats(); renderSearch();
 }
 function currentHits(){
   const q=(document.getElementById("q").value||"").trim().toLowerCase();
@@ -1243,6 +1263,9 @@ function drawResults(){
   const hits=currentHits();
   const shown=hits.slice(0,searchLimit);
   document.getElementById("hitCount").textContent=`${hits.length}本`;
+  document.getElementById("filterNow").innerHTML = activeTag
+    ? `<button class="chip chip-${TAG_COLOR[activeTag]||"d"} on" onclick="toggleChipByName('${activeTag}')">${activeTag} ✕</button><span style="font-size:13px;color:var(--sub);margin-left:8px">タップで解除</span>`
+    : "";
   document.getElementById("vlist").innerHTML = shown.length
     ? shown.map(v=>vHTML(v,(v.tags||[])[0])).join("")
     : `<div class="card" style="text-align:center;color:var(--sub);font-size:15px">この条件のストレッチはまだ無いみたい…</div>`;
