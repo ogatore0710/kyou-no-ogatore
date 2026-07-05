@@ -170,7 +170,7 @@
   .rotate-note{font-size:13px;color:var(--sub);text-align:center;margin-top:4px}
   /* きょうの1本 */
   .seg{display:flex;background:var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
-  .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:11px;padding:9px;font-size:16px;font-weight:900;
+  .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;border:none;border-radius:11px;padding:9px 2px;font-size:15px;font-weight:900;white-space:nowrap;
     font-family:inherit;background:none;color:var(--sub);cursor:pointer}
   .seg button svg{width:18px;height:18px}
   .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
@@ -549,6 +549,7 @@
     <div class="gstep"><span class="stepn">👑</span><div><b>節目の日はゴールドカード</b><br>3日 7日 2週間 1ヶ月…とお祝いが待ってます</div></div>
     <div class="gcardmini gmock" style="max-width:240px;margin:4px auto 10px">👑 7日目！<br><span style="font-size:12.5px">記録カードがゴールドに</span></div>
     <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
+    <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「さがす」で「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
   </div>
 
   <div class="card">
@@ -922,22 +923,19 @@ function renderToday(){
   document.getElementById("segAsa").classList.toggle("on",m==="asa");
   document.getElementById("segYoru").classList.toggle("on",m==="yoru");
   document.getElementById("logoMark").innerHTML = m==="yoru"?MARK_MOON:MARK_SUN;
-  const tiny=TINY[dayIndex()%TINY.length];
   let vk, badge, extra="";
   if(m==="mine"&&typed){
     const rx=currentRx(state.type.key);
     const i=dayIndex()%rx.length;
     vk=rx[i]; badge="きょうのあなた用";
-    extra=`<div style="font-size:14px;margin-top:2px"><a href="#" onclick="showResult(state.type);return false" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">あなたのおすすめ3本を見る→</a></div>`;
+    extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank">▶ あなたへのおすすめ3本 連続再生はこちら</a>
+      <div style="font-size:14px;margin-top:6px;text-align:center"><a href="#" onclick="showResult(state.type);return false" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">3本の一覧とタイプ解説を見る→</a></div>`;
   } else {
     const list = m==="asa"?TODAY_ASA:TODAY_YORU;
     vk = list[dayIndex()%list.length];
     badge = m==="asa"?"きょうのあさ":"きょうのよる";
   }
-  document.getElementById("todayVideo").innerHTML = videoCard(vk, badge)
-    +extra
-    +`<div style="font-size:14px;margin-top:2px"><a href="https://www.youtube.com/watch?v=${V[vk].id}" target="_blank" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">コメント欄で仲間の記録をみる👀</a></div>`
-    +`<div style="font-size:14px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:12px;line-height:1.7">⏱ 時間がない日は <a href="https://www.youtube.com/watch?v=${tiny.id}" target="_blank" style="color:var(--tealink);font-weight:900">${tiny.t}</a> だけでOK</div>`;
+  document.getElementById("todayVideo").innerHTML = videoCard(vk, badge)+extra;
 }
 
 // ---- 継続カウンター（日付リストで頑丈に保存） ----
