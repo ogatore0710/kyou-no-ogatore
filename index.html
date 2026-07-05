@@ -1337,11 +1337,10 @@ function drawCard(){
   if(milestone){ ctx.fillStyle="#8A877D"; ctx.font="700 33px "+F; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font="700 27px "+F; ctx.fillText(msTxt,500,330); }
   // 中身の行を先に確定して、少ない日は全体を下げてバランスをとる
   const memo=(store.get("memos",{}))[todayStr()];
-  const _ra=getReach(); const _tk=store.get("thanks",{total:0});
+  const _tk=store.get("thanks",{total:0});
   const _bits=[];
-  if(_ra.length&&daysBetween(_ra[_ra.length-1].d,todayStr())<=14) _bits.push(`前屈 ${REACH_LV[_ra[_ra.length-1].lv]}`);
   if(_tk.total>0) _bits.push(`ありがとう×${_tk.total}`);
-  const tline=[T?`『${T.name}』`:null, st.count>=2?`${st.count}日連続`:null].filter(Boolean).join("・");
+  const tline=[T?`『${T.name}』`:null, st.count>=2?`連続記録${st.count}日`:null].filter(Boolean).join("・");
   const inCard = memo ? `「${memo.slice(0,18)}」` : (_bits.length?_bits.join("・"):null);
   const shift = milestone?0:((tline?0:46)+(inCard?0:46));
   // 日数
@@ -1364,8 +1363,8 @@ function drawCard(){
   const d=new Date();
   ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F;
   ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,120,912);
-  ctx.fillStyle=th.main; ctx.font="800 30px "+F;
-  ctx.fillText("きょうもご自愛！ YouTube オガトレ",120,962);
+  ctx.fillStyle=th.main; ctx.font="800 26px "+F;
+  ctx.fillText("今日も一日、じぶんを大切に。ご自愛くださいね。",120,962);
   ctx.textAlign="center";
   // プレビュー表示
   document.getElementById("cardImg").src=c.toDataURL("image/png");
