@@ -422,27 +422,15 @@
       <thead><tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr></thead>
       <tbody id="calBody"></tbody>
     </table>
-    <div class="hint">「きょうやった！」を押した日に印がつきます<br>休んだ日に×はつきません</div>
+    <div id="dayInfo" class="hidden" style="margin-top:10px;padding:12px 14px;background:var(--bg);border-radius:14px;font-size:14px;line-height:1.8"></div>
+    <div class="hint">「きょうやった！」を押した日に印がつきます<br>印をタップするとその日の記録が見られます</div>
   </div>
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
     <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈 手はどこまで届く？<br>週1回の記録でOK</div>
     <div style="text-align:center;margin:4px 0 10px">
-      <svg viewBox="0 0 340 160" style="width:100%;max-width:330px" fill="none" stroke="#3A3A35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 150h300" stroke="#E0D8C4"/>
-        <circle cx="118" cy="44" r="13" fill="#FFE3C9"/>
-        <path d="M130 52Q166 64 178 86"/>
-        <path d="M180 86L180 150M194 86L194 150"/>
-        <path d="M128 58Q110 94 106 122" stroke="#2BB3A3"/>
-        <circle cx="105" cy="128" r="4" fill="#2BB3A3" stroke="none"/>
-        <g stroke="#CFC9B8" stroke-width="2.5" stroke-dasharray="1 5">
-          <path d="M200 108h28M200 122h28M200 134h28M200 144h28"/>
-        </g>
-        <g fill="#6E6B5F" stroke="none" font-weight="800" font-size="11">
-          <text x="234" y="112">ひざ</text><text x="234" y="126">すね</text><text x="234" y="138">足首</text><text x="234" y="148">つま先</text><text x="292" y="147">ゆか</text>
-        </g>
-      </svg>
+      <img src="assets/check/meter.jpg" alt="前屈のお手本" style="width:70%;max-width:250px;border-radius:16px;border:1.5px solid var(--line)">
     </div>
     <div class="reach-row">
       <button class="reach-btn" id="rlv1" onclick="setReach(1)">ひざ</button>
@@ -1007,6 +995,14 @@ function markDone(){
   st.total=(st.total||0)+1;
   st.dates.push(today);
   if(st.dates.length>1200) st.dates=st.dates.slice(-1200);
+  // きょうの動画をカレンダー用に記録
+  try{
+    const vid=currentTodayId();
+    let vt=""; for(const k in V){ if(V[k].id===vid){ vt=V[k].t; break; } }
+    const dl=store.get("daylog",{}); dl[today]={v:vid,t:vt};
+    const ks=Object.keys(dl).sort(); if(ks.length>400) ks.slice(0,ks.length-400).forEach(k=>delete dl[k]);
+    store.set("daylog",dl);
+  }catch(e){}
   const saved_ok=store.set("streak2",st); renderStreak();
   const ms=MS.find(x=>x.d===st.total);
   const cheerEl=document.getElementById("cheer");
@@ -1076,7 +1072,7 @@ function renderReach(){
   const now=document.getElementById("reachNow");
   if(!arr.length){ now.textContent="まだ記録なし！まずは1回はかってみましょう"; document.getElementById("reachTrend").innerHTML=""; return; }
   const latest=arr[arr.length-1], best=Math.max(...arr.map(r=>r.lv));
-  now.innerHTML=`いまの記録: <b>${REACH_LV[latest.lv]}</b>（${latest.d.slice(5).replace("-","/")}）・自己ベスト: <b style="color:var(--teal)">${REACH_LV[best]}</b>`;
+  now.innerHTML=`いまの記録: <b>${REACH_LV[latest.lv]}</b>（${latest.d.slice(5).replace("-","/")}）<br>自己ベスト: <b style="color:var(--teal)">${REACH_LV[best]}</b>`;
   document.getElementById("reachTrend").innerHTML = arr.slice(-14).map(r=>`<div class="rbar"><div style="height:${r.lv*20}%"></div></div>`).join("");
 }
 // ---- ひとことにっき ----
@@ -1409,17 +1405,28 @@ function renderHistory(){
   const next=MILESTONES.find(m=>m>st.total);
   if(next){
     const ms=MS.find(x=>x.d===next);
-    document.getElementById("msNote").innerHTML=`つぎの節目「<b style="color:var(--teal)">${ms.t}</b>」（通算${next}日）まで あと <b style="color:var(--pink)">${next-st.total}日</b>`;
+    document.getElementById("msNote").innerHTML=`次のチェックポイントまで <b style="color:var(--pink)">${next-st.total}日</b>`;
     document.getElementById("msBar").style.width=Math.min(100,Math.round(st.total/next*100))+"%";
   }else{
     document.getElementById("msNote").textContent="全部の節目をたっせい！すごすぎます";
     document.getElementById("msBar").style.width="100%";
   }
-  document.getElementById("histFreeze").textContent=`おやすみ券 のこり${freezeLeft()}枚（毎月3枚）休んだ日に自動でつかわれて連続がつながります`;
+  document.getElementById("histFreeze").innerHTML=`おやすみ券 のこり${freezeLeft()}枚<br>休んだ日に自動でつかわれて連続がつながります`;
   if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
   renderCal(); renderReach(); renderDiary(); renderIcs();
 }
 function calMove(n){ calDate.setMonth(calDate.getMonth()+n); renderCal(); }
+function showDay(ds){
+  const log=(store.get("daylog",{}))[ds];
+  const memo=(store.get("memos",{}))[ds];
+  const el=document.getElementById("dayInfo");
+  let html=`<b>${Number(ds.slice(5,7))}/${Number(ds.slice(8,10))} にやった記録</b>`;
+  if(log&&log.v) html+=`<br><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" style="color:var(--tealink);font-weight:800">▶ ${log.t||"動画をひらく"}</a>`;
+  if(memo) html+=`<br>「${memo.replace(/</g,"&lt;")}」`;
+  if(!log&&!memo) html+=`<br>この日は「やった！」の印だけ残っています`;
+  el.innerHTML=html;
+  el.classList.remove("hidden");
+}
 function renderCal(){
   const y=calDate.getFullYear(), m=calDate.getMonth();
   document.getElementById("calTitle").textContent=`${y}年${m+1}月`;
@@ -1432,7 +1439,7 @@ function renderCal(){
   for(let d=1;d<=days;d++){
     const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const cls=["d", done.has(ds)?"done":"", ds===today?"today":"", ds>today?"mute":""].join(" ");
-    html+=`<td><span class="${cls}">${d}</span></td>`;
+    html+=`<td><span class="${cls}"${done.has(ds)?` onclick="showDay('${ds}')" style="cursor:pointer"`:""}>${d}</span></td>`;
     if(++cell%7===0&&d<days) html+="</tr><tr>";
   }
   html+="</tr>";
