@@ -141,6 +141,11 @@
   .gflow .ga{color:var(--sub);font-weight:900}
   .gmock{pointer-events:none;user-select:none}
   .gcardmini{background:linear-gradient(135deg,#FFF6D8,#FFE8B0);border-radius:14px;padding:14px;text-align:center;color:#B8860B;font-weight:900}
+  #ckCard.mini{padding:14px 18px;display:flex;flex-direction:column}
+  #ckCard.mini .sec-head{margin-bottom:2px;order:0}
+  #ckCard.mini #lastResult{order:1;margin-top:4px !important}
+  #ckCard.mini #ckBtn{order:2;font-size:14px;padding:10px;margin-top:10px}
+  #ckCard.mini #ckHint{display:none}
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
@@ -306,7 +311,7 @@
       <button class="opt" onclick="setAnchor('free')">きめてない・そのつど</button>
     </div>
   </div>
-  <div class="card grad-warm">
+  <div class="card grad-warm" id="ckCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさチェック</div>
     <div id="ckBody">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
@@ -318,7 +323,7 @@
     <div id="lastResult" class="hidden" style="text-align:center;margin-top:10px;font-size:14px">
       前回の結果: <a href="#" class="tapx" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
     </div>
-    <div class="hint" style="margin-top:10px">※目安をつかむセルフチェックです<br>強い痛みや持病がある方は無理せず医療機関へ</div>
+    <div class="hint" id="ckHint" style="margin-top:10px">※目安をつかむセルフチェックです<br>強い痛みや持病がある方は無理せず医療機関へ</div>
   </div>
 
   <div class="card">
@@ -333,22 +338,20 @@
   </div>
 
   <div class="card">
-    <div class="streak">
-      <div>
-        <div class="lbl">つづけた日数（通算）</div>
-        <div><span class="num" id="streakNum">0</span><span style="font-weight:900">日目</span></div>
-      </div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#FFEDF3"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#E56A9A"/></svg>つづけた日数</div>
+    <div style="display:flex;align-items:baseline;gap:3px">
+      <span class="num" id="streakNum" style="font-size:46px;line-height:1">0</span><span style="font-weight:900;font-size:18px">日目</span>
     </div>
     <div class="lbl" id="totalDays" style="margin-top:2px"></div>
     <button class="btn done-btn" id="doneBtn" onclick="markDone()" style="font-size:17px;margin-top:12px">きょうやった！</button>
     <div id="cheer" style="text-align:center;font-size:15px;margin-top:10px;color:var(--sub)"></div>
     <div id="memoRow" class="hidden" style="margin-top:10px">
       <input id="memoInput" maxlength="40" placeholder="ひとことメモをどうぞ" enterkeyhint="done" onkeydown="if(event.key==='Enter'){saveMemo();this.blur()}" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--card)">
-      <button class="btn btn-line" id="memoBtn" style="margin-top:8px;font-size:15px" onclick="saveMemo()">メモをのこす</button>
+      <div style="text-align:center"><button class="btn btn-line" id="memoBtn" style="margin-top:8px;font-size:14px;width:auto;display:inline-block;padding:9px 26px" onclick="saveMemo()">メモをのこす</button></div>
       <div id="memoSaved" style="font-size:14px;color:var(--teal);margin-top:6px;min-height:14px"></div>
     </div>
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
-    <button class="btn btn-ghost" style="margin-top:12px;font-size:15px" onclick="makeCard()">
+    <button class="btn btn-ghost" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
     <div class="hint">記録はこのスマホの中だけに残ります<br>カード画像を保存しておくと安心です</div>
   </div>
@@ -957,10 +960,7 @@ function getStreakData(){
 function renderStreak(){
   const st=getStreakData();
   document.getElementById("streakNum").textContent=st.total||0;
-  const bits=[];
-  if(st.count>=2) bits.push(`いま${st.count}日連続`);
-  if(st.total>0) bits.push(`おやすみ券 のこり${freezeLeft()}枚`);
-  document.getElementById("totalDays").textContent = st.total>0 ? bits.join("・") : "きょうが1日目！";
+  document.getElementById("totalDays").textContent = st.count>=2 ? `いま${st.count}日連続` : "";
   const did = st.dates.includes(todayStr());
   const btn=document.getElementById("doneBtn");
   btn.textContent = did?"きょうの分完了！おつかれさまでした✨":"きょうやった！";
@@ -1094,10 +1094,19 @@ const ANCHORS={
   neru:{t:"寝るまえふとんの上で", g:"寝るまえの1本できょうをしめくくりましょう🌙", tm:"213000"},
   free:{t:"きめてない・そのつど", g:"すきな時間にきょうの1本をどうぞ🌿", tm:"200000"},
 };
+function greetText(){
+  const a=store.get("anchor",null);
+  const h=new Date().getHours();
+  if(h>=4&&h<11) return "おはようございます☀️朝の1本いきましょう！";
+  if(h>=11&&h<17) return "こんにちは☀️きょうの1本いきましょう！";
+  if(a==="furo") return "おふろ上がりの1本いきましょう♨️";
+  if(a==="neru") return "寝るまえの1本できょうをしめくくりましょう🌙";
+  return "こんばんは🌙今夜の1本いきましょう！";
+}
 function renderAnchor(){
   const a=store.get("anchor",null);
   document.getElementById("anchorCard").classList.toggle("hidden", !!a);
-  document.getElementById("anchorGreet").textContent = a&&ANCHORS[a]?ANCHORS[a].g:"";
+  document.getElementById("anchorGreet").textContent = a?greetText():"";
 }
 function setAnchor(k){ store.set("anchor",k); renderAnchor(); }
 function resetAnchor(){ store.set("anchor",null); goHome(); window.scrollTo(0,0); }
@@ -1381,6 +1390,7 @@ function renderHome(){
   const lr=document.getElementById("lastResult");
   const done2=!!(state.type&&TYPES[state.type.key]);
   document.getElementById("ckBody").classList.toggle("hidden",done2);
+  document.getElementById("ckCard").classList.toggle("mini",done2);
   const cb=document.getElementById("ckBtn");
   cb.textContent = done2?"もう一回チェックする":"チェックをはじめる";
   cb.classList.toggle("btn-primary",!done2);
@@ -1546,6 +1556,7 @@ renderSearch();
 let lastDay=todayStr();
 function refreshDay(){
   applyTheme();
+  try{ renderAnchor(); }catch(e){}
   if(todayStr()!==lastDay){
     lastDay=todayStr(); state.mode=null;
     const vis=SECTIONS.find(x=>!document.getElementById(x).classList.contains("hidden"));
