@@ -130,6 +130,7 @@
   .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
   .q-art{text-align:center;margin:8px 0 2px}
   .q-art svg{width:100%;max-width:290px;height:auto}
+  .q-art img{width:auto;max-width:70%;max-height:300px;border-radius:18px;border:1.5px solid var(--line);background:#fff}
   .qtitle{font-size:22px;font-weight:900;margin:6px 0 4px}
   .qnote{color:var(--sub);font-size:15px;margin-bottom:14px}
   .opt{display:block;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;
@@ -680,58 +681,9 @@ function goHome(){ show("home"); renderHome(); }
 
 // ---- チェック質問のポーズ図解（書き下ろしSVG） ----
 const QUIZ_ART=[
- // Q1 立って前屈: 立ち姿(ゴースト)→前屈(本体)＋動きの矢印
- `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
-   <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
-   <g stroke="#DDD6C4" stroke-width="10" opacity=".8">
-     <path d="M185 104V60"/><circle cx="185" cy="46" r="13" fill="#EFE9DA" stroke-width="4"/>
-     <path d="M183 70L183 96" stroke-width="6"/>
-   </g>
-   <path d="M168 42Q150 34 138 58" stroke="#F5AFC6" stroke-width="4" fill="none"/>
-   <path d="M134 50l3 10l10 -4" stroke="#F5AFC6" stroke-width="4" fill="none"/>
-   <path d="M185 106L185 148M196 106L196 148" stroke="#55524A" stroke-width="9"/>
-   <path d="M188 102Q182 84 148 88" stroke="#3A3A35" stroke-width="15"/>
-   <circle cx="131" cy="94" r="15" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
-   <path d="M120 86q4-9 14-7q8 2 9 8q-6-3-12-2q-7 0-11 1z" fill="#3A3A35"/>
-   <circle cx="126" cy="96" r="2" fill="#3A3A35"/>
-   <path d="M146 94Q140 116 139 134" stroke="#E8B48C" stroke-width="8"/>
-   <circle cx="139" cy="139" r="4.5" fill="#E8B48C"/>
-   <path d="M139 145v-1" stroke="#E56A9A" stroke-width="3"/>
-   <path d="M134 145l5 5l5 -5" stroke="#E56A9A" stroke-width="3.5"/>
-   <path d="M203 126q8 -1 10 -7M203 134q8 -1 10 -7" stroke="#2BB3A3" stroke-width="3.5"/>
- </svg>`,
- // Q2 あぐら: 正面・ひざの浮きに上矢印＋すき間の点線
- `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
-   <path d="M30 138h240" stroke="#E0D8C4" stroke-width="5"/>
-   <circle cx="150" cy="52" r="17" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
-   <path d="M133 46q7-13 20-11q11 2 13 11q-9-4-16-3q-10 0-17 3z" fill="#3A3A35"/>
-   <circle cx="143" cy="53" r="2.2" fill="#3A3A35"/><circle cx="157" cy="53" r="2.2" fill="#3A3A35"/>
-   <path d="M145 60q5 4 10 0" stroke="#3A3A35" stroke-width="3"/>
-   <path d="M150 70L150 98" stroke="#3A3A35" stroke-width="17"/>
-   <path d="M150 96Q116 102 104 120Q128 138 150 128Q172 138 196 120Q184 102 150 96z" fill="#55524A" stroke="#454239" stroke-width="4"/>
-   <ellipse cx="143" cy="131" rx="7" ry="5" fill="#E8B48C"/><ellipse cx="157" cy="131" rx="7" ry="5" fill="#E8B48C"/>
-   <circle cx="106" cy="116" r="5.5" fill="#E8B48C"/><circle cx="194" cy="116" r="5.5" fill="#E8B48C"/>
-   <path d="M96 136v-5M104 136v-5M112 136v-5" stroke="#F5AFC6" stroke-width="3"/>
-   <path d="M188 136v-5M196 136v-5M204 136v-5" stroke="#F5AFC6" stroke-width="3"/>
-   <path d="M104 134V122M196 134V122" stroke="#E56A9A" stroke-width="4"/>
-   <path d="M99 128l5 -7l5 7M191 128l5 -7l5 7" stroke="#E56A9A" stroke-width="3.5"/>
- </svg>`,
- // Q3 背中で両手（後ろ姿・指先のすき間を見る）
- `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
-   <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
-   <path d="M143 108L141 148M157 108L159 148" stroke="#55524A" stroke-width="9"/>
-   <path d="M150 64L150 108" stroke="#3A3A35" stroke-width="30"/>
-   <circle cx="150" cy="46" r="16" fill="#3A3A35" stroke="#3A3A35" stroke-width="4"/>
-   <path d="M167 66L182 40" stroke="#E8B48C" stroke-width="8"/>
-   <path d="M182 40Q160 40 152 56" stroke="#E8B48C" stroke-width="7"/>
-   <circle cx="151" cy="60" r="4.5" fill="#E8B48C"/>
-   <path d="M133 98L118 112" stroke="#E8B48C" stroke-width="8"/>
-   <path d="M118 112Q140 112 148 100" stroke="#E8B48C" stroke-width="7"/>
-   <circle cx="149" cy="96" r="4.5" fill="#E8B48C"/>
-   <path d="M150 66v-2M150 90v2" stroke="none"/>
-   <path d="M150 68V88" stroke="#E56A9A" stroke-width="3" stroke-dasharray="3 4"/>
-   <path d="M145 72l5 -6l5 6M145 84l5 6l5 -6" stroke="#E56A9A" stroke-width="3"/>
- </svg>`,
+ `<img src="assets/check/q1.jpg" alt="立って前屈のお手本">`,
+ `<img src="assets/check/q2.jpg" alt="あぐらのお手本">`,
+ `<img src="assets/check/q3.jpg" alt="背中で両手のお手本">`,
  // Q4 深くしゃがむ: かかとの浮きをズーム円で拡大
  `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
    <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
