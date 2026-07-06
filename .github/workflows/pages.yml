@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: サイトファイルだけを集める(.git等は配信しない)
         run: rsync -a --exclude .git --exclude .github ./ _site/
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
