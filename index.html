@@ -1356,9 +1356,9 @@ function drawCard(){
   const memo=(store.get("memos",{}))[ds];
   const _tk=store.get("thanks",{total:0});
   const rows=[];
-  if(T) rows.push(["かたさタイプ",`『${T.name}』`,FB]);
-  if(memo) rows.push(["メモ",`『${memo}』`,FB]);
-  else if(isToday&&_tk.total>0) rows.push(["ありがとう",`×${_tk.total}`,FB]);
+  if(T) rows.push(["かたさタイプ",`『${T.name}』`]);
+  if(memo) rows.push(["メモ",`『${memo}』`]);
+  else if(isToday&&_tk.total>0) rows.push(["ありがとう",`×${_tk.total}`]);
   const shift = milestone?0:(rows.length?0:60);
   // 数字＋日目！（1行・ベースライン揃え）
   ctx.textAlign="left";
@@ -1386,11 +1386,11 @@ function drawCard(){
     // 値（幅に合わせて縮小）
     const vx=130+pw+26;
     const maxW=(i===rows.slice(0,2).length-1?700:860)-vx;
-    let fs=50;
+    let fs=46;
     ctx.fillStyle="#3A3A35";
     let txt=row[1];
-    ctx.font=fs+"px "+row[2];
-    while(ctx.measureText(txt).width>maxW && fs>26){ fs-=2; ctx.font=fs+"px "+row[2]; }
+    ctx.font="800 "+fs+"px "+F;
+    while(ctx.measureText(txt).width>maxW && fs>26){ fs-=2; ctx.font="800 "+fs+"px "+F; }
     while(ctx.measureText(txt).width>maxW && txt.length>4){ txt=txt.slice(0,txt.length-2)+"…』"; }
     ctx.fillText(txt,vx,yc+Math.round(fs*0.36));
   });
