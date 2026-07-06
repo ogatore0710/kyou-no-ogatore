@@ -17,7 +17,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: サイトファイルだけを集める(.git等は配信しない)
         run: rsync -a --exclude .git --exclude .github ./ _site/
       - uses: actions/configure-pages@v5
