@@ -1331,7 +1331,7 @@ function drawCard(){
   ctx.textAlign="center"; ctx.fillStyle="#FFFFFF"; ctx.font="900 34px "+F;
   ctx.fillText("#きょうのオガトレ",500,190);
   // 見出し（節目のときだけ）
-  if(milestone){ ctx.fillStyle="#8A877D"; ctx.font='36px "BananaNum","M PLUS 1p",sans-serif'; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font='29px "BananaNum","M PLUS 1p",sans-serif'; ctx.fillText(msTxt,500,330); }
+  if(milestone){ ctx.fillStyle="#8A877D"; ctx.font="800 34px "+'"M PLUS 1p",sans-serif'; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font='800 28px "M PLUS 1p",sans-serif'; ctx.fillText(msTxt,500,330); }
   // 山本さん案レイアウト: 数字+日目！を1行 → タグピル行（かたさタイプ/メモ）
   const FB='"BananaNum","M PLUS 1p",sans-serif';
   const memo=(store.get("memos",{}))[todayStr()];
@@ -1344,14 +1344,14 @@ function drawCard(){
   // 数字＋日目！（1行・ベースライン揃え）
   ctx.textAlign="left";
   const numTxt=String(st.total);
-  ctx.font="180px "+FB; const numW=ctx.measureText(numTxt).width;
-  ctx.font="88px "+FB; const dayW=ctx.measureText("日目！").width;
+  ctx.font="900 180px "+F; const numW=ctx.measureText(numTxt).width;
+  ctx.font="900 84px "+F; const dayW=ctx.measureText("日目！").width;
   const bx=500-(numW+16+dayW)/2;
   const by=(milestone?520:462)+shift;
-  ctx.fillStyle=th.main; ctx.font="180px "+FB; ctx.fillText(numTxt,bx,by);
-  ctx.fillStyle="#3A3A35"; ctx.font="88px "+FB; ctx.fillText("日目！",bx+numW+16,by);
+  ctx.fillStyle=th.main; ctx.font="900 180px "+F; ctx.fillText(numTxt,bx,by);
+  ctx.fillStyle="#3A3A35"; ctx.font="900 84px "+F; ctx.fillText("日目！",bx+numW+16,by);
   ctx.textAlign="center";
-  if(st.count>=2){ ctx.fillStyle="#8A877D"; ctx.font="30px "+FB; ctx.fillText(`連続記録${st.count}日`,500,by+52); }
+  if(st.count>=2){ ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F; ctx.fillText(`連続記録${st.count}日`,500,by+52); }
   // タグピル行
   const rowY = milestone? [648,764] : [614,738];
   ctx.textAlign="left";
