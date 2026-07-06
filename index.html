@@ -1361,6 +1361,15 @@ function drawCard(){
   ctx.fillStyle=th.main; roundRect(ctx,300,145,400,64,32); ctx.fill();
   ctx.textAlign="center"; ctx.fillStyle="#FFFFFF"; ctx.font="900 34px "+F;
   ctx.fillText("#きょうのオガトレ",500,190);
+  // 日付バッジ（右上）
+  {
+    const dtxt=`${Number(ds.slice(0,4))}/${Number(ds.slice(5,7))}/${Number(ds.slice(8,10))}`;
+    ctx.font="800 26px "+F;
+    const dw=ctx.measureText(dtxt).width;
+    ctx.save(); ctx.globalAlpha=.85; ctx.fillStyle=th.main;
+    roundRect(ctx,868-dw-44,212,dw+44,52,26); ctx.fill(); ctx.restore();
+    ctx.fillStyle="#FFFFFF"; ctx.fillText(dtxt,868-(dw+44)/2,247);
+  }
   // 見出し（節目のときだけ）
   if(milestone){ ctx.fillStyle="#8A877D"; ctx.font="800 34px "+'"M PLUS 1p",sans-serif'; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font='800 28px "M PLUS 1p",sans-serif'; ctx.fillText(msTxt,500,330); }
   // 山本さん案レイアウト: 数字+日目！を1行 → タグピル行（かたさタイプ/メモ）
@@ -1428,10 +1437,8 @@ function drawCard(){
     const w=milestone?215:255, h=w*charaImg.height/charaImg.width;
     ctx.drawImage(charaImg, 965-w, 985-h, w, h);
   }
-  // 日付・フッター（左寄せでキャラと住み分け）
+  // フッター＝キャラの吹き出し
   ctx.textAlign="left";
-  ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F;
-  ctx.fillText(`${Number(ds.slice(0,4))}.${Number(ds.slice(5,7))}.${Number(ds.slice(8,10))}`,120,912);
   ctx.fillStyle=th.main;
   const fm=Number(ds.slice(5,7)), fd=Number(ds.slice(8,10));
   const COMMON=[
@@ -1457,9 +1464,18 @@ function drawCard(){
   else pool=COMMON.concat(["新しい季節も、マイペースにご自愛くださいね。","春の陽気と一緒に、体もゆるめてあげてね。"]);
   let fh=0; for(const c of ds){ fh=(fh*31+c.charCodeAt(0))>>>0; }
   const fmsg=pool[fh%pool.length];
-  let ffs=26; ctx.font="800 "+ffs+"px "+F;
-  while(ctx.measureText(fmsg).width>585 && ffs>22){ ffs-=1; ctx.font="800 "+ffs+"px "+F; }
-  ctx.fillText(fmsg,120,962);
+  let ffs=27; ctx.font="800 "+ffs+"px "+F;
+  while(ctx.measureText(fmsg).width>560 && ffs>21){ ffs-=1; ctx.font="800 "+ffs+"px "+F; }
+  const bw=ctx.measureText(fmsg).width+56;
+  const bx1=Math.max(70,690-bw);
+  // 吹き出し本体＋キャラへのしっぽ
+  ctx.save();
+  ctx.fillStyle="rgba(255,255,255,.95)";
+  roundRect(ctx,bx1,900,bw,74,37); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(bx1+bw-6,918); ctx.lineTo(bx1+bw+26,930); ctx.lineTo(bx1+bw-6,950); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle=th.main;
+  ctx.fillText(fmsg,bx1+28,900+37+Math.round(ffs*0.36));
   ctx.textAlign="center";
   // プレビュー表示
   document.getElementById("cardImg").src=c.toDataURL("image/png");
