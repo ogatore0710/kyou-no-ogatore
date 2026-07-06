@@ -610,7 +610,7 @@
 
 <div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
   <div style="background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%">
-    <div style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
+    <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
     <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 10px">下のボタンから写真に保存できます（画像の長押しでもOK）</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">共有して写真に保存</button>
@@ -1286,20 +1286,39 @@ async function ensureCardFonts(){
     try{ await Promise.all(specs.map(x=>document.fonts.load(x))); }catch(e){}
   }
 }
-function makeCard(){
-  if(getStreakData().total===0){
-    const c=document.getElementById("cheer");
-    if(c) c.textContent="まずはきょうの1本のあとに「きょうやった！」を押してみて😊";
-    return;
+let cardDate=null;
+function prevOf(ds){ const t=new Date(ds); t.setUTCDate(t.getUTCDate()-1); return t.toISOString().slice(0,10); }
+function makeCard(ds){
+  const st=getStreakData();
+  if(ds){
+    if(!st.dates.includes(ds)) return;
+    cardDate=ds;
+  } else {
+    if(st.total===0){
+      const c=document.getElementById("cheer");
+      if(c) c.textContent="まずはきょうの1本のあとに「きょうやった！」を押してみて😊";
+      return;
+    }
+    cardDate=todayStr();
   }
+  const tEl=document.getElementById("cardTitle");
+  if(tEl) tEl.textContent = cardDate===todayStr() ? "きょうの記録カード" : `${Number(cardDate.slice(5,7))}/${Number(cardDate.slice(8,10))} の記録カード`;
   ensureCardFonts().then(()=>loadChara(drawCard));
 }
 function drawCard(){
   const st=getStreakData();
+  const ds=cardDate||todayStr();
+  const isToday = ds===todayStr();
+  const idx=st.dates.indexOf(ds);
+  const effTotal = idx>=0 ? idx+1 : st.total;
+  let effCount;
+  if(isToday) effCount=st.count;
+  else { effCount=1; let cur=ds; while(st.dates.includes(prevOf(cur))){ effCount++; cur=prevOf(cur); } }
+  const dateIdx = Math.floor((new Date(ds).getTime()+9*3600*1000)/86400000);
   const T = state.type ? TYPES[state.type.key] : null;
-  const milestone = MILESTONES.includes(st.total);
-  const msInfo = milestone ? MS.find(x=>x.d===st.total) : null;
-  const th = milestone ? GOLD : CARD_THEMES[dayIndex()%CARD_THEMES.length];
+  const milestone = MILESTONES.includes(effTotal);
+  const msInfo = milestone ? MS.find(x=>x.d===effTotal) : null;
+  const th = milestone ? GOLD : CARD_THEMES[dateIdx%CARD_THEMES.length];
   const c=document.getElementById("cardCanvas"), ctx=c.getContext("2d");
   const F='"M PLUS 1p","Hiragino Kaku Gothic ProN",sans-serif';
   // 背景グラデ
@@ -1334,16 +1353,16 @@ function drawCard(){
   if(milestone){ ctx.fillStyle="#8A877D"; ctx.font="800 34px "+'"M PLUS 1p",sans-serif'; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font='800 28px "M PLUS 1p",sans-serif'; ctx.fillText(msTxt,500,330); }
   // 山本さん案レイアウト: 数字+日目！を1行 → タグピル行（かたさタイプ/メモ）
   const FB='"BananaNum","M PLUS 1p",sans-serif';
-  const memo=(store.get("memos",{}))[todayStr()];
+  const memo=(store.get("memos",{}))[ds];
   const _tk=store.get("thanks",{total:0});
   const rows=[];
   if(T) rows.push(["かたさタイプ",`『${T.name}』`,FB]);
   if(memo) rows.push(["メモ",`『${memo}』`,FB]);
-  else if(_tk.total>0) rows.push(["ありがとう",`×${_tk.total}`,FB]);
+  else if(isToday&&_tk.total>0) rows.push(["ありがとう",`×${_tk.total}`,FB]);
   const shift = milestone?0:(rows.length?0:60);
   // 数字＋日目！（1行・ベースライン揃え）
   ctx.textAlign="left";
-  const numTxt=String(st.total);
+  const numTxt=String(effTotal);
   ctx.font="900 180px "+F; const numW=ctx.measureText(numTxt).width;
   ctx.font="900 84px "+F; const dayW=ctx.measureText("日目！").width;
   const bx=500-(numW+16+dayW)/2;
@@ -1351,7 +1370,7 @@ function drawCard(){
   ctx.fillStyle=th.main; ctx.font="900 180px "+F; ctx.fillText(numTxt,bx,by);
   ctx.fillStyle="#3A3A35"; ctx.font="900 84px "+F; ctx.fillText("日目！",bx+numW+16,by);
   ctx.textAlign="center";
-  if(st.count>=2){ ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F; ctx.fillText(`連続記録${st.count}日`,500,by+52); }
+  if(effCount>=2){ ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F; ctx.fillText(`連続記録${effCount}日`,500,by+52); }
   // タグピル行
   const rowY = milestone? [648,764] : [614,738];
   ctx.textAlign="left";
@@ -1389,9 +1408,8 @@ function drawCard(){
   }
   // 日付・フッター（左寄せでキャラと住み分け）
   ctx.textAlign="left";
-  const d=new Date();
   ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F;
-  ctx.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,120,912);
+  ctx.fillText(`${Number(ds.slice(0,4))}.${Number(ds.slice(5,7))}.${Number(ds.slice(8,10))}`,120,912);
   ctx.fillStyle=th.main; ctx.font="800 26px "+F;
   ctx.fillText("今日も一日、じぶんを大切に。ご自愛くださいね。",120,962);
   ctx.textAlign="center";
@@ -1402,7 +1420,7 @@ function drawCard(){
 }
 async function shareCard(){
   if(!lastBlob) return;
-  const file=new File([lastBlob],`kyono-ogatore-${todayStr()}.png`,{type:"image/png"});
+  const file=new File([lastBlob],`kyono-ogatore-${cardDate||todayStr()}.png`,{type:"image/png"});
   if(navigator.canShare && navigator.canShare({files:[file]})){
     try{ await navigator.share({files:[file], title:"きょうのオガトレ 記録カード"}); return; }catch(e){}
   }
@@ -1457,6 +1475,7 @@ function showDay(ds){
   if(log&&log.v) html+=`<br><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" style="color:var(--tealink);font-weight:800">▶ ${log.t||"動画をひらく"}</a>`;
   if(memo) html+=`<br>「${memo.replace(/</g,"&lt;")}」`;
   if(!log&&!memo) html+=`<br>この日は「やった！」の印だけ残っています`;
+  html+=`<br><a href="#" class="tapx" onclick="makeCard('${ds}');return false" style="color:var(--tealink);font-weight:800">🖼 この日の記録カードを見る</a>`;
   el.innerHTML=html;
   el.classList.remove("hidden");
 }
