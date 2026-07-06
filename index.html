@@ -611,6 +611,7 @@
 <div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
   <div style="background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%">
     <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
+    <div id="cardMaking" class="hidden" style="text-align:center;font-size:14px;color:var(--sub);padding:14px 0">カードをつくってます…</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
     <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 10px">下のボタンから写真に保存できます（画像の長押しでもOK）</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">共有して写真に保存</button>
@@ -1277,14 +1278,18 @@ function drawCrown(ctx,x,y,w,color){
   ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
 }
 let lastBlob=null;
-async function ensureCardFonts(){
+function ensureCardFonts(){
   const specs=['900 100px "M PLUS 1p"','800 52px "M PLUS 1p"','700 34px "M PLUS 1p"','100px "BananaNum"'];
-  try{ await Promise.all(specs.map(x=>document.fonts.load(x))); await document.fonts.ready; }catch(e){}
-  for(let i=0;i<10;i++){
-    if(document.fonts.check('900 100px "M PLUS 1p"')&&document.fonts.check('100px "BananaNum"')) return;
-    await new Promise(r=>setTimeout(r,200));
+  const work=(async()=>{
     try{ await Promise.all(specs.map(x=>document.fonts.load(x))); }catch(e){}
-  }
+    for(let i=0;i<8;i++){
+      try{ if(document.fonts.check('900 100px "M PLUS 1p"')&&document.fonts.check('100px "BananaNum"')) return; }catch(e){ return; }
+      await new Promise(r=>setTimeout(r,150));
+      try{ await Promise.all(specs.map(x=>document.fonts.load(x))); }catch(e){}
+    }
+  })();
+  // iOSでフォントAPIが黙り込んでも必ず先へ進む保険
+  return Promise.race([work, new Promise(r=>setTimeout(r,2200))]);
 }
 let cardDate=null;
 function prevOf(ds){ const t=new Date(ds); t.setUTCDate(t.getUTCDate()-1); return t.toISOString().slice(0,10); }
@@ -1303,7 +1308,14 @@ function makeCard(ds){
   }
   const tEl=document.getElementById("cardTitle");
   if(tEl) tEl.textContent = cardDate===todayStr() ? "きょうの記録カード" : `${Number(cardDate.slice(5,7))}/${Number(cardDate.slice(8,10))} の記録カード`;
-  ensureCardFonts().then(()=>loadChara(drawCard));
+  // タップした瞬間に開く（無反応に見せない）
+  const mk=document.getElementById("cardMaking");
+  if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
+  document.getElementById("cardModal").classList.remove("hidden");
+  ensureCardFonts().then(()=>loadChara(()=>{
+    try{ drawCard(); if(mk) mk.classList.add("hidden"); }
+    catch(e){ if(mk) mk.textContent="うまく作れませんでした もう一度「とじる」→開き直してみて"; }
+  }));
 }
 function drawCard(){
   const st=getStreakData();
@@ -1422,16 +1434,29 @@ function drawCard(){
   ctx.fillText(`${Number(ds.slice(0,4))}.${Number(ds.slice(5,7))}.${Number(ds.slice(8,10))}`,120,912);
   ctx.fillStyle=th.main;
   const fm=Number(ds.slice(5,7)), fd=Number(ds.slice(8,10));
-  let fmsg;
-  if(milestone) fmsg="節目の日。がんばった体に、ごほうびのご自愛を。";
-  else if(fm===1&&fd<=7) fmsg="今年もじぶんのペースで。ご自愛くださいね。";
-  else if(fm===12&&fd>=28) fmsg="一年おつかれさま。ゆっくりご自愛くださいね。";
-  else if(fm===6) fmsg="じめじめの季節も心は軽く。ご自愛くださいね。";
-  else if(fm===7||fm===8) fmsg="暑い毎日、水分とご自愛を忘れずに。";
-  else if(fm>=9&&fm<=11) fmsg="季節の変わり目、ゆっくりご自愛くださいね。";
-  else if(fm===12||fm<=2) fmsg="寒い季節も、あたたかくご自愛くださいね。";
-  else if(fm>=3&&fm<=5) fmsg="新しい季節も、マイペースにご自愛くださいね。";
-  else fmsg="今日も一日、じぶんを大切に。ご自愛くださいね。";
+  const COMMON=[
+    "今日も一日、じぶんを大切に。ご自愛くださいね。",
+    "がんばりすぎず、ほどよく。ご自愛くださいね。",
+    "深呼吸ひとつぶん、じぶんをいたわる時間を。",
+    "今日のあなたに、おつかれさまとご自愛を。",
+    "体の声をきいて、むりせずご自愛くださいね。",
+    "つづけてる自分を、ちゃんと褒めてあげてね。",
+  ];
+  let pool;
+  if(milestone) pool=[
+    "節目の日。がんばった体に、ごほうびのご自愛を。",
+    "ここまでつづけた自分に、拍手とご自愛を。",
+    "きょうは記念日。とびきりのご自愛を。",
+  ];
+  else if(fm===1&&fd<=7) pool=["今年もじぶんのペースで。ご自愛くださいね。","新年も一日一本、ゆるっといきましょう。"];
+  else if(fm===12&&fd>=28) pool=["一年おつかれさま。ゆっくりご自愛くださいね。","今年もよくがんばりました。よいお年を。"];
+  else if(fm===6) pool=COMMON.concat(["じめじめの季節も心は軽く。ご自愛くださいね。","雨の日は、おうちストレッチ日和です。"]);
+  else if(fm===7||fm===8) pool=COMMON.concat(["暑い毎日、水分とご自愛を忘れずに。","夏バテ予防も、ストレッチとご自愛から。"]);
+  else if(fm>=9&&fm<=11) pool=COMMON.concat(["季節の変わり目、ゆっくりご自愛くださいね。","実りの秋。体にもいいことを少しずつ。"]);
+  else if(fm===12||fm<=2) pool=COMMON.concat(["寒い季節も、あたたかくご自愛くださいね。","湯船にゆっくり。それもご自愛のうち。"]);
+  else pool=COMMON.concat(["新しい季節も、マイペースにご自愛くださいね。","春の陽気と一緒に、体もゆるめてあげてね。"]);
+  let fh=0; for(const c of ds){ fh=(fh*31+c.charCodeAt(0))>>>0; }
+  const fmsg=pool[fh%pool.length];
   let ffs=26; ctx.font="800 "+ffs+"px "+F;
   while(ctx.measureText(fmsg).width>585 && ffs>22){ ffs-=1; ctx.font="800 "+ffs+"px "+F; }
   ctx.fillText(fmsg,120,962);
