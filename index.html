@@ -1332,25 +1332,56 @@ function drawCard(){
   ctx.fillText("#きょうのオガトレ",500,190);
   // 見出し（節目のときだけ）
   if(milestone){ ctx.fillStyle="#8A877D"; ctx.font='36px "BananaNum","M PLUS 1p",sans-serif'; drawCrown(ctx,500,258,100,"#FFD700"); const msTxt=`${msInfo?msInfo.t:"節目たっせい"}！おめでとうございます！`; if(ctx.measureText(msTxt).width>740) ctx.font='29px "BananaNum","M PLUS 1p",sans-serif'; ctx.fillText(msTxt,500,330); }
-  // 中身の行を先に確定して、少ない日は全体を下げてバランスをとる
+  // 山本さん案レイアウト: 数字+日目！を1行 → タグピル行（かたさタイプ/メモ）
+  const FB='"BananaNum","M PLUS 1p",sans-serif';
   const memo=(store.get("memos",{}))[todayStr()];
   const _tk=store.get("thanks",{total:0});
-  const _bits=[];
-  if(_tk.total>0) _bits.push(`ありがとう×${_tk.total}`);
-  const tline=[T?`『${T.name}』`:null, st.count>=2?`連続記録${st.count}日`:null].filter(Boolean).join("・");
-  const inCard = memo ? `「${memo.slice(0,18)}」` : (_bits.length?_bits.join("・"):null);
-  const shift = milestone?0:((tline?0:46)+(inCard?0:46));
-  // 日数
-  const FB='"BananaNum","M PLUS 1p",sans-serif';
-  ctx.fillStyle=th.main; ctx.font="220px "+FB;
-  ctx.fillText(String(st.total),500,milestone?560:505+shift);
-  ctx.fillStyle="#3A3A35"; ctx.font="80px "+FB;
-  ctx.fillText("日目！",500,milestone?646:598+shift);
-  // タイプ＋連続を1行に
-  ctx.fillStyle="#6B6857"; ctx.font='38px "BananaNum","M PLUS 1p",sans-serif';
-  if(tline) ctx.fillText(tline,500,milestone?706:668+shift);
-  // ひとことメモ or 前屈・ありがとう（カード内・1行だけ）
-  if(inCard){ ctx.fillStyle="#8A877D"; ctx.font=memo?("700 30px "+F):'32px "BananaNum","M PLUS 1p",sans-serif'; ctx.fillText(inCard,500,milestone?756:(tline?734:666+shift)); }
+  const rows=[];
+  if(T) rows.push(["かたさタイプ",`『${T.name}』`,FB]);
+  if(memo) rows.push(["メモ",`『${memo}』`,FB]);
+  else if(_tk.total>0) rows.push(["ありがとう",`×${_tk.total}`,FB]);
+  const shift = milestone?0:(rows.length?0:60);
+  // 数字＋日目！（1行・ベースライン揃え）
+  ctx.textAlign="left";
+  const numTxt=String(st.total);
+  ctx.font="180px "+FB; const numW=ctx.measureText(numTxt).width;
+  ctx.font="88px "+FB; const dayW=ctx.measureText("日目！").width;
+  const bx=500-(numW+16+dayW)/2;
+  const by=(milestone?520:462)+shift;
+  ctx.fillStyle=th.main; ctx.font="180px "+FB; ctx.fillText(numTxt,bx,by);
+  ctx.fillStyle="#3A3A35"; ctx.font="88px "+FB; ctx.fillText("日目！",bx+numW+16,by);
+  ctx.textAlign="center";
+  if(st.count>=2){ ctx.fillStyle="#8A877D"; ctx.font="30px "+FB; ctx.fillText(`連続記録${st.count}日`,500,by+52); }
+  // タグピル行
+  const rowY = milestone? [648,764] : [614,738];
+  ctx.textAlign="left";
+  rows.slice(0,2).forEach((row,i)=>{
+    const yc=rowY[i];
+    ctx.font="28px "+FB;
+    const lw=ctx.measureText(row[0]).width;
+    const pw=lw+48;
+    ctx.fillStyle=th.main;
+    roundRect(ctx,130,yc-30,pw,60,30); ctx.fill();
+    ctx.fillStyle="#FFFFFF";
+    ctx.fillText(row[0],130+24,yc+10);
+    // 値（幅に合わせて縮小）
+    const vx=130+pw+26;
+    const maxW=(i===rows.slice(0,2).length-1?700:860)-vx;
+    let fs=50;
+    ctx.fillStyle="#3A3A35";
+    let txt=row[1];
+    ctx.font=fs+"px "+row[2];
+    while(ctx.measureText(txt).width>maxW && fs>26){ fs-=2; ctx.font=fs+"px "+row[2]; }
+    while(ctx.measureText(txt).width>maxW && txt.length>4){ txt=txt.slice(0,txt.length-2)+"…』"; }
+    ctx.fillText(txt,vx,yc+Math.round(fs*0.36));
+  });
+  ctx.textAlign="center";
+  // 点線区切り
+  if(rows.length>=2){
+    const sy=(rowY[0]+rowY[1])/2;
+    ctx.save(); ctx.strokeStyle=th.main; ctx.globalAlpha=.4; ctx.lineWidth=3; ctx.setLineDash([3,11]); ctx.lineCap="round";
+    ctx.beginPath(); ctx.moveTo(150,sy); ctx.lineTo(850,sy); ctx.stroke(); ctx.restore();
+  }
   // キャラ（グッド／開脚を1日交代・右下の専用ゾーンで文字と重ねない）
   if(charaImg){
     const w=milestone?215:255, h=w*charaImg.height/charaImg.width;
