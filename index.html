@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://i.ytimg.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; object-src 'none'; base-uri 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>#きょうのオガトレ｜みんなで一緒にストレッチを習慣化</title>
 <meta name="description" content="タップするだけ３０秒のかたさチェック あなたに合うオガトレのストレッチが見つかります">
 <meta name="robots" content="noindex">
@@ -462,7 +464,7 @@
     <div class="hint" style="text-align:left;margin:-6px 0 12px">「じどう」は夜（19時〜朝5時）やスマホがダーク設定のとき暗くなります</div>
     <div style="font-size:15px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--ink);background:var(--card)"></div>
     <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>
-    <a class="btn btn-line" id="gcalLink" target="_blank" style="font-size:15px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>
+    <a class="btn btn-line" id="gcalLink" target="_blank" rel="noopener" style="font-size:15px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>
     <div class="hint" style="text-align:left">スマホのカレンダーが毎日その時間に知らせてくれます</div>
     <div class="hint" style="text-align:left;color:var(--pink)" id="icsNote"></div>
     <details style="margin-top:12px;background:var(--bg);border-radius:12px;padding:10px 14px">
@@ -589,7 +591,7 @@
 
 <div class="foot">
   #きょうのオガトレ β版<br>
-  動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank" style="color:var(--tealink)">オガトレ</a>」チャンネルで再生されます
+  動画はすべてYouTube「<a href="https://www.youtube.com/@ogatore" target="_blank" rel="noopener" style="color:var(--tealink)">オガトレ</a>」チャンネルで再生されます
   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800">このアプリについて</summary>
     <div style="text-align:left;margin-top:8px;line-height:1.9">
     ・運営: 株式会社OGATORE（理学療法士 尾形竜之介）<br>
@@ -886,7 +888,7 @@ function currentRx(typeKey){
 }
 
 function vHTML(v, badge){
-  return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" target="_blank">
+  return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
     <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
     <div>${badge?`<span class="badge">${badge}</span><br>`:""}<span class="vt">${v.t}</span><div class="vs">${v.s}</div></div></a>`;
 }
@@ -902,7 +904,7 @@ function showResult(saved){
   document.getElementById("rxHead").innerHTML=`${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
   const rx=currentRx(saved.key);
   document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("")
-    +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank">▶ 3本つづけて再生する</a>`;
+    +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ 3本つづけて再生する</a>`;
   const w=WORRY[saved.worry];
   document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
   navTo("result");
@@ -928,7 +930,7 @@ function renderToday(){
     const rx=currentRx(state.type.key);
     const i=dayIndex()%rx.length;
     vk=rx[i]; badge="きょうのあなた用";
-    extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank">▶ あなたへの3本 連続再生はこちら</a>
+    extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ あなたへの3本 連続再生はこちら</a>
       <div style="font-size:14px;margin-top:6px;text-align:center"><a href="#" onclick="showResult(state.type);return false" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">3本の一覧とタイプ解説を見る→</a></div>`;
   } else {
     const list = m==="asa"?TODAY_ASA:TODAY_YORU;
@@ -1013,7 +1015,7 @@ function markDone(){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
       +(ms.q?`<div style="margin-top:6px;font-size:14px;color:var(--sub)">${ms.q}</div>`:"")
-      +`<div style="margin-top:8px"><a href="#" onclick="makeCard();return false" style="color:var(--tealink);font-weight:800">ゴールドカードをのこす</a>　<a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
+      +`<div style="margin-top:8px"><a href="#" onclick="makeCard();return false" style="color:var(--tealink);font-weight:800">ゴールドカードをのこす</a>　<a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -1156,9 +1158,14 @@ function importData(){
   const str=prompt("前のスマホでコピーした文字列を貼り付けてください");
   if(!str) return;
   try{
+    if(str.length>300000) throw 0;
     const j=JSON.parse(decodeURIComponent(escape(atob(str.replace(/^KYONO1:/,"").trim()))));
     let cnt=0;
-    for(const k in j){ if(k.startsWith("kyono_")){ localStorage.setItem(k,j[k]); cnt++; } }
+    for(const k in j){
+      if(!k.startsWith("kyono_")||cnt>50) continue;
+      if(typeof j[k]!=="string"||j[k].length>200000) continue;
+      localStorage.setItem(k,j[k]); cnt++;
+    }
     if(!cnt) throw 0;
     alert("取りこみました！"); location.reload();
   }catch(e){ alert("読みとれませんでした\n文字列がぜんぶコピーできているか確認してください"); }
@@ -1536,7 +1543,7 @@ function showDay(ds){
   const memo=(store.get("memos",{}))[ds];
   const el=document.getElementById("dayInfo");
   let html=`<b>${Number(ds.slice(5,7))}/${Number(ds.slice(8,10))} にやった記録</b>`;
-  if(log&&log.v) html+=`<br><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" style="color:var(--tealink);font-weight:800">▶ ${log.t||"動画をひらく"}</a>`;
+  if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<br><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">▶ ${(log.t||"動画をひらく").replace(/</g,"&lt;")}</a>`;
   if(memo) html+=`<br>「${memo.replace(/</g,"&lt;")}」`;
   if(!log&&!memo) html+=`<br>この日は「やった！」の印だけ残っています`;
   html+=`<br><a href="#" class="tapx" onclick="makeCard('${ds}');return false" style="color:var(--tealink);font-weight:800">🖼 この日の記録カードを見る</a>`;
@@ -1589,7 +1596,7 @@ const PLAYLISTS=[
 function renderPlaylists(){
   document.getElementById("plList").innerHTML = PLAYLISTS.map(gr=>
     `<div class="group-label">${gr.g}</div>`+
-    gr.items.map(p=>`<a class="pl" href="https://www.youtube.com/playlist?list=${p[0]}" target="_blank">${ICON_PL}<div><div class="pt">${p[1]}</div><div class="ps">${p[2]}</div></div></a>`).join("")
+    gr.items.map(p=>`<a class="pl" href="https://www.youtube.com/playlist?list=${p[0]}" target="_blank" rel="noopener">${ICON_PL}<div><div class="pt">${p[1]}</div><div class="ps">${p[2]}</div></div></a>`).join("")
   ).join("");
 }
 
