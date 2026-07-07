@@ -199,6 +199,27 @@
   .pick .pt2{font-size:13px;font-weight:800;line-height:1.5;min-width:0}
   .pick.on{border-color:var(--teal);background:var(--teal-soft)}
   #bragList .pick:active{opacity:.7}
+  /* せんぱいの声（めくりカード） */
+  .vcard{perspective:1200px;margin-bottom:14px;cursor:pointer}
+  .vcard .vin{position:relative;transform-style:preserve-3d;transition:transform .55s;min-height:150px}
+  .vcard.open .vin{transform:rotateY(180deg)}
+  .vface{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);
+    border:1.5px solid var(--line);padding:18px}
+  .vfront{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;gap:6px;text-align:center;
+    background:linear-gradient(135deg,var(--yellow-soft),var(--pink-soft))}
+  .vfront b{font-size:18px;font-weight:900;line-height:1.5}
+  .vfront .tap{font-size:12px;color:var(--sub);font-weight:800}
+  .vback{position:relative;transform:rotateY(180deg);background:var(--card);min-height:150px;
+    display:flex;flex-direction:column;justify-content:center}
+  .vback p{font-size:14px;line-height:1.9;font-weight:700;overflow-wrap:anywhere}
+  .vback .src{font-size:12px;color:var(--sub);font-weight:800;margin-top:8px;text-align:right}
+  .vtag{display:inline-block;background:var(--teal-soft);color:var(--tealink);border-radius:8px;
+    padding:0 8px;font-size:11px;font-weight:900;align-self:flex-start}
+  .vfront .vtag{align-self:center}
+  .vgo{display:block;margin-top:10px;background:var(--teal-soft);color:var(--tealink);border-radius:14px;
+    padding:10px 12px;font-size:14px;font-weight:900;text-align:center;text-decoration:none}
+  .vgo:active{transform:translateY(1px);opacity:.85}
   .rotate-note{font-size:13px;color:var(--sub);text-align:center;margin-top:4px}
   /* きょうの1本 */
   .seg{display:flex;background:var(--line);border-radius:16px;padding:4px;margin-bottom:12px}
@@ -387,6 +408,11 @@
     <div style="font-size:14px;color:var(--sub);margin-top:2px"><span id="thanksTotal"></span></div>
   </div>
 
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M3.5 8 12 13.5 20.5 8"/></svg>せんぱいの声</div>
+    <div style="font-size:14px;color:var(--sub);line-height:1.8">「諦めてたことが できるようになった」<br>まえを歩くせんぱいたちの ほんとうの声です🌱</div>
+    <button class="btn btn-ghost" style="margin-top:10px" onclick="navTo('voices')">せんぱいの声をよんでみる</button>
+  </div>
 </section>
 
 <!-- ===== 診断 ===== -->
@@ -526,6 +552,16 @@
     <button class="btn btn-primary" style="margin-top:16px" onclick="makeBragCard()">カードをつくる✨</button>
     <div class="hint">えらんだ1本は カードにサムネイル画像で入ります</div>
   </div>
+  <button class="btn btn-line" onclick="navTo('home')">← ホームにもどる</button>
+</section>
+
+<!-- ===== せんぱいの声 ===== -->
+<section id="voices" class="hidden">
+  <div class="card" style="margin-bottom:14px">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M3.5 8 12 13.5 20.5 8"/></svg>せんぱいの声</div>
+    <div style="font-size:14px;line-height:1.9">まえを歩くせんぱいたちの ほんとうの声です🌱<br>カードをタップするとめくれます<br><span style="font-size:12px;color:var(--sub)">※YouTubeコメントの原文のまま（お名前は出ません）</span></div>
+  </div>
+  <div id="voiceList"></div>
   <button class="btn btn-line" onclick="navTo('home')">← ホームにもどる</button>
 </section>
 
@@ -806,8 +842,8 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag"];
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"home"};
+const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices"];
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"home",voices:"home"};
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
   for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
@@ -1871,6 +1907,57 @@ function renderPlaylists(){
   ).join("");
 }
 
+// ================= せんぱいの声（YouTubeコメント原文・匿名10選） =================
+// 出典: ogatore-growth/data/voice-map/genten-voices-top50.md（動画IDも同資料と一致）
+const VOICES=[
+  {tag:"肩甲骨", front:"4年ぶりのバンザイ🙌", vid:"ZYTlwh_FhoU",
+   q:"67歳、4年も袖を通せない痛みで諦めかけていました。3週間で両方バンザイ出来るようになりました。本当に感謝しています。普通に袖を通せる幸せ、感じています。",
+   src:"肩甲骨ストレッチ"},
+  {tag:"足首", front:"保育園のころからの夢👣", vid:"t3C-N5_828k",
+   q:"踵つけてしゃがむのずっと夢でした。小学校……いや、保育園行ってたころからしゃがむときはずっと踵浮いてました。多分人生で一回も踵つけてしゃがんだことないのでは？大人になってしゃがめたら感動だろうなー！がんばるぞ！",
+   src:"足首ストレッチ"},
+  {tag:"股関節", front:"人生ではじめて 手がついた✋", vid:"-Y5bOC_ecB0",
+   q:"人生で一度も前屈で手がつま先についたことがなかった超硬い民ですが、股関節ストレッチともも裏ストレッチをやっていたところ、初めてつきました！ありがとうございます！",
+   src:"股関節ストレッチ"},
+  {tag:"骨盤", front:"30年ものの こしの話🕰️", vid:"QAXrsiUVDNk",
+   q:"子供の頃から30年間ずっと腰痛でした。整体、注射、温めなど色々試したけど一向に治らず「このまま痛くない感覚がわからないまま一生おわるのかー」って思ってたときにこの動画に出会いました。2日やっただけで、腰痛なくなりました。何だったんだろう。",
+   src:"骨盤矯正ストレッチ"},
+  {tag:"首・頭痛", front:"薬がきかなかった頭痛が💡", vid:"8rOq_AqiNaw",
+   q:"オガトレ最高です！ここ3ヶ月くらいずっと頭痛に悩まされて、時には頭痛薬すら効かなかったのですが、この肩こり頭痛ストレス&肩甲骨ストレッチを始めて1週間で、頭痛が全くなくなりました！嬉しくて涙が出ます〜",
+   src:"頭痛・首ストレッチ"},
+  {tag:"自律神経", front:"諦めていた背中に✨", vid:"XkgsF39kkRw",
+   q:"側弯症の者です。今まで背骨に関しては完全に諦めていたのですが、この運動をしてからはめちゃくちゃ背中、腰の調子が良くなりました✨　ありがとうございます(_ _)",
+   src:"自律神経調整ストレッチ"},
+  {tag:"腰", front:"産後の体に 味方ができた🤱", vid:"laNHVUwdxZM",
+   q:"産後4ヶ月、オガトレさんの肩のストレッチや骨盤のストレッチも継続していましたが…もう元の身体に戻れないのか？と悩んでいました。（中略）今日寝起きスッと起きれて！！感動しました😭　産後悩んでいた殆どが解決したので驚いています！！",
+   src:"腰痛ストレッチ"},
+  {tag:"開脚", front:"1826日目のせんぱい🏆", vid:"Re5FPU5_37g",
+   q:"1826日目！（1月16日）2021年の今日、ヨガマスターへの第一歩として始めたストレッチも、毎日続けてはや５年が経ちました！５年目は人生濃かったなあ…就活成就、15kgダイエット、好きな子に告白、資格色々取得、卒論製作…今年からは新社会人…ストレッチは永遠に続けるぞ！",
+   src:"開脚ストレッチ"},
+  {tag:"全身", front:"3週間で体温が変わった🌡️", vid:"JdPVMVfmdzc",
+   q:"3週間で平均体温が36.1→36.7℃に上がりました😳　長年低体温に悩まされていたのにビックリ。もう50歳過ぎですが、短期間でこんなに体調に変化が出るとは。",
+   src:"お風呂上がり20分ストレッチ"},
+  {tag:"骨盤", front:"いつも三日坊主だったのに📅", vid:"QAXrsiUVDNk",
+   q:"いつも三日坊主の自分が、このストレッチだけは1ヶ月続けられました。長年悩まされてきたお腹の張りが、気がついたらなくなっていました。",
+   src:"骨盤矯正ストレッチ"},
+];
+function renderVoices(){
+  const box=document.getElementById("voiceList");
+  box.innerHTML="";
+  for(const v of VOICES){
+    const d=document.createElement("div");
+    d.className="vcard";
+    d.innerHTML='<div class="vin">'+
+      '<div class="vface vback"><span class="vtag">'+v.tag+'</span><p>'+v.q.replace(/</g,"&lt;")+'</p>'+
+      '<div class="src">— せんぱいの声（'+v.src+'）</div>'+
+      '<a class="vgo" href="https://www.youtube.com/watch?v='+v.vid+'" target="_blank" rel="noopener">せんぱいとおなじ1本をみる ▶</a></div>'+
+      '<div class="vface vfront"><span class="vtag">'+v.tag+'</span><b>'+v.front+'</b><span class="tap">タップでめくる</span></div>'+
+      '</div>';
+    d.onclick=e=>{ if(e.target.closest&&e.target.closest(".vgo")) return; d.classList.toggle("open"); };
+    box.appendChild(d);
+  }
+}
+
 applyTheme();
 // ホーム画面アプリとして起動したときだけ、スプラッシュをひと呼吸ながく
 (function(){
@@ -1883,6 +1970,7 @@ applyTheme();
 })();
 renderHome();
 renderPlaylists();
+renderVoices();
 buildChips();
 renderSearch();
 // PWA復帰・日付またぎで画面を最新化
