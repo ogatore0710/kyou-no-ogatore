@@ -1537,16 +1537,20 @@ async function saveCardImage(){
   if(!lastBlob) return;
   const file=cardFile();
   if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{ await navigator.share({files:[file]}); return; }catch(e){}
+    try{ await navigator.share({files:[file]}); }catch(e){}
+    return; // 共有シートが使える端末ではダウンロードに落とさない（キャンセル含む）
   }
   downloadCard(file);
 }
 async function shareCard(){
-  // SNS投稿用: ハッシュタグ文言つき
+  // SNS投稿用: ハッシュタグ文言つき→ダメなら画像だけで開き直す（iOSは文言+画像の同時共有に失敗することがある）
   if(!lastBlob) return;
   const file=cardFile();
   if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{ await navigator.share({files:[file], text:lastShareText||"#きょうのオガトレ", title:"きょうのオガトレ 記録カード"}); return; }catch(e){}
+    try{ await navigator.share({files:[file], text:lastShareText||"#きょうのオガトレ"}); return; }
+    catch(e){ if(e && e.name==="AbortError") return; }
+    try{ await navigator.share({files:[file]}); }catch(e){}
+    return; // 共有シートが使える端末ではダウンロードに落とさない
   }
   downloadCard(file);
 }
