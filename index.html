@@ -128,6 +128,8 @@
   body.dark [fill="#6E6B5F"]{fill:#B9B2A0}
   body.dark [stroke="#55524A"]{stroke:#B9B2A0}
   .tapx{display:inline-block;padding:10px 4px;margin:-10px -4px}
+  .envbn{background:var(--yellow-soft);border:1.5px solid var(--yellow);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.7;margin-bottom:10px;color:var(--ink)}
+  body.dark .envbn{background:#3A342A;border-color:#6E5F2E}
   #memoInput::placeholder{font-size:14px}
   .video>div{min-width:0}
   @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
@@ -298,6 +300,8 @@
 
 <!-- ===== ホーム ===== -->
 <section id="home">
+  <div id="oldBrowserNote" style="display:none;background:#FFF3C4;border:1.5px solid #FFD93B;border-radius:14px;padding:10px 12px;font-size:13px;margin-bottom:10px">うまく動かないときは スマホのソフトウェアを新しくしてからもう一度ひらいてみてください🙏</div>
+  <div id="envBanner" class="envbn hidden"></div>
   <div class="card grad-mint hidden" id="welcomeBack">
     <img src="assets/chara.png" alt="" style="width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 8px">
     <div style="font-size:15px" id="wbText"></div>
@@ -356,7 +360,7 @@
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
-    <div class="hint">カード画像を保存 or シェアしてのこしてね📤</div>
+    <div class="hint">カード画像を保存かシェアでのこしてね📤</div>
   </div>
 
   <div class="card grad-pink" style="text-align:center">
@@ -510,6 +514,7 @@
   <div class="card grad-warm" id="reqBox">
     <div style="font-size:15px;margin-bottom:12px" id="reqMsg">やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮</div>
     <a class="btn btn-ghost" id="reqBtn" style="font-size:15px" href="#">このキーワードでリクエストする</a>
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin-top:6px">メールがひらかない方は kyou-no@ogatore.jp へ直接どうぞ</div>
   </div>
 </section>
 
@@ -551,7 +556,7 @@
     <div class="gstep"><span class="stepn">👑</span><div><b>節目の日はゴールドカード</b><br>3日 7日 2週間 1ヶ月…とお祝いが待ってます</div></div>
     <div class="gcardmini gmock" style="max-width:240px;margin:4px auto 10px">👑 7日目！<br><span style="font-size:12px">記録カードがゴールドに</span></div>
     <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
-    <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「さがす」で「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
+    <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「さがす」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
   </div>
 
   <div class="card">
@@ -560,6 +565,7 @@
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
     <div class="gstep"><span class="stepn">📝</span><div><b>ひとことにっき</b>…毎日のメモを読み返せます</div></div>
     <div class="gstep"><span class="stepn">⏰</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
+    <div class="gstep"><span class="stepn">📺</span><div><b>「リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
     <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">きろくタブをひらく</button>
   </div>
 
@@ -572,7 +578,7 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9c-4-1.5-7-4.5-7-9V6z" fill="#DFF5F2"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>記録が消えない3つの守り</div>
-    <div class="gstep"><span class="stepn">1</span><div><b>ホーム画面についか</b>する（共有ボタン→「ホーム画面に追加」）これがいちばん大事！アプリ版は記録がずっと残ります</div></div>
+    <div class="gstep"><span class="stepn">1</span><div><b>ホーム画面についか</b>する（共有ボタン→「ホーム画面に追加」）これがいちばん大事！アプリ版は記録がずっと残ります<br><span style="font-size:13px;color:var(--sub)">※ついかしたら 前の画面の「記録をコピー」→アプリ版で「取りこむ」もわすれずに（記録は別々に保存されるため）</span></div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>記録カードを画像で保存</b>…写真フォルダが自動でバックアップに</div></div>
     <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…きろく→つづける設定→「記録をコピー」→新しいスマホで「取りこむ」</div></div>
   </div>
@@ -584,6 +590,7 @@
       <b>Q. 記録はどこに保存されてるの？</b><br>ぜんぶあなたのスマホの中だけ サーバーには何も送りません<br><br>
       <b>Q. 動画はどこで再生されるの？</b><br>ぜんぶYouTubeのオガトレチャンネルでひらきます<br><br>
       <b>Q. まちがえて「きょうやった！」を押しちゃった</b><br>だいじょうぶ そのままでOK！あしたまた会いましょう<br><br>
+      <b>Q. 通算が0日にもどってる！</b><br>LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ✅ お引っ越しは「記録をコピー」→「取りこむ」で<br><br>
       <b>Q. やりたいストレッチが見つからない</b><br>「さがす」のいちばん下からリクエストを送れます📮
     </div>
   </div>
@@ -671,7 +678,7 @@ const V = {
 const QUESTIONS = [
   {k:"momo", title:"立って前屈。手はどこまでいく？", note:"ひざを曲げずに、ゆっくり倒れてみて",
    opts:[
-    ["床にペタッとつく","手のひら全体が床につく（指床間距離 0cm以下）",0],
+    ["床にペタッとつく","手のひら全体がゆかにつく（ゆかタッチ）",0],
     ["つま先にさわれる","指先が足先〜床すれすれ（目安 0〜10cm）",1],
     ["すねの途中まで","指先がすねの中ほどで止まる（目安 10〜25cm）",2],
     ["ひざから下に行かない","指先がひざ上で止まる（目安 25cm以上）",3]]},
@@ -977,7 +984,7 @@ function renderStreak(){
   if(did) document.getElementById("memoInput").value=memos[todayStr()]||"";
   const pn=document.getElementById("plateauNote");
   if(did) pn.innerHTML="";
-  else if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期！体は変わり続けていますよ <a href="#" onclick="switchTab('history');return false" style="color:var(--tealink);font-weight:800">とどくメーター</a>で確かめてみて`;
+  else if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期！体は変わり続けていますよ <a href="#" onclick="switchTab('history');return false" class="tapx" style="color:var(--tealink);font-weight:800">とどくメーター</a>で確かめてみて`;
   else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁！ここを超えると変化の報告がぐっと増えます あとちょっと！`;
   else pn.innerHTML="";
 }
@@ -1025,12 +1032,12 @@ function markDone(){
   const saved_ok=store.set("streak2",st); renderStreak();
   const ms=MS.find(x=>x.d===st.total);
   const cheerEl=document.getElementById("cheer");
-  if(!saved_ok){ cheerEl.textContent="⚠️ この画面設定では記録を保存できないみたい（プライベートモードかも）記録カードで残してね"; return; }
+  if(!saved_ok){ cheerEl.textContent="⚠️ この画面設定では記録がのこせないみたい プライベートモードをオフにしてもう一度どうぞ"; return; }
   if(ms){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
       +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
-      +`<div style="margin-top:8px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
+      +`<div style="margin-top:8px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -1042,8 +1049,8 @@ function saveMemo(){
   if(t) memos[todayStr()]=t; else delete memos[todayStr()];
   const keys=Object.keys(memos).sort();
   if(keys.length>400) keys.slice(0,keys.length-400).forEach(k=>delete memos[k]);
-  store.set("memos",memos);
-  document.getElementById("memoSaved").textContent = t?"メモをのこしました✍️ 記録カードにも入ります":"メモを消しました";
+  const memo_ok=store.set("memos",memos);
+  document.getElementById("memoSaved").textContent = !memo_ok?"⚠️ のこせませんでした（プライベートモードかも）":(t?"メモをのこしました✍️ 記録カードにも入ります":"メモを消しました");
   const mb=document.getElementById("memoBtn");
   mb.textContent="のこしました ✓"; mb.disabled=true;
   document.getElementById("memoInput").oninput=()=>{ mb.textContent="メモをのこす"; mb.disabled=false; };
@@ -1074,10 +1081,11 @@ function setReach(lv){
   const i=arr.findIndex(r=>r.d===today);
   if(i>=0) arr[i].lv=lv; else arr.push({d:today,lv});
   if(arr.length>200){ const bestRec=arr.reduce((a,b)=>b.lv>=a.lv?b:a); arr.splice(0,arr.length-200); if(!arr.some(r=>r.lv>=bestRec.lv)) arr.unshift(bestRec); }
-  store.set("reach",arr);
+  const reach_ok=store.set("reach",arr);
   renderReach();
   const msg=document.getElementById("reachMsg");
-  if(lv>best&&best>0) msg.innerHTML=`<b style="color:var(--pink)">🎉 自己ベスト更新！「${REACH_LV[lv]}」</b> 記録カードにも入ります`;
+  if(!reach_ok) msg.textContent="⚠️ のこせませんでした（プライベートモードかも）";
+  else if(lv>best&&best>0) msg.innerHTML=`<b style="color:var(--pink)">🎉 自己ベスト更新！「${REACH_LV[lv]}」</b> 記録カードにも入ります`;
   else if(lv>=4&&best===0) msg.innerHTML=`<b style="color:var(--pink)">最初から「${REACH_LV[lv]}」！すばらしい</b>`;
   else msg.textContent="記録しました！じわじわ伸びていきますよ";
 }
@@ -1165,7 +1173,7 @@ function exportData(){
   const out={};
   for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith("kyono_")) out[k]=localStorage.getItem(k); }
   const str="KYONO1:"+btoa(unescape(encodeURIComponent(JSON.stringify(out))));
-  const done=()=>alert("コピーしました！\n新しいスマホでこのアプリをひらいて「記録を取りこむ」に貼り付けてください");
+  const done=()=>alert("コピーしました！\nこの文字をLINEの「じぶん専用トーク」やメモアプリに貼って送っておいてください\n新しいスマホでこのアプリをひらき「記録を取りこむ」にその文字を貼り付ければお引っ越し完了です");
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(str).then(done,()=>prompt("この文字列を全部コピーしてください",str)); }
   else prompt("この文字列を全部コピーしてください",str);
 }
@@ -1677,9 +1685,10 @@ function drawResults(){
   document.getElementById("filterNow").innerHTML = activeTag
     ? `<button class="chip chip-${TAG_COLOR[activeTag]||"d"} on" onclick="toggleChipByName('${activeTag}')">${activeTag} ✕</button><span style="font-size:13px;color:var(--sub);margin-left:8px">タップで解除</span>`
     : "";
+  const offlineCat=(typeof CATALOG==="undefined");
   document.getElementById("vlist").innerHTML = shown.length
     ? shown.map(v=>vHTML(v,(v.tags||[])[0])).join("")
-    : `<div class="card" style="text-align:center;color:var(--sub);font-size:15px"><img src="assets/chara-2.png" alt="" style="width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 6px">この条件のストレッチはまだないみたい…</div>`;
+    : `<div class="card" style="text-align:center;color:var(--sub);font-size:15px"><img src="assets/chara-2.png" alt="" style="width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 6px">${offlineCat?"動画リストがよみこめませんでした📡<br>電波のよいところでもう一度ひらいてみてね":"この条件のストレッチはまだないみたい…"}</div>`;
   const more=document.getElementById("moreBtn");
   more.classList.toggle("hidden", hits.length<=searchLimit);
   more.textContent=`さらに表示（あと${Math.max(0,hits.length-searchLimit)}本）`;
@@ -1687,7 +1696,8 @@ function drawResults(){
   const kwText=[q, activeTag].filter(Boolean).join(" ");
   document.getElementById("reqMsg").innerHTML = shown.length
     ? "やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮"
-    : "ごめんなさい まだなかった…！<br>リクエストを送ってもらえたら動画づくりの参考にします📮";
+    : (offlineCat ? "" : "ごめんなさい まだなかった…！<br>リクエストを送ってもらえたら動画づくりの参考にします📮");
+  document.getElementById("reqBtn").classList.toggle("hidden", offlineCat&&!shown.length);
   const subject=encodeURIComponent("ストレッチのリクエスト（きょうのオガトレ）");
   const body=encodeURIComponent(`こんなストレッチの動画が欲しいです：\n${kwText||"（ここに書いてください）"}\n\n--\nきょうのオガトレ「さがす」から送信`);
   document.getElementById("reqBtn").href=`mailto:kyou-no@ogatore.jp?subject=${subject}&body=${body}`;
@@ -1725,6 +1735,29 @@ window.addEventListener("pageshow",e=>{ if(e.persisted) refreshDay(); });
 setInterval(refreshDay,60000);
 if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
 if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+// 実行環境の案内（アプリ内ブラウザは記録が分離される・ホーム追加のすすめ）
+function dismissHomeHint(){ store.set("homehint_done",true); document.getElementById("envBanner").classList.add("hidden"); }
+(function(){
+  try{
+    if(!state.type){ const a=document.getElementById("anchorCard"),c=document.getElementById("ckCard"); a.parentNode.insertBefore(c,a); }
+    const ua=navigator.userAgent||"";
+    const inApp=/\bLine\/|Instagram|FBAN|FBAV|; wv\)/.test(ua);
+    const standalone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
+    const bn=document.getElementById("envBanner");
+    if(inApp){
+      bn.innerHTML='⚠️ いまアプリの中でひらいています このままだと<b>記録がのこりません</b> 共有メニューから<b>「Safariで開く」（ブラウザで開く）</b>でひらき直してね🙏';
+      bn.classList.remove("hidden");
+    } else if(!standalone && (getStreakData().dates||[]).length>=3 && !store.get("homehint_done",false)){
+      bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります やり方は「つかいかた」タブへ　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
+      bn.classList.remove("hidden");
+    }
+  }catch(e){}
+})();
+window.__kyonoBoot=true;
+</script>
+<script>
+// 旧OSで上のスクリプトが構文エラーになった時の案内（この部分はES5のみで書く）
+setTimeout(function(){ if(!window.__kyonoBoot){ var n=document.getElementById("oldBrowserNote"); if(n) n.style.display="block"; } },2500);
 </script>
 </body>
 </html>
