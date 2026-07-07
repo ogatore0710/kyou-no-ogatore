@@ -51,7 +51,8 @@
 <meta name="theme-color" content="#FFD93B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet"></noscript>
 <style>
   @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-card.woff2?v=2") format("woff2");font-display:swap}
   :root{
@@ -164,6 +165,8 @@
     padding:12px 16px;margin-bottom:10px;font-size:18px;font-family:inherit;text-align:left;cursor:pointer;font-weight:800;color:var(--ink)}
   .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}
   .opt .crit{display:block;font-size:14px;color:var(--sub);font-weight:700;margin-top:2px;line-height:1.5}
+  @keyframes cpop{from{transform:scale(.85);opacity:.4}to{transform:scale(1);opacity:1}}
+  #cheer>div{animation:cpop .3s ease-out}
   .dots{display:flex;gap:6px;justify-content:center;margin:14px 0 2px}
   .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
   .dot.on{background:var(--pink)}
@@ -310,7 +313,7 @@
   </div>
   <div class="card hidden" id="anchorCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 7.5V12l3 2.5"/></svg>いつやる派？</div>
-    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります！<br>合図をひとつ選んでください（あとで変えられます）</div>
+    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります！<br>合図をひとつ選んでください（あとで きろくタブから変えられます）</div>
     <div class="anchor-row">
       <button class="opt" onclick="setAnchor('asa')">朝おきてそのまま</button>
       <button class="opt" onclick="setAnchor('furo')">おふろ上がりに</button>
@@ -342,6 +345,7 @@
       <button id="segYoru" onclick="setMode('yoru')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 14.5A8 8 0 0 1 9.5 5 8 8 0 1 0 19 14.5z" fill="#B8A9F0" stroke="#3A3A35" stroke-width="2.2" stroke-linejoin="round"/></svg>よる</button>
     </div>
     <div id="todayVideo"></div>
+    <div class="hint" style="margin-top:8px">動画がおわったら アプリにもどって下の「きょうやった！」を押してね✅</div>
   </div>
 
   <div class="card">
@@ -436,7 +440,7 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
-    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈 手はどこまで届く？<br>週1回の記録でOK</div>
+    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈 手はどこまで届く？<br>届いたところのボタンを押すと記録されます（週1回でOK）</div>
     <div style="text-align:center;margin:4px 0 10px">
       <img src="assets/check/meter.jpg" alt="前屈のお手本" style="width:70%;max-width:250px;border-radius:16px;border:1.5px solid var(--line)">
     </div>
@@ -467,7 +471,7 @@
       <button id="th-dark" onclick="setTheme('dark')">暗い</button>
     </div>
     <div class="hint" style="text-align:left;margin:-6px 0 12px">「じどう」は夜（19時〜朝5時）やスマホがダーク設定のとき暗くなります</div>
-    <div style="font-size:15px;margin-bottom:10px">おしらせの時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--ink);background:var(--card)"></div>
+    <div style="font-size:15px;margin-bottom:10px">カレンダーのおしらせ時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--ink);background:var(--card)"></div>
     <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>
     <a class="btn btn-line" id="gcalLink" target="_blank" rel="noopener" style="font-size:15px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>
     <div class="hint" style="text-align:left">スマホのカレンダーが毎日その時間に知らせてくれます</div>
@@ -623,7 +627,7 @@
     <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
     <div id="cardMaking" class="hidden" style="text-align:center;font-size:14px;color:var(--sub);padding:14px 0">カードをつくってます…</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
-    <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 8px">ひらいた画面で保存もSNS投稿もできます✅</div>
+    <div style="font-size:14px;color:var(--sub);text-align:center;margin:8px 0 8px">下の「保存・シェアする」を押すと 保存やSNS投稿の画面がひらきます✅</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">📤 保存・シェアする</button>
     <button class="btn btn-line" onclick="closeCard()">とじる</button>
   </div>
@@ -677,28 +681,28 @@ const V = {
 
 // ================= 診断（選択肢に理学療法士の目安つき） =================
 const QUESTIONS = [
-  {k:"momo", title:"立って前屈。手はどこまでいく？", note:"ひざを曲げずに、ゆっくり倒れてみて",
+  {k:"momo", title:"立って前屈 手はどこまでいく？", note:"ひざを曲げずに ゆっくり倒れてみて",
    opts:[
     ["床にペタッとつく","手のひら全体がゆかにつく（ゆかタッチ）",0],
     ["つま先にさわれる","指先が足先〜床すれすれ（目安 0〜10cm）",1],
     ["すねの途中まで","指先がすねの中ほどで止まる（目安 10〜25cm）",2],
     ["ひざから下に行かない","指先がひざ上で止まる（目安 25cm以上）",3]]},
-  {k:"koka", title:"あぐらで座ると、ひざは？", note:"床に座って、足の裏どうしを合わせてみて",
+  {k:"koka", title:"あぐらで座ると ひざは？", note:"床に座って 足の裏どうしを合わせてみて",
    opts:[
     ["床にペタッと近い","ひざと床のすき間が こぶし1個未満",0],
     ["ちょっと浮く","すき間 こぶし1〜2個ぶん",1],
     ["山みたいに浮く","すき間 こぶし3個以上",2],
-    ["そもそもあぐらがつらい","骨盤が立たず、体が後ろに倒れてしまう",3]]},
+    ["そもそもあぐらがつらい","骨盤が立たず 体が後ろに倒れてしまう",3]]},
   {k:"kenko",title:"指先を鎖骨において ひじはどこまで上がる？", note:"ひじを体の前で ゆっくり上げてみて",
    opts:[
     ["眉より高く上がる","ひじが眉の高さをこえる",0],
     ["鼻くらいまで","ひじが鼻の高さで止まる",1],
     ["あごくらいまで","ひじがあごの高さで止まる",2],
     ["あごまで上がらない","ひじがあごより下で止まる",3]]},
-  {k:"ashi", title:"かかとを付けたまま、しゃがめる？", note:"和式トイレのポーズ。無理はしないでね",
+  {k:"ashi", title:"かかとを付けたまま しゃがめる？", note:"和式トイレのポーズ 無理はしないでね",
    opts:[
-    ["余裕でしゃがめる","かかとを付けたまま深くしゃがみ、保持できる",0],
-    ["しゃがめるけど、ぐらぐら","しゃがめるが姿勢を保てない",1],
+    ["余裕でしゃがめる","かかとを付けたまま深くしゃがみ 保持できる",0],
+    ["しゃがめるけど ぐらぐら","しゃがめるが姿勢を保てない",1],
     ["かかとが浮いちゃう","足首の曲がり（背屈）が足りないサイン",2],
     ["後ろにコロンと転がる","足首＋股関節の複合的な硬さのサイン",3]]},
   {k:"worry",title:"いちばんの悩みは？", note:"あなたに合うおすすめの仕上げに使います",
@@ -713,7 +717,7 @@ const QUESTIONS = [
 const TYPES = {
   momo: {name:"立派な一枚板", area:"もも裏",
     copy:"前屈すると、つま先がとても遠い。それはあなたの脚が長い…わけではなく、もも裏が固まっているサイン。",
-    hope:"でも一枚板は、磨けば必ずしなります。もも裏は変化が出やすい場所。2週間後の前屈で、床が近くなってるはず。",
+    hope:"でも一枚板は、磨けばすこしずつしなっていきます。もも裏は変化が出やすい場所。2週間後の前屈で、床が近くなってるはず。",
     pt:"硬いのは<b>ハムストリングス（もも裏の筋肉）</b>。ここが硬いと骨盤が後ろに倒れたまま固定され、前屈で腰だけが無理に曲がります。放っておくと<b>腰痛や座り姿勢の悪化</b>につながる場所。逆に言えば、もも裏をゆるめるだけで前屈も腰もラクになります。",
     rx:["momo7"], pool:["kaikyaku","momoKai","asa10","yotsu12","nagomi7"]},
   koka: {name:"開かずのとびら", area:"股関節",
@@ -723,7 +727,7 @@ const TYPES = {
     rx:["koka9"], pool:["kominka","kaikyaku","nagomi7","ashisuki","yotsu12"]},
   kenko:{name:"羽根おやすみ中", area:"肩甲骨",
     copy:"背中で手がつながらないのは、肩甲骨まわりの羽根がすっかり冬眠しているから。デスクワークの勲章です。",
-    hope:"羽根は、動かせば必ず目を覚まします。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。",
+    hope:"羽根は、動かせばゆっくり目を覚まします。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。",
     pt:"硬いのは<b>肩甲骨まわり（僧帽筋・広背筋・大胸筋など）</b>。肩甲骨の動きが小さくなると、首と肩の筋肉が代わりに働き続けて<b>肩こり・巻き肩・浅い呼吸</b>の原因に。肩甲骨を動かす習慣がつくと、背中が軽くなって姿勢も変わります。",
     rx:["kenko12"], pool:["yoru15","asa5","katakori","nagomi7"]},
   ashi: {name:"棒立ちペンギン", area:"足首",
@@ -733,7 +737,7 @@ const TYPES = {
     rx:["ashi1"], pool:["ashi2","fukura5","ashi10","ashisuki"]},
   robot:{name:"休日のロボット", area:"全身",
     copy:"全体的に、カタい。でも言いかえれば、どこを伸ばしても効く「伸びしろの宝庫」ということ。",
-    hope:"ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、体は必ず応えてくれます。",
+    hope:"ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、体はちゃんと応えてくれます。",
     pt:"特定の場所というより<b>全身が複合的に硬い状態</b>。この場合は部位を絞るより、全身をまんべんなく動かすルーティンで底上げするのが近道です。<b>どこを伸ばしても効く＝変化を感じやすい</b>ので、実はいちばん楽しいスタート地点だったりします。",
     rx:["honki9"], pool:["asa10","yoru9umi","yaruki22","nagomi7","yoru9ice"]},
   yawara:{name:"柔らかいマン", area:"メンテナンス",
@@ -900,7 +904,7 @@ function currentRx(typeKey){
 
 function vHTML(v, badge){
   return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
-    <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
+    <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
     <div>${badge?`<span class="badge">${badge}</span><br>`:""}<span class="vt">${v.t}</span><div class="vs">${v.s}</div></div></a>`;
 }
 function videoCard(vk, badge){ return vHTML(V[vk], badge); }
@@ -966,6 +970,8 @@ function renderStreak(){
   document.getElementById("streakNum").textContent=st.total||0;
   const did = st.dates.includes(todayStr());
   let contTxt = st.count>=2 ? `いま${st.count}日連続` : "";
+  if(!did && st.total===0) contTxt="きょう1本やると「1日目」がはじまります🌱";
+  if(!did){ const ce=document.getElementById("cheer"); if(ce) ce.innerHTML=""; }
   // 数日あいて券でもつなげない時は、古い連続を見せない（押した瞬間に消えたと誤解させない）
   if(!did && st.dates.length){
     const gapNow=daysBetween(st.dates[st.dates.length-1],todayStr());
@@ -986,7 +992,7 @@ function renderStreak(){
   const pn=document.getElementById("plateauNote");
   if(did) pn.innerHTML="";
   else if(st.total>=12&&st.total<=16) pn.innerHTML=`💡 いまは効果を感じにくい時期！体は変わり続けていますよ <a href="#" onclick="switchTab('history');return false" class="tapx" style="color:var(--tealink);font-weight:800">とどくメーター</a>で確かめてみて`;
-  else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月の壁！ここを超えると変化の報告がぐっと増えます あとちょっと！`;
+  else if(st.total>=28&&st.total<=34) pn.innerHTML=`💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ`;
   else pn.innerHTML="";
 }
 function currentTodayId(){
@@ -1038,7 +1044,8 @@ function markDone(){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
       +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
-      +`<div style="margin-top:8px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
+      +`<div style="margin-top:10px"><a href="#" onclick="makeCard();return false" class="tapx" style="color:var(--pink);font-weight:900">👑 きょうのゴールドカードを見る</a></div>`
+      +`<div style="margin-top:8px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">YouTubeのコメント欄に報告する</a></div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -1165,7 +1172,7 @@ function welcomeCheck(){
   const showIt = gap>=3 && store.get("wb_seen","")!==todayStr();
   wb.classList.toggle("hidden",!showIt);
   if(showIt){
-    document.getElementById("wbText").innerHTML=`<b style="font-size:17px">おかえりなさい！${gap}日ぶりですね🌱</b><br><br>休んでも習慣はこわれません<br>体は数日で取り返せます<br><b>通算${st.total}日は残っています</b>`;
+    document.getElementById("wbText").innerHTML=`<b style="font-size:17px">おかえりなさい！また会えてうれしいです🌱</b><br><br>休んでも習慣はこわれません<br>体は数日で取り返せます<br><b>通算${st.total}日は残っています</b>`;
   }
 }
 function wbClose(){ store.set("wb_seen",todayStr()); document.getElementById("welcomeBack").classList.add("hidden"); }
@@ -1224,7 +1231,7 @@ const CARD_THEMES = [
 ];
 const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
 const MS=[
- {d:3,  t:"『気がする』チェックポイント", m:"<span style='display:inline-block'>「ちょっと軽い気がする」</span><span style='display:inline-block'>それ気のせいじゃないですよ！</span>", q:"2日やっただけで腰痛なくなりました。何だったんだろう（先輩の声）"},
+ {d:3,  t:"『気がする』チェックポイント", m:"<span style='display:inline-block'>「ちょっと軽い気がする」</span><span style='display:inline-block'>それ気のせいじゃないですよ！</span>", q:""},
  {d:4,  t:"三日坊主 超えました", m:"何度も三日坊主だった人がいまここを超えました！えらい！", q:"4日目終わって三日坊主回避しました！（先輩の声）"},
  {d:7,  t:"1週間たっせい", m:"最初の壁突破です！", q:"お風呂上がりに1日1回を1週間続けただけで、長座体前屈50cm→64cmになりました（先輩の声）"},
  {d:14, t:"2週間たっせい", m:"2週間は完成じゃなくて本番のはじまり！ここからが楽しいところ", q:"2週間で完全に、では私はなかったです。でも1ヶ月以上で確実に変わりました（先輩の声）"},
@@ -1578,7 +1585,7 @@ function renderHistory(){
   const next=MILESTONES.find(m=>m>st.total);
   if(next){
     const ms=MS.find(x=>x.d===next);
-    document.getElementById("msNote").innerHTML=`次のチェックポイントまで <b style="color:var(--pink)">${next-st.total}日</b>`;
+    document.getElementById("msNote").innerHTML=`次のお祝い「<b style="color:var(--pink)">${ms.t}</b>」は通算${next}日目🌱 マイペースでどうぞ`;
     document.getElementById("msBar").style.width=Math.min(100,Math.round(st.total/next*100))+"%";
   }else{
     document.getElementById("msNote").textContent="全部の節目をたっせい！すごすぎます";
@@ -1695,7 +1702,7 @@ function dismissHomeHint(){ store.set("homehint_done",true); document.getElement
       bn.innerHTML='⚠️ いまアプリの中でひらいています このままだと<b>記録がのこりません</b> 共有メニューから<b>「Safariで開く」（ブラウザで開く）</b>でひらき直してね🙏';
       bn.classList.remove("hidden");
     } else if(!standalone && (getStreakData().dates||[]).length>=3 && !store.get("homehint_done",false)){
-      bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります やり方は「つかいかた」タブへ　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
+      bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります <a href="#" onclick="switchTab(\'guide\');return false" class="tapx" style="color:var(--tealink);font-weight:800">やり方を見る</a>　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
       bn.classList.remove("hidden");
     }
   }catch(e){}
