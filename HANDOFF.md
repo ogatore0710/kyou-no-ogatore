@@ -6,6 +6,10 @@
 - アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `sw.js` + `manifest.json`
 - 公開はGitHub Pages。push後に `.github/workflows/pages.yml` が配信物を作る
 - 自動QAは `npm test` で実行。2026-07-07時点で57 checks PASS
+- 実ブラウザQA / PWA検収結果: [QA-REPORT.md](QA-REPORT.md)
+- β配布前チェックリスト: [BETA-CHECKLIST.md](BETA-CHECKLIST.md)
+- `index.html` 分割計画: [SPLIT-PLAN.md](SPLIT-PLAN.md)
+- 動画カタログ棚卸し: [CATALOG-AUDIT.md](CATALOG-AUDIT.md)
 - CodexはQA・検収・課題棚卸し、Claude Codeは継続的な画面/体験開発を担当する想定
 
 ## 壊れやすい箇所
@@ -28,10 +32,11 @@
 - 操作配線チェック: inline handler、タブ、主要section、記録カード、チェック、検索UIのDOM接続
 
 ## 次の改善候補
-- 画面操作の実ブラウザQAを足す。候補: mobile幅で起動、タブ遷移、チェック完走、検索、記録カード生成までを確認
-- `index.html` の分割方針を決める。いきなり大分割せず、まずはQAで守れている領域から小さく切る
+- 実ブラウザQAをリポジトリ内で自動化する。現状は [QA-REPORT.md](QA-REPORT.md) の手動/半自動検収
+- [SPLIT-PLAN.md](SPLIT-PLAN.md) に沿って、まず検索・カタログ表示から小さく分割する
 - PWA検収を強化する。GitHub Pages上でmanifest/icon/sw登録/オフライン fallback を確認する
 - β配布前に `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する
+- [CATALOG-AUDIT.md](CATALOG-AUDIT.md) の `その他` 42本を見直す
 
 ## カタログ更新
 - 通常更新: `npm run catalog:update`

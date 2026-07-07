@@ -44,7 +44,7 @@
 - 単一 `index.html`＋`videos.js`（ビルド不要・依存ゼロ・バニラJS）
 - 記録は全部localStorage（端末内のみ・個人情報ゼロ・解析なし）
 - カタログ再生成: `npm run catalog:update`（非公開動画チェック → ogatore.db から `videos.js` 生成 → QA）。ネット確認を飛ばすローカル検証は `npm run catalog:update:offline`
-- 開発引き継ぎ・次の改善候補: [HANDOFF.md](HANDOFF.md)
+- 開発引き継ぎ・次の改善候補: [HANDOFF.md](HANDOFF.md) / [SPLIT-PLAN.md](SPLIT-PLAN.md) / [BETA-CHECKLIST.md](BETA-CHECKLIST.md) / [CATALOG-AUDIT.md](CATALOG-AUDIT.md) / [QA-REPORT.md](QA-REPORT.md)
 
 ## QA
 - 自動チェック: `npm test` または `node scripts/qa.js`
