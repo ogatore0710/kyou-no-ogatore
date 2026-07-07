@@ -615,15 +615,14 @@ function decide4(s){
   return best;
 }
 // 実験室の7問版: 追加3問も同じ土俵で「いちばん硬いところ」を決める
-// しきい値は本番(4問: robot>=9, yawara<=2)を7問ぶんにスケール
-// ただし「1ヶ所だけ最重度(3)」を柔らかい判定にしないよう best>=3 は必ずその部位を返す
+// robotしきい値は本番(4問で9点=平均2.25)を7問ぶんにスケールして15点
+// yawaraは合計でなく「最悪部位が軽度(1以下)」で判定——1ヶ所だけ重度でも見逃さない
 function decide7(s){
   var keys=["momo","koka","kenko","ashi","kubi","hineri","balance"];
   var total=0;
   for(var i=0;i<keys.length;i++) total+=s[keys[i]];
   if(total>=15) return "robot";
   var best=worstOf(keys,s);
-  if(total<=3 && s[best]<3) return "yawara";
   if(s[best]<=1) return "yawara";
   return best;
 }
@@ -716,6 +715,15 @@ if(qm) showLab(qm[1]);
 if(/[?&]autocard=1/.test(location.search)){
   chooseFav(CATALOG[0]);
   makeLabCard();
+}
+// ?autocheck=7つの数字(0〜3) は検証用: その回答で7問チェックの結果画面まで進む
+var am=location.search.match(/[?&]autocheck=([0-3](?:,[0-3]){6})/);
+if(am){
+  var vals=am[1].split(",");
+  startLabQuiz();
+  LABQ.forEach(function(q,i){ lqState.scores[q.k]=Number(vals[i]); });
+  lqState.qi=LABQ.length;
+  finishLabQuiz();
 }
 </script>
 </body>
