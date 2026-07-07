@@ -43,7 +43,7 @@
 ## 技術
 - 単一 `index.html`＋`videos.js`（ビルド不要・依存ゼロ・バニラJS）
 - 記録は全部localStorage（端末内のみ・個人情報ゼロ・解析なし）
-- カタログ再生成: `python3 scripts/check_public.py`（非公開動画の検出・約2分）→ `python3 scripts/build_catalog.py`（ogatore.db から。月次DB更新後にセットで回す）
+- カタログ再生成: `npm run catalog:update`（非公開動画チェック → ogatore.db から `videos.js` 生成 → QA）。ネット確認を飛ばすローカル検証は `npm run catalog:update:offline`
 - 開発引き継ぎ・次の改善候補: [HANDOFF.md](HANDOFF.md)
 
 ## QA

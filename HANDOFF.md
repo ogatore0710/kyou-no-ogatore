@@ -30,9 +30,14 @@
 ## 次の改善候補
 - 画面操作の実ブラウザQAを足す。候補: mobile幅で起動、タブ遷移、チェック完走、検索、記録カード生成までを確認
 - `index.html` の分割方針を決める。いきなり大分割せず、まずはQAで守れている領域から小さく切る
-- カタログ更新を1コマンド化する。`check_public.py` -> `build_catalog.py` -> `npm test` の流れ
 - PWA検収を強化する。GitHub Pages上でmanifest/icon/sw登録/オフライン fallback を確認する
 - β配布前に `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する
+
+## カタログ更新
+- 通常更新: `npm run catalog:update`
+- ネット確認なしのローカル検証: `npm run catalog:update:offline`
+- 実行順: `check_public.py` -> `build_catalog.py` -> `npm test`
+- `check_public.py` はYouTube oEmbedへアクセスするため、ネットワークがない場ではoffline版を使う
 
 ## Claudeが開発するときの手順
 1. 着手前に `WORKING_NOTES.md` とこのファイルを読む

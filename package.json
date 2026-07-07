@@ -2,6 +2,8 @@
   "name": "kyou-no-ogatore",
   "private": true,
   "scripts": {
+    "catalog:update": "python3 scripts/update_catalog.py",
+    "catalog:update:offline": "python3 scripts/update_catalog.py --skip-public-check",
     "qa": "node scripts/qa.js",
     "test": "node scripts/qa.js"
   }
