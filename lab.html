@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://i.ytimg.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; object-src 'none'; base-uri 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>実験室｜#きょうのオガトレ LAB</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFD93B">
+<link rel="icon" type="image/png" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet"></noscript>
+<style>
+  @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-card.woff2?v=2") format("woff2");font-display:swap}
+  :root{
+    --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#6E6B5F;
+    --teal:#2BB3A3; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
+    --pink:#E56A9A; --pink-soft:#FFEDF3;
+    --bg:#FFFAF3; --card:#FFFFFF; --line:#F2EADB; --radius:22px;
+    --sub2:#6B6857; --tealink:#177065;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-weight:700;
+    background:var(--bg);color:var(--ink);font-size:18px;line-height:1.75;
+    max-width:480px;margin:0 auto;padding:20px 18px 80px;min-height:100vh}
+  h1{font-size:22px;letter-spacing:.01em;font-weight:900;line-height:1.3}
+  h1 .hash{color:var(--pink);margin-right:1px}
+  .logo{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .logo img{width:44px;height:44px;object-fit:contain}
+  .logosub{color:var(--sub);font-size:11px;font-weight:800;letter-spacing:.04em;margin-top:1px}
+  .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px;
+    border:1.5px solid var(--line);box-shadow:0 2px 10px rgba(160,140,80,.06)}
+  .sec-head{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:900;margin-bottom:10px}
+  .btn{display:block;width:100%;border:none;border-radius:18px;padding:16px 18px;font-size:18px;
+    font-weight:900;font-family:inherit;cursor:pointer;text-align:center;text-decoration:none;color:var(--ink)}
+  .btn-primary{background:var(--yellow);font-size:19px;box-shadow:0 4px 0 #E8BE1E}
+  .btn-primary:active{transform:translateY(3px);box-shadow:0 1px 0 #E8BE1E}
+  .btn-ghost{background:var(--teal-soft);color:var(--tealink);font-size:15px}
+  .btn-line{background:none;border:2px solid #E0D5BE;color:var(--sub2);font-weight:800;font-size:15px}
+  .btn-ghost:active,.btn-line:active{transform:translateY(1px);opacity:.85}
+  .hidden{display:none !important}
+  /* 実験室バナー */
+  .labbn{background:var(--yellow-soft);border:1.5px dashed var(--pink);border-radius:14px;
+    padding:10px 12px;font-size:13px;line-height:1.7;margin-bottom:14px;color:var(--ink)}
+  .labtag{display:inline-block;background:var(--pink);color:#fff;border-radius:8px;
+    padding:0 8px;font-size:11px;font-weight:900;margin-right:6px;letter-spacing:.06em}
+  /* メニュータイル */
+  .tile{display:flex;gap:14px;align-items:flex-start;width:100%;text-align:left;border:1.5px solid var(--line);
+    background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;cursor:pointer;
+    font-family:inherit;color:var(--ink);box-shadow:0 2px 10px rgba(160,140,80,.06)}
+  .tile:active{transform:translateY(2px);opacity:.9}
+  .tile .em{font-size:34px;line-height:1.2;flex-shrink:0}
+  .tile b{font-size:17px;font-weight:900;display:block;line-height:1.4}
+  .tile span{font-size:13px;color:var(--sub);font-weight:700;display:block;margin-top:3px;line-height:1.65}
+  /* 入力まわり */
+  input[type=number],input[type=search],input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:14px;
+    padding:12px 14px;font-size:17px;font-weight:800;font-family:inherit;background:var(--bg);color:var(--ink)}
+  .lbl{font-size:13px;font-weight:900;color:var(--sub);margin:14px 0 6px}
+  .pick{display:flex;gap:10px;align-items:center;border:1.5px solid var(--line);border-radius:14px;
+    padding:8px;margin-top:6px;background:var(--bg);width:100%;cursor:pointer;font-family:inherit;text-align:left;color:var(--ink)}
+  .pick img{width:86px;border-radius:10px;flex-shrink:0}
+  .pick .pt2{font-size:13px;font-weight:800;line-height:1.5;min-width:0}
+  .pick.on{border-color:var(--teal);background:var(--teal-soft)}
+  #favList .pick:active{opacity:.7}
+  /* カードモーダル */
+  #labModal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:50;
+    display:flex;align-items:center;justify-content:center;padding:24px;-webkit-user-select:none;user-select:none}
+  #labModal .inner{background:var(--card);border-radius:24px;padding:18px;max-width:380px;width:100%;text-align:center}
+  #labCanvas{width:100%;max-width:330px;border-radius:16px;border:1.5px solid var(--line)}
+  /* 診断 */
+  .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
+  .qtitle{font-size:19px;font-weight:900;line-height:1.55;margin:4px 0 2px}
+  .qnote{font-size:13px;color:var(--sub);margin-bottom:12px}
+  .opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card);
+    border-radius:16px;padding:13px 15px;font-size:16px;font-weight:900;font-family:inherit;color:var(--ink);
+    margin-bottom:10px;cursor:pointer;line-height:1.5}
+  .opt:active{background:var(--teal-soft);border-color:var(--teal)}
+  .opt .crit{display:block;font-size:12px;color:var(--sub);font-weight:700;margin-top:2px}
+  .dots{display:flex;gap:6px;justify-content:center;margin:8px 0}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+  .dot.on{background:var(--pink)}
+  .rname{font-size:24px;font-weight:900;text-align:center;line-height:1.4}
+  .rarea{display:inline-block;background:var(--pink-soft);color:var(--pink);border-radius:10px;
+    padding:1px 10px;font-size:13px;font-weight:900}
+  .video{display:flex;gap:10px;align-items:center;text-decoration:none;color:var(--ink);
+    border:1.5px solid var(--line);border-radius:14px;padding:8px;margin-top:8px;background:var(--bg)}
+  .video img{width:104px;border-radius:10px;flex-shrink:0}
+  .video .vt{font-size:14px;font-weight:900;line-height:1.5;display:block}
+  .video .vs{font-size:12px;color:var(--sub);font-weight:700}
+  .cmp{background:var(--teal-soft);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.8;margin-top:14px;color:var(--tealink)}
+  body.dark .cmp{color:#AFE3DB}
+  /* せんぱいの声（めくりカード） */
+  .vcard{perspective:1200px;margin-bottom:14px;cursor:pointer}
+  .vcard .vin{position:relative;transform-style:preserve-3d;transition:transform .55s;min-height:150px}
+  .vcard.open .vin{transform:rotateY(180deg)}
+  .vface{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);
+    border:1.5px solid var(--line);padding:18px}
+  .vfront{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;gap:6px;text-align:center;
+    background:linear-gradient(135deg,var(--yellow-soft),var(--pink-soft))}
+  .vfront b{font-size:18px;font-weight:900;line-height:1.5}
+  .vfront .tap{font-size:12px;color:var(--sub);font-weight:800}
+  .vback{position:relative;transform:rotateY(180deg);background:var(--card);min-height:150px;
+    display:flex;flex-direction:column;justify-content:center}
+  .vback p{font-size:14px;line-height:1.9;font-weight:700;overflow-wrap:anywhere}
+  .vback .src{font-size:12px;color:var(--sub);font-weight:800;margin-top:8px;text-align:right}
+  .vtag{display:inline-block;background:var(--teal-soft);color:var(--tealink);border-radius:8px;
+    padding:0 8px;font-size:11px;font-weight:900}
+  /* ダークモード（本体と同じトーン） */
+  body.dark{--bg:#211E19;--card:#2C2822;--ink:#F2EDE1;--sub:#B9B2A0;--line:#3D382F;
+    --yellow-soft:#3A3423;--teal-soft:#22403B;--pink-soft:#3A2730;--coral-soft:#3A2A24;
+    --sub2:#C6BFAE;--tealink:#7BD0C4}
+  body.dark .card,body.dark .tile{box-shadow:none}
+  body.dark .btn-primary{color:#211E19;box-shadow:0 4px 0 #8A6D00}
+  body.dark .btn-primary:active{box-shadow:0 1px 0 #8A6D00}
+  body.dark .btn-line{border-color:#4A443A}
+  body.dark .labbn{border-color:#8A4A66}
+  body.dark .logosub{color:#9B9484}
+  body.dark .vfront{background:linear-gradient(135deg,#37301C,#33232B)}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <img src="assets/icon-192.png" alt="">
+  <div>
+    <h1>🧪 実験室<span style="font-size:14px;color:var(--sub)"> LAB</span></h1>
+    <div class="logosub"><span class="hash" style="color:var(--pink)">#</span>きょうのオガトレの あたらしい機能のためし場</div>
+  </div>
+</div>
+
+<!-- ================= メニュー ================= -->
+<section id="menu">
+  <div class="labbn"><span class="labtag">LAB</span>ここは実験室です🧪 ためしに作った画面のあつまりで 本番のアプリとは別ものです<br>ここでの記録は<b>本番と共有しません</b>（この画面から本番の記録に書きこむこともありません）</div>
+
+  <button class="tile" onclick="navLab('dcard')">
+    <span class="em">🖼️</span>
+    <div><b>じまんカードをつくる</b><span>つづけてる日数と すきな1本を 1枚のカードに✨ そのままシェアできます</span></div>
+  </button>
+  <button class="tile" onclick="navLab('dcheck')">
+    <span class="em">📋</span>
+    <div><b>かたさチェック７問版</b><span>いつもの4問に 首・ひねり・バランスをプラス！結果の「きょうの1本」が変わるかも</span></div>
+  </button>
+  <button class="tile" onclick="navLab('dvoice')">
+    <span class="em">💌</span>
+    <div><b>せんぱいの声ギャラリー</b><span>まえを歩くせんぱいたちの ほんとうの声を カードでめくれます🌱</span></div>
+  </button>
+
+  <a class="btn btn-line" href="index.html" style="margin-top:8px">アプリ本体にもどる</a>
+</section>
+
+<!-- ================= デモA: じまんカード ================= -->
+<section id="dcard" class="hidden">
+  <div class="labbn"><span class="labtag">LAB</span>これは実験室のデモです🧪 記録データは本番と共有しません（本番の記録は<b>読むだけ</b>で 書きこみません）カード画像はこの端末の中だけで作られます</div>
+
+  <div class="card">
+    <div class="sec-head">🖼️ じまんカードをつくる</div>
+    <div style="font-size:14px;color:var(--sub);line-height:1.8">つづけてる日数と すきな1本を 1枚に✨<br>できたカードは共有ボタンからシェアできます</div>
+
+    <div class="lbl">つづいている日数</div>
+    <input type="number" id="labDays" min="1" max="9999" value="7" inputmode="numeric">
+    <div id="labDaysNote" style="font-size:12px;color:var(--sub);margin-top:4px"></div>
+
+    <div class="lbl">すきな1本をさがす🎬</div>
+    <input type="search" id="favSearch" placeholder="例: 肩甲骨 / 朝 / 開脚" oninput="favFilter()">
+    <div id="favList"></div>
+    <div class="lbl">えらんだ1本</div>
+    <div id="favChosen" style="font-size:14px;color:var(--sub)">まだえらんでいません 上の検索からどうぞ</div>
+
+    <button class="btn btn-primary" style="margin-top:16px" onclick="makeLabCard()">カードをつくる🧪</button>
+  </div>
+  <button class="btn btn-line" onclick="navLab('menu')">← 実験メニューにもどる</button>
+</section>
+
+<div id="labModal" class="hidden">
+  <div class="inner">
+    <div style="font-weight:900;margin-bottom:8px">じまんカード（実験室版）</div>
+    <div id="labMaking" class="hidden" style="font-size:13px;color:var(--sub);margin-bottom:6px">カードをつくってます…</div>
+    <canvas id="labCanvas" width="1000" height="1000"></canvas>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="shareLabCard()">保存・シェアする</button>
+    <button class="btn btn-line" style="margin-top:8px" onclick="closeLabModal()">とじる</button>
+  </div>
+</div>
+
+<!-- ================= デモB: かたさチェック7問版 ================= -->
+<section id="dcheck" class="hidden">
+  <div class="labbn"><span class="labtag">LAB</span>これは実験室のデモです🧪 結果はどこにも保存せず 本番のチェック結果にも影響しません</div>
+
+  <div id="ckIntro" class="card">
+    <div class="sec-head">📋 かたさチェック７問版</div>
+    <div style="font-size:14px;line-height:1.9">いつもの前屈・あぐら・肩まわり・足首に<br><b>首・ひねり・バランス</b>の3問をプラス！<br>いちばん硬いところで「きょうの1本」の出し分けが変わります<br><span style="color:var(--sub);font-size:13px">タップするだけ 約６０秒✅ 無理はしないでね</span></div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="startLabQuiz()">はじめる</button>
+  </div>
+
+  <div id="ckQuiz" class="card hidden">
+    <div class="qnum" id="lqNum"></div>
+    <div class="qtitle" id="lqTitle"></div>
+    <div class="qnote" id="lqNote"></div>
+    <div id="lqOpts"></div>
+    <div class="dots" id="lqDots"></div>
+    <button class="btn btn-line hidden" id="lqBack" onclick="prevLabQ()">← ひとつまえにもどる</button>
+  </div>
+
+  <div id="ckResult" class="card hidden">
+    <div style="text-align:center;font-size:44px" id="lrEmoji"></div>
+    <div class="rname" id="lrName"></div>
+    <div style="text-align:center;margin:4px 0 10px"><span class="rarea" id="lrArea"></span></div>
+    <div style="font-size:14px;line-height:1.9" id="lrCopy"></div>
+    <div class="lbl">きょうの1本はこれ！</div>
+    <div id="lrVideo"></div>
+    <div class="cmp" id="lrCompare"></div>
+    <button class="btn btn-ghost" style="margin-top:14px" onclick="startLabQuiz()">もういちどチェックする</button>
+  </div>
+
+  <button class="btn btn-line" onclick="navLab('menu')">← 実験メニューにもどる</button>
+</section>
+
+<!-- ================= デモC: せんぱいの声ギャラリー ================= -->
+<section id="dvoice" class="hidden">
+  <div class="labbn"><span class="labtag">LAB</span>これは実験室のデモです🧪 記録データは本番と共有しません</div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="sec-head">💌 せんぱいの声ギャラリー</div>
+    <div style="font-size:14px;line-height:1.9">まえを歩くせんぱいたちの ほんとうの声です🌱<br>カードをタップするとめくれます<br><span style="font-size:12px;color:var(--sub)">※YouTubeコメントの原文のまま（お名前は出ません）</span></div>
+  </div>
+
+  <div id="voiceList"></div>
+
+  <button class="btn btn-line" onclick="navLab('menu')">← 実験メニューにもどる</button>
+</section>
+
+<script src="videos.js"></script>
+<script>
+// ================================================================
+// 実験室（LAB）— 本番(index.html)とは独立したデモ集
+// 約束ごと: 本番のlocalStorage(kyono_*)は「読むだけ」・書きこみ禁止
+//           サーバー通信なし・端末内完結（運用ゼロ原則）
+//           ES2020構文（null合体・オプショナルチェーン）は本体と同じく使わない
+// ================================================================
+
+// ---- 画面切り替え ----
+var LAB_SECTIONS=["menu","dcard","dcheck","dvoice"];
+function showLab(id){
+  for(var i=0;i<LAB_SECTIONS.length;i++){
+    var s=LAB_SECTIONS[i];
+    document.getElementById(s).classList.toggle("hidden", s!==id);
+  }
+  window.scrollTo(0,0);
+}
+function navLab(id){
+  try{ if(!(history.state&&history.state.id===id)) history.pushState({id},""); }catch(e){}
+  showLab(id);
+}
+window.addEventListener("popstate",function(e){
+  var id=(e.state&&e.state.id)||"menu";
+  showLab(LAB_SECTIONS.indexOf(id)>=0?id:"menu");
+});
+
+// ---- 本番の記録を「読むだけ」するヘルパー（書きこみはしない） ----
+function prodGet(k,d){
+  try{ var v=JSON.parse(localStorage.getItem("kyono_"+k)); return v==null?d:v }catch(e){ return d }
+}
+
+// ---- ダークモード（本体と同じ切り替え規則・ただし設定も本体を読むだけ） ----
+function applyLabTheme(){
+  var p=prodGet("theme","auto");
+  var h=new Date().getHours();
+  var osDark=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches;
+  var dark = p==="dark" || (p==="auto" && (osDark || h>=19 || h<5));
+  document.body.classList.toggle("dark",dark);
+  var mc=document.querySelector('meta[name="theme-color"]');
+  if(mc) mc.setAttribute("content", dark?"#211E19":"#FFD93B");
+}
+
+// ================================================================
+// デモA: じまんカード（連続日数＋すきな1本 → Canvas1枚画像）
+// ================================================================
+var favPick=null;
+function initDays(){
+  var st=prodGet("streak2",null);
+  var note=document.getElementById("labDaysNote");
+  if(st&&st.count>0){
+    document.getElementById("labDays").value=st.count;
+    note.textContent="いまの記録から読みこみました（読むだけ・書きこみません）";
+  }else{
+    note.textContent="まだ記録がないので仮の数字です すきに変えてOK";
+  }
+}
+function favFilter(){
+  var q=document.getElementById("favSearch").value.trim();
+  var box=document.getElementById("favList");
+  box.innerHTML="";
+  if(!q){ return; }
+  var hits=[];
+  for(var i=0;i<CATALOG.length&&hits.length<6;i++){
+    var v=CATALOG[i];
+    var hay=v.t+" "+(v.tags?v.tags.join(" "):"");
+    if(hay.indexOf(q)>=0) hits.push(v);
+  }
+  if(!hits.length){ box.innerHTML='<div style="font-size:13px;color:var(--sub);margin-top:6px">みつかりませんでした 別のことばでさがしてみて</div>'; return; }
+  hits.forEach(function(v){
+    var b=document.createElement("button");
+    b.className="pick";
+    b.innerHTML='<img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="" loading="lazy">'+
+      '<span class="pt2">'+v.t.replace(/</g,"&lt;")+'</span>';
+    b.onclick=function(){ chooseFav(v); };
+    box.appendChild(b);
+  });
+}
+function chooseFav(v){
+  favPick={id:v.id,t:v.t};
+  document.getElementById("favChosen").innerHTML=
+    '<div class="pick on" style="cursor:default"><img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="">'+
+    '<span class="pt2">'+v.t.replace(/</g,"&lt;")+'</span></div>';
+  document.getElementById("favList").innerHTML="";
+  document.getElementById("favSearch").value="";
+}
+
+// カードのテーマ（本体と同じ5色・日替わり）
+var LAB_THEMES=[
+  {bg:["#FFEDF3","#FFF7EC"], main:"#E56A9A", deco:["#F5AFC6","#FFD93B","#FF9E8E"]},
+  {bg:["#F1EDFF","#FFEFF6"], main:"#8B7BD8", deco:["#C3B8F2","#F5AFC6","#FFD93B"]},
+  {bg:["#E7F8F1","#F0F9FF"], main:"#2FA98C", deco:["#9BDFC9","#A6D8F5","#FFD93B"]},
+  {bg:["#FFF0E6","#FFEFF4"], main:"#F08A5D", deco:["#FFC0A0","#F5AFC6","#FFE28A"]},
+  {bg:["#FFF9DC","#FFEFE6"], main:"#DFA400", deco:["#FFE47A","#FFC0A0","#9BDFC9"]},
+];
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawHeart(ctx,x,y,s,color){
+  ctx.save();ctx.translate(x,y);ctx.scale(s/24,s/24);ctx.fillStyle=color;
+  ctx.beginPath();ctx.moveTo(12,21);
+  ctx.bezierCurveTo(4,15,1,10,3.5,6.5);ctx.bezierCurveTo(6,3.5,10,4.5,12,8);
+  ctx.bezierCurveTo(14,4.5,18,3.5,20.5,6.5);ctx.bezierCurveTo(23,10,20,15,12,21);
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+function drawStar(ctx,x,y,r,color){
+  ctx.save();ctx.fillStyle=color;ctx.beginPath();
+  for(var i=0;i<10;i++){var a=Math.PI/5*i-Math.PI/2;var rr=i%2===0?r:r*0.45;
+    i===0?ctx.moveTo(x+rr*Math.cos(a),y+rr*Math.sin(a)):ctx.lineTo(x+rr*Math.cos(a),y+rr*Math.sin(a));}
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+function drawSparkle(ctx,x,y,r,color){
+  ctx.save();ctx.fillStyle=color;ctx.beginPath();
+  ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r*0.15,y-r*0.15,x+r,y);
+  ctx.quadraticCurveTo(x+r*0.15,y+r*0.15,x,y+r);
+  ctx.quadraticCurveTo(x-r*0.15,y+r*0.15,x-r,y);
+  ctx.quadraticCurveTo(x-r*0.15,y-r*0.15,x,y-r);ctx.closePath();ctx.fill();ctx.restore();
+}
+function wrapLines(ctx,text,maxW,maxLines){
+  var lines=[],cur="";
+  for(var i=0;i<text.length;i++){
+    var test=cur+text[i];
+    if(ctx.measureText(test).width>maxW&&cur){
+      lines.push(cur); cur=text[i];
+      if(lines.length===maxLines){ break; }
+    }else cur=test;
+  }
+  if(lines.length<maxLines&&cur) lines.push(cur);
+  else if(lines.length===maxLines&&cur) lines[maxLines-1]=lines[maxLines-1].slice(0,-1)+"…";
+  return lines;
+}
+function ensureLabFonts(){
+  var specs=['900 100px "M PLUS 1p"','800 52px "M PLUS 1p"','700 34px "M PLUS 1p"','100px "BananaNum"'];
+  var work=(async function(){
+    try{ await Promise.all(specs.map(function(x){return document.fonts.load(x)})); }catch(e){}
+    for(var i=0;i<8;i++){
+      try{ if(document.fonts.check('900 100px "M PLUS 1p"')&&document.fonts.check('100px "BananaNum"')) return; }catch(e){ return; }
+      await new Promise(function(r){setTimeout(r,150)});
+      try{ await Promise.all(specs.map(function(x){return document.fonts.load(x)})); }catch(e){}
+    }
+  })();
+  return Promise.race([work, new Promise(function(r){setTimeout(r,2200)})]);
+}
+var labCharaImg=null, labCharaTried=false;
+function loadLabChara(cb){
+  if(labCharaTried){cb();return}
+  labCharaTried=true;
+  var im=new Image();
+  im.onload=function(){labCharaImg=im;cb()}; im.onerror=function(){cb()};
+  im.src="assets/chara-cheer.png";
+}
+var labBlob=null;
+function makeLabCard(){
+  var mk=document.getElementById("labMaking");
+  mk.classList.remove("hidden"); mk.textContent="カードをつくってます…";
+  document.getElementById("labModal").classList.remove("hidden");
+  ensureLabFonts().then(function(){ loadLabChara(function(){
+    try{ drawLabCard(); mk.classList.add("hidden"); }
+    catch(e){ mk.textContent="うまく作れませんでした もう一度ためしてみて"; }
+  })});
+}
+function drawLabCard(){
+  var days=Math.max(1,Math.min(9999,Number(document.getElementById("labDays").value)||1));
+  var fav=favPick;
+  var dateIdx=Math.floor((Date.now()+9*3600*1000)/86400000);
+  var th=LAB_THEMES[dateIdx%LAB_THEMES.length];
+  var c=document.getElementById("labCanvas"), ctx=c.getContext("2d");
+  var F='"M PLUS 1p","Hiragino Kaku Gothic ProN",sans-serif';
+  // 背景
+  var g=ctx.createLinearGradient(0,0,1000,1000);
+  g.addColorStop(0,th.bg[0]); g.addColorStop(1,th.bg[1]);
+  ctx.fillStyle=g; ctx.fillRect(0,0,1000,1000);
+  // ちらし飾り
+  var deco=[["h",95,150,34],["s",885,120,26],["k",120,860,30],["h",905,850,30],
+    ["c",60,480,11],["k",940,430,24],["s",180,70,18],["c",500,60,9],
+    ["h",820,300,22],["c",935,650,10],["s",70,690,16],["c",250,935,9],["k",760,945,22]];
+  deco.forEach(function(d,i){
+    var col=th.deco[i%th.deco.length];
+    if(d[0]==="h") drawHeart(ctx,d[1]-d[3]/2,d[2]-d[3]/2,d[3],col);
+    else if(d[0]==="s") drawStar(ctx,d[1],d[2],d[3]*0.6,col);
+    else if(d[0]==="k") drawSparkle(ctx,d[1],d[2],d[3]*0.7,col);
+    else {ctx.fillStyle=col;ctx.beginPath();ctx.arc(d[1],d[2],d[3],0,7);ctx.fill();}
+  });
+  // 白カード＋点線ふち
+  ctx.fillStyle="rgba(255,255,255,.94)"; roundRect(ctx,85,175,830,650,52); ctx.fill();
+  ctx.save();ctx.strokeStyle=th.main;ctx.globalAlpha=.45;ctx.lineWidth=4;ctx.setLineDash([2,16]);ctx.lineCap="round";
+  roundRect(ctx,110,200,780,600,40); ctx.stroke();ctx.restore();
+  // タイトルピル
+  ctx.fillStyle=th.main; roundRect(ctx,300,145,400,64,32); ctx.fill();
+  ctx.textAlign="center"; ctx.fillStyle="#FFFFFF"; ctx.font="900 34px "+F;
+  ctx.fillText("#きょうのオガトレ",500,190);
+  // LABリボン（実験室のしるし・本番カードと見分けるため）
+  ctx.save();ctx.translate(150,215);ctx.rotate(-0.18);
+  ctx.fillStyle="#E56A9A"; roundRect(ctx,-62,-22,124,44,22); ctx.fill();
+  ctx.fillStyle="#FFF"; ctx.font="900 22px "+F; ctx.fillText("実験室🧪",0,8);
+  ctx.restore();
+  // 日付バッジ（右上）
+  var now=new Date(Date.now()+9*3600*1000);
+  var dtxt=now.getUTCFullYear()+"/"+(now.getUTCMonth()+1)+"/"+now.getUTCDate();
+  ctx.font="800 26px "+F;
+  var dw=ctx.measureText(dtxt).width;
+  ctx.save(); ctx.globalAlpha=.85; ctx.fillStyle=th.main;
+  roundRect(ctx,868-dw-44,212,dw+44,52,26); ctx.fill(); ctx.restore();
+  ctx.fillStyle="#FFFFFF"; ctx.fillText(dtxt,868-(dw+44)/2,247);
+  // 連続日数（大きな数字）
+  var numStr=String(days);
+  var numSize = numStr.length<=2 ? 210 : (numStr.length===3 ? 180 : 150);
+  ctx.fillStyle=th.main;
+  ctx.font=numSize+'px "BananaNum","M PLUS 1p",sans-serif';
+  var nw=ctx.measureText(numStr).width;
+  ctx.font="900 52px "+F;
+  var sw=ctx.measureText("日つづいてる！").width;
+  var totalW=nw+18+sw;
+  ctx.font=numSize+'px "BananaNum","M PLUS 1p",sans-serif';
+  ctx.textAlign="left";
+  ctx.fillText(numStr,500-totalW/2,470);
+  ctx.font="900 52px "+F;
+  ctx.fillStyle="#3A3A35";
+  ctx.fillText("日つづいてる！",500-totalW/2+nw+18,460);
+  ctx.textAlign="center";
+  // 区切り線
+  ctx.save();ctx.strokeStyle=th.main;ctx.globalAlpha=.3;ctx.lineWidth=3;ctx.setLineDash([4,12]);
+  ctx.beginPath();ctx.moveTo(170,520);ctx.lineTo(830,520);ctx.stroke();ctx.restore();
+  // すきな1本
+  ctx.fillStyle=th.main; ctx.font="900 30px "+F;
+  ctx.fillText("🎬 わたしのすきな1本",500,580);
+  ctx.fillStyle="#3A3A35"; ctx.font="800 34px "+F;
+  var favT = fav ? fav.t : "まだえらんでません（これから見つけます！）";
+  var lines=wrapLines(ctx,favT,540,2);
+  lines.forEach(function(ln,i){ ctx.fillText(ln,450,640+i*50); });
+  // キャラ（応援）
+  if(labCharaImg){
+    var iw=160, ih=iw*labCharaImg.height/labCharaImg.width;
+    ctx.drawImage(labCharaImg,730,780-ih,iw,ih);
+  }
+  // フッター
+  ctx.fillStyle="#8A877D"; ctx.font="700 22px "+F;
+  ctx.fillText("実験室でつくった試作カードです🧪",420,775);
+  labBlob=null;
+  c.toBlob(function(b){ labBlob=b; },"image/png");
+}
+function labCardFile(){ return new File([labBlob],"kyono-lab-card.png",{type:"image/png"}); }
+async function shareLabCard(){
+  if(!labBlob) return;
+  var file=labCardFile();
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], text:"#きょうのオガトレ（実験室カード🧪）"}); return; }
+    catch(e){ if(e && e.name==="AbortError") return; }
+    try{ await navigator.share({files:[file]}); }catch(e){}
+    return; // 共有シートが使える端末ではダウンロードに落とさない（本体と同じ流儀）
+  }
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(labBlob); a.download="kyono-lab-card.png";
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1000);
+}
+function closeLabModal(){ document.getElementById("labModal").classList.add("hidden"); }
+
+// ================================================================
+// デモB: かたさチェック7問版（前半4問は本番と同じ・後半3問が実験）
+// ================================================================
+var LABQ=[
+  {k:"momo", title:"立って前屈 手はどこまでいく？", note:"ひざを曲げずに ゆっくり倒れてみて",
+   opts:[
+    ["床にペタッとつく","手のひら全体がゆかにつく（ゆかタッチ）",0],
+    ["つま先にさわれる","指先が足先〜床すれすれ（目安 0〜10cm）",1],
+    ["すねの途中まで","指先がすねの中ほどで止まる（目安 10〜25cm）",2],
+    ["ひざから下に行かない","指先がひざ上で止まる（目安 25cm以上）",3]]},
+  {k:"koka", title:"あぐらで座ると ひざは？", note:"床に座って 足の裏どうしを合わせてみて",
+   opts:[
+    ["床にペタッと近い","ひざと床のすき間が こぶし1個未満",0],
+    ["ちょっと浮く","すき間 こぶし1〜2個ぶん",1],
+    ["山みたいに浮く","すき間 こぶし3個以上",2],
+    ["そもそもあぐらがつらい","骨盤が立たず 体が後ろに倒れてしまう",3]]},
+  {k:"kenko",title:"指先を鎖骨において ひじはどこまで上がる？", note:"ひじを体の前で ゆっくり上げてみて",
+   opts:[
+    ["眉より高く上がる","ひじが眉の高さをこえる",0],
+    ["鼻くらいまで","ひじが鼻の高さで止まる",1],
+    ["あごくらいまで","ひじがあごの高さで止まる",2],
+    ["あごまで上がらない","ひじがあごより下で止まる",3]]},
+  {k:"ashi", title:"かかとを付けたまま しゃがめる？", note:"和式トイレのポーズ 無理はしないでね",
+   opts:[
+    ["余裕でしゃがめる","かかとを付けたまま深くしゃがみ 保持できる",0],
+    ["しゃがめるけど ぐらぐら","しゃがめるが姿勢を保てない",1],
+    ["かかとが浮いちゃう","足首の曲がり（背屈）が足りないサイン",2],
+    ["後ろにコロンと転がる","足首＋股関節の複合的な硬さのサイン",3]]},
+  // ---- ここから実験室の追加3問 ----
+  {k:"kubi", title:"顔をゆっくり横にむけると あごはどこまで回る？", note:"肩は正面のまま 左右ためしてみて【NEW】",
+   opts:[
+    ["両側ともあごが肩のライン近くまで","首の回旋がしっかり出ています",0],
+    ["片側だけ回りにくい","左右差あり かたむきのサイン",1],
+    ["両側とも斜め45度くらいで止まる","首まわりの筋肉がお疲れ気味",2],
+    ["回すと首すじが張る・つまる","無理せず ゆるめるところから",3]]},
+  {k:"hineri", title:"いすに座って 上半身だけで後ろをふり向ける？", note:"骨盤は正面のまま ゆっくりひねってみて【NEW】",
+   opts:[
+    ["真後ろの壁がしっかり見える","背骨の回旋がよく動いています",0],
+    ["斜め後ろまでは見える","日常には十分 のびしろあり",1],
+    ["真横までがやっと","背中・わき腹が固まりぎみ",2],
+    ["ひねると腰や背中が張る","腰に負担が集まっているサイン",3]]},
+  {k:"balance", title:"目を開けて片脚立ち 何秒キープできる？", note:"転ばないよう 壁の近くでためしてね【NEW】",
+   opts:[
+    ["30秒以上よゆう","足首と股関節の連係バッチリ",0],
+    ["15〜30秒くらい","おしい！あと少しで安定ゾーン",1],
+    ["5〜15秒でグラッ","足首まわりの硬さが影響しているかも",2],
+    ["5秒もたない","まず足首をゆるめるのが近道",3]]},
+];
+// タイプ（前半4つ＋全身・柔らかいは本番と同名／後半3つは実験室の新タイプ）
+var LABT={
+  momo:  {emoji:"🪵", name:"立派な一枚板", area:"もも裏",
+    copy:"前屈でつま先が遠いのは もも裏が固まっているサイン。でも一枚板は磨けばすこしずつしなっていきます。",
+    vid:{id:"CyWthETY73s", t:"もも裏が『超』硬い人向け 7分", s:"座り姿勢改善・腰痛ひざ痛にも"}},
+  koka:  {emoji:"🚪", name:"開かずのとびら", area:"股関節",
+    copy:"あぐらでひざが山になるのは 股関節のとびらが閉まっているから。毎日すこしずつ油をさせば開きます。",
+    vid:{id:"-Y5bOC_ecB0", t:"股関節が『超』硬い人向け 毎日9分", s:"875万回再生のルーティン定番"}},
+  kenko: {emoji:"🪽", name:"羽根おやすみ中", area:"肩甲骨",
+    copy:"肩甲骨まわりの羽根がすっかり冬眠中。動かせばゆっくり目を覚まして 肩こりも呼吸もラクになります。",
+    vid:{id:"ZYTlwh_FhoU", t:"肩甲骨・基本版12分", s:"2300万回再生の看板ストレッチ"}},
+  ashi:  {emoji:"🐧", name:"棒立ちペンギン", area:"足首",
+    copy:"しゃがむとかかとがプカッ。足首がゆるむと 歩くのも立つのも軽くなります。",
+    vid:{id:"6U4fgJu0ZMw", t:"足首が『超』硬い人向け", s:"引っ張ってつまむだけ簡単"}},
+  kubi:  {emoji:"🦉", name:"ふり向けないフクロウ", area:"首まわり【実験】",
+    copy:"フクロウは首がくるっと回るのが自慢。いまのあなたの首は少しおやすみ中です。首まわりがゆるむと 肩こりも目の疲れもぐっと軽くなります。",
+    vid:{id:"7FY6SR6cyts", t:"ガチガチ肩こりは肩甲骨から治す 12分", s:"根本解消・理学療法士監修"}},
+  hineri:{emoji:"🧺", name:"しぼれないぞうきん", area:"背中・体側【実験】",
+    copy:"体をひねる動きは背骨のしなやかさのバロメーター。かたく固まったぞうきんは水を吸えません。ひねりが戻ると 歩くときの腕のふりまで軽くなります。",
+    vid:{id:"aIIU5R2l-kQ", t:"座ったまま7分・和みストレッチ", s:"股関節・背骨・肩甲骨がととのう"}},
+  balance:{emoji:"🗼", name:"そよ風にゆれる灯台", area:"バランス（足首×股関節）【実験】",
+    copy:"片脚でグラッとくるのは 足首と股関節の連係が固まっているサイン。土台がゆるむと立ち姿までかわります。",
+    vid:{id:"t3C-N5_828k", t:"足首・10分一緒にストレッチ", s:"画面を観ながらじっくり"}},
+  robot: {emoji:"🤖", name:"休日のロボット", area:"全身",
+    copy:"全体的に カタい。でも言いかえれば どこを伸ばしても効く「伸びしろの宝庫」ということ。",
+    vid:{id:"q8jr0KhoML4", t:"ガチガチな体が生まれ変わる本気の9分", s:"2026年版・全身リセット"}},
+  yawara:{emoji:"🧘", name:"柔らかいマン", area:"メンテナンス",
+    copy:"おっと けっこう柔らかい！ここから先は その柔らかさを守るステージです。",
+    vid:{id:"2EfFlQev4rg", t:"朝専用・極上10分ストレッチ", s:"疲れないカラダを作る定番"}},
+};
+var lqState={qi:0,scores:{}};
+function startLabQuiz(){
+  lqState={qi:0,scores:{momo:0,koka:0,kenko:0,ashi:0,kubi:0,hineri:0,balance:0}};
+  document.getElementById("ckIntro").classList.add("hidden");
+  document.getElementById("ckResult").classList.add("hidden");
+  document.getElementById("ckQuiz").classList.remove("hidden");
+  renderLabQ();
+  window.scrollTo(0,0);
+}
+function renderLabQ(){
+  var q=LABQ[lqState.qi];
+  document.getElementById("lqNum").textContent="Q"+(lqState.qi+1)+" / "+LABQ.length+(lqState.qi>=4?"（実験室の追加問題）":"");
+  document.getElementById("lqTitle").textContent=q.title;
+  document.getElementById("lqNote").textContent=q.note;
+  var box=document.getElementById("lqOpts"); box.innerHTML="";
+  q.opts.forEach(function(o){
+    var b=document.createElement("button"); b.className="opt";
+    b.innerHTML=o[0]+'<span class="crit">'+o[1]+'</span>';
+    b.onclick=function(){ answerLabQ(q.k,o[2]); };
+    box.appendChild(b);
+  });
+  var dots=document.getElementById("lqDots"); dots.innerHTML="";
+  LABQ.forEach(function(_,i){var d=document.createElement("div");d.className="dot"+(i<=lqState.qi?" on":"");dots.appendChild(d)});
+  document.getElementById("lqBack").classList.toggle("hidden", lqState.qi===0);
+}
+function answerLabQ(k,val){
+  var btns=document.querySelectorAll("#lqOpts .opt");
+  for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+  lqState.scores[k]=val;
+  lqState.qi++;
+  if(lqState.qi>=LABQ.length){ finishLabQuiz(); return; }
+  renderLabQ();
+}
+function prevLabQ(){ if(lqState.qi>0){ lqState.qi--; renderLabQ(); } }
+function worstOf(keys,s){
+  var best=keys[0];
+  for(var i=0;i<keys.length;i++){ if(s[keys[i]]>s[best]) best=keys[i]; }
+  return best;
+}
+// 本番と同じ4問だけで決めるロジック（比較表示用・index.htmlのdecideTypeと同じしきい値）
+function decide4(s){
+  var total=s.momo+s.koka+s.kenko+s.ashi;
+  if(total>=9) return "robot";
+  if(total<=2) return "yawara";
+  var best=worstOf(["momo","koka","kenko","ashi"],s);
+  if(s[best]<=1) return "yawara";
+  return best;
+}
+// 実験室の7問版: 追加3問も同じ土俵で「いちばん硬いところ」を決める
+// しきい値は本番(4問: robot>=9, yawara<=2)を7問ぶんにスケール
+// ただし「1ヶ所だけ最重度(3)」を柔らかい判定にしないよう best>=3 は必ずその部位を返す
+function decide7(s){
+  var keys=["momo","koka","kenko","ashi","kubi","hineri","balance"];
+  var total=0;
+  for(var i=0;i<keys.length;i++) total+=s[keys[i]];
+  if(total>=15) return "robot";
+  var best=worstOf(keys,s);
+  if(total<=3 && s[best]<3) return "yawara";
+  if(s[best]<=1) return "yawara";
+  return best;
+}
+function labVideoHTML(v){
+  return '<a class="video" href="https://www.youtube.com/watch?v='+v.id+'" target="_blank" rel="noopener">'+
+    '<img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">'+
+    '<div><span class="vt">'+v.t+'</span><div class="vs">'+v.s+'</div></div></a>';
+}
+function finishLabQuiz(){
+  var s=lqState.scores;
+  var t7=decide7(s), t4=decide4(s);
+  var T=LABT[t7];
+  document.getElementById("ckQuiz").classList.add("hidden");
+  var r=document.getElementById("ckResult");
+  r.classList.remove("hidden");
+  document.getElementById("lrEmoji").textContent=T.emoji;
+  document.getElementById("lrName").textContent=T.name;
+  document.getElementById("lrArea").textContent=T.area;
+  document.getElementById("lrCopy").textContent=T.copy;
+  document.getElementById("lrVideo").innerHTML=labVideoHTML(T.vid);
+  var cmp=document.getElementById("lrCompare");
+  if(t7!==t4){
+    cmp.innerHTML="🧪 <b>出し分けが変わりました！</b><br>いつもの4問版だと「"+LABT[t4].name+"（"+LABT[t4].area.replace("【実験】","")+"）」→ "+LABT[t4].vid.t+"<br>7問版では追加の質問が効いて 上の1本になりました";
+  }else{
+    cmp.innerHTML="🧪 いつもの4問版でも同じ「"+LABT[t4].name+"」でした<br>追加3問の結果しだいで ここのおすすめが変わるのがこのデモです";
+  }
+  window.scrollTo(0,0);
+}
+
+// ================================================================
+// デモC: せんぱいの声ギャラリー（YouTubeコメント原文・匿名10選）
+// 出典: ogatore-growth/data/voice-map/genten-voices-top50.md
+// ================================================================
+var LAB_VOICES=[
+  {tag:"肩甲骨", front:"4年ぶりのバンザイ🙌",
+   q:"67歳、4年も袖を通せない痛みで諦めかけていました。3週間で両方バンザイ出来るようになりました。本当に感謝しています。普通に袖を通せる幸せ、感じています。",
+   src:"肩甲骨ストレッチ"},
+  {tag:"足首", front:"保育園のころからの夢👣",
+   q:"踵つけてしゃがむのずっと夢でした。小学校……いや、保育園行ってたころからしゃがむときはずっと踵浮いてました。多分人生で一回も踵つけてしゃがんだことないのでは？大人になってしゃがめたら感動だろうなー！がんばるぞ！",
+   src:"足首ストレッチ"},
+  {tag:"股関節", front:"人生ではじめて 手がついた✋",
+   q:"人生で一度も前屈で手がつま先についたことがなかった超硬い民ですが、股関節ストレッチともも裏ストレッチをやっていたところ、初めてつきました！ありがとうございます！",
+   src:"股関節ストレッチ"},
+  {tag:"骨盤", front:"30年ものの こしの話🕰️",
+   q:"子供の頃から30年間ずっと腰痛でした。整体、注射、温めなど色々試したけど一向に治らず「このまま痛くない感覚がわからないまま一生おわるのかー」って思ってたときにこの動画に出会いました。2日やっただけで、腰痛なくなりました。何だったんだろう。",
+   src:"骨盤矯正ストレッチ"},
+  {tag:"首・頭痛", front:"薬がきかなかった頭痛が💡",
+   q:"オガトレ最高です！ここ3ヶ月くらいずっと頭痛に悩まされて、時には頭痛薬すら効かなかったのですが、この肩こり頭痛ストレス&肩甲骨ストレッチを始めて1週間で、頭痛が全くなくなりました！嬉しくて涙が出ます〜",
+   src:"頭痛・首ストレッチ"},
+  {tag:"自律神経", front:"諦めていた背中に✨",
+   q:"側弯症の者です。今まで背骨に関しては完全に諦めていたのですが、この運動をしてからはめちゃくちゃ背中、腰の調子が良くなりました✨　ありがとうございます(_ _)",
+   src:"自律神経調整ストレッチ"},
+  {tag:"腰", front:"産後の体に 味方ができた🤱",
+   q:"産後4ヶ月、オガトレさんの肩のストレッチや骨盤のストレッチも継続していましたが…もう元の身体に戻れないのか？と悩んでいました。（中略）今日寝起きスッと起きれて！！感動しました😭　産後悩んでいた殆どが解決したので驚いています！！",
+   src:"腰痛ストレッチ"},
+  {tag:"開脚", front:"1826日目のせんぱい🏆",
+   q:"1826日目！（1月16日）2021年の今日、ヨガマスターへの第一歩として始めたストレッチも、毎日続けてはや５年が経ちました！５年目は人生濃かったなあ…就活成就、15kgダイエット、好きな子に告白、資格色々取得、卒論製作…今年からは新社会人…ストレッチは永遠に続けるぞ！",
+   src:"開脚ストレッチ"},
+  {tag:"全身", front:"3週間で体温が変わった🌡️",
+   q:"3週間で平均体温が36.1→36.7℃に上がりました😳　長年低体温に悩まされていたのにビックリ。もう50歳過ぎですが、短期間でこんなに体調に変化が出るとは。",
+   src:"お風呂上がり20分ストレッチ"},
+  {tag:"骨盤", front:"いつも三日坊主だったのに📅",
+   q:"いつも三日坊主の自分が、このストレッチだけは1ヶ月続けられました。長年悩まされてきたお腹の張りが、気がついたらなくなっていました。",
+   src:"骨盤矯正ストレッチ"},
+];
+function renderVoices(){
+  var box=document.getElementById("voiceList");
+  box.innerHTML="";
+  LAB_VOICES.forEach(function(v){
+    var d=document.createElement("div");
+    d.className="vcard";
+    d.innerHTML='<div class="vin">'+
+      '<div class="vface vback"><span class="vtag">'+v.tag+'</span><p>'+v.q.replace(/</g,"&lt;")+'</p><div class="src">— せんぱいの声（'+v.src+'）</div></div>'+
+      '<div class="vface vfront"><span class="vtag">'+v.tag+'</span><b>'+v.front+'</b><span class="tap">タップでめくる</span></div>'+
+      '</div>';
+    d.onclick=function(){ d.classList.toggle("open"); };
+    box.appendChild(d);
+  });
+}
+
+// ---- 起動 ----
+applyLabTheme();
+initDays();
+renderVoices();
+try{ history.replaceState({id:"menu"},""); }catch(e){}
+// ?open=dcard|dcheck|dvoice で直接そのデモを開ける（共有リンク・動作検証用）
+var qm=location.search.match(/[?&]open=(dcard|dcheck|dvoice)/);
+if(qm) showLab(qm[1]);
+// ?autocard=1 はスクリーンショット検証用: 先頭の動画をえらんだ状態でカードを生成
+if(/[?&]autocard=1/.test(location.search)){
+  chooseFav(CATALOG[0]);
+  makeLabCard();
+}
+</script>
+</body>
+</html>
