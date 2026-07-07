@@ -12,7 +12,7 @@
 - 1万人スケールの留意点= **SCALE-NOTES.md**
 
 ## 全体構造
-- 単一 `index.html`（約1700行・バニラJS・ビルド無し・依存ゼロ）＋ `videos.js`（カタログ483本）＋ `sw.js`（kyono-v5・network-first）
+- `index.html`（バニラJS・ビルド無し・依存ゼロ）＋ `videos.js`（カタログ）＋ `app-search.js`（検索UI）＋ `sw.js`（network-first）
 - 公開: https://ogatore0710.github.io/kyou-no-ogatore/ （GitHub Pages・**Actionsデプロイ**）
 - 主要関数の行アンカー（2026-07-07時点の目安。編集で動くので必ずgrepで再確認）:
   - `store`(755) — localStorage薄ラッパ。prefix `kyono_`・書込み失敗はfalseを返す

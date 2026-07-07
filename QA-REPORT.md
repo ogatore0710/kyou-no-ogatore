@@ -10,7 +10,7 @@
 
 ## 静的QA
 - コマンド: `npm test`
-- 結果: 57 checks PASS
+- 結果: 62 checks PASS
 - 確認範囲:
   - HTML内script / `videos.js` / `sw.js` 構文
   - ES2020禁止構文
@@ -34,7 +34,7 @@
   - `search` へ遷移
   - `home` へ復帰
 - 検索:
-  - 初期件数: 479本
+  - 初期件数: 451本
   - `肩こり` 検索: 44本
 - かたさチェック:
   - 5問完走
@@ -68,7 +68,7 @@
 - display: `standalone`
 - start_url: `./`
 - service worker cache: `kyono-v6`
-- cache対象: 16件
+- cache対象: 17件
 - manifest icons + sw assets: 17件すべて200
 - ブラウザconsole error/warn: なし
 

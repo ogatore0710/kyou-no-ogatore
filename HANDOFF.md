@@ -3,17 +3,18 @@
 最終更新: 2026-07-07
 
 ## 現状
-- アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `sw.js` + `manifest.json`
+- アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `sw.js` + `manifest.json`
 - 公開はGitHub Pages。push後に `.github/workflows/pages.yml` が配信物を作る
-- 自動QAは `npm test` で実行。2026-07-07時点で57 checks PASS
+- 自動QAは `npm test` で実行。2026-07-07時点で62 checks PASS
 - 実ブラウザQA / PWA検収結果: [QA-REPORT.md](QA-REPORT.md)
 - β配布前チェックリスト: [BETA-CHECKLIST.md](BETA-CHECKLIST.md)
 - `index.html` 分割計画: [SPLIT-PLAN.md](SPLIT-PLAN.md)
 - 動画カタログ棚卸し: [CATALOG-AUDIT.md](CATALOG-AUDIT.md)
+- リクエストメール導線: [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md)
 - CodexはQA・検収・課題棚卸し、Claude Codeは継続的な画面/体験開発を担当する想定
 
 ## 壊れやすい箇所
-- `index.html` に主要ロジックが集中している。小さな置換でもタブ・記録・カード・検索に波及しやすい
+- `index.html` に主要ロジックがまだ集中している。検索・カタログ表示だけ `app-search.js` へ分割済み
 - 古いiOS対応のため `??` / `?.` は禁止。最終scriptの `oldBrowserNote` はES5のみ
 - `drawCard()` は日付から同じカードを再構成する設計。`Math.random()` や現在時刻依存を入れると過去カードの再現性が壊れる
 - `localStorage` は端末内だけ。import/exportは防御済みなので、prefix・件数・サイズ制限を弱めない
@@ -33,10 +34,10 @@
 
 ## 次の改善候補
 - 実ブラウザQAをリポジトリ内で自動化する。現状は [QA-REPORT.md](QA-REPORT.md) の手動/半自動検収
-- [SPLIT-PLAN.md](SPLIT-PLAN.md) に沿って、まず検索・カタログ表示から小さく分割する
+- [SPLIT-PLAN.md](SPLIT-PLAN.md) に沿って、次はかたさチェックを小さく分割する
 - PWA検収を強化する。GitHub Pages上でmanifest/icon/sw登録/オフライン fallback を確認する
-- β配布前に `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する
-- [CATALOG-AUDIT.md](CATALOG-AUDIT.md) の `その他` 42本を見直す
+- β配布前に [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md) をもとに `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する
+- [CATALOG-AUDIT.md](CATALOG-AUDIT.md) の除外62本を必要に応じて目視確認する
 
 ## カタログ更新
 - 通常更新: `npm run catalog:update`

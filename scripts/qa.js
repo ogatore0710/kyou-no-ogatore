@@ -193,6 +193,7 @@ function checkHtml(html) {
     .filter(Boolean)
     .map((m) => m[1]);
   assert("index.html: videos.js loaded", srcScripts.includes("videos.js"), srcScripts.join(", "));
+  assert("index.html: app-search.js loaded", srcScripts.includes("app-search.js"), srcScripts.join(", "));
   assert("index.html: boot marker", html.includes("window.__kyonoBoot=true"), "__kyonoBoot is set");
   assert("index.html: old browser note", html.includes('id="oldBrowserNote"'), "fallback node exists");
 
@@ -222,14 +223,24 @@ function checkHtml(html) {
   const missing = Array.from(assetRefs).filter((rel) => !exists(rel));
   assert("index.html: local asset refs exist", missing.length === 0, missing.join(", ") || `${assetRefs.size} assets`);
 
-  const tagMatch = main.match(/const TAGS=(\[[^\n]+?\]);/);
-  assert("index.html: TAGS list found", !!tagMatch, "search tag allowlist");
-  return tagMatch ? JSON.parse(tagMatch[1]) : [];
+  return srcScripts;
 }
 
-function checkOperationalWiring(html, main) {
+function checkSearchScript(code) {
+  parseJs("app-search.js", code);
+  let tags = [];
+  try {
+    tags = extractConstArray(code, "TAGS");
+    pass("app-search.js: TAGS parsed", `${tags.length} tags`);
+  } catch (err) {
+    fail("app-search.js: TAGS parsed", err.message);
+  }
+  return tags;
+}
+
+function checkOperationalWiring(html, scripts) {
   const ids = extractIds(html);
-  const definedFunctions = extractFunctionNames(main);
+  const definedFunctions = extractFunctionNames(scripts);
   const handlers = extractHandlers(html);
   const missingFns = [];
   for (const handler of handlers) {
@@ -241,7 +252,7 @@ function checkOperationalWiring(html, main) {
 
   let sections = [];
   try {
-    sections = extractConstArray(main, "SECTIONS");
+    sections = extractConstArray(scripts, "SECTIONS");
     pass("operation: SECTIONS parsed", sections.join(", "));
   } catch (err) {
     fail("operation: SECTIONS parsed", err.message);
@@ -372,17 +383,19 @@ function checkPythonScripts() {
 }
 
 function main() {
-  for (const rel of ["index.html", "videos.js", "sw.js", "manifest.json"]) {
+  for (const rel of ["index.html", "videos.js", "app-search.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
   }
 
-  checkNoForbiddenModernSyntax(["index.html", "videos.js", "sw.js"]);
+  checkNoForbiddenModernSyntax(["index.html", "videos.js", "app-search.js", "sw.js"]);
 
   const html = read("index.html");
   const inline = extractInlineScripts(html);
   const mainScript = inline[inline.length - 2] || "";
-  const allowedTags = checkHtml(html);
-  checkOperationalWiring(html, mainScript);
+  checkHtml(html);
+  const searchScript = read("app-search.js");
+  const allowedTags = checkSearchScript(searchScript);
+  checkOperationalWiring(html, `${mainScript}\n${searchScript}`);
   checkCatalog(read("videos.js"), allowedTags);
   checkSw(read("sw.js"));
   checkManifest();

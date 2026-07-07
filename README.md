@@ -33,7 +33,7 @@
 ### タブ
 - 📅 **きろく**: 通算/連続・節目バー・カレンダー（×はつけない設計）・とどくメーター・にっき・つづける設定
 - ▶ **リスト**: 実在の公開再生リスト17本（連続再生/姿勢の悩み/シリーズ）
-- 🔍 **さがす**: 全483本（企画もの30本＋非公開化済み37本を除く8年分）・タグ24種（部位/シーン/ロケ地）・年度フィルタ・キーワード検索・リクエスト送信（mailto）
+- 🔍 **さがす**: 全451本（企画もの・告知・商品/取材寄り・非公開化済み動画を除く8年分）・タグ26種（部位/シーン/目的/ロケ地）・年度フィルタ・キーワード検索・リクエスト送信（mailto）
 
 ## 根拠データ
 - 視聴者コメント2,400件（人気動画16本×150件、innertube収集: `scripts/collect_comments.py` 相当はscratchpad）を4テーマで分析
@@ -41,10 +41,10 @@
 - 習慣化研究（Duolingo streak/emergency reserves/Lally 2010/fresh start effect/実装意図メタ分析）
 
 ## 技術
-- 単一 `index.html`＋`videos.js`（ビルド不要・依存ゼロ・バニラJS）
+- `index.html`＋`videos.js`＋`app-search.js`（ビルド不要・依存ゼロ・バニラJS）
 - 記録は全部localStorage（端末内のみ・個人情報ゼロ・解析なし）
 - カタログ再生成: `npm run catalog:update`（非公開動画チェック → ogatore.db から `videos.js` 生成 → QA）。ネット確認を飛ばすローカル検証は `npm run catalog:update:offline`
-- 開発引き継ぎ・次の改善候補: [HANDOFF.md](HANDOFF.md) / [SPLIT-PLAN.md](SPLIT-PLAN.md) / [BETA-CHECKLIST.md](BETA-CHECKLIST.md) / [CATALOG-AUDIT.md](CATALOG-AUDIT.md) / [QA-REPORT.md](QA-REPORT.md)
+- 開発引き継ぎ・次の改善候補: [HANDOFF.md](HANDOFF.md) / [SPLIT-PLAN.md](SPLIT-PLAN.md) / [BETA-CHECKLIST.md](BETA-CHECKLIST.md) / [CATALOG-AUDIT.md](CATALOG-AUDIT.md) / [QA-REPORT.md](QA-REPORT.md) / [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md)
 
 ## QA
 - 自動チェック: `npm test` または `node scripts/qa.js`
