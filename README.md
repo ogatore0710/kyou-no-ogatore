@@ -45,6 +45,11 @@
 - 記録は全部localStorage（端末内のみ・個人情報ゼロ・解析なし）
 - カタログ再生成: `python3 scripts/check_public.py`（非公開動画の検出・約2分）→ `python3 scripts/build_catalog.py`（ogatore.db から。月次DB更新後にセットで回す）
 
+## QA
+- 自動チェック: `npm test` または `node scripts/qa.js`
+- チェック内容: HTML内JS/videos.js/sw.jsの構文、ES2020禁止構文（`??`/`?.`）、旧OSフォールバックのES5維持、記録カードの再現性、localStorage取りこみ防御、動画ID・タグ・非公開動画除外、manifest/swの資産存在確認
+- 画面や記録ロジックを触ったら、commit前に必ず実行する
+
 ## 配備
 - プロトタイプ確認: `cp index.html videos.js ~/srv/navi/` → Tailscale内の確認用URL（本人のみ）
 - 公開時の選択肢: GitHub Pages（公開リポジトリ）／ ogatore.net にファイルを置くだけ

@@ -1,0 +1,8 @@
+{
+  "name": "kyou-no-ogatore",
+  "private": true,
+  "scripts": {
+    "qa": "node scripts/qa.js",
+    "test": "node scripts/qa.js"
+  }
+}

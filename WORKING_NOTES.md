@@ -47,7 +47,7 @@
 
 ## 編集の規律（事故防止・PRINCIPLES 42条の適用形）
 - 置換パッチは python heredoc + **exact-string assert**（一致しなければ書き込み前にabort）。assertが落ちたら grep で実物を確認してから再実行
-- 編集後は必ず **`node --check`** で全`<script>`ブロックを連結検証してからcommit
+- 編集後は必ず **`npm test`**（= `node scripts/qa.js`）を実行してからcommit。全`<script>`ブロック構文・ES2020禁止構文・旧OSフォールバック・カード再現性・動画カタログ/PWA資産までまとめて見る
 - 空文字replace・アンカーずれが過去最大の事故源。「実物を見てから置換」を徹底
 
 ## デプロイとプレビュー
