@@ -189,6 +189,16 @@
   .video .vs{font-size:14px;color:var(--sub);margin-top:2px}
   .badge{display:inline-block;background:var(--coral-soft);color:#B4462F;font-size:12px;
     font-weight:800;border-radius:8px;padding:1px 8px;margin-bottom:4px}
+  /* じまんカード（すきな1本えらび） */
+  #brag .lbl{font-size:13px;font-weight:900;color:var(--sub);margin:14px 0 6px}
+  #brag input{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px 12px;
+    font-size:16px;font-weight:800;font-family:inherit;background:var(--card);color:var(--ink)}
+  .pick{display:flex;gap:10px;align-items:center;border:1.5px solid var(--line);border-radius:14px;
+    padding:8px;margin-top:8px;background:var(--bg);width:100%;cursor:pointer;font-family:inherit;text-align:left;color:var(--ink)}
+  .pick img{width:86px;border-radius:10px;flex-shrink:0}
+  .pick .pt2{font-size:13px;font-weight:800;line-height:1.5;min-width:0}
+  .pick.on{border-color:var(--teal);background:var(--teal-soft)}
+  #bragList .pick:active{opacity:.7}
   .rotate-note{font-size:13px;color:var(--sub);text-align:center;margin-top:4px}
   /* きょうの1本 */
   .seg{display:flex;background:var(--line);border-radius:16px;padding:4px;margin-bottom:12px}
@@ -364,6 +374,8 @@
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
+    <button class="btn btn-ghost" style="margin-top:8px;font-size:16px" onclick="openBrag()">
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#177065" stroke="none"/></svg>じまんカードをつくる</button>
     <div class="hint">カード画像を保存かシェアでのこしてね📤</div>
   </div>
 
@@ -374,6 +386,7 @@
     <div id="thanksNote" style="font-size:14px;margin-top:8px;color:var(--sub);min-height:16px"></div>
     <div style="font-size:14px;color:var(--sub);margin-top:2px"><span id="thanksTotal"></span></div>
   </div>
+
 </section>
 
 <!-- ===== 診断 ===== -->
@@ -492,6 +505,28 @@
     <button class="btn btn-line" style="font-size:15px;margin-top:8px" onclick="importData()">📥 記録を取りこむ</button>
     <div class="hint" style="text-align:left">機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「取りこむ」に貼り付け</div>
   </div>
+</section>
+
+<!-- ===== じまんカード ===== -->
+<section id="brag" class="hidden">
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#E56A9A" stroke="none"/></svg>じまんカードをつくる</div>
+    <div style="font-size:14px;color:var(--sub);line-height:1.8">つづけてる日数と すきな1本を 1枚のカードに✨<br>できたカードは保存やSNS投稿ができます</div>
+
+    <div class="lbl">つづいている日数</div>
+    <input type="number" id="bragDays" min="1" max="9999" value="1" inputmode="numeric">
+    <div id="bragDaysNote" style="font-size:12px;color:var(--sub);margin-top:4px"></div>
+
+    <div class="lbl">すきな1本をさがす🎬</div>
+    <input type="search" id="bragSearch" placeholder="例: 肩甲骨 / 朝 / 開脚" oninput="bragFilter()">
+    <div id="bragList"></div>
+    <div class="lbl">えらんだ1本</div>
+    <div id="bragChosen" style="font-size:14px;color:var(--sub)">まだえらんでいません 上の検索からどうぞ</div>
+
+    <button class="btn btn-primary" style="margin-top:16px" onclick="makeBragCard()">カードをつくる✨</button>
+    <div class="hint">えらんだ1本は カードにサムネイル画像で入ります</div>
+  </div>
+  <button class="btn btn-line" onclick="navTo('home')">← ホームにもどる</button>
 </section>
 
 <!-- ===== 再生リスト ===== -->
@@ -771,8 +806,8 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-const SECTIONS=["home","quiz","result","history","playlists","search","guide"];
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide"};
+const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag"];
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"home"};
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
   for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
@@ -1560,6 +1595,182 @@ async function shareCard(){
   downloadCard(file);
 }
 function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); }
+
+// ================= じまんカード（つづけてる日数＋すきな1本を1枚に） =================
+let bragPick=null;
+function openBrag(){
+  const st=getStreakData();
+  const note=document.getElementById("bragDaysNote");
+  const inp=document.getElementById("bragDays");
+  if(st.count>0){ inp.value=st.count; note.textContent="いまの記録から入れておきました（数字はすきにかえてOK）"; }
+  else { inp.value=1; note.textContent="まだ記録がなくてもだいじょうぶ すきな数字でためせます"; }
+  navTo("brag");
+}
+function bragFilter(){
+  const q=document.getElementById("bragSearch").value.trim();
+  const box=document.getElementById("bragList");
+  box.innerHTML="";
+  if(!q) return;
+  const hits=[];
+  for(let i=0;i<CATALOG.length&&hits.length<6;i++){
+    const v=CATALOG[i];
+    const hay=v.t+" "+(v.tags?v.tags.join(" "):"");
+    if(hay.indexOf(q)>=0) hits.push(v);
+  }
+  if(!hits.length){ box.innerHTML='<div style="font-size:13px;color:var(--sub);margin-top:6px">みつかりませんでした 別のことばでさがしてみて</div>'; return; }
+  for(const v of hits){
+    const b=document.createElement("button");
+    b.className="pick";
+    b.innerHTML='<img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">'+
+      '<span class="pt2">'+v.t.replace(/</g,"&lt;")+'</span>';
+    b.onclick=()=>chooseBrag(v);
+    box.appendChild(b);
+  }
+}
+function chooseBrag(v){
+  bragPick={id:v.id,t:v.t};
+  document.getElementById("bragChosen").innerHTML=
+    '<div class="pick on" style="cursor:default"><img src="https://i.ytimg.com/vi/'+v.id+'/mqdefault.jpg" alt="" onerror="this.style.visibility=\'hidden\'">'+
+    '<span class="pt2">'+v.t.replace(/</g,"&lt;")+'</span></div>';
+  document.getElementById("bragList").innerHTML="";
+  document.getElementById("bragSearch").value="";
+}
+function loadBragThumb(cb){
+  if(!bragPick){ cb(null); return; }
+  let settled=false;
+  const fin=im=>{ if(!settled){ settled=true; cb(im); } };
+  const im=new Image();
+  im.crossOrigin="anonymous"; // CORSなしで描くとcanvasが汚染されて保存できなくなる
+  im.onload=()=>fin(im); im.onerror=()=>fin(null);
+  setTimeout(()=>fin(null),3000); // オフラインや遅い回線ではサムネイルなしで先へ進む
+  im.src="https://i.ytimg.com/vi/"+bragPick.id+"/mqdefault.jpg";
+}
+function makeBragCard(){
+  cardDate=null;
+  const tEl=document.getElementById("cardTitle");
+  if(tEl) tEl.textContent="じまんカード";
+  const mk=document.getElementById("cardMaking");
+  if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
+  document.getElementById("cardModal").classList.remove("hidden");
+  ensureCardFonts().then(()=>loadChara(()=>loadBragThumb(th=>{
+    try{ drawBragCard(th); if(mk) mk.classList.add("hidden"); }
+    catch(e){ if(mk) mk.textContent="うまく作れませんでした もう一度ためしてみて"; }
+  })));
+}
+function wrapLines(ctx,text,maxW,maxLines){
+  const lines=[]; let cur="";
+  for(let i=0;i<text.length;i++){
+    const test=cur+text[i];
+    if(ctx.measureText(test).width>maxW&&cur){
+      lines.push(cur); cur=text[i];
+      if(lines.length===maxLines) break;
+    }else cur=test;
+  }
+  if(lines.length<maxLines&&cur) lines.push(cur);
+  else if(lines.length===maxLines&&cur) lines[maxLines-1]=lines[maxLines-1].slice(0,-1)+"…";
+  return lines;
+}
+function drawBragCard(thumb){
+  const days=Math.max(1,Math.min(9999,Number(document.getElementById("bragDays").value)||1));
+  const ds=todayStr();
+  const dateIdx=Math.floor((new Date(ds).getTime()+9*3600*1000)/86400000);
+  const th=CARD_THEMES[dateIdx%CARD_THEMES.length];
+  const c=document.getElementById("cardCanvas"), ctx=c.getContext("2d");
+  const F='"M PLUS 1p","Hiragino Kaku Gothic ProN",sans-serif';
+  // 背景・飾り・白カード（記録カードと同じ舞台）
+  const g=ctx.createLinearGradient(0,0,1000,1000);
+  g.addColorStop(0,th.bg[0]); g.addColorStop(1,th.bg[1]);
+  ctx.fillStyle=g; ctx.fillRect(0,0,1000,1000);
+  const deco=[["h",95,150,34],["s",885,120,26],["k",120,860,30],["h",905,850,30],
+    ["c",60,480,11],["k",940,430,24],["s",180,70,18],["c",500,60,9],
+    ["h",820,300,22],["c",935,650,10],["s",70,690,16],["c",250,935,9],["k",760,945,22]];
+  deco.forEach((d,i)=>{
+    const col=th.deco[i%th.deco.length];
+    if(d[0]==="h") drawHeart(ctx,d[1]-d[3]/2,d[2]-d[3]/2,d[3],col);
+    else if(d[0]==="s") drawStar(ctx,d[1],d[2],d[3]*0.6,col);
+    else if(d[0]==="k") drawSparkle(ctx,d[1],d[2],d[3]*0.7,col);
+    else {ctx.fillStyle=col;ctx.beginPath();ctx.arc(d[1],d[2],d[3],0,7);ctx.fill();}
+  });
+  ctx.fillStyle="rgba(255,255,255,.94)"; roundRect(ctx,85,175,830,650,52); ctx.fill();
+  ctx.save();ctx.strokeStyle=th.main;ctx.globalAlpha=.45;ctx.lineWidth=4;ctx.setLineDash([2,16]);ctx.lineCap="round";
+  roundRect(ctx,110,200,780,600,40); ctx.stroke();ctx.restore();
+  // リボン風タイトルピル
+  ctx.fillStyle=th.main; roundRect(ctx,300,145,400,64,32); ctx.fill();
+  ctx.textAlign="center"; ctx.fillStyle="#FFFFFF"; ctx.font="900 34px "+F;
+  ctx.fillText("#きょうのオガトレ",500,190);
+  // 日付バッジ（右上・日付の書体はM PLUS 1p）
+  const dtxt=`${Number(ds.slice(0,4))}/${Number(ds.slice(5,7))}/${Number(ds.slice(8,10))}`;
+  ctx.font='800 26px "M PLUS 1p","Hiragino Kaku Gothic ProN",sans-serif';
+  const dw=ctx.measureText(dtxt).width;
+  ctx.save(); ctx.globalAlpha=.85; ctx.fillStyle=th.main;
+  roundRect(ctx,868-dw-44,212,dw+44,52,26); ctx.fill(); ctx.restore();
+  ctx.fillStyle="#FFFFFF"; ctx.fillText(dtxt,868-(dw+44)/2,247);
+  // つづけてる日数（大きな数字はバナナ数字フォント）
+  const numStr=String(days);
+  const numSize = numStr.length<=2 ? 200 : (numStr.length===3 ? 170 : 140);
+  ctx.font=numSize+'px "BananaNum","M PLUS 1p",sans-serif';
+  const nw=ctx.measureText(numStr).width;
+  ctx.font="900 52px "+F;
+  const sw=ctx.measureText("日つづいてる！").width;
+  const totalW=nw+18+sw;
+  ctx.textAlign="left";
+  ctx.font=numSize+'px "BananaNum","M PLUS 1p",sans-serif';
+  ctx.fillStyle=th.main;
+  ctx.fillText(numStr,500-totalW/2,438);
+  ctx.font="900 52px "+F;
+  ctx.fillStyle="#3A3A35";
+  ctx.fillText("日つづいてる！",500-totalW/2+nw+18,428);
+  ctx.textAlign="center";
+  // 区切り線
+  ctx.save();ctx.strokeStyle=th.main;ctx.globalAlpha=.3;ctx.lineWidth=3;ctx.setLineDash([4,12]);
+  ctx.beginPath();ctx.moveTo(170,488);ctx.lineTo(830,488);ctx.stroke();ctx.restore();
+  // すきな1本
+  ctx.fillStyle=th.main; ctx.font="900 30px "+F;
+  ctx.fillText("🎬 わたしのすきな1本",500,545);
+  if(thumb){
+    // サムネイル画像（角丸で切り抜き・テーマ色のふち）
+    const tw=416, thh=234, tx=500-tw/2, ty=562;
+    ctx.save(); roundRect(ctx,tx,ty,tw,thh,18); ctx.clip();
+    ctx.drawImage(thumb,tx,ty,tw,thh); ctx.restore();
+    ctx.save(); ctx.strokeStyle=th.main; ctx.globalAlpha=.5; ctx.lineWidth=3;
+    roundRect(ctx,tx,ty,tw,thh,18); ctx.stroke(); ctx.restore();
+  } else {
+    // オフラインなどでサムネイルが出せないときは動画の題名で（画像は出さない）
+    ctx.fillStyle="#3A3A35"; ctx.font="800 34px "+F;
+    const favT = bragPick ? bragPick.t : "まだえらんでません（これから見つけます！）";
+    const lines=wrapLines(ctx,favT,540,2);
+    lines.forEach((ln,i)=>ctx.fillText(ln,500,645+i*52));
+  }
+  // キャラ（日替わりローテ・右下の専用ゾーン）
+  if(charaImg){
+    const w=255, h=w*charaImg.height/charaImg.width;
+    ctx.drawImage(charaImg,965-w,985-h,w,h);
+  }
+  // フッター＝キャラの吹き出し
+  ctx.textAlign="left";
+  const pool=[
+    "つづけてるじぶん、どんどんじまんしてね✨",
+    "この1本とつづけた日々が、もうじまんです。",
+    "つづけてるあなたが、いちばんすてきです。",
+  ];
+  let fh=0; for(const ch of ds){ fh=(fh*31+ch.charCodeAt(0))>>>0; }
+  const fmsg=pool[fh%pool.length];
+  let ffs=27; ctx.font="800 "+ffs+"px "+F;
+  while(ctx.measureText(fmsg).width>560 && ffs>21){ ffs-=1; ctx.font="800 "+ffs+"px "+F; }
+  const bw=ctx.measureText(fmsg).width+56;
+  const bx1=Math.max(70,690-bw);
+  ctx.save();
+  ctx.fillStyle="rgba(255,255,255,.95)";
+  roundRect(ctx,bx1,900,bw,74,37); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(bx1+bw-6,918); ctx.lineTo(bx1+bw+26,930); ctx.lineTo(bx1+bw-6,950); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle=th.main;
+  ctx.fillText(fmsg,bx1+28,900+37+Math.round(ffs*0.36));
+  ctx.textAlign="center";
+  document.getElementById("cardImg").src=c.toDataURL("image/png");
+  c.toBlob(blob=>{ lastBlob=blob; },"image/png");
+  lastShareText=`#きょうのオガトレ ${days}日つづいてる！`;
+}
 
 // ---- ホーム描画 ----
 function renderHome(){
