@@ -1136,7 +1136,9 @@ function greetText(){
 }
 function renderAnchor(){
   const a=store.get("anchor",null);
-  document.getElementById("anchorCard").classList.toggle("hidden", !!a);
+  // 初回はかたさチェックに集中してもらい、チェック完了（または記録1日目）以降に出す（2026-07-08本人承認）
+  const ready = !!(state.type&&TYPES[state.type.key]) || getStreakData().total>0;
+  document.getElementById("anchorCard").classList.toggle("hidden", !!a || !ready);
   document.getElementById("anchorGreet").textContent = a?greetText():"";
 }
 function setAnchor(k){ store.set("anchor",k); renderAnchor(); }
