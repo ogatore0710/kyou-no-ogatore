@@ -109,6 +109,21 @@
   .vback .src{font-size:12px;color:var(--sub);font-weight:800;margin-top:8px;text-align:right}
   .vtag{display:inline-block;background:var(--teal-soft);color:var(--tealink);border-radius:8px;
     padding:0 8px;font-size:11px;font-weight:900}
+  /* 2週間プログラム */
+  .dayrow{border:1.5px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:var(--card)}
+  .dayrow.donerow{opacity:.55}
+  .dayrow.next{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+  .daypill{display:inline-block;background:var(--yellow);color:#3A3A35;border-radius:9px;padding:0 9px;font-size:12px;font-weight:900}
+  .slotchip{display:inline-block;background:var(--pink-soft);color:var(--pink);border-radius:8px;padding:0 8px;font-size:11px;font-weight:900;margin-left:6px}
+  .slotchip.r{background:var(--teal-soft);color:var(--tealink)}
+  .nextchip{display:inline-block;background:var(--teal);color:#fff;border-radius:8px;padding:0 8px;font-size:11px;font-weight:900;margin-left:6px}
+  .whyline{font-size:12px;color:var(--sub);font-weight:800;margin-top:6px;line-height:1.7}
+  .dayacts{display:flex;gap:8px;margin-top:8px}
+  .dayacts button{flex:1;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:8px;
+    font-size:13px;font-weight:900;font-family:inherit;color:var(--sub2);cursor:pointer}
+  .dayacts button:active{opacity:.7}
+  .dayacts button.ok{background:var(--teal);border-color:var(--teal);color:#fff}
+  body.dark .daypill{color:#211E19}
   /* ダークモード（本体と同じトーン） */
   body.dark{--bg:#211E19;--card:#2C2822;--ink:#F2EDE1;--sub:#B9B2A0;--line:#3D382F;
     --yellow-soft:#3A3423;--teal-soft:#22403B;--pink-soft:#3A2730;--coral-soft:#3A2A24;
@@ -147,6 +162,10 @@
   <button class="tile" onclick="navLab('dvoice')">
     <span class="em">💌</span>
     <div><b>せんぱいの声ギャラリー</b><span>まえを歩くせんぱいたちの ほんとうの声を カードでめくれます🌱</span></div>
+  </button>
+  <button class="tile" onclick="openPlanEntry()">
+    <span class="em">📅</span>
+    <div><b>わたしの2週間プログラム</b><span>チェックの結果から あなた専用の14日ぶんを この端末の中だけでつくります✨</span></div>
   </button>
 
   <a class="btn btn-line" href="index.html" style="margin-top:8px">アプリ本体にもどる</a>
@@ -191,7 +210,7 @@
 
   <div id="ckIntro" class="card">
     <div class="sec-head">📋 かたさチェック７問版</div>
-    <div style="font-size:14px;line-height:1.9">いつもの前屈・あぐら・肩まわり・足首に<br><b>首・ひねり・バランス</b>の3問をプラス！<br>いちばん硬いところで「きょうの1本」の出し分けが変わります<br><span style="color:var(--sub);font-size:13px">タップするだけ 約６０秒✅ 無理はしないでね</span></div>
+    <div style="font-size:14px;line-height:1.9">いつもの前屈・あぐら・肩まわり・足首に<br><b>首・ひねり・バランス</b>の3問をプラス！<br>さいごに<b>くらしの質問3つ</b>にこたえると<br>あなた専用の<b>2週間プログラム</b>までつくれます📅<br><span style="color:var(--sub);font-size:13px">タップするだけ 約９０秒✅ 無理はしないでね</span></div>
     <button class="btn btn-primary" style="margin-top:14px" onclick="startLabQuiz()">はじめる</button>
   </div>
 
@@ -212,8 +231,24 @@
     <div class="lbl">きょうの1本はこれ！</div>
     <div id="lrVideo"></div>
     <div class="cmp" id="lrCompare"></div>
-    <button class="btn btn-ghost" style="margin-top:14px" onclick="startLabQuiz()">もういちどチェックする</button>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="makePlanFromResult()">この結果で2週間プログラムをつくる📅</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="startLabQuiz()">もういちどチェックする</button>
   </div>
+
+  <button class="btn btn-line" onclick="navLab('menu')">← 実験メニューにもどる</button>
+</section>
+
+<!-- ================= デモB+: わたしの2週間プログラム ================= -->
+<section id="dplan" class="hidden">
+  <div class="labbn"><span class="labtag">LAB</span>これは実験室のデモです🧪 プログラムは実験室専用の置き場（kyonolab_）にだけ保存し 本番の記録とは共有しません</div>
+
+  <div id="planEmpty" class="card hidden">
+    <div class="sec-head">📅 わたしの2週間プログラム</div>
+    <div style="font-size:14px;line-height:1.9">まだプログラムがありません<br>かたさチェックにこたえると あなた専用の14日ぶんができます✨</div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="navLab('dcheck')">かたさチェックへ</button>
+  </div>
+
+  <div id="planBody"></div>
 
   <button class="btn btn-line" onclick="navLab('menu')">← 実験メニューにもどる</button>
 </section>
@@ -242,7 +277,7 @@
 // ================================================================
 
 // ---- 画面切り替え ----
-var LAB_SECTIONS=["menu","dcard","dcheck","dvoice"];
+var LAB_SECTIONS=["menu","dcard","dcheck","dvoice","dplan"];
 function showLab(id){
   for(var i=0;i<LAB_SECTIONS.length;i++){
     var s=LAB_SECTIONS[i];
@@ -535,7 +570,25 @@ var LABQ=[
     ["15〜30秒くらい","おしい！あと少しで安定ゾーン",1],
     ["5〜15秒でグラッ","足首まわりの硬さが影響しているかも",2],
     ["5秒もたない","まず足首をゆるめるのが近道",3]]},
+  // ---- ここからくらしの質問（2週間プログラムの材料） ----
+  {k:"pain", title:"いま 痛みはある？", note:"いちばん近いものをどうぞ【くらし】",
+   opts:[
+    ["きにならない","こりも痛みもとくにない","きにならない"],
+    ["こる・はる くらい","うごきの中の違和感・重さ","こる・はる"],
+    ["うごかすと痛いところがある","プログラムはいちばん軽い内容でつくります","うごかすといたい"]]},
+  {k:"time", title:"1日にかけられる時間は？", note:"正直がいちばん続きます【くらし】",
+   opts:[
+    ["5分くらい","短い1本を中心にえらびます","5分くらい"],
+    ["10分くらい","定番の1本がだいたいこのサイズ","10分くらい"],
+    ["じっくりでもOK","長めの日もまぜられます","じっくりOK"]]},
+  {k:"when", title:"いつやることが多そう？", note:"リセットの日の1本をあわせます【くらし】",
+   opts:[
+    ["朝おきてそのまま","朝専用の1本をまぜます","あさ"],
+    ["夜・寝るまえ","おやすみ前の1本をまぜます","よる"],
+    ["おふろ上がり","湯上がり専用の1本をまぜます","おふろあがり"],
+    ["きめてない・そのつど","気分にあう1本をまぜます","きめてない"]]},
 ];
+var LAB_CTX_KEYS={pain:1,time:1,when:1};
 // タイプ（前半4つ＋全身・柔らかいは本番と同名／後半3つは実験室の新タイプ）
 var LABT={
   momo:  {emoji:"🪵", name:"立派な一枚板", area:"もも裏",
@@ -566,9 +619,9 @@ var LABT={
     copy:"おっと けっこう柔らかい！ここから先は その柔らかさを守るステージです。",
     vid:{id:"2EfFlQev4rg", t:"朝専用・極上10分ストレッチ", s:"疲れないカラダを作る定番"}},
 };
-var lqState={qi:0,scores:{}};
+var lqState={qi:0,scores:{},ctx:{}};
 function startLabQuiz(){
-  lqState={qi:0,scores:{momo:0,koka:0,kenko:0,ashi:0,kubi:0,hineri:0,balance:0}};
+  lqState={qi:0,scores:{momo:0,koka:0,kenko:0,ashi:0,kubi:0,hineri:0,balance:0},ctx:{}};
   document.getElementById("ckIntro").classList.add("hidden");
   document.getElementById("ckResult").classList.add("hidden");
   document.getElementById("ckQuiz").classList.remove("hidden");
@@ -577,7 +630,8 @@ function startLabQuiz(){
 }
 function renderLabQ(){
   var q=LABQ[lqState.qi];
-  document.getElementById("lqNum").textContent="Q"+(lqState.qi+1)+" / "+LABQ.length+(lqState.qi>=4?"（実験室の追加問題）":"");
+  var tag = lqState.qi>=7 ? "（くらしの質問）" : (lqState.qi>=4 ? "（実験室の追加問題）" : "");
+  document.getElementById("lqNum").textContent="Q"+(lqState.qi+1)+" / "+LABQ.length+tag;
   document.getElementById("lqTitle").textContent=q.title;
   document.getElementById("lqNote").textContent=q.note;
   var box=document.getElementById("lqOpts"); box.innerHTML="";
@@ -594,7 +648,8 @@ function renderLabQ(){
 function answerLabQ(k,val){
   var btns=document.querySelectorAll("#lqOpts .opt");
   for(var i=0;i<btns.length;i++) btns[i].disabled=true;
-  lqState.scores[k]=val;
+  if(LAB_CTX_KEYS[k]) lqState.ctx[k]=val;
+  else lqState.scores[k]=val;
   lqState.qi++;
   if(lqState.qi>=LABQ.length){ finishLabQuiz(); return; }
   renderLabQ();
@@ -650,6 +705,184 @@ function finishLabQuiz(){
     cmp.innerHTML="🧪 いつもの4問版でも同じ「"+LABT[t4].name+"」でした<br>追加3問の結果しだいで ここのおすすめが変わるのがこのデモです";
   }
   window.scrollTo(0,0);
+}
+
+// ================================================================
+// パーソナル処方エンジン（診断×くらし→2週間プログラム）
+// ルールは lab/prescription-rules.json に外部化——本人が読んで直せる
+// 生成も保存も端末内で完結（保存先は実験室専用の kyonolab_ だけ・本番kyono_には触れない）
+// ================================================================
+var labStore={
+  get:function(k,d){ try{var v=JSON.parse(localStorage.getItem("kyonolab_"+k)); return v==null?d:v}catch(e){return d} },
+  set:function(k,v){ try{ localStorage.setItem("kyonolab_"+k, JSON.stringify(v)); return true }catch(e){ return false } },
+  del:function(k){ try{ localStorage.removeItem("kyonolab_"+k) }catch(e){} }
+};
+var RULES=null;
+function loadRules(cb){
+  if(RULES){ cb(RULES); return; }
+  fetch("lab/prescription-rules.json").then(function(r){ return r.json() }).then(function(j){ RULES=j; cb(j); })
+    .catch(function(){ cb(null); });
+}
+function vinfo(id){
+  for(var i=0;i<CATALOG.length;i++){ if(CATALOG[i].id===id) return CATALOG[i]; }
+  return null;
+}
+function defaultCtx(c){
+  return { pain: c&&c.pain?c.pain:"きにならない",
+           time: c&&c.time?c.time:"10分くらい",
+           when: c&&c.when?c.when:"きめてない" };
+}
+function secondWorst(s, exclude){
+  var keys=["momo","koka","kenko","ashi","kubi","hineri","balance"];
+  var best=null;
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i];
+    if(k===exclude) continue;
+    if(s[k]>=2 && (best===null || s[k]>s[best])) best=k;
+  }
+  return best;
+}
+function pickVideo(list, cap, counters, key, prevId){
+  var cands=[], i;
+  for(i=0;i<list.length;i++){ if(list[i]["分"]<=cap) cands.push(list[i]); }
+  if(!cands.length) cands=list.slice(); // ぜんぶ上限超えなら全体から順ぐり（同じ1本の連発を避ける）
+  var n=counters[key]||0;
+  var v=cands[n%cands.length];
+  if(prevId && v.id===prevId && cands.length>1) v=cands[(n+1)%cands.length];
+  counters[key]=n+1;
+  return v;
+}
+function buildPlan(scores, ctxIn, R){
+  var ctx=defaultCtx(ctxIn);
+  var t7=decide7(scores);
+  var mainArea=t7; // robot(全身)・yawara(メンテナンス)も部位テーブルにある
+  var subArea=(t7==="yawara")?null:secondWorst(scores, t7==="robot"?null:t7);
+  var worst=0, keys=["momo","koka","kenko","ashi","kubi","hineri","balance"];
+  for(var i=0;i<keys.length;i++){ if(scores[keys[i]]>worst) worst=scores[keys[i]]; }
+  // 開始レベル: ルール表「開始レベル」と同じ順で評価（辛い人ほど軽く）
+  var LV=R["レベル"];
+  var start, raise;
+  if(ctx.pain==="うごかすといたい"){ start=0; raise=false; }
+  else if(worst>=3){ start=0; raise=true; }
+  else if(worst===2){ start=1; raise=true; }
+  else { start=1; raise=false; }
+  var raiseDay=R["開始レベル"]["2週目の開始日"]||8;
+  var cap=R["時間のえらび方"][ctx.time]||13;
+  var tpl=R["週テンプレ"]["1週目"].concat(R["週テンプレ"]["2週目"]);
+  var counters={}, days=[], prevId=null;
+  for(var d=1; d<=14; d++){
+    var slot=tpl[d-1];
+    if(slot==="S"&&!subArea) slot="M";
+    var lvIdx=start;
+    if(raise&&d>=raiseDay) lvIdx=Math.min(start+1, LV.length-1);
+    var lvName=LV[lvIdx];
+    var pick, area=null, reason;
+    if(slot==="R"){
+      pick=pickVideo(R["リセット枠"][ctx.when], cap, counters, "R", prevId);
+      reason=R["理由テンプレ"]["R"];
+    }else{
+      area=(slot==="M")?mainArea:subArea;
+      var at=R["部位"][area];
+      pick=pickVideo(at[lvName], cap, counters, area+":"+lvName, prevId);
+      reason=(slot==="M")?R["理由テンプレ"]["M"][lvName]:R["理由テンプレ"]["S"];
+      reason=reason.replace("{部位}", at["名前"]);
+    }
+    days.push({d:d, slot:slot, area:area, level:(slot==="R"?null:lvName), id:pick.id, min:pick["分"], memo:pick["メモ"], reason:reason});
+    prevId=pick.id;
+  }
+  var made=new Date(Date.now()+9*3600*1000).toISOString().slice(0,10);
+  return {v:1, made:made, type:t7, scores:scores, ctx:ctx, days:days, done:{},
+    escape:R["にげみち"], painNote:(ctx.pain==="うごかすといたい"?R["痛みへのそえがき"]:null)};
+}
+var plan=null;
+function makePlanFromResult(){
+  loadRules(function(R){
+    if(!R){ alert("ルール表が読みこめませんでした\nfile://ではなくローカルサーバーごしに開いてためしてね"); return; }
+    plan=buildPlan(lqState.scores, lqState.ctx, R);
+    labStore.set("plan", plan);
+    renderPlan();
+    navLab("dplan");
+  });
+}
+function openPlanEntry(){
+  plan=labStore.get("plan",null);
+  if(plan&&plan.days){ renderPlan(); navLab("dplan"); }
+  else{
+    document.getElementById("planEmpty").classList.remove("hidden");
+    document.getElementById("planBody").innerHTML="";
+    navLab("dplan");
+  }
+}
+function toggleDone(d){
+  if(!plan) return;
+  if(plan.done[d]) delete plan.done[d]; else plan.done[d]=true;
+  labStore.set("plan",plan);
+  renderPlan();
+}
+function lightenDay(d){
+  loadRules(function(R){
+    if(!R||!plan) return;
+    var day=plan.days[d-1];
+    if(!day.area) return;
+    var at=R["部位"][day.area];
+    var cap=R["時間のえらび方"][plan.ctx.time]||13;
+    var pick=pickVideo(at["そっと"], cap, {}, "x", day.id);
+    day.id=pick.id; day.min=pick["分"]; day.memo=pick["メモ"]; day.level="そっと";
+    day.reason="きょうはかるめに切りかえ🌿 それで十分です";
+    labStore.set("plan",plan);
+    renderPlan();
+  });
+}
+function deletePlan(){
+  if(!confirm("プログラムを消しますか？\nチェックからいつでも作りなおせます")) return;
+  labStore.del("plan"); plan=null; openPlanEntry();
+}
+function planVideoHTML(id, min, memo){
+  var cv=vinfo(id);
+  var title=cv?cv.t:memo;
+  return '<a class="video" href="https://www.youtube.com/watch?v='+id+'" target="_blank" rel="noopener">'+
+    '<img src="https://i.ytimg.com/vi/'+id+'/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">'+
+    '<div><span class="vt">'+String(title).replace(/</g,"&lt;")+'</span><div class="vs">約'+min+'分</div></div></a>';
+}
+function renderPlan(){
+  document.getElementById("planEmpty").classList.add("hidden");
+  var T=LABT[plan.type];
+  var nextD=0;
+  for(var i=1;i<=14;i++){ if(!plan.done[i]){ nextD=i; break; } }
+  var doneCount=0;
+  for(var k in plan.done){ if(plan.done[k]) doneCount++; }
+  var h='<div class="card">'+
+    '<div class="sec-head">📅 わたしの2週間プログラム</div>'+
+    '<div style="font-size:14px;line-height:1.9">'+T.emoji+'「<b>'+T.name+'</b>」タイプのあなたへ（'+plan.made+'のチェックから）<br>'+
+    '1日1本だけ 順番は目安 とばした日は「なし」じゃなくて「あとまわし」<br>ぜんぶやらなくても だいじょうぶです🌱</div>'+
+    (doneCount?'<div style="font-size:13px;color:var(--tealink);font-weight:900;margin-top:8px">これまでに'+doneCount+'本 おつかれさまでした✨</div>':'')+
+    '</div>';
+  if(plan.painNote) h+='<div class="labbn">⚠️ '+plan.painNote+'</div>';
+  for(var d=1;d<=14;d++){
+    var day=plan.days[d-1];
+    var isDone=!!plan.done[d];
+    var isNext=(d===nextD);
+    var chip = day.slot==="R" ? '<span class="slotchip r">リセット</span>'
+      : (day.slot==="M" ? '<span class="slotchip">メイン</span>' : '<span class="slotchip">サブ</span>');
+    var lvtxt = day.level ? '<span style="font-size:11px;color:var(--sub);font-weight:800;margin-left:6px">【'+day.level+'】</span>' : "";
+    h+='<div class="dayrow'+(isDone?" donerow":"")+(isNext?" next":"")+'">'+
+      '<span class="daypill">DAY '+d+'</span>'+chip+lvtxt+
+      (isNext?'<span class="nextchip">つぎの1本</span>':"")+
+      planVideoHTML(day.id, day.min, day.memo)+
+      '<div class="whyline">'+day.reason+'</div>'+
+      '<div class="dayacts">'+
+      '<button class="'+(isDone?"ok":"")+'" onclick="toggleDone('+d+')">'+(isDone?"✓ やりました":"やった！")+'</button>'+
+      (day.area&&day.level!=="そっと"?'<button onclick="lightenDay('+d+')">きょうはかるめで🌿</button>':"")+
+      '</div></div>';
+  }
+  if(plan.escape){
+    h+='<div class="card"><div class="sec-head">🕊️ にげみちの1本</div>'+
+      '<div style="font-size:13px;line-height:1.8;color:var(--sub)">'+plan.escape["文言"]+'</div>'+
+      planVideoHTML(plan.escape.id, plan.escape["分"], "にげみち")+'</div>';
+  }
+  h+='<button class="btn btn-ghost" onclick="navLab(\'dcheck\')">チェックからつくりなおす</button>'+
+    '<button class="btn btn-line" style="margin-top:8px" onclick="deletePlan()">プログラムをけす</button>';
+  document.getElementById("planBody").innerHTML=h;
 }
 
 // ================================================================
@@ -721,9 +954,20 @@ var am=location.search.match(/[?&]autocheck=([0-3](?:,[0-3]){6})/);
 if(am){
   var vals=am[1].split(",");
   startLabQuiz();
-  LABQ.forEach(function(q,i){ lqState.scores[q.k]=Number(vals[i]); });
+  for(var ai=0;ai<7;ai++) lqState.scores[LABQ[ai].k]=Number(vals[ai]);
   lqState.qi=LABQ.length;
   finishLabQuiz();
+}
+// ?autoplan=7つの数字(0〜3),痛みidx,時間idx,いつidx は検証用: 2週間プログラムまで生成
+var pm=location.search.match(/[?&]autoplan=([0-3](?:,[0-3]){6}),(\d),(\d),(\d)/);
+if(pm){
+  var pv=pm[1].split(",");
+  startLabQuiz();
+  for(var qi7=0;qi7<7;qi7++) lqState.scores[LABQ[qi7].k]=Number(pv[qi7]);
+  lqState.ctx.pain=LABQ[7].opts[Number(pm[2])][2];
+  lqState.ctx.time=LABQ[8].opts[Number(pm[3])][2];
+  lqState.ctx.when=LABQ[9].opts[Number(pm[4])][2];
+  makePlanFromResult();
 }
 </script>
 </body>
