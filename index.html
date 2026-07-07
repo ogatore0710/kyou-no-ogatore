@@ -356,7 +356,7 @@
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
-    <div class="hint">記録はこのスマホの中だけに残ります<br>カード画像を保存しておくと安心です</div>
+    <div class="hint">カード画像を保存 or シェアしてのこしてね📤</div>
   </div>
 
   <div class="card grad-pink" style="text-align:center">
@@ -1014,8 +1014,8 @@ function markDone(){
   if(ms){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
-      +(ms.q?`<div style="margin-top:6px;font-size:14px;color:var(--sub)">${ms.q}</div>`:"")
-      +`<div style="margin-top:8px"><a href="#" onclick="makeCard();return false" style="color:var(--tealink);font-weight:800">ゴールドカードをのこす</a>　<a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
+      +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
+      +`<div style="margin-top:8px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">コメント欄に報告する</a></div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -1200,7 +1200,7 @@ const CARD_THEMES = [
 ];
 const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
 const MS=[
- {d:3,  t:"『気がする』チェックポイント", m:"「ちょっと軽い気がする」それ気のせいじゃないですよ！", q:"2日やっただけで腰痛なくなりました。何だったんだろう（先輩の声）"},
+ {d:3,  t:"『気がする』チェックポイント", m:"<span style='display:inline-block'>「ちょっと軽い気がする」</span><span style='display:inline-block'>それ気のせいじゃないですよ！</span>", q:"2日やっただけで腰痛なくなりました。何だったんだろう（先輩の声）"},
  {d:4,  t:"三日坊主 超えました", m:"何度も三日坊主だった人がいまここを超えました！えらい！", q:"4日目終わって三日坊主回避しました！（先輩の声）"},
  {d:7,  t:"1週間たっせい", m:"最初の壁突破です！", q:"お風呂上がりに1日1回を1週間続けただけで、長座体前屈50cm→64cmになりました（先輩の声）"},
  {d:14, t:"2週間たっせい", m:"2週間は完成じゃなくて本番のはじまり！ここからが楽しいところ", q:"2週間で完全に、では私はなかったです。でも1ヶ月以上で確実に変わりました（先輩の声）"},
