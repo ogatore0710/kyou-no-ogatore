@@ -615,7 +615,7 @@
     <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
     <div id="cardMaking" class="hidden" style="text-align:center;font-size:14px;color:var(--sub);padding:14px 0">カードをつくってます…</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
-    <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 10px">下のボタンから写真に保存できます（画像の長押しでもOK）</div>
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin:8px 0 10px">下のボタンから写真に保存できます（画像の長押しでもOK）<br>Xやインスタでシェアするのもおすすめ👀</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">共有して写真に保存</button>
     <button class="btn btn-line" onclick="closeCard()">とじる</button>
   </div>
@@ -1284,7 +1284,7 @@ function drawCrown(ctx,x,y,w,color){
   ctx.lineTo(x,y-h/2);ctx.lineTo(x+w*0.22,y+h*0.05);ctx.lineTo(x+w/2,y-h*0.15);ctx.lineTo(x+w/2,y+h/2);
   ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
 }
-let lastBlob=null;
+let lastBlob=null,lastShareText="";
 function ensureCardFonts(){
   const specs=['900 100px "M PLUS 1p"','800 52px "M PLUS 1p"','700 34px "M PLUS 1p"','100px "BananaNum"'];
   const work=(async()=>{
@@ -1488,12 +1488,13 @@ function drawCard(){
   document.getElementById("cardImg").src=c.toDataURL("image/png");
   document.getElementById("cardModal").classList.remove("hidden");
   c.toBlob(blob=>{ lastBlob=blob; },"image/png");
+  lastShareText=`#きょうのオガトレ ${effTotal}日目！`;
 }
 async function shareCard(){
   if(!lastBlob) return;
   const file=new File([lastBlob],`kyono-ogatore-${cardDate||todayStr()}.png`,{type:"image/png"});
   if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{ await navigator.share({files:[file], title:"きょうのオガトレ 記録カード"}); return; }catch(e){}
+    try{ await navigator.share({files:[file], text:lastShareText||"#きょうのオガトレ", title:"きょうのオガトレ 記録カード"}); return; }catch(e){}
   }
   const a=document.createElement("a");
   a.href=URL.createObjectURL(lastBlob); a.download=file.name; a.click();
