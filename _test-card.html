@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>card render harness (temp)</title>
+<style>body{margin:0;font-family:sans-serif}img{display:block}#card{width:600px;height:600px;border:1px solid #ccc}
+.row img{width:140px;height:140px;background:#eee;display:inline-block}</style>
+<div class="row">
+  <img src="assets/chara-good.png"><img src="assets/chara-kaikyaku.png"><img src="assets/chara-cheer.png"><img src="assets/chara-crown.png">
+</div>
+<img id="card">
+<div id="status">waiting…</div>
+<iframe id="app" src="" style="width:400px;height:300px;opacity:.3"></iframe>
+<script>
+// todayStrと同じ-3hルールで日付列を作る
+function ds(offsetDays){
+  const t = new Date(Date.now() - 3*3600*1000 - offsetDays*86400000);
+  return new Date(t.getTime() + 9*3600*1000).toISOString().slice(0,10); // JSTローカル日付近似
+}
+// アプリのtodayStr()はローカルタイム基準なので、こちらもローカルで組み立てる
+function localDs(offsetDays){
+  const t = new Date(Date.now() - 3*3600*1000 - offsetDays*86400000);
+  const y=t.getFullYear(), m=("0"+(t.getMonth()+1)).slice(-2), d=("0"+t.getDate()).slice(-2);
+  return y+"-"+m+"-"+d;
+}
+const total = Number((location.search.match(/total=(\d+)/)||[])[1] || 7);
+const dates=[]; for(let i=total-1;i>=0;i--) dates.push(localDs(i));
+const daylog={}; dates.forEach((d,i)=>{ daylog[d]={c:i+1}; });
+localStorage.clear();
+localStorage.setItem("kyono_streak2", JSON.stringify({dates:dates, count:total, total:total}));
+localStorage.setItem("kyono_daylog", JSON.stringify(daylog));
+localStorage.setItem("kyono_anchor", JSON.stringify("furo"));
+localStorage.setItem("kyono_type", JSON.stringify({key:"momo"}));
+localStorage.setItem("kyono_wb_seen","1");
+localStorage.setItem("kyono_memos", JSON.stringify({[localDs(0)]:"あたらしいイラストのテスト"}));
+const f=document.getElementById("app");
+f.src="index.html";
+f.onload=function(){
+  setTimeout(function(){
+    try{ f.contentWindow.makeCard(); }catch(e){ document.getElementById("status").textContent="makeCard error: "+e.message; }
+    const iv=setInterval(function(){
+      try{
+        const img=f.contentDocument.getElementById("cardImg");
+        if(img && img.src && img.src.indexOf("data:")===0){
+          document.getElementById("card").src=img.src;
+          document.getElementById("status").textContent="RENDERED total="+total;
+          clearInterval(iv);
+        }
+      }catch(e){}
+    },300);
+  },800);
+};
+</script>
