@@ -132,7 +132,7 @@
   .video>div{min-width:0}
   @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
   @media (max-width:340px){ h1{font-size:19px} .cal .d{width:32px;height:32px;line-height:32px} .reach-btn{font-size:12px;padding:10px 0} }
-  #appSplash{position:fixed;inset:0;background:var(--bg);z-index:99;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
+  #appSplash{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:var(--bg);z-index:99;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
   #appSplash .spl-inner{opacity:0;transition:opacity .35s ease}
   .spl-badge{width:92px;height:92px;margin:0 auto;background:var(--yellow);border-radius:26px;transform:rotate(-8deg);
     box-shadow:0 5px 0 #E8BE1E;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:900;color:#fff}
@@ -150,7 +150,7 @@
   #ckCard.mini #ckBtn{order:2;font-size:14px;padding:10px;margin-top:10px}
   #ckCard.mini #ckHint{display:none}
   .hidden{display:none !important}
-  #cardModal{-webkit-user-select:none;user-select:none;position:fixed;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+  #cardModal{-webkit-user-select:none;user-select:none;position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* 診断 */
   .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
   .q-art{text-align:center;margin:8px 0 2px}
@@ -205,7 +205,7 @@
     background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1.5px solid var(--line);
     display:flex;z-index:40;padding:6px 4px calc(8px + env(safe-area-inset-bottom))}
   .tabbar button{flex:1;border:none;background:none;font-family:inherit;cursor:pointer;
-    display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:800;color:#B9B4A6;padding:4px 0}
+    display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:800;color:#B9B4A6;padding:4px 0}
   .tabbar button svg{width:24px;height:24px}
   .tabbar button .ic-fill{fill:#EAE4D3}
   .tabbar button.on{color:var(--ink)}
@@ -217,7 +217,7 @@
   .cal{width:100%;border-collapse:collapse;table-layout:fixed}
   .cal th{font-size:12px;color:var(--sub);padding:4px 0;font-weight:800}
   .cal td{text-align:center;padding:3px 0}
-  .cal .d{width:36px;height:36px;line-height:36px;border-radius:50%;display:inline-block;font-size:15px;font-weight:800}
+  .cal .d{width:40px;height:40px;line-height:40px;border-radius:50%;display:inline-block;font-size:15px;font-weight:800}
   .cal .d.done{background:var(--teal);color:#fff}
   .cal .d.today{box-shadow:inset 0 0 0 2.5px var(--pink)}
   .cal .d.mute{color:#D5CFBE}
@@ -377,6 +377,7 @@
     <div class="qnote" id="qnote"></div>
     <div id="opts"></div>
     <div class="dots" id="dots"></div>
+    <button class="btn btn-line hidden" id="qBackBtn" style="margin-top:10px" onclick="prevQ()">← まえの質問へ</button>
     <button class="btn btn-line" style="margin-top:10px" onclick="goHome()">ホームにもどる</button>
   </div>
 </section>
@@ -752,7 +753,7 @@ const TINY=[
 
 // ================= 状態 =================
 const store = {
-  get(k,d){ try{const v=JSON.parse(localStorage.getItem("kyono_"+k)); return v??d}catch(e){return d} },
+  get(k,d){ try{const v=JSON.parse(localStorage.getItem("kyono_"+k)); return v==null?d:v}catch(e){return d} },
   set(k,v){ try{ localStorage.setItem("kyono_"+k, JSON.stringify(v)); return true }catch(e){ return false } }
 };
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
@@ -853,12 +854,14 @@ function renderQ(){
   });
   const dots=document.getElementById("dots"); dots.innerHTML="";
   QUESTIONS.forEach((_,i)=>{const d=document.createElement("div");d.className="dot"+(i<=state.qi?" on":"");dots.appendChild(d)});
+  document.getElementById("qBackBtn").classList.toggle("hidden", state.qi===0);
 }
 function answer(k,val){
   document.querySelectorAll("#opts .opt").forEach(b=>b.disabled=true);
   if(k==="worry"){ state.worry=val; finishQuiz(); return; }
   state.scores[k]=val; state.qi++; renderQ();
 }
+function prevQ(){ if(state.qi>0){ state.qi--; renderQ(); } }
 function decideType(){
   const s=state.scores;
   const total=s.momo+s.koka+s.kenko+s.ashi;
@@ -913,8 +916,9 @@ function showResult(saved){
 // ---- きょうの1本 ----
 function autoMode(){ const h=new Date().getHours(); return (h>=4&&h<15)?"asa":"yoru"; }
 function setMode(m){ state.mode=m; store.set("mode_manual",{m,d:todayStr()}); renderToday(); }
-function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
-function dayIndex(){ return Math.floor((Date.now()+9*3600*1000)/86400000); }
+// 深夜3時までは「前日」あつかい（寝るまえ派が0時を過ぎても記録が割れない）
+function todayStr(){ const d=new Date(Date.now()-3*3600*1000); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function dayIndex(){ return Math.floor((Date.now()+6*3600*1000)/86400000); }
 function renderToday(){
   const manual=store.get("mode_manual",null);
   const typed = !!(state.type&&TYPES[state.type.key]);
@@ -952,8 +956,17 @@ function getStreakData(){
 function renderStreak(){
   const st=getStreakData();
   document.getElementById("streakNum").textContent=st.total||0;
-  document.getElementById("totalDays").textContent = st.count>=2 ? `いま${st.count}日連続` : "";
   const did = st.dates.includes(todayStr());
+  let contTxt = st.count>=2 ? `いま${st.count}日連続` : "";
+  // 数日あいて券でもつなげない時は、古い連続を見せない（押した瞬間に消えたと誤解させない）
+  if(!did && st.dates.length){
+    const gapNow=daysBetween(st.dates[st.dates.length-1],todayStr());
+    if(gapNow>=2){
+      const miss=[]; for(let i=1;i<gapNow;i++){ miss.push(new Date(new Date(st.dates[st.dates.length-1]).getTime()+i*86400000).toISOString().slice(0,10)); }
+      if(!canBridgeFreezes(miss)) contTxt="きょうやると新しい章のスタート🌱";
+    }
+  }
+  document.getElementById("totalDays").textContent = contTxt;
   const btn=document.getElementById("doneBtn");
   btn.textContent = did?"きょうの分完了！おつかれさまでした✨":"きょうやった！";
   btn.classList.toggle("did",did);
@@ -979,13 +992,14 @@ function markDone(){
   const last=st.dates.length?st.dates[st.dates.length-1]:null;
   const gap=last?daysBetween(last,today):null;
   let note="";
-  if(gap===null||gap<=0){ st.count=Math.max(1,gap===0?st.count:1); }
+  if(gap===null){ st.count=1; }
+  else if(gap<=0){ /* 端末時計の巻き戻り: 連続は減らさない */ st.count=Math.max(1,st.count); }
   else if(gap===1){ st.count++; }
   else {
     const missed=[];
     for(let i=1;i<gap;i++){
       const dd=new Date(new Date(last).getTime()+i*86400000);
-      missed.push(`${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,"0")}-${String(dd.getDate()).padStart(2,"0")}`);
+      missed.push(dd.toISOString().slice(0,10));
     }
     if(tryUseFreezes(missed)){
       st.count++;
@@ -998,12 +1012,13 @@ function markDone(){
   }
   st.total=(st.total||0)+1;
   st.dates.push(today);
+  st.dates.sort();
   if(st.dates.length>1200) st.dates=st.dates.slice(-1200);
   // きょうの動画をカレンダー用に記録
   try{
     const vid=currentTodayId();
     let vt=""; for(const k in V){ if(V[k].id===vid){ vt=V[k].t; break; } }
-    const dl=store.get("daylog",{}); dl[today]={v:vid,t:vt};
+    const dl=store.get("daylog",{}); dl[today]={v:vid,t:vt,c:st.count};
     const ks=Object.keys(dl).sort(); if(ks.length>400) ks.slice(0,ks.length-400).forEach(k=>delete dl[k]);
     store.set("daylog",dl);
   }catch(e){}
@@ -1058,7 +1073,7 @@ function setReach(lv){
   const best=arr.length?Math.max(...arr.map(r=>r.lv)):0;
   const i=arr.findIndex(r=>r.d===today);
   if(i>=0) arr[i].lv=lv; else arr.push({d:today,lv});
-  if(arr.length>200) arr.splice(0,arr.length-200);
+  if(arr.length>200){ const bestRec=arr.reduce((a,b)=>b.lv>=a.lv?b:a); arr.splice(0,arr.length-200); if(!arr.some(r=>r.lv>=bestRec.lv)) arr.unshift(bestRec); }
   store.set("reach",arr);
   renderReach();
   const msg=document.getElementById("reachMsg");
@@ -1233,11 +1248,18 @@ function freezeMap(){
   return m;
 }
 function freezeLeft(){ const mo=todayStr().slice(0,7); return Math.max(0,FREEZE_PER_MONTH-(freezeMap()[mo]||0)); }
-function tryUseFreezes(missedDates){
-  // 欠席日それぞれを「その日が属する月」の券で払えるかを判定してから消費する
+function canBridgeFreezes(missedDates){
+  // 消費せずに「券で橋渡しできるか」だけを判定（表示用にも使う）
   const m=freezeMap(); const need={};
   for(const d of missedDates){ const mo=d.slice(0,7); need[mo]=(need[mo]||0)+1; }
   for(const mo in need){ if((m[mo]||0)+need[mo]>FREEZE_PER_MONTH) return false; }
+  return true;
+}
+function tryUseFreezes(missedDates){
+  // 欠席日それぞれを「その日が属する月」の券で払えるかを判定してから消費する
+  if(!canBridgeFreezes(missedDates)) return false;
+  const m=freezeMap(); const need={};
+  for(const d of missedDates){ const mo=d.slice(0,7); need[mo]=(need[mo]||0)+1; }
   for(const mo in need){ m[mo]=(m[mo]||0)+need[mo]; }
   // 古い月のキーは掃除（直近3ヶ月だけ残す）
   const keep=Object.keys(m).sort().slice(-3);
@@ -1329,9 +1351,13 @@ function drawCard(){
   const ds=cardDate||todayStr();
   const isToday = ds===todayStr();
   const idx=st.dates.indexOf(ds);
-  const effTotal = idx>=0 ? idx+1 : st.total;
+  // dates配列が不完全（旧形式からの移行・1200件剪定）でも通算がズレないよう補正
+  const off=Math.max(0,(st.total||0)-st.dates.length);
+  const effTotal = idx>=0 ? idx+1+off : st.total;
   let effCount;
+  const dlRec=(store.get("daylog",{})||{})[ds];
   if(isToday) effCount=st.count;
+  else if(dlRec&&dlRec.c) effCount=dlRec.c; // その日の実測値（おやすみ券の橋渡し込み）
   else { effCount=1; let cur=ds; while(st.dates.includes(prevOf(cur))){ effCount++; cur=prevOf(cur); } }
   const dateIdx = Math.floor((new Date(ds).getTime()+9*3600*1000)/86400000);
   const T = state.type ? TYPES[state.type.key] : null;
