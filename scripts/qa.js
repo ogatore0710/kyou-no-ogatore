@@ -126,6 +126,50 @@ function extractFunction(code, name) {
   return "";
 }
 
+function extractConstArray(code, name) {
+  const re = new RegExp(`const\\s+${name}\\s*=\\s*(\\[[\\s\\S]*?\\]);`);
+  const match = code.match(re);
+  if (!match) throw new Error(`${name} array not found`);
+  return vm.runInNewContext(match[1]);
+}
+
+function extractFunctionNames(code) {
+  const names = new Set();
+  for (const match of code.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)) {
+    names.add(match[1]);
+  }
+  return names;
+}
+
+function extractIds(html) {
+  const ids = new Set();
+  for (const match of html.matchAll(/\bid=["']([^"']+)["']/g)) {
+    ids.add(match[1]);
+  }
+  return ids;
+}
+
+function extractHandlers(html) {
+  const handlers = [];
+  for (const match of html.matchAll(/\s(on[a-z]+)=["']([^"']+)["']/g)) {
+    handlers.push({ attr: match[1], code: match[2] });
+  }
+  return handlers;
+}
+
+function calledGlobals(code) {
+  const out = new Set();
+  const skip = new Set([
+    "if", "for", "while", "switch", "function", "return", "typeof",
+    "Number", "String", "Boolean", "Array", "Object", "Math", "Date",
+  ]);
+  for (const match of code.matchAll(/(^|[^.\w$])([A-Za-z_$][\w$]*)\s*\(/g)) {
+    const name = match[2];
+    if (!skip.has(name)) out.add(name);
+  }
+  return Array.from(out);
+}
+
 function checkNoForbiddenModernSyntax(files) {
   const forbidden = [
     { label: "optional chaining", re: /\?\./ },
@@ -181,6 +225,60 @@ function checkHtml(html) {
   const tagMatch = main.match(/const TAGS=(\[[^\n]+?\]);/);
   assert("index.html: TAGS list found", !!tagMatch, "search tag allowlist");
   return tagMatch ? JSON.parse(tagMatch[1]) : [];
+}
+
+function checkOperationalWiring(html, main) {
+  const ids = extractIds(html);
+  const definedFunctions = extractFunctionNames(main);
+  const handlers = extractHandlers(html);
+  const missingFns = [];
+  for (const handler of handlers) {
+    for (const name of calledGlobals(handler.code)) {
+      if (!definedFunctions.has(name)) missingFns.push(`${handler.attr}:${name}`);
+    }
+  }
+  assert("operation: inline handlers resolved", missingFns.length === 0, missingFns.slice(0, 12).join(", ") || `${handlers.length} handlers`);
+
+  let sections = [];
+  try {
+    sections = extractConstArray(main, "SECTIONS");
+    pass("operation: SECTIONS parsed", sections.join(", "));
+  } catch (err) {
+    fail("operation: SECTIONS parsed", err.message);
+  }
+  const missingSections = sections.filter((id) => !ids.has(id));
+  assert("operation: routed sections exist", missingSections.length === 0, missingSections.join(", ") || `${sections.length} sections`);
+
+  const publicTabs = ["home", "history", "playlists", "guide", "search"];
+  const missingTabs = publicTabs.filter((id) => !ids.has(`tab-${id}`) || !ids.has(id));
+  assert("operation: bottom tabs wired", missingTabs.length === 0, missingTabs.join(", ") || publicTabs.join(", "));
+
+  const switchTargets = Array.from(html.matchAll(/switchTab\(["']([^"']+)["']\)/g)).map((m) => m[1]);
+  const badSwitchTargets = switchTargets.filter((id) => !publicTabs.includes(id));
+  assert("operation: switchTab targets valid", badSwitchTargets.length === 0, badSwitchTargets.join(", ") || `${switchTargets.length} calls`);
+
+  const cardIds = ["doneBtn", "memoInput", "memoBtn", "cardModal", "cardMaking", "cardImg", "cardCanvas"];
+  const missingCardIds = cardIds.filter((id) => !ids.has(id));
+  assert("operation: record card controls exist", missingCardIds.length === 0, missingCardIds.join(", ") || cardIds.join(", "));
+
+  const quizIds = ["qnum", "qtitle", "qArt", "qnote", "opts", "dots", "qBackBtn", "rName", "rxList"];
+  const missingQuizIds = quizIds.filter((id) => !ids.has(id));
+  assert("operation: quiz/result controls exist", missingQuizIds.length === 0, missingQuizIds.join(", ") || quizIds.join(", "));
+
+  const searchIds = ["q", "ySel", "catRow", "chips", "hitCount", "filterNow", "vlist", "moreBtn", "reqBtn"];
+  const missingSearchIds = searchIds.filter((id) => !ids.has(id));
+  assert("operation: search controls exist", missingSearchIds.length === 0, missingSearchIds.join(", ") || searchIds.join(", "));
+
+  const handlersByIntent = [
+    ["done button", /id=["']doneBtn["'][\s\S]*?onclick=["']markDone\(\)["']/],
+    ["memo save button", /id=["']memoBtn["'][\s\S]*?onclick=["']saveMemo\(\)["']/],
+    ["card close button", /onclick=["']closeCard\(\)["']/],
+    ["search more button", /id=["']moreBtn["'][\s\S]*?onclick=["']moreResults\(\)["']/],
+    ["quiz start button", /onclick=["']startQuiz\(\)["']/],
+  ];
+  for (const item of handlersByIntent) {
+    assert(`operation: ${item[0]} handler`, item[1].test(html), "primary action is clickable");
+  }
 }
 
 function checkCatalog(code, allowedTags) {
@@ -281,7 +379,10 @@ function main() {
   checkNoForbiddenModernSyntax(["index.html", "videos.js", "sw.js"]);
 
   const html = read("index.html");
+  const inline = extractInlineScripts(html);
+  const mainScript = inline[inline.length - 2] || "";
   const allowedTags = checkHtml(html);
+  checkOperationalWiring(html, mainScript);
   checkCatalog(read("videos.js"), allowedTags);
   checkSw(read("sw.js"));
   checkManifest();
