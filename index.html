@@ -264,6 +264,7 @@
   .pl{display:flex;gap:12px;align-items:center;background:var(--card);border:1.5px solid var(--line);
     border-radius:16px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
   .pl svg{width:34px;height:34px;flex-shrink:0}
+  .pl .plimg{width:92px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex-shrink:0;background:var(--line)}
   .pl .pt{font-size:15px;font-weight:800;line-height:1.45}
   .pl .ps{font-size:14px;color:var(--sub)}
   .group-label{font-size:14px;font-weight:900;color:var(--sub);margin:16px 2px 8px}
@@ -476,7 +477,7 @@
     <div class="hint">「きょうやった！」を押した日に印がつきます<br>印をタップするとその日の記録が見られます</div>
   </div>
 
-  <div class="card">
+  <div class="card" id="bragCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#E56A9A" stroke="none"/></svg>じまんカード<span class="badge">お楽しみ</span></div>
     <div style="font-size:14px;color:var(--sub);margin:-4px 0 12px">つづけてる日数と すきな1本を 1枚のカードに✨</div>
     <button class="btn btn-ghost" onclick="openBrag()">
@@ -516,6 +517,11 @@
       <button id="th-dark" onclick="setTheme('dark')">暗い</button>
     </div>
     <div class="hint" style="text-align:left;margin:-6px 0 12px">「じどう」は夜（19時〜朝5時）やスマホがダーク設定のとき暗くなります</div>
+    <div style="font-size:15px;margin:4px 0 6px">じまんカードを表示する</div>
+    <div class="seg" style="margin-bottom:12px">
+      <button id="sb-off" onclick="setShowBrag(false)">オフ</button>
+      <button id="sb-on" onclick="setShowBrag(true)">オン</button>
+    </div>
     <div style="font-size:15px;margin-bottom:10px">カレンダーのおしらせ時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--ink);background:var(--card)"></div>
     <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>
     <a class="btn btn-line" id="gcalLink" target="_blank" rel="noopener" style="font-size:15px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>
@@ -634,7 +640,7 @@
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>つづけるしくみ（ここがやさしい）</div>
     <div class="gstep"><span class="stepn">🎫</span><div><b>おやすみ券が毎月3枚</b><br>休んでも 自動でつかわれて連続がつながる<br>使い切っても<b>通算日数はぜったい消えません</b></div></div>
-    <div class="gstep"><span class="stepn">👑</span><div><b>節目の日はゴールドカード</b><br>3日 7日 2週間 1ヶ月…とお祝いが待ってます</div></div>
+    <div class="gstep" style="align-items:center"><img src="assets/chara-crown.png" alt="" style="width:60px;height:60px;object-fit:contain;flex-shrink:0"><div><b>節目はゴールドカード</b><br>3日・7日・2週間…お祝いが待ってます</div></div>
     <div class="gcardmini gmock" style="max-width:240px;margin:4px auto 10px">👑 7日目！<br><span style="font-size:12px">記録カードがゴールドに</span></div>
     <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
     <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「さがす」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
@@ -652,14 +658,16 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><circle cx="9" cy="10.5" r="1.8" fill="#3A3A35" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードのつくりかた</div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><img src="assets/chara-kaikyaku.png" alt="" style="width:60px;height:60px;object-fit:contain;flex-shrink:0"><div style="font-size:14px;color:var(--sub)">がんばりを形にして残せます</div></div>
     <div class="gstep"><span class="stepn">1</span><div>「きょうやった！」のあと <b>「記録カードを画像でのこす」</b>を押す</div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>「保存・シェアする」</b>→ひらいた画面の<b>「画像を保存」</b>で写真フォルダへ（画像の長押しでもOK）</div></div>
-    <div class="gstep"><span class="stepn">3</span><div>おなじ画面から<b>XやインスタなどのSNSにも投稿OK</b> 動画のコメント欄にも仲間が待ってます👀</div></div>
+    <div class="gstep"><span class="stepn">3</span><div><b>SNSにも投稿OK</b> 動画のコメント欄にも仲間が待ってます👀</div></div>
   </div>
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9c-4-1.5-7-4.5-7-9V6z" fill="#DFF5F2"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>記録が消えない3つの守り</div>
-    <div class="gstep"><span class="stepn">1</span><div><b>ホーム画面についか</b>する（共有ボタン→「ホーム画面に追加」）これがいちばん大事！アプリ版は記録がずっと残ります<br><span style="font-size:13px;color:var(--sub)">※ついかしたら 前の画面の「記録をコピー」→アプリ版で「取りこむ」もわすれずに（記録は別々に保存されるため）</span></div></div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><img src="assets/chara-good.png" alt="" style="width:64px;height:60px;object-fit:contain;flex-shrink:0"><div style="font-size:14px;color:var(--sub)">3つおさえれば安心です</div></div>
+    <div class="gstep"><span class="stepn">1</span><div><b>ホーム画面についか</b>する（共有ボタン→「ホーム画面に追加」）これがいちばん大事！アプリ版は記録がずっと残ります<br><span style="font-size:13px;color:var(--sub)">※ついか後は「記録をコピー」→アプリ版で「取りこむ」も忘れずに</span></div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>記録カードを画像で保存</b>…写真フォルダが自動でバックアップに</div></div>
     <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…きろく→つづける設定→「記録をコピー」→新しいスマホで「取りこむ」</div></div>
   </div>
@@ -1121,8 +1129,8 @@ function markDone(){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
       +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
-      +`<div style="margin-top:10px"><a href="#" onclick="makeCard();return false" class="tapx" style="color:var(--pink);font-weight:900">👑 きょうのゴールドカードを見る</a></div>`
-      +`<div style="margin-top:8px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">YouTubeのコメント欄に報告する</a></div>`;
+      +`<img src="assets/chara-crown.png" alt="" style="width:72px;height:72px;object-fit:contain;display:block;margin:10px auto 0">`
+      +`<div style="margin-top:6px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">YouTubeのコメント欄に報告する</a></div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -1294,6 +1302,17 @@ function applyTheme(){
 }
 function setTheme(p){ store.set("theme",p); applyTheme(); }
 
+// ---- じまんカード表示設定 ----
+function applyShowBrag(){
+  const on=store.get("show_brag",false);
+  const bo=document.getElementById("sb-off"), bn=document.getElementById("sb-on");
+  if(bo) bo.classList.toggle("on",!on);
+  if(bn) bn.classList.toggle("on",on);
+  const card=document.getElementById("bragCard");
+  if(card) card.classList.toggle("hidden",!on);
+}
+function setShowBrag(v){ store.set("show_brag",v); applyShowBrag(); }
+
 // ---- きょうのひとこと（尾形さんの声かけ） ----
 const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","つづけてるあなたがいちばんすごい","お膝もいたわってあげてくださいね"];
 function renderQuote(){
@@ -1311,13 +1330,13 @@ const CARD_THEMES = [
 const GOLD = {name:"ゴールド", bg:["#FFF6D8","#FFE8B0"], main:"#B8860B", deco:["#FFD700","#FFB300","#FFDF7E"]};
 const MS=[
  {d:3,  t:"『気がする』チェックポイント", m:"<span style='display:inline-block'>「ちょっと軽い気がする」</span><span style='display:inline-block'>それ気のせいじゃないですよ！</span>", q:""},
- {d:4,  t:"三日坊主 超えました", m:"何度も三日坊主だった人がいまここを超えました！えらい！", q:"4日目終わって三日坊主回避しました！（先輩の声）"},
+ {d:4,  t:"三日坊主 超えました", m:"多くの人がつまずく壁 もう超えました！えらい！", q:"4日目終わって三日坊主回避しました！（先輩の声）"},
  {d:7,  t:"1週間たっせい", m:"最初の壁突破です！", q:"お風呂上がりに1日1回を1週間続けただけで、長座体前屈50cm→64cmになりました（先輩の声）"},
  {d:14, t:"2週間たっせい", m:"2週間は完成じゃなくて本番のはじまり！ここからが楽しいところ", q:"2週間で完全に、では私はなかったです。でも1ヶ月以上で確実に変わりました（先輩の声）"},
  {d:21, t:"3週間たっせい", m:"", q:"ずっと三日坊主だったんだけど、初めて3週間続けられてうれしい…（先輩の声）"},
  {d:30, t:"1ヶ月たっせい", m:"目に見える変化が出はじめる時期に入りました", q:"開脚90度→2ヶ月で150度。すぐ結果が出なくても続けた人の記録です（先輩の声）"},
  {d:50, t:"50日たっせい", m:"", q:""},
- {d:66, t:"習慣化の記念日", m:"習慣が身につくまで平均66日という研究があります そしてきょうが66日目！ストレッチはあなたの習慣になりました🎉", q:""},
+ {d:66, t:"習慣化の記念日", m:"習慣が身につくまで平均66日という研究があります きょうがその日です🎉", q:""},
  {d:100,t:"100日たっせい", m:"もう体の一部ですね", q:"1日の締めくくりとして、もはや歯磨きと同じ習慣と化している（先輩の声）"},
  {d:150,t:"150日たっせい", m:"", q:""},
  {d:200,t:"200日たっせい", m:"", q:""},
@@ -1862,7 +1881,7 @@ function renderHistory(){
   }
   document.getElementById("histFreeze").innerHTML=`おやすみ券 のこり${freezeLeft()}枚<br>休んだ日に自動でつかわれて連続がつながります`;
   if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
-  renderCal(); renderReach(); renderDiary(); renderIcs();
+  renderCal(); renderReach(); renderDiary(); renderIcs(); applyShowBrag();
 }
 function calMove(n){ calDate.setMonth(calDate.getMonth()+n); renderCal(); }
 function showDay(ds){
@@ -1900,30 +1919,31 @@ function renderCal(){
 const ICON_PL=`<svg viewBox="0 0 24 24" fill="none" stroke="#2BB3A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="13" rx="3" fill="#DFF5F2"/><path d="M6.5 4.5h11"/><path d="M8.5 12v5l4-2.5z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>`;
 const PLAYLISTS=[
  {g:"連続再生（流しっぱなしでOK・テレビにも）", items:[
-  ["PLH9L1OmHFdn0","朝ストレッチ 連続30分","起きてすぐ全身がラクになる"],
-  ["PLR-edMOCBxCU","夜ストレッチ 連続30分","寝る前に一日の疲れをリセット"],
-  ["PLRMzTino89Do","座ったまま 連続20分","デスクワークの肩こり・腰痛に"],
-  ["PLP2Rn_9fit2w","全身 連続35分","ガチガチをじっくりほぐす"],
-  ["PLCedjuxOvo3U","股関節&開脚 連続30分","硬い人もやわらかくなる"],
-  ["PLU0WWzgSTv8I","腰痛解消 連続30分","骨盤・股関節から治す"],
-  ["PLSrJDB_YqUGY","肩こり解消 連続30分","肩甲骨から根本解消"],
-  ["PLCGGUq5s6fsk","自律神経ととのえ 連続30分","頭痛・不眠・快眠に"]]},
+  ["PLH9L1OmHFdn0","朝ストレッチ 連続30分","起きてすぐ全身がラクになる","https://i.ytimg.com/pl_c/PLH9L1OmHFdn0/studio_square_thumbnail.jpg?sqp=CMO0t9IG-oaymwEICKoDEPABSFqi85f_AwYImOzG0QY=&rs=AOn4CLDeA37ZC91YsW7eHyCqDvb-BI6Uzg&days_since_epoch=20642"],
+  ["PLR-edMOCBxCU","夜ストレッチ 連続30分","寝る前に一日の疲れをリセット","https://i.ytimg.com/pl_c/PLR-edMOCBxCU/studio_square_thumbnail.jpg?sqp=CKCpt9IG-oaymwEICKoDEPABSFqi85f_AwYIwOvG0QY=&rs=AOn4CLDGV0tPAvDpXsQu8KJoFdAubCQcVA&days_since_epoch=20642"],
+  ["PLRMzTino89Do","座ったまま 連続20分","デスクワークの肩こり・腰痛に","https://i.ytimg.com/pl_c/PLRMzTino89Do/studio_square_thumbnail.jpg?sqp=COHkt9IG-oaymwEICKoDEPABSFqi85f_AwYI6vus0gY=&rs=AOn4CLApJHideURIre61cJqH0Lrz3EY-lg&days_since_epoch=20642"],
+  ["PLP2Rn_9fit2w","全身 連続35分","ガチガチをじっくりほぐす","https://i.ytimg.com/pl_c/PLP2Rn_9fit2w/studio_square_thumbnail.jpg?sqp=CKDHt9IG-oaymwEICKoDEPABSFqi85f_AwYIv_us0gY=&rs=AOn4CLDak09ZunUbNc9BBXGzS_RdZSiz4w&days_since_epoch=20642"],
+  ["PLCedjuxOvo3U","股関節&開脚 連続30分","硬い人もやわらかくなる","https://i.ytimg.com/pl_c/PLCedjuxOvo3U/studio_square_thumbnail.jpg?sqp=CPrHt9IG-oaymwEICKoDEPABSFqi85f_AwYIyejT0QY=&rs=AOn4CLChfn07mzypxNBHhBac3h53o7aJ9g&days_since_epoch=20642"],
+  ["PLU0WWzgSTv8I","腰痛解消 連続30分","骨盤・股関節から治す","https://i.ytimg.com/pl_c/PLU0WWzgSTv8I/studio_square_thumbnail.jpg?sqp=COjXt9IG-oaymwEICKoDEPABSFqi85f_AwYImKG_0QY=&rs=AOn4CLDvYhI-4UNqLjY8Ppx1wB5aQ1cbFg&days_since_epoch=20642"],
+  ["PLSrJDB_YqUGY","肩こり解消 連続30分","肩甲骨から根本解消","https://i.ytimg.com/pl_c/PLSrJDB_YqUGY/studio_square_thumbnail.jpg?sqp=CKbot9IG-oaymwEICKoDEPABSFqi85f_AwYI_56_0QY=&rs=AOn4CLDBw7en7md_dcHPIPRihaaDZNY5xw&days_since_epoch=20642"],
+  ["PLCGGUq5s6fsk","自律神経ととのえ 連続30分","頭痛・不眠・快眠に","https://i.ytimg.com/pl_c/PLCGGUq5s6fsk/studio_square_thumbnail.jpg?sqp=CKS-t9IG-oaymwEICKoDEPABSFqi85f_AwYI1fus0gY=&rs=AOn4CLCK2OWFkhOZOQgDe05gk5SCFSY3ZA&days_since_epoch=20642"]]},
  {g:"姿勢の悩みから探す", items:[
-  ["PLulTZBLbo7Ajl2zYMWNLdss2y-dNM89e2","反り腰をしっかり解消","まとめ・7本"],
-  ["PLulTZBLbo7AjTVW4Om1w0h6M519j39U8Z","猫背をしっかり解消","まとめ・3本"],
-  ["PLulTZBLbo7AivbuPAwkb5pavWkHB_ipO1","巻き肩をしっかり解消","まとめ・3本"],
-  ["PLulTZBLbo7Aiow918VD7SLHuillp8CwSd","スウェイバックをしっかり解消","まとめ・3本"],
-  ["PLulTZBLbo7AgZeU3lf1rhjVJtWHNbsyX0","しっかり「原因」解決ストレッチ","まとめ・7本"],
-  ["PLulTZBLbo7AgARmY-lbKKGo0jMWaQ7uBq","様々な症状撃退シリーズ","11本"]]},
+  ["PLulTZBLbo7Ajl2zYMWNLdss2y-dNM89e2","反り腰をしっかり解消","まとめ・7本","https://i.ytimg.com/vi/IPvnqtokBMk/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDw3EwVGfubyrvBtkHKZ6DLoj7p8w&days_since_epoch=20642"],
+  ["PLulTZBLbo7AjTVW4Om1w0h6M519j39U8Z","猫背をしっかり解消","まとめ・3本","https://i.ytimg.com/vi/fqIlsbdNZFQ/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCElxsro8n_0gVnn8vBB7aE9-mGJQ&days_since_epoch=20642"],
+  ["PLulTZBLbo7AivbuPAwkb5pavWkHB_ipO1","巻き肩をしっかり解消","まとめ・3本","https://i.ytimg.com/vi/YfK_r3PeP6Q/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLChlwOua7-peAIRLNEp5y_kWgyV1A&days_since_epoch=20642"],
+  ["PLulTZBLbo7Aiow918VD7SLHuillp8CwSd","スウェイバックをしっかり解消","まとめ・3本","https://i.ytimg.com/vi/H6j6DB2XGp0/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLA7ddC0sdXtBJf490tO6mrUSr6FVg&days_since_epoch=20642"],
+  ["PLulTZBLbo7AgZeU3lf1rhjVJtWHNbsyX0","しっかり「原因」解決ストレッチ","まとめ・7本","https://i.ytimg.com/vi/IPvnqtokBMk/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDw3EwVGfubyrvBtkHKZ6DLoj7p8w&days_since_epoch=20642"],
+  ["PLulTZBLbo7AgARmY-lbKKGo0jMWaQ7uBq","様々な症状撃退シリーズ","11本","https://i.ytimg.com/vi/nVx6cImPP98/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLBT3SkMnAVB6x-mk4fwWa4vNz6vDw&days_since_epoch=20642"]]},
  {g:"シリーズで深掘り", items:[
-  ["PLulTZBLbo7Ag4nbI2bqoRKDbUTEB0mcHr","「開脚できる」シリーズ","3本"],
-  ["PLulTZBLbo7AgYjXzkaJZkFY_UY6649rAp","「肩甲骨」超硬い人向けシリーズ","4本"],
-  ["PLulTZBLbo7Agf_o6Ro3t98N6cRmcIoeXX","理学療法士による「解説」シリーズ","なぜ硬いかが分かる・8本"]]},
+  ["PLulTZBLbo7Ag4nbI2bqoRKDbUTEB0mcHr","「開脚できる」シリーズ","3本",""],
+  ["PLulTZBLbo7AgYjXzkaJZkFY_UY6649rAp","「肩甲骨」超硬い人向けシリーズ","4本","https://i.ytimg.com/vi/ZYTlwh_FhoU/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAGRKHlw48FanMoSRb2hd1JbI0GeA&days_since_epoch=20642"],
+  ["PLulTZBLbo7Agf_o6Ro3t98N6cRmcIoeXX","理学療法士による「解説」シリーズ","なぜ硬いかが分かる・8本","https://i.ytimg.com/vi/MjeubVKGzHs/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDd0OdukP3zVywWwR6BdQN0_RIptw&days_since_epoch=20642"]]},
 ];
+function plImgErr(img){ img.outerHTML = ICON_PL; }
 function renderPlaylists(){
   document.getElementById("plList").innerHTML = PLAYLISTS.map(gr=>
     `<div class="group-label">${gr.g}</div>`+
-    gr.items.map(p=>`<a class="pl" href="https://www.youtube.com/playlist?list=${p[0]}" target="_blank" rel="noopener">${ICON_PL}<div><div class="pt">${p[1]}</div><div class="ps">${p[2]}</div></div></a>`).join("")
+    gr.items.map(p=>`<a class="pl" href="https://www.youtube.com/playlist?list=${p[0]}" target="_blank" rel="noopener">${p[3]?`<img class="plimg" src="${p[3]}" alt="" loading="lazy" onerror="plImgErr(this)">`:ICON_PL}<div><div class="pt">${p[1]}</div><div class="ps">${p[2]}</div></div></a>`).join("")
   ).join("");
 }
 
