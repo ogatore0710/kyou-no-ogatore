@@ -395,8 +395,6 @@
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
-    <button class="btn btn-ghost" style="margin-top:8px;font-size:16px" onclick="openBrag()">
-      <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#177065" stroke="none"/></svg>じまんカードをつくる</button>
     <div class="hint">カード画像を保存かシェアでのこしてね📤</div>
   </div>
 
@@ -475,6 +473,13 @@
     </table>
     <div id="dayInfo" class="hidden" style="margin-top:10px;padding:12px 14px;background:var(--bg);border-radius:14px;font-size:14px;line-height:1.8"></div>
     <div class="hint">「きょうやった！」を押した日に印がつきます<br>印をタップするとその日の記録が見られます</div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#E56A9A" stroke="none"/></svg>じまんカード<span class="badge">お楽しみ</span></div>
+    <div style="font-size:14px;color:var(--sub);margin:-4px 0 12px">つづけてる日数と すきな1本を 1枚のカードに✨</div>
+    <button class="btn btn-ghost" onclick="openBrag()">
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#177065" stroke="none"/></svg>じまんカードをつくる</button>
   </div>
 
   <div class="card">
@@ -1760,9 +1765,21 @@ function drawBragCard(thumb){
   // 区切り線
   ctx.save();ctx.strokeStyle=th.main;ctx.globalAlpha=.3;ctx.lineWidth=3;ctx.setLineDash([4,12]);
   ctx.beginPath();ctx.moveTo(170,488);ctx.lineTo(830,488);ctx.stroke();ctx.restore();
-  // すきな1本
-  ctx.fillStyle=th.main; ctx.font="900 30px "+F;
-  ctx.fillText("🎬 わたしのすきな1本",500,545);
+  // すきな1本（記録カードと同じタグピル方式）
+  {
+    const FB='"BananaNum","M PLUS 1p",sans-serif';
+    const label="すきな1本";
+    const yc=525;
+    ctx.font="28px "+FB;
+    const lw=ctx.measureText(label).width;
+    const pw=lw+48;
+    ctx.textAlign="left";
+    ctx.fillStyle=th.main;
+    roundRect(ctx,500-pw/2,yc-30,pw,60,30); ctx.fill();
+    ctx.fillStyle="#FFFFFF";
+    ctx.fillText(label,500-pw/2+24,yc+10);
+    ctx.textAlign="center";
+  }
   if(thumb){
     // サムネイル画像（角丸で切り抜き・テーマ色のふち）
     const tw=416, thh=234, tx=500-tw/2, ty=562;
