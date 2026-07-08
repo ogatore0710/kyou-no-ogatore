@@ -51,8 +51,33 @@
 <meta name="theme-color" content="#FFD93B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap">
+<link id="gfontLink" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet"></noscript>
+<script>
+  // フォントCSSの読み込み保険: 遅延回線でのonload未発火や、まれな失敗で
+  // フォールバック書体(Hiragino/Yu Gothic)に固定されたまま戻ってこないのを防ぐ。
+  // ・timeoutで強制的にmedia="all"へ（onloadが遅い/来ない場合の保険。二重実行しても無害）
+  // ・error時は1回だけ同じhrefで読み直しを試す（一時的なネットワーク失敗対策）
+  (function(){
+    var l=document.getElementById('gfontLink');
+    if(!l) return;
+    var forced=false;
+    function force(){ if(!forced){ forced=true; l.media='all'; } }
+    l.addEventListener('load', force);
+    l.addEventListener('error', function(){
+      force();
+      if(!l.getAttribute('data-retried')){
+        l.setAttribute('data-retried','1');
+        var retry=document.createElement('link');
+        retry.rel='stylesheet';
+        retry.href=l.href;
+        document.head.appendChild(retry);
+      }
+    });
+    setTimeout(force, 3000);
+  })();
+</script>
 <style>
   @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-card.woff2?v=2") format("woff2");font-display:swap}
   :root{
