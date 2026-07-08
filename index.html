@@ -564,7 +564,7 @@
     <button class="btn btn-primary" style="margin-top:16px" onclick="makeBragCard()">カードをつくる✨</button>
     <div class="hint">えらんだ1本は カードにサムネイル画像で入ります</div>
   </div>
-  <button class="btn btn-line" onclick="navTo('home')">← ホームにもどる</button>
+  <button class="btn btn-line" onclick="navTo('history')">← きろくにもどる</button>
 </section>
 
 <!-- ===== せんぱいの声 ===== -->
@@ -857,7 +857,7 @@ let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:nu
 
 // ================= 画面制御 =================
 const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices"];
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"home",voices:"history"};
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history"};
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
   for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
