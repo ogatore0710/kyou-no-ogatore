@@ -1,5 +1,5 @@
 // #きょうのオガトレ オフラインキャッシュ（https配信時のみ有効）
-const C="kyono-v12";
+const C="kyono-v13";
 const ASSETS=["./","index.html","videos.js","app-search.js","obu-feed.js","manifest.json","assets/chara.png","assets/chara-good.png","assets/chara-kaikyaku.png","assets/chara-2.png","assets/chara-3.png","assets/chara-cheer.png","assets/chara-crown.png","assets/obu-fab-photo.jpg","assets/check/q1.jpg","assets/check/q2.jpg","assets/check/meter.jpg","assets/icon-192.png","assets/icon-512.png","assets/icon-180.png","assets/fonts/banana-card.woff2?v=2"];
 // シェル（app本体）は必須=addAll、画像などはベストエフォート（1枚の失敗でオフライン対応全体を失わない）
 // assets/obu/ 配下（写真・音声）は将来ファイルが増える想定のため事前キャッシュ対象に含めない
