@@ -4,6 +4,17 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10 momo/kenko/yawaraのタイプアイコンを手描きSVGからAI生成ラスター画像に差し替え
+- 直前まで複数回（v2〜v4）手描きSVGで刷新を重ねてきたmomo（つっぱりモモンガ）・kenko（飛べないダチョウ）・yawara（しなやかネコ）の3タイプについて、本人指摘の通りSVGでは意図した動物として読めない状態が続いていたため、本人が外部の画像生成ツールで作った実写風/イラスト風のAI生成ラスター画像に差し替え
+- **新規アセット追加**: `assets/type-momo.png`・`assets/type-kenko.png`・`assets/type-yawara.png`（いずれも320×320・透過PNG、本人から提供）
+- **koka（開かずのトビラ）・ashi（棒立ちペンギン）・robot（ガチガチロボット）の3タイプは無変更**。引き続き`TYPE_ART`内の手描きSVGのまま
+- **`TYPE_IMG`マップを新設**（`index.html`、`TYPE_ART`定義の直後）: `{ momo: "assets/type-momo.png", kenko: "assets/type-kenko.png", yawara: "assets/type-yawara.png" }`
+- アイコンを参照する2箇所を両方とも「まず`TYPE_IMG`を確認し、無ければ`TYPE_ART`のSVGにフォールバック」する分岐に変更:
+  - 結果画面のアイコン（`rIllust`、`showResult`内）: `TYPE_IMG[saved.key]`があれば`<img>`タグで描画、無ければ従来通り`TYPE_ART[saved.key]`のSVG文字列を`innerHTML`
+  - 記録カードのcanvas用アイコン読み込み（`loadTypeIcon`）: `TYPE_IMG[key]`があればその画像パスをそのまま`Image.src`に、無ければ従来通り`TYPE_ART[key]`をdata URI化して読み込み
+- **`sw.js`**: `ASSETS`配列に3つの新PNGを追加、キャッシュ版数`kyono-v16`→`kyono-v17`に上げて強制再検証（新規アセット追加時の既定の作法どおり）
+- `node scripts/qa.js` で全チェックpass確認済み
+
 ## 2026-07-10 momo/kenkoのTYPE_ARTアイコンを再々刷新（v4・本人の具体的指摘に対応）
 - v3に対し本人から具体的指摘: 「ダチョウ顔が2つある（体にも頭にも目鼻がある）」「モモンガが全くモモンガに見えない（丸まった塊すぎて滑空ポーズの特徴が消えている）」
 - **kenko（ダチョウ）**: 顔（目・くちばし）を頭部の円だけに限定し、体の楕円には目鼻を置かない構成に変更。さらに頭と体の間に太い首（stroke-width 9の黒縁+5.5の塗り、二重ストローク）を追加してダチョウらしい長首シルエットを復活。「顔が2つ」問題を解消しつつ識別性も向上
