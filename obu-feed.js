@@ -6,4 +6,7 @@
 //    image:"assets/obu/xxx.jpg（type=photoの時だけ）",
 //    audio:"assets/obu/xxx.mp3（type=radioの時だけ）",
 //    title:"ラジオのタイトル（type=radioの時だけ）"}
-const OBU_FEED=[];
+const OBU_FEED=[
+ {id:"20260709-01", date:"2026-07-09", type:"photo", image:"assets/obu/post-2026-07-09-01.jpg",
+  text:"アプリ開発中〜！腹へった〜！やきとりくいて〜！！！"},
+];
