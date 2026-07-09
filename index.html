@@ -191,6 +191,7 @@
   .obu-post{margin-bottom:14px}
   .obu-post:last-child{margin-bottom:0}
   .obu-post img{width:100%;border-radius:14px;border:1.5px solid var(--line);display:block}
+  #obuModal .obu-post img{width:75%;margin:0 auto}
   .obu-post .obu-cap{font-size:14px;margin-top:6px;line-height:1.7}
   .obu-post.obu-text{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.7}
   .obu-post .obu-title{font-size:14px;font-weight:900;color:var(--tealink);margin-bottom:6px}
@@ -620,10 +621,10 @@
   <button class="btn btn-line" onclick="navTo('history')">← きろくにもどる</button>
 </section>
 
-<!-- ===== オガトレ部だより（全アーカイブ） ===== -->
+<!-- ===== オガトレ通信（全アーカイブ） ===== -->
 <section id="obu" class="hidden">
   <div class="card" style="margin-bottom:14px">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#FFEDF3"/></svg>オガトレ部だより</div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#FFEDF3"/></svg>オガトレ通信</div>
     <div style="font-size:14px;line-height:1.9">尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱</div>
   </div>
   <div id="obuArchiveList"></div>
@@ -710,7 +711,7 @@
   </div>
 
   <div class="card">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#FFEDF3"/></svg>オガトレ部だより</div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#FFEDF3"/></svg>オガトレ通信</div>
     <div style="font-size:14px;line-height:1.9">右下のアイコンをタップすると💬 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます✅</div>
   </div>
 
@@ -765,7 +766,7 @@
   <button id="tab-search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle class="ic-fill" cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>さがす</button>
 </nav>
 
-<button id="obuFab" class="obu-fab" onclick="toggleObu()" aria-label="オガトレ部だより">
+<button id="obuFab" class="obu-fab" onclick="toggleObu()" aria-label="オガトレ通信">
   <img src="assets/chara.png" alt="">
   <span id="obuDot" class="obu-dot hidden"></span>
 </button>
@@ -773,7 +774,7 @@
 <div id="obuModal" class="hidden" onclick="if(event.target===this)closeObu()">
   <div class="obu-box">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:15px;font-weight:900">オガトレ部だより</div>
+      <div style="font-size:15px;font-weight:900">オガトレ通信</div>
       <button onclick="closeObu()" style="border:none;background:var(--line);color:var(--ink);width:30px;height:30px;border-radius:50%;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit">✕</button>
     </div>
     <div id="obuBody"></div>
@@ -823,12 +824,13 @@ function updateObuBadge(){
   if(!dot) return;
   dot.classList.toggle("hidden", !obuHasNew());
 }
-function obuFmtDate(ds){
+function obuFmtDate(ds,time){
   const m=+ds.slice(5,7), d=+ds.slice(8,10);
-  return `${m}月${d}日`;
+  const base=`${m}月${d}日`;
+  return time ? `${base} ${time}ごろ` : base;
 }
 function obuPostInner(item,withDate){
-  const dateLabel = withDate ? `<div class="obu-date">${obuFmtDate(item.date)}</div>` : "";
+  const dateLabel = withDate ? `<div class="obu-date">${obuFmtDate(item.date,item.time)}</div>` : "";
   if(item.type==="photo"){
     return `${dateLabel}<img src="${item.image}" alt=""><div class="obu-cap">${(item.text||"").replace(/</g,"&lt;")}</div>`;
   }
@@ -844,7 +846,7 @@ function obuPostHtml(item,withDate){
 function renderObuPopup(){
   const body=document.getElementById("obuBody");
   const items=[obuLatestByType("text"),obuLatestByType("photo"),obuLatestByType("radio")].filter(Boolean);
-  body.innerHTML = items.length ? items.map(item=>obuPostHtml(item)).join("")
+  body.innerHTML = items.length ? items.map(item=>obuPostHtml(item,true)).join("")
     : '<div style="text-align:center;color:var(--sub);font-size:14px;padding:20px 0">まだ投稿がありません またきてね</div>';
 }
 // オガトレ部の全アーカイブ（新しい日付順）

@@ -5,7 +5,8 @@
 //    text:"本文（type=text/photoのキャプション・200字程度想定）",
 //    image:"assets/obu/xxx.jpg（type=photoの時だけ）",
 //    audio:"assets/obu/xxx.mp3（type=radioの時だけ）",
-//    title:"ラジオのタイトル（type=radioの時だけ）"}
+//    title:"ラジオのタイトル（type=radioの時だけ）",
+//    time:"HH:MM（任意項目・投稿のだいたいの時刻。省略可＝無ければ日付のみ表示）"}
 const OBU_FEED=[
  {id:"20260709-01", date:"2026-07-09", type:"photo", image:"assets/obu/post-2026-07-09-01.jpg",
   text:"アプリ開発中〜！腹へった〜！やきとりくいて〜！！！"},
