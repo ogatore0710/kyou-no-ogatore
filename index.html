@@ -223,7 +223,7 @@
   .dot.on{background:var(--pink)}
   /* 結果 */
   .type-illust{display:flex;justify-content:center;margin:10px 0 4px}
-  .type-illust svg{width:104px;height:104px}
+  .type-illust svg,.type-illust img{width:104px;height:104px;object-fit:contain}
   .type-name{font-size:29px;font-weight:900;text-align:center;letter-spacing:.02em}
   .type-copy{text-align:center;color:var(--sub);font-size:15px;margin:8px 0 2px}
   .type-hope{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;margin-top:12px}
@@ -1185,7 +1185,7 @@ function showResult(saved){
   {
     const img=TYPE_IMG[saved.key];
     document.getElementById("rIllust").innerHTML = img
-      ? `<img src="${img}" style="width:100%;height:100%;object-fit:contain" alt="">`
+      ? `<img src="${img}" alt="">`
       : TYPE_ART[saved.key];
   }
   document.getElementById("rName").textContent=T.name;
@@ -1781,7 +1781,8 @@ function drawCard(){
     if(ctx.measureText(txt).width<=maxW){
       ctx.fillText(txt,vx,yc+Math.round(fs*0.36));
       if(row[0]==="かたさタイプ" && typeIconImg){
-        const iw=40, ih=40, ix=vx+ctx.measureText(txt).width+14, iy=yc-ih/2;
+        const ih=fs+10, ar=typeIconImg.naturalWidth/typeIconImg.naturalHeight||1, iw=ih*ar;
+        const ix=vx+ctx.measureText(txt).width+14, iy=yc-ih/2;
         if(ix+iw<=maxW+vx) ctx.drawImage(typeIconImg, ix, iy, iw, ih);
       }
     } else {
