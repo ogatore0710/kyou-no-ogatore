@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10 タイプアイコン(momo/kenko/yawara)のサイズ統一・エッジ品質改善
+- 本人指摘: 結果画面でAI生成PNGの3枚(momo/kenko/yawara)が手描きSVGの3枚(koka/ashi/robot)とサイズが違う／PNGのエッジがギザついて画質が粗い／記録カード上のアイコンが文字に対して小さい
+- **サイズ不一致の原因**: `#rIllust`にimgタグを注入する際`style="width:100%;height:100%"`を指定していたが、親要素`.type-illust`に明示的な高さが無くパーセント指定が正しく解決されず、画像本来のピクセルサイズ(320px角)で表示されていた。CSSに`.type-illust svg,.type-illust img{width:104px;height:104px;object-fit:contain}`を追加してsvg/img両方を同じ104x104に固定
+- **エッジ品質**: 元の切り抜き処理がコーナーからのflood-fillで二値マスク(0/255)を作っていたため境界がジャギー気味だった。マスクにガウスぼかし(半径1.6px)をかけてフェザリングし、余白も詰めてタイトにクロップ、正方形への強制パディングをやめて自然なアスペクト比のまま保持するよう`assets/type-momo.png`/`type-kenko.png`/`type-yawara.png`を再生成
+- **記録カードのアイコンサイズ**: `drawCard`内の固定`iw=40,ih=40`を、その行の実際のフォントサイズ`fs`に連動する`ih=fs+10`＋画像の実アスペクト比(`typeIconImg.naturalWidth/naturalHeight`)から`iw`を算出する方式に変更。文字サイズが縮小されるケースでもアイコンが比例して小さくなり、見た目のバランスが崩れない
+- sw.jsキャッシュ版数を`kyono-v17`→`kyono-v18`（画像バイナリ変更のため）
+- ブラウザで実際に結果画面(momo/koka)・記録カード(momo)をレンダリングして目視確認済み。`node scripts/qa.js`で74 checks pass確認済み
+
 ## 2026-07-10 momo/kenko/yawaraのタイプアイコンを手描きSVGからAI生成ラスター画像に差し替え
 - 直前まで複数回（v2〜v4）手描きSVGで刷新を重ねてきたmomo（つっぱりモモンガ）・kenko（飛べないダチョウ）・yawara（しなやかネコ）の3タイプについて、本人指摘の通りSVGでは意図した動物として読めない状態が続いていたため、本人が外部の画像生成ツールで作った実写風/イラスト風のAI生成ラスター画像に差し替え
 - **新規アセット追加**: `assets/type-momo.png`・`assets/type-kenko.png`・`assets/type-yawara.png`（いずれも320×320・透過PNG、本人から提供）
