@@ -181,6 +181,20 @@
   #ckCard.mini #ckHint{display:none}
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+  /* オガトレ部フローティングボタン＆ポップアップ */
+  .obu-fab{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:45;width:56px;height:56px;border-radius:50%;border:none;padding:0;background:var(--card);box-shadow:0 4px 14px rgba(58,52,32,.32),0 1px 3px rgba(58,52,32,.2);cursor:pointer}
+  .obu-fab img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;pointer-events:none}
+  .obu-dot{position:absolute;top:-1px;right:-1px;width:15px;height:15px;border-radius:50%;background:var(--pink);border:2px solid var(--bg)}
+  .obu-dot.hidden{display:none}
+  #obuModal{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+  #obuModal .obu-box{background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto}
+  .obu-post{margin-bottom:14px}
+  .obu-post:last-child{margin-bottom:0}
+  .obu-post img{width:100%;border-radius:14px;border:1.5px solid var(--line);display:block}
+  .obu-post .obu-cap{font-size:14px;margin-top:6px;line-height:1.7}
+  .obu-post .obu-text{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.7}
+  .obu-post .obu-title{font-size:14px;font-weight:900;color:var(--tealink);margin-bottom:6px}
+  .obu-post audio{width:100%}
   /* 診断 */
   .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
   .q-art{text-align:center;margin:8px 0 2px}
@@ -734,6 +748,24 @@
   <button id="tab-search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle class="ic-fill" cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>さがす</button>
 </nav>
 
+<button id="obuFab" class="obu-fab" onclick="toggleObu()" aria-label="オガトレ部だより">
+  <img src="assets/chara.png" alt="">
+  <span id="obuDot" class="obu-dot hidden"></span>
+</button>
+
+<div id="obuModal" class="hidden" onclick="if(event.target===this)closeObu()">
+  <div class="obu-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:900">オガトレ部だより</div>
+      <button onclick="closeObu()" style="border:none;background:var(--line);color:var(--ink);width:30px;height:30px;border-radius:50%;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit">✕</button>
+    </div>
+    <div id="obuBody"></div>
+    <div style="text-align:center;margin-top:12px">
+      <a href="#" class="tapx" onclick="navTo('obu');closeObu();return false" style="color:var(--tealink);font-weight:800;font-size:14px">もっと見る（過去の投稿もぜんぶ）</a>
+    </div>
+  </div>
+</div>
+
 <div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
   <div style="background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%">
     <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
@@ -749,7 +781,58 @@
 
 <script src="videos.js"></script>
 <script src="app-search.js"></script>
+<script src="obu-feed.js"></script>
+<script>if(typeof OBU_FEED==="undefined")var OBU_FEED=[];</script>
 <script>
+// ================= オガトレ部だより（フローティングボタン＋ポップアップ） =================
+function obuLatest(){
+  if(!OBU_FEED.length) return null;
+  let best=OBU_FEED[0];
+  for(let i=1;i<OBU_FEED.length;i++){ if(OBU_FEED[i].date>=best.date) best=OBU_FEED[i]; }
+  return best;
+}
+function obuLatestByType(type){
+  let best=null;
+  for(const item of OBU_FEED){ if(item.type===type && (!best||item.date>=best.date)) best=item; }
+  return best;
+}
+function obuHasNew(){
+  const latest=obuLatest();
+  if(!latest) return false;
+  return store.get("obu_seen",null)!==latest.id;
+}
+function updateObuBadge(){
+  const dot=document.getElementById("obuDot");
+  if(!dot) return;
+  dot.classList.toggle("hidden", !obuHasNew());
+}
+function obuPostHtml(item){
+  if(item.type==="photo"){
+    return `<div class="obu-post"><img src="${item.image}" alt=""><div class="obu-cap">${(item.text||"").replace(/</g,"&lt;")}</div></div>`;
+  }
+  if(item.type==="radio"){
+    return `<div class="obu-post"><div class="obu-title">📻 ${(item.title||"").replace(/</g,"&lt;")}</div><audio controls src="${item.audio}"></audio></div>`;
+  }
+  return `<div class="obu-post obu-text">${(item.text||"").replace(/</g,"&lt;")}</div>`;
+}
+function renderObuPopup(){
+  const body=document.getElementById("obuBody");
+  const items=[obuLatestByType("text"),obuLatestByType("photo"),obuLatestByType("radio")].filter(Boolean);
+  body.innerHTML = items.length ? items.map(obuPostHtml).join("")
+    : '<div style="text-align:center;color:var(--sub);font-size:14px;padding:20px 0">まだ投稿がありません またきてね</div>';
+}
+function openObu(){
+  renderObuPopup();
+  document.getElementById("obuModal").classList.remove("hidden");
+  const latest=obuLatest();
+  if(latest) store.set("obu_seen", latest.id);
+  updateObuBadge();
+}
+function closeObu(){ document.getElementById("obuModal").classList.add("hidden"); }
+function toggleObu(){
+  const m=document.getElementById("obuModal");
+  if(m.classList.contains("hidden")) openObu(); else closeObu();
+}
 // ================= 自作アイコン（タイプ別イラスト・SVG） =================
 const TYPE_ART = {
   momo: `<svg viewBox="0 0 96 96"><g transform="rotate(8 48 48)"><rect x="34" y="12" width="28" height="72" rx="8" fill="#E8C48A" stroke="#3A3A35" stroke-width="3"/><path d="M42 22c3 6 0 10 2 16M52 30c-2 8 1 12 0 20M44 56c2 6 0 10 1 14" stroke="#C79B5B" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="43" cy="40" r="1.8" fill="#3A3A35"/><circle cx="53" cy="40" r="1.8" fill="#3A3A35"/><path d="M45 47q3 2 6 0" stroke="#3A3A35" stroke-width="2.2" fill="none" stroke-linecap="round"/></g></svg>`,
@@ -2232,6 +2315,7 @@ renderPlaylists();
 renderVoices();
 buildChips();
 renderSearch();
+updateObuBadge();
 // PWA復帰・日付またぎで画面を最新化
 let lastDay=todayStr();
 function refreshDay(){
