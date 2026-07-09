@@ -9,11 +9,18 @@
 - **未読バッジ**: 最新投稿の`id`と`store.get("obu_seen")`を比較して差があればピンクのドット（`.obu-dot`）を表示。ポップアップを開いた瞬間に既読化（`openObu`）
 - **データファイル `obu-feed.js`（新設）**: 中身は配列`OBU_FEED`だけ。`index.html`からは素の`<script src="obu-feed.js">`で読み込み、未定義でも落ちないよう直後に`if(typeof OBU_FEED==="undefined")var OBU_FEED=[];`のフォールバックあり
 - **今後の投稿方法（超重要・次にこれを触る人向け）**: アプリ内に投稿UIは無い。**尾形さん本人がアプリで投稿するのではなく、`obu-feed.js`の`OBU_FEED`配列に1件オブジェクトを追記してpushするだけ**（動画カタログ更新=`videos.js`と同じ運用思想）。要素の形はファイル冒頭のコメントに明記済み:
-  - `{id:"一意なID文字列", date:"YYYY-MM-DD", type:"text"|"photo"|"radio", text:"本文（type=text/photoのキャプション・200字程度想定）", image:"assets/obu/xxx.jpg（type=photoの時だけ）", audio:"assets/obu/xxx.mp3（type=radioの時だけ）", title:"ラジオのタイトル（type=radioの時だけ）"}`
+  - `{id:"一意なID文字列", date:"YYYY-MM-DD", type:"text"|"photo"|"radio", text:"本文（type=text/photoのキャプション・200字程度想定）", image:"assets/obu/xxx.jpg（type=photoの時だけ）", audio:"assets/obu/xxx.mp3（type=radioの時だけ）", title:"ラジオのタイトル（type=radioの時だけ）", time:"HH:MM（任意・省略可）"}`
   - 写真・音声ファイルの実体は **`assets/obu/`ディレクトリに置く**（現状は空フォルダ・投稿が増えるたびにここへ追加）。`obu-feed.js`側の`image`/`audio`パスはこのフォルダを指すだけでよい
   - 投稿後は`npm test`→commit→pushだけで反映（ビルド不要・バニラJS）
 - **sw.js**: `obu-feed.js`をSHELL/ASSETSに追加（network-first・no-cache再検証対象にも追加済みなので投稿後すぐ拾われる）。一方 **`assets/obu/`配下（写真・音声）は事前キャッシュ対象に含めない**（コメントに明記済み・将来ファイルが増え続けるため）。今回のキャッシュ版数は v10→v11
 - **つかいかたタブ**: 「オガトレ通信」カードを新設し、右下アイコン→ポップアップ→もっと見るの導線を1行で案内（文言ルール=絵文字と「！」区切り準拠）
+- **改名**: 機能名を「オガトレ部だより」から「オガトレ通信」へ統一（ボタンaria-label・見出し・つかいかたタブ・アーカイブ見出し全箇所）
+- **ポップアップ内の写真縮小**: `#obuModal .obu-post img{width:75%;margin:0 auto}` を追加し、ポップアップ内の写真だけアーカイブより小さく中央寄せ表示に
+- **日付に時刻表示を追加**: `obuFmtDate(ds,time)`が`time`引数を受け取り「7月9日 18:00ごろ」のように表示。`OBU_FEED`の`time`は任意項目（省略時は日付のみ）
+
+## 2026-07-09 タブバー並び替え・ラベル変更
+- **並び順変更**: 使い方→マイ記録→ホーム→再生リスト→動画を探す の順に変更（ホームを左端から3番目へ・使い方とマイ記録を前に）
+- **ラベル変更**: 「きろく」→「マイ記録」、「リスト」→「再生リスト」、「つかいかた」→「使い方」、「さがす」→「動画を探す」。本文中の同名の文言・導線ボタン・見出し（「「きろく」タブでできること」等）も呼応して更新
 
 ## 2026-07-08夜 フォント読み込み信頼性向上・ダークモード視認性・季節アイコン
 - **Google Fontsの読み込み保険**: `rel="preload"`を追加した上で、`onload`が来ない低速回線に備えsetTimeout(3秒)で強制的に`media='all'`へ切替。`error`時は1回だけ同じhrefで読み直しを試行（フォールバック書体に固定されたまま戻らない事故を防止）
