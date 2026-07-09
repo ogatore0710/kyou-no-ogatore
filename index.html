@@ -390,7 +390,7 @@
   </div>
   <div class="card hidden" id="anchorCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 7.5V12l3 2.5"/></svg>いつやる派？</div>
-    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります！<br>合図をひとつ選んでください（あとで きろくタブから変えられます）</div>
+    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります！<br>合図をひとつ選んでください（あとで マイ記録タブから変えられます）</div>
     <div class="anchor-row">
       <button class="opt" onclick="setAnchor('asa')">朝おきてそのまま</button>
       <button class="opt" onclick="setAnchor('furo')">おふろ上がりに</button>
@@ -608,7 +608,7 @@
     <button class="btn btn-primary" style="margin-top:16px" onclick="makeBragCard()">カードをつくる✨</button>
     <div class="hint">えらんだ1本は カードにサムネイル画像で入ります</div>
   </div>
-  <button class="btn btn-line" onclick="navTo('history')">← きろくにもどる</button>
+  <button class="btn btn-line" onclick="navTo('history')">← マイ記録にもどる</button>
 </section>
 
 <!-- ===== せんぱいの声 ===== -->
@@ -618,7 +618,7 @@
     <div style="font-size:14px;line-height:1.9">まえを歩くせんぱいたちの ほんとうの声です🌱<br>カードをタップするとめくれます<br><span style="font-size:12px;color:var(--sub)">※YouTubeコメントの原文のまま（お名前は出ません）</span></div>
   </div>
   <div id="voiceList"></div>
-  <button class="btn btn-line" onclick="navTo('history')">← きろくにもどる</button>
+  <button class="btn btn-line" onclick="navTo('history')">← マイ記録にもどる</button>
 </section>
 
 <!-- ===== オガトレ通信（全アーカイブ） ===== -->
@@ -697,17 +697,17 @@
     <div class="gstep" style="align-items:center"><img src="assets/chara-crown.png" alt="" style="width:60px;height:60px;object-fit:contain;flex-shrink:0"><div><b>節目はゴールドカード</b><br>3日・7日・2週間…お祝いが待ってます</div></div>
     <div class="gcardmini gmock" style="max-width:240px;margin:4px auto 10px">👑 7日目！<br><span style="font-size:12px">記録カードがゴールドに</span></div>
     <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
-    <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「さがす」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
+    <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
   </div>
 
   <div class="card">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「きろく」タブでできること</div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「マイ記録」タブでできること</div>
     <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
     <div class="gstep"><span class="stepn">📝</span><div><b>ひとことにっき</b>…毎日のメモを読み返せます</div></div>
     <div class="gstep"><span class="stepn">⏰</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
-    <div class="gstep"><span class="stepn">📺</span><div><b>「リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
-    <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">きろくタブをひらく</button>
+    <div class="gstep"><span class="stepn">📺</span><div><b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
+    <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">マイ記録タブをひらく</button>
   </div>
 
   <div class="card">
@@ -728,7 +728,7 @@
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><img src="assets/chara-good.png" alt="" style="width:64px;height:60px;object-fit:contain;flex-shrink:0"><div style="font-size:14px;color:var(--sub)">3つおさえれば安心です</div></div>
     <div class="gstep"><span class="stepn">1</span><div><b>ホーム画面についか</b>する（共有ボタン→「ホーム画面に追加」）これがいちばん大事！アプリ版は記録がずっと残ります<br><span style="font-size:13px;color:var(--sub)">※ついか後は「記録をコピー」→アプリ版で「取りこむ」も忘れずに</span></div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>記録カードを画像で保存</b>…写真フォルダが自動でバックアップに</div></div>
-    <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…きろく→つづける設定→「記録をコピー」→新しいスマホで「取りこむ」</div></div>
+    <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…マイ記録→つづける設定→「記録をコピー」→新しいスマホで「取りこむ」</div></div>
   </div>
 
   <div class="card">
@@ -739,7 +739,7 @@
       <b>Q. 動画はどこで再生されるの？</b><br>ぜんぶYouTubeのオガトレチャンネルでひらきます<br><br>
       <b>Q. まちがえて「きょうやった！」を押しちゃった</b><br>だいじょうぶ そのままでOK！あしたまた会いましょう<br><br>
       <b>Q. 通算が0日にもどってる！</b><br>LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ✅ お引っ越しは「記録をコピー」→「取りこむ」で<br><br>
-      <b>Q. やりたいストレッチが見つからない</b><br>「さがす」のいちばん下からリクエストを送れます📮
+      <b>Q. やりたいストレッチが見つからない</b><br>「動画を探す」のいちばん下からリクエストを送れます📮
     </div>
   </div>
 
@@ -754,16 +754,16 @@
     ・記録はぜんぶあなたのスマホの中だけ サーバーには何も送りません<br>
     ・アクセス解析もありません<br>
     ・医療・診断行為ではありません 効果には個人差があります<br>
-    ・ご意見は「さがす」のいちばん下のリクエストからどうぞ</div>
+    ・ご意見は「動画を探す」のいちばん下のリクエストからどうぞ</div>
   </details>
 </div>
 
 <nav class="tabbar">
+  <button id="tab-guide" onclick="switchTab('guide')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="ic-fill" d="M4 5.5Q8 3.5 12 5.5Q16 3.5 20 5.5V19q-4-2-8 0q-4-2-8 0z"/><path d="M12 5.5V19"/></svg>使い方</button>
+  <button id="tab-history" onclick="switchTab('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5"/></svg>マイ記録</button>
   <button id="tab-home" class="on" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path class="ic-fill" d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20z"/><path d="M9.5 21v-6h5v6" stroke-linecap="round"/></svg>ホーム</button>
-  <button id="tab-history" onclick="switchTab('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5"/></svg>きろく</button>
-  <button id="tab-playlists" onclick="switchTab('playlists')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="7" width="14" height="13" rx="3"/><path d="M6.5 4.5h11M8.5 12v5l4-2.5z"/></svg>リスト</button>
-  <button id="tab-guide" onclick="switchTab('guide')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="ic-fill" d="M4 5.5Q8 3.5 12 5.5Q16 3.5 20 5.5V19q-4-2-8 0q-4-2-8 0z"/><path d="M12 5.5V19"/></svg>つかいかた</button>
-  <button id="tab-search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle class="ic-fill" cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>さがす</button>
+  <button id="tab-playlists" onclick="switchTab('playlists')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="7" width="14" height="13" rx="3"/><path d="M6.5 4.5h11M8.5 12v5l4-2.5z"/></svg>再生リスト</button>
+  <button id="tab-search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle class="ic-fill" cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>動画を探す</button>
 </nav>
 
 <button id="obuFab" class="obu-fab" onclick="toggleObu()" aria-label="オガトレ通信">
