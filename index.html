@@ -1769,7 +1769,7 @@ function drawCard(){
     ctx.fillText(row[0],130+24,yc+10);
     // 値（幅に合わせて縮小）
     const vx=130+pw+26;
-    const maxW=(i===rows.slice(0,2).length-1?700:860)-vx;
+    const maxW=(i===1?700:860)-vx;
     let fs=46;
     ctx.fillStyle="#3A3A35";
     let txt=row[1];
