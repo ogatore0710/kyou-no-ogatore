@@ -4,6 +4,12 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10 momo/kenko/yawaraのTYPE_ARTアイコンを再刷新（v3・koka/ashi/robotのトーンに揃えた）
+- 直前エントリ（本ファイル下記）でmomo/kenko/yawaraを一度刷新したが、本人から「koka（角丸長方形1個+顔）・ashi（楕円1個+顔）・robot（角丸長方形1個+顔）の“単一の主形状+シンプルな顔”というトーンに対して、momo=細いダチョウの首・kenko=ネコのひげ・yawara=垂れたリスの尻尾のような描き込みが浮いて見える」とフィードバックがあり再修正
+- momo/kenko/yawaraを単一の丸みを帯びた塊形状+シンプルな顔（目2つ+口）だけの構成に描き直し、koka/ashi/robotと視覚的に統一
+- koka/ashi/robotは無変更
+- `node scripts/qa.js` で確認（75 checks pass・drawCardのMath.random/Date.now不使用ルールに抵触なし）
+
 ## 2026-07-10 記録カードにかたさタイプアイコンを追加・loadTypeIcon新設
 - **TYPE_ART（`index.html`内のSVG定義）を3件描き直し**。`koka`（開かずのトビラ）・`ashi`（棒立ちペンギン）・`robot`（ガチガチロボット）は**無変更**:
   - `momo`（つっぱりモモンガ）: 滑空ポーズのモモンガ柄に刷新
