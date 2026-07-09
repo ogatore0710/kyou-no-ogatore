@@ -1381,8 +1381,8 @@ function greetText(){
   const h=new Date().getHours();
   if(h>=4&&h<11) return "おはようございます☀️朝の1本いきましょう！";
   if(h>=11&&h<17) return "こんにちは☀️きょうの1本いきましょう！";
-  if(a==="furo") return "おふろ上がりの1本いきましょう♨️";
-  if(a==="neru") return "寝るまえの1本できょうをしめくくりましょう🌙";
+  if(a==="furo"&&h>=19&&h<23) return ANCHORS.furo.g;
+  if(a==="neru"&&(h>=21||h<2)) return ANCHORS.neru.g;
   return "こんばんは🌙今夜の1本いきましょう！";
 }
 function renderAnchor(){
