@@ -192,9 +192,11 @@
   .obu-post:last-child{margin-bottom:0}
   .obu-post img{width:100%;border-radius:14px;border:1.5px solid var(--line);display:block}
   .obu-post .obu-cap{font-size:14px;margin-top:6px;line-height:1.7}
-  .obu-post .obu-text{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.7}
+  .obu-post.obu-text{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.7}
   .obu-post .obu-title{font-size:14px;font-weight:900;color:var(--tealink);margin-bottom:6px}
   .obu-post audio{width:100%}
+  .obu-post .obu-date{font-size:12px;color:var(--sub);font-weight:800;margin-bottom:4px}
+  .obu-post.obu-text .obu-date{color:var(--sub2)}
   /* 診断 */
   .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
   .q-art{text-align:center;margin:8px 0 2px}
@@ -618,6 +620,16 @@
   <button class="btn btn-line" onclick="navTo('history')">← きろくにもどる</button>
 </section>
 
+<!-- ===== オガトレ部だより（全アーカイブ） ===== -->
+<section id="obu" class="hidden">
+  <div class="card" style="margin-bottom:14px">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#FFEDF3"/></svg>オガトレ部だより</div>
+    <div style="font-size:14px;line-height:1.9">尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱</div>
+  </div>
+  <div id="obuArchiveList"></div>
+  <button class="btn btn-line" onclick="navTo('home')">← もどる</button>
+</section>
+
 <!-- ===== 再生リスト ===== -->
 <section id="playlists" class="hidden">
   <div id="plList"></div>
@@ -695,6 +707,11 @@
     <div class="gstep"><span class="stepn">⏰</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
     <div class="gstep"><span class="stepn">📺</span><div><b>「リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
     <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">きろくタブをひらく</button>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#FFEDF3"/></svg>オガトレ部だより</div>
+    <div style="font-size:14px;line-height:1.9">右下のアイコンをタップすると💬 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます✅</div>
   </div>
 
   <div class="card">
@@ -806,20 +823,40 @@ function updateObuBadge(){
   if(!dot) return;
   dot.classList.toggle("hidden", !obuHasNew());
 }
-function obuPostHtml(item){
+function obuFmtDate(ds){
+  const m=+ds.slice(5,7), d=+ds.slice(8,10);
+  return `${m}月${d}日`;
+}
+function obuPostInner(item,withDate){
+  const dateLabel = withDate ? `<div class="obu-date">${obuFmtDate(item.date)}</div>` : "";
   if(item.type==="photo"){
-    return `<div class="obu-post"><img src="${item.image}" alt=""><div class="obu-cap">${(item.text||"").replace(/</g,"&lt;")}</div></div>`;
+    return `${dateLabel}<img src="${item.image}" alt=""><div class="obu-cap">${(item.text||"").replace(/</g,"&lt;")}</div>`;
   }
   if(item.type==="radio"){
-    return `<div class="obu-post"><div class="obu-title">📻 ${(item.title||"").replace(/</g,"&lt;")}</div><audio controls src="${item.audio}"></audio></div>`;
+    return `${dateLabel}<div class="obu-title">📻 ${(item.title||"").replace(/</g,"&lt;")}</div><audio controls src="${item.audio}"></audio>`;
   }
-  return `<div class="obu-post obu-text">${(item.text||"").replace(/</g,"&lt;")}</div>`;
+  return `${dateLabel}${(item.text||"").replace(/</g,"&lt;")}`;
+}
+function obuPostHtml(item,withDate){
+  const cls = item.type==="text" ? "obu-post obu-text" : "obu-post";
+  return `<div class="${cls}">${obuPostInner(item,withDate)}</div>`;
 }
 function renderObuPopup(){
   const body=document.getElementById("obuBody");
   const items=[obuLatestByType("text"),obuLatestByType("photo"),obuLatestByType("radio")].filter(Boolean);
-  body.innerHTML = items.length ? items.map(obuPostHtml).join("")
+  body.innerHTML = items.length ? items.map(item=>obuPostHtml(item)).join("")
     : '<div style="text-align:center;color:var(--sub);font-size:14px;padding:20px 0">まだ投稿がありません またきてね</div>';
+}
+// オガトレ部の全アーカイブ（新しい日付順）
+function renderObuArchive(){
+  const box=document.getElementById("obuArchiveList");
+  if(!box) return;
+  if(!OBU_FEED.length){
+    box.innerHTML = '<div class="card" style="text-align:center;color:var(--sub);font-size:14px;padding:26px 12px">まだ投稿がありません また今度のぞいてみてね🌱</div>';
+    return;
+  }
+  const sorted=OBU_FEED.slice().sort((a,b)=> a.date<b.date?1:(a.date>b.date?-1:0));
+  box.innerHTML = sorted.map(item=>obuPostHtml(item,true)).join("");
 }
 function openObu(){
   renderObuPopup();
@@ -971,7 +1008,7 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices"];
+const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices","obu"];
 const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history"};
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
@@ -2316,6 +2353,7 @@ renderVoices();
 buildChips();
 renderSearch();
 updateObuBadge();
+renderObuArchive();
 // PWA復帰・日付またぎで画面を最新化
 let lastDay=todayStr();
 function refreshDay(){
