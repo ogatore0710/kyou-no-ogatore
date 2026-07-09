@@ -163,7 +163,7 @@
   @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
   @media (max-width:340px){ h1{font-size:19px} .cal .d{width:32px;height:32px;line-height:32px} .reach-btn{font-size:12px;padding:10px 0} }
   #appSplash{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:var(--bg);z-index:99;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
-  #appSplash .spl-inner{opacity:0;transition:opacity .35s ease}
+  #appSplash .spl-inner{opacity:1;transition:opacity .35s ease}
   .spl-badge{width:92px;height:92px;margin:0 auto;background:var(--yellow);border-radius:26px;transform:rotate(-8deg);
     box-shadow:0 5px 0 #E8BE1E;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:900;color:#fff}
   .stepn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;
@@ -405,7 +405,7 @@
       <button class="opt" onclick="setAnchor('free')">きめてない・そのつど</button>
     </div>
   </div>
-  <div class="card grad-warm" id="ckCard">
+  <div class="card" id="ckCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/><path d="M8 10.5h5M10.5 8v5" stroke="#E56A9A"/></svg>かたさチェック</div>
     <div id="ckBody">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
@@ -432,7 +432,7 @@
     <div class="hint" style="margin-top:8px">動画がおわったら アプリにもどって下の「きょうやった！」を押してね✅</div>
   </div>
 
-  <div class="card" id="streakCard">
+  <div class="card grad-warm" id="streakCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#FFEDF3"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#E56A9A"/></svg>つづけた日数</div>
     <div style="display:flex;align-items:baseline;gap:3px">
       <span class="num" id="streakNum" style="font-size:46px;line-height:1;color:var(--pink)">0</span><span style="font-weight:900;font-size:18px">日目</span>
@@ -1731,8 +1731,8 @@ function drawCard(){
   const memo=(store.get("memos",{}))[ds];
   const _tk=store.get("thanks",{total:0});
   const rows=[];
-  if(T) rows.push(["かたさタイプ",`『${T.name}』`]);
-  if(memo) rows.push(["メモ",`『${memo}』`]);
+  if(T) rows.push(["かたさタイプ",T.name]);
+  if(memo) rows.push(["メモ",memo]);
   else if(isToday&&_tk.total>0) rows.push(["ありがとう",`×${_tk.total}`]);
   const shift = milestone?0:(rows.length?0:60);
   // 数字＋日目！（1行・ベースライン揃え）
@@ -2379,7 +2379,6 @@ applyTheme();
   const sp=document.getElementById("appSplash");
   if(sp){
     // 起動直後から被せてある → ロゴをふわっと → 静かに退場（ホームのチラ見え防止）
-    setTimeout(()=>{ const i=sp.querySelector(".spl-inner"); if(i) i.style.opacity="1"; },350);
     setTimeout(()=>{ sp.style.opacity="0"; setTimeout(()=>sp.remove(),550); },1800);
   }
 })();
