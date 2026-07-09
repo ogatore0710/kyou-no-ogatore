@@ -181,7 +181,7 @@
   #ckCard.mini #ckHint{display:none}
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
-  /* オガトレ部フローティングボタン＆ポップアップ */
+  /* オガトレ通信フローティングボタン＆ポップアップ */
   .obu-fab{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:45;width:56px;height:56px;border-radius:50%;border:3px solid var(--yellow);padding:0;background:var(--card);box-shadow:0 4px 14px rgba(58,52,32,.32),0 1px 3px rgba(58,52,32,.2);cursor:pointer}
   .obu-fab img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;pointer-events:none}
   .obu-dot{position:absolute;top:-1px;right:-1px;width:15px;height:15px;border-radius:50%;background:var(--pink);border:2px solid var(--bg)}
@@ -199,8 +199,8 @@
   .obu-post:last-child{margin-bottom:0}
   .obu-post img{width:100%;border-radius:14px;border:1.5px solid var(--line);display:block}
   #obuModal .obu-post img{width:75%;margin:0 auto}
-  .obu-post .obu-cap{font-size:14px;margin-top:6px;line-height:1.7}
-  .obu-post.obu-text{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.7}
+  .obu-post .obu-cap{font-size:14px;margin-top:6px;line-height:1.7;white-space:pre-wrap}
+  .obu-post.obu-text{background:var(--yellow-soft);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.7;white-space:pre-wrap}
   .obu-post .obu-title{font-size:14px;font-weight:900;color:var(--tealink);margin-bottom:6px}
   .obu-post audio{width:100%}
   .obu-post .obu-date{font-size:12px;color:var(--sub);font-weight:800;margin-bottom:4px}
@@ -298,7 +298,7 @@
   .tabbar button .ic-fill{fill:#EAE4D3}
   .tabbar button.on{color:var(--ink)}
   .tabbar button.on .ic-fill{fill:var(--yellow)}
-  /* きろく */
+  /* マイ記録 */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .cal-head button{border:none;background:var(--line);border-radius:12px;width:44px;height:44px;font-size:17px;font-weight:900;color:var(--ink);cursor:pointer;font-family:inherit}
   .cal-title{font-size:16px;font-weight:900}
@@ -320,7 +320,7 @@
   .pl .ps{font-size:14px;color:var(--sub)}
   .group-label{font-size:14px;font-weight:900;color:var(--sub);margin:16px 2px 8px}
   .group-label:first-child{margin-top:0}
-  /* さがす */
+  /* 動画を探す */
   .searchbox{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:12px}
   .searchbox svg{width:20px;height:20px;flex-shrink:0}
   .searchbox input{border:none;outline:none;flex:1;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;min-width:0}
@@ -493,7 +493,7 @@
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回チェックする</button>
 </section>
 
-<!-- ===== きろく ===== -->
+<!-- ===== マイ記録 ===== -->
 <section id="history" class="hidden">
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>つづけた記録</div>
@@ -632,7 +632,7 @@
     <div style="font-size:14px;line-height:1.9">尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱</div>
   </div>
   <div id="obuArchiveList"></div>
-  <button class="btn btn-line" onclick="navTo('home')">← もどる</button>
+  <button class="btn btn-line" onclick="navTo(obuReturnTo||'home')">← もどる</button>
 </section>
 
 <!-- ===== 再生リスト ===== -->
@@ -641,7 +641,7 @@
   <div class="hint">タップするとYouTubeで開きます！テレビで流すのもおすすめ📺</div>
 </section>
 
-<!-- ===== さがす ===== -->
+<!-- ===== 動画を探す ===== -->
 <section id="search" class="hidden">
   <div class="searchbox">
     <svg viewBox="0 0 24 24" fill="none" stroke="#B9B4A6" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>
@@ -663,7 +663,7 @@
   </div>
 </section>
 
-<!-- ===== つかいかた ===== -->
+<!-- ===== 使い方 ===== -->
 <section id="guide" class="hidden">
 
   <div class="card grad-warm" style="text-align:center">
@@ -809,16 +809,23 @@
 <script src="obu-feed.js"></script>
 <script>if(typeof OBU_FEED==="undefined")var OBU_FEED=[];</script>
 <script>
-// ================= オガトレ部だより（フローティングボタン＋ポップアップ） =================
+// ================= オガトレ通信（フローティングボタン＋ポップアップ） =================
+// aがbと同じか、より新しいか。日付が違えば日付で判定。同日でtimeが両方あればtimeも比較。
+// 片方でもtimeが無ければ、従来どおり日付だけで判定（配列の追記順＝後勝ち、を維持）
+function obuIsLaterOrEqual(a,b){
+  if(a.date!==b.date) return a.date>=b.date;
+  if(a.time && b.time) return a.time>=b.time;
+  return true;
+}
 function obuLatest(){
   if(!OBU_FEED.length) return null;
   let best=OBU_FEED[0];
-  for(let i=1;i<OBU_FEED.length;i++){ if(OBU_FEED[i].date>=best.date) best=OBU_FEED[i]; }
+  for(let i=1;i<OBU_FEED.length;i++){ if(obuIsLaterOrEqual(OBU_FEED[i],best)) best=OBU_FEED[i]; }
   return best;
 }
 function obuLatestByType(type){
   let best=null;
-  for(const item of OBU_FEED){ if(item.type===type && (!best||item.date>=best.date)) best=item; }
+  for(const item of OBU_FEED){ if(item.type===type && (!best||obuIsLaterOrEqual(item,best))) best=item; }
   return best;
 }
 function obuHasNew(){
@@ -838,15 +845,25 @@ function obuFmtDate(ds,time){
   const base=`${m}月${d}日`;
   return time ? `${base} ${time}ごろ` : base;
 }
+// 汎用HTMLエスケープ（& < > " ' の5種）。text/titleなどテキスト系フィールドに使用
+function escHtml(s){
+  return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+// image/audioのパスが想定形式（assets/obu/配下・英数字とハイフン・ドット・スラッシュのみ）かを検証
+function obuValidAssetPath(p){
+  return typeof p==="string" && /^assets\/obu\/[A-Za-z0-9_.\/-]+$/.test(p) && p.indexOf("..")===-1;
+}
 function obuPostInner(item,withDate){
   const dateLabel = withDate ? `<div class="obu-date">${obuFmtDate(item.date,item.time)}</div>` : "";
   if(item.type==="photo"){
-    return `${dateLabel}<img src="${item.image}" alt=""><div class="obu-cap">${(item.text||"").replace(/</g,"&lt;")}</div>`;
+    const img = obuValidAssetPath(item.image) ? `<img src="${item.image}" alt="">` : "";
+    return `${dateLabel}${img}<div class="obu-cap">${escHtml(item.text)}</div>`;
   }
   if(item.type==="radio"){
-    return `${dateLabel}<div class="obu-title">📻 ${(item.title||"").replace(/</g,"&lt;")}</div><audio controls src="${item.audio}"></audio>`;
+    const audio = obuValidAssetPath(item.audio) ? `<audio controls src="${item.audio}"></audio>` : "";
+    return `${dateLabel}<div class="obu-title">📻 ${escHtml(item.title)}</div>${audio}`;
   }
-  return `${dateLabel}${(item.text||"").replace(/</g,"&lt;")}`;
+  return `${dateLabel}${escHtml(item.text)}`;
 }
 function obuPostHtml(item,withDate){
   const cls = item.type==="text" ? "obu-post obu-text" : "obu-post";
@@ -858,7 +875,7 @@ function renderObuPopup(){
   body.innerHTML = items.length ? items.map(item=>obuPostHtml(item,true)).join("")
     : '<div style="text-align:center;color:var(--sub);font-size:14px;padding:20px 0">まだ投稿がありません またきてね</div>';
 }
-// オガトレ部の全アーカイブ（新しい日付順）
+// オガトレ通信の全アーカイブ（新しい日付順）
 function renderObuArchive(){
   const box=document.getElementById("obuArchiveList");
   if(!box) return;
@@ -1020,13 +1037,22 @@ let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:nu
 
 // ================= 画面制御 =================
 const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices","obu"];
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history"};
+// obuは特定タブに固定所属しないため、TAB_OFのobuエントリはあくまでフォールバック値。
+// 実際のハイライトはshow()内でobuReturnTo（オガトレ通信を開く直前にいたセクション）を優先して解決する
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history",obu:"home"};
+let currentSection="home"; // 現在表示中のセクション（show()で更新）
+let obuReturnTo="home"; // オガトレ通信(obu)を開く直前にいたセクション。戻るボタン＆タブハイライトに使用（記憶が無い場合はhomeへフォールバック）
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
-  for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", TAB_OF[id]===t);
+  // obu表示中は、開く直前にいたタブ（obuReturnTo経由）をハイライトし続ける
+  const tabTarget = id==="obu" ? (TAB_OF[obuReturnTo]||"home") : TAB_OF[id];
+  for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", tabTarget===t);
   window.scrollTo(0,0);
+  currentSection=id;
 }
 function navTo(id){
+  // obuを開く直前にいたセクションを記憶しておく（obuの戻るボタン・タブハイライトの両方で使用）
+  if(id==="obu" && currentSection!=="obu") obuReturnTo=currentSection;
   try{ if(!(history.state&&history.state.id===id)) history.pushState({id},""); }catch(e){}
   show(id);
 }
@@ -2039,7 +2065,7 @@ function renderHome(){
   }
 }
 
-// ================= きろく（カレンダー） =================
+// ================= マイ記録（カレンダー） =================
 let calDate=null;
 function renderHistory(){
   const st=getStreakData();

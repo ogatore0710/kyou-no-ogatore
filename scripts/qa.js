@@ -329,6 +329,73 @@ function checkCatalog(code, allowedTags) {
   }
 }
 
+function checkObuFeed(code) {
+  parseJs("obu-feed.js", code);
+  let feed = [];
+  try {
+    feed = extractConstArray(code, "OBU_FEED");
+    pass("obu-feed.js: OBU_FEED parsed", `${feed.length} posts`);
+  } catch (err) {
+    fail("obu-feed.js: OBU_FEED parsed", err.message);
+    return;
+  }
+
+  const validTypes = ["text", "photo", "radio"];
+  const ids = new Set();
+  const dupes = [];
+  const missingRequired = [];
+  const badType = [];
+  const missingImage = [];
+  const missingAudioOrTitle = [];
+  const missingText = [];
+  const missingAssetFiles = [];
+  let textPhotoCount = 0;
+
+  for (const item of feed) {
+    const label = (item && item.id) || JSON.stringify(item);
+    if (!item || !item.id || !item.date || !item.type) {
+      missingRequired.push(label);
+      continue;
+    }
+    if (ids.has(item.id)) dupes.push(item.id);
+    ids.add(item.id);
+
+    if (!validTypes.includes(item.type)) {
+      badType.push(`${item.id}:${item.type}`);
+      continue;
+    }
+
+    if (item.type === "photo") {
+      if (!item.image) missingImage.push(item.id);
+      else if (!exists(item.image)) missingAssetFiles.push(`${item.id}:${item.image}`);
+      textPhotoCount++;
+      if (!item.text) missingText.push(item.id);
+    }
+    if (item.type === "radio") {
+      if (!item.audio) missingAudioOrTitle.push(`${item.id}:audio missing`);
+      else if (!exists(item.audio)) missingAssetFiles.push(`${item.id}:${item.audio}`);
+      if (!item.title) missingAudioOrTitle.push(`${item.id}:title missing`);
+    }
+    if (item.type === "text") {
+      textPhotoCount++;
+      if (!item.text) missingText.push(item.id);
+    }
+  }
+
+  assert("obu-feed.js: required fields present (id/date/type)", missingRequired.length === 0, missingRequired.slice(0, 10).join(", ") || `${feed.length} posts have id/date/type`);
+  assert("obu-feed.js: ids unique", dupes.length === 0, dupes.slice(0, 10).join(", ") || "no duplicate ids");
+  assert("obu-feed.js: type is text/photo/radio", badType.length === 0, badType.slice(0, 10).join(", ") || "all types valid");
+  assert("obu-feed.js: photo posts have image", missingImage.length === 0, missingImage.slice(0, 10).join(", ") || "ok");
+  assert("obu-feed.js: radio posts have audio+title", missingAudioOrTitle.length === 0, missingAudioOrTitle.slice(0, 10).join(", ") || "ok");
+  assert("obu-feed.js: image/audio asset files exist", missingAssetFiles.length === 0, missingAssetFiles.slice(0, 10).join(", ") || "ok");
+  pass(
+    "obu-feed.js: text/photo posts have text (recommended)",
+    missingText.length === 0
+      ? `all ${textPhotoCount} text/photo posts have text`
+      : `${missingText.length}/${textPhotoCount} missing text (not required): ${missingText.slice(0, 10).join(", ")}`
+  );
+}
+
 function checkSw(code) {
   parseJs("sw.js", code);
   let assets = [];
@@ -383,11 +450,11 @@ function checkPythonScripts() {
 }
 
 function main() {
-  for (const rel of ["index.html", "videos.js", "app-search.js", "sw.js", "manifest.json"]) {
+  for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
   }
 
-  checkNoForbiddenModernSyntax(["index.html", "videos.js", "app-search.js", "sw.js"]);
+  checkNoForbiddenModernSyntax(["index.html", "videos.js", "app-search.js", "obu-feed.js", "sw.js"]);
 
   const html = read("index.html");
   const inline = extractInlineScripts(html);
@@ -397,6 +464,7 @@ function main() {
   const allowedTags = checkSearchScript(searchScript);
   checkOperationalWiring(html, `${mainScript}\n${searchScript}`);
   checkCatalog(read("videos.js"), allowedTags);
+  checkObuFeed(read("obu-feed.js"));
   checkSw(read("sw.js"));
   checkManifest();
   checkPythonScripts();
