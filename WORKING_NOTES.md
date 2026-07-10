@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10 streakCardミニ状態（きょうのカード保存後はコンパクト表示）
+- きょうの記録カードを保存/シェアできた日は、ホームの「つづけた日数」カード（`#streakCard`）をコンパクト表示にする。メモ入力・カード再保存はその日はもう不要で、カードはマイ記録からいつでも見られるため
+- **発動条件**（`applyMiniStreak`）: `store.get("card_saved")===todayStr()` **かつ** `getStreakData().dates`にきょうが含まれる——両方を満たすときだけ`.mini`クラスを付与。`renderStreak`末尾と`closeCard`（カードモーダルを閉じた時）で再評価
+- **card_savedフラグ**（`markCardSaved`）: `cardDate===todayStr()` かつ きょう記録済みのときだけ`store.set("card_saved", todayStr())`（localStorageキー=`kyono_card_saved`）。呼び出し元は`shareCard`（共有**成功時のみ**。AbortError=キャンセルではフラグを立てない）と`downloadCard`
+- **除外（brag/過去日）**: じまんカード（`cardDate=null`）と過去日のカードは対象外。きょう未記録の状態で作ったきょう日付カード（前日までの通算表示）も、記録後のお祝い演出を隠さないよう対象外
+- **CSSアプローチ**: DOMの組み替えはせずクラス切替のみ。`#streakCard.mini`配下で doneBtn/cheer/memoRow/thanksBlock/plateauNote/makeCardBtn/cardHint を`display:none`にし、`#miniDone`（「きょうの分は完了！おつかれさまでした😊」）だけ表示。padding も 14px 18px に縮小。ckCard の done ミニ化（`#ckCard.mini`）と同じパターン
+- **日跨ぎリセット**: 掃除コード不要。日付（3時切替のtodayStr）が変わると`card_saved`が`todayStr()`と一致しなくなり、次の再評価で自然に全表示へ戻る
+
 ## 2026-07-10昼 監査フィックス一括（4方向監査の確定所見を実装）
 - コミット4件: `36dbe10`（バッチA: コードバグ8件）、`5edb830`（バッチB: 実機指摘4件）、`a17d409`+`1231dd7`（バッチC: UX改善9件。`a17d409`はeven-syncの自動コミットがC6作業途中を拾ったもの）、`636d3ed`（バッチD: 文言6件、app-search.jsのメール文言含む）
 - **バッチA（コードバグ8件）**: ホームタブのhistory同期（`goHome`で`replaceState`）／`popstate`でquiz・result画面のまま戻った際の空画面を救済／処方ローテを3時JST境界に統一（`+9h`→`+6h`）／`markDone`でstreak2の保存成功後におやすみ券・章・daylogを確定する順序に修正／`bragFilter`に`CATALOG`未読込ガードを追加／ハードウェア戻るでモーダルを`close`／`canvas.toBlob`非対応端末向けフォールバック（`canvasToBlobCompat`）を追加／マイ記録「いま連続」に途切れ判定を共有（`streakBrokenNow`/`effectiveStreakCount`）
