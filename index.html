@@ -951,6 +951,15 @@ const MARK_CLOUD = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke
 const MARK_RAIN = `<svg viewBox="-0.5 -1 25 25.5" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6.5h-1.26A8 8 0 1 0 9 16.5h9a5 5 0 0 0 0-10z" fill="#DFF5F2"/><path d="M8 19.5v2.5M12 20v2.5M16 19.5v2.5" stroke="#2BB3A3"/></svg>`;
 // 7/7限定・年に一度だけ表示する七夕の星（yawaraアイコンと同じ星形で世界観を統一）
 const MARK_TANABATA = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.23L14.85 9L21.23 9.93L16.61 14.43L17.7 20.78L12 17.7L6.3 20.78L7.4 14.43L2.78 9.93L9.15 9Z" fill="#FFD93B"/><circle cx="21.7" cy="5.5" r="1.3" fill="#E56A9A" stroke="none"/></svg>`;
+// 通年の季節マーク（梅雨と同じ流儀=3日に1日だけ・日付ハッシュで決定的）。作風は太陽/月/雲と同じ stroke#3A3A35 幅2＋やわらかい塗り
+const MARK_NYUDOGUMO = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="7.5" r="4" fill="#FFFFFF"/><path d="M17 12h-1.1A6.5 6.5 0 1 0 9.8 19.5H17a3.75 3.75 0 0 0 0-7.5z" fill="#FFFFFF"/></svg>`;
+const MARK_HIMAWARI = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.5V20.5M12 19.4q-3.2 0.2-4.3-2.3" stroke="#2BB3A3"/><circle cx="17" cy="10" r="2.4" fill="#FFD93B"/><circle cx="14.5" cy="14.33" r="2.4" fill="#FFD93B"/><circle cx="9.5" cy="14.33" r="2.4" fill="#FFD93B"/><circle cx="7" cy="10" r="2.4" fill="#FFD93B"/><circle cx="9.5" cy="5.67" r="2.4" fill="#FFD93B"/><circle cx="14.5" cy="5.67" r="2.4" fill="#FFD93B"/><circle cx="12" cy="10" r="3.2" fill="#D9A066"/></svg>`;
+const MARK_MOMIJI = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L13.5 9L18.3 6.8L15.5 11.1L20.5 12.5L15 14.5L12 17.5L9 14.5L3.5 12.5L8.5 11.1L5.7 6.8L10.5 9Z" fill="#FF8A70"/><path d="M12 16.5v4"/></svg>`;
+const MARK_DONGURI = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6V3.8"/><path d="M8 10c0 4.6 1.9 7.8 4 7.8s4-3.2 4-7.8z" fill="#E8B87E"/><path d="M7.5 10a4.5 4 0 0 1 9 0z" fill="#D9A066"/></svg>`;
+const MARK_YUKI = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v17M4.64 7.75l14.72 8.5M4.64 16.25l14.72-8.5M9.8 5.6L12 7.5l2.2-1.9M9.8 18.4l2.2-1.9 2.2 1.9"/></svg>`;
+const MARK_YUKIDARUMA = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="5.2" fill="#FFFFFF"/><circle cx="12" cy="7.6" r="3.8" fill="#FFFFFF"/><circle cx="10.6" cy="7.2" r="0.9" fill="#3A3A35" stroke="none"/><circle cx="13.4" cy="7.2" r="0.9" fill="#3A3A35" stroke="none"/><path d="M9.4 11.4h5.2" stroke="#FF8A70"/></svg>`;
+const MARK_SAKURA = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7.4" r="2.6" fill="#FFEDF3"/><circle cx="16.37" cy="10.58" r="2.6" fill="#FFEDF3"/><circle cx="14.7" cy="15.72" r="2.6" fill="#FFEDF3"/><circle cx="9.3" cy="15.72" r="2.6" fill="#FFEDF3"/><circle cx="7.63" cy="10.58" r="2.6" fill="#FFEDF3"/><circle cx="12" cy="12" r="1.5" fill="#E56A9A" stroke="none"/></svg>`;
+const MARK_HINODE = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 13a5.5 5.5 0 0 1 11 0z" fill="#FFD93B"/><path d="M12 4.5v2M5.4 6.9l1.4 1.4M18.6 6.9l-1.4 1.4"/><path d="M3.5 13h17"/><path d="M5.2 17.5q1.7-1.4 3.4 0t3.4 0t3.4 0t3.4 0" stroke="#2BB3A3"/></svg>`;
 const ICON_RX = `<svg viewBox="0 0 24 24" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3" fill="#DFF5F2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>`;
 const ICON_PT = `<svg viewBox="0 0 24 24" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="17" rx="3"/><path d="M9 3.5h6v3H9z" fill="#DFF5F2"/><path d="M9 12l2 2 4-4.5"/></svg>`;
 
@@ -1309,14 +1318,20 @@ function showResult(saved){
 // ---- きょうの1本 ----
 function autoMode(){ const h=new Date().getHours(); return (h>=4&&h<15)?"asa":"yoru"; }
 // asa/yoru の意味は壊さず、季節モチーフを上乗せするロゴマーク選択（Math.random()不使用・日付ハッシュで決定的）
+// 通年カレンダー: 梅雨6/1-7/15・夏7/16-8/31・秋9/15-11/30・冬12/1-2月末・桜3/20-4/15・七夕7/7・正月1/1-1/3（毎日）
 function pickLogoMark(m){
   const ds=todayStr(); const [,mo,da]=ds.split("-").map(Number);
   if(mo===7&&da===7) return MARK_TANABATA; // 七夕は年に一度、時刻に関わらず優先
-  const isTsuyu = mo===6 || (mo===7&&da<=15); // 梅雨（6月〜7月中旬）
-  if(isTsuyu){
-    let fh=0; for(const c of ds){ fh=(fh*31+c.charCodeAt(0))>>>0; }
-    // asa/yoruの区別を主役のまま保つため、天気モチーフは3日に1日だけの「たまのお楽しみ」にする
-    if(fh%3===0) return (fh>>>3)&1 ? MARK_RAIN : MARK_CLOUD;
+  if(mo===1&&da<=3) return MARK_HINODE;    // 正月三が日は毎日おめでたく
+  let fh=0; for(const c of ds){ fh=(fh*31+c.charCodeAt(0))>>>0; }
+  // asa/yoruの区別を主役のまま保つため、季節モチーフは3日に1日だけの「たまのお楽しみ」にする
+  if(fh%3===0){
+    const alt=(fh>>>3)&1; // 同じ季節のなかで2種の絵柄を日替わり
+    if(mo===6||(mo===7&&da<=15)) return alt ? MARK_RAIN : MARK_CLOUD;            // 梅雨
+    if(mo===7||mo===8) return alt ? MARK_HIMAWARI : MARK_NYUDOGUMO;              // 夏（7/16-8/31。7/1-15は上の梅雨が先取り）
+    if((mo===9&&da>=15)||mo===10||mo===11) return alt ? MARK_DONGURI : MARK_MOMIJI; // 秋
+    if(mo===12||mo===1||mo===2) return alt ? MARK_YUKIDARUMA : MARK_YUKI;        // 冬（1/1-3は上の正月が先取り）
+    if((mo===3&&da>=20)||(mo===4&&da<=15)) return MARK_SAKURA;                   // 桜
   }
   return m==="yoru"?MARK_MOON:MARK_SUN;
 }
@@ -1406,6 +1421,59 @@ function currentTodayId(){
   if(state.mode==="mine"&&state.type&&TYPES[state.type.key]){ const rx=currentRx(state.type.key); return V[rx[dayIndex()%rx.length]].id; }
   const list=state.mode==="asa"?TODAY_ASA:TODAY_YORU; return V[list[dayIndex()%list.length]].id;
 }
+// ---- 「きょうやった!」の紙吹雪（その日はじめての記録成功のごほうび演出） ----
+// drawCardの決定性ルール（Math.random禁止）とは別物: qa.jsのチェックはdrawCard限定なのでこの関数内の乱数は許容
+function launchConfetti(count){
+  try{
+    if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return; // 動きを控えたい設定では演出しない
+    const cv=document.createElement("canvas");
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const vw=window.innerWidth, vh=window.innerHeight;
+    cv.width=vw*dpr; cv.height=vh*dpr;
+    cv.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9990";
+    document.body.appendChild(cv);
+    const ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+    const colors=["#FFD93B","#2BB3A3","#E56A9A","#FF8A70"]; // デザイントークンの4色
+    const DUR=1500; // 1.2〜1.8秒の指定レンジ内
+    const parts=[];
+    for(let i=0;i<count;i++){
+      parts.push({
+        x:Math.random()*vw, y:-24-Math.random()*vh*0.35,
+        vx:(Math.random()-0.5)*80, vy:200+Math.random()*260,
+        w:6+Math.random()*5, h:9+Math.random()*6,
+        rot:Math.random()*Math.PI*2, vr:(Math.random()-0.5)*12,
+        sway:20+Math.random()*26, ph:Math.random()*Math.PI*2,
+        c:colors[i%colors.length]
+      });
+    }
+    const cleanup=()=>{ try{ if(cv.parentNode) cv.parentNode.removeChild(cv); }catch(e){} };
+    setTimeout(cleanup,DUR+600); // rAFが止まる環境でも必ず片づける保険
+    let start=null;
+    function tick(ts){
+      try{
+        if(start===null) start=ts;
+        const el=ts-start;
+        if(el>=DUR){ cleanup(); return; }
+        const t=el/1000;
+        ctx.clearRect(0,0,vw,vh);
+        ctx.globalAlpha=Math.min(1,(DUR-el)/400); // 終わり際ふわっと消える
+        for(const p of parts){
+          const x=p.x+p.vx*t+Math.sin(t*6+p.ph)*p.sway*t;
+          const y=p.y+p.vy*t+140*t*t;
+          if(y>vh+20) continue;
+          ctx.save();
+          ctx.translate(x,y); ctx.rotate(p.rot+p.vr*t);
+          ctx.scale(1,0.55+0.45*Math.abs(Math.sin(t*8+p.ph))); // ひらひら感
+          ctx.fillStyle=p.c;
+          ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+          ctx.restore();
+        }
+        requestAnimationFrame(tick);
+      }catch(e){ cleanup(); }
+    }
+    requestAnimationFrame(tick);
+  }catch(e){ /* 演出の失敗は本流（記録・cheer表示）に影響させない */ }
+}
 function markDone(){
   const st=getStreakData();
   const today=todayStr();
@@ -1452,6 +1520,7 @@ function markDone(){
     store.set("daylog",dl);
   }catch(e){}
   const ms=MS.find(x=>x.d===st.total);
+  try{ launchConfetti(ms?105:70); }catch(e){} // 節目は70粒→105粒（1.5倍）でちょっと特別に
   if(ms){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
