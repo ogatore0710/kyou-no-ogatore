@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10夜 チェック2週間後の再測定導線＋とどくメーター前回比（第五波dev60・担当F）
+- 結果画面の「2週間後に床が近くなってるはず」の約束を回収するループ。**①ホームに再測定カード**: `state.type.at`から`daysBetween`で**14日以上**経過かつ`kyono_recheck_seen`≠現在のatのとき`#recheckCard`（grad-mint・welcomeBackの直後）を表示。「📏測ってみる」→`goRecheck()`=seen保存→マイ記録タブ→`#reachCard`へスクロール（show()のscrollTo(0,0)対策でsetTimeout 80ms）。「あとで」→`recheckLater()`=seen保存のみ。**測りに行った場合もseen保存**（再ナグ防止。仕様は「あとで」のみ明記だが趣旨=ループ回収済みと判断）。チェックやり直しでatが更新→自然に2週間後また出る
+- **②とどくメーター前回比**: `renderReach()`で記録2件以上のとき`#reachPrev`（自己ベスト表示の直下）に、前回とのlv差を段位で表示。向上=「前回（○○まで）より○段とどくようになった！🎉」／同じ=「キープも立派です！」／低下=責めない文言（段数・数字は出さない）。cm等の数字プレッシャーなし
+- 検証: スクラッチパッドのpuppeteerハーネスで**17/17 pass実測**（13日=非表示/14日・30日=表示/seen同一at=非表示/at更新=再表示/旧データat無し=非表示・無エラー/あとで→localStorage保存＋リロード後非表示/タップ→historyタブ＋reachCard画面内/前回比 向上・同じ・低下・1件・0件・1段）。qa.js 74 pass・smoke 10/10 pass・ES2020構文なし
+- ロールバック: index.htmlの4箇所（#recheckCard HTML・#reachCard id+#reachPrev div・renderRecheck/recheckLater/goRecheck関数・renderReach内前回比ブロック・renderHomeのrenderRecheck()呼び出し）を戻す。localStorageキー`kyono_recheck_seen`は残っても無害
+- ※コード本体はeven-sync自動コミット`fe025fa`に同乗（姉妹艦のSW更新トーストと相乗り。push済・Deploy success確認済）
+
 ## 2026-07-10夜 せんぱいの声を60→120件に倍増（夜間ラン第四波dev56・担当B）
 - 本人「先輩の声は増えたほうがいいね」への対応。`VOICES`配列（index.html）に**新規60件を追加、計120件**。日替わり8件抽選（pickDailyVoices）のプールが2倍に
 - 源泉: ogatore-growth/data/ogatore.db comments 9,386件。効果報告系タグ（効果報告/pain_gone/duration/soft/reach）× 50〜220字 × バッククォート/`${`なし で絞り、likes上位から手で厳選
