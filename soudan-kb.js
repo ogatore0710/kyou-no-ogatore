@@ -5,8 +5,8 @@
 //
 // データ契約（dev63のエンジンと共通・変更時は両者合意必須）:
 //   intents[]: { id, chip, kw:[正規化済み検索語...], empathy, mitate,
-//                videos:[{v:YouTube動画ID, note:"一言"}], keizoku,
-//                followups:[commonFollowupsのid または intentsのid], safety:boolean }
+//                videos:[{v:YouTube動画ID, note:"一言"}...1〜3本], keizoku,
+//                followups:[commonFollowupsのidのみ], safety:boolean }
 //     safety:true = デリケート系。エンジンは回答末尾に安全レール一行を添えてよい
 //     followupsが空配列のインテント（itakunatta）は続きチップなしでよい
 //   redFlags: { kw:[...], empathy, answer }  … 最優先マッチ・動画は出さない
@@ -61,7 +61,7 @@ const SOUDAN_KB = {
         { v: "0-LT6LWLwOQ", note: "本気の総仕上げ" }
       ],
       keizoku: "お風呂上がりに1本、2週間!イタ気持ちいいで止めるのが、実はいちばんの近道だよ。",
-      followups: ["days", "short", "kaikyaku"],
+      followups: ["days", "short", "more"],
       safety: false },
 
     // 4. あぐら・股関節（思想ソース: M3柔軟性下半身編 1-1・1-3①）
@@ -103,7 +103,7 @@ const SOUDAN_KB = {
         { v: "3F53Us-nwDY", note: "骨盤を立てる5分" }
       ],
       keizoku: "合言葉は「2週間」!勢いをつけず、イタ気持ちいいで毎日じわじわね。",
-      followups: ["days", "short", "kokansetsu"],
+      followups: ["days", "short", "more"],
       safety: false },
 
     // 7. 猫背・姿勢（思想ソース: M2肩こり首こり編 1-4 姿勢のドミノ）
@@ -117,7 +117,7 @@ const SOUDAN_KB = {
         { v: "YfK_r3PeP6Q", note: "巻き肩さんはこれ" }
       ],
       keizoku: "姿勢は意志より習慣で決まるよ。1日1本と「スマホを目の高さに」から始めよう!",
-      followups: ["days", "short", "katakori"],
+      followups: ["days", "short", "more"],
       safety: false },
 
     // 8. 寝つき・眠り（思想ソース: M4眠り自律神経編 1-1・1-5・1-6）
@@ -145,7 +145,7 @@ const SOUDAN_KB = {
         { v: "XkgsF39kkRw", note: "自律神経からケア" }
       ],
       keizoku: "薬だけだと繰り返しやすいから、首と肩のケアを毎日ちょっとずつね!",
-      followups: ["days", "more", "katakori"],
+      followups: ["days", "short", "more"],
       safety: true },
 
     // 10. ひざの痛み・違和感（思想ソース: M6ひざ編 1-1・1-6。慎重トーン）
@@ -159,7 +159,7 @@ const SOUDAN_KB = {
         { v: "t3C-N5_828k", note: "足首から攻める" }
       ],
       keizoku: "痛みの出ない範囲で動かし続けるのがコツ。動かさなすぎも、ひざの敵なんだよね。",
-      followups: ["days", "short", "zenkutsu"],
+      followups: ["days", "short", "more"],
       safety: true },
 
     // 11. 全身ガチガチ・何から始めれば（思想ソース: M3 1-1・コース0迷子専用）
@@ -203,12 +203,15 @@ const SOUDAN_KB = {
       followups: ["days", "more"],
       safety: false },
 
-    // 14. やったら痛くなった（即中止+様子見+長引くなら病院。動画は勧めない）
+    // 14. やったら痛くなった（即中止+様子見+長引くなら病院。qa.jsの契約=videos1本以上のため、
+    //     いちばん穏やかなリラックス系を「痛みが引いたら」注記つきで1本だけ置く）
     { id: "itakunatta", chip: "やったら痛くなった",
       kw: ["いたくなった","やったらいたい","いたみがでた","いたすぎ","いためた","きんにくつう","やりすぎた","つった","ひどくなった","痛くなった","やったら痛い","痛みが出た","痛すぎ","痛めた","筋肉痛","悪化"],
       empathy: "教えてくれてありがとう。まずは中止しよう。",
       mitate: "いったんお休みが正解だよ。ふだん使っていない筋肉の「伸ばし筋肉痛」なら数日で引くことが多いから、引いてから弱めで再開してみて。ズキッと鋭い痛み・しびれ・腫れがあるときや、1週間たっても続くときは、お医者さんに診てもらってね。",
-      videos: [],
+      videos: [
+        { v: "mRz5ZZAi9dU", note: "痛みが引いたら" }
+      ],
       keizoku: "痛みが引くまで休むのも、立派なセルフケア。あせらなくて大丈夫!",
       followups: [],
       safety: true }
