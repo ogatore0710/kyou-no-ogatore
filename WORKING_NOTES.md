@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-11
 
+## 2026-07-11 はじめてガイド対話化（第七波dev68・担当: オンボーディング域+smoke起動系）
+- **独立オーバーレイ#welcome**（相談室本体のコードは不変・吹き出しCSSの.sd-row/.sd-bだけ読み取り流用）。台本は`ONBOARDING_SCRIPT`定数にデータとして分離（greet3枚→Q1硬さ→Q2悩み→Q3いつやる派→ルーティング1枚+締め2枚=最長10枚・全行40字以内。文言差し替えはこの定数だけ触ればよい）
+- **発火判定obIsFresh**: kyono_onboarded未設定 かつ kyono_系キーが実質空（見た目設定のkyono_theme/kyono_bigtextは除外）。スプラッシュ退場後にシートイン（PWA=2400ms/ブラウザ=600ms）。完了・スキップ・戻る操作(popstate)いずれも`kyono_onboarded=1`で**二度と勝手に出ない**（リロード実測済み）
+- **Q3は本物の設定**: 既存setAnchor()に接続（きめてない=free含む）。ルーティングは Q1が硬い/わからない→startQuiz ＞ Q2悩みあり→openSoudan(インテントid) ＞ とくにない→ホームのきょうの1本へスクロール。KB未読込・openSoudan不在時はtodayに安全に倒す（obDecideRoute）
+- **再入場**: 使い方タブ先頭の#obReenterLink「🌱 はじめてガイドをもう一度」→obOpen()（onboarded済みでも起動可）
+- **擬似タイピングobSay**: 0.48秒間隔・reduced-motionは即時。`obRun`トークンで閉じた後の残タイマーを無効化（閉→再入場で古い吹き出しが混ざらない）
+- **smoke起動系はdev68管轄**: step1=フレッシュ起動でwelcome表示→スキップ→onboarded=1確認／step1b=再入場→Q1〜Q3実タップ（anchor=asa実保存を確認）→CTAでかたさチェックQ1遷移まで一巡
+- **smoke step3のdoneBtnクリック修正の顛末**: 1bでanchorを実保存するとホームに「あさ/よる」ピル等が増え、doneBtnのscrollIntoView既定位置が固定タブバーの真裏に落ちて`page.click`がタブバーを叩いていた（3/3b/3cが連鎖FAIL）。クリック前に`scrollIntoView({block:"center"})`で中央に寄せて解消（アプリ側のバグではない・実機では起きない挙動）
+- 検証: qa PASS／smoke **13/13 PASS**／全20分岐(Q1×Q2)のルーティング・soudan/todayルートのUI実走・スキップ/再入場/二度と出ないを実測（詳細はDONE報告）
+- 本体実装はdev67コミットf98ca17に相乗り・smoke1b等はauto-sync 3901ba7に相乗り（同一作業ツリー共有のため。内容の正本はこのノートとDONE報告）
+- 完了報告: ogatore-hub/dev-specs/kyono-onboarding-DONE.md
+
 ## 2026-07-11 相談室ボトムシート化＋かたさタイプ連携（第七波dev66・担当: 相談室UI域）
 - **パートA（コミットdaf8aa9）**: 相談室をセクション遷移からシート型オーバーレイ（#soudanSheet）に変更。スクロール暴発の根治=チャットログ#sdLogを`overflow-y:auto`の内部スクロールにし、追従は`log.scrollTop=log.scrollHeight`のみ（scrollIntoView不使用・ページのscroll位置は一切触らない）。開閉はbody.sd-lockで背面固定。履歴はid="soudan"を1段push・戻る/✕/背景タップで閉じる（popstate対応・「進む」やリロードでの復元あり）。sw.js v22
 - **パートB（auto-sync ce7b27aに相乗り）**: `SOUDAN_TYPE_FLAVOR`（6タイプ×2・日付ハッシュローテ・**シートを開くたび最初の1回答だけ**=sdFlavorShown・デリケート枠safety:trueには出さない）／相性ブースト=`sdTypeBoost`（SOUDAN_TYPE_INTENTのareaが重なるインテント×そのタイプのrx/pool動画にnoteバッジ「あなたのタイプの定番」を付けるだけ）／未チェック導線=SOUDAN_BODY_INTENTS（9件・雑談/共通followup/赤旗/デリケート枠は対象外）の回答チップに「30秒のかたさチェックやってみる?」→sdQuizTap（シートだけ閉じてstartQuiz=チェックから戻ると相談室に帰れる）／逆導線=showResultの#rSoudanLink→openSoudan(タイプ対応インテント)

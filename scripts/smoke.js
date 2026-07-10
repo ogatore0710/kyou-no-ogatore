@@ -249,6 +249,9 @@ async function main() {
     await step("3-きょうやった！で日数が増える", async () => {
       await page.click("#tab-home");
       await visible("#doneBtn");
+      // ホーム上部が伸びるとdoneBtnの中心が固定タブバーの真裏に落ち、page.clickがタブバーを
+      // 叩いてしまう（scrollIntoViewIfNeededは「画面内」だと動かない）。中央へ寄せてから押す
+      await page.$eval("#doneBtn", (el) => el.scrollIntoView({ block: "center" }));
       const before = await $text("#streakNum");
       await page.click("#doneBtn");
       await page.waitForFunction(
@@ -469,6 +472,107 @@ async function main() {
       await page.click("#tab-home");
       await visible("#home");
       return "タイプ無し: 入口チップ初回OK・導線チップ→Q1／タイプあり(momo): 逆導線→挨拶+定番バッジ・導線チップ非表示";
+    });
+
+    // 6d. 2週間プラン（処方箋モード・dev67）: 相談室から開始→mine枠専有→日替わりローテ→markDone整合→完走→解除
+    //     日付偽装: Date.nowを+N日ずらす（todayStr/dayIndexとも同じ時計を見るため、日数もローテも一貫してずれる）
+    await step("6d-2週間プラン（開始→日替わり→完走→解除）", async () => {
+      if (!soudanKbExists) return "SKIP扱い: soudan-kb.js未着";
+      // ---- 開始: 肩こり回答→「📅 2週間プランにする」チップ→確認吹き出し→はじめる ----
+      // 6cの相談ログ・チップがシートに残っている。古いチップに印を付け、katakori回答の
+      // 完了後に再描画された「新しい」plan-chipだけを待つ（回答表示中に古いチップを
+      // 掴むと、planChipTapが表示中ガードで無反応=タイムアウトになる）
+      await page.evaluate(() => {
+        const olds = document.querySelectorAll("#sdChips button");
+        for (let i = 0; i < olds.length; i++) olds[i].setAttribute("data-smoke-old", "1");
+        openSoudan("katakori");
+      });
+      await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
+      await page.waitForFunction(() => !!document.querySelector("#sdChips .plan-chip:not([data-smoke-old])"), { timeout: 8000 });
+      await page.evaluate(() => { document.querySelector("#sdChips .plan-chip:not([data-smoke-old])").click(); });
+      async function tapLogBtn(text) {
+        await page.waitForFunction((t) => {
+          const btns = document.querySelectorAll("#sdLog button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1 && !btns[i].disabled) return true; }
+          return false;
+        }, { timeout: 8000 }, text);
+        await page.evaluate((t) => {
+          const btns = document.querySelectorAll("#sdLog button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1 && !btns[i].disabled) { btns[i].click(); return; } }
+        }, text);
+      }
+      await tapLogBtn("はじめる！");
+      await page.waitForFunction(() => {
+        try { const p = JSON.parse(localStorage.getItem("kyono_plan")); return !!(p && p.intentId === "katakori" && p.videos.length >= 2 && p.days === 14); } catch (e) { return false; }
+      }, { timeout: 8000 });
+      await tapLogBtn("きょうの1本を見にいく");
+      await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
+      const day1 = await page.evaluate(() => {
+        const badge = document.querySelector("#todayVideo .badge");
+        const link = document.querySelector("#todayVideo a.video");
+        return {
+          badge: badge ? badge.textContent : "",
+          id: link ? (link.href.split("v=")[1] || "") : "",
+          planTitle: document.getElementById("planTitle").textContent,
+          cardHidden: document.getElementById("planCard").classList.contains("hidden"),
+        };
+      });
+      if (day1.badge.indexOf("プラン1日目/14") !== 0) throw new Error("mine枠バッジがプラン表示でない (" + day1.badge + ")");
+      if (day1.cardHidden || day1.planTitle.indexOf("1/14日") === -1) throw new Error("ホームのプランカードが1/14日を示していない (" + day1.planTitle + ")");
+      await shot("6d-plan-day1");
+      // ---- 日替わり(+1日) → バッジ2日目・動画はローテ次番。markDoneのdaylogにはプラン動画IDが残る ----
+      const day2 = await page.evaluate(() => {
+        const real = Date.now;
+        Date.now = function () { return real() + 86400000; };
+        try {
+          renderHome();
+          const badge = document.querySelector("#todayVideo .badge").textContent;
+          const id = document.querySelector("#todayVideo a.video").href.split("v=")[1] || "";
+          markDone(); // プラン中の「きょうやった！」— daylogに残るIDをトレース
+          const ds = todayStr();
+          const dl = JSON.parse(localStorage.getItem("kyono_daylog") || "{}");
+          return { badge: badge, id: id, videos: JSON.parse(localStorage.getItem("kyono_plan")).videos, daylogV: dl[ds] ? dl[ds].v : "(なし)" };
+        } finally { Date.now = real; }
+      });
+      if (day2.badge.indexOf("プラン2日目/14") !== 0) throw new Error("+1日でバッジが2日目にならない (" + day2.badge + ")");
+      const i1 = day2.videos.indexOf(day1.id);
+      if (i1 === -1) throw new Error("1日目の動画がプラン動画リストにない (" + day1.id + ")");
+      if (day2.id !== day2.videos[(i1 + 1) % day2.videos.length]) throw new Error("+1日の動画がローテ次番でない (" + day1.id + "→" + day2.id + ")");
+      if (day2.daylogV !== day2.id) throw new Error("プラン中のdaylogにプラン動画IDが残っていない (daylog=" + day2.daylogV + ")");
+      // ---- 完走(+15日=15日目) → 初回ホーム描画でお祝いカード・kyono_plan削除 ----
+      const grad = await page.evaluate(() => {
+        const real = Date.now;
+        Date.now = function () { return real() + 15 * 86400000; };
+        try {
+          renderHome();
+          return {
+            doneVisible: !document.getElementById("planDoneCard").classList.contains("hidden"),
+            txt: document.getElementById("planDoneText").textContent,
+            planLeft: localStorage.getItem("kyono_plan"),
+          };
+        } finally { Date.now = real; }
+      });
+      if (!grad.doneVisible || grad.txt.indexOf("完走") === -1) throw new Error("完走お祝いカードが出ていない");
+      if (grad.planLeft !== "null") throw new Error("完走後にkyono_planが削除されていない (" + grad.planLeft + ")");
+      await shot("6d-plan-graduate");
+      // ---- もう2週間つづける → プラン再開(1/14) → 「やめる」(confirm自動OK)で解除・責めない文言 ----
+      await page.evaluate(() => {
+        const btns = document.querySelectorAll("#planDoneCard button");
+        for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf("もう2週間") !== -1) { btns[i].click(); return; } }
+      });
+      await page.waitForFunction(() => {
+        try { const p = JSON.parse(localStorage.getItem("kyono_plan")); return !!(p && p.intentId === "katakori"); } catch (e) { return false; }
+      });
+      const again = await $text("#planTitle");
+      if (again.indexOf("1/14日") === -1) throw new Error("再開プランが1日目から始まっていない (" + again + ")");
+      await page.evaluate(() => { planQuit(); }); // confirmはdialogハンドラが自動OK
+      await page.waitForFunction(() => localStorage.getItem("kyono_plan") === "null");
+      const quit = await page.evaluate(() => ({
+        msgVisible: !document.getElementById("planQuitMsg").classList.contains("hidden"),
+        cardVisible: !document.getElementById("planCard").classList.contains("hidden"),
+      }));
+      if (!quit.msgVisible || !quit.cardVisible) throw new Error("解除後の「またいつでも組めるよ」文言が出ていない");
+      return "開始(肩こり3本)→+1日でローテ次番+daylog=プラン動画→+15日で完走お祝い+plan削除→再開1/14→やめるで解除文言";
     });
 
     // 7. 破損データ耐性: kyono_streak2に不正文字列→リロードで白画面にならない
