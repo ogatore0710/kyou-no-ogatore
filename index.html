@@ -942,6 +942,18 @@
   </div>
 </div>
 
+<!-- ===== はじめてガイド（初回オンボーディング・独立オーバーレイ） ===== -->
+<div id="welcome" class="hidden">
+  <div class="ob-sheet">
+    <div class="ob-head">
+      <div class="ob-title">🌱 はじめてガイド</div>
+      <button class="ob-skip" id="obSkipBtn" onclick="obSkip()">スキップ</button>
+    </div>
+    <div id="obLog"></div>
+    <div id="obChips"></div>
+  </div>
+</div>
+
 <canvas id="cardCanvas" width="1000" height="1000" style="display:none"></canvas>
 
 <script src="videos.js"></script>
@@ -1481,6 +1493,142 @@ function renderToday(){
   }
   document.getElementById("todayVideo").innerHTML = videoCard(vk, badge)+extra;
 }
+
+// ================= 2週間プラン（処方箋モード・dev67専有域） =================
+// 相談室の悩みインテントを「あなた専用の2週間プラン」に変換し、きょうの1本のmine枠を専有する
+// データ: kyono_plan = {intentId, label, videos:[動画ID...], start:"YYYY-MM-DD", days:14}（store方式・保存は1本だけ）
+// 相談室側への導線は sdRenderChips を後段からラップして注入（dev66域の関数本体は書き換えない）
+let planFinishedCache=null; // 完走お祝い中の一時退避（「もう2週間つづける」用・セッション内のみ）
+let planQuitNote=false;     // 解除直後のひとこと表示フラグ（次のホーム描画で自然に消える）
+let planCelebrated=false;   // 紙吹雪をセッション内で重ね撃ちしない
+function planData(){
+  const p=store.get("plan",null);
+  if(!p||typeof p!=="object"||!Array.isArray(p.videos)||!p.videos.length) return null;
+  if(typeof p.start!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(p.start)) return null;
+  return p;
+}
+function planDays(p){ return (typeof p.days==="number"&&p.days>0)?p.days:14; }
+function planDayNum(p){ const n=daysBetween(p.start,todayStr())+1; return n<1?1:n; } // 端末時計の巻き戻りは1日目あつかい
+function planFinished(p){ return planDayNum(p)>planDays(p); }
+function planCurrent(){ const p=planData(); return (p&&!planFinished(p))?p:null; } // 実行中（未完走）のみ返す
+function planTodayVideoId(p){ return p.videos[dayIndex()%p.videos.length]; } // A3と同じ3時境界の日替わりローテ
+function planEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function planCatInfo(id){ if(typeof CATALOG==="undefined") return null; for(const c of CATALOG){ if(c.id===id) return c; } return null; }
+function planVideoHTML(id,badge){
+  const c=planCatInfo(id);
+  const t=c?c.t:"きょうのプランの1本（YouTubeでひらきます）";
+  return `<a class="video" href="https://www.youtube.com/watch?v=${planEsc(id)}" target="_blank" rel="noopener">
+    <img src="https://i.ytimg.com/vi/${planEsc(id)}/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <div>${badge?`<span class="badge">${planEsc(badge)}</span><br>`:""}<span class="vt">${planEsc(t)}</span><div class="vs">${planEsc(c?c.s:"")}</div></div></a>`;
+}
+// ---- ホームのプランカード（進捗・完走お祝い・解除） ----
+function renderPlanCard(){
+  const card=document.getElementById("planCard"), done=document.getElementById("planDoneCard");
+  if(!card||!done) return;
+  const body=document.getElementById("planBody"), qmsg=document.getElementById("planQuitMsg");
+  const p=planData();
+  if(!p){
+    done.classList.add("hidden");
+    if(planQuitNote){ planQuitNote=false; body.classList.add("hidden"); qmsg.classList.remove("hidden"); card.classList.remove("hidden"); }
+    else card.classList.add("hidden");
+    return;
+  }
+  if(planFinished(p)){
+    // 14日経過後の初回ホーム表示: 卒業のお祝い→プランは削除（お祝いカードの導線はセッション内キャッシュで生かす）
+    card.classList.add("hidden");
+    planFinishedCache={intentId:p.intentId,label:p.label,videos:p.videos.slice(),days:planDays(p)};
+    document.getElementById("planDoneText").innerHTML=`<b style="color:var(--pink)">🎉 ${planEsc(p.label||"あなたの")}プラン完走！すごい！</b><br>${planDays(p)}日間つづけたの、ほんとにえらい👏<br>体はちゃんと応えてくれてるよ`;
+    done.classList.remove("hidden");
+    store.set("plan",null);
+    if(!planCelebrated){ planCelebrated=true; try{ launchConfetti(105); }catch(e){} }
+    return;
+  }
+  done.classList.add("hidden"); qmsg.classList.add("hidden"); body.classList.remove("hidden");
+  const dn=planDayNum(p), total=planDays(p);
+  document.getElementById("planTitle").textContent=`📅 ${p.label||"あなたの"}プラン ${dn}/${total}日`;
+  document.getElementById("planBar").style.width=Math.min(100,Math.round(dn/total*100))+"%";
+  card.classList.remove("hidden");
+}
+function planQuit(){
+  const p=planData(); if(!p) return;
+  if(!confirm((p.label||"いまの")+"プランをいったんやめる？（つづけた日数の記録はそのまま残るよ）")) return;
+  store.set("plan",null);
+  planQuitNote=true; // 責めない一言をカード位置に一度だけ出す
+  if(state.mode==="mine"&&!(state.type&&TYPES[state.type.key])) state.mode=null; // 型なしユーザーの手動mineを掃除
+  renderHome();
+}
+function planDoneClose(){ document.getElementById("planDoneCard").classList.add("hidden"); }
+function planAgain(){
+  const c=planFinishedCache;
+  planDoneClose();
+  if(!c) return;
+  store.set("plan",{intentId:c.intentId,label:c.label,videos:c.videos,start:todayStr(),days:c.days});
+  state.mode="mine"; store.set("mode_manual",{m:"mine",d:todayStr()});
+  renderHome();
+}
+// ---- 相談室からのプラン開始導線（チップ注入・確認吹き出し・開始） ----
+// 「即中止して様子見」が答えのインテントに2週間プランは矛盾するため出さない
+const PLAN_EXCLUDE_INTENTS=["itakunatta"];
+function planInjectChip(){
+  const box=document.getElementById("sdChips");
+  if(!box||typeof sdChipsMode==="undefined"||!sdChipsMode||sdChipsMode.type!=="followups") return;
+  if(box.querySelector(".plan-chip")) return;
+  const it=(typeof sdIntentById==="function")?sdIntentById(sdChipsMode.intentId):null;
+  if(!it||!Array.isArray(it.videos)||!it.videos.length) return;
+  if(PLAN_EXCLUDE_INTENTS.indexOf(it.id)>=0) return;
+  const cur=planCurrent();
+  if(cur&&cur.intentId===it.id) return; // 同じ悩みのプラン実行中は出さない
+  const b=document.createElement("button");
+  b.className="chip chip-a plan-chip";
+  b.setAttribute("onclick","planChipTap('"+String(it.id).replace(/[^\w-]/g,"")+"')");
+  b.textContent="📅 この悩みを2週間プランにする";
+  box.insertBefore(b,box.firstChild);
+}
+function planChipTap(id){
+  if(typeof sdPending!=="undefined"&&sdPending) return;
+  const it=(typeof sdIntentById==="function")?sdIntentById(id):null; if(!it) return;
+  if(typeof sdUserBubble==="function") sdUserBubble("📅 この悩みを2週間プランにする");
+  const cur=planCurrent();
+  const safeId=String(it.id).replace(/[^\w-]/g,"");
+  const label=planEsc(it.chip||"あなたの");
+  let q, okLabel;
+  if(cur&&cur.intentId!==it.id){ q=`いまの${planEsc(cur.label||"")}プランと入れ替える？きょうの1本が、あなたの${label}プランになるよ`; okLabel="入れ替えてはじめる！"; }
+  else{ q=`きょうの1本が、あなたの${label}プランになるよ！2週間いっしょにやってみる？`; okLabel="はじめる！"; }
+  sdPush([{who:"oga",html:q+`<div style="margin-top:8px"><button class="btn btn-primary" style="font-size:15px" onclick="planStart('${safeId}',this)">${okLabel}</button><button class="btn btn-ghost" style="font-size:14px;margin-top:6px" onclick="planDecline(this)">まずは1本だけやってみる</button></div>`}]);
+}
+function planDisableBtns(btn){ try{ const bs=btn.parentNode.querySelectorAll("button"); for(const b of bs){ b.disabled=true; b.style.opacity=".5"; } }catch(e){} }
+function planStart(id,btn){
+  if(typeof sdPending!=="undefined"&&sdPending) return;
+  const it=(typeof sdIntentById==="function")?sdIntentById(id):null;
+  if(!it||!Array.isArray(it.videos)||!it.videos.length) return;
+  if(btn) planDisableBtns(btn);
+  const vids=[]; for(const v of it.videos){ if(v&&v.v&&vids.indexOf(v.v)<0) vids.push(v.v); }
+  if(!vids.length) return;
+  const ok=store.set("plan",{intentId:it.id,label:it.chip||"",videos:vids,start:todayStr(),days:14});
+  if(!ok){ sdPush([{who:"oga",html:"ごめんね、この画面設定ではプランをのこせないみたい🙏 プライベートモードをオフにしてもう一度ためしてみて"}]); return; }
+  state.mode="mine"; store.set("mode_manual",{m:"mine",d:todayStr()}); // きょうからmine枠がプランに
+  renderHome(); // 背面のホーム（きょうの1本・プランカード）を先に整えておく
+  sdPush([{who:"oga",html:`よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が${planEsc(it.chip||"あなた")}用になったよ😊<div style="margin-top:8px"><button class="btn btn-primary" style="font-size:15px" onclick="planGoHome()">きょうの1本を見にいく</button></div>`}]);
+}
+function planDecline(btn){
+  if(btn) planDisableBtns(btn);
+  sdPush([{who:"oga",html:"OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね"}]);
+}
+function planGoHome(){
+  // 相談室がボトムシートの世界ではシートを閉じるだけ・旧セクションの世界ではホームへ遷移（両対応）
+  try{ if(typeof sdSheetOpen==="function"&&typeof closeSoudan==="function"&&sdSheetOpen()){ closeSoudan(); renderHome(); return; } }catch(e){}
+  goHome();
+}
+// 相談室のチップ描画に後段からプランチップを注入するフック（dev66域の本体は不変・失敗しても本流に影響なし）
+setTimeout(function(){
+  try{
+    if(typeof sdRenderChips==="function"&&!sdRenderChips.__planHooked){
+      const base=sdRenderChips;
+      sdRenderChips=function(){ base.apply(this,arguments); try{ planInjectChip(); }catch(e){} };
+      sdRenderChips.__planHooked=true;
+    }
+  }catch(e){}
+},0);
 
 // ---- 継続カウンター（日付リストで頑丈に保存） ----
 function getStreakData(){
@@ -2465,7 +2613,7 @@ function drawBragCard(thumb){
 
 // ---- ホーム描画 ----
 function renderHome(){
-  renderToday(); renderStreak(); renderThanks(); renderQuote(); renderAnchor(); welcomeCheck(); renderRecheck();
+  renderToday(); renderStreak(); renderThanks(); renderQuote(); renderAnchor(); welcomeCheck(); renderRecheck(); renderPlanCard();
   const lr=document.getElementById("lastResult");
   const done2=!!(state.type&&TYPES[state.type.key]);
   document.getElementById("ckBody").classList.toggle("hidden",done2);
@@ -2488,6 +2636,23 @@ function renderHome(){
 // マッチング規則はSOUDAN-DESIGN.md §4: ①赤旗最優先 ②チップ確定 ③kwヒット文字数合計スコア
 // （同点はkw配列先頭寄り優先）④閾値(かな2文字相当=2)未満→続き言葉→雑談→フォールバック
 const SD_MAIL="kyou-no@ogatore.jp"; // 既存リクエスト導線（app-search.js）と同じ宛先
+// ---- かたさタイプ連携（チェック済みの人への味付け） ----
+// タイプ挨拶: 6タイプ×2パターン（尾形ボイス・日付ハッシュでローテ・乱数不使用）。
+// くどくならないよう、シートを開くたび最初の1回答だけに添える（sdFlavorShownで制御）
+const SOUDAN_TYPE_FLAVOR={
+  momo:["つっぱりモモンガのあなたには、これが効くはず！","モモンガさんのもも裏、きょうもいっしょにゆるめよう！"],
+  koka:["開かずのトビラのあなたには、これが効くはず！","トビラさんの股関節、きょうも少しずつ油をさしていこう！"],
+  kenko:["飛べないダチョウのあなたには、これが効くはず！","ダチョウさんの羽根、きょうもバサバサ動かしていこう！"],
+  ashi:["棒立ちペンギンのあなたには、これが効くはず！","ペンギンさんの足首、きょうもコツコツゆるめよう！"],
+  robot:["ガチガチロボットのあなたには、これが効くはず！","ロボットさんは伸びしろの宝庫！きょうも1本いこう！"],
+  yawara:["しなやかネコのあなたなら、これで守れるはず！","ネコさんのしなやかさ、きょうもキープしていこう！"]
+};
+// タイプのarea（もも裏/股関節/肩甲骨/足首/全身）と部位が重なるインテント。相性ブーストと結果画面からの逆導線に使う
+const SOUDAN_TYPE_INTENT={momo:["zenkutsu","kaikyaku"],koka:["kokansetsu","kaikyaku"],kenko:["katakori","nekoze"],ashi:["ashikubi"],robot:["zenshin"],yawara:[]};
+// 「体の悩み系」インテント（未チェックの人にかたさチェック導線チップを出す対象）。
+// デリケート枠（safety:true=頭痛/ひざ/痛くなった）と雑談・共通followup・赤旗には出さない
+const SOUDAN_BODY_INTENTS=["katakori","youtsuu","zenkutsu","kokansetsu","ashikubi","kaikyaku","nekoze","nemuri","zenshin"];
+let sdFlavorShown=false; // シートを開き直すたびリセット
 let sdCtx={lastIntentId:null,shownVideoIds:[],smalltalkStreak:0,nextBestId:null}; // セッション内のみ・保存なし
 let sdChipsMode={type:"intents"};
 let sdPending=0, sdGreeted=false, sdCatById=null;
@@ -2512,12 +2677,29 @@ function sdCatInfo(vid){
   return sdCatById[vid]||null;
 }
 function sdMinutes(vid){ const c=sdCatInfo(vid); if(!c||!c.s) return 999; const m=String(c.s).match(/(\d+)分/); return m?Number(m[1]):999; }
-function sdVideoHTML(v){
+function sdHasType(){ return !!(state.type&&TYPES[state.type.key]); }
+function sdTypeFlavor(){
+  if(!sdHasType()) return "";
+  const fl=SOUDAN_TYPE_FLAVOR[state.type.key]||[];
+  return fl.length?fl[sdDayHash()%fl.length]:"";
+}
+// 相性ブースト: タイプの部位と重なるインテントで、そのタイプのrx/pool動画が候補に出たときだけtrue（note装飾のみに使う）
+function sdTypeBoost(it,vid){
+  if(!it||it.safety||!sdHasType()||typeof V==="undefined") return false;
+  if((SOUDAN_TYPE_INTENT[state.type.key]||[]).indexOf(it.id)<0) return false;
+  const T=TYPES[state.type.key];
+  const keys=(T.rx||[]).concat(T.pool||[]);
+  for(const k of keys){ if(V[k]&&V[k].id===vid) return true; }
+  return false;
+}
+function sdVideoHTML(v,it){
   const c=sdCatInfo(v.v);
   const t=c?c.t:"おすすめの1本（YouTubeでひらきます）";
+  let note=v.note||"";
+  if(sdTypeBoost(it,v.v)) note=note?note+"・あなたのタイプの定番":"あなたのタイプの定番";
   return `<a class="video" href="https://www.youtube.com/watch?v=${sdEsc(v.v)}" target="_blank" rel="noopener">
     <img src="https://i.ytimg.com/vi/${sdEsc(v.v)}/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-    <div>${v.note?`<span class="badge">${sdEsc(v.note)}</span><br>`:""}<span class="vt">${sdEsc(t)}</span><div class="vs">${sdEsc(c?c.s:"")}</div></div></a>`;
+    <div>${note?`<span class="badge">${sdEsc(note)}</span><br>`:""}<span class="vt">${sdEsc(t)}</span><div class="vs">${sdEsc(c?c.s:"")}</div></div></a>`;
 }
 function sdMarkShown(vid){ if(sdCtx.shownVideoIds.indexOf(vid)<0) sdCtx.shownVideoIds.push(vid); }
 function sdUnseen(it){ return (it.videos||[]).filter(v=>v&&sdCtx.shownVideoIds.indexOf(v.v)<0); }
@@ -2580,6 +2762,10 @@ function sdRenderChips(){
       const nb=sdIntentById(sdChipsMode.nextBestId);
       if(nb) html+=`<button class="chip chip-c" onclick="sdChipTap('${sdEsc(nb.id)}')">${sdEsc(nb.chip)}の話も</button>`;
     }
+    // 未チェックの人への導線: 体の悩み系回答にだけ出す（雑談・共通followup・赤旗・デリケート枠には出さない）
+    if(it&&!it.safety&&!sdHasType()&&SOUDAN_BODY_INTENTS.indexOf(it.id)>=0){
+      html+=`<button class="chip chip-a" onclick="sdQuizTap()">30秒のかたさチェックやってみる?</button>`;
+    }
     html+=`<button class="chip chip-d" onclick="sdShowIntentChips()">べつの悩みをそうだん</button>`;
   }else{
     for(const it2 of kb.intents){
@@ -2589,6 +2775,12 @@ function sdRenderChips(){
   box.innerHTML=html;
 }
 function sdShowIntentChips(){ sdChipsMode={type:"intents"}; sdRenderChips(); }
+// 相談室→かたさチェックへ。履歴のsoudan段は畳まずシートだけ閉じる=チェックから「戻る」で相談室に帰って来られる
+function sdQuizTap(){
+  if(sdPending) return;
+  closeSoudan(true);
+  startQuiz();
+}
 // ---- 照合 ----
 function sdRedFlagHit(n){
   const kb=sdKb(); if(!kb||!kb.redFlags||!Array.isArray(kb.redFlags.kw)) return false;
@@ -2632,10 +2824,16 @@ function sdSmalltalkHit(n){
 function sdAnswerIntent(it,nextBestId){
   sdCtx.lastIntentId=it.id; sdCtx.smalltalkStreak=0; sdCtx.nextBestId=nextBestId||null;
   const msgs=[];
-  if(it.empathy) msgs.push({who:"oga",html:sdText(it.empathy)});
+  let emp=it.empathy?sdText(it.empathy):"";
+  // かたさチェック済みならタイプ挨拶1行を共感の前に（デリケート枠は除く・開くたび最初の1回だけ）
+  if(!it.safety&&!sdFlavorShown){
+    const fv=sdTypeFlavor();
+    if(fv){ emp=sdText(fv)+(emp?"<br>":"")+emp; sdFlavorShown=true; }
+  }
+  if(emp) msgs.push({who:"oga",html:emp});
   const vs=it.videos||[];
   let mid=it.mitate?sdText(it.mitate):"";
-  if(vs.length){ mid+=sdVideoHTML(vs[0]); sdMarkShown(vs[0].v); } // まずは1本（残りは「他には?」「もっと短いの」で）
+  if(vs.length){ mid+=sdVideoHTML(vs[0],it); sdMarkShown(vs[0].v); } // まずは1本（残りは「他には?」「もっと短いの」で）
   if(mid) msgs.push({who:"oga",html:mid});
   let kz=it.keizoku?sdText(it.keizoku):"";
   if(it.safety) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※つよい痛みやしびれが出たら中止して、医療機関に相談してね</span>`;
@@ -2681,14 +2879,14 @@ function sdAnswerFollowup(f){
       let pick=null;
       for(const v of vs){ if(sdCtx.shownVideoIds.indexOf(v.v)<0){ pick=v; break; } }
       if(!pick&&vs.length&&sdMinutes(vs[0].v)<=7) pick=vs[0]; // 出しつくしても最短が7分以下ならもう一度すすめる
-      if(pick){ msgs.push({who:"oga",html:sdText(sdMinutes(pick.v)<=7?"それなら、みじかめのこれ！":"いちばん短いのはこれ！")+sdVideoHTML(pick)}); sdMarkShown(pick.v); }
+      if(pick){ msgs.push({who:"oga",html:sdText(sdMinutes(pick.v)<=7?"それなら、みじかめのこれ！":"いちばん短いのはこれ！")+sdVideoHTML(pick,it)}); sdMarkShown(pick.v); }
       else msgs.push({who:"oga",html:"いま出せるおすすめは以上!まずはさっきの1本からどうぞ😊"});
     }
   }else if(f.mode==="more"){
     if(!it){ msgs.push({who:"oga",html:"どの悩みか、下のチップから教えてくれたら おすすめを出すよ😊"}); sdChipsMode={type:"intents"}; }
     else{
       const un=sdUnseen(it);
-      if(un.length){ msgs.push({who:"oga",html:"こっちもおすすめ！"+sdVideoHTML(un[0])}); sdMarkShown(un[0].v); }
+      if(un.length){ msgs.push({who:"oga",html:"こっちもおすすめ！"+sdVideoHTML(un[0],it)}); sdMarkShown(un[0].v); }
       else msgs.push({who:"oga",html:"いま出せるおすすめは以上!まずはさっきの1本からどうぞ😊"});
     }
   }else if(f.answer){ // mode:"text"（未知modeもanswerがあればtext扱いで前方互換）
@@ -3377,6 +3575,168 @@ window.addEventListener("online",()=>{
     offlineBannerOn=false;
   }catch(e){}
 });
+
+// ================= はじめてガイド（初回オンボーディング・dev68） =================
+// 台本はデータとして持つ（文言差し替えを楽に）。吹き出しは相談室のCSS（.sd-row/.sd-b）を流用
+// 吹き出しは1個40字以内・全部で15枚以内（現在10枚）
+const ONBOARDING_SCRIPT={
+  greet:[
+    "はじめまして！理学療法士のオガトレです💪",
+    "ここは1日1本のストレッチをいっしょに続ける場所だよ",
+    "３つだけ教えて！あなた用にととのえるね😊"
+  ],
+  questions:[
+    {key:"stiff", q:"体、硬いほう？",
+     chips:[{label:"ガチガチかも",v:"hard"},{label:"ふつう",v:"normal"},{label:"やわらかい",v:"soft"},{label:"わからない",v:"unknown"}]},
+    {key:"worry", q:"いちばん気になるのは？",
+     chips:[{label:"肩こり・首",v:"katakori"},{label:"腰",v:"youtsuu"},{label:"前屈できない",v:"zenkutsu"},{label:"眠り",v:"nemuri"},{label:"とくにない",v:"none"}]},
+    {key:"anchor", q:"ストレッチ、いつやる派？",
+     chips:[{label:"朝おきて",v:"asa"},{label:"おふろ上がり",v:"furo"},{label:"寝るまえ",v:"neru"},{label:"きめてない",v:"free"}]}
+  ],
+  anchorAck:{
+    asa:"朝おきてすぐだね☀️ ホームにも覚えさせたよ📝",
+    furo:"おふろ上がりは体もほぐれてて効果的👍 覚えたよ📝",
+    neru:"寝るまえの1本はねむりにも効くよ🌙 覚えたよ📝",
+    free:"きめなくてもOK！そのつどでだいじょうぶ😊"
+  },
+  routes:{
+    quiz:{say:["なら30秒で見てあげる！タップするだけ✅"],btn:"かたさチェックをはじめる"},
+    soudan:{say:["それ、くわしく聞かせて！相談室で待ってるね💬"],btn:"相談室で聞いてみる"},
+    today:{say:["じゃあ今日の1本から！むずかしいことはなしだよ👍"],btn:"きょうの1本を見る"}
+  },
+  close:[
+    "ホーム画面についかすると記録がずっとのこるよ📌 やり方は使い方タブへ",
+    "困ったら、ホームの相談室からいつでも聞いてね😊"
+  ]
+};
+let obAnswers={}, obQi=0, obRouteKey=null, obPending=false, obRun=0;
+function obReducedMotion(){ try{ return !!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){ return false; } }
+function obBubble(who,text){
+  const log=document.getElementById("obLog"); if(!log) return;
+  const row=document.createElement("div");
+  row.className="sd-row "+(who==="user"?"user":"oga")+" sd-pop";
+  row.innerHTML=(who==="user"?"":'<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">')+'<div class="sd-b"></div>';
+  row.querySelector(".sd-b").textContent=text; // 台本は固定文言だがtextContentで通す（安全側）
+  log.appendChild(row);
+  log.scrollTop=log.scrollHeight;
+}
+// 吹き出しを0.48秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
+function obSay(lines,then){
+  const run=obRun;
+  obPending=true;
+  document.getElementById("obChips").innerHTML="";
+  const wait=obReducedMotion()?0:480;
+  let i=0;
+  (function next(){
+    if(run!==obRun) return;
+    if(i>=lines.length){ obPending=false; if(then) then(); return; }
+    obBubble("oga",lines[i]); i++;
+    if(wait===0) next(); else setTimeout(next,wait);
+  })();
+}
+function obAskQ(){
+  const q=ONBOARDING_SCRIPT.questions[obQi];
+  if(!q){ obRoute(); return; }
+  obSay([q.q],function(){
+    const box=document.getElementById("obChips");
+    box.innerHTML="";
+    q.chips.forEach(c=>{
+      const b=document.createElement("button");
+      b.className="chip chip-b";
+      b.textContent=c.label;
+      b.onclick=function(){ obPick(q,c); };
+      box.appendChild(b);
+    });
+  });
+}
+function obPick(q,c){
+  if(obPending) return;
+  document.getElementById("obChips").innerHTML="";
+  obBubble("user",c.label);
+  obAnswers[q.key]=c.v;
+  obQi++;
+  if(q.key==="anchor"){
+    try{ setAnchor(c.v); }catch(e){} // 本物の設定として保存（既存setAnchorに接続）
+    obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],obAskQ);
+  }else{
+    obAskQ();
+  }
+}
+// ルーティング: 硬い/わからない→かたさチェック ＞ 悩みあり→相談室 ＞ とくにない→きょうの1本
+function obDecideRoute(){
+  const a=obAnswers;
+  let r;
+  if(a.stiff==="hard"||a.stiff==="unknown") r="quiz";
+  else if(a.worry&&a.worry!=="none") r="soudan";
+  else r="today";
+  // KB未着や相談室API不在のときは「きょうの1本」へ安全に倒す
+  if(r==="soudan"&&!(typeof openSoudan==="function"&&typeof sdKb==="function"&&sdKb())) r="today";
+  return r;
+}
+function obRoute(){
+  obRouteKey=obDecideRoute();
+  const rt=ONBOARDING_SCRIPT.routes[obRouteKey];
+  obSay(rt.say.concat(ONBOARDING_SCRIPT.close),function(){
+    const box=document.getElementById("obChips");
+    box.innerHTML="";
+    const b=document.createElement("button");
+    b.className="btn btn-primary";
+    b.textContent=rt.btn;
+    b.onclick=obGo;
+    box.appendChild(b);
+  });
+}
+function obGo(){
+  const r=obRouteKey, worry=obAnswers.worry;
+  obClose();
+  if(r==="quiz"){ startQuiz(); return; }
+  if(r==="soudan"){ try{ openSoudan(worry); return; }catch(e){} }
+  goHome();
+  setTimeout(function(){ const tv=document.getElementById("todayVideo"); if(tv&&tv.scrollIntoView) tv.scrollIntoView(); },60);
+}
+function obOpen(){
+  const w=document.getElementById("welcome"); if(!w) return;
+  obRun++;
+  obAnswers={}; obQi=0; obRouteKey=null; obPending=false;
+  document.getElementById("obLog").innerHTML="";
+  document.getElementById("obChips").innerHTML="";
+  w.classList.remove("hidden");
+  try{ if(!(history.state&&history.state.ob)) history.pushState({id:currentSection,ob:1},""); }catch(e){}
+  obSay(ONBOARDING_SCRIPT.greet,obAskQ);
+}
+// 閉じ＝完了/スキップとも kyono_onboarded=1（二度と勝手に出ない）
+function obClose(){
+  obRun++;
+  store.set("onboarded",1);
+  const w=document.getElementById("welcome");
+  if(w) w.classList.add("hidden");
+}
+function obSkip(){ obClose(); }
+// 戻る操作でオーバーレイを閉じる（A6流儀・既存popstateハンドラには触らず独自リスナーで）
+window.addEventListener("popstate",function(){
+  const w=document.getElementById("welcome");
+  if(w&&!w.classList.contains("hidden")) obClose(); // 閉じ=スキップ扱い
+});
+// 発火判定: kyono_のキーが実質空（テーマ等の見た目設定は除く）かつ kyono_onboarded 未設定
+function obIsFresh(){
+  try{
+    if(localStorage.getItem("kyono_onboarded")!=null) return false;
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.indexOf("kyono_")===0&&k!=="kyono_theme"&&k!=="kyono_bigtext") return false;
+    }
+    return true;
+  }catch(e){ return false; }
+}
+// 初回起動のみ・スプラッシュ退場（1800+550ms）後に下からシートイン
+(function(){
+  try{
+    if(!obIsFresh()) return;
+    const sp=document.getElementById("appSplash");
+    setTimeout(obOpen, sp?2400:600);
+  }catch(e){}
+})();
+
 window.__kyonoBoot=true;
 </script>
 <script>
