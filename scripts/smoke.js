@@ -161,14 +161,57 @@ async function main() {
       }
     }
 
-    // 1. フレッシュ起動（新規プロファイル＝localStorage空）→ ホーム描画・コンソールエラー0
-    await step("1-フレッシュ起動でホーム描画", async () => {
+    // 1. フレッシュ起動（新規プロファイル＝localStorage空）→ はじめてガイド(#welcome)が出る→スキップでホーム・コンソールエラー0
+    await step("1-フレッシュ起動でwelcome表示→スキップでホーム", async () => {
       await page.goto(url, { waitUntil: "load" });
       await visible("#home");
       const boot = await page.evaluate(() => window.__kyonoBoot === true);
       if (!boot) throw new Error("__kyonoBoot が立っていない（起動スクリプト未完走）");
       const fresh = await page.evaluate(() => localStorage.length);
-      return "boot marker OK / localStorage初期キー数=" + fresh;
+      // ブラウザ起動（スプラッシュ無し）では約600ms後にシートイン
+      await page.waitForFunction(
+        () => { const w = document.getElementById("welcome"); return w && !w.classList.contains("hidden"); },
+        { timeout: 5000 }
+      );
+      await shot("1-welcome-open");
+      await page.click("#obSkipBtn");
+      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      const onboarded = await page.evaluate(() => localStorage.getItem("kyono_onboarded"));
+      if (!onboarded) throw new Error("スキップ後に kyono_onboarded が立っていない");
+      return "boot marker OK / localStorage初期キー数=" + fresh + " / welcome表示→スキップ→onboarded=" + onboarded;
+    });
+
+    // 1b. オンボーディング一巡: 使い方タブの再入場リンクから起動→Q1〜Q3実タップ→anchor実保存→ルーティングでかたさチェックへ
+    await step("1b-オンボーディング一巡（再入場→Q1〜ルーティング）", async () => {
+      await page.click("#tab-guide");
+      await visible("#obReenterLink");
+      await page.click("#obReenterLink");
+      await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"));
+      // 台本の吹き出しは擬似タイピングで順に出るため、目当てのチップが出るまで待って押す
+      async function tapObChip(text) {
+        await page.waitForFunction((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) return true; }
+          return false;
+        }, { timeout: 8000 }, text);
+        await page.evaluate((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) { btns[i].click(); return; } }
+        }, text);
+      }
+      await tapObChip("ガチガチかも");   // Q1: 硬い → ルーティングはかたさチェック
+      await tapObChip("肩こり・首");     // Q2
+      await tapObChip("朝おきて");       // Q3 → setAnchor("asa") 実保存
+      await page.waitForFunction(() => localStorage.getItem("kyono_anchor") === '"asa"', { timeout: 8000 });
+      await shot("1b-onboarding-chat");
+      await tapObChip("かたさチェックをはじめる"); // ルーティングCTA
+      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      await visible("#quiz");
+      const qn = await $text("#qnum");
+      if (qn.indexOf("Q1") !== 0) throw new Error("かたさチェックQ1に遷移していない (" + qn + ")");
+      await page.click("#tab-home");
+      await visible("#home");
+      return "Q1ガチガチ→Q2肩こり・首→Q3朝(anchor=asa保存)→CTAでかたさチェックQ1へ→ホーム復帰";
     });
 
     // 2. かたさチェック5問を実ボタンクリックで完走 → タイプ名・アイコン・処方3本

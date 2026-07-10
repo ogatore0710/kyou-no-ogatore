@@ -592,6 +592,7 @@
     <div class="rotate-note">おすすめは3日ごとに自動で入れ替わります</div>
     <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想！週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
     <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
+    <div id="rSoudanLink" class="hidden" style="font-size:14px;margin-top:10px;text-align:center"></div>
   </div>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回チェックする</button>
@@ -1432,6 +1433,18 @@ function showResult(saved){
     +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ 3本つづけて再生する</a>`;
   const w=WORRY[saved.worry];
   document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
+  // 逆導線: タイプのareaに対応するインテントで相談室を開く（KB未読込なら出さない）
+  const sl=document.getElementById("rSoudanLink");
+  if(sl){
+    if(sdKb()){
+      const tid=(SOUDAN_TYPE_INTENT[saved.key]||[])[0];
+      const arg=tid?"'"+tid+"'":"";
+      sl.innerHTML='<a href="#" class="tapx" onclick="openSoudan('+arg+');return false" style="color:var(--tealink);font-weight:800">💬 この悩み、相談室で聞いてみる</a>';
+      sl.classList.remove("hidden");
+    }else{
+      sl.classList.add("hidden");
+    }
+  }
   navTo("result");
 }
 
@@ -2945,6 +2958,7 @@ function openSoudan(intentId){
   try{ if(!(history.state&&history.state.id==="soudan")) history.pushState({id:"soudan"},""); }catch(e){}
   document.getElementById("soudanSheet").classList.remove("hidden");
   document.body.classList.add("sd-lock"); // 背面ページのスクロールを止める
+  sdFlavorShown=false; // タイプ挨拶は開くたび最初の1回答だけ
   sdEnsureGreeting();
   sdScrollEnd(); // 再オープン時もログ最下部から
   if(intentId&&!sdPending){ const it=sdIntentById(intentId); if(it){ sdUserBubble(it.chip); sdAnswerIntent(it,null); } }
