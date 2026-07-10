@@ -2484,7 +2484,9 @@ function sdRenderChips(){
     const ids=(it&&Array.isArray(it.followups))?it.followups:[];
     for(const fid of ids){
       const f=(kb.commonFollowups||[]).find(x=>x&&x.id===fid);
-      if(f) html+=`<button class="chip chip-a" onclick="sdFollowupTap('${sdEsc(f.id)}')">${sdEsc(f.chip)}</button>`;
+      if(f){ html+=`<button class="chip chip-a" onclick="sdFollowupTap('${sdEsc(f.id)}')">${sdEsc(f.chip)}</button>`; continue; }
+      const li=sdIntentById(fid); // followupsは関連インテントidの相互リンクも指せる（KB実データ仕様）
+      if(li) html+=`<button class="chip chip-c" onclick="sdChipTap('${sdEsc(li.id)}')">${sdEsc(li.chip)}</button>`;
     }
     if(sdChipsMode.nextBestId){
       const nb=sdIntentById(sdChipsMode.nextBestId);

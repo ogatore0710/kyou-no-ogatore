@@ -4,6 +4,17 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-11
 
+## 2026-07-11 相談室M1・エンジン+チャットUI（第六波dev63・担当: index/sw/qa/smoke）
+- **新セクション`soudan`**: SECTIONS/TAB_OF(→homeタブ)/popstate登録済み。戻る操作でホームに戻る（A1/A2と同じセクション遷移方式・モーダル不可）。入口カードはホームの**かたさチェックカード直下**（renderSoudanEntryがckCard移動に追従して再配置する。位置を変えるときはここ）
+- **エンジンは全て`sd`プレフィックスの関数群**（index.html内・renderHomeの直後のブロック）。soudan-kb.js未読込でも入口カードごと隠れて壊れない（sdKb()ガード）。会話文脈`sdCtx`はセッション内のみ・localStorage保存なし（設計§2）
+- **マッチング規則（設計§4準拠・変更時は要再テスト）**: ①redFlags最優先（複数ヒットでも1回）②チップ=確定 ③kwヒット文字数合計スコア・同点はkw配列先頭寄りのヒット優先 ④スコア2未満→続き言葉（lastIntent文脈・SD_FU_KW同義語）→smalltalk→フォールバック（📮mailto=件名『【相談室リクエスト】きょうのオガトレ』固定フォーマット・宛先はapp-search.jsと同じkyou-no@ogatore.jp）
+- **動画の出し方（エンジン側の設計判断・本人検収で要確認）**: 初回回答はvideos[0]の1本だけ（keizoku例文「この1本だけでOK」と整合）。2本目以降は「他には?」(more)「もっと短いの」(shorter=短い順・7分以下優先)で小出し。shownVideoIdsで同じ動画は二度勧めない・尽きたら定型文
+- **qa.js契約をdev64のv1実データ後に緩和**: videosは**0〜3本OK**（0本=動画を勧めないデリケート枠）・followupsは**共通followup idに加えて関連インテントidの相互リンクもOK**（エンジンはchip-c色の誘導チップとして描画）。dev64が14番を空配列に戻す/相互リンクを復活させるのは両方サポート済み（↓dev64ノートの調整事項はこれで解決）
+- 吹き出しは共感→見立て+動画→続け方の2〜3分割・0.5秒間隔（reduced-motion時は即時）。表示中は送信・チップをガード（sdPending）
+- sw.js: kyono-v20→**v21**・soudan-kb.jsをSHELL/ASSETS/network-first(no-cache)に追加（obu-feed.jsと同扱い）
+- 検証: qa.js **93項目PASS**／smoke **11/11 PASS**（新ステップ6b=入口→チップ→回答+動画→げきつう→赤旗→goBackでホーム。KB未着時はスキップ扱い+入口カード非表示の確認に自動切替）／ルール実測16/16（正規化・赤旗優先・同点解決・閾値・shorter/more・雑談2連続引き戻し・📮フォーマット）
+- 完了報告: ogatore-hub/dev-specs/kyono-soudan-engine-DONE.md
+
 ## 2026-07-11 相談室M1・回答バンク soudan-kb.js 新設（第六波dev64・専有ファイル）
 - **soudan-kb.js**（obu-feed.js方式のデータ専用ファイル）: 全15インテント（設計§4.5固定・13効かない=期間/フォーム/代替の3点構成・14痛くなった=慎重トーン・15赤旗=redFlags別枠）＋commonFollowups4件＋smalltalk21グループ42返し。文言の思想ソースはKindleマニュアルM1-M6→TAIZEN→TYPESpt（設計§6.5の優先順）。**全文が本人検収待ち=起案の位置づけ**（検収txt: ogatore-hub/dev-specs/kyono-soudan-kb-review.txt・通し番号127項目）
 - **kwの重要な設計判断**: 正規化（ひらがな化+英数小文字化+記号除去）は**漢字をかな変換しない**ため、kwにはかな形と頻出漢字形（肩こり/腰痛/膝…）を併記してある。かな形だけに「整理」すると漢字入力がマッチしなくなるので消さないこと。言い回しはコメントDB9,386件から採掘（長座体前屈/90度/ぐっすり/半信半疑/痛すぎ等）

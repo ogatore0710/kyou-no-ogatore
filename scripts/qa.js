@@ -454,12 +454,14 @@ function checkSoudanKb(catalogIds) {
   const intentIds = new Set();
   const dupIntentIds = [];
   const followupIds = new Set((kb.commonFollowups || []).map((f) => f && f.id).filter(Boolean));
+  const allIntentIds = new Set((kb.intents || []).map((it) => it && it.id).filter(Boolean));
   const kwOwner = new Map();
 
   for (const it of kb.intents || []) {
     const label = (it && it.id) || JSON.stringify(it);
+    // videosは0〜3本（0本=動画を勧めないデリケート枠、例: やったら痛くなった）
     if (!it || !it.id || !it.chip || !Array.isArray(it.kw) || !it.kw.length ||
-        !it.empathy || !it.mitate || !Array.isArray(it.videos) || !it.videos.length || !it.keizoku) {
+        !it.empathy || !it.mitate || !Array.isArray(it.videos) || !it.keizoku) {
       badIntents.push(label);
       continue;
     }
@@ -479,7 +481,8 @@ function checkSoudanKb(catalogIds) {
       else kwOwner.set(k, it.id);
     }
     for (const fid of it.followups || []) {
-      if (!followupIds.has(fid)) badFollowupRefs.push(`${it.id}: ${fid}`);
+      // followupsは共通followup id か 関連インテントid（相互リンク）のどちらかを指す
+      if (!followupIds.has(fid) && !allIntentIds.has(fid)) badFollowupRefs.push(`${it.id}: ${fid}`);
     }
   }
   assert("soudan-kb.js: intent必須フィールド (id/chip/kw/empathy/mitate/videos/keizoku)", badIntents.length === 0, badIntents.slice(0, 10).join(", ") || `${(kb.intents || []).length}件すべて充足`);
