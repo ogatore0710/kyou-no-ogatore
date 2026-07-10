@@ -348,7 +348,7 @@
   .chip-d.on{background:#8B7BD8;border-color:#8B7BD8;color:#fff}
   /* きょうのひとこと */
   .qbubble{display:flex;gap:10px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:14px;font-size:15px;line-height:1.7}
-  .qbubble img{width:36px;height:36px;border-radius:50%;background:var(--yellow);flex-shrink:0;object-fit:cover}
+  .qbubble img{width:auto;height:44px;flex-shrink:0;object-fit:contain}
   .qbubble .ql{display:block;font-size:11px;color:var(--sub);font-weight:900}
   /* とどくメーター */
   .reach-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
@@ -919,7 +919,7 @@ const MARK_SUN = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-w
 const MARK_MOON = `<svg viewBox="0 0 24 24" fill="none"><path d="M19 14.5A8 8 0 0 1 9.5 5 8 8 0 1 0 19 14.5z" fill="#B8A9F0" stroke="#3A3A35" stroke-width="2" stroke-linejoin="round"/></svg>`;
 // 梅雨どき（6月〜7月中旬）に日替わりで混ざる季節バリエーション。すべて日付ハッシュで決定的に選択（乱数不使用）
 const MARK_CLOUD = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="#E4E0D3"/></svg>`;
-const MARK_RAIN = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6.5h-1.26A8 8 0 1 0 9 16.5h9a5 5 0 0 0 0-10z" fill="#DFF5F2"/><path d="M8 19.5v2.5M12 20v2.5M16 19.5v2.5" stroke="#2BB3A3"/></svg>`;
+const MARK_RAIN = `<svg viewBox="-0.5 -1 25 25.5" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6.5h-1.26A8 8 0 1 0 9 16.5h9a5 5 0 0 0 0-10z" fill="#DFF5F2"/><path d="M8 19.5v2.5M12 20v2.5M16 19.5v2.5" stroke="#2BB3A3"/></svg>`;
 // 7/7限定・年に一度だけ表示する七夕の星（yawaraアイコンと同じ星形で世界観を統一）
 const MARK_TANABATA = `<svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.23L14.85 9L21.23 9.93L16.61 14.43L17.7 20.78L12 17.7L6.3 20.78L7.4 14.43L2.78 9.93L9.15 9Z" fill="#FFD93B"/><circle cx="21.7" cy="5.5" r="1.3" fill="#E56A9A" stroke="none"/></svg>`;
 const ICON_RX = `<svg viewBox="0 0 24 24" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3" fill="#DFF5F2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>`;
@@ -1575,7 +1575,7 @@ function setShowBrag(v){ store.set("show_brag",v); applyShowBrag(); }
 // ---- きょうのひとこと（尾形さんの声かけ） ----
 const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","つづけてるあなたがいちばんすごい","お膝もいたわってあげてくださいね"];
 function renderQuote(){
-  document.getElementById("qbubble").innerHTML=`<img src="assets/chara.png" alt=""><div><span class="ql">きょうのひとこと</span>「${QUOTES[dayIndex()%QUOTES.length]}」</div>`;
+  document.getElementById("qbubble").innerHTML=`<img src="assets/chara-hitokoto.png" alt=""><div><span class="ql">きょうのひとこと</span>「${QUOTES[dayIndex()%QUOTES.length]}」</div>`;
 }
 
 // ---- 記録カード（女性向けポップ・日替わり5テーマ＋節目ゴールド） ----
@@ -1641,7 +1641,7 @@ function tryUseFreezes(missedDates){
   return true;
 }
 
-const CHARA_FILES=["assets/chara-good.png","assets/chara-kaikyaku.png","assets/chara-cheer.png"];
+const CHARA_FILES=["assets/chara-good.png","assets/chara-kaikyaku.png","assets/chara-cheer.png","assets/chara-cracker.png","assets/chara-congrats.png"];
 const CHARA_CROWN="assets/chara-crown.png"; // 節目ゴールドカード専用（王冠ドヤ）
 let charaImg=null, crownImg=null, charaTried=false;
 function loadChara(cb){
