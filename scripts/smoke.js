@@ -398,6 +398,79 @@ async function main() {
       return "チップ「" + chipText + "」→回答" + counts.oga + "吹き出し・動画" + counts.video + "枚→ページ不動(" + scrollAfter + "px)→赤旗回答→戻るでシート閉";
     });
 
+    // 6c. 相談室×かたさタイプ連携（dev66 パートB）:
+    //     タイプ無し→入口チップの初回オープン（挨拶後にキュー消化）＋「かたさチェック」導線チップ→startQuiz
+    //     タイプあり(momo)→結果画面の逆導線→タイプ挨拶＋「あなたのタイプの定番」バッジ・導線チップは出ない
+    await step("6c-相談室×かたさタイプ連携", async () => {
+      if (!soudanKbExists) return "SKIP扱い: soudan-kb.js未着";
+      const FLAVOR_RE = /モモンガ|トビラ|ダチョウ|ペンギン|ロボットさん|しなやかネコ|ネコさんの/;
+      // ---- タイプ無し ----
+      await page.evaluate(() => localStorage.removeItem("kyono_type"));
+      await page.reload({ waitUntil: "load" });
+      await visible("#home");
+      await visible("#soudanCard");
+      // 入口カードのチップ（intent指定つきオープン）。初回オープンは挨拶表示→キュー消化の順に流れる
+      await page.evaluate(() => {
+        const btns = document.querySelectorAll("#soudanCardChips button");
+        for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf("肩") !== -1) { btns[i].click(); return; } }
+        btns[0].click();
+      });
+      await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
+      await page.waitForFunction(
+        () => document.querySelectorAll("#sdLog .sd-row.user").length >= 1, { timeout: 8000 }
+      ); // 指定インテントの相談（右吹き出し）が出る=初回オープンでもチップが無反応にならない
+      await page.waitForFunction(
+        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 8000 }
+      );
+      const noType = await page.evaluate((reSrc) => ({
+        quizChip: document.getElementById("sdChips").textContent.indexOf("かたさチェック") !== -1,
+        flavor: new RegExp(reSrc).test(document.getElementById("sdLog").textContent),
+      }), FLAVOR_RE.source);
+      if (!noType.quizChip) throw new Error("タイプ無しなのに「かたさチェック」導線チップが出ていない");
+      if (noType.flavor) throw new Error("タイプ無しなのにタイプ挨拶が出ている");
+      await shot("6c-soudan-no-type");
+      // 導線チップ→シートが閉じてかたさチェックQ1へ
+      await page.evaluate(() => {
+        const btns = document.querySelectorAll("#sdChips button");
+        for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf("かたさチェック") !== -1) { btns[i].click(); return; } }
+      });
+      await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
+      await visible("#quiz");
+      const qn1 = await $text("#qnum");
+      if (qn1.indexOf("Q1") !== 0) throw new Error("導線チップからかたさチェックQ1に遷移していない (" + qn1 + ")");
+      // ---- タイプあり(momo=つっぱりモモンガ) ----
+      await page.evaluate(() => {
+        localStorage.setItem("kyono_type", JSON.stringify({ key: "momo", worry: "none", at: "2026-01-01" }));
+      });
+      await page.reload({ waitUntil: "load" });
+      await visible("#home");
+      await page.evaluate(() => showResult(state.type)); // 結果画面（チェック済みの人の再訪と同じ導線）
+      await visible("#rSoudanLink");
+      const linkText = await $text("#rSoudanLink");
+      if (linkText.indexOf("相談室") === -1) throw new Error("結果画面に相談室への逆導線が出ていない");
+      await page.evaluate(() => { document.querySelector("#rSoudanLink a").click(); });
+      await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
+      await page.waitForFunction(
+        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 8000 }
+      );
+      const typed = await page.evaluate(() => ({
+        user: document.querySelectorAll("#sdLog .sd-row.user").length,
+        flavor: document.getElementById("sdLog").textContent.indexOf("モモンガ") !== -1,
+        badge: document.getElementById("sdLog").textContent.indexOf("あなたのタイプの定番") !== -1,
+        quizChip: document.getElementById("sdChips").textContent.indexOf("かたさチェック") !== -1,
+      }));
+      if (typed.user < 1) throw new Error("逆導線からの相談（右吹き出し）が出ていない");
+      if (!typed.flavor) throw new Error("タイプ挨拶（モモンガ）が回答に出ていない");
+      if (!typed.badge) throw new Error("「あなたのタイプの定番」バッジが動画に付いていない");
+      if (typed.quizChip) throw new Error("タイプありなのに「かたさチェック」導線チップが出ている");
+      await shot("6c-soudan-momo-type");
+      await page.click(".sd-close");
+      await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
+      await page.click("#tab-home");
+      await visible("#home");
+      return "タイプ無し: 入口チップ初回OK・導線チップ→Q1／タイプあり(momo): 逆導線→挨拶+定番バッジ・導線チップ非表示";
+    });
+
     // 7. 破損データ耐性: kyono_streak2に不正文字列→リロードで白画面にならない
     await step("7-破損データ耐性（kyono_streak2）", async () => {
       await page.evaluate(() => localStorage.setItem("kyono_streak2", "{oops!!broken"));

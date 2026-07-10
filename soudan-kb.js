@@ -301,7 +301,7 @@ const SOUDAN_KB = {
         { v: "Q3_HYARYTUw", note: "ポール持ちなら" }
       ],
       keizoku: "「明日は気圧が下がる」と分かった夜に1本。お守りみたいに使ってみて！",
-      followups: ["days", "zutsuu", "jiritsu"],
+      followups: ["days", "zutsuu", "nemuri"],
       safety: false },
 
     // A-7. 枕が合わない（M2/M4: 高すぎがいちばん多い失敗・バスタオル試作）

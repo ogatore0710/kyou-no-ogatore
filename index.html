@@ -2666,6 +2666,7 @@ const SOUDAN_TYPE_INTENT={momo:["zenkutsu","kaikyaku"],koka:["kokansetsu","kaiky
 // デリケート枠（safety:true=頭痛/ひざ/痛くなった）と雑談・共通followup・赤旗には出さない
 const SOUDAN_BODY_INTENTS=["katakori","youtsuu","zenkutsu","kokansetsu","ashikubi","kaikyaku","nekoze","nemuri","zenshin"];
 let sdFlavorShown=false; // シートを開き直すたびリセット
+let sdQueuedIntent=null; // 初回オープン時: 挨拶の吹き出し表示が終わってから答えるチップ指定インテント
 let sdCtx={lastIntentId:null,shownVideoIds:[],smalltalkStreak:0,nextBestId:null}; // セッション内のみ・保存なし
 let sdChipsMode={type:"intents"};
 let sdPending=0, sdGreeted=false, sdCatById=null;
@@ -2742,7 +2743,15 @@ function sdPush(msgs){
   function showNext(){
     log.appendChild(sdBubbleNode(msgs[i])); i++;
     sdScrollEnd();
-    if(i>=msgs.length){ sdPending--; sdRenderChips(); sdScrollEnd(); return; }
+    if(i>=msgs.length){
+      sdPending--; sdRenderChips(); sdScrollEnd();
+      // 挨拶などの表示中に指定されたインテント（入口カードのチップ・結果画面の逆導線）をここで流す
+      if(!sdPending&&sdQueuedIntent){
+        const qit=sdIntentById(sdQueuedIntent); sdQueuedIntent=null;
+        if(qit&&sdSheetOpen()){ sdUserBubble(qit.chip); sdAnswerIntent(qit,null); }
+      }
+      return;
+    }
     queueNext();
   }
   function queueNext(){
@@ -2961,12 +2970,18 @@ function openSoudan(intentId){
   sdFlavorShown=false; // タイプ挨拶は開くたび最初の1回答だけ
   sdEnsureGreeting();
   sdScrollEnd(); // 再オープン時もログ最下部から
-  if(intentId&&!sdPending){ const it=sdIntentById(intentId); if(it){ sdUserBubble(it.chip); sdAnswerIntent(it,null); } }
+  // チップ指定つきオープン: 挨拶などの吹き出しを出している最中ならキューに積み、表示完了後にsdPushが流す
+  // （従来はsdPending中は黙って捨てていた=初回オープン時だけ入口チップ・逆導線が無反応になるバグ）
+  if(intentId){
+    const it=sdIntentById(intentId);
+    if(it){ if(sdPending){ sdQueuedIntent=intentId; } else { sdUserBubble(it.chip); sdAnswerIntent(it,null); } }
+  }
 }
 // fromPop=true: popstate起点（履歴はすでに1段戻っている）。✕タップ等の画面起点ならこちらからhistory.back()して整合を取る
 function closeSoudan(fromPop){
   document.getElementById("soudanSheet").classList.add("hidden");
   document.body.classList.remove("sd-lock");
+  sdQueuedIntent=null; // 未消化のチップ指定は捨てる（次回オープン時に古い回答が突然流れないように）
   if(fromPop!==true){ try{ if(history.state&&history.state.id==="soudan") history.back(); }catch(e){} }
 }
 function sdEnsureGreeting(){
