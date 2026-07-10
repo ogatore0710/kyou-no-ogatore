@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10夜 せんぱいの声を60→120件に倍増（夜間ラン第四波dev56・担当B）
+- 本人「先輩の声は増えたほうがいいね」への対応。`VOICES`配列（index.html）に**新規60件を追加、計120件**。日替わり8件抽選（pickDailyVoices）のプールが2倍に
+- 源泉: ogatore-growth/data/ogatore.db comments 9,386件。効果報告系タグ（効果報告/pain_gone/duration/soft/reach）× 50〜220字 × バッククォート/`${`なし で絞り、likes上位から手で厳選
+- 部位バランス: 既存で薄かった 足首4・もも裏5・肩甲骨5・首4・全身5・猫背3 などを厚く。開脚は既存17件あるため2件のみ。新tag: 肩こり/巻き肩/お腹/小顔（tagは表示ラベルのみでロジック影響なし）
+- 編集は仕様どおり最小限（改行整理・明らかな誤字1〜2箇所・前後トリミングのみ。言い換えなし・個人名なし）。全文一覧と除外判断は `ogatore-hub/dev-specs/kyono-voices-expansion-DONE.md`
+- 検証: qa.js全pass・ES2020構文ゼロ・全scriptブロックnode --check・q文字数51〜165字・既存60件との重複ゼロ
+- ロールバック: このコミット1つをrevert（VOICES末尾への追記のみで他に変更なし）
+
 ## 2026-07-10夜 実機スモークテスト新設（夜間ラン第四波dev58・担当D）
 - **使い方**: 初回のみ `npm install` → 以後 `npm run smoke`。**Mac に Google Chrome 必須**（ブラウザ本体はダウンロードしない。puppeteer-coreが`/Applications/Google Chrome.app`等を自動検出。別パスは`SMOKE_CHROME=/path/to/Chrome`で指定）
 - 中身: `scripts/smoke.js`。`python3 -m http.server`（8801優先・使用中なら空きポート）を子プロセス起動→ヘッドレスChromeでゴールデンフロー8ステップを実クリックで検証（フレッシュ起動／かたさチェック5問完走→タイプ名・アイコン・処方3本／きょうやった！→日数+1→メモ保存→記録カードdata URL長>10000／5タブ巡回／ダーク切替戻し／オガトレ通信FAB開閉／kyono_streak2破損リロード耐性／コンソールエラー総数0）。1つでも失敗すると非0終了・失敗時は`.smoke/`（gitignore済）にスクショ
