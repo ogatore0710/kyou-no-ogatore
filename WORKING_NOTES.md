@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10夜 新バージョンお知らせトースト（第五波dev62・担当J）
+- sw.jsはskipWaiting+clients.claimのため配布直後は「古いページ＋新SW」が混在しうる→`controllerchange`検知で「更新して開き直す」導線を追加。index.htmlのSW登録直後（`navigator.serviceWorker.register`のブロック内）に`swHadController`フラグ＋`addEventListener("controllerchange", ...)`を実装。トーストは`.update-toast`（既存トークン`--card`/`--line`/`--ink`・角丸16px・影ひかえめ）、位置は`left:16px;right:84px;bottom:calc(78px+safe-area)`でタブバー(z40)の上・オガトレ通信FAB(z45)の列を避ける。タップで`sessionStorage.kyono_updateReloaded`を立てて`location.reload()`。10秒で自動消滅。zIndexは46（モーダル50未満は維持）
+- **ガード2点**: ①初回インストール時（register直後にcontrollerが無かった状態からの最初のcontrollerchange）は`swHadController`を true にするだけで表示しない。②一度reloadしたらそのセッションでは`kyono_updateReloaded`が残るため再表示しない（ループ防止）
+- **検証**: (a) index.htmlから該当ブロックをvmで抽出し、controller有無/sessionStorage/タップ/10秒タイマーをモックしたNode単体シミュレーション8/8 pass（初回非表示・更新時表示・タップでreload+フラグ保存・フラグありなら再表示なし・10秒後自動消滅の5シナリオ）。(b) puppeteer-core実機（Chrome headless・390×844）でDOM注入→座標計測。当初z-index41だとオガトレ通信FABの初回案内吹き出し（`#obuBubble`・fab内部でz45のスタッキングコンテキストに属する）にトーストの右側が隠れる不具合を発見→46に修正し`elementFromPoint`で最上面になることを確認
+- qa.js・smoke.js（10/10）は現行の共有ワークツリー全体（他艦の作業中差分含む）に対して実行しpass。**艦隊は同一ワークツリー共有**のため、SW登録部分の主要実装は自分の作業完了前に他艦のeven-sync自動コミット（`fe025fa auto-sync`）に相乗りする形で先にpush済みで確認。自分の担当分の最終差分（z-index修正1行）は`d21d9fa`で単独commit・push
+- ロールバック: index.htmlの3箇所を戻す＝①`.update-toast`のCSSブロック（`.obu-post.obu-text .obu-date`の直後）②SW登録部の`if("serviceWorker"...){...}`ブロックを元の1行`if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});`に戻す。sw.js本体・版数は無変更なので触らない。**艦隊同一ツリーのため単独revertは効かない場合あり→手動で上記2箇所を削除するのが確実**（[[fleet-shared-worktree-autosync]]）
+
 ## 2026-07-10夜 記録のひっこし強化＋もじの大きさ設定（第五波dev59・担当E+H）
 - **E: 記録のひっこし**（既存の簡易版prompt方式を仕様準拠に強化）: 書き出しは`buildExportString()`=`KYONO1:`+Base64(`{v:1,data:{kyono_*}}`)。**vフィールド新設**（将来の形式変更用。v無し旧形式の文字列も読める後方互換あり）。クリップボード成功→alert、無い/失敗→`#exportBox`のtextareaを選択済みで表示「長押しでコピーしてね」。読み込みはprompt廃止→設定カード内`#importText`textarea＋「📥 よみこむ」ボタン。**検証（プレフィックス→Base64→JSON→中身）が全部通ってからconfirm→上書き→reload**。壊れた文字列では何も変更しない。ガード（300000/kyono_限定/cnt>50/200000）はqa.jsが`importData`関数本体を正規表現検査するため**関数内に置くこと**（ヘルパー分離するとqa fail）
 - **H: もじの大きさ**: つづける設定に「ふつう/大きめ」seg（テーマと同じUIパターン・`#bt-normal`/`#bt-big`）。実装は**案a採用=`body.bigtext{zoom:1.12}`**（375pxで横はみ出しゼロを実測確認・案b不要だった）。`kyono_bigtext`に永続化し、**body先頭の早期テーマスクリプト内で適用**（リロード時のガタつき防止）。切替は`setBigtext()`→`applyBigtext()`（applyTheme()の直後にinit呼び出しあり）
