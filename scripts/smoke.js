@@ -93,6 +93,9 @@ async function main() {
   process.on("SIGTERM", () => { killServer(); process.exit(143); });
 
   const url = "http://127.0.0.1:" + port + "/index.html";
+  // 相談室の知識ベース（dev64担当・別ファイル）。未着の間は相談室ステップをスキップ扱いにし、
+  // soudan-kb.jsの404だけは警告扱いにする（アプリ本体はtypeofガードで壊れない設計）
+  const soudanKbExists = fs.existsSync(path.join(ROOT, "soudan-kb.js"));
   let browser = null;
   const results = [];       // {name, ok, detail}
   const consoleErrors = []; // 失敗扱いのコンソールエラー（ローカル起因＋JS例外）
@@ -124,6 +127,8 @@ async function main() {
       const text = msg.text();
       if (isExternal(at) && /Failed to load resource|net::ERR/.test(text)) {
         externalWarns.push("[" + currentStep + "] " + text + " (" + at + ")");
+      } else if (!soudanKbExists && at.indexOf("soudan-kb.js") !== -1) {
+        externalWarns.push("[" + currentStep + "] soudan-kb.js未着による404（想定内）: " + text);
       } else {
         consoleErrors.push("[" + currentStep + "] console.error: " + text + (at ? " (" + at + ")" : ""));
       }
@@ -285,6 +290,56 @@ async function main() {
       await page.click('#obuModal button[onclick="closeObu()"]');
       await page.waitForFunction(() => document.getElementById("obuModal").classList.contains("hidden"));
       return "開いて本文" + bodyLen + "字→閉じるを確認";
+    });
+
+    // 6b. オガトレ相談室: 入口カード→チップで回答（吹き出し+動画カード）→赤旗ワード→戻る操作でホーム
+    //     KB（soudan-kb.js）未着のときはスキップ扱い（入口カードが隠れていることだけ確認してpass）
+    await step("6b-相談室ゴールデンフロー", async () => {
+      await page.click("#tab-home");
+      await visible("#home");
+      if (!soudanKbExists) {
+        const hidden = await page.$eval("#soudanCard", (el) => el.classList.contains("hidden"));
+        if (!hidden) throw new Error("KB未着なのに入口カードが表示されている");
+        return "SKIP扱い: soudan-kb.js未着（入口カードが隠れていることは確認）";
+      }
+      await visible("#soudanCard");
+      await page.click("#soudanCard .sec-head"); // カード上部（チップ以外）をタップして相談画面へ
+      await visible("#soudan");
+      await page.waitForFunction(() => document.querySelectorAll("#sdChips button").length > 0);
+      const chipText = await page.evaluate(() => {
+        const list = Array.prototype.slice.call(document.querySelectorAll("#sdChips button"));
+        const c = list.filter((b) => b.textContent.indexOf("肩") !== -1)[0] || list[0];
+        const t = c.textContent.trim();
+        c.click();
+        return t;
+      });
+      await page.waitForFunction(
+        () => document.querySelectorAll("#sdLog .sd-row.oga .video").length >= 1, { timeout: 8000 }
+      );
+      const counts = await page.evaluate(() => ({
+        user: document.querySelectorAll("#sdLog .sd-row.user").length,
+        oga: document.querySelectorAll("#sdLog .sd-row.oga").length,
+        video: document.querySelectorAll("#sdLog .sd-row.oga .video").length,
+      }));
+      if (counts.user < 1) throw new Error("相談（右吹き出し）が出ていない");
+      if (counts.oga < 2) throw new Error("回答吹き出しが2個未満 (実測 " + counts.oga + ")");
+      // 回答の吹き出し出し切り（続き質問チップに切り替わる）まで待つ。表示中は送信ガードが効くため
+      await page.waitForFunction(
+        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 8000 }
+      );
+      // 赤旗ワードを自由入力→赤旗回答（sd-red）が出る
+      await page.type("#sdInput", "げきつう");
+      await page.click("#sdSendBtn");
+      await page.waitForFunction(
+        () => document.querySelectorAll("#sdLog .sd-row.sd-red").length >= 1, { timeout: 8000 }
+      );
+      await shot("6b-soudan-chat");
+      // 戻る操作（ブラウザバック）でホームに戻る
+      await page.goBack();
+      await visible("#home");
+      const soudanHidden = await page.$eval("#soudan", (el) => el.classList.contains("hidden"));
+      if (!soudanHidden) throw new Error("戻る操作でsoudanセクションが隠れない");
+      return "チップ「" + chipText + "」→回答" + counts.oga + "吹き出し・動画" + counts.video + "枚→赤旗回答→戻るでホーム復帰";
     });
 
     // 7. 破損データ耐性: kyono_streak2に不正文字列→リロードで白画面にならない

@@ -359,6 +359,24 @@
   .qbubble{display:flex;gap:10px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:14px;font-size:15px;line-height:1.7}
   .qbubble img{width:auto;height:44px;flex-shrink:0;object-fit:contain}
   .qbubble .ql{display:block;font-size:11px;color:var(--sub);font-weight:900}
+  /* オガトレ相談室（チャットUI） */
+  .sd-row{display:flex;gap:8px;margin-bottom:10px;align-items:flex-end}
+  .sd-row.user{justify-content:flex-end}
+  .sd-ava{width:38px;height:38px;flex-shrink:0;object-fit:contain}
+  .sd-b{max-width:82%;background:var(--card);border:1.5px solid var(--line);border-radius:16px;border-bottom-left-radius:6px;padding:10px 14px;font-size:15px;line-height:1.75;overflow-wrap:break-word;word-break:break-word;min-width:0}
+  .sd-row.user .sd-b{background:var(--yellow-soft);border-color:#F2DE8A;border-radius:16px;border-bottom-right-radius:6px}
+  body.dark .sd-row.user .sd-b{border-color:#6E5F2E}
+  .sd-b .video{margin:8px 0 2px;background:var(--bg)}
+  .sd-b .video img{width:96px}
+  .sd-b .btn{margin:2px 0 8px}
+  .sd-row.sd-red .sd-b{background:var(--coral-soft);border-color:var(--coral)}
+  .sd-pop{animation:sdpop .18s ease-out}
+  @keyframes sdpop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){ .sd-pop{animation:none} }
+  #sdSendBtn{flex-shrink:0;border:none;border-radius:12px;background:var(--yellow);color:#3A3A35;font-family:inherit;font-size:15px;font-weight:900;padding:9px 14px;cursor:pointer}
+  #sdSendBtn:active{opacity:.7}
+  #soudanCard{cursor:pointer}
+  #soudanCard .chips{margin:8px 0 0;pointer-events:auto}
   /* とどくメーター */
   .reach-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
   .reach-btn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:10px 2px;font-family:inherit;font-size:14px;font-weight:800;color:var(--sub);cursor:pointer}
@@ -440,6 +458,16 @@
       前回の結果: <a href="#" class="tapx" onclick="showResult(state.type);return false" style="color:var(--tealink);font-weight:800" id="lastTypeName"></a>
     </div>
     <div class="hint" id="ckHint" style="margin-top:10px">※目安をつかむセルフチェックです<br>強い痛みや持病がある方は無理せず医療機関へ</div>
+  </div>
+
+  <!-- オガトレ相談室 入口カード（soudan-kb.js未読込のときは非表示のまま） -->
+  <div class="card hidden" id="soudanCard" onclick="openSoudan()">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>オガトレ相談室</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="flex:1;font-size:15px;color:var(--sub2)">からだの悩み、オガトレに聞いてみて💬</div>
+      <img src="assets/chara-hitokoto.png" alt="" style="width:64px;height:64px;object-fit:contain;flex-shrink:0">
+    </div>
+    <div class="chips" id="soudanCardChips"></div>
   </div>
 
   <div class="card">
@@ -699,6 +727,23 @@
   </div>
 </section>
 
+<!-- ===== オガトレ相談室 ===== -->
+<section id="soudan" class="hidden">
+  <div class="card" style="margin-bottom:14px">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>オガトレ相談室</div>
+    <div style="font-size:14px;line-height:1.9">からだの悩み、オガトレに聞いてみて💬<br><span style="font-size:12px;color:var(--sub)">下のチップをタップするか、ことばで入力してね</span></div>
+  </div>
+  <div id="sdLog"></div>
+  <div class="searchbox" style="margin-bottom:10px">
+    <input id="sdInput" placeholder="例: 肩がこる／前屈できない" enterkeyhint="send" onkeydown="if(event.key==='Enter'){sdSend()}">
+    <button id="sdSendBtn" onclick="sdSend()">送信</button>
+  </div>
+  <div class="chips" id="sdChips"></div>
+  <div style="font-size:11px;color:var(--sub);text-align:center;margin:2px 0 4px">※回答はオガトレ監修のパターン集から選んでいます</div>
+  <div class="hint" style="margin-bottom:12px">※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ</div>
+  <button class="btn btn-line" onclick="navTo('home')">← ホームにもどる</button>
+</section>
+
 <!-- ===== 使い方 ===== -->
 <section id="guide" class="hidden">
 
@@ -845,6 +890,7 @@
 <script src="videos.js"></script>
 <script src="app-search.js"></script>
 <script src="obu-feed.js"></script>
+<script src="soudan-kb.js"></script>
 <!-- obu-feed.js読み込み失敗時の保険。varでの再宣言はconst OBU_FEEDと衝突しSyntaxErrorになるためwindowプロパティで補う -->
 <script>if(typeof OBU_FEED==="undefined")window.OBU_FEED=[];</script>
 <script>
@@ -1124,10 +1170,10 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices","obu"];
+const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices","obu","soudan"];
 // obuは特定タブに固定所属しないため、TAB_OFのobuエントリはあくまでフォールバック値。
 // 実際のハイライトはshow()内でobuReturnTo（オガトレ通信を開く直前にいたセクション）を優先して解決する
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history",obu:"home"};
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history",obu:"home",soudan:"home"};
 let currentSection="home"; // 現在表示中のセクション（show()で更新）
 let obuReturnTo="home"; // オガトレ通信(obu)を開く直前にいたセクション。戻るボタン＆タブハイライトに使用（記憶が無い場合はhomeへフォールバック）
 let quizRendered=false; // このセッションでrenderQ()が一度でも呼ばれたか（popstateでquizへ直接着地した空画面を防ぐ判定に使用）
@@ -1169,6 +1215,8 @@ window.addEventListener("popstate",e=>{
     }
   }
   if(target==="result" && !(state.type&&TYPES[state.type.key])) target="home";
+  // 相談室: KB未読込での直接着地は救済、通常着地はあいさつを保証（ログはセッション内で保持）
+  if(target==="soudan"){ if(!sdKb()) target="home"; else sdEnsureGreeting(); }
   if(target==="history") renderHistory();
   if(target==="search") renderSearch();
   if(target==="home") renderHome();
@@ -2359,6 +2407,260 @@ function renderHome(){
     const ck=document.getElementById("ckCard"), tc=document.getElementById("streakCard");
     if(ck.previousElementSibling!==tc){ tc.insertAdjacentElement("afterend", ck); }
   }
+  renderSoudanEntry();
+}
+
+// ================= オガトレ相談室 =================
+// 知識ベースは soudan-kb.js（SOUDAN_KB・別ファイル）。未読込でも入口カードごと隠れて壊れない。
+// マッチング規則はSOUDAN-DESIGN.md §4: ①赤旗最優先 ②チップ確定 ③kwヒット文字数合計スコア
+// （同点はkw配列先頭寄り優先）④閾値(かな2文字相当=2)未満→続き言葉→雑談→フォールバック
+const SD_MAIL="kyou-no@ogatore.jp"; // 既存リクエスト導線（app-search.js）と同じ宛先
+let sdCtx={lastIntentId:null,shownVideoIds:[],smalltalkStreak:0,nextBestId:null}; // セッション内のみ・保存なし
+let sdChipsMode={type:"intents"};
+let sdPending=0, sdGreeted=false, sdCatById=null;
+function sdKb(){
+  if(typeof SOUDAN_KB==="undefined") return null;
+  if(!SOUDAN_KB||!Array.isArray(SOUDAN_KB.intents)||!SOUDAN_KB.intents.length) return null;
+  return SOUDAN_KB;
+}
+// 正規化: カタカナ→ひらがな・全角英数→半角・小文字化・空白/記号除去（かな/漢字/英数だけ残す）
+function sdNorm(s){
+  s=String(s==null?"":s).toLowerCase();
+  s=s.replace(/[Ａ-Ｚａ-ｚ０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0)});
+  s=s.replace(/[ァ-ヶ]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0x60)});
+  return s.replace(/[^0-9a-zぁ-ゖー一-鿿々]/g,"");
+}
+function sdEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function sdText(s){ return sdEsc(s).replace(/\n/g,"<br>"); }
+function sdDayHash(){ let fh=0; const ds=todayStr(); for(const c of ds){ fh=(fh*31+c.charCodeAt(0))>>>0; } return fh; }
+function sdIntentById(id){ const kb=sdKb(); if(!kb) return null; for(const it of kb.intents){ if(it.id===id) return it; } return null; }
+function sdCatInfo(vid){
+  if(!sdCatById){ sdCatById={}; const cat=(typeof CATALOG==="undefined")?[]:CATALOG; for(const c of cat) sdCatById[c.id]=c; }
+  return sdCatById[vid]||null;
+}
+function sdMinutes(vid){ const c=sdCatInfo(vid); if(!c||!c.s) return 999; const m=String(c.s).match(/(\d+)分/); return m?Number(m[1]):999; }
+function sdVideoHTML(v){
+  const c=sdCatInfo(v.v);
+  const t=c?c.t:"おすすめの1本（YouTubeでひらきます）";
+  return `<a class="video" href="https://www.youtube.com/watch?v=${sdEsc(v.v)}" target="_blank" rel="noopener">
+    <img src="https://i.ytimg.com/vi/${sdEsc(v.v)}/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <div>${v.note?`<span class="badge">${sdEsc(v.note)}</span><br>`:""}<span class="vt">${sdEsc(t)}</span><div class="vs">${sdEsc(c?c.s:"")}</div></div></a>`;
+}
+function sdMarkShown(vid){ if(sdCtx.shownVideoIds.indexOf(vid)<0) sdCtx.shownVideoIds.push(vid); }
+function sdUnseen(it){ return (it.videos||[]).filter(v=>v&&sdCtx.shownVideoIds.indexOf(v.v)<0); }
+// ---- 吹き出し（2〜3個に分割して0.5秒ずつ・reduced-motionは即時） ----
+function sdReduced(){ try{ return window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } }
+function sdScrollEnd(){ try{ window.scrollTo(0,document.body.scrollHeight); }catch(e){} }
+function sdBubbleNode(m){
+  const row=document.createElement("div");
+  row.className="sd-row "+(m.who==="user"?"user":"oga")+(m.red?" sd-red":"")+" sd-pop";
+  row.innerHTML=(m.who==="user"?"":`<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">`)+`<div class="sd-b">${m.html}</div>`;
+  return row;
+}
+function sdPush(msgs){
+  const log=document.getElementById("sdLog");
+  if(!log||!msgs.length){ sdRenderChips(); return; }
+  const gap=sdReduced()?0:500;
+  sdPending++;
+  let i=0;
+  (function next(){
+    log.appendChild(sdBubbleNode(msgs[i])); i++;
+    sdScrollEnd();
+    if(i>=msgs.length){ sdPending--; sdRenderChips(); sdScrollEnd(); return; }
+    if(gap===0) next(); else setTimeout(next,gap);
+  })();
+}
+function sdUserBubble(text){
+  const log=document.getElementById("sdLog");
+  if(log){ log.appendChild(sdBubbleNode({who:"user",html:sdText(text)})); sdScrollEnd(); }
+}
+// ---- チップ ----
+function sdRenderChips(){
+  const kb=sdKb(); const box=document.getElementById("sdChips");
+  if(!kb||!box) return;
+  let html="";
+  if(sdChipsMode.type==="followups"){
+    const it=sdIntentById(sdChipsMode.intentId);
+    const ids=(it&&Array.isArray(it.followups))?it.followups:[];
+    for(const fid of ids){
+      const f=(kb.commonFollowups||[]).find(x=>x&&x.id===fid);
+      if(f) html+=`<button class="chip chip-a" onclick="sdFollowupTap('${sdEsc(f.id)}')">${sdEsc(f.chip)}</button>`;
+    }
+    if(sdChipsMode.nextBestId){
+      const nb=sdIntentById(sdChipsMode.nextBestId);
+      if(nb) html+=`<button class="chip chip-c" onclick="sdChipTap('${sdEsc(nb.id)}')">${sdEsc(nb.chip)}の話も</button>`;
+    }
+    html+=`<button class="chip chip-d" onclick="sdShowIntentChips()">べつの悩みをそうだん</button>`;
+  }else{
+    for(const it2 of kb.intents){
+      html+=`<button class="chip chip-b" onclick="sdChipTap('${sdEsc(it2.id)}')">${sdEsc(it2.chip)}</button>`;
+    }
+  }
+  box.innerHTML=html;
+}
+function sdShowIntentChips(){ sdChipsMode={type:"intents"}; sdRenderChips(); }
+// ---- 照合 ----
+function sdRedFlagHit(n){
+  const kb=sdKb(); if(!kb||!kb.redFlags||!Array.isArray(kb.redFlags.kw)) return false;
+  for(const k0 of kb.redFlags.kw){ const k=sdNorm(k0); if(k.length>=2&&n.indexOf(k)>=0) return true; }
+  return false;
+}
+function sdScoreIntents(n){
+  const kb=sdKb(); const out=[];
+  for(const it of kb.intents){
+    let score=0, firstHit=-1;
+    (it.kw||[]).forEach(function(k0,j){
+      const k=sdNorm(k0);
+      if(k&&n.indexOf(k)>=0){ score+=k.length; if(firstHit<0) firstHit=j; }
+    });
+    if(score>0) out.push({it,score,firstHit});
+  }
+  out.sort(function(a,b){ return (b.score-a.score)||(a.firstHit-b.firstHit); });
+  return out;
+}
+// 短い続き言葉（「他には」「もっと短いの」等）はlastIntentの文脈で解決（設計§3.5）
+const SD_FU_KW={days:["なんにち","いつまで","どのくらいつづけ","どれくらいつづけ"],asayoru:["あさとよる","あさがいい","よるがいい","いつやる","いつやれば"],short:["みじかい","みじかく"],more:["ほかに","ほかの","ほかは","もっとある","べつの"]};
+function sdFollowupHit(n){
+  const kb=sdKb(); if(!sdCtx.lastIntentId) return null;
+  for(const f of (kb.commonFollowups||[])){
+    if(!f||!f.id) continue;
+    const chip=sdNorm(f.chip||"");
+    let hit=!!(chip&&(n.indexOf(chip)>=0||(n.length>=2&&chip.indexOf(n)>=0)));
+    for(const syn of (SD_FU_KW[f.id]||[])){ if(hit) break; if(n.indexOf(syn)>=0) hit=true; }
+    if(hit) return f;
+  }
+  return null;
+}
+function sdSmalltalkHit(n){
+  const kb=sdKb();
+  for(const st of (kb.smalltalk||[])){
+    for(const k0 of ((st&&st.kw)||[])){ const k=sdNorm(k0); if(k.length>=2&&n.indexOf(k)>=0) return st; }
+  }
+  return null;
+}
+// ---- 回答 ----
+function sdAnswerIntent(it,nextBestId){
+  sdCtx.lastIntentId=it.id; sdCtx.smalltalkStreak=0; sdCtx.nextBestId=nextBestId||null;
+  const msgs=[];
+  if(it.empathy) msgs.push({who:"oga",html:sdText(it.empathy)});
+  const vs=it.videos||[];
+  let mid=it.mitate?sdText(it.mitate):"";
+  if(vs.length){ mid+=sdVideoHTML(vs[0]); sdMarkShown(vs[0].v); } // まずは1本（残りは「他には?」「もっと短いの」で）
+  if(mid) msgs.push({who:"oga",html:mid});
+  let kz=it.keizoku?sdText(it.keizoku):"";
+  if(it.safety) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※つよい痛みやしびれが出たら中止して、医療機関に相談してね</span>`;
+  if(kz) msgs.push({who:"oga",html:kz});
+  sdChipsMode={type:"followups",intentId:it.id,nextBestId:sdCtx.nextBestId};
+  sdPush(msgs);
+}
+function sdAnswerRedFlag(){
+  const kb=sdKb(); const rf=kb.redFlags||{};
+  sdCtx.smalltalkStreak=0;
+  const msgs=[];
+  if(rf.empathy) msgs.push({who:"oga",html:sdText(rf.empathy),red:true});
+  msgs.push({who:"oga",html:sdText(rf.answer||"そのつらさは、動画より先にお医者さん・専門家に相談してほしい！よくなったら、また一緒にやろうね"),red:true});
+  sdChipsMode={type:"intents"};
+  sdPush(msgs);
+}
+function sdAnswerSmalltalk(st){
+  sdCtx.smalltalkStreak++;
+  const msgs=[]; const reps=st.replies||[];
+  if(reps.length) msgs.push({who:"oga",html:sdText(reps[sdDayHash()%reps.length])}); // 日替わりローテ（乱数不使用）
+  if(sdCtx.smalltalkStreak>=2){ // 2連続で雑談→やさしくストレッチへ引き戻す
+    msgs.push({who:"oga",html:sdText("雑談もいいね😊 せっかくだから今日の1本、いっしょにやってく?")});
+    sdCtx.smalltalkStreak=0;
+  }
+  sdPush(msgs);
+}
+function sdAnswerFallback(raw){
+  sdCtx.smalltalkStreak=0;
+  const subject=encodeURIComponent("【相談室リクエスト】きょうのオガトレ");
+  const body=encodeURIComponent("相談した内容:\n"+raw+"\n---\n送信元: きょうのオガトレ「オガトレ相談室」");
+  const html2=`<a class="btn btn-ghost" style="font-size:14px" href="mailto:${SD_MAIL}?subject=${subject}&body=${body}">📮 この悩み、オガトレに届ける</a>`
+    +`<a href="#" class="tapx" onclick="switchTab('search');return false" style="color:var(--tealink);font-weight:800;font-size:14px">🔍 動画を探すタブでさがしてみる</a>`;
+  sdChipsMode={type:"intents"};
+  sdPush([{who:"oga",html:"ごめんね、その悩みはまだ勉強中🙏<br>近いのはこのあたりかも！下のチップからどうぞ"},{who:"oga",html:html2}]);
+}
+function sdAnswerFollowup(f){
+  const it=sdIntentById(sdCtx.lastIntentId);
+  const msgs=[];
+  if(f.mode==="shorter"){
+    if(!it){ msgs.push({who:"oga",html:"どの悩みのことか、下のチップから教えてもらえたら ぴったりの短いのを出すよ😊"}); sdChipsMode={type:"intents"}; }
+    else{
+      const vs=(it.videos||[]).slice().sort(function(a,b){ return sdMinutes(a.v)-sdMinutes(b.v); }); // 7分以下を優先=短い順
+      let pick=null;
+      for(const v of vs){ if(sdCtx.shownVideoIds.indexOf(v.v)<0){ pick=v; break; } }
+      if(!pick&&vs.length&&sdMinutes(vs[0].v)<=7) pick=vs[0]; // 出しつくしても最短が7分以下ならもう一度すすめる
+      if(pick){ msgs.push({who:"oga",html:sdText(sdMinutes(pick.v)<=7?"それなら、みじかめのこれ！":"いちばん短いのはこれ！")+sdVideoHTML(pick)}); sdMarkShown(pick.v); }
+      else msgs.push({who:"oga",html:"いま出せるおすすめは以上!まずはさっきの1本からどうぞ😊"});
+    }
+  }else if(f.mode==="more"){
+    if(!it){ msgs.push({who:"oga",html:"どの悩みか、下のチップから教えてくれたら おすすめを出すよ😊"}); sdChipsMode={type:"intents"}; }
+    else{
+      const un=sdUnseen(it);
+      if(un.length){ msgs.push({who:"oga",html:"こっちもおすすめ！"+sdVideoHTML(un[0])}); sdMarkShown(un[0].v); }
+      else msgs.push({who:"oga",html:"いま出せるおすすめは以上!まずはさっきの1本からどうぞ😊"});
+    }
+  }else if(f.answer){ // mode:"text"（未知modeもanswerがあればtext扱いで前方互換）
+    msgs.push({who:"oga",html:sdText(f.answer)});
+  }
+  sdPush(msgs);
+}
+// ---- 入力の受け口 ----
+function sdChipTap(id){
+  if(sdPending) return;
+  const it=sdIntentById(id); if(!it) return;
+  sdUserBubble(it.chip);
+  sdAnswerIntent(it,null);
+}
+function sdFollowupTap(id){
+  const kb=sdKb(); if(!kb||sdPending) return;
+  const f=(kb.commonFollowups||[]).find(x=>x&&x.id===id); if(!f) return;
+  sdUserBubble(f.chip);
+  sdAnswerFollowup(f);
+}
+function sdSend(){
+  if(sdPending||!sdKb()) return;
+  const el=document.getElementById("sdInput");
+  const raw=(el.value||"").trim();
+  if(!raw) return;
+  el.value="";
+  sdUserBubble(raw);
+  const n=sdNorm(raw);
+  if(sdRedFlagHit(n)){ sdAnswerRedFlag(); return; } // ①赤旗は他を見ずに最優先
+  const ranked=sdScoreIntents(n);                    // ③スコア=ヒットkwの文字数合計
+  if(ranked.length&&ranked[0].score>=2){             // 閾値=かな2文字ヒット相当
+    const nb=(ranked.length>1&&ranked[1].score>=2)?ranked[1].it.id:null; // 複数悩み→次点を続きチップに
+    sdAnswerIntent(ranked[0].it,nb); return;
+  }
+  const fu=sdFollowupHit(n);
+  if(fu){ sdAnswerFollowup(fu); return; }
+  const st=sdSmalltalkHit(n);
+  if(st){ sdAnswerSmalltalk(st); return; }
+  sdAnswerFallback(raw);
+}
+// ---- 入口 ----
+function renderSoudanEntry(){
+  const card=document.getElementById("soudanCard"); if(!card) return;
+  const kb=sdKb();
+  if(!kb){ card.classList.add("hidden"); return; }
+  const ck=document.getElementById("ckCard"); // かたさチェックカードの直下に置く（カード移動後も追従）
+  if(ck&&ck.nextElementSibling!==card) ck.insertAdjacentElement("afterend",card);
+  document.getElementById("soudanCardChips").innerHTML=kb.intents.slice(0,3).map(it=>
+    `<button class="chip chip-b" onclick="event.stopPropagation();openSoudan('${sdEsc(it.id)}')">${sdEsc(it.chip)}</button>`).join("");
+  card.classList.remove("hidden");
+}
+function openSoudan(intentId){
+  if(!sdKb()) return;
+  navTo("soudan");
+  sdEnsureGreeting();
+  if(intentId&&!sdPending){ const it=sdIntentById(intentId); if(it){ sdUserBubble(it.chip); sdAnswerIntent(it,null); } }
+}
+function sdEnsureGreeting(){
+  if(sdGreeted||!sdKb()) return;
+  sdGreeted=true;
+  sdChipsMode={type:"intents"};
+  sdPush([{who:"oga",html:"こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊<br>下のチップか、ことばで入力してね"}]);
 }
 
 // ================= マイ記録（カレンダー） =================
@@ -2953,6 +3255,7 @@ function dismissHomeHint(){ store.set("homehint_done",true); document.getElement
     }
   }catch(e){}
 })();
+renderSoudanEntry(); // 起動時のckCard並べ替え後に、入口カードを「かたさチェックの直下」へ追従させる
 // 電波なし案内（他の用途のバナーと出し合いになったら元の状態にもどす）
 let offlineBannerOn=false, envBannerPrevHTML="", envBannerPrevHidden=true;
 window.addEventListener("offline",()=>{

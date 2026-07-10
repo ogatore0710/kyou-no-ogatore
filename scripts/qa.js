@@ -194,6 +194,7 @@ function checkHtml(html) {
     .map((m) => m[1]);
   assert("index.html: videos.js loaded", srcScripts.includes("videos.js"), srcScripts.join(", "));
   assert("index.html: app-search.js loaded", srcScripts.includes("app-search.js"), srcScripts.join(", "));
+  assert("index.html: soudan-kb.js loaded", srcScripts.includes("soudan-kb.js"), srcScripts.join(", "));
   assert("index.html: boot marker", html.includes("window.__kyonoBoot=true"), "__kyonoBoot is set");
   assert("index.html: old browser note", html.includes('id="oldBrowserNote"'), "fallback node exists");
 
@@ -300,7 +301,7 @@ function checkCatalog(code, allowedTags) {
     pass("videos.js: CATALOG parsed", `${catalog.length} videos`);
   } catch (err) {
     fail("videos.js: CATALOG parsed", err.message);
-    return;
+    return null;
   }
   assert("videos.js: catalog size", catalog.length >= 450, `${catalog.length} videos`);
   const ids = new Set();
@@ -327,6 +328,7 @@ function checkCatalog(code, allowedTags) {
     const leaked = catalog.map((v) => v.id).filter((id) => privateIds.has(id));
     assert("videos.js: private videos excluded", leaked.length === 0, leaked.slice(0, 10).join(", ") || "none");
   }
+  return ids;
 }
 
 function checkObuFeed(code) {
@@ -411,10 +413,95 @@ function checkSw(code) {
   const missing = assets
     .filter((rel) => rel !== "./")
     .map((rel) => rel.replace(/^\.\//, "").split("?")[0])
-    .filter((rel) => !exists(rel));
+    .filter((rel) => !exists(rel))
+    // soudan-kb.jsはdev64が別途作成するファイル。未着の間だけ欠落を許す（着後は通常どおり検証される）
+    .filter((rel) => rel !== "soudan-kb.js");
   assert("sw.js: cached local assets exist", missing.length === 0, missing.join(", ") || `${assets.length} cache entries`);
+  assert("sw.js: soudan-kb.js in ASSETS", assets.includes("soudan-kb.js"), "obu-feed.jsと同扱い");
+  assert("sw.js: soudan-kb.js in SHELL", /const SHELL=\[[^\n]*"soudan-kb\.js"/.test(code), "app shellに含まれる");
+  assert("sw.js: soudan-kb.js network-first", /endsWith\("soudan-kb\.js"\)/.test(code), "no-cache再確認の対象");
   assert("sw.js: cache version named", /const C="kyono-v\d+"/.test(code), "kyono-vN");
   assert("sw.js: network-first for app shell", /cache:"no-cache"/.test(code), "no-cache request path present");
+}
+
+// オガトレ相談室の知識ベース（soudan-kb.js・dev64担当）の機械検証。
+// 件数には縛りを掛けない（dev64が成長させる）。ファイル未着の間はスキップ扱い。
+function checkSoudanKb(catalogIds) {
+  if (!exists("soudan-kb.js")) {
+    pass("soudan-kb.js: pending", "dev64作成待ち（ファイルが置かれ次第このQAが内容を検証する）");
+    return;
+  }
+  const code = read("soudan-kb.js");
+  parseJs("soudan-kb.js", code);
+  let kb = null;
+  try {
+    kb = vm.runInNewContext(`${code}\n;SOUDAN_KB`, {}, { timeout: 2000 });
+    if (!kb || typeof kb !== "object") throw new Error("SOUDAN_KB is not an object");
+    pass("soudan-kb.js: SOUDAN_KB parsed", `v=${kb.v} / intents=${(kb.intents || []).length}件`);
+  } catch (err) {
+    fail("soudan-kb.js: SOUDAN_KB parsed", err.message);
+    return;
+  }
+
+  assert("soudan-kb.js: intents array", Array.isArray(kb.intents) && kb.intents.length > 0, `${(kb.intents || []).length}件`);
+
+  const badIntents = [];
+  const badIds = [];
+  const badVideos = [];
+  const dupKwSameIntent = [];
+  const crossDupKw = [];
+  const badFollowupRefs = [];
+  const intentIds = new Set();
+  const dupIntentIds = [];
+  const followupIds = new Set((kb.commonFollowups || []).map((f) => f && f.id).filter(Boolean));
+  const kwOwner = new Map();
+
+  for (const it of kb.intents || []) {
+    const label = (it && it.id) || JSON.stringify(it);
+    if (!it || !it.id || !it.chip || !Array.isArray(it.kw) || !it.kw.length ||
+        !it.empathy || !it.mitate || !Array.isArray(it.videos) || !it.videos.length || !it.keizoku) {
+      badIntents.push(label);
+      continue;
+    }
+    if (!/^[\w-]+$/.test(it.id)) badIds.push(it.id);
+    if (intentIds.has(it.id)) dupIntentIds.push(it.id);
+    intentIds.add(it.id);
+    if (it.videos.length > 3) badVideos.push(`${it.id}: videos ${it.videos.length}本(>3)`);
+    for (const v of it.videos) {
+      if (!v || !/^[\w-]{11}$/.test(v.v || "")) badVideos.push(`${it.id}: ${(v && v.v) || "(空)"}(ID形式)`);
+      else if (catalogIds && !catalogIds.has(v.v)) badVideos.push(`${it.id}: ${v.v}(カタログに無い)`);
+    }
+    const seen = new Set();
+    for (const k of it.kw) {
+      if (seen.has(k)) dupKwSameIntent.push(`${it.id}: ${k}`);
+      seen.add(k);
+      if (kwOwner.has(k) && kwOwner.get(k) !== it.id) crossDupKw.push(`${k}(${kwOwner.get(k)}/${it.id})`);
+      else kwOwner.set(k, it.id);
+    }
+    for (const fid of it.followups || []) {
+      if (!followupIds.has(fid)) badFollowupRefs.push(`${it.id}: ${fid}`);
+    }
+  }
+  assert("soudan-kb.js: intent必須フィールド (id/chip/kw/empathy/mitate/videos/keizoku)", badIntents.length === 0, badIntents.slice(0, 10).join(", ") || `${(kb.intents || []).length}件すべて充足`);
+  assert("soudan-kb.js: intent idが英数スラッグ", badIds.length === 0, badIds.slice(0, 10).join(", ") || "ok");
+  assert("soudan-kb.js: intent id重複なし", dupIntentIds.length === 0, dupIntentIds.slice(0, 10).join(", ") || "ok");
+  assert("soudan-kb.js: 動画ID実在(1〜3本・CATALOG照合)", badVideos.length === 0, badVideos.slice(0, 10).join(", ") || "ok");
+  assert("soudan-kb.js: kw重複なし(同一インテント内)", dupKwSameIntent.length === 0, dupKwSameIntent.slice(0, 10).join(", ") || "ok");
+  // インテント間の同一kwは順序で解決されるため警告どまり（設計§4-4: 先頭寄り優先）
+  pass("soudan-kb.js: kw重複(インテント間・警告のみ)", crossDupKw.length ? `警告${crossDupKw.length}件: ${crossDupKw.slice(0, 8).join(", ")}` : "なし");
+  assert("soudan-kb.js: followups参照が解決できる", badFollowupRefs.length === 0, badFollowupRefs.slice(0, 10).join(", ") || "ok");
+
+  const rf = kb.redFlags;
+  assert("soudan-kb.js: redFlags(赤旗)存在", !!(rf && Array.isArray(rf.kw) && rf.kw.length && rf.answer), rf ? `kw ${(rf.kw || []).length}語` : "redFlagsが無い");
+
+  const badFu = (kb.commonFollowups || []).filter((f) =>
+    !f || !f.id || !f.chip || !f.mode ||
+    !["text", "shorter", "more"].includes(f.mode) ||
+    (f.mode === "text" && !f.answer));
+  assert("soudan-kb.js: commonFollowups妥当 (id/chip/mode、textはanswer必須)", badFu.length === 0, badFu.map((f) => (f && f.id) || "(壊れた要素)").slice(0, 10).join(", ") || `${(kb.commonFollowups || []).length}件`);
+
+  const badSt = (kb.smalltalk || []).filter((st) => !st || !Array.isArray(st.kw) || !st.kw.length || !Array.isArray(st.replies) || !st.replies.length);
+  assert("soudan-kb.js: smalltalk妥当 (kw/replies)", badSt.length === 0, badSt.length ? `${badSt.length}件が不備` : `${(kb.smalltalk || []).length}件`);
 }
 
 function checkManifest() {
@@ -454,7 +541,9 @@ function main() {
     assert(`${rel}: exists`, exists(rel), "required app file");
   }
 
-  checkNoForbiddenModernSyntax(["index.html", "videos.js", "app-search.js", "obu-feed.js", "sw.js"]);
+  const shipped = ["index.html", "videos.js", "app-search.js", "obu-feed.js", "sw.js"];
+  if (exists("soudan-kb.js")) shipped.push("soudan-kb.js");
+  checkNoForbiddenModernSyntax(shipped);
 
   const html = read("index.html");
   const inline = extractInlineScripts(html);
@@ -463,7 +552,8 @@ function main() {
   const searchScript = read("app-search.js");
   const allowedTags = checkSearchScript(searchScript);
   checkOperationalWiring(html, `${mainScript}\n${searchScript}`);
-  checkCatalog(read("videos.js"), allowedTags);
+  const catalogIds = checkCatalog(read("videos.js"), allowedTags);
+  checkSoudanKb(catalogIds);
   checkObuFeed(read("obu-feed.js"));
   checkSw(read("sw.js"));
   checkManifest();
