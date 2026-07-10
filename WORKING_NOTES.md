@@ -4,6 +4,12 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10夜 実機スモークテスト新設（夜間ラン第四波dev58・担当D）
+- **使い方**: 初回のみ `npm install` → 以後 `npm run smoke`。**Mac に Google Chrome 必須**（ブラウザ本体はダウンロードしない。puppeteer-coreが`/Applications/Google Chrome.app`等を自動検出。別パスは`SMOKE_CHROME=/path/to/Chrome`で指定）
+- 中身: `scripts/smoke.js`。`python3 -m http.server`（8801優先・使用中なら空きポート）を子プロセス起動→ヘッドレスChromeでゴールデンフロー8ステップを実クリックで検証（フレッシュ起動／かたさチェック5問完走→タイプ名・アイコン・処方3本／きょうやった！→日数+1→メモ保存→記録カードdata URL長>10000／5タブ巡回／ダーク切替戻し／オガトレ通信FAB開閉／kyono_streak2破損リロード耐性／コンソールエラー総数0）。1つでも失敗すると非0終了・失敗時は`.smoke/`（gitignore済）にスクショ
+- 静的チェック（`npm test`=qa.js）とは**独立コマンド**。外部リソース（fonts/i.ytimg）の読み込み失敗は警告扱いでオフラインでも回る。`SMOKE_ROOT=別ディレクトリ`で壊したコピーの検知確認も可能
+- **初回実行で実バグを1件検知・修正済み**: index.html:820のガード`var OBU_FEED=[]`が obu-feed.js の`const OBU_FEED`と衝突し、**本番でも毎回SyntaxErrorがコンソールに出ていた**（qa.jsはscriptブロック個別parseのため検出不能だった）。`window.OBU_FEED=[]`に修正（読み込み失敗時の保険機能は維持）。※この1行はコミットの都合で姉妹艦の 2104bb2 に同乗
+
 ## 2026-07-10夜 きょうの1本・処方プール拡充（夜間ラン第四波dev55・担当A）
 - 本人指摘「今日の一本とおすすめ3本に出る動画、候補少ないと思ってた」への対応。`V`を23本→**64本**（+41本、全てCATALOG実在ID・ogatore.dbの再生数/尺で選定）
 - `TYPES[*].pool`: momo 5→11 / koka 5→11 / kenko 4→11 / ashi 4→10 / robot 5→12 / yawara 6→12。**rx（1本目固定枠）とname/copy/hope/ptは不変**。既存pool動画は全部残して追加のみ
