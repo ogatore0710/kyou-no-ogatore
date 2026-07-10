@@ -1069,8 +1069,16 @@ window.addEventListener("popstate",e=>{
   if(!document.getElementById("cardModal").classList.contains("hidden")) closeCard();
   const id=(e.state&&e.state.id)||"home";
   let target=SECTIONS.includes(id)?id:"home";
-  // リロード直後などこのセッションで描画されていないquiz/resultに直接着地すると空画面になるため救済
-  if(target==="quiz" && !quizRendered) target="home";
+  if(target==="quiz"){
+    // リロード直後などこのセッションで描画されていないquizに直接着地すると空画面になるため救済
+    if(!quizRendered){ target="home"; }
+    else{
+      // チェック中の「戻る」は質問を1問ずつ遡る（qiはrenderQが積んだ履歴の値）。回答は保持したまま前の問を出す
+      const qi=(e.state&&typeof e.state.qi==="number")?e.state.qi:-1;
+      if(qi<0||qi>=QUESTIONS.length){ target="home"; }
+      else{ state.qi=qi; renderQ(); }
+    }
+  }
   if(target==="result" && !(state.type&&TYPES[state.type.key])) target="home";
   if(target==="history") renderHistory();
   if(target==="search") renderSearch();
@@ -1136,6 +1144,9 @@ const QUIZ_ART=[
 function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; renderQ(); navTo("quiz"); }
 function renderQ(){
   quizRendered=true;
+  // 質問ごとに履歴を1件積む（ブラウザ/スワイプの「戻る」で1問ずつ遡れるようにする）。
+  // popstateでの復元時はhistory.stateのqiと一致するため重複pushしない
+  try{ if(!(history.state&&history.state.id==="quiz"&&history.state.qi===state.qi)) history.pushState({id:"quiz",qi:state.qi},""); }catch(e){}
   const q = QUESTIONS[state.qi];
   document.getElementById("qnum").textContent = `Q${state.qi+1} / ${QUESTIONS.length}`;
   document.getElementById("qtitle").textContent = q.title;
