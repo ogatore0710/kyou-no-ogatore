@@ -292,7 +292,8 @@ async function main() {
       return "開いて本文" + bodyLen + "字→閉じるを確認";
     });
 
-    // 6b. オガトレ相談室: 入口カード→チップで回答（吹き出し+動画カード）→赤旗ワード→戻る操作でホーム
+    // 6b. オガトレ相談室（ボトムシート版）: 入口カード→シートが開く→チップで回答（吹き出し+動画カード）
+    //     →ページスクロール不動＆ログ内部スクロールの確認→赤旗ワード→戻る操作でシートが閉じる
     //     KB（soudan-kb.js）未着のときはスキップ扱い（入口カードが隠れていることだけ確認してpass）
     await step("6b-相談室ゴールデンフロー", async () => {
       await page.click("#tab-home");
@@ -303,9 +304,11 @@ async function main() {
         return "SKIP扱い: soudan-kb.js未着（入口カードが隠れていることは確認）";
       }
       await visible("#soudanCard");
-      await page.click("#soudanCard .sec-head"); // カード上部（チップ以外）をタップして相談画面へ
-      await visible("#soudan");
+      await page.click("#soudanCard .sec-head"); // カード上部（チップ以外）をタップしてシートを開く
+      await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
       await page.waitForFunction(() => document.querySelectorAll("#sdChips button").length > 0);
+      // シートが開いた時点の背面ページ位置を基準に「チャット操作でページが1pxも動かない」ことを実測する
+      const scrollBefore = await page.evaluate(() => window.pageYOffset);
       const chipText = await page.evaluate(() => {
         const list = Array.prototype.slice.call(document.querySelectorAll("#sdChips button"));
         const c = list.filter((b) => b.textContent.indexOf("肩") !== -1)[0] || list[0];
@@ -318,7 +321,7 @@ async function main() {
       );
       const counts = await page.evaluate(() => ({
         user: document.querySelectorAll("#sdLog .sd-row.user").length,
-        oga: document.querySelectorAll("#sdLog .sd-row.oga").length,
+        oga: document.querySelectorAll("#sdLog .sd-row.oga:not(.sd-typing)").length,
         video: document.querySelectorAll("#sdLog .sd-row.oga .video").length,
       }));
       if (counts.user < 1) throw new Error("相談（右吹き出し）が出ていない");
@@ -327,19 +330,29 @@ async function main() {
       await page.waitForFunction(
         () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 8000 }
       );
+      // スクロール根治の確認①: 回答表示までの間、ページ全体のスクロール位置が1pxも動いていない
+      const scrollAfter = await page.evaluate(() => window.pageYOffset);
+      if (scrollAfter !== scrollBefore) {
+        throw new Error("ページスクロールが動いた (" + scrollBefore + "→" + scrollAfter + ")");
+      }
       // 赤旗ワードを自由入力→赤旗回答（sd-red）が出る
       await page.type("#sdInput", "げきつう");
       await page.click("#sdSendBtn");
       await page.waitForFunction(
         () => document.querySelectorAll("#sdLog .sd-row.sd-red").length >= 1, { timeout: 8000 }
       );
+      // スクロール根治の確認②: 新しい吹き出しでログ自身が最下部まで内部スクロールしている
+      const logState = await page.evaluate(() => {
+        const log = document.getElementById("sdLog");
+        return { top: log.scrollTop, gap: log.scrollHeight - log.clientHeight - log.scrollTop };
+      });
+      if (logState.gap > 40) throw new Error("ログが最下部まで追従していない (残り" + logState.gap + "px)");
       await shot("6b-soudan-chat");
-      // 戻る操作（ブラウザバック）でホームに戻る
+      // 戻る操作（ブラウザバック）でシートが閉じてホームに戻る
       await page.goBack();
+      await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
       await visible("#home");
-      const soudanHidden = await page.$eval("#soudan", (el) => el.classList.contains("hidden"));
-      if (!soudanHidden) throw new Error("戻る操作でsoudanセクションが隠れない");
-      return "チップ「" + chipText + "」→回答" + counts.oga + "吹き出し・動画" + counts.video + "枚→赤旗回答→戻るでホーム復帰";
+      return "チップ「" + chipText + "」→回答" + counts.oga + "吹き出し・動画" + counts.video + "枚→ページ不動(" + scrollAfter + "px)→赤旗回答→戻るでシート閉";
     });
 
     // 7. 破損データ耐性: kyono_streak2に不正文字列→リロードで白画面にならない

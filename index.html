@@ -359,7 +359,22 @@
   .qbubble{display:flex;gap:10px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:14px;font-size:15px;line-height:1.7}
   .qbubble img{width:auto;height:44px;flex-shrink:0;object-fit:contain}
   .qbubble .ql{display:block;font-size:11px;color:var(--sub);font-weight:900}
-  /* オガトレ相談室（チャットUI） */
+  /* オガトレ相談室（ボトムシート型チャットUI） */
+  #soudanSheet{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(20,16,8,.35);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+  .sd-sheet{background:var(--bg);width:100%;max-width:480px;height:92%;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -6px 30px rgba(40,35,20,.25);animation:sdup .25s ease-out}
+  @keyframes sdup{from{transform:translateY(100%)}to{transform:none}}
+  .sd-head{display:flex;align-items:center;gap:8px;padding:13px 16px 9px;background:var(--card);border-bottom:1.5px solid var(--line);flex-shrink:0}
+  .sd-head .sd-title{flex:1;font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px;min-width:0}
+  .sd-head .sd-title svg{width:21px;height:21px;flex-shrink:0}
+  .sd-close{border:none;background:var(--line);color:var(--ink);width:30px;height:30px;border-radius:50%;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;flex-shrink:0}
+  .sd-close:active{opacity:.7}
+  .sd-disc{font-size:11px;color:var(--sub);text-align:center;line-height:1.6;padding:5px 16px 7px;background:var(--card);border-bottom:1.5px solid var(--line);flex-shrink:0}
+  #sdLog{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:14px 16px 8px}
+  .sd-foot{flex-shrink:0;background:var(--card);border-top:1.5px solid var(--line);padding:10px 14px calc(12px + env(safe-area-inset-bottom))}
+  .sd-foot .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;padding-bottom:2px}
+  .sd-foot .chip{flex-shrink:0;white-space:nowrap}
+  .sd-foot .searchbox{margin-bottom:0}
+  body.sd-lock{overflow:hidden}
   .sd-row{display:flex;gap:8px;margin-bottom:10px;align-items:flex-end}
   .sd-row.user{justify-content:flex-end}
   .sd-ava{width:38px;height:38px;flex-shrink:0;object-fit:contain}
@@ -372,7 +387,13 @@
   .sd-row.sd-red .sd-b{background:var(--coral-soft);border-color:var(--coral)}
   .sd-pop{animation:sdpop .18s ease-out}
   @keyframes sdpop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion: reduce){ .sd-pop{animation:none} }
+  .sd-typing .sd-b{padding:12px 15px}
+  .sd-dots{display:inline-flex;gap:4px;align-items:center;height:10px}
+  .sd-dots span{width:6px;height:6px;border-radius:50%;background:var(--sub);animation:sddot 1s infinite}
+  .sd-dots span:nth-child(2){animation-delay:.15s}
+  .sd-dots span:nth-child(3){animation-delay:.3s}
+  @keyframes sddot{0%,100%{opacity:.25}50%{opacity:.9}}
+  @media (prefers-reduced-motion: reduce){ .sd-pop,.sd-sheet{animation:none} }
   #sdSendBtn{flex-shrink:0;border:none;border-radius:12px;background:var(--yellow);color:#3A3A35;font-family:inherit;font-size:15px;font-weight:900;padding:9px 14px;cursor:pointer}
   #sdSendBtn:active{opacity:.7}
   #soudanCard{cursor:pointer}
@@ -480,6 +501,26 @@
     </div>
     <div id="todayVideo"></div>
     <div class="hint" style="margin-top:8px">動画がおわったら アプリにもどって下の「きょうやった！」を押してね✅</div>
+  </div>
+
+  <!-- 2週間プラン（処方箋モード・dev67専有域）: 相談室でつくったプランの進捗。非実行時は非表示 -->
+  <div class="card hidden" id="planCard">
+    <div id="planBody">
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div style="flex:1;font-size:15px;font-weight:900" id="planTitle"></div>
+        <a href="#" class="tapx" onclick="planQuit();return false" style="font-size:13px;color:var(--sub);font-weight:800;text-decoration:underline;flex-shrink:0">やめる</a>
+      </div>
+      <div class="bar" style="height:10px;margin-top:8px"><div id="planBar" style="width:0%"></div></div>
+    </div>
+    <div id="planQuitMsg" class="hidden" style="font-size:14px;font-weight:800;color:var(--sub)">プランはいったんおやすみ またいつでも組めるよ🌱</div>
+  </div>
+  <!-- プラン完走のお祝い（14日経過後の初回ホーム表示で出る・とじると卒業） -->
+  <div class="card grad-mint hidden" id="planDoneCard">
+    <img src="assets/chara-congrats.png" alt="" style="width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 8px">
+    <div id="planDoneText" style="font-size:15px;line-height:1.9;text-align:center"></div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="planAgain()">💪 もう2週間つづける</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="planDoneClose();startQuiz()">📏 かたさチェックで変化をみる</button>
+    <button class="btn btn-line" style="margin-top:8px" onclick="planDoneClose()">とじる</button>
   </div>
 
   <div class="card grad-warm" id="streakCard">
@@ -727,23 +768,6 @@
   </div>
 </section>
 
-<!-- ===== オガトレ相談室 ===== -->
-<section id="soudan" class="hidden">
-  <div class="card" style="margin-bottom:14px">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>オガトレ相談室</div>
-    <div style="font-size:14px;line-height:1.9">からだの悩み、オガトレに聞いてみて💬<br><span style="font-size:12px;color:var(--sub)">下のチップをタップするか、ことばで入力してね</span></div>
-  </div>
-  <div id="sdLog"></div>
-  <div class="searchbox" style="margin-bottom:10px">
-    <input id="sdInput" placeholder="例: 肩がこる／前屈できない" enterkeyhint="send" onkeydown="if(event.key==='Enter'){sdSend()}">
-    <button id="sdSendBtn" onclick="sdSend()">送信</button>
-  </div>
-  <div class="chips" id="sdChips"></div>
-  <div style="font-size:11px;color:var(--sub);text-align:center;margin:2px 0 4px">※回答はオガトレ監修のパターン集から選んでいます</div>
-  <div class="hint" style="margin-bottom:12px">※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ</div>
-  <button class="btn btn-line" onclick="navTo('home')">← ホームにもどる</button>
-</section>
-
 <!-- ===== 使い方 ===== -->
 <section id="guide" class="hidden">
 
@@ -882,6 +906,25 @@
     <div id="cardSaveNote" class="hidden" style="font-size:13px;color:var(--tealink);font-weight:800;text-align:center;margin:0 0 8px">保存しました✅ ダウンロード（または写真）を確認してね</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">📤 保存・シェアする</button>
     <button class="btn btn-line" onclick="closeCard()">とじる</button>
+  </div>
+</div>
+
+<!-- ===== オガトレ相談室（ボトムシート。戻る操作で閉じる=popstate対応） ===== -->
+<div id="soudanSheet" class="hidden" onclick="if(event.target===this)closeSoudan()">
+  <div class="sd-sheet" role="dialog" aria-modal="true" aria-label="オガトレ相談室">
+    <div class="sd-head">
+      <div class="sd-title"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>オガトレ相談室</div>
+      <button class="sd-close" onclick="closeSoudan()" aria-label="とじる">✕</button>
+    </div>
+    <div class="sd-disc">※回答はオガトレ監修のパターン集から選んでいます<br>※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ</div>
+    <div id="sdLog"></div>
+    <div class="sd-foot">
+      <div class="chips" id="sdChips"></div>
+      <div class="searchbox">
+        <input id="sdInput" placeholder="例: 肩がこる／前屈できない" enterkeyhint="send" onkeydown="if(event.key==='Enter'){sdSend()}">
+        <button id="sdSendBtn" onclick="sdSend()">送信</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1170,10 +1213,11 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices","obu","soudan"];
+const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","voices","obu"];
 // obuは特定タブに固定所属しないため、TAB_OFのobuエントリはあくまでフォールバック値。
 // 実際のハイライトはshow()内でobuReturnTo（オガトレ通信を開く直前にいたセクション）を優先して解決する
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history",obu:"home",soudan:"home"};
+// 相談室(soudan)はセクションではなくボトムシート（#soudanSheet）。履歴stateのid="soudan"だけ特別扱いする
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history",obu:"home"};
 let currentSection="home"; // 現在表示中のセクション（show()で更新）
 let obuReturnTo="home"; // オガトレ通信(obu)を開く直前にいたセクション。戻るボタン＆タブハイライトに使用（記憶が無い場合はhomeへフォールバック）
 let quizRendered=false; // このセッションでrenderQ()が一度でも呼ばれたか（popstateでquizへ直接着地した空画面を防ぐ判定に使用）
@@ -1203,6 +1247,10 @@ window.addEventListener("popstate",e=>{
   if(!document.getElementById("obuModal").classList.contains("hidden")) closeObu();
   if(!document.getElementById("cardModal").classList.contains("hidden")) closeCard();
   const id=(e.state&&e.state.id)||"home";
+  // 相談室シート: 「進む」やリロード後にid="soudan"へ着地したらホームの上にシートを重ねて復元。
+  // それ以外のstateへ移った（=「戻る」）ならシートを閉じるだけ（A6のモーダル処理と同じ流儀）
+  if(id==="soudan"&&sdKb()){ show("home"); renderHome(); openSoudan(); return; }
+  if(sdSheetOpen()) closeSoudan(true);
   let target=SECTIONS.includes(id)?id:"home";
   if(target==="quiz"){
     // リロード直後などこのセッションで描画されていないquizに直接着地すると空画面になるため救済
@@ -1215,8 +1263,6 @@ window.addEventListener("popstate",e=>{
     }
   }
   if(target==="result" && !(state.type&&TYPES[state.type.key])) target="home";
-  // 相談室: KB未読込での直接着地は救済、通常着地はあいさつを保証（ログはセッション内で保持）
-  if(target==="soudan"){ if(!sdKb()) target="home"; else sdEnsureGreeting(); }
   if(target==="history") renderHistory();
   if(target==="search") renderSearch();
   if(target==="home") renderHome();
@@ -1390,13 +1436,23 @@ function dayIndex(){ return Math.floor((Date.now()+6*3600*1000)/86400000); }
 function renderToday(){
   const manual=store.get("mode_manual",null);
   const typed = !!(state.type&&TYPES[state.type.key]);
-  document.getElementById("segMine").classList.toggle("hidden",!typed);
-  const m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || (typed?"mine":autoMode());
+  // 2週間プラン実行中は未チェックでも「あなた用」枠が使える（プランがmine枠を専有・あさ/よるは従来どおり切替可）
+  const plan=planCurrent();
+  const mineAvail = typed || !!plan;
+  document.getElementById("segMine").classList.toggle("hidden",!mineAvail);
+  let m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || (mineAvail?"mine":autoMode());
+  if(m==="mine"&&!mineAvail) m=autoMode(); // プラン終了直後などに残った手動mineの救済
   state.mode=m;
   document.getElementById("segMine").classList.toggle("on",m==="mine");
   document.getElementById("segAsa").classList.toggle("on",m==="asa");
   document.getElementById("segYoru").classList.toggle("on",m==="yoru");
   document.getElementById("logoMark").innerHTML = pickLogoMark(m);
+  if(m==="mine"&&plan){
+    const badge2=`プラン${planDayNum(plan)}日目/${planDays(plan)}: ${plan.label||""}`;
+    document.getElementById("todayVideo").innerHTML = planVideoHTML(planTodayVideoId(plan), badge2)
+      +`<div style="font-size:13px;color:var(--sub);margin-top:6px;text-align:center;font-weight:800">相談室でつくった2週間プランの1本だよ🌱</div>`;
+    return;
+  }
   let vk, badge, extra="";
   if(m==="mine"&&typed){
     const rx=currentRx(state.type.key);
@@ -1466,6 +1522,9 @@ function applyMiniStreak(){
   sc.classList.toggle("mini", mini);
 }
 function currentTodayId(){
+  // プラン実行中のmine枠はプラン動画（markDoneはそのままでdaylogにプラン動画IDが残る）
+  const plan=planCurrent();
+  if(state.mode==="mine"&&plan) return planTodayVideoId(plan);
   if(state.mode==="mine"&&state.type&&TYPES[state.type.key]){ const rx=currentRx(state.type.key); return V[rx[dayIndex()%rx.length]].id; }
   const list=state.mode==="asa"?TODAY_ASA:TODAY_YORU; return V[list[dayIndex()%list.length]].id;
 }
@@ -2448,27 +2507,42 @@ function sdVideoHTML(v){
 }
 function sdMarkShown(vid){ if(sdCtx.shownVideoIds.indexOf(vid)<0) sdCtx.shownVideoIds.push(vid); }
 function sdUnseen(it){ return (it.videos||[]).filter(v=>v&&sdCtx.shownVideoIds.indexOf(v.v)<0); }
-// ---- 吹き出し（2〜3個に分割して0.5秒ずつ・reduced-motionは即時） ----
+// ---- 吹き出し（2〜3個に分割・各回答の前に0.4秒の「…」タイピング表示・reduced-motionは即時） ----
 function sdReduced(){ try{ return window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } }
-function sdScrollEnd(){ try{ window.scrollTo(0,document.body.scrollHeight); }catch(e){} }
+// スクロールはログ（シート内のoverflow-y:auto領域）のscrollTopだけを動かす。
+// ページ全体のscroll位置は一切触らない=「タップすると画面が上に飛ぶ」問題の根治
+function sdScrollEnd(){ const log=document.getElementById("sdLog"); if(log) log.scrollTop=log.scrollHeight; }
 function sdBubbleNode(m){
   const row=document.createElement("div");
   row.className="sd-row "+(m.who==="user"?"user":"oga")+(m.red?" sd-red":"")+" sd-pop";
   row.innerHTML=(m.who==="user"?"":`<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">`)+`<div class="sd-b">${m.html}</div>`;
   return row;
 }
+function sdTypingNode(){
+  const row=document.createElement("div");
+  row.className="sd-row oga sd-typing sd-pop";
+  row.innerHTML=`<img class="sd-ava" src="assets/chara-hitokoto.png" alt=""><div class="sd-b"><span class="sd-dots"><span></span><span></span><span></span></span></div>`;
+  return row;
+}
 function sdPush(msgs){
   const log=document.getElementById("sdLog");
   if(!log||!msgs.length){ sdRenderChips(); return; }
-  const gap=sdReduced()?0:500;
+  const reduced=sdReduced();
   sdPending++;
   let i=0;
-  (function next(){
+  function showNext(){
     log.appendChild(sdBubbleNode(msgs[i])); i++;
     sdScrollEnd();
     if(i>=msgs.length){ sdPending--; sdRenderChips(); sdScrollEnd(); return; }
-    if(gap===0) next(); else setTimeout(next,gap);
-  })();
+    queueNext();
+  }
+  function queueNext(){
+    if(reduced){ showNext(); return; }
+    const tip=sdTypingNode();
+    log.appendChild(tip); sdScrollEnd();
+    setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); showNext(); }, i===0?400:500);
+  }
+  queueNext();
 }
 function sdUserBubble(text){
   const log=document.getElementById("sdLog");
@@ -2652,11 +2726,22 @@ function renderSoudanEntry(){
     `<button class="chip chip-b" onclick="event.stopPropagation();openSoudan('${sdEsc(it.id)}')">${sdEsc(it.chip)}</button>`).join("");
   card.classList.remove("hidden");
 }
+function sdSheetOpen(){ const s=document.getElementById("soudanSheet"); return !!(s&&!s.classList.contains("hidden")); }
 function openSoudan(intentId){
   if(!sdKb()) return;
-  navTo("soudan");
+  // 履歴に1段積む（すでにsoudan stateならpopstate復元中なので積まない）→「戻る」でシートが閉じる
+  try{ if(!(history.state&&history.state.id==="soudan")) history.pushState({id:"soudan"},""); }catch(e){}
+  document.getElementById("soudanSheet").classList.remove("hidden");
+  document.body.classList.add("sd-lock"); // 背面ページのスクロールを止める
   sdEnsureGreeting();
+  sdScrollEnd(); // 再オープン時もログ最下部から
   if(intentId&&!sdPending){ const it=sdIntentById(intentId); if(it){ sdUserBubble(it.chip); sdAnswerIntent(it,null); } }
+}
+// fromPop=true: popstate起点（履歴はすでに1段戻っている）。✕タップ等の画面起点ならこちらからhistory.back()して整合を取る
+function closeSoudan(fromPop){
+  document.getElementById("soudanSheet").classList.add("hidden");
+  document.body.classList.remove("sd-lock");
+  if(fromPop!==true){ try{ if(history.state&&history.state.id==="soudan") history.back(); }catch(e){} }
 }
 function sdEnsureGreeting(){
   if(sdGreeted||!sdKb()) return;
