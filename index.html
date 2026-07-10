@@ -1040,6 +1040,7 @@ const SECTIONS=["home","quiz","result","history","playlists","search","guide","b
 const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",voices:"history",obu:"home"};
 let currentSection="home"; // 現在表示中のセクション（show()で更新）
 let obuReturnTo="home"; // オガトレ通信(obu)を開く直前にいたセクション。戻るボタン＆タブハイライトに使用（記憶が無い場合はhomeへフォールバック）
+let quizRendered=false; // このセッションでrenderQ()が一度でも呼ばれたか（popstateでquizへ直接着地した空画面を防ぐ判定に使用）
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
   // obu表示中は、開く直前にいたタブ（obuReturnTo経由）をハイライトし続ける
@@ -1061,14 +1062,21 @@ function switchTab(t){
   navTo(t);
 }
 window.addEventListener("popstate",e=>{
+  // ハードウェア/スワイプの「戻る」でモーダルが開いていたら、まずそれを閉じる
+  if(!document.getElementById("obuModal").classList.contains("hidden")) closeObu();
+  if(!document.getElementById("cardModal").classList.contains("hidden")) closeCard();
   const id=(e.state&&e.state.id)||"home";
-  const target=SECTIONS.includes(id)?id:"home";
+  let target=SECTIONS.includes(id)?id:"home";
+  // リロード直後などこのセッションで描画されていないquiz/resultに直接着地すると空画面になるため救済
+  if(target==="quiz" && !quizRendered) target="home";
+  if(target==="result" && !(state.type&&TYPES[state.type.key])) target="home";
   if(target==="history") renderHistory();
   if(target==="search") renderSearch();
   if(target==="home") renderHome();
+  if(target==="result") showResult(state.type);
   show(target);
 });
-function goHome(){ show("home"); renderHome(); }
+function goHome(){ try{ history.replaceState({id:"home"},""); }catch(e){} show("home"); renderHome(); }
 
 // ---- チェック質問のポーズ図解（書き下ろしSVG） ----
 const QUIZ_ART=[
@@ -1125,6 +1133,7 @@ const QUIZ_ART=[
 // ---- 診断 ----
 function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; renderQ(); navTo("quiz"); }
 function renderQ(){
+  quizRendered=true;
   const q = QUESTIONS[state.qi];
   document.getElementById("qnum").textContent = `Q${state.qi+1} / ${QUESTIONS.length}`;
   document.getElementById("qtitle").textContent = q.title;
@@ -1164,7 +1173,8 @@ function finishQuiz(){
 }
 
 // ---- 処方のローテーション（3日ごとに2・3本目が入れ替わる） ----
-function rotationIndex(){ return Math.floor((Date.now()+9*3600*1000)/86400000/3); }
+// dayIndex()と同じ「深夜3時JST」境界に合わせる（+9h→+6hで日またぎ判定を統一。境界外では値は変化しない）
+function rotationIndex(){ return Math.floor((Date.now()+6*3600*1000)/86400000/3); }
 function currentRx(typeKey){
   const T=TYPES[typeKey];
   const need=3-T.rx.length;
@@ -1254,6 +1264,16 @@ function getStreakData(){
   }
   return st;
 }
+// 数日あいて券でもつなげない時は「途切れた」とみなす判定（renderStreak/renderHistoryで共通利用）
+function streakBrokenNow(st){
+  const did = st.dates.includes(todayStr());
+  if(did || !st.dates.length) return false;
+  const gapNow=daysBetween(st.dates[st.dates.length-1],todayStr());
+  if(gapNow<2) return false;
+  const miss=[]; for(let i=1;i<gapNow;i++){ miss.push(new Date(new Date(st.dates[st.dates.length-1]).getTime()+i*86400000).toISOString().slice(0,10)); }
+  return !canBridgeFreezes(miss);
+}
+function effectiveStreakCount(st){ return streakBrokenNow(st) ? 0 : (st.count||0); }
 function renderStreak(){
   const st=getStreakData();
   document.getElementById("streakNum").textContent=st.total||0;
@@ -1262,13 +1282,7 @@ function renderStreak(){
   if(!did && st.total===0) contTxt="きょう1本やると「1日目」がはじまります🌱";
   if(!did){ const ce=document.getElementById("cheer"); if(ce) ce.innerHTML=""; }
   // 数日あいて券でもつなげない時は、古い連続を見せない（押した瞬間に消えたと誤解させない）
-  if(!did && st.dates.length){
-    const gapNow=daysBetween(st.dates[st.dates.length-1],todayStr());
-    if(gapNow>=2){
-      const miss=[]; for(let i=1;i<gapNow;i++){ miss.push(new Date(new Date(st.dates[st.dates.length-1]).getTime()+i*86400000).toISOString().slice(0,10)); }
-      if(!canBridgeFreezes(miss)) contTxt="きょうやると新しい章のスタート🌱";
-    }
-  }
+  if(!did && streakBrokenNow(st)) contTxt="きょうやると新しい章のスタート🌱";
   document.getElementById("totalDays").textContent = contTxt;
   const btn=document.getElementById("doneBtn");
   btn.textContent = did?"きょうの分完了！おつかれさまでした✨":"きょうやった！";
@@ -1295,28 +1309,36 @@ function markDone(){
   const last=st.dates.length?st.dates[st.dates.length-1]:null;
   const gap=last?daysBetween(last,today):null;
   let note="";
+  let missed=null; // gap>=2のときの欠席日リスト。券の消費確定はstreak2保存の成功後まで待つ
+  let newChapter=false;
   if(gap===null){ st.count=1; }
   else if(gap<=0){ /* 端末時計の巻き戻り: 連続は減らさない */ st.count=Math.max(1,st.count); }
   else if(gap===1){ st.count++; }
   else {
-    const missed=[];
+    missed=[];
     for(let i=1;i<gap;i++){
       const dd=new Date(new Date(last).getTime()+i*86400000);
       missed.push(dd.toISOString().slice(0,10));
     }
-    if(tryUseFreezes(missed)){
+    if(canBridgeFreezes(missed)){
       st.count++;
       note=`おやすみ券を${gap-1}枚つかったので連続はつながってます`;
     } else {
-    const ch=(store.get("chapters",1))+1; store.set("chapters",ch);
-    st.count=1;
-    note=`第${ch}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨`;
+      missed=null;
+      newChapter=true;
+      st.count=1;
     }
   }
   st.total=(st.total||0)+1;
   st.dates.push(today);
   st.dates.sort();
   if(st.dates.length>1200) st.dates=st.dates.slice(-1200);
+  const saved_ok=store.set("streak2",st); renderStreak();
+  const cheerEl=document.getElementById("cheer");
+  if(!saved_ok){ cheerEl.textContent="⚠️ この画面設定では記録がのこせないみたい プライベートモードをオフにしてもう一度どうぞ"; return; }
+  // ここまででstreak2の保存が確定したので、初めておやすみ券・章カウント・カレンダー記録を確定させる
+  if(missed) tryUseFreezes(missed);
+  if(newChapter){ const ch=(store.get("chapters",1))+1; store.set("chapters",ch); note=`第${ch}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨`; }
   // きょうの動画をカレンダー用に記録
   try{
     const vid=currentTodayId();
@@ -1325,10 +1347,7 @@ function markDone(){
     const ks=Object.keys(dl).sort(); if(ks.length>400) ks.slice(0,ks.length-400).forEach(k=>delete dl[k]);
     store.set("daylog",dl);
   }catch(e){}
-  const saved_ok=store.set("streak2",st); renderStreak();
   const ms=MS.find(x=>x.d===st.total);
-  const cheerEl=document.getElementById("cheer");
-  if(!saved_ok){ cheerEl.textContent="⚠️ この画面設定では記録がのこせないみたい プライベートモードをオフにしてもう一度どうぞ"; return; }
   if(ms){
     cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
@@ -1640,6 +1659,21 @@ function drawCrown(ctx,x,y,w,color){
   ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
 }
 let lastBlob=null,lastShareText="";
+// canvas.toBlob非対応環境（iOS10.3など）向けフォールバック: toDataURLから手動でBlob相当を組み立てる
+function dataURLtoBlob(dataURL){
+  const parts=dataURL.split(",");
+  const mimeMatch=parts[0].match(/:(.*?);/);
+  const mime=mimeMatch?mimeMatch[1]:"image/png";
+  const bin=atob(parts[1]);
+  const arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+function canvasToBlobCompat(c, cb){
+  if(typeof c.toBlob==="function"){ c.toBlob(cb,"image/png"); return; }
+  try{ cb(dataURLtoBlob(c.toDataURL("image/png"))); }
+  catch(e){ cb(null); }
+}
 function ensureCardFonts(){
   const specs=['900 100px "M PLUS 1p"','800 52px "M PLUS 1p"','700 34px "M PLUS 1p"','100px "BananaNum"'];
   const work=(async()=>{
@@ -1852,7 +1886,7 @@ function drawCard(){
   // プレビュー表示
   document.getElementById("cardImg").src=c.toDataURL("image/png");
   document.getElementById("cardModal").classList.remove("hidden");
-  c.toBlob(blob=>{ lastBlob=blob; },"image/png");
+  canvasToBlobCompat(c, blob=>{ lastBlob=blob; });
   lastShareText=`#きょうのオガトレ ${effTotal}日目！`;
 }
 function cardFile(){ return new File([lastBlob],`kyono-ogatore-${cardDate||todayStr()}.png`,{type:"image/png"}); }
@@ -1890,6 +1924,10 @@ function bragFilter(){
   const box=document.getElementById("bragList");
   box.innerHTML="";
   if(!q) return;
+  if(typeof CATALOG==="undefined"){
+    box.innerHTML='<div style="font-size:13px;color:var(--sub);margin-top:6px">動画リストがよみこめませんでした📡<br>電波のよいところでもう一度ひらいてみてね</div>';
+    return;
+  }
   const hits=[];
   for(let i=0;i<CATALOG.length&&hits.length<6;i++){
     const v=CATALOG[i];
@@ -2059,7 +2097,7 @@ function drawBragCard(thumb){
   ctx.fillText(fmsg,bx1+28,900+37+Math.round(ffs*0.36));
   ctx.textAlign="center";
   document.getElementById("cardImg").src=c.toDataURL("image/png");
-  c.toBlob(blob=>{ lastBlob=blob; },"image/png");
+  canvasToBlobCompat(c, blob=>{ lastBlob=blob; });
   lastShareText=`#きょうのオガトレ ${days}日つづいてる！`;
 }
 
@@ -2086,7 +2124,7 @@ function renderHome(){
 let calDate=null;
 function renderHistory(){
   const st=getStreakData();
-  document.getElementById("histStreak").textContent=st.count;
+  document.getElementById("histStreak").textContent=effectiveStreakCount(st);
   document.getElementById("histTotal").textContent=st.total;
   const next=MILESTONES.find(m=>m>st.total);
   if(next){
