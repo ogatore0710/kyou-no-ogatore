@@ -4,6 +4,12 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10 節目お祝いメッセージ動画の受け皿（フラグ裏・見た目無変化）
+- 本人（尾形さん）の30秒お祝いメッセージ動画を、撮影後に差し込むだけにする先行実装。**差し込み手順=`MILESTONE_MSG_VIDEO`にYouTube動画IDを入れるだけ**（現状は空文字=機能オフ）
+- 定数`MILESTONE_MSG_VIDEO=""`（`MILESTONES`の直後）。節目達成時のcheer表示（`markDone`内、👑ゴールドカードボタンの直後）で、空でない時だけ「🎬 尾形さんからお祝いメッセージ」ボタン（`target=_blank`・`rel=noopener`・`https://www.youtube.com/watch?v=`+ID）を出す
+- フラグが空文字の間は三項演算子`MILESTONE_MSG_VIDEO?...:""`が常に`""`を返すため、フレッシュ状態・節目日どちらもDOM出力に変化なし（コードトレースで確認、実機日付操作は未実施）
+- 台本ドラフト3案は`dev-specs/kyono-milestone-video-scripts.md`（オグdev-hub側）
+
 ## 2026-07-10 茜さんイラスト2点追加・ひとことアバター採用・マイ記録日別ビュー再構成
 - **茜さんイラスト2点を記録カードの日替わりローテに追加**: クラッカー（`assets/chara-cracker.png`）とグッドサイン（`assets/chara-congrats.png`）。`CHARA_FILES`が3→5件になり、`dayIndex()%5`で日替わり
 - **新イラスト（こぶし上げ）をきょうのひとことのアバターに採用**: `assets/chara-hitokoto.png`。従来の黄丸クロップは廃止し、自然形状のまま44pxで表示

@@ -1387,7 +1387,8 @@ function markDone(){
       +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
       +`<img src="assets/chara-crown.png" alt="" style="width:72px;height:72px;object-fit:contain;display:block;margin:10px auto 0">`
       +`<div style="margin-top:6px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">YouTubeのコメント欄に報告する</a></div>`
-      +`<button class="btn btn-ghost" onclick="makeCard()" style="margin-top:10px;font-size:15px">👑 きょうのゴールドカードを見る</button>`;
+      +`<button class="btn btn-ghost" onclick="makeCard()" style="margin-top:10px;font-size:15px">👑 きょうのゴールドカードを見る</button>`
+      +(MILESTONE_MSG_VIDEO?`<a class="btn btn-ghost" href="https://www.youtube.com/watch?v=${MILESTONE_MSG_VIDEO}" target="_blank" rel="noopener" style="margin-top:10px;font-size:15px;display:block;text-decoration:none">🎬 尾形さんからお祝いメッセージ</a>`:"");
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -1607,6 +1608,7 @@ const MS=[
  {d:1900,t:"1900日——伝説の域", m:"1900日続けた先輩は高校生から社会人になっていました あなたの記録ももう物語です✨", q:""},
 ];
 const MILESTONES=MS.map(x=>x.d);
+const MILESTONE_MSG_VIDEO=""; // 節目お祝いメッセージ動画のYouTube ID。差し込み手順=ここにIDを入れるだけ（空文字=機能オフ）
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
 function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
