@@ -131,7 +131,7 @@
   body.dark .tabbar button.on{color:var(--ink)}
   body.dark .tabbar button .ic-fill{fill:#3D382F}
   body.dark .tabbar button.on .ic-fill{fill:var(--yellow)}
-  body.dark .cal .d.mute{color:#57523F}
+  body.dark .cal .d.mute{color:#6E6650}
   body.dark .seg button.on{box-shadow:none}
   body.dark .chip-a{background:#37301C;border-color:#5C4F1E;color:#E8C74C}
   body.dark .chip-b{background:#1F3532;border-color:#2E5A52;color:#7BD0C4}
@@ -350,7 +350,7 @@
   .rtrack{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:10px}
   .rbar{width:16px;height:100%;display:flex;align-items:flex-end}
   .rbar>div{width:100%;background:linear-gradient(180deg,#7BD0C4,var(--teal));border-radius:4px}
-  .anchor-row .opt{margin-bottom:8px}
+  .anchor-row .anchor-opt{margin-bottom:8px}
 
 </style>
 </head>
@@ -399,10 +399,10 @@
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 7.5V12l3 2.5"/></svg>いつやる派？</div>
     <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります！<br>合図をひとつ選んでください（あとで マイ記録タブから変えられます）</div>
     <div class="anchor-row">
-      <button class="opt" onclick="setAnchor('asa')">朝おきてそのまま</button>
-      <button class="opt" onclick="setAnchor('furo')">おふろ上がりに</button>
-      <button class="opt" onclick="setAnchor('neru')">寝るまえふとんの上で</button>
-      <button class="opt" onclick="setAnchor('free')">きめてない・そのつど</button>
+      <button class="opt anchor-opt" onclick="setAnchor('asa')">朝おきてそのまま</button>
+      <button class="opt anchor-opt" onclick="setAnchor('furo')">おふろ上がりに</button>
+      <button class="opt anchor-opt" onclick="setAnchor('neru')">寝るまえふとんの上で</button>
+      <button class="opt anchor-opt" onclick="setAnchor('free')">きめてない・そのつど</button>
     </div>
   </div>
   <div class="card" id="ckCard">
@@ -797,6 +797,7 @@
     <div id="cardMaking" class="hidden" style="text-align:center;font-size:14px;color:var(--sub);padding:14px 0">カードをつくってます…</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
     <div style="font-size:14px;color:var(--sub);text-align:center;margin:8px 0 8px">下の「保存・シェアする」を押すと 保存やSNS投稿の画面がひらきます✅</div>
+    <div id="cardSaveNote" class="hidden" style="font-size:13px;color:var(--tealink);font-weight:800;text-align:center;margin:0 0 8px">保存しました✅ ダウンロード（または写真）を確認してね</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">📤 保存・シェアする</button>
     <button class="btn btn-line" onclick="closeCard()">とじる</button>
   </div>
@@ -1043,8 +1044,9 @@ let obuReturnTo="home"; // オガトレ通信(obu)を開く直前にいたセク
 let quizRendered=false; // このセッションでrenderQ()が一度でも呼ばれたか（popstateでquizへ直接着地した空画面を防ぐ判定に使用）
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
-  // obu表示中は、開く直前にいたタブ（obuReturnTo経由）をハイライトし続ける
-  const tabTarget = id==="obu" ? (TAB_OF[obuReturnTo]||"home") : TAB_OF[id];
+  // obuはどのタブにも属さない独立画面なので、表示中はタブのハイライトを全消灯する
+  // （もどるとnavTo(obuReturnTo)→show()が呼ばれ、直前にいたタブのハイライトが自然に復元される）
+  const tabTarget = id==="obu" ? null : TAB_OF[id];
   for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", tabTarget===t);
   window.scrollTo(0,0);
   currentSection=id;
@@ -1707,6 +1709,7 @@ function makeCard(ds){
   // タップした瞬間に開く（無反応に見せない）
   const mk=document.getElementById("cardMaking");
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
+  const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
   document.getElementById("cardModal").classList.remove("hidden");
   ensureCardFonts().then(()=>loadChara(()=>loadTypeIcon(state.type?state.type.key:null,()=>{
     try{ drawCard(); if(mk) mk.classList.add("hidden"); }
@@ -1894,6 +1897,9 @@ function downloadCard(file){
   const a=document.createElement("a");
   a.href=URL.createObjectURL(lastBlob); a.download=file.name; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  // Web Share非対応環境向け: ダウンロードしただけだと無反応に見えるため一言添える
+  const note=document.getElementById("cardSaveNote");
+  if(note) note.classList.remove("hidden");
 }
 async function shareCard(){
   // SNS投稿用: ハッシュタグ文言つき→ダメなら画像だけで開き直す（iOSは文言+画像の同時共有に失敗することがある）
@@ -1968,6 +1974,7 @@ function makeBragCard(){
   if(tEl) tEl.textContent="じまんカード";
   const mk=document.getElementById("cardMaking");
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
+  const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
   document.getElementById("cardModal").classList.remove("hidden");
   ensureCardFonts().then(()=>loadChara(()=>loadBragThumb(th=>{
     try{ drawBragCard(th); if(mk) mk.classList.add("hidden"); }
