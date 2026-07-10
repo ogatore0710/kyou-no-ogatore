@@ -406,6 +406,18 @@
   .rbar{width:16px;height:100%;display:flex;align-items:flex-end}
   .rbar>div{width:100%;background:linear-gradient(180deg,#7BD0C4,var(--teal));border-radius:4px}
   .anchor-row .anchor-opt{margin-bottom:8px}
+  /* はじめてガイド（初回オンボーディング・独立オーバーレイ #welcome） */
+  #welcome{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:70;display:flex;align-items:flex-end;justify-content:center}
+  .ob-sheet{width:100%;max-width:520px;background:var(--bg);border:1.5px solid var(--line);border-bottom:none;border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));max-height:86vh;display:flex;flex-direction:column;box-sizing:border-box;animation:obup .32s ease-out}
+  @keyframes obup{from{transform:translateY(48px);opacity:0}to{transform:none;opacity:1}}
+  @media (prefers-reduced-motion: reduce){ .ob-sheet{animation:none} }
+  .ob-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .ob-title{font-size:15px;font-weight:900}
+  .ob-skip{border:none;background:var(--line);color:var(--sub);border-radius:99px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
+  .ob-skip:active{opacity:.7}
+  #obLog{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:180px;max-height:52vh;padding:4px 2px}
+  #obChips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:44px}
+  #obChips .btn{width:100%}
 
 </style>
 </head>
@@ -770,6 +782,8 @@
 
 <!-- ===== 使い方 ===== -->
 <section id="guide" class="hidden">
+
+  <div style="text-align:center;margin-bottom:10px;font-size:14px"><a href="#" class="tapx" id="obReenterLink" onclick="obOpen();return false" style="color:var(--tealink);font-weight:800">🌱 はじめてガイドをもう一度</a></div>
 
   <div class="card grad-warm" style="text-align:center">
     <img src="assets/chara.png" alt="" style="width:84px;height:84px;object-fit:contain">
