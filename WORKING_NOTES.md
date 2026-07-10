@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10夜 記録のひっこし強化＋もじの大きさ設定（第五波dev59・担当E+H）
+- **E: 記録のひっこし**（既存の簡易版prompt方式を仕様準拠に強化）: 書き出しは`buildExportString()`=`KYONO1:`+Base64(`{v:1,data:{kyono_*}}`)。**vフィールド新設**（将来の形式変更用。v無し旧形式の文字列も読める後方互換あり）。クリップボード成功→alert、無い/失敗→`#exportBox`のtextareaを選択済みで表示「長押しでコピーしてね」。読み込みはprompt廃止→設定カード内`#importText`textarea＋「📥 よみこむ」ボタン。**検証（プレフィックス→Base64→JSON→中身）が全部通ってからconfirm→上書き→reload**。壊れた文字列では何も変更しない。ガード（300000/kyono_限定/cnt>50/200000）はqa.jsが`importData`関数本体を正規表現検査するため**関数内に置くこと**（ヘルパー分離するとqa fail）
+- **H: もじの大きさ**: つづける設定に「ふつう/大きめ」seg（テーマと同じUIパターン・`#bt-normal`/`#bt-big`）。実装は**案a採用=`body.bigtext{zoom:1.12}`**（375pxで横はみ出しゼロを実測確認・案b不要だった）。`kyono_bigtext`に永続化し、**body先頭の早期テーマスクリプト内で適用**（リロード時のガタつき防止）。切替は`setBigtext()`→`applyBigtext()`（applyTheme()の直後にinit呼び出しあり）
+- つかいかたタブ・FAQの「取りこむ」表記3箇所を「よみこむ」に更新
+- 検証: 375px×(light/dark)×(home/history/guide/quiz)で`scrollWidth==clientWidth==375`実測・h1実寸比1.12・**往復テスト実測**（実データ6キー→書き出し463字→全消去→よみこむ→6/6キー完全一致復元・通算日数表示も復元）・破損文字列2種でlocalStorage無変化。qa.js 74 pass・smoke 10/10 pass
+- ロールバック: index.htmlの6箇所（CSS`body.bigtext`・早期スクリプトのbigtext行・設定カードのseg+ひっこし節HTML・exportData/importData群・applyBigtext/setBigtext・init`applyBigtext()`）を戻し、つかいかた3箇所の「よみこむ」→「取りこむ」。localStorageキー`kyono_bigtext`は残っても無害。※艦隊同一ツリーのためrevertは単独コミットで効かないことがある→手動で戻すのが確実
+
 ## 2026-07-10夜 チェック2週間後の再測定導線＋とどくメーター前回比（第五波dev60・担当F）
 - 結果画面の「2週間後に床が近くなってるはず」の約束を回収するループ。**①ホームに再測定カード**: `state.type.at`から`daysBetween`で**14日以上**経過かつ`kyono_recheck_seen`≠現在のatのとき`#recheckCard`（grad-mint・welcomeBackの直後）を表示。「📏測ってみる」→`goRecheck()`=seen保存→マイ記録タブ→`#reachCard`へスクロール（show()のscrollTo(0,0)対策でsetTimeout 80ms）。「あとで」→`recheckLater()`=seen保存のみ。**測りに行った場合もseen保存**（再ナグ防止。仕様は「あとで」のみ明記だが趣旨=ループ回収済みと判断）。チェックやり直しでatが更新→自然に2週間後また出る
 - **②とどくメーター前回比**: `renderReach()`で記録2件以上のとき`#reachPrev`（自己ベスト表示の直下）に、前回とのlv差を段位で表示。向上=「前回（○○まで）より○段とどくようになった！🎉」／同じ=「キープも立派です！」／低下=責めない文言（段数・数字は出さない）。cm等の数字プレッシャーなし
