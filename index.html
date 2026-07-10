@@ -487,7 +487,7 @@
     <div class="rx-head" id="rxHead"></div>
     <div id="rxList"></div>
     <div id="worryExtra"></div>
-    <div class="rotate-note">2本目・3本目は3日ごとに自動で入れ替わります</div>
+    <div class="rotate-note">おすすめは3日ごとに自動で入れ替わります</div>
     <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想！週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
     <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
   </div>
@@ -677,7 +677,7 @@
 
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 16v.5M12 13c0-2 2.5-2 2.5-4a2.5 2.5 0 1 0-5 0"/></svg>はじめての日にやること</div>
-    <div class="gstep"><span class="stepn">1</span><div><b>かたさチェック（３０秒）</b><br>5問タップするだけ 写真のお手本つき<br><img src="assets/check/q1.jpg" alt="" style="width:110px;border-radius:12px;border:1.5px solid var(--line);margin-top:6px"></div></div>
+    <div class="gstep"><span class="stepn">1</span><div><b>かたさチェック（３０秒）</b><br>5問タップするだけ 写真とイラストのお手本つき<br><img src="assets/check/q1.jpg" alt="" style="width:110px;border-radius:12px;border:1.5px solid var(--line);margin-top:6px"></div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>あなたの「かたさタイプ」が出ます</b><br>タイプに合わせた おすすめ3本つき</div></div>
     <div class="gstep"><span class="stepn">3</span><div><b>まず1本 動画をやってみる</b><br>おわったらホームの「きょうやった！」を押す</div></div>
     <button class="btn btn-primary" onclick="startQuiz()">チェックをはじめる</button>
@@ -710,11 +710,12 @@
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「マイ記録」タブでできること</div>
     <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
     <div class="gstep"><span class="stepn">💗</span><div><b>じまんカード</b>…つづけてる日数とすきな1本を1枚のカードに（お楽しみ機能・つづける設定で「オン」にすると出ます）</div></div>
+    <div class="gstep"><span class="stepn">💛</span><div><b>きょうのありがとう</b>…つづけた日数カードから1日1回 尾形さんにありがとうを送れます</div></div>
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
     <div class="gstep"><span class="stepn">💬</span><div><b>せんぱいの声</b>…まえを歩くせんぱいたちの ほんとうの声が読めます</div></div>
     <div class="gstep"><span class="stepn">📝</span><div><b>ひとことにっき</b>…毎日のメモを読み返せます</div></div>
     <div class="gstep"><span class="stepn">⏰</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
-    <div class="gstep"><span class="stepn">📺</span><div><b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
+    <div class="gstep"><span class="stepn">📺</span><div>（こちらは下のタブ）<b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
     <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">マイ記録タブをひらく</button>
   </div>
 
@@ -2518,7 +2519,7 @@ function dismissHomeHint(){ store.set("homehint_done",true); document.getElement
       bn.innerHTML='⚠️ いまアプリの中でひらいています このままだと<b>記録がのこりません</b> 共有メニューから<b>「Safariで開く」（ブラウザで開く）</b>でひらき直してね🙏';
       bn.classList.remove("hidden");
     } else if(!standalone && (getStreakData().dates||[]).length>=3 && !store.get("homehint_done",false)){
-      bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります <a href="#" onclick="switchTab(\'guide\');return false" class="tapx" style="color:var(--tealink);font-weight:800">やり方を見る</a>　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
+      bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります <a href="#" onclick="switchTab(\'guide\');return false" class="tapx" style="color:var(--tealink);font-weight:800">使い方を見る</a>　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
       bn.classList.remove("hidden");
     }
   }catch(e){}
