@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10夜 きょうやった紙吹雪＋季節マーク通年化（第五波dev61・担当G+I）
+- **G: 紙吹雪**: `launchConfetti(count)`をmarkDoneの直前に新設し、`const ms=MS.find(...)`の直後から`launchConfetti(ms?105:70)`で呼ぶ（通常70粒・節目105粒=1.5倍・1.5秒・rAF・使い捨てcanvasをbody直下に生成→終了後remove＋setTimeout保険）。色はトークン4色（#FFD93B/#2BB3A3/#E56A9A/#FF8A70）。`prefers-reduced-motion: reduce`ではcanvas生成前にreturn。関数全体と呼び出しの両方をtry/catchで包み本流（cheer・記録保存）に影響ゼロ。**Math.randomはこの関数内ならOK**（qa.jsのチェックはdrawCard関数限定を確認済み）
+- **I: 季節マーク通年化**: pickLogoMarkに夏7/16-8/31（MARK_NYUDOGUMO/MARK_HIMAWARI）・秋9/15-11/30（MARK_MOMIJI/MARK_DONGURI）・冬12/1-2月末（MARK_YUKI/MARK_YUKIDARUMA）・桜3/20-4/15（MARK_SAKURA）・正月1/1-1/3（MARK_HINODE・期間中毎日）を追加。頻度は梅雨と同じ**3日に1日**（日付ハッシュfh%3===0・(fh>>>3)&1で2種日替わり・乱数不使用）。空白期間（9/1-14・4/16-5/31）は従来どおり太陽/月のみ
+- **検証**: (a) 全新9マークのgetBBox実測→bbox±stroke幅2がviewBox 0..24内に収まることを機械確認（雨アイコン見切れの教訓）。(b) 2026-05-01〜2028-04-30の731日×朝夜を日付偽装で全数分類→季節違い・境界切替ミス0件・頻度33.1%。(c) 紙吹雪12項目（通常/reduced-motion/節目粒数/canvas自動remove/コンソールエラー0）全pass。検証スクリプトはリポ外（scratchpad）に置いた（[[even-sync-temp-file-hazard]]）
+- 詳細な実測値と手順は ogatore-hub/dev-specs/kyono-confetti-seasons-DONE.md
+- ロールバック: index.htmlの4箇所を手で戻す＝①MARK_NYUDOGUMO〜MARK_HINODEの9定数（MARK_TANABATAとICON_RXの間）②pickLogoMarkを梅雨+七夕のみの旧形に③launchConfetti関数（currentTodayIdとmarkDoneの間）④markDone内の`try{ launchConfetti(...)`1行。艦隊同一ツリーのため単独revert不可（[[fleet-shared-worktree-autosync]]）
+
 ## 2026-07-10夜 新バージョンお知らせトースト（第五波dev62・担当J）
 - sw.jsはskipWaiting+clients.claimのため配布直後は「古いページ＋新SW」が混在しうる→`controllerchange`検知で「更新して開き直す」導線を追加。index.htmlのSW登録直後（`navigator.serviceWorker.register`のブロック内）に`swHadController`フラグ＋`addEventListener("controllerchange", ...)`を実装。トーストは`.update-toast`（既存トークン`--card`/`--line`/`--ink`・角丸16px・影ひかえめ）、位置は`left:16px;right:84px;bottom:calc(78px+safe-area)`でタブバー(z40)の上・オガトレ通信FAB(z45)の列を避ける。タップで`sessionStorage.kyono_updateReloaded`を立てて`location.reload()`。10秒で自動消滅。zIndexは46（モーダル50未満は維持）
 - **ガード2点**: ①初回インストール時（register直後にcontrollerが無かった状態からの最初のcontrollerchange）は`swHadController`を true にするだけで表示しない。②一度reloadしたらそのセッションでは`kyono_updateReloaded`が残るため再表示しない（ループ防止）
