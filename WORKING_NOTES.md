@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-10
 
+## 2026-07-10夜 きょうの1本・処方プール拡充（夜間ラン第四波dev55・担当A）
+- 本人指摘「今日の一本とおすすめ3本に出る動画、候補少ないと思ってた」への対応。`V`を23本→**64本**（+41本、全てCATALOG実在ID・ogatore.dbの再生数/尺で選定）
+- `TYPES[*].pool`: momo 5→11 / koka 5→11 / kenko 4→11 / ashi 4→10 / robot 5→12 / yawara 6→12。**rx（1本目固定枠）とname/copy/hope/ptは不変**。既存pool動画は全部残して追加のみ
+- `TODAY_ASA`/`TODAY_YORU`: 各5→**各10本**（朝=目覚め系・夜=リラックス系のトーンで選定、〜20分・基本10分前後）
+- 選定一覧表と理由は `ogatore-hub/dev-specs/kyono-pool-expansion-DONE.md`。qa.js 74 pass維持・ES2020構文ゼロ確認済み
+- ロールバック: このコミット1つをrevertするだけ（V追加とpool/TODAY差し替え以外に変更なし）
+
 ## 2026-07-10 節目お祝いメッセージ動画の受け皿（フラグ裏・見た目無変化）
 - 本人（尾形さん）の30秒お祝いメッセージ動画を、撮影後に差し込むだけにする先行実装。**差し込み手順=`MILESTONE_MSG_VIDEO`にYouTube動画IDを入れるだけ**（現状は空文字=機能オフ）
 - 定数`MILESTONE_MSG_VIDEO=""`（`MILESTONES`の直後）。節目達成時のcheer表示（`markDone`内、👑ゴールドカードボタンの直後）で、空でない時だけ「🎬 尾形さんからお祝いメッセージ」ボタン（`target=_blank`・`rel=noopener`・`https://www.youtube.com/watch?v=`+ID）を出す
