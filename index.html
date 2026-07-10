@@ -2193,12 +2193,28 @@ function showDay(ds){
   const memo=(store.get("memos",{}))[ds];
   const el=document.getElementById("dayInfo");
   let html=`<b>${Number(ds.slice(5,7))}/${Number(ds.slice(8,10))} にやった記録</b>`;
-  if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<br><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">▶ この日のおすすめだった1本</a>`;
+  if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<div><a href="#" class="tapx" onclick="toggleDayVideo(this);return false" style="color:var(--tealink);font-weight:800">この日の動画 <span>▼</span></a><div class="hidden"><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">▶ この日のおすすめだった1本</a></div></div>`;
   if(memo) html+=`<br>「${memo.replace(/</g,"&lt;")}」`;
   if(!log&&!memo) html+=`<br>この日は「やった！」の印だけ残っています`;
+  html+=`<br><span id="dayThanksRow">${dayThanksRowHtml()}</span>`;
   html+=`<br><a href="#" class="tapx" onclick="makeCard('${ds}');return false" style="color:var(--tealink);font-weight:800">🖼 この日の記録カードを見る</a>`;
   el.innerHTML=html;
   el.classList.remove("hidden");
+}
+function toggleDayVideo(a){
+  const d=a.nextElementSibling;
+  const closed=d.classList.toggle("hidden");
+  a.querySelector("span").textContent=closed?"▼":"▲";
+}
+function dayThanksRowHtml(){
+  const th=store.get("thanks",{total:0,last:""});
+  if(th.last===todayStr()) return `<span style="color:var(--sub);font-weight:800">💛 きょうのありがとう おくりました</span>`;
+  return `<a href="#" class="tapx" onclick="dayThanks();return false" style="color:var(--tealink);font-weight:800">💛 ありがとうを送る</a>`;
+}
+function dayThanks(){
+  sendThanks();
+  const row=document.getElementById("dayThanksRow");
+  if(row) row.innerHTML=dayThanksRowHtml();
 }
 function renderCal(){
   const y=calDate.getFullYear(), m=calDate.getMonth();
