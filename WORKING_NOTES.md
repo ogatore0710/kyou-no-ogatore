@@ -2,7 +2,15 @@
 
 > **これは何**: README.md が「何ができるか」なら、これは「どう作られていて・どこでハマるか」。
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
-> 最終更新: 2026-07-10
+> 最終更新: 2026-07-11
+
+## 2026-07-11 相談室M1・回答バンク soudan-kb.js 新設（第六波dev64・専有ファイル）
+- **soudan-kb.js**（obu-feed.js方式のデータ専用ファイル）: 全15インテント（設計§4.5固定・13効かない=期間/フォーム/代替の3点構成・14痛くなった=慎重トーン・15赤旗=redFlags別枠）＋commonFollowups4件＋smalltalk21グループ42返し。文言の思想ソースはKindleマニュアルM1-M6→TAIZEN→TYPESpt（設計§6.5の優先順）。**全文が本人検収待ち=起案の位置づけ**（検収txt: ogatore-hub/dev-specs/kyono-soudan-kb-review.txt・通し番号127項目）
+- **kwの重要な設計判断**: 正規化（ひらがな化+英数小文字化+記号除去）は**漢字をかな変換しない**ため、kwにはかな形と頻出漢字形（肩こり/腰痛/膝…）を併記してある。かな形だけに「整理」すると漢字入力がマッチしなくなるので消さないこと。言い回しはコメントDB9,386件から採掘（長座体前屈/90度/ぐっすり/半信半疑/痛すぎ等）
+- **dev63のqa.js契約との整合済み**: followupsはcommonFollowupsのidのみ（他インテントid参照は不可）・videosは1〜3本必須（このため14番にもリラックス系ibuki10を「痛みが引いたら」注記で1本置いた。設計の「動画は勧めない」を優先するならqa.js側の緩和をdev63と調整してから空配列に戻す）
+- 検証: node --check・qa.js全93項目PASS（dev63拡張含む）・kw重複ゼロ（インテント間+赤旗+smalltalk横断）・動画ID全CATALOG実在・empathy15-30字/mitate60-120字/keizoku30-60字・バッククォート/ドル波かっこ無し
+- ロールバック: soudan-kb.jsは専有新設ファイルだが、qa.js/sw.js/index.htmlがdev63側で参照済みのため**消すときはdev63分と同時に**（qa.jsは未着時スキップ設計なのでファイル削除だけならqaは落ちない）
+- 完了報告: ogatore-hub/dev-specs/kyono-soudan-kb-DONE.md（迷った表現・要承認=本人検収もここに）
 
 ## 2026-07-10夜 きょうやった紙吹雪＋季節マーク通年化（第五波dev61・担当G+I）
 - **G: 紙吹雪**: `launchConfetti(count)`をmarkDoneの直前に新設し、`const ms=MS.find(...)`の直後から`launchConfetti(ms?105:70)`で呼ぶ（通常70粒・節目105粒=1.5倍・1.5秒・rAF・使い捨てcanvasをbody直下に生成→終了後remove＋setTimeout保険）。色はトークン4色（#FFD93B/#2BB3A3/#E56A9A/#FF8A70）。`prefers-reduced-motion: reduce`ではcanvas生成前にreturn。関数全体と呼び出しの両方をtry/catchで包み本流（cheer・記録保存）に影響ゼロ。**Math.randomはこの関数内ならOK**（qa.jsのチェックはdrawCard関数限定を確認済み）
