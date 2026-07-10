@@ -210,6 +210,13 @@
   .obu-post audio{width:100%}
   .obu-post .obu-date{font-size:12px;color:var(--sub);font-weight:800;margin-bottom:4px}
   .obu-post.obu-text .obu-date{color:var(--sub2)}
+  /* 新バージョンお知らせトースト（タブバーの上・モーダル未満のz-index） */
+  .update-toast{position:fixed;left:16px;right:84px;bottom:calc(78px + env(safe-area-inset-bottom));
+    z-index:41;max-width:340px;margin:0 auto;background:var(--card);color:var(--ink);
+    border:1.5px solid var(--line);border-radius:16px;padding:12px 16px;font-size:14px;font-weight:800;
+    line-height:1.6;text-align:center;box-shadow:0 4px 14px rgba(58,52,32,.22),0 1px 3px rgba(58,52,32,.14);
+    cursor:pointer;animation:toastIn .25s ease}
+  @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   /* 診断 */
   .qnum{color:var(--pink);font-weight:900;font-size:15px;letter-spacing:.1em}
   .q-art{text-align:center;margin:8px 0 2px}
@@ -402,6 +409,11 @@
     <button class="btn btn-primary" style="margin-top:12px" onclick="wbClose()">ゆるっと再開する</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="wbClose();startQuiz()">いまの体でかたさチェック</button>
   </div>
+  <div class="card grad-mint hidden" id="recheckCard">
+    <div style="font-size:15px;line-height:1.9"><b>チェックから2週間たったよ🌱</b><br>前屈 どこまで届くようになった？</div>
+    <button class="btn btn-primary" style="margin-top:10px" onclick="goRecheck()">📏 とどくメーターで測ってみる</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="recheckLater()">あとで</button>
+  </div>
   <div class="card hidden" id="anchorCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 7.5V12l3 2.5"/></svg>いつやる派？</div>
     <div style="font-size:14px;color:var(--sub);margin-bottom:10px">「◯◯のあとにやる」と決めると続きやすくなります！<br>合図をひとつ選んでください（あとで マイ記録タブから変えられます）</div>
@@ -534,7 +546,7 @@
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#177065" stroke="none"/></svg>じまんカードをつくる</button>
   </div>
 
-  <div class="card">
+  <div class="card" id="reachCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
     <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈 手はどこまで届く？<br>届いたところのボタンを押すと記録されます（週1回でOK）</div>
     <div style="text-align:center;margin:4px 0 10px">
@@ -549,6 +561,7 @@
     </div>
     <div id="reachMsg" style="font-size:14px;margin:10px 0 2px;min-height:18px"></div>
     <div id="reachNow" style="font-size:15px;margin-top:4px"></div>
+    <div id="reachPrev" style="font-size:14px;margin-top:6px"></div>
     <div class="rtrack" id="reachTrend"></div>
   </div>
 
@@ -1491,9 +1504,17 @@ function renderReach(){
     document.getElementById("rlv"+i).classList.toggle("on",!!on);
   }
   const now=document.getElementById("reachNow");
-  if(!arr.length){ now.textContent="まだ記録なし！まずは1回はかってみましょう"; document.getElementById("reachTrend").innerHTML=""; return; }
+  if(!arr.length){ now.textContent="まだ記録なし！まずは1回はかってみましょう"; document.getElementById("reachPrev").innerHTML=""; document.getElementById("reachTrend").innerHTML=""; return; }
   const latest=arr[arr.length-1], best=Math.max(...arr.map(r=>r.lv));
   now.innerHTML=`いまの記録: <b>${REACH_LV[latest.lv]}</b>（${latest.d.slice(5).replace("-","/")}）<br>自己ベスト: <b style="color:var(--teal)">${REACH_LV[best]}</b>`;
+  // 前回比（別の日の記録が2回以上あるときだけ 段位で表現・数字プレッシャーをかけない）
+  const pv=document.getElementById("reachPrev");
+  if(arr.length>=2){
+    const prev=arr[arr.length-2], diff=latest.lv-prev.lv;
+    if(diff>0) pv.innerHTML=`前回（${REACH_LV[prev.lv]}）より<b style="color:var(--pink)">${diff}段とどくようになった！🎉</b>`;
+    else if(diff===0) pv.innerHTML=`前回とおなじ「${REACH_LV[latest.lv]}」 キープも立派です！`;
+    else pv.innerHTML=`体は日によってちがうもの またコツコツいきましょう🌱`;
+  } else pv.innerHTML="";
   document.getElementById("reachTrend").innerHTML = arr.slice(-14).map(r=>`<div class="rbar"><div style="height:${r.lv*20}%"></div></div>`).join("");
 }
 // ---- ひとことにっき ----
@@ -1566,6 +1587,22 @@ function welcomeCheck(){
   }
 }
 function wbClose(){ store.set("wb_seen",todayStr()); document.getElementById("welcomeBack").classList.add("hidden"); }
+// ---- 2週間後のとどくメーター再測定さそい ----
+// チェック完了日(state.type.at)から14日以上たったらホームに1回だけ出す
+// 閉じる/測りに行くと recheck_seen に今のatを保存 → 同じatでは再表示しない（チェックをやり直すとatが変わり2週間後にまた出る）
+function renderRecheck(){
+  const el=document.getElementById("recheckCard");
+  const at=state.type&&state.type.at;
+  const show=!!at && daysBetween(at,todayStr())>=14 && store.get("recheck_seen","")!==at;
+  el.classList.toggle("hidden",!show);
+}
+function recheckLater(){ store.set("recheck_seen",state.type.at); document.getElementById("recheckCard").classList.add("hidden"); }
+function goRecheck(){
+  recheckLater();
+  switchTab('history');
+  // show()がscrollTo(0,0)するため描画後にとどくメーターへスクロール
+  setTimeout(()=>{ const c=document.getElementById("reachCard"); if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); },80);
+}
 // ---- 記録のお引っ越し ----
 function exportData(){
   const out={};
@@ -2196,7 +2233,7 @@ function drawBragCard(thumb){
 
 // ---- ホーム描画 ----
 function renderHome(){
-  renderToday(); renderStreak(); renderThanks(); renderQuote(); renderAnchor(); welcomeCheck();
+  renderToday(); renderStreak(); renderThanks(); renderQuote(); renderAnchor(); welcomeCheck(); renderRecheck();
   const lr=document.getElementById("lastResult");
   const done2=!!(state.type&&TYPES[state.type.key]);
   document.getElementById("ckBody").classList.toggle("hidden",done2);
@@ -2768,7 +2805,23 @@ function refreshDay(){
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshDay(); });
 window.addEventListener("pageshow",e=>{ if(e.persisted) refreshDay(); });
 setInterval(refreshDay,60000);
-if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator && location.protocol==="https:"){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+  // 新しいSWが有効化されたら「更新して開き直す」トーストを出す（初回インストールとリロードループは抑制）
+  let swHadController=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(!swHadController){ swHadController=true; return; } // 初回インストール時のcontroller付与では出さない
+    try{ if(sessionStorage.getItem("kyono_updateReloaded")) return; }catch(e){}
+    if(document.getElementById("updateToast")) return;
+    const t=document.createElement("div");
+    t.id="updateToast";
+    t.className="update-toast";
+    t.textContent="あたらしいバージョンがあるよ🌱 タップで更新";
+    t.onclick=()=>{ try{ sessionStorage.setItem("kyono_updateReloaded","1"); }catch(e){} location.reload(); };
+    document.body.appendChild(t);
+    setTimeout(()=>{ if(t.parentNode) t.parentNode.removeChild(t); },10000);
+  });
+}
 if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 // 実行環境の案内（アプリ内ブラウザは記録が分離される・ホーム追加のすすめ）
 function dismissHomeHint(){ store.set("homehint_done",true); document.getElementById("envBanner").classList.add("hidden"); }
