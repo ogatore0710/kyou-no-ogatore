@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-11
 
+## 2026-07-11 相談室ボトムシート化＋かたさタイプ連携（第七波dev66・担当: 相談室UI域）
+- **パートA（コミットdaf8aa9）**: 相談室をセクション遷移からシート型オーバーレイ（#soudanSheet）に変更。スクロール暴発の根治=チャットログ#sdLogを`overflow-y:auto`の内部スクロールにし、追従は`log.scrollTop=log.scrollHeight`のみ（scrollIntoView不使用・ページのscroll位置は一切触らない）。開閉はbody.sd-lockで背面固定。履歴はid="soudan"を1段push・戻る/✕/背景タップで閉じる（popstate対応・「進む」やリロードでの復元あり）。sw.js v22
+- **パートB（auto-sync ce7b27aに相乗り）**: `SOUDAN_TYPE_FLAVOR`（6タイプ×2・日付ハッシュローテ・**シートを開くたび最初の1回答だけ**=sdFlavorShown・デリケート枠safety:trueには出さない）／相性ブースト=`sdTypeBoost`（SOUDAN_TYPE_INTENTのareaが重なるインテント×そのタイプのrx/pool動画にnoteバッジ「あなたのタイプの定番」を付けるだけ）／未チェック導線=SOUDAN_BODY_INTENTS（9件・雑談/共通followup/赤旗/デリケート枠は対象外）の回答チップに「30秒のかたさチェックやってみる?」→sdQuizTap（シートだけ閉じてstartQuiz=チェックから戻ると相談室に帰れる）／逆導線=showResultの#rSoudanLink→openSoudan(タイプ対応インテント)
+- **バグ修正: openSoudan(intentId)のチップ指定が初回オープンで無反応になる問題**。挨拶のsdPushでsdPending=1になり回答が黙って捨てられていた→`sdQueuedIntent`に積んでsdPushの表示完了時に流す方式に（closeSoudanで破棄）。入口カードのチップ・結果画面の逆導線が対象だった
+- **soudan-kb.jsのqa失敗を最小修理**: tenkiのfollowups参照`jiritsu`が未解決（M2拡張時の混入・どこにも定義なし）→最寄りの`nemuri`（眠り・自律神経域）に差し替え。**dev65は要確認**（jiritsuインテントを作る予定だったなら戻して定義を）
+- 検証: qa PASS／smoke **13/13 PASS**（6c新設=タイプ無し:入口チップ初回+導線チップ→Q1／タイプあり(momo):逆導線→挨拶+定番バッジ+導線チップ非表示。相談室ステップ6b/6cはdev66管轄）
+- 完了報告: ogatore-hub/dev-specs/kyono-soudan-ui-DONE.md
+
 ## 2026-07-11 相談室M1・エンジン+チャットUI（第六波dev63・担当: index/sw/qa/smoke）
 - **新セクション`soudan`**: SECTIONS/TAB_OF(→homeタブ)/popstate登録済み。戻る操作でホームに戻る（A1/A2と同じセクション遷移方式・モーダル不可）。入口カードはホームの**かたさチェックカード直下**（renderSoudanEntryがckCard移動に追従して再配置する。位置を変えるときはここ）
 - **エンジンは全て`sd`プレフィックスの関数群**（index.html内・renderHomeの直後のブロック）。soudan-kb.js未読込でも入口カードごと隠れて壊れない（sdKb()ガード）。会話文脈`sdCtx`はセッション内のみ・localStorage保存なし（設計§2）
