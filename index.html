@@ -1830,7 +1830,8 @@ function markDone(){
   const ms=MS.find(x=>x.d===st.total);
   try{ launchConfetti(ms?105:70); }catch(e){} // 節目は70粒→105粒（1.5倍）でちょっと特別に
   if(ms){
-    cheerEl.innerHTML=`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
+    cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
+      +`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 ${ms.t}！（通算${st.total}日）</div>`
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
       +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
       +`<img src="assets/chara-crown.png" alt="" style="width:72px;height:72px;object-fit:contain;display:block;margin:10px auto 0">`
@@ -2716,7 +2717,7 @@ function sdNorm(s){
   s=s.replace(/[ァ-ヶ]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0x60)});
   return s.replace(/[^0-9a-zぁ-ゖー一-鿿々]/g,"");
 }
-function sdEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function sdEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 function sdText(s){ return sdEsc(s).replace(/\n/g,"<br>"); }
 function sdDayHash(){ let fh=0; const ds=todayStr(); for(const c of ds){ fh=(fh*31+c.charCodeAt(0))>>>0; } return fh; }
 function sdIntentById(id){ const kb=sdKb(); if(!kb) return null; for(const it of kb.intents){ if(it.id===id) return it; } return null; }
@@ -3600,7 +3601,7 @@ function refreshDay(){
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshDay(); });
 window.addEventListener("pageshow",e=>{ if(e.persisted) refreshDay(); });
 setInterval(refreshDay,60000);
-if("serviceWorker" in navigator && location.protocol==="https:"){
+if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
   navigator.serviceWorker.register("sw.js").catch(()=>{});
   // 新しいSWが有効化されたら「更新して開き直す」トーストを出す（初回インストールとリロードループは抑制）
   let swHadController=!!navigator.serviceWorker.controller;
@@ -3770,7 +3771,7 @@ function obRoute(){
 }
 function obGo(){
   const r=obRouteKey, worry=obAnswers.worry;
-  obClose();
+  obClose(true); // 直後にstartQuiz/openSoudan等が履歴を積むため、ここではback()しない（レース防止）
   if(r==="quiz"){ startQuiz(); return; }
   if(r==="soudan"){ try{ openSoudan(worry); return; }catch(e){} }
   goHome();
@@ -3788,18 +3789,20 @@ function obOpen(){
   obSay(ONBOARDING_SCRIPT.greet,obAskQ);
 }
 // 閉じ＝完了/スキップとも kyono_onboarded=1（二度と勝手に出ない）
-function obClose(){
+// fromPop=true は「戻る操作/直後に別画面へ遷移する呼び出し」= 履歴は畳まない（closeSoudanと同じ流儀）
+function obClose(fromPop){
   obRun++;
   store.set("onboarded",1);
   const w=document.getElementById("welcome");
   if(w) w.classList.add("hidden");
   updateFabs();
+  if(fromPop!==true){ try{ if(history.state&&history.state.ob) history.back(); }catch(e){} }
 }
 function obSkip(){ obClose(); }
 // 戻る操作でオーバーレイを閉じる（A6流儀・既存popstateハンドラには触らず独自リスナーで）
 window.addEventListener("popstate",function(){
   const w=document.getElementById("welcome");
-  if(w&&!w.classList.contains("hidden")) obClose(); // 閉じ=スキップ扱い
+  if(w&&!w.classList.contains("hidden")) obClose(true); // 閉じ=スキップ扱い
 });
 // 発火判定: kyono_のキーが実質空（テーマ等の見た目設定は除く）かつ kyono_onboarded 未設定
 function obIsFresh(){
