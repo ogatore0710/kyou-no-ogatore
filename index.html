@@ -235,6 +235,7 @@
   .opt{display:block;width:100%;background:var(--card);border:2px solid var(--line);border-radius:16px;
     padding:12px 16px;margin-bottom:10px;font-size:18px;font-family:inherit;text-align:left;cursor:pointer;font-weight:800;color:var(--ink)}
   .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}
+  .opt.on{border-color:var(--teal)}
   .opt .crit{display:block;font-size:14px;color:var(--sub);font-weight:700;margin-top:2px;line-height:1.5}
   @keyframes cpop{from{transform:scale(.85);opacity:.4}to{transform:scale(1);opacity:1}}
   #cheer>div{animation:cpop .3s ease-out}
@@ -786,7 +787,7 @@
   <div class="card grad-warm" id="reqBox">
     <div style="font-size:15px;margin-bottom:12px" id="reqMsg">やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮</div>
     <a class="btn btn-ghost" id="reqBtn" style="font-size:15px" href="#">このキーワードでリクエストする</a>
-    <div style="font-size:12px;color:var(--sub);text-align:center;margin-top:6px">メールがひらかない方は kyou-no@ogatore.jp へ直接どうぞ</div>
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin-top:6px">メールがひらかない方は kyou-no@ogatore.jp へ直接どうぞ<br><a href="#" class="tapx" onclick="copyMailAddr(this);return false" style="color:var(--tealink);font-weight:800">📋 アドレスをコピー</a></div>
   </div>
 </section>
 
@@ -1270,6 +1271,7 @@ const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:
 let currentSection="home"; // 現在表示中のセクション（show()で更新）
 let obuReturnTo="home"; // オガトレ通信(obu)を開く直前にいたセクション。戻るボタン＆タブハイライトに使用（記憶が無い場合はhomeへフォールバック）
 let quizRendered=false; // このセッションでrenderQ()が一度でも呼ばれたか（popstateでquizへ直接着地した空画面を防ぐ判定に使用）
+let quizAborted=false; // 「ホームにもどる」で中断したか（戻る操作で回答途中のチェック画面に再突入しない判定に使用）
 function show(id){
   for(const s of SECTIONS) document.getElementById(s).classList.toggle("hidden", s!==id);
   // obuはどのタブにも属さない独立画面なので、表示中はタブのハイライトを全消灯する
@@ -1304,7 +1306,7 @@ window.addEventListener("popstate",e=>{
   let target=SECTIONS.includes(id)?id:"home";
   if(target==="quiz"){
     // リロード直後などこのセッションで描画されていないquizに直接着地すると空画面になるため救済
-    if(!quizRendered){ target="home"; }
+    if(!quizRendered||quizAborted){ target="home"; }
     else{
       // チェック中の「戻る」は質問を1問ずつ遡る（qiはrenderQが積んだ履歴の値）。回答は保持したまま前の問を出す
       const qi=(e.state&&typeof e.state.qi==="number")?e.state.qi:-1;
@@ -1374,7 +1376,7 @@ const QUIZ_ART=[
 ];
 
 // ---- 診断 ----
-function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; renderQ(); navTo("quiz"); }
+function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; state.picked={}; quizAborted=false; renderQ(); navTo("quiz"); }
 function renderQ(){
   quizRendered=true;
   // 質問ごとに履歴を1件積む（ブラウザ/スワイプの「戻る」で1問ずつ遡れるようにする）。
@@ -1388,6 +1390,8 @@ function renderQ(){
   const box = document.getElementById("opts"); box.innerHTML="";
   q.opts.forEach(o=>{
     const b=document.createElement("button"); b.className="opt";
+    // 「まえの質問へ」で戻ってきたとき、前に選んだ答えがわかるように枠色を付ける
+    if(state.picked&&(q.k in state.picked)&&state.picked[q.k]===o[2]) b.classList.add("on");
     b.innerHTML=`${o[0]}<span class="crit">${o[1]}</span>`;
     b.onclick=()=>answer(q.k,o[2]); box.appendChild(b);
   });
@@ -1397,11 +1401,13 @@ function renderQ(){
 }
 function answer(k,val){
   document.querySelectorAll("#opts .opt").forEach(b=>b.disabled=true);
+  if(!state.picked) state.picked={};
+  state.picked[k]=val;
   if(k==="worry"){ state.worry=val; finishQuiz(); return; }
   state.scores[k]=val; state.qi++; renderQ();
 }
 function prevQ(){ if(state.qi>0){ state.qi--; renderQ(); } }
-function quizGoHome(){ if(state.qi>0 && !confirm("回答を消してホームにもどる？")) return; goHome(); }
+function quizGoHome(){ if(state.qi>0 && !confirm("回答を消してホームにもどる？")) return; quizAborted=true; goHome(); }
 function decideType(){
   const s=state.scores;
   const total=s.momo+s.koka+s.kenko+s.ashi;
@@ -2685,6 +2691,23 @@ function renderHome(){
 // マッチング規則はSOUDAN-DESIGN.md §4: ①赤旗最優先 ②チップ確定 ③kwヒット文字数合計スコア
 // （同点はkw配列先頭寄り優先）④閾値(かな2文字相当=2)未満→続き言葉→雑談→フォールバック
 const SD_MAIL="kyou-no@ogatore.jp"; // 既存リクエスト導線（app-search.js）と同じ宛先
+// メールアプリ未設定でもリクエストを送れるように、アドレスのコピーを併設（mailto:一本の救済）
+function copyMailAddr(el){
+  const done=function(){ if(el){ const t=el.textContent; el.textContent="コピーしました✅"; setTimeout(function(){ el.textContent=t; },2000); } };
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(SD_MAIL).then(done,function(){ copyMailAddrLegacy(done); }); return; }
+  }catch(e){}
+  copyMailAddrLegacy(done);
+}
+function copyMailAddrLegacy(done){
+  try{
+    const ta=document.createElement("textarea"); ta.value=SD_MAIL;
+    ta.style.position="fixed"; ta.style.opacity="0"; ta.setAttribute("readonly","");
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,SD_MAIL.length);
+    const ok=document.execCommand("copy"); document.body.removeChild(ta);
+    if(ok) done(); else alert("コピーできませんでした アドレス: "+SD_MAIL);
+  }catch(e){ alert("コピーできませんでした アドレス: "+SD_MAIL); }
+}
 // ---- かたさタイプ連携（チェック済みの人への味付け） ----
 // タイプ挨拶: 6タイプ×2パターン（尾形ボイス・日付ハッシュでローテ・乱数不使用）。
 // くどくならないよう、シートを開くたび最初の1回答だけに添える（sdFlavorShownで制御）
@@ -2933,7 +2956,8 @@ function sdAnswerFallback(raw){
   const subject=encodeURIComponent("【相談室リクエスト】きょうのオガトレ");
   const body=encodeURIComponent("相談した内容:\n"+raw+"\n---\n送信元: きょうのオガトレ「オガトレ相談室」");
   const html2=`<a class="btn btn-ghost" style="font-size:14px" href="mailto:${SD_MAIL}?subject=${subject}&body=${body}">📮 この悩み、オガトレに届ける</a>`
-    +`<a href="#" class="tapx" onclick="switchTab('search');return false" style="color:var(--tealink);font-weight:800;font-size:14px">🔍 動画を探すタブでさがしてみる</a>`;
+    +`<a href="#" class="tapx" onclick="copyMailAddr(this);return false" style="color:var(--tealink);font-weight:800;font-size:14px">📋 メールがひらかない方はアドレスをコピー</a>`
+    +`<br><a href="#" class="tapx" onclick="switchTab('search');return false" style="color:var(--tealink);font-weight:800;font-size:14px">🔍 動画を探すタブでさがしてみる</a>`;
   sdChipsMode={type:"intents"};
   sdPush([{who:"oga",html:"ごめんね、その悩みはまだ勉強中🙏<br>近いのはこのあたりかも！下のチップからどうぞ"},{who:"oga",html:html2}]);
 }
