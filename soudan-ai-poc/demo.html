@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>相談室AI 試作デモ</title>
+<style>
+  :root { color-scheme: light dark; --teal:#0d9488; }
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 520px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 17px; }
+  .note { font-size: 12px; opacity: .7; margin: 4px 0 12px; }
+  #log { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .b { padding: 10px 12px; border-radius: 14px; max-width: 85%; white-space: pre-wrap; line-height: 1.5; font-size: 14px; }
+  .me { align-self: flex-end; background: var(--teal); color: #fff; }
+  .ai { align-self: flex-start; background: rgba(128,128,128,.15); }
+  .tag { font-size: 11px; opacity: .6; align-self: flex-start; }
+  .vid { font-size: 12px; margin-top: 4px; }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(128,128,128,.4); font-size: 14px; }
+  button { padding: 10px 14px; border-radius: 10px; border: 0; background: var(--teal); color: #fff; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1>💬 オガトレ相談室 AIレイヤー 試作</h1>
+<p class="note">これは挙動確認用の最小画面（本アプリのUIとは別）。source= ai / pattern / fallback / redflag を吹き出し下に表示します。</p>
+<div id="log"></div>
+<form id="f">
+  <input id="i" placeholder="悩みを打ってみる（例：デスクワークで肩がバキバキ）" autocomplete="off">
+  <button>送る</button>
+</form>
+<script>
+const log = document.getElementById('log');
+const hist = [];
+function bubble(cls, text, tag, vid) {
+  if (tag) { const t = document.createElement('div'); t.className = 'tag'; t.textContent = tag; log.appendChild(t); }
+  const d = document.createElement('div'); d.className = 'b ' + cls; d.textContent = text;
+  if (vid) { const v = document.createElement('div'); v.className = 'vid'; v.textContent = '▶ 動画: ' + vid; d.appendChild(document.createElement('br')); d.appendChild(v); }
+  log.appendChild(d); window.scrollTo(0, document.body.scrollHeight);
+}
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const inp = document.getElementById('i'); const msg = inp.value.trim(); if (!msg) return;
+  inp.value = ''; bubble('me', msg); hist.push({ role: 'user', content: msg });
+  let r;
+  try {
+    const res = await fetch('/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: msg, history: hist }) });
+    r = await res.json();
+  } catch (err) { bubble('ai', '（プロキシに繋がらない→本番ならここでパターン集に自動フォールバック）', 'source=fallback(network)'); return; }
+  if (r.source === 'fallback') { bubble('ai', '（上限 or エラー→本番ならパターン集に自動フォールバック）reason=' + (r.reason || ''), 'source=fallback'); return; }
+  const parts = [r.empathy, r.mitate, r.keizoku].filter(Boolean).join('\n');
+  bubble('ai', parts + (r.needsReferral ? '\n※痛み・しびれ等は伸ばす前に整形外科へ。' : ''), 'source=' + (r.source || '?'), r.videoId);
+  hist.push({ role: 'assistant', content: parts });
+});
+</script>
+</body>
+</html>
