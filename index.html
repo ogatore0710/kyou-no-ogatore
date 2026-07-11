@@ -375,7 +375,8 @@
   .sd-head .sd-title svg{width:21px;height:21px;flex-shrink:0}
   .sd-close{border:none;background:var(--line);color:var(--ink);width:40px;height:40px;border-radius:50%;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;flex-shrink:0}
   .sd-close:active{opacity:.7}
-  .sd-disc{font-size:11px;color:var(--sub);text-align:center;line-height:1.6;padding:5px 16px 7px;background:var(--card);border-bottom:1.5px solid var(--line);flex-shrink:0}
+  .sd-disc{font-size:13px;color:var(--sub);text-align:center;line-height:1.6;padding:5px 16px 7px;background:var(--card);border-bottom:1.5px solid var(--line);flex-shrink:0}
+  .sd-disc b{font-weight:800;color:var(--ink)}
   #sdLog{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:14px 16px 8px}
   .sd-foot{flex-shrink:0;background:var(--card);border-top:1.5px solid var(--line);padding:10px 14px calc(12px + env(safe-area-inset-bottom))}
   .sd-foot .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;padding-bottom:2px}
@@ -611,8 +612,8 @@
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>つづけた記録</div>
     <div style="display:flex;gap:20px;align-items:flex-end">
-      <div><div class="lbl" style="font-size:14px;color:var(--sub)">通算</div><span class="num" style="font-size:36px;font-weight:900;color:var(--teal)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
-      <div><div class="lbl" style="font-size:14px;color:var(--sub)">いま連続</div><span style="font-size:36px;font-weight:900;color:var(--pink)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
+      <div><div class="lbl" style="font-size:14px;color:var(--sub)">通算</div><span class="num" style="font-size:36px;font-weight:900;color:var(--pink)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
+      <div><div class="lbl" style="font-size:14px;color:var(--sub)">いま連続</div><span style="font-size:36px;font-weight:900;color:var(--teal)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
     </div>
     <div id="msNote" style="font-size:15px;margin-top:12px"></div>
     <div class="bar"><div id="msBar" style="width:0%"></div></div>
@@ -917,7 +918,7 @@
 </button>
 
 <div id="obuModal" class="hidden" onclick="if(event.target===this)closeObu()">
-  <div class="obu-box">
+  <div class="obu-box" role="dialog" aria-modal="true" aria-label="オガトレ通信">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div style="font-size:15px;font-weight:900">オガトレ通信</div>
       <button onclick="closeObu()" aria-label="とじる" style="border:none;background:var(--line);color:var(--ink);width:40px;height:40px;border-radius:50%;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit">✕</button>
@@ -930,7 +931,7 @@
 </div>
 
 <div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
-  <div style="background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%">
+  <div role="dialog" aria-modal="true" aria-label="記録カード" style="background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%">
     <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
     <div id="cardMaking" class="hidden" style="text-align:center;font-size:14px;color:var(--sub);padding:14px 0">カードをつくってます…</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
@@ -948,7 +949,7 @@
       <div class="sd-title"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>オガトレ相談室</div>
       <button class="sd-close" onclick="closeSoudan()" aria-label="とじる">✕</button>
     </div>
-    <div class="sd-disc">※回答はオガトレ監修のパターン集から選んでいます<br>※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ</div>
+    <div class="sd-disc">※回答はオガトレ監修のパターン集から選んでいます<br>※目安をつかむ相談室です <b>強い痛み・しびれがあるときは医療機関へ</b></div>
     <div id="sdLog"></div>
     <div class="sd-foot">
       <div class="chips" id="sdChips"></div>
@@ -3100,7 +3101,7 @@ function renderCal(){
   for(let d=1;d<=days;d++){
     const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const cls=["d", done.has(ds)?"done":"", ds===today?"today":"", ds>today?"mute":""].join(" ");
-    html+=`<td><span class="${cls}"${done.has(ds)?` onclick="showDay('${ds}')" style="cursor:pointer"`:""}>${d}</span></td>`;
+    html+=`<td${done.has(ds)?` onclick="showDay('${ds}')" style="cursor:pointer"`:""}><span class="${cls}">${d}</span></td>`;
     if(++cell%7===0&&d<days) html+="</tr><tr>";
   }
   html+="</tr>";
