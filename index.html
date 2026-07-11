@@ -2844,6 +2844,8 @@ function sdRedFlagHit(n){
   for(const k0 of kb.redFlags.kw){ const k=sdNorm(k0); if(k.length>=2&&n.indexOf(k)>=0) return true; }
   return false;
 }
+// 産後(慢性・時期不明)の相談に添える一言注意フラグ。赤旗(急性・早期)を抜けた後だけ使う
+function sdSangoChronic(n){ return n.indexOf("産後")>=0||n.indexOf("出産後")>=0; }
 function sdScoreIntents(n){
   const kb=sdKb(); const out=[];
   for(const it of kb.intents){
@@ -2878,7 +2880,7 @@ function sdSmalltalkHit(n){
   return null;
 }
 // ---- 回答 ----
-function sdAnswerIntent(it,nextBestId){
+function sdAnswerIntent(it,nextBestId,sangoNote){
   sdCtx.lastIntentId=it.id; sdCtx.smalltalkStreak=0; sdCtx.nextBestId=nextBestId||null;
   const msgs=[];
   let emp=it.empathy?sdText(it.empathy):"";
@@ -2894,6 +2896,7 @@ function sdAnswerIntent(it,nextBestId){
   if(mid) msgs.push({who:"oga",html:mid});
   let kz=it.keizoku?sdText(it.keizoku):"";
   if(it.safety) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※つよい痛みやしびれが出たら中止して、医療機関に相談してね</span>`;
+  else if(sangoNote) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※産後の体は回復のペースに個人差があるから、痛みが強い日・出血や発熱があるときは無理せず受診してね。産後まもない時期（〜2ヶ月）や帝王切開のあとは、お医者さんのOKをもらってからにしよう</span>`;
   if(kz) msgs.push({who:"oga",html:kz});
   sdChipsMode={type:"followups",intentId:it.id,nextBestId:sdCtx.nextBestId};
   sdPush(msgs);
@@ -2972,11 +2975,12 @@ function sdSend(){
   el.value="";
   sdUserBubble(raw);
   const n=sdNorm(raw);
-  if(sdRedFlagHit(n)){ sdAnswerRedFlag(); return; } // ①赤旗は他を見ずに最優先
+  if(sdRedFlagHit(n)){ sdAnswerRedFlag(); return; } // ①赤旗は他を見ずに最優先（産後の急性・早期はここで受診案内）
+  const sango=sdSangoChronic(n);                     // ②赤旗を抜けた産後=慢性/時期不明→通常回答＋一言注意
   const ranked=sdScoreIntents(n);                    // ③スコア=ヒットkwの文字数合計
   if(ranked.length&&ranked[0].score>=2){             // 閾値=かな2文字ヒット相当
     const nb=(ranked.length>1&&ranked[1].score>=2)?ranked[1].it.id:null; // 複数悩み→次点を続きチップに
-    sdAnswerIntent(ranked[0].it,nb); return;
+    sdAnswerIntent(ranked[0].it,nb,sango); return;
   }
   const fu=sdFollowupHit(n);
   if(fu){ sdAnswerFollowup(fu); return; }
