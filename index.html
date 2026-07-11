@@ -3663,7 +3663,13 @@ if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostn
 }
 if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 // 実行環境の案内（アプリ内ブラウザは記録が分離される・ホーム追加のすすめ）
-function dismissHomeHint(){ store.set("homehint_done",true); document.getElementById("envBanner").classList.add("hidden"); }
+// 「とじる」は次の節目(7日→14日)まで。SafariタブだけだとITPで記録が消えるリスクがあるため、記録が伸びるほど再提案する
+function dismissHomeHint(){
+  let days=0; try{ days=(getStreakData().dates||[]).length; }catch(e){}
+  store.set("homehint_next", days<7?7:(days<14?14:9999));
+  store.set("homehint_done",true);
+  document.getElementById("envBanner").classList.add("hidden");
+}
 (function(){
   try{
     if(!state.type){ const a=document.getElementById("anchorCard"),c=document.getElementById("ckCard"); a.parentNode.insertBefore(c,a); }
@@ -3674,7 +3680,12 @@ function dismissHomeHint(){ store.set("homehint_done",true); document.getElement
     if(inApp){
       bn.innerHTML='⚠️ いまアプリの中でひらいています このままだと<b>記録がのこりません</b> 共有メニューから<b>「Safariで開く」（ブラウザで開く）</b>でひらき直してね🙏';
       bn.classList.remove("hidden");
-    } else if(!standalone && (getStreakData().dates||[]).length>=3 && !store.get("homehint_done",false)){
+    } else if(!standalone && (function(){
+      const days=(getStreakData().dates||[]).length;
+      let next=store.get("homehint_next",0);
+      if(!next&&store.get("homehint_done",false)) next=7; // 旧フラグ(とじる済み・しきい値なし)は7日目から再提案
+      return days>=Math.max(next,3);
+    })()){
       bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります <a href="#" onclick="switchTab(\'guide\');return false" class="tapx" style="color:var(--tealink);font-weight:800">使い方を見る</a>　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
       bn.classList.remove("hidden");
     }
