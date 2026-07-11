@@ -1616,7 +1616,7 @@ function planInjectChip(){
   if(!box||typeof sdChipsMode==="undefined"||!sdChipsMode||sdChipsMode.type!=="followups") return;
   if(box.querySelector(".plan-chip")) return;
   const it=(typeof sdIntentById==="function")?sdIntentById(sdChipsMode.intentId):null;
-  if(!it||!Array.isArray(it.videos)||!it.videos.length) return;
+  if(!it||!Array.isArray(it.videos)||it.videos.length<2) return; // 1本だけの悩みは14日間毎日同じ動画になるためプラン化しない
   if(PLAN_EXCLUDE_INTENTS.indexOf(it.id)>=0) return;
   const cur=planCurrent();
   if(cur&&cur.intentId===it.id) return; // 同じ悩みのプラン実行中は出さない
