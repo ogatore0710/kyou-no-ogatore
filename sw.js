@@ -1,5 +1,5 @@
 // #きょうのオガトレ オフラインキャッシュ（https配信時のみ有効）
-const C="kyono-v34";
+const C="kyono-v35";
 const ASSETS=["./","index.html","videos.js","app-search.js","obu-feed.js","soudan-kb.js","manifest.json","assets/chara.png","assets/chara-good.png","assets/chara-kaikyaku.png","assets/chara-2.png","assets/chara-3.png","assets/chara-cheer.png","assets/chara-crown.png","assets/obu-fab-photo.jpg","assets/check/q1.jpg","assets/check/q2.jpg","assets/check/meter.jpg","assets/icon-192.png","assets/icon-512.png","assets/icon-180.png","assets/fonts/banana-card.woff2?v=2","assets/type-momo.png","assets/type-kenko.png","assets/type-yawara.png","assets/pl-asa30.jpg","assets/pl-yoru30.jpg","assets/chara-cracker.png","assets/chara-congrats.png","assets/chara-hitokoto.png"];
 // シェル（app本体）は必須=addAll、画像などはベストエフォート（1枚の失敗でオフライン対応全体を失わない）
 // assets/obu/ 配下（写真・音声）は将来ファイルが増える想定のため事前キャッシュ対象に含めない
@@ -11,6 +11,18 @@ self.addEventListener("fetch",e=>{
   if(u.origin!==location.origin) return;
   // ページ本体とデータは常にサーバーへ再確認(10分CDNキャッシュ対策・ETag再検証なので軽い)
   const isShell=(e.request.mode==="navigate"||u.pathname.endsWith("videos.js")||u.pathname.endsWith("app-search.js")||u.pathname.endsWith("obu-feed.js")||u.pathname.endsWith("soudan-kb.js")||u.pathname.endsWith("index.html"));
+  // 画像・フォント等の静的アセットはキャッシュ優先(sw版更新で入れ替わる・体感速度↑・通信減)。YouTubeサムネはクロスオリジンなので対象外
+  const isAsset=/\.(png|jpe?g|webp|gif|svg|woff2?|ttf)(\?|$)/i.test(u.pathname);
+  if(!isShell && isAsset){
+    e.respondWith(caches.match(e.request).then(hit=>{
+      if(hit) return hit;
+      return fetch(e.request).then(r=>{
+        if(r&&r.ok){ const cl=r.clone(); e.waitUntil(caches.open(C).then(c=>c.put(e.request,cl)).catch(()=>{})); }
+        return r;
+      }).catch(()=>caches.match(e.request).then(x=>x||Response.error()));
+    }));
+    return;
+  }
   const req=isShell ? new Request(e.request, {cache:"no-cache"}) : e.request;
   const netThenCache=fetch(req).then(r=>{
     if(r.ok){ const cl=r.clone(); e.waitUntil(caches.open(C).then(c=>c.put(e.request,cl)).catch(()=>{})); return r; }
