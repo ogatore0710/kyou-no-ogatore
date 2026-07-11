@@ -315,9 +315,10 @@
     background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1.5px solid var(--line);
     display:flex;z-index:40;padding:6px 4px calc(8px + env(safe-area-inset-bottom))}
   .tabbar button{flex:1;border:none;background:none;font-family:inherit;cursor:pointer;
-    display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:800;color:#B9B4A6;padding:4px 0}
+    display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:800;color:var(--sub);padding:4px 0}
   .tabbar button svg{width:24px;height:24px}
   .tabbar button .ic-fill{fill:#EAE4D3}
+  .tabbar button:not(.on) .ic-fill{fill:#C4BDA9} /* 非選択アイコンの塗りも読めるコントラストに(50-60代・屋外) */
   .tabbar button.on{color:var(--ink)}
   .tabbar button.on .ic-fill{fill:var(--yellow)}
   /* マイ記録 */
@@ -1673,10 +1674,14 @@ setTimeout(function(){
 // ---- 継続カウンター（日付リストで頑丈に保存） ----
 function getStreakData(){
   let st=store.get("streak2",null);
-  if(!st){
+  if(!st||typeof st!=="object"||Array.isArray(st)){
     const old=store.get("streak",null);
-    st = old ? {dates: old.last?[old.last]:[], count:old.count||0, total:old.total||0} : {dates:[],count:0,total:0};
+    st = (old&&typeof old==="object"&&!Array.isArray(old)) ? {dates: old.last?[old.last]:[], count:old.count||0, total:old.total||0} : {dates:[],count:0,total:0};
   }
+  // 形の防御：破損データ(例 {"dates":5})でも起動が止まらないよう既定値に落とす
+  if(!Array.isArray(st.dates)) st.dates=[];
+  if(typeof st.count!=="number"||!isFinite(st.count)) st.count=0;
+  if(typeof st.total!=="number"||!isFinite(st.total)) st.total=0;
   return st;
 }
 // 数日あいて券でもつなげない時は「途切れた」とみなす判定（renderStreak/renderHistoryで共通利用）
@@ -3548,13 +3553,14 @@ applyBigtext();
     setTimeout(()=>{ sp.style.opacity="0"; setTimeout(()=>sp.remove(),550); },1800);
   }
 })();
-renderHome();
-renderPlaylists();
-renderVoices();
-buildChips();
-renderSearch();
-updateObuBadge();
-renderObuArchive();
+// 起動時の各描画は個別に隔離：1つのデータ破損が起動全体を止めない（白画面＋誤「古いOS」案内の防止）
+try{ renderHome(); }catch(e){}
+try{ renderPlaylists(); }catch(e){}
+try{ renderVoices(); }catch(e){}
+try{ buildChips(); }catch(e){}
+try{ renderSearch(); }catch(e){}
+try{ updateObuBadge(); }catch(e){}
+try{ renderObuArchive(); }catch(e){}
 // PWA復帰・日付またぎで画面を最新化
 let lastDay=todayStr();
 // ---- 「きょうの1本」タップ→離脱→復帰時の「きょうやった！」押し忘れナッジ ----
@@ -3806,6 +3812,10 @@ function obIsFresh(){
 (function(){
   try{
     if(!obIsFresh()) return;
+    // アプリ内ブラウザ(LINE等)ではオンボを出さない：記録がWebView側に残って後日消えるため。
+    // envBanner の「Safariで開いてね」案内を隠さず見せる（#welcomeで覆わない）。
+    var ua=navigator.userAgent||"";
+    if(/\bLine\/|Instagram|FBAN|FBAV|; wv\)/.test(ua)) return;
     const sp=document.getElementById("appSplash");
     setTimeout(obOpen, sp?2400:600);
   }catch(e){}
