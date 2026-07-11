@@ -381,6 +381,7 @@
   #sdLog{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:14px 16px 8px}
   .sd-foot{flex-shrink:0;background:var(--card);border-top:1.5px solid var(--line);padding:10px 14px calc(12px + env(safe-area-inset-bottom))}
   .sd-foot .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;padding-bottom:2px}
+  .sd-foot .chips.fade-r{-webkit-mask-image:linear-gradient(to right,#000 86%,transparent);mask-image:linear-gradient(to right,#000 86%,transparent)}
   .sd-foot .chip{flex-shrink:0;white-space:nowrap}
   .sd-foot .searchbox{margin-bottom:0}
   body.sd-lock{overflow:hidden}
@@ -1625,6 +1626,7 @@ function planInjectChip(){
   b.setAttribute("onclick","planChipTap('"+String(it.id).replace(/[^\w-]/g,"")+"')");
   b.textContent="📅 この悩みを2週間プランにする";
   box.insertBefore(b,box.firstChild);
+  try{ if(typeof sdChipsFadeUpdate==="function") sdChipsFadeUpdate(); }catch(e){} // チップ追加で横幅が変わるためフェード再計算
 }
 function planChipTap(id){
   if(typeof sdPending!=="undefined"&&sdPending) return;
@@ -2860,6 +2862,14 @@ function sdRenderChips(){
     }
   }
   box.innerHTML=html;
+  try{ sdChipsFadeUpdate(); }catch(e){}
+}
+// 横スクロールのチップ列: 右に続きがあるときだけ右端をフェードさせ「まだある」を示す（画面外チップの発見性）
+function sdChipsFadeUpdate(){
+  const box=document.getElementById("sdChips");
+  if(!box) return;
+  if(!box.__fadeHooked){ box.__fadeHooked=true; box.addEventListener("scroll",sdChipsFadeUpdate,{passive:true}); }
+  box.classList.toggle("fade-r", box.scrollWidth-box.scrollLeft-box.clientWidth>8);
 }
 function sdShowIntentChips(){ sdChipsMode={type:"intents"}; sdRenderChips(); }
 // 相談室→かたさチェックへ。履歴のsoudan段は畳まずシートだけ閉じる=チェックから「戻る」で相談室に帰って来られる
@@ -2927,7 +2937,7 @@ function sdAnswerIntent(it,nextBestId,sangoNote){
   if(mid) msgs.push({who:"oga",html:mid});
   let kz=it.keizoku?sdText(it.keizoku):"";
   if(it.safety) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※つよい痛みやしびれが出たら中止して、医療機関に相談してね</span>`;
-  else if(sangoNote) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※産後の体は回復のペースに個人差があるから、痛みが強い日・出血や発熱があるときは無理せず受診してね。産後まもない時期（〜2ヶ月）や帝王切開のあとは、お医者さんのOKをもらってからにしよう</span>`;
+  if(sangoNote) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※産後の体は回復のペースに個人差があるから、痛みが強い日・出血や発熱があるときは無理せず受診してね。産後まもない時期（〜2ヶ月）や帝王切開のあとは、お医者さんのOKをもらってからにしよう</span>`; // safety枠でも産後の一言は併記する（else ifだとデリケート枠で産後注意が消えていた）
   if(kz) msgs.push({who:"oga",html:kz});
   sdChipsMode={type:"followups",intentId:it.id,nextBestId:sdCtx.nextBestId};
   sdPush(msgs);
@@ -3043,6 +3053,7 @@ function openSoudan(intentId){
   sdFlavorShown=false; // タイプ挨拶は開くたび最初の1回答だけ
   sdEnsureGreeting();
   sdScrollEnd(); // 再オープン時もログ最下部から
+  try{ sdChipsFadeUpdate(); }catch(e){} // 非表示中はclientWidth=0で計算できないため、開いた直後に再計算
   // チップ指定つきオープン: 挨拶などの吹き出しを出している最中ならキューに積み、表示完了後にsdPushが流す
   // （従来はsdPending中は黙って捨てていた=初回オープン時だけ入口チップ・逆導線が無反応になるバグ）
   if(intentId){
@@ -3608,7 +3619,14 @@ function checkDoneNudge(){
     const ce=document.getElementById("cheer");
     if(ce) ce.textContent="おかえりなさい！おわったら下の「きょうやった！」を押してね✅";
     const db=document.getElementById("doneBtn");
-    if(db) db.classList.add("nudge-pulse");
+    if(db){
+      db.classList.add("nudge-pulse");
+      // ボタンが画面外だと気づかれずに終わるため、ホーム表示中なら画面中央に寄せる
+      if(typeof currentSection==="undefined"||currentSection==="home"){
+        const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+        setTimeout(function(){ try{ db.scrollIntoView({block:"center",behavior:rm?"auto":"smooth"}); }catch(e2){} },150);
+      }
+    }
   }catch(e){}
 }
 function refreshDay(){
