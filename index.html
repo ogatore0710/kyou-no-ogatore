@@ -2824,8 +2824,10 @@ function sdPush(msgs){
     const tip=sdTypingNode();
     log.appendChild(tip); sdScrollEnd();
     // 矢継ぎ早対策(dev69): 次の吹き出しの文字数に比例した「打っている間」を置く。
-    // 500+字数*22ms(上限1600)=短い共感は素早く・長い見立ては溜め。最初の1個だけは軽く400ms
-    const wait=i===0?400:Math.min(1600,500+sdMsgLen(msgs[i])*22);
+    // 500+字数*22ms(上限1600)=短い共感は素早く・長い見立ては溜め。最初の1個だけは軽く400ms。
+    // 3個目以降は倍の間(上限3200)=読み終わるリズムに合わせる(本人フィードバック 2026-07-12)
+    const base=Math.min(1600,500+sdMsgLen(msgs[i])*22);
+    const wait=i===0?400:(i===1?base:base*2);
     setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); showNext(); }, wait);
   }
   queueNext();
