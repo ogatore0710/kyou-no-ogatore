@@ -12,6 +12,12 @@ const slim = {
 };
 
 const DATA = JSON.stringify(slim);
+const ROUNDS = Number(process.env.ROUNDS || 10);
+const THEMES = process.env.THEMES
+  ? JSON.parse(process.env.THEMES)
+  : ['デスクワークで肩・首・肩甲骨','腰まわり・骨盤・お尻','脚/膝/ふくらはぎ/むくみ','姿勢(反り腰/猫背/巻き肩)',
+     '睡眠/自律神経/頭痛/目の疲れ','産後・年代・更年期など慢性の事情','手/腕/手首/末端の冷え','全身のだるさ/運動が苦手/続かない',
+     '開脚/柔軟/前屈ができない','生活動作(抱っこ/立ち仕事/スマホ/階段)'];
 
 const script = String.raw`export const meta = {
   name: 'soudan-accuracy-loop',
@@ -80,9 +86,7 @@ var JUDGE_SCHEMA = { type:'object', properties:{ results:{ type:'array', items:{
     targetIntentId:{type:'string'}, kw:{ type:'array', items:{type:'string'} } },
   required:['i','verdict','targetIntentId','kw'] } } }, required:['results'] }
 
-var THEMES = ['デスクワークで肩・首・肩甲骨','腰まわり・骨盤・お尻','脚/膝/ふくらはぎ/むくみ','姿勢(反り腰/猫背/巻き肩)',
-  '睡眠/自律神経/頭痛/目の疲れ','産後・年代・更年期など慢性の事情','手/腕/手首/末端の冷え','全身のだるさ/運動が苦手/続かない',
-  '開脚/柔軟/前屈ができない','生活動作(抱っこ/立ち仕事/スマホ/階段)']
+var THEMES = __THEMES__
 
 // 判定用: intent一覧を1度だけ文字列化
 function intentList(){ return KB.map(function(it){ return '- '+it.id+' : '+it.chip+(it.safety?' [安全]':'') }).join('\n') }
@@ -111,7 +115,7 @@ phase('Warmup')
 log('スリムKB: intents='+KB.length+' redflags='+RF.length)
 
 phase('Loop')
-for (var r=1; r<=10; r++){
+for (var r=1; r<=__ROUNDS__; r++){
   var gen = await agent(genPrompt(r), { label:'gen-r'+r, phase:'Round '+r, schema:GEN_SCHEMA, model:'fable', effort:'medium' })
   var cases = ((gen&&gen.cases)||[]).filter(function(x){ return typeof x==='string' && x.trim() }).slice(0,30)
   if(!cases.length){ log('R'+r+': 生成ゼロ・スキップ'); continue }
@@ -132,7 +136,7 @@ for (var r=1; r<=10; r++){
     else if(rs.verdict==='new_topic'){ revN++; allCases.push({text:cc.t, expectId:null, verdict:'new_topic'}) }
   }
   var cum=0; for(var k in keptKw) cum+=keptKw[k].length
-  log('R'+r+' ['+THEMES[(r-1)%10]+'] cases='+cases.length+' ok='+okN+' fixed='+fixedN+'/'+triedN+' review='+revN+' 累計追加kw='+cum)
+  log('R'+r+' ['+THEMES[(r-1)%THEMES.length]+'] cases='+cases.length+' ok='+okN+' fixed='+fixedN+'/'+triedN+' review='+revN+' 累計追加kw='+cum)
 }
 
 phase('Finalize')
@@ -164,7 +168,8 @@ return {
   reviewOverRedflag: allCases.filter(function(c){ return c.verdict==='over_redflag' }).map(function(c){ return c.text }),
   regressionSet: fixable.map(function(c){ return {text:c.text, expectId:c.expectId} }),
 }
-`.replace("__DATA__", DATA);
+`.replace("__DATA__", DATA).replace("__THEMES__", JSON.stringify(THEMES)).replace("__ROUNDS__", String(ROUNDS));
 
-writeFileSync(new URL("./accuracy-loop.wf.mjs", import.meta.url), script);
-console.log("accuracy-loop.wf.mjs 生成 bytes=" + script.length + " intents=" + slim.intents.length + " redflags=" + slim.redflags.length);
+const out = process.env.OUT || "accuracy-loop.wf.mjs";
+writeFileSync(new URL("./" + out, import.meta.url), script);
+console.log(out + " 生成 bytes=" + script.length + " rounds=" + ROUNDS + " themes=" + THEMES.length + " intents=" + slim.intents.length);
