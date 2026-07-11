@@ -11,6 +11,7 @@
 - `index.html` 分割計画: [SPLIT-PLAN.md](SPLIT-PLAN.md)
 - 動画カタログ棚卸し: [CATALOG-AUDIT.md](CATALOG-AUDIT.md)
 - リクエストメール導線: [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md)
+- 開発者/AIがいなくなっても存続させる手引き: [SURVIVAL.md](SURVIVAL.md)
 - CodexはQA・検収・課題棚卸し、Claude Codeは継続的な画面/体験開発を担当する想定
 
 ## 壊れやすい箇所
