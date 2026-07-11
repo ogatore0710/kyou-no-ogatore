@@ -392,6 +392,7 @@
   .sd-row.user .sd-b{background:var(--yellow-soft);border-color:#F2DE8A;border-radius:16px;border-bottom-right-radius:6px}
   body.dark .sd-row.user .sd-b{border-color:#6E5F2E}
   .sd-b .video{margin:8px 0 2px;background:var(--bg)}
+  .sd-b .sd-vonly .video{margin:2px 0} /* 動画だけの吹き出し（見立てと分割表示）は上下の余白を均等に */
   .sd-b .video img{width:96px}
   .sd-b .btn{margin:2px 0 8px}
   .sd-row.sd-red .sd-b{background:var(--coral-soft);border-color:var(--coral)}
@@ -2932,9 +2933,9 @@ function sdAnswerIntent(it,nextBestId,sangoNote){
   }
   if(emp) msgs.push({who:"oga",html:emp});
   const vs=it.videos||[];
-  let mid=it.mitate?sdText(it.mitate):"";
-  if(vs.length){ mid+=sdVideoHTML(vs[0],it); sdMarkShown(vs[0].v); } // まずは1本（残りは「他には?」「もっと短いの」で）
-  if(mid) msgs.push({who:"oga",html:mid});
+  // 見立てと動画は別の吹き出しに分ける（長い説明のあとに動画だけがポンと出る=読みやすさ・テンポ優先）
+  if(it.mitate) msgs.push({who:"oga",html:sdText(it.mitate)});
+  if(vs.length){ msgs.push({who:"oga",html:'<div class="sd-vonly">'+sdVideoHTML(vs[0],it)+'</div>'}); sdMarkShown(vs[0].v); } // まずは1本（残りは「他には?」「もっと短いの」で）
   let kz=it.keizoku?sdText(it.keizoku):"";
   if(it.safety) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※つよい痛みやしびれが出たら中止して、医療機関に相談してね</span>`;
   if(sangoNote) kz+=(kz?"<br>":"")+`<span style="font-size:13px;color:var(--sub)">※産後の体は回復のペースに個人差があるから、痛みが強い日・出血や発熱があるときは無理せず受診してね。産後まもない時期（〜2ヶ月）や帝王切開のあとは、お医者さんのOKをもらってからにしよう</span>`; // safety枠でも産後の一言は併記する（else ifだとデリケート枠で産後注意が消えていた）
