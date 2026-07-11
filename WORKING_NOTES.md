@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-12
 
+## 2026-07-12 使い方タブ刷新＋FAQ大幅増量＋相談室テンポ調整（さぶPC alan14・本人フィードバック対応・⚠️qa/smoke未実行）
+- **相談室の吹き出し分割**: sdAnswerIntentの見立て+動画結合をやめ「共感→見立て→動画(.sd-vonlyラッパ)→続け方」の4段に。表示間隔は**3個目以降を倍**（base=500+字数*22上限1600 / 1個目400ms / 2個目base / 3個目〜base*2上限3200）=本人「1→2個目のテンポは良い・そのあとは倍OK」
+- **使い方タブ刷新**: 目次チップ(.gtoc・gJump()でカードへスクロール)を先頭に追加。各カードにid（gd-start/gd-daily/gd-tsuzuku/gd-myrec/gd-mamori/gd-faq）
+- **FAQを6問→27問**の開閉式（details/summary・.faqクラス・4グループ=きほん/記録/相談室/見ため）。「記録が消えない3つの守り」カードの本題外2行(文字サイズ・はじめてガイド)はFAQへ移管
+- FAQの相談室説明は「決まった回答パターン集からアプリが選ぶ・端末外に送信しない」の事実ベース表現（監修表示問題AUDIT-SAFETY-PROPOSALS.md③に抵触しない言い回し）
+- details/summaryはiOS6+対応・qa.jsのgJump配線はメインPCで要確認
+
 ## 2026-07-12 総点検minor 第3〜7バッチ＋ITP再提案（さぶPC alan14・⚠️qa/smoke未実行）
 - **⚠️ このPCはnode未導入のため qa.js/smoke.js 未実行。メインPC復帰後(7/14夜〜)に必ず実行**。代替検証=JavaScriptCoreパース+ES2020禁止構文grep+kw重複grepのみ（詳細: kyou-no-ogatore-audit-minor3-7-DONE.md）
 - AUDIT-MEMO中低59件から監修不要16件を消化（コミット5efddef/bfd4020/f4df11b/0b464a9/3245a62/e7b77cf）。主な挙動変更:
