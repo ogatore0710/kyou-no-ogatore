@@ -40,6 +40,9 @@ function currentHits(){
   });
 }
 function renderSearch(){ searchLimit=24; drawResults(); }
+// キーワード入力はデバウンス（IME変換中の毎打鍵フル再描画を間引く）
+let _searchDebT;
+function onSearchInput(){ clearTimeout(_searchDebT); _searchDebT=setTimeout(renderSearch,180); }
 function moreResults(){ searchLimit+=48; drawResults(); }
 function drawResults(){
   const hits=currentHits();

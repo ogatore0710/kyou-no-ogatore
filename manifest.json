@@ -3,7 +3,9 @@
   "short_name": "きょうのオガトレ",
   "description": "みんなで一緒にストレッチを習慣化",
   "start_url": "./",
+  "id": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#FFFAF3",
   "theme_color": "#FFD93B",
   "icons": [
