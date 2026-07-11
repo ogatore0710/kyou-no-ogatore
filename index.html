@@ -191,6 +191,12 @@
   /* オガトレ通信フローティングボタン＆ポップアップ */
   .obu-fab{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:45;width:56px;height:56px;border-radius:50%;border:3px solid var(--yellow);padding:0;background:var(--card);box-shadow:0 4px 14px rgba(58,52,32,.32),0 1px 3px rgba(58,52,32,.2);cursor:pointer}
   .obu-fab img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;pointer-events:none}
+  /* 相談室FAB: obu-fabの真上に縦積み（56px+間隔12px）。ティール吹き出しで通信(黄・本人写真)と役割を視覚的に分ける */
+  .soudan-fab{position:fixed;right:16px;bottom:calc(78px + 56px + 12px + env(safe-area-inset-bottom));z-index:45;width:56px;height:56px;border-radius:50%;border:3px solid var(--teal);padding:0;background:var(--card);box-shadow:0 4px 14px rgba(58,52,32,.32),0 1px 3px rgba(58,52,32,.2);cursor:pointer}
+  .soudan-fab svg{width:30px;height:30px;display:block;margin:0 auto;pointer-events:none}
+  .soudan-fab.hidden{display:none}
+  /* クイズ中・相談室シート・記録カード・オガトレ通信・オンボーディング表示中は両FABとも隠す（updateFabs()が付け外し） */
+  body.fabs-hide .obu-fab,body.fabs-hide .soudan-fab{display:none}
   .obu-dot{position:absolute;top:-1px;right:-1px;width:15px;height:15px;border-radius:50%;background:var(--pink);border:2px solid var(--bg)}
   .obu-dot.hidden{display:none}
   .obu-bubbletip{position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%);
@@ -899,6 +905,11 @@
   <span id="obuBubble" class="obu-bubbletip hidden" aria-hidden="true">NEW📣</span>
 </button>
 
+<!-- 相談室FAB（obu-fabの1段上に縦積み。soudan-kb.js未読込のときはhiddenのまま=入口カードと同じガード） -->
+<button id="soudanFab" class="soudan-fab hidden" onclick="openSoudan()" aria-label="オガトレ相談室">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>
+</button>
+
 <div id="obuModal" class="hidden" onclick="if(event.target===this)closeObu()">
   <div class="obu-box">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1047,11 +1058,22 @@ function openObu(){
   const latest=obuLatest();
   if(latest) store.set("obu_seen", latest.id);
   updateObuBadge();
+  updateFabs();
 }
-function closeObu(){ document.getElementById("obuModal").classList.add("hidden"); }
+function closeObu(){ document.getElementById("obuModal").classList.add("hidden"); updateFabs(); }
 function toggleObu(){
   const m=document.getElementById("obuModal");
   if(m.classList.contains("hidden")) openObu(); else closeObu();
+}
+// ---- FAB表示制御（オガトレ通信+相談室の2段縦積み共通） ----
+// クイズ中・相談室シート・記録カード・オガトレ通信・オンボーディング表示中は両FABとも隠す。
+// 相談室FABはさらにKB未読込なら常に隠す（入口カードと同じガード）
+function updateFabs(){
+  const modalOpen=id=>{ const el=document.getElementById(id); return !!(el&&!el.classList.contains("hidden")); };
+  const hide=currentSection==="quiz"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome");
+  document.body.classList.toggle("fabs-hide",hide);
+  const sf=document.getElementById("soudanFab");
+  if(sf) sf.classList.toggle("hidden",!sdKb());
 }
 // ================= 自作アイコン（タイプ別イラスト・SVG） =================
 const TYPE_ART = {
@@ -1256,6 +1278,7 @@ function show(id){
   for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", tabTarget===t);
   window.scrollTo(0,0);
   currentSection=id;
+  updateFabs();
 }
 function navTo(id){
   // obuを開く直前にいたセクションを記憶しておく（obuの戻るボタン・タブハイライトの両方で使用）
@@ -2220,6 +2243,7 @@ function makeCard(ds){
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
   const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
   document.getElementById("cardModal").classList.remove("hidden");
+  updateFabs();
   ensureCardFonts().then(()=>loadChara(()=>loadTypeIcon(state.type?state.type.key:null,()=>{
     try{ drawCard(); if(mk) mk.classList.add("hidden"); }
     catch(e){ if(mk) mk.textContent="うまく作れませんでした もう一度「とじる」→開き直してみて"; }
@@ -2398,6 +2422,7 @@ function drawCard(){
   // プレビュー表示
   document.getElementById("cardImg").src=c.toDataURL("image/png");
   document.getElementById("cardModal").classList.remove("hidden");
+  updateFabs();
   canvasToBlobCompat(c, blob=>{ lastBlob=blob; });
   lastShareText=`#きょうのオガトレ ${effTotal}日目！`;
 }
@@ -2429,7 +2454,7 @@ async function shareCard(){
   }
   downloadCard(file);
 }
-function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); }
+function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); }
 
 // ================= じまんカード（つづけてる日数＋すきな1本を1枚に） =================
 let bragPick=null;
@@ -2492,6 +2517,7 @@ function makeBragCard(){
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
   const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
   document.getElementById("cardModal").classList.remove("hidden");
+  updateFabs();
   ensureCardFonts().then(()=>loadChara(()=>loadBragThumb(th=>{
     try{ drawBragCard(th); if(mk) mk.classList.add("hidden"); }
     catch(e){ if(mk) mk.textContent="うまく作れませんでした もう一度ためしてみて"; }
@@ -2717,8 +2743,10 @@ function sdVideoHTML(v,it){
 }
 function sdMarkShown(vid){ if(sdCtx.shownVideoIds.indexOf(vid)<0) sdCtx.shownVideoIds.push(vid); }
 function sdUnseen(it){ return (it.videos||[]).filter(v=>v&&sdCtx.shownVideoIds.indexOf(v.v)<0); }
-// ---- 吹き出し（2〜3個に分割・各回答の前に0.4秒の「…」タイピング表示・reduced-motionは即時） ----
+// ---- 吹き出し（2〜3個に分割・各回答の前に文字数比例の「…」タイピング表示・reduced-motionは即時） ----
 function sdReduced(){ try{ return window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } }
+// 吹き出しの読み文字数（タグ・空白を除いた本文の長さ）。表示前ディレイの計算に使う
+function sdMsgLen(m){ return String((m&&m.html)||"").replace(/<[^>]*>/g,"").replace(/\s+/g,"").length; }
 // スクロールはログ（シート内のoverflow-y:auto領域）のscrollTopだけを動かす。
 // ページ全体のscroll位置は一切触らない=「タップすると画面が上に飛ぶ」問題の根治
 function sdScrollEnd(){ const log=document.getElementById("sdLog"); if(log) log.scrollTop=log.scrollHeight; }
@@ -2758,7 +2786,10 @@ function sdPush(msgs){
     if(reduced){ showNext(); return; }
     const tip=sdTypingNode();
     log.appendChild(tip); sdScrollEnd();
-    setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); showNext(); }, i===0?400:500);
+    // 矢継ぎ早対策(dev69): 次の吹き出しの文字数に比例した「打っている間」を置く。
+    // 500+字数*22ms(上限1600)=短い共感は素早く・長い見立ては溜め。最初の1個だけは軽く400ms
+    const wait=i===0?400:Math.min(1600,500+sdMsgLen(msgs[i])*22);
+    setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); showNext(); }, wait);
   }
   queueNext();
 }
@@ -2967,6 +2998,7 @@ function openSoudan(intentId){
   try{ if(!(history.state&&history.state.id==="soudan")) history.pushState({id:"soudan"},""); }catch(e){}
   document.getElementById("soudanSheet").classList.remove("hidden");
   document.body.classList.add("sd-lock"); // 背面ページのスクロールを止める
+  updateFabs();
   sdFlavorShown=false; // タイプ挨拶は開くたび最初の1回答だけ
   sdEnsureGreeting();
   sdScrollEnd(); // 再オープン時もログ最下部から
@@ -2981,6 +3013,7 @@ function openSoudan(intentId){
 function closeSoudan(fromPop){
   document.getElementById("soudanSheet").classList.add("hidden");
   document.body.classList.remove("sd-lock");
+  updateFabs();
   sdQueuedIntent=null; // 未消化のチップ指定は捨てる（次回オープン時に古い回答が突然流れないように）
   if(fromPop!==true){ try{ if(history.state&&history.state.id==="soudan") history.back(); }catch(e){} }
 }
@@ -3730,6 +3763,7 @@ function obOpen(){
   document.getElementById("obLog").innerHTML="";
   document.getElementById("obChips").innerHTML="";
   w.classList.remove("hidden");
+  updateFabs();
   try{ if(!(history.state&&history.state.ob)) history.pushState({id:currentSection,ob:1},""); }catch(e){}
   obSay(ONBOARDING_SCRIPT.greet,obAskQ);
 }
@@ -3739,6 +3773,7 @@ function obClose(){
   store.set("onboarded",1);
   const w=document.getElementById("welcome");
   if(w) w.classList.add("hidden");
+  updateFabs();
 }
 function obSkip(){ obClose(); }
 // 戻る操作でオーバーレイを閉じる（A6流儀・既存popstateハンドラには触らず独自リスナーで）
