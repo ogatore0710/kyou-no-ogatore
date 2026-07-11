@@ -4,6 +4,16 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-11
 
+## 2026-07-11 相談室の常駐FAB＋会話テンポ調整（第七波dev69・担当: index.html相談室域）
+- **相談室FAB新設（#soudanFab/.soudan-fab）**: obu-fab（オガトレ通信）の**真上に縦積み**。right:16px・bottom=`calc(78px + 56px + 12px + safe-area)`・56x56丸・z-index:45。アイコンは入口カードsec-headと同じティール💬SVG（本人写真は使わない=通信と役割を視覚的に分ける）・枠線--teal。ダークは既存の`body.dark [stroke=/fill=]`属性セレクタで自動反転。KB未読込時はhiddenのまま（入口カードと同じsdKb()ガード）。NEW📣吹き出し(.obu-bubbletip)はobu-fab横なので相談室FABと重ならない（実測overlap=false）
+- **FAB表示制御を一元化=`updateFabs()`**: クイズ中(currentSection==="quiz")・相談室シート・記録カード・オガトレ通信・オンボーディング#welcome表示中は**両FABともbody.fabs-hideで隠す**。呼び出し点=show()/openObu/closeObu/cardModal開閉(3箇所+closeCard)/openSoudan/closeSoudan/obOpen/obClose/renderSoudanEntry（**起動時はshow()を通らないためrenderSoudanEntryが初回反映**。ここを消すとブート時にFABが出なくなる）
+- **会話テンポ**: sdPushの吹き出し間隔を固定500msから**次に出す吹き出しの文字数比例**へ=`400ms(最初の1個)／500+字数*22ms(上限1600)`（sdMsgLen=タグ・空白除去後の字数）。タイピング「…」はディレイ中ずっと表示・reduced-motionは従来どおり即時。実測: 共感17字=402ms/見立て142字=1602ms(上限)/続け方39字=1362ms
+- ホームの相談室入口カードは**そのまま**（FABと二重導線=通信と同じ構成）
+- 注意: 実装の大半はauto-sync f67f2b3に相乗り（同一作業ツリー共有のため。正本はこのノートとDONE報告）
+- タスク3（デリケート枠校正）は母艦のkyono-soudan-review-A-corrected.txt**未着のため見送り**（soudan-kb.js文言は一字も触っていない）。着いたら通番どおり反映のこと
+- 検証: qa PASS／smoke **14/14 PASS**（既存6b/6cフローは無改変でpass=テンポ変更後も8秒タイムアウト内）
+- 完了報告: ogatore-hub/dev-specs/kyono-soudan-fab-DONE.md
+
 ## 2026-07-11 相談室M2メガ拡充（第七波dev65再開便・担当: soudan-kb.js専有）
 - **回答実体を35→119インテント（+赤旗=120件）へ拡充**。聞き取りパターン合計1,020語（目標300+を大幅クリア）。2層構造=層1回答実体/層2kw辞書ルーティング
 - 追加領域: D=脚・足まわり20件（前もも/外張り/ふくらはぎ/つる/むくみ/冷え/足裏/扁平足/外反母趾/O脚X脚/関節音/仙腸ほか）・E=状況16件（デスクワーク/立ち仕事/運転/抱っこ育児/親子/シニア/運動前後/ラン/ゴルフ/寝起き/ながら）・F=悩み言葉20件（疲れ/だるい/ストレス/呼吸/痩せたい/生理/更年期/尿もれ/左右差/生まれつき）・G=やり方Q&A28件（毎日OK?/何秒/呼吸/イタ気持ちいい/風呂前後/道具/年齢/整体比較/人気動画/硬さチェック等）

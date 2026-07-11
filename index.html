@@ -2983,6 +2983,7 @@ function sdSend(){
 // ---- 入口 ----
 function renderSoudanEntry(){
   const card=document.getElementById("soudanCard"); if(!card) return;
+  updateFabs(); // 起動時はshow()を通らないため、相談室FABのKBガード反映はここが初回
   const kb=sdKb();
   if(!kb){ card.classList.add("hidden"); return; }
   const ck=document.getElementById("ckCard"); // かたさチェックカードの直下に置く（カード移動後も追従）
