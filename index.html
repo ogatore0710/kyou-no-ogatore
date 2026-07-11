@@ -2841,6 +2841,7 @@ function sdQuizTap(){
 // ---- 照合 ----
 function sdRedFlagHit(n){
   const kb=sdKb(); if(!kb||!kb.redFlags||!Array.isArray(kb.redFlags.kw)) return false;
+  n=n.replace(/寝転|ねころ|寝ころ|ねっころ|寝っこ/g,""); // 「寝転んで/ねころんで」を転倒(転んで/ころんで)と誤判定しない
   for(const k0 of kb.redFlags.kw){ const k=sdNorm(k0); if(k.length>=2&&n.indexOf(k)>=0) return true; }
   return false;
 }

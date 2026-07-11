@@ -14,6 +14,7 @@ export function norm(s) {
 export function redFlagHit(n) {
   const rf = KB.redFlags;
   if (!rf || !Array.isArray(rf.kw)) return false;
+  n = n.replace(/寝転|ねころ|寝ころ|ねっころ|寝っこ/g, ""); // index.html sdRedFlagHit と同期
   for (const k0 of rf.kw) {
     const k = norm(k0);
     if (k.length >= 2 && n.indexOf(k) >= 0) return true;
