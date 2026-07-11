@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { norm } from "./norm.mjs";
 
 const KB = new Function(readFileSync(new URL("../soudan-kb.js", import.meta.url), "utf8") + "\nreturn SOUDAN_KB;")();
-const result = JSON.parse(readFileSync(new URL("./loop-result.json", import.meta.url), "utf8"));
+const result = JSON.parse(readFileSync(new URL("./" + (process.env.RESULT || "loop-result.json"), import.meta.url), "utf8"));
 const keptKw = result.keptKw || {};
 const regset = result.regressionSet || [];
 

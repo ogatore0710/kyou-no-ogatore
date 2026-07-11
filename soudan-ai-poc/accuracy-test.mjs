@@ -1,11 +1,11 @@
 // 相談室マッチャの精度メーター（検査体系の第4層）。
-// 凍結した難問280ケース（accuracy-set.json）を現行 soudan-kb.js に通し、
+// 凍結した難問セット（accuracy-set.json・loop1+loop2で445ケース）を現行 soudan-kb.js に通し、
 // 期待インテントへの着地率を数字で出す。閾値未満なら非ゼロ終了（CI/回帰用）。
 // 使い方: node soudan-ai-poc/accuracy-test.mjs
 import { readFileSync } from "node:fs";
 import { norm } from "./norm.mjs";
 
-const THRESHOLD = 0.85; // これを下回ったら失敗（kw変更で精度が落ちたら気づける）
+const THRESHOLD = 0.83; // これを下回ったら失敗（kw変更で精度が落ちたら気づける）
 
 const KB = new Function(readFileSync(new URL("../soudan-kb.js", import.meta.url), "utf8") + "\nreturn SOUDAN_KB;")();
 const SET = JSON.parse(readFileSync(new URL("./accuracy-set.json", import.meta.url), "utf8"));

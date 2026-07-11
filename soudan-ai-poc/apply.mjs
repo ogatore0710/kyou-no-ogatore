@@ -5,7 +5,7 @@ import { norm } from "./norm.mjs";
 const kbUrl = new URL("../soudan-kb.js", import.meta.url);
 let text = readFileSync(kbUrl, "utf8");
 const KB = new Function(text + "\nreturn SOUDAN_KB;")();
-const keptKw = JSON.parse(readFileSync(new URL("./loop-result.json", import.meta.url), "utf8")).keptKw || {};
+const keptKw = JSON.parse(readFileSync(new URL("./" + (process.env.RESULT || "loop-result.json"), import.meta.url), "utf8")).keptKw || {};
 
 const existing = {};
 for (const it of KB.intents) existing[it.id] = new Set((it.kw || []).map(norm));
