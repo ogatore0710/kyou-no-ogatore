@@ -2,7 +2,20 @@
 
 > **これは何**: README.md が「何ができるか」なら、これは「どう作られていて・どこでハマるか」。
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
-> 最終更新: 2026-07-11
+> 最終更新: 2026-07-12
+
+## 2026-07-12 総点検minor 第3〜7バッチ＋ITP再提案（さぶPC alan14・⚠️qa/smoke未実行）
+- **⚠️ このPCはnode未導入のため qa.js/smoke.js 未実行。メインPC復帰後(7/14夜〜)に必ず実行**。代替検証=JavaScriptCoreパース+ES2020禁止構文grep+kw重複grepのみ（詳細: kyou-no-ogatore-audit-minor3-7-DONE.md）
+- AUDIT-MEMO中低59件から監修不要16件を消化（コミット5efddef/bfd4020/f4df11b/0b464a9/3245a62/e7b77cf）。主な挙動変更:
+  - **quizAborted**フラグ新設: 「ホームにもどる」中断後の戻る再突入防止。startQuizで解除
+  - **state.picked**新設: かたさチェックの選択記録（「まえの質問へ」の枠色表示用・スコア0と未回答の区別のため独立オブジェクト）
+  - **obCloseにfromPop引数**: closeSoudanと同じ流儀。**obGo経路はobClose(true)**（直後のstartQuiz/openSoudanの履歴pushとback()がレースするため。todayルートのみ空振り1回が既知で残る）
+  - **planInjectChipはvideos>=2に限定**（1本悩みの14日同一動画プラン防止）
+  - **sdChipsFadeUpdate**新設: チップ列の右端フェード。sdRenderChips末尾/planInjectChip/openSoudanから呼ぶ（非表示中はclientWidth=0で計算不能→開いた直後の再計算が必須）
+  - **homehint_next**キー新設: ホーム追加バナーの「とじる」は次の節目(7/14日)までの抑制に（ITP対策・文言不変）
+  - **sw.js v38**: install=SHELLをcache:"reload"・fetchのRequest生成try/catch・SW登録にlocalhost追加
+  - 産後の一言注意はsafety枠でも併記（else if→独立if）。赤旗kwに表記ゆれ4語（骨粗鬆症/力がはいらない/眩暈/目眩）
+- 監修待ち/実機必要/仕様判断の残項目一覧はDONEファイル参照
 
 ## 2026-07-11 相談室の常駐FAB＋会話テンポ調整（第七波dev69・担当: index.html相談室域）
 - **相談室FAB新設（#soudanFab/.soudan-fab）**: obu-fab（オガトレ通信）の**真上に縦積み**。right:16px・bottom=`calc(78px + 56px + 12px + safe-area)`・56x56丸・z-index:45。アイコンは入口カードsec-headと同じティール💬SVG（本人写真は使わない=通信と役割を視覚的に分ける）・枠線--teal。ダークは既存の`body.dark [stroke=/fill=]`属性セレクタで自動反転。KB未読込時はhiddenのまま（入口カードと同じsdKb()ガード）。NEW📣吹き出し(.obu-bubbletip)はobu-fab横なので相談室FABと重ならない（実測overlap=false）
