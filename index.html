@@ -2033,6 +2033,11 @@ function importData(){
     if(!cnt) throw 0;
     if(!confirm("いまの記録を上書きします。よい?")) return;
     for(const k in data) localStorage.setItem(k,data[k]);
+    // 取り込んだキー＋端末の表示設定 以外の既存 kyono_ キーを掃除（新旧データの混在を防ぐ）。
+    // 書込みを先に済ませてから掃除するので、途中で失敗しても既存記録は消えない
+    const keep={}; for(const k in data) keep[k]=1; keep["kyono_theme"]=1; keep["kyono_bigtext"]=1;
+    const stale=[]; for(let i=0;i<localStorage.length;i++){ const sk=localStorage.key(i); if(sk&&sk.indexOf("kyono_")===0&&!keep[sk]) stale.push(sk); }
+    for(let i=0;i<stale.length;i++) localStorage.removeItem(stale[i]);
     alert("よみこみました！"); location.reload();
   }catch(e){ alert("読み込めませんでした\n文字がぜんぶコピーできているか確認してください"); }
 }
