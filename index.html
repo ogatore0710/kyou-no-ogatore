@@ -3543,10 +3543,13 @@ applyBigtext();
 // ホーム画面アプリとして起動したときだけ、スプラッシュをひと呼吸ながく
 (function(){
   const sp=document.getElementById("appSplash");
-  if(sp){
-    // 起動直後から被せてある → ロゴをふわっと → 静かに退場（ホームのチラ見え防止）
-    setTimeout(()=>{ sp.style.opacity="0"; setTimeout(()=>sp.remove(),550); },1800);
-  }
+  if(!sp) return;
+  // 起動準備完了(__kyonoBoot)を待って、ブランドの一呼吸(最低850ms)を満たしたら静かに退場。
+  // 毎日使うアプリなので固定1.8秒待ちをやめ、準備が整い次第すばやく（約1.35秒に短縮）。
+  const MIN=850, t0=Date.now();
+  function bye(){ const w=Math.max(0, MIN-(Date.now()-t0)); setTimeout(()=>{ sp.style.opacity="0"; setTimeout(()=>sp.remove(),500); }, w); }
+  if(window.__kyonoBoot) bye();
+  else { let n=0; const iv=setInterval(()=>{ if(window.__kyonoBoot||++n>40){ clearInterval(iv); bye(); } },40); }
 })();
 // 起動時の各描画は個別に隔離：1つのデータ破損が起動全体を止めない（白画面＋誤「古いOS」案内の防止）
 try{ renderHome(); }catch(e){}
@@ -3804,7 +3807,7 @@ function obIsFresh(){
     return true;
   }catch(e){ return false; }
 }
-// 初回起動のみ・スプラッシュ退場（1800+550ms）後に下からシートイン
+// 初回起動のみ・スプラッシュ退場（約1.35秒）後に下からシートイン
 (function(){
   try{
     if(!obIsFresh()) return;
@@ -3813,7 +3816,7 @@ function obIsFresh(){
     var ua=navigator.userAgent||"";
     if(/\bLine\/|Instagram|FBAN|FBAV|; wv\)/.test(ua)) return;
     const sp=document.getElementById("appSplash");
-    setTimeout(obOpen, sp?2400:600);
+    setTimeout(obOpen, sp?1500:600);
   }catch(e){}
 })();
 
