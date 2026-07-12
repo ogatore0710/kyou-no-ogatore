@@ -108,14 +108,28 @@ async function main() {
 
   try {
     await waitForServer(port, 10000);
+    // SMOKE_NO_SANDBOX=1: root実行のコンテナ環境（クラウドセッション等）向け。
+    // Chromiumはroot+サンドボックスで起動拒否するため。Mac等の通常実行では指定不要（挙動不変）。
+    const extraArgs = process.env.SMOKE_NO_SANDBOX === "1" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
     browser = await puppeteer.launch({
       executablePath: chromePath,
       headless: true,
-      args: ["--no-first-run", "--no-default-browser-check", "--disable-extensions", "--hide-scrollbars"],
+      args: ["--no-first-run", "--no-default-browser-check", "--disable-extensions", "--hide-scrollbars"].concat(extraArgs),
     });
     const page = await browser.newPage();
     page.setDefaultTimeout(10000);
     await page.setViewport({ width: 390, height: 844 }); // スマホ想定
+    // SMOKE_BLOCK_EXTERNAL=1: 外部リソース(fonts/ytimg等)を即時abortする。プロキシ環境（クラウド
+    // セッション等）では外部リクエストがエラーにならず黙って固まり、loadイベントが10秒を超えて
+    // 全ステップがNavigation timeoutで連鎖失敗するため。アプリは外部失敗を警告扱いのオフライン
+    // 耐性設計なので、遮断＝オフライン相当のテストになる。Mac等の通常実行では指定不要（挙動不変）。
+    if (process.env.SMOKE_BLOCK_EXTERNAL === "1") {
+      await page.setRequestInterception(true);
+      page.on("request", (req) => {
+        if (isExternal(req.url())) req.abort().catch(() => {});
+        else req.continue().catch(() => {});
+      });
+    }
     page.on("dialog", (d) => d.accept().catch(() => {}));
     page.on("pageerror", (err) => {
       consoleErrors.push("[" + currentStep + "] pageerror: " + String(err && err.message ? err.message : err));
@@ -199,6 +213,9 @@ async function main() {
           for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) { btns[i].click(); return; } }
         }, text);
       }
+      // 2026-07-12 オンボ4問化（Q0もじの大きさ新設・本人フィードバック）に追従:
+      // 「大きめ（いまのまま）」を選ぶ（Q1にも同名チップ「ふつう」があるため一意な「大きめ」でタップ）
+      await tapObChip("大きめ");         // Q0: もじの大きさ → bigtext既定(true)のまま
       await tapObChip("ガチガチかも");   // Q1: 硬い → ルーティングはかたさチェック
       await tapObChip("肩こり・首");     // Q2
       await tapObChip("朝おきて");       // Q3 → setAnchor("asa") 実保存
@@ -211,7 +228,7 @@ async function main() {
       if (qn.indexOf("Q1") !== 0) throw new Error("かたさチェックQ1に遷移していない (" + qn + ")");
       await page.click("#tab-home");
       await visible("#home");
-      return "Q1ガチガチ→Q2肩こり・首→Q3朝(anchor=asa保存)→CTAでかたさチェックQ1へ→ホーム復帰";
+      return "Q0大きめ→Q1ガチガチ→Q2肩こり・首→Q3朝(anchor=asa保存)→CTAでかたさチェックQ1へ→ホーム復帰";
     });
 
     // 2. かたさチェック5問を実ボタンクリックで完走 → タイプ名・アイコン・処方3本
@@ -374,7 +391,8 @@ async function main() {
       if (counts.oga < 2) throw new Error("回答吹き出しが2個未満 (実測 " + counts.oga + ")");
       // 回答の吹き出し出し切り（続き質問チップに切り替わる）まで待つ。表示中は送信ガードが効くため
       await page.waitForFunction(
-        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 8000 }
+        // 2026-07-12 相談室テンポ調整（3個目以降の吹き出し間隔が倍・上限3200ms・本人承認）に追従: 8000→16000
+        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 16000 }
       );
       // スクロール根治の確認①: 回答表示までの間、ページ全体のスクロール位置が1pxも動いていない
       const scrollAfter = await page.evaluate(() => window.pageYOffset);
@@ -423,7 +441,8 @@ async function main() {
         () => document.querySelectorAll("#sdLog .sd-row.user").length >= 1, { timeout: 8000 }
       ); // 指定インテントの相談（右吹き出し）が出る=初回オープンでもチップが無反応にならない
       await page.waitForFunction(
-        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 8000 }
+        // 2026-07-12 相談室テンポ調整（3個目以降の吹き出し間隔が倍・上限3200ms・本人承認）に追従: 8000→16000
+        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 16000 }
       );
       const noType = await page.evaluate((reSrc) => ({
         quizChip: document.getElementById("sdChips").textContent.indexOf("かたさチェック") !== -1,
@@ -454,7 +473,8 @@ async function main() {
       await page.evaluate(() => { document.querySelector("#rSoudanLink a").click(); });
       await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
       await page.waitForFunction(
-        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 8000 }
+        // 2026-07-12 相談室テンポ調整（3個目以降の吹き出し間隔が倍・上限3200ms・本人承認）に追従: 8000→16000
+        () => document.getElementById("sdChips").textContent.indexOf("べつの悩み") !== -1, { timeout: 16000 }
       );
       const typed = await page.evaluate(() => ({
         user: document.querySelectorAll("#sdLog .sd-row.user").length,

@@ -4,6 +4,16 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-12
 
+## 2026-07-12 qa/smoke消化＋smoke.jsのクラウド対応（クラウドセッション・PR）
+subPC 3便（総点検minor3-7／使い方タブ刷新／5レンズ磨き）の「⚠️qa/smoke未実行」をクラウド環境のnode+Chromiumで消化:
+- **qa.js: 全項目PASS**（ES2020ガード・soudan-kb 120インテント・sw.js ASSETS 30件など）
+- **smoke.js: 14/14 PASS**（修正3点の後）。修正内容:
+  1. **1bを4問化に追従**: Q0「もじの大きさ」で「大きめ（いまのまま）」をタップする1手を追加（予告されていた宿題。Q1にも「ふつう」チップがあるため一意な「大きめ」でタップ）
+  2. **「べつの悩み」チップ待ちを8000→16000msに（3箇所）**: 相談室テンポ調整（3個目以降の吹き出し間隔が倍・上限3200ms・本人承認）で回答完了が8秒を超え得るため。6cが実際に8秒超でFAILしていた＝アプリは意図どおり・テスト側の追従漏れ
+  3. **環境フラグ2種を新設（Mac実行は挙動不変）**: `SMOKE_NO_SANDBOX=1`（root実行コンテナでChromiumが起動拒否するため--no-sandbox付与）／`SMOKE_BLOCK_EXTERNAL=1`（プロキシ環境で外部リソースが黙って固まりNavigation timeoutが連鎖するため、外部リクエストを即時abort=オフライン相当のテストに）
+- クラウドでの実行コマンド: `SMOKE_CHROME=/opt/pw-browsers/chromium SMOKE_NO_SANDBOX=1 SMOKE_BLOCK_EXTERNAL=1 npm run smoke`
+- メインPC(Mac)では従来どおり `npm run smoke` のみでよい
+
 ## 2026-07-12 UI/UXプロ視点5レンズで磨き（さぶPC alan14・本人リクエスト「離脱防止・見やすさ」対応・⚠️qa/smoke未実行）
 既存コードを5つの専門的観点で読み込み、実在する具体的な穴だけを直した（新規デザイン刷新はしていない）:
 1. **視覚階層**: 結果画面に`#rTourBtn`(前回追加)と`goHome`ボタンが両方btn-primary(黄)で並び、本命が分からなくなっていた退行を修正。rTourBtnをbtn-ghostへ格下げ
