@@ -175,7 +175,7 @@
   .gflow .ga{color:var(--sub);font-weight:900}
   .gmock{pointer-events:none;user-select:none}
   /* ゴールドカードの見本（drawCardのGOLDテーマ=金グラデ/白カード/破線ふち/リボンピルをCSSで再現） */
-  .gcardmock{background:linear-gradient(135deg,#FFF6D8,#FFE8B0);border-radius:16px;padding:12px 14px 8px;max-width:250px;margin:4px auto 12px;text-align:center}
+  .gcardmock{background:linear-gradient(135deg,#FFF6D8,#FFE8B0);border-radius:var(--radius);padding:12px 14px 8px;max-width:250px;margin:4px auto 12px;text-align:center}
   .gcardmock .gcm-pill{display:inline-block;background:#B8860B;color:#fff;font-weight:900;font-size:12px;border-radius:99px;padding:4px 14px;margin-bottom:8px}
   .gcardmock .gcm-inner{background:rgba(255,255,255,.94);border:2px dashed rgba(184,134,11,.45);border-radius:14px;padding:10px 8px}
   .gcardmock .gcm-inner img{width:56px;height:56px;object-fit:contain;display:block;margin:0 auto 2px}
@@ -330,7 +330,7 @@
   .rotate-note{font-size:13px;color:var(--sub);text-align:center;margin-top:4px}
   /* きょうの1本 */
   .seg{display:flex;background:var(--line);border-radius:16px;padding:4px;margin-bottom:12px}
-  .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;border:none;border-radius:12px;padding:9px 2px;font-size:15px;font-weight:900;white-space:nowrap;
+  .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;border:none;border-radius:12px;padding:13px 2px;font-size:15px;font-weight:900;white-space:nowrap;
     font-family:inherit;background:none;color:var(--sub);cursor:pointer}
   .seg button svg{width:18px;height:18px}
   .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
@@ -384,6 +384,7 @@
   .searchbox input{border:none;outline:none;flex:1;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;min-width:0}
   .searchbox input::placeholder{color:#948E7C;font-size:15px}
   .catrow{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .catrow.fade-r{-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent)}
   .catbtn{flex-shrink:0;border:none;background:var(--line);border-radius:12px;padding:10px 13px;font-family:inherit;font-size:14px;font-weight:900;color:var(--sub);cursor:pointer;white-space:nowrap}
   .catbtn.on{background:var(--yellow);color:#3A3A35}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
@@ -446,7 +447,7 @@
   #soudanCard .chips{margin:8px 0 0;pointer-events:auto}
   /* とどくメーター */
   .reach-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-  .reach-btn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:10px 2px;font-family:inherit;font-size:14px;font-weight:800;color:var(--sub);cursor:pointer}
+  .reach-btn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:13px 2px;font-family:inherit;font-size:14px;font-weight:800;color:var(--sub);cursor:pointer}
   .reach-btn.on{background:var(--teal);border-color:var(--teal);color:#fff}
   .rtrack{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:10px}
   .rbar{width:16px;height:100%;display:flex;align-items:flex-end}
@@ -640,7 +641,7 @@
     <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
     <div id="rSoudanLink" class="hidden" style="font-size:14px;margin-top:10px;text-align:center"></div>
   </div>
-  <button class="btn btn-primary hidden" id="rTourBtn" onclick="rTourGo()" style="margin-bottom:10px">📖 つづき：使い方ツアーへ</button>
+  <button class="btn btn-ghost hidden" id="rTourBtn" onclick="rTourGo()" style="margin-bottom:10px">📖 つづき：使い方ツアーへ</button>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回チェックする</button>
 </section>
@@ -1114,7 +1115,7 @@ function obuValidAssetPath(p){
 function obuPostInner(item,withDate){
   const dateLabel = withDate ? `<div class="obu-date">${obuFmtDate(item.date,item.time)}</div>` : "";
   if(item.type==="photo"){
-    const img = obuValidAssetPath(item.image) ? `<img src="${item.image}" alt="" loading="lazy">` : "";
+    const img = obuValidAssetPath(item.image) ? `<img src="${item.image}" alt="" loading="lazy" onerror="this.style.display='none'">` : "";
     return `${dateLabel}${img}<div class="obu-cap">${escHtml(item.text)}</div>`;
   }
   if(item.type==="radio"){
@@ -1375,7 +1376,7 @@ function navTo(id){
 function switchTab(t){
   if(t==="home"){ goHome(); return; }
   if(t==="history") renderHistory();
-  if(t==="search") renderSearch();
+  if(t==="search"){ renderSearch(); try{ catRowFadeUpdate(); }catch(e){} } // 非表示中はclientWidth=0で計算できないため、開いた直後に再計算
   navTo(t);
 }
 // 使い方タブの目次チップ→カードへスクロール（reduced-motionでは即ジャンプ）

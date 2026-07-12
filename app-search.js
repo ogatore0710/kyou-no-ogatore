@@ -17,11 +17,20 @@ function buildChips(){
     years.map(y=>`<option value="${y}">${y}年</option>`).join("");
 }
 function renderCats(){
-  document.getElementById("catRow").innerHTML = TAG_CATS.map(c=>
+  const row=document.getElementById("catRow");
+  row.innerHTML = TAG_CATS.map(c=>
     `<button class="catbtn${c.key===activeCat?" on":""}" onclick="setCat('${c.key}')">${c.name}</button>`).join("");
   const cat=TAG_CATS.find(c=>c.key===activeCat);
   document.getElementById("chips").innerHTML = cat.tags.map(t=>
     `<button class="chip chip-${TAG_COLOR[t]||"d"}${t===activeTag?" on":""}" onclick="toggleChipByName('${t}')">${t}</button>`).join("");
+  catRowFadeUpdate(row);
+}
+// 横スクロールのカテゴリ行: 右に続きがあるときだけ右端をフェード(相談室チップと同じ手法=画面外の見切れに気づける)
+function catRowFadeUpdate(row){
+  row=row||document.getElementById("catRow");
+  if(!row) return;
+  if(!row.__fadeHooked){ row.__fadeHooked=true; row.addEventListener("scroll",function(){ catRowFadeUpdate(row); },{passive:true}); }
+  row.classList.toggle("fade-r", row.scrollWidth-row.scrollLeft-row.clientWidth>8);
 }
 function setCat(k){ activeCat=k; renderCats(); }
 function toggleChipByName(t){
