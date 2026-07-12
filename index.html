@@ -184,6 +184,19 @@
   .gcardmock .gcm-note{font-size:12px;color:#B8860B;font-weight:800;margin-top:2px}
   .gcardmock .gcm-cap{font-size:11px;color:#B8860B;opacity:.75;font-weight:800;margin-top:6px}
   body.dark .gcardmock{background:linear-gradient(135deg,#4A3A15,#3A2F10)}
+  /* 記録カード見本の通常配色版（使い方ツアー用） */
+  .gcardmock.gcm-n{background:linear-gradient(135deg,#FFEDF3,#DFF5F2)}
+  .gcm-n .gcm-pill{background:var(--teal)}
+  .gcm-n .gcm-inner{border-color:rgba(43,179,163,.45)}
+  .gcm-n .gcm-days,.gcm-n .gcm-note,.gcm-n .gcm-cap{color:var(--teal)}
+  body.dark .gcardmock.gcm-n{background:linear-gradient(135deg,#3A2530,#1F3A35)}
+  /* 使い方ツアー（スライド形式・#welcome内） */
+  .obt{text-align:center;padding:2px 2px 6px}
+  .obt-t{font-size:17px;font-weight:900;margin:4px 0 10px}
+  .obt-v{margin:0 auto 10px;max-width:340px}
+  .obt-v .card{margin:0;text-align:left}
+  .obt-d{font-size:14px;line-height:1.9;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 14px}
+  .obt .dots{margin:12px 0 0}
   /* 使い方タブ: 目次チップ＋よくあるしつもん(開閉式) */
   .gtoc{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
   .gtoc .chip{color:var(--ink)}
@@ -627,6 +640,7 @@
     <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
     <div id="rSoudanLink" class="hidden" style="font-size:14px;margin-top:10px;text-align:center"></div>
   </div>
+  <button class="btn btn-primary hidden" id="rTourBtn" onclick="rTourGo()" style="margin-bottom:10px">📖 つづき：使い方ツアーへ</button>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回チェックする</button>
 </section>
@@ -1521,6 +1535,8 @@ function vHTML(v, badge){
 function videoCard(vk, badge){ return vHTML(V[vk], badge); }
 function showResult(saved){
   const T=TYPES[saved.key];
+  // オンボからかたさチェックに来た人（ツアー未見）には「つづき：使い方ツアー」を出す
+  try{ const tb=document.getElementById("rTourBtn"); if(tb) tb.classList.toggle("hidden",!(typeof obTourAfterQuiz!=="undefined"&&obTourAfterQuiz)); }catch(e){}
   {
     const img=TYPE_IMG[saved.key];
     document.getElementById("rIllust").innerHTML = img
@@ -3823,32 +3839,35 @@ const ONBOARDING_SCRIPT={
   close:[
     "ホーム画面についかすると記録がずっとのこるよ📌 やり方は使い方タブへ",
     "困ったら、ホームの相談室からいつでも聞いてね😊"
-  ],
-  // 使い方ツアー: 1機能ずつ「つぎへ」で進む（オンボ終了時に選択 or 使い方タブから単独起動）
-  tour:[
-    {say:["① まずは動画！ホームの「きょうの1本」の▶をタップ",
-          "YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"]},
-    {say:["② もどったら「きょうやった！」をポチッ✅",
-          "連続と通算の日数がのびていくよ",
-          "休んでも毎月3枚の🎫おやすみ券が自動で連続を守ってくれる"]},
-    {say:["③ 記録カードのつくりかた🖼",
-          "「きょうやった！」のあとに出る「記録カードを画像でのこす」を押す",
-          "「保存・シェアする」で写真に保存📷 SNSやコメント欄にもどうぞ"]},
-    {say:["④ ホームの「つづけた日数」カードのいちばん下に💛ボタン",
-          "1日1回「ありがとう」をのこせるよ 記録カードにも刻まれます"]},
-    {say:["⑤ からだの悩みは右下の💬ボタン＝オガトレ相談室",
-          "「肩こり」みたいに打つか、下のチップをタップするだけ",
-          "オガトレ監修の答えとおすすめ動画が返ってくるよ"]},
-    {say:["⑥ 右下の写真ボタンは「オガトレ通信」📣",
-          "尾形さんのひとこと・写真・ラジオが届くよ",
-          "ホームの「きょうのひとこと」も毎日かわります✅"]},
-    {say:["⑦ 下の「マイ記録」タブで がんばりがぜんぶ見えるよ",
-          "カレンダーの印・とどくメーター📏・せんぱいの声・ひとことにっき📝"]},
-    {say:["⑧ 忘れちゃっても だいじょうぶ",
-          "下の「使い方」タブにぜんぶ書いてあるよ",
-          "このツアーも「📖 使い方ツアー」からいつでももう一度！"]}
   ]
 };
+// 使い方ツアー（スライド形式・実際の画面を再現したモックつき。gmockでタップ不可）
+const OB_TOUR_SLIDES=[
+  {t:"📺 まいにち1本、動画をやる",
+   v:`<div class="card"><div style="font-weight:900;margin-bottom:8px">きょうの1本</div><a class="video"><img src="https://i.ytimg.com/vi/Re5FPU5_37g/mqdefault.jpg" alt="" onerror="this.style.visibility='hidden'"><div><span class="vt">開脚できるようになる2週間ストレッチ</span><div class="vs">▶ タップでYouTubeがひらきます</div></div></a></div>`,
+   d:"ホームの<b>「きょうの1本」</b>をタップするとYouTubeがひらくよ 見おわったらこのアプリにもどってきてね"},
+  {t:"✅ おわったら「きょうやった！」",
+   v:`<div class="card" style="text-align:center"><div style="font-weight:900">つづけた日数（通算）</div><div style="margin:2px 0"><span class="num" style="font-size:38px;color:var(--pink)">8</span><span style="font-weight:900;font-size:16px">日目</span></div><button class="btn done-btn" style="margin-top:6px">きょうやった！</button></div>`,
+   d:"押すと連続と通算がのびるよ 休んでも毎月3枚の<b>🎫おやすみ券</b>が自動で連続を守ってくれます"},
+  {t:"🖼 記録カードをつくる",
+   v:`<div class="gcardmock gcm-n" style="margin-bottom:0"><div class="gcm-pill">#きょうのオガトレ</div><div class="gcm-inner"><img src="assets/chara-kaikyaku.png" alt=""><div class="gcm-days">通算 <b>8</b>日目</div><div class="gcm-note">きょうのメモも入ります✍️</div></div></div>`,
+   d:"「きょうやった！」のあと<b>「記録カードを画像でのこす」</b>→<b>「保存・シェアする」</b>で写真に保存📷 SNSやコメント欄にもどうぞ"},
+  {t:"💛 ありがとうをのこす",
+   v:`<div class="card" style="text-align:center"><div style="font-size:13px;color:var(--sub)">「つづけた日数」カードのいちばん下</div><button class="btn btn-ghost" style="font-size:14px;width:auto;display:inline-block;padding:9px 26px;margin-top:8px">💛 きょうのありがとう</button></div>`,
+   d:"1日1回押せるよ 「ありがとう」の回数は記録カードにも刻まれます"},
+  {t:"💬 悩みは相談室で質問",
+   v:`<div style="text-align:left"><div class="sd-row user" style="display:flex;justify-content:flex-end;margin-bottom:8px"><div class="sd-b">肩こりがつらい</div></div><div class="sd-row oga" style="display:flex;gap:8px"><img class="sd-ava" src="assets/chara-hitokoto.png" alt="" style="width:34px;height:34px;flex-shrink:0"><div class="sd-b">それはつらいね…！まずはこの1本からやってみよう😊</div></div></div>`,
+   d:"右下の<b>💬ボタン</b>から 「肩こり」みたいに打つか、チップをタップするだけ オガトレ監修の答えとおすすめ動画が返ってくるよ"},
+  {t:"📣 オガトレ通信をのぞく",
+   v:`<div style="display:flex;align-items:center;justify-content:center;gap:12px"><img src="assets/obu-fab-photo.jpg" alt="" style="width:56px;height:56px;border-radius:50%;border:3px solid var(--yellow);object-fit:cover;flex-shrink:0"><div style="text-align:left;font-size:13px;font-weight:800;line-height:1.7">右下のこの写真ボタン<br><span style="color:var(--sub);font-weight:700">ひとこと・写真・ラジオ📻</span></div></div>`,
+   d:"尾形さんからのお知らせが届くよ ホームの<b>「きょうのひとこと」</b>も毎日かわります✅"},
+  {t:"📅 マイ記録でふりかえる",
+   v:`<div class="card" style="text-align:center"><div style="font-weight:900;margin-bottom:8px">カレンダー</div><div style="display:flex;gap:7px;justify-content:center">${[1,2,3,4,5].map(n=>`<span style="width:34px;height:34px;line-height:34px;border-radius:50%;display:inline-block;font-weight:800;font-size:14px;${n<=3?"background:var(--teal);color:#fff":"color:var(--sub)"}">${n}</span>`).join("")}</div></div>`,
+   d:"やった日に印がつくよ（×はつきません）<b>とどくメーター📏・せんぱいの声・ひとことにっき📝</b>もこのタブ"},
+  {t:"📖 忘れてもだいじょうぶ",
+   v:`<div class="card" style="text-align:center;font-size:14px;line-height:1.9">下の<b>「使い方」タブ</b>に<br>ぜんぶ書いてあります</div>`,
+   d:"このツアーも使い方タブの<b>「📖 使い方ツアー」</b>からいつでももう一度見られるよ"}
+];
 let obAnswers={}, obQi=0, obRouteKey=null, obPending=false, obRun=0;
 function obReducedMotion(){ try{ return !!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){ return false; } }
 function obBubble(who,text){
@@ -3937,60 +3956,65 @@ function obRoute(){
     box.appendChild(t);
   });
 }
-// ---- 使い方ツアー（1機能ずつ「つぎへ」で進む） ----
-let obTourI=0;
+// ---- 使い方ツアー（スライド形式・1機能ずつ「つぎへ」で進む） ----
+let obTourI=0, obTourDone=false, obTourAfterQuiz=false;
 function obTourStart(){
   if(obPending) return;
   obTourI=0;
   obTourStep();
 }
 function obTourStep(){
-  const steps=ONBOARDING_SCRIPT.tour;
+  const steps=OB_TOUR_SLIDES;
   if(obTourI>=steps.length){ obTourEnd(); return; }
-  obSay(steps[obTourI].say,function(){
-    const box=document.getElementById("obChips");
-    box.innerHTML="";
-    const n=document.createElement("button");
-    n.className="btn btn-primary";
-    n.textContent=(obTourI>=steps.length-1)?"おわる":"つぎへ ➡️（"+(obTourI+1)+"/"+steps.length+"）";
-    n.onclick=function(){ obTourI++; obTourStep(); };
-    box.appendChild(n);
-    if(obTourI<steps.length-1){
-      const s=document.createElement("button");
-      s.className="chip chip-b";
-      s.style.marginTop="8px";
-      s.textContent="ツアーをとばす";
-      s.onclick=obTourEnd;
-      box.appendChild(s);
-    }
-  });
+  const st=steps[obTourI];
+  const log=document.getElementById("obLog");
+  let dots=""; for(let i=0;i<steps.length;i++) dots+='<div class="dot'+(i<=obTourI?" on":"")+'"></div>';
+  log.innerHTML='<div class="obt">'
+    +'<div class="obt-t">'+st.t+'</div>'
+    +'<div class="obt-v gmock">'+st.v+'</div>'
+    +'<div class="obt-d">'+st.d+'</div>'
+    +'<div class="dots">'+dots+'</div></div>';
+  log.scrollTop=0;
+  const box=document.getElementById("obChips");
+  box.innerHTML="";
+  const n=document.createElement("button");
+  n.className="btn btn-primary";
+  n.textContent=(obTourI>=steps.length-1)?"おわる":"つぎへ ➡️（"+(obTourI+1)+"/"+steps.length+"）";
+  n.onclick=function(){ obTourI++; obTourStep(); };
+  box.appendChild(n);
+  if(obTourI<steps.length-1){
+    const s=document.createElement("button");
+    s.className="chip chip-b";
+    s.style.marginTop="8px";
+    s.textContent="ツアーをとばす";
+    s.onclick=obTourEnd;
+    box.appendChild(s);
+  }
 }
 function obTourEnd(){
-  if(obPending) return;
+  obTourDone=true;
   if(obRouteKey){
-    // オンボーディング経由: 元のルート案内ボタンに戻す
+    // オンボーディング経由: 締めのスライド＋元のルート案内ボタンで合流
     const rt=ONBOARDING_SCRIPT.routes[obRouteKey];
-    obSay(["これで準備ばっちり！それじゃ、はじめよう😊"],function(){
-      const box=document.getElementById("obChips");
-      box.innerHTML="";
-      const b=document.createElement("button");
-      b.className="btn btn-primary";
-      b.textContent=rt.btn;
-      b.onclick=obGo;
-      box.appendChild(b);
-    });
+    const log=document.getElementById("obLog");
+    log.innerHTML='<div class="obt"><div class="obt-t">これで準備ばっちり😊</div><div class="obt-d" style="text-align:center">それじゃ、はじめよう！</div></div>';
+    const box=document.getElementById("obChips");
+    box.innerHTML="";
+    const b=document.createElement("button");
+    b.className="btn btn-primary";
+    b.textContent=rt.btn;
+    b.onclick=obGo;
+    box.appendChild(b);
   }else{
-    // 使い方タブからの単独起動: とじるだけ
-    obSay(["いつでも使い方タブから復習できるよ📖"],function(){
-      const box=document.getElementById("obChips");
-      box.innerHTML="";
-      const b=document.createElement("button");
-      b.className="btn btn-primary";
-      b.textContent="とじる";
-      b.onclick=function(){ obClose(); };
-      box.appendChild(b);
-    });
+    // 使い方タブ/結果画面からの単独起動: そのままとじる
+    obClose();
   }
+}
+// かたさチェック結果画面の「つづき：使い方ツアーへ」（オンボ→チェック完了後の合流用）
+function rTourGo(){
+  obTourAfterQuiz=false;
+  try{ const tb=document.getElementById("rTourBtn"); if(tb) tb.classList.add("hidden"); }catch(e){}
+  obOpenTour();
 }
 // 使い方タブから: ツアーだけを単独で開く（挨拶・質問はスキップ）
 function obOpenTour(){
@@ -4006,6 +4030,8 @@ function obOpenTour(){
 }
 function obGo(){
   const r=obRouteKey, worry=obAnswers.worry;
+  // かたさチェックへ行く人がまだツアーを見ていなければ、チェック結果画面に「つづき：使い方ツアー」を出す
+  if(r==="quiz"&&!obTourDone) obTourAfterQuiz=true;
   obClose(true); // 直後にstartQuiz/openSoudan等が履歴を積むため、ここではback()しない（レース防止）
   if(r==="quiz"){ startQuiz(); return; }
   if(r==="soudan"){ try{ openSoudan(worry); return; }catch(e){} }

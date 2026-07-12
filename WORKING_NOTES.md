@@ -12,7 +12,8 @@
 - details/summaryはiOS6+対応・qa.jsのgJump配線はメインPCで要確認
 - **本人フィードバック第2便（同日）**: ①オンボのテロップ0.5倍速=obSay 480→960ms ②**もじの大きさ既定を「大きめ」に反転**（早期スクリプト=kyono_bigtext!=="false"で付与・applyBigtextのstore.get既定true。「ふつう」を明示選択した既存ユーザーはそのまま） ③**オンボにQ0「もじの大きさ」新設**=4問化（greet「４つだけ」・obPickでsetBigtext即反映・obAnswers.bigtextはルーティング無関係） ④ゴールドカードのCSS見本(.gcardmock=GOLDテーマ再現・gcardmini廃止) ⑤FAQ相談室の答えを「オガトレが監修した回答パターン集」表現に（本人指示）
 - **⚠️ smoke 1bはオンボ3問前提のため4問化でFAILする見込み→メインPCでsmoke.js側の更新が必要**（Q0大きめ/ふつうタップを1手追加）
-- **使い方ツアー新設（本人リクエスト第3便）**: `ONBOARDING_SCRIPT.tour`=8ステップ（①動画のやり方②きょうやった③記録カード④ありがとう⑤相談室の質問の仕方⑥オガトレ通信/ひとこと⑦マイ記録の見かた⑧復習方法）。進行は`obTourStart/obTourStep/obTourEnd`・「つぎへ➡️(n/8)」で1つずつ・とばすチップあり。**入口は2つ**: (a)オンボ終了画面のルートボタン下「📖 さきに使い方を1つずつ見る」→終わると元のルートボタンが再表示されobGoへ (b)使い方タブ先頭「📖 使い方ツアー」=`obOpenTour()`で単独起動（挨拶・質問スキップ・おわりは「とじる」でobClose）。台本は全行40字以内・textContent経由（HTML注入なし）。obRouteKeyの有無でオンボ経由/単独を判別
+- **使い方ツアー新設→スライド形式に刷新（本人リクエスト第3・4便）**: データは`OB_TOUR_SLIDES`（8枚・各{t:タイトル,v:実画面風モックHTML,d:説明}）。①きょうの1本(実サムネ・.videoクラス流用)②きょうやった(done-btn+通算モック)③記録カード(.gcardmock.gcm-n=通常配色版)④ありがとう(実ボタン複製)⑤相談室(sd-row吹き出しモック)⑥通信(obu-fab-photo.jpg円形+黄枠)⑦マイ記録(ミニカレンダー)⑧復習。進行=`obTourStep`がobLogへスライド描画(チャット形式廃止・obSay不使用・即時切替)+進捗dots+「つぎへ➡️(n/8)」/「ツアーをとばす」。モックは.gmockでタップ不可・fixed文字列のinnerHTML（ユーザー入力なし）
+- **かたさチェック→ツアー合流**: obGoでquizルートかつツアー未見(obTourDone=false)なら`obTourAfterQuiz=true`→showResultが結果画面の`#rTourBtn`「📖 つづき：使い方ツアーへ」を表示→rTourGo()でobOpenTour(単独モード・とじるとback()で結果画面に復帰)。ツアー入口は計3つ（オンボ終了画面/結果画面/使い方タブ）
 
 ## 2026-07-12 総点検minor 第3〜7バッチ＋ITP再提案（さぶPC alan14・⚠️qa/smoke未実行）
 - **⚠️ このPCはnode未導入のため qa.js/smoke.js 未実行。メインPC復帰後(7/14夜〜)に必ず実行**。代替検証=JavaScriptCoreパース+ES2020禁止構文grep+kw重複grepのみ（詳細: kyou-no-ogatore-audit-minor3-7-DONE.md）
