@@ -16,6 +16,24 @@
 - sw.js: `kyono-v38`→`kyono-v39`（index.html/soudan-kb.js更新の配信）
 - ロールバック: soudan-kb.jsのredFlags.kw末尾13語＋crisisフィールド新設＋ninki mitate/note文言。index.htmlのsdCrisisHit/sdAnswerCrisis新設＋sdSendの1行＋sdAnswerFallbackの1文追加＋VOICES4件削除＋voicesセクションの1文追加。sw.jsのバージョン行
 
+## 2026-07-12 記録カードのテーマ10色化＋ちらし日替わり（クラウドセッション・本人リクエスト「背景の種類ふやして・もっと楽しく」）
+- **CARD_THEMESを5→10色**: 追加=そら/いちごみるく/ミルクティー/わかくさ/**よぞら**（夜空の紺グラデ・白カードで可読性は不変）。**過去カード再現の絶対ルール**を新設——テーマは必ず末尾に追加し、`CARD_THEMES_V2_FROM`（=2026-07-13のdateIdx）**以降の日付にだけ**効かせる。7/12以前の日付は`CARD_THEMES_V1_COUNT=5`で従来割り当て＝**改修前後でdataURL完全一致をピクセル回帰テストで確認済み**（7/04〜7/12の9枚・節目ゴールド2枚含む）
+- **ちらし飾りの日替わり化**: 7/13以降の通常カードは、固定13箇所→`cardRand(dateIdx)`（決定的シード乱数・Math.random不使用=qa.jsの決定性チェック準拠）で配置・形・大きさ・個数(12〜16)が毎日変わる。形に「おはな」(drawFlower)追加。白カードに隠れない上下左右の帯にだけ散らす。節目ゴールドは従来のまま（紙吹雪が既に特別）
+- **よぞらの日だけ三日月**(drawMoon)＋飾りは星ときらめき中心
+- ご自愛メッセージのプールは**触っていない**（増やすとfh%pool.lengthがずれて過去カードの言葉が変わるため。増やす時はテーマと同じ日付ゲート方式が必要）
+- sw.js kyono-v38→v39（index.html更新の配信）
+- 検証: ピクセル回帰＋同日2回生成の同一性＋新テーマ6種スクショ／qa 全PASS／smoke 14/14 PASS
+
+## 2026-07-12 qa/smoke消化＋smoke.jsのクラウド対応（クラウドセッション・PR）
+subPC 3便（総点検minor3-7／使い方タブ刷新／5レンズ磨き）の「⚠️qa/smoke未実行」をクラウド環境のnode+Chromiumで消化:
+- **qa.js: 全項目PASS**（ES2020ガード・soudan-kb 120インテント・sw.js ASSETS 30件など）
+- **smoke.js: 14/14 PASS**（修正3点の後）。修正内容:
+  1. **1bを4問化に追従**: Q0「もじの大きさ」で「大きめ（いまのまま）」をタップする1手を追加（予告されていた宿題。Q1にも「ふつう」チップがあるため一意な「大きめ」でタップ）
+  2. **「べつの悩み」チップ待ちを8000→16000msに（3箇所）**: 相談室テンポ調整（3個目以降の吹き出し間隔が倍・上限3200ms・本人承認）で回答完了が8秒を超え得るため。6cが実際に8秒超でFAILしていた＝アプリは意図どおり・テスト側の追従漏れ
+  3. **環境フラグ2種を新設（Mac実行は挙動不変）**: `SMOKE_NO_SANDBOX=1`（root実行コンテナでChromiumが起動拒否するため--no-sandbox付与）／`SMOKE_BLOCK_EXTERNAL=1`（プロキシ環境で外部リソースが黙って固まりNavigation timeoutが連鎖するため、外部リクエストを即時abort=オフライン相当のテストに）
+- クラウドでの実行コマンド: `SMOKE_CHROME=/opt/pw-browsers/chromium SMOKE_NO_SANDBOX=1 SMOKE_BLOCK_EXTERNAL=1 npm run smoke`
+- メインPC(Mac)では従来どおり `npm run smoke` のみでよい
+
 ## 2026-07-12 UI/UXプロ視点5レンズで磨き（さぶPC alan14・本人リクエスト「離脱防止・見やすさ」対応・⚠️qa/smoke未実行）
 既存コードを5つの専門的観点で読み込み、実在する具体的な穴だけを直した（新規デザイン刷新はしていない）:
 1. **視覚階層**: 結果画面に`#rTourBtn`(前回追加)と`goHome`ボタンが両方btn-primary(黄)で並び、本命が分からなくなっていた退行を修正。rTourBtnをbtn-ghostへ格下げ
