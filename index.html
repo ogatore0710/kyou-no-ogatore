@@ -817,7 +817,7 @@
 <!-- ===== 使い方 ===== -->
 <section id="guide" class="hidden">
 
-  <div style="text-align:center;margin-bottom:10px;font-size:14px"><a href="#" class="tapx" id="obReenterLink" onclick="obOpen();return false" style="color:var(--tealink);font-weight:800">🌱 はじめてガイドをもう一度</a></div>
+  <div style="text-align:center;margin-bottom:10px;font-size:14px"><a href="#" class="tapx" id="obReenterLink" onclick="obOpen();return false" style="color:var(--tealink);font-weight:800">🌱 はじめてガイドをもう一度</a>　<a href="#" class="tapx" id="obTourLink" onclick="obOpenTour();return false" style="color:var(--tealink);font-weight:800">📖 使い方ツアー</a></div>
 
   <div class="card grad-warm" style="text-align:center">
     <img src="assets/chara.png" alt="" style="width:84px;height:84px;object-fit:contain">
@@ -949,7 +949,7 @@
       <details><summary>じまんカードが見つからない</summary><div class="fa">お楽しみ機能なので最初は隠れています つづける設定で「オン」にすると マイ記録に出てきます💗</div></details>
       <details><summary>せんぱいの声って本物？</summary><div class="fa">はい オガトレの動画に実際に届いたコメントから紹介しています</div></details>
       <details><summary>とどくメーターは毎日やるの？</summary><div class="fa">週1回くらいでOK！のびていく証拠づくりです📏</div></details>
-      <details><summary>はじめてガイドをもう一度見たい</summary><div class="fa">この使い方タブのいちばん上「🌱 はじめてガイドをもう一度」からいつでもどうぞ</div></details>
+      <details><summary>使い方をもう一度おしえてほしい</summary><div class="fa">この使い方タブのいちばん上からどうぞ 「🌱 はじめてガイドをもう一度」は最初の質問から、「📖 使い方ツアー」は機能の説明だけを1つずつ見られます</div></details>
 
     </div>
   </div>
@@ -3823,6 +3823,30 @@ const ONBOARDING_SCRIPT={
   close:[
     "ホーム画面についかすると記録がずっとのこるよ📌 やり方は使い方タブへ",
     "困ったら、ホームの相談室からいつでも聞いてね😊"
+  ],
+  // 使い方ツアー: 1機能ずつ「つぎへ」で進む（オンボ終了時に選択 or 使い方タブから単独起動）
+  tour:[
+    {say:["① まずは動画！ホームの「きょうの1本」の▶をタップ",
+          "YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"]},
+    {say:["② もどったら「きょうやった！」をポチッ✅",
+          "連続と通算の日数がのびていくよ",
+          "休んでも毎月3枚の🎫おやすみ券が自動で連続を守ってくれる"]},
+    {say:["③ 記録カードのつくりかた🖼",
+          "「きょうやった！」のあとに出る「記録カードを画像でのこす」を押す",
+          "「保存・シェアする」で写真に保存📷 SNSやコメント欄にもどうぞ"]},
+    {say:["④ ホームの「つづけた日数」カードのいちばん下に💛ボタン",
+          "1日1回「ありがとう」をのこせるよ 記録カードにも刻まれます"]},
+    {say:["⑤ からだの悩みは右下の💬ボタン＝オガトレ相談室",
+          "「肩こり」みたいに打つか、下のチップをタップするだけ",
+          "オガトレ監修の答えとおすすめ動画が返ってくるよ"]},
+    {say:["⑥ 右下の写真ボタンは「オガトレ通信」📣",
+          "尾形さんのひとこと・写真・ラジオが届くよ",
+          "ホームの「きょうのひとこと」も毎日かわります✅"]},
+    {say:["⑦ 下の「マイ記録」タブで がんばりがぜんぶ見えるよ",
+          "カレンダーの印・とどくメーター📏・せんぱいの声・ひとことにっき📝"]},
+    {say:["⑧ 忘れちゃっても だいじょうぶ",
+          "下の「使い方」タブにぜんぶ書いてあるよ",
+          "このツアーも「📖 使い方ツアー」からいつでももう一度！"]}
   ]
 };
 let obAnswers={}, obQi=0, obRouteKey=null, obPending=false, obRun=0;
@@ -3904,7 +3928,81 @@ function obRoute(){
     b.textContent=rt.btn;
     b.onclick=obGo;
     box.appendChild(b);
+    // 使い方ツアーへの分岐（見なくても進める・見たらおわりに同じボタンが再表示される）
+    const t=document.createElement("button");
+    t.className="chip chip-b";
+    t.style.marginTop="8px";
+    t.textContent="📖 さきに使い方を1つずつ見る";
+    t.onclick=obTourStart;
+    box.appendChild(t);
   });
+}
+// ---- 使い方ツアー（1機能ずつ「つぎへ」で進む） ----
+let obTourI=0;
+function obTourStart(){
+  if(obPending) return;
+  obTourI=0;
+  obTourStep();
+}
+function obTourStep(){
+  const steps=ONBOARDING_SCRIPT.tour;
+  if(obTourI>=steps.length){ obTourEnd(); return; }
+  obSay(steps[obTourI].say,function(){
+    const box=document.getElementById("obChips");
+    box.innerHTML="";
+    const n=document.createElement("button");
+    n.className="btn btn-primary";
+    n.textContent=(obTourI>=steps.length-1)?"おわる":"つぎへ ➡️（"+(obTourI+1)+"/"+steps.length+"）";
+    n.onclick=function(){ obTourI++; obTourStep(); };
+    box.appendChild(n);
+    if(obTourI<steps.length-1){
+      const s=document.createElement("button");
+      s.className="chip chip-b";
+      s.style.marginTop="8px";
+      s.textContent="ツアーをとばす";
+      s.onclick=obTourEnd;
+      box.appendChild(s);
+    }
+  });
+}
+function obTourEnd(){
+  if(obPending) return;
+  if(obRouteKey){
+    // オンボーディング経由: 元のルート案内ボタンに戻す
+    const rt=ONBOARDING_SCRIPT.routes[obRouteKey];
+    obSay(["これで準備ばっちり！それじゃ、はじめよう😊"],function(){
+      const box=document.getElementById("obChips");
+      box.innerHTML="";
+      const b=document.createElement("button");
+      b.className="btn btn-primary";
+      b.textContent=rt.btn;
+      b.onclick=obGo;
+      box.appendChild(b);
+    });
+  }else{
+    // 使い方タブからの単独起動: とじるだけ
+    obSay(["いつでも使い方タブから復習できるよ📖"],function(){
+      const box=document.getElementById("obChips");
+      box.innerHTML="";
+      const b=document.createElement("button");
+      b.className="btn btn-primary";
+      b.textContent="とじる";
+      b.onclick=function(){ obClose(); };
+      box.appendChild(b);
+    });
+  }
+}
+// 使い方タブから: ツアーだけを単独で開く（挨拶・質問はスキップ）
+function obOpenTour(){
+  const w=document.getElementById("welcome"); if(!w) return;
+  obRun++;
+  obAnswers={}; obQi=0; obRouteKey=null; obPending=false;
+  document.getElementById("obLog").innerHTML="";
+  document.getElementById("obChips").innerHTML="";
+  w.classList.remove("hidden");
+  updateFabs();
+  try{ if(!(history.state&&history.state.ob)) history.pushState({id:currentSection,ob:1},""); }catch(e){}
+  obTourStart();
 }
 function obGo(){
   const r=obRouteKey, worry=obAnswers.worry;
