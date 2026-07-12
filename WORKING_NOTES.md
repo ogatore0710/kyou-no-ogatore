@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-12
 
+## 2026-07-12夜 AUDIT-SAFETY-PROPOSALS.md 5件を本人YES/NOで即決・適用（さぶPC alan・remote-control自走）
+- **本人（尾形さん）がこのセッションのユーザー本人だったため、提案書の5判断をAskUserQuestionでその場で確認して反映**。①②④は提案どおり推奨案、③は「まだ公開していないので検収は後日」との回答（=表記は変更せず現状維持、本人が自分のペースでkyono-soudan-kb-review-v2.txt検収を進める）、⑤は丸め表現に変更で決定
+- **①胸の痛み・動悸の赤旗新設**: soudan-kb.js redFlags.kwに`胸が痛/胸の痛み/むねがいた/胸がいた/胸が苦し/むねがくるし/胸の圧迫/動悸/どうき/心臓がどきどき/心臓がバクバク/脈が飛/脈がと`を追加（158語に）
+- **②希死念慮の専用分岐を新設**: soudan-kb.jsに新フィールド`crisis:{kw:[...],answer:...}`（死にたい/しにたい/消えたい/きえたい/自殺/じさつ/生きるのがつら/いきるのがつら＝8語）。index.htmlに`sdCrisisHit()`/`sdAnswerCrisis()`を新設し、**sdSendで赤旗より先に判定**（動画・チップなし・静かな1メッセージのみ・「いのちの電話」0570-783-556を案内）。フォールバック（未知の重い症状）にも安全な一文を追記（文言案A採用）
+- **④赤旗方針と矛盾する「せんぱいの声」4枚を削除**（VOICES 120→116枚。日替わり8選はVOICES.length参照のため影響なし）: 「7ヶ月通った痛みが1回で💫」（骨盤/ヘルニア+激痛）「病院に行く前日に治った😭」「首のぽっこり 1ヶ月で解消🙆」（吐き気を伴う頭痛/しびれ）「薬より効いたまさかの直後😳」（妊娠中の便秘）。voicesセクション冒頭に「※個人の感想です 症状があるときは医療機関へ」を追記。**保留（本人未回答）**: 3243「薬が効かない頭痛にも支えに」・3258「産後3ヶ月 2日で眠れた」は今回対象外のまま
+- **⑤人気動画の再生回数ハードコード（2800万/2300万/1400万）を丸め表現に**（soudan-kb.js ninkiインテント）。「1000万回をこえて再生されてる定番」に変更・note欄も「◯◯万回」→「開脚の看板動画/肩甲骨の定番/朝の定番」
+- **③は現状維持**（本人回答による）: sd-disc/FAQの「オガトレ監修のパターン集」表記はそのまま。M2の105件検収（kyono-soudan-kb-review-v2.txt）は本人のペースで後日実施予定
+- **⚠️ このさぶPCはnode未導入のため npm test/npm run smoke は不可（[[sub-pc-no-node-verification]]）。代替検証を実施**: (a) 全script blockをJavaScriptCore(`osascript -l JavaScript`)で`new Function`パース→index.html/soudan-kb.js/sw.js/app-search.js全ブロックOK (b) soudan-kb.jsの構造をqa.js相当のロジックで手動チェック（intent必須フィールド・動画ID形式・redFlags/crisis存在・followups参照解決）→OK (c) **赤旗/crisis判定を実コード(sdNorm+sdRedFlagHit+sdCrisisHit)で再現し決定論的にテスト**: 胸痛/動悸系「危険側」6/6・「巻き込まない側」4/4、希死念慮「危険側」4/4・「巻き込まない側」4/4、全18/18想定どおり（検証スクリプトはscratchpad、redflag-safety-test方式の簡易版）。(d) 追加行にES2020禁止構文なし（grep確認済み）
+- **メインPC復帰後(7/14夜〜)に要実行**: `npm test`（qa.js）・`npm run smoke`のフル実行、可能なら既存のredflag-safety-test方式（55/55）に今回の8ケース（胸痛/動悸4＋巻き込まない2、crisis相当）を正式追加して再固定
+- sw.js: `kyono-v38`→`kyono-v39`（index.html/soudan-kb.js更新の配信）
+- ロールバック: soudan-kb.jsのredFlags.kw末尾13語＋crisisフィールド新設＋ninki mitate/note文言。index.htmlのsdCrisisHit/sdAnswerCrisis新設＋sdSendの1行＋sdAnswerFallbackの1文追加＋VOICES4件削除＋voicesセクションの1文追加。sw.jsのバージョン行
+
 ## 2026-07-12 UI/UXプロ視点5レンズで磨き（さぶPC alan14・本人リクエスト「離脱防止・見やすさ」対応・⚠️qa/smoke未実行）
 既存コードを5つの専門的観点で読み込み、実在する具体的な穴だけを直した（新規デザイン刷新はしていない）:
 1. **視覚階層**: 結果画面に`#rTourBtn`(前回追加)と`goHome`ボタンが両方btn-primary(黄)で並び、本命が分からなくなっていた退行を修正。rTourBtnをbtn-ghostへ格下げ

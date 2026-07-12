@@ -785,7 +785,7 @@
 <section id="voices" class="hidden">
   <div class="card" style="margin-bottom:14px">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M3.5 8 12 13.5 20.5 8"/></svg>せんぱいの声</div>
-    <div style="font-size:14px;line-height:1.9">まえを歩くせんぱいたちの ほんとうの声です🌱<br>カードをタップするとめくれます<br><span style="font-size:12px;color:var(--sub)">※YouTubeコメントの原文のまま（お名前は出ません）</span></div>
+    <div style="font-size:14px;line-height:1.9">まえを歩くせんぱいたちの ほんとうの声です🌱<br>カードをタップするとめくれます<br><span style="font-size:12px;color:var(--sub)">※YouTubeコメントの原文のまま（お名前は出ません）<br>※個人の感想です 症状があるときは医療機関へ</span></div>
   </div>
   <div id="voiceList"></div>
   <button class="btn btn-line" onclick="navTo('history')">← マイ記録にもどる</button>
@@ -2979,6 +2979,12 @@ function sdRedFlagHit(n){
   for(const k0 of kb.redFlags.kw){ const k=sdNorm(k0); if(k.length>=2&&n.indexOf(k)>=0) return true; }
   return false;
 }
+// 希死念慮など緊急語。赤旗よりさらに先に判定し、動画やチップを出さず静かな窓口案内だけ返す
+function sdCrisisHit(n){
+  const kb=sdKb(); if(!kb||!kb.crisis||!Array.isArray(kb.crisis.kw)) return false;
+  for(const k0 of kb.crisis.kw){ const k=sdNorm(k0); if(k.length>=2&&n.indexOf(k)>=0) return true; }
+  return false;
+}
 // 産後(慢性・時期不明)の相談に添える一言注意フラグ。赤旗(急性・早期)を抜けた後だけ使う
 function sdSangoChronic(n){ return n.indexOf("産後")>=0||n.indexOf("出産後")>=0; }
 function sdScoreIntents(n){
@@ -3045,6 +3051,12 @@ function sdAnswerRedFlag(){
   sdChipsMode={type:"intents"};
   sdPush(msgs);
 }
+function sdAnswerCrisis(){
+  const kb=sdKb(); const cf=kb.crisis||{};
+  sdCtx.smalltalkStreak=0;
+  sdChipsMode={type:"intents"};
+  sdPush([{who:"oga",html:sdText(cf.answer||"つらい気持ちを教えてくれてありがとう。ひとりで抱えないでほしいな。「いのちの電話」0570-783-556（ナビダイヤル）など、話を聴いてくれる窓口があります。"),red:true}]);
+}
 function sdAnswerSmalltalk(st){
   sdCtx.smalltalkStreak++;
   const msgs=[]; const reps=st.replies||[];
@@ -3063,7 +3075,7 @@ function sdAnswerFallback(raw){
     +`<a href="#" class="tapx" onclick="copyMailAddr(this);return false" style="color:var(--tealink);font-weight:800;font-size:14px">📋 メールがひらかない方はアドレスをコピー</a>`
     +`<br><a href="#" class="tapx" onclick="switchTab('search');return false" style="color:var(--tealink);font-weight:800;font-size:14px">🔍 動画を探すタブでさがしてみる</a>`;
   sdChipsMode={type:"intents"};
-  sdPush([{who:"oga",html:"ごめんね、その悩みはまだ勉強中🙏<br>近いのはこのあたりかも！下のチップからどうぞ"},{who:"oga",html:html2}]);
+  sdPush([{who:"oga",html:"ごめんね、その悩みはまだ勉強中🙏<br>近いのはこのあたりかも！下のチップからどうぞ<br><span style=\"font-size:13px;color:var(--sub)\">※つらい症状（強い痛み・胸の苦しさ・熱など）があるときは、メールより先に医療機関に相談してね</span>"},{who:"oga",html:html2}]);
 }
 function sdAnswerFollowup(f){
   const it=sdIntentById(sdCtx.lastIntentId);
@@ -3111,6 +3123,7 @@ function sdSend(){
   el.value="";
   sdUserBubble(raw);
   const n=sdNorm(raw);
+  if(sdCrisisHit(n)){ sdAnswerCrisis(); return; } // ⓪希死念慮は赤旗よりさらに先。動画やチップを出さず静かな窓口案内だけ
   if(sdRedFlagHit(n)){ sdAnswerRedFlag(); return; } // ①赤旗は他を見ずに最優先（産後の急性・早期はここで受診案内）
   const sango=sdSangoChronic(n);                     // ②赤旗を抜けた産後=慢性/時期不明→通常回答＋一言注意
   const ranked=sdScoreIntents(n);                    // ③スコア=ヒットkwの文字数合計
@@ -3304,9 +3317,6 @@ const VOICES=[
   {tag:"O脚", front:"1回で両膝がくっついた✨", vid:"hgkwrennHM8",
    q:"これで？って半信半疑でした、が…諦めていたO脚がこの1回で両膝が触れ合いました涙　このストレッチを続けたいと思います✨ありがとうございます",
    src:"O脚ストレッチ"},
-  {tag:"骨盤", front:"7ヶ月通った痛みが1回で💫", vid:"QAXrsiUVDNk",
-   q:"椎間板ヘルニアを若い時から患い、ここ7ヶ月整形外科に通いリハビリや整体等を受けて少しよくなったかと思うとまた激痛が走るの繰り返しで正直諦めかけていたところ、この動画に出逢いました‼︎今やってみたところ、股関節付近のズキズキする痛みがウソのように消えて失くなりました✨",
-   src:"骨盤矯正ストレッチ"},
   {tag:"もも裏", front:"諦めてたつま先に届いた😂", vid:"CyWthETY73s",
    q:"ガチガチで諦めていたつま先がつかめるようになりました😂すごいです！",
    src:"もも裏ストレッチ"},
@@ -3319,12 +3329,6 @@ const VOICES=[
   {tag:"もも裏", front:"生まれて初めて膝がまっすぐ😭", vid:"3_z8R2l4CKE",
    q:"えー！すごい！！！人生で生まれて初めて膝がまっすぐになりました！！！いままでまっすぐになったことなかったの！！絶対毎日やります！！！感動😭",
    src:"もも裏ストレッチ"},
-  {tag:"首・頭痛", front:"病院に行く前日に治った😭", vid:"8rOq_AqiNaw",
-   q:"吐き気を伴う片頭痛が5日続いて、あと数日続いたら病院行こう…と思っていたときにこちらのストレッチを見つけました。ダメ元でやってみたところ、なんと次の日には頭痛が治っていて…！！本当に泣きそうなくらい感動しました。",
-   src:"頭痛・首ストレッチ"},
-  {tag:"首・頭痛", front:"首のぽっこり 1ヶ月で解消🙆", vid:"KRNc28DtFNM",
-   q:"首の後の盛り上がり、これは一体なんだろう？と長年疑問でした！手の指の痺れもあり病院を受診しようかと悩んでいた所、オガトレさんの動画に出会いました。毎日ストレッチして約1ヶ月。なんと、ぽっこり首が治り、肩こりも、指の痺れも軽減しました。",
-   src:"ストレートネック"},
   {tag:"肩甲骨", front:"何十年もの肩がついに🙌", vid:"ZYTlwh_FhoU",
    q:"オガトレさんのお陰で、何十年も毎日苦しんできた肩甲骨が良くなりました。ありがとうございます！",
    src:"肩甲骨ストレッチ"},
@@ -3352,9 +3356,6 @@ const VOICES=[
   {tag:"反り腰", front:"産後3ヶ月 2日で眠れた😭", vid:"IPvnqtokBMk",
    q:"産後3ヶ月ママです！妊娠中から反り腰酷くて出産を機にさらに反り腰＋骨盤グラグラでほんとに毎日寝るのもしんどかったのですが、2日間お風呂上がりにこれやっただけで仰向けで寝れるようになって感動してます😭✨",
    src:"反り腰ストレッチ"},
-  {tag:"便秘", front:"薬より効いたまさかの直後😳", vid:"h0lATIr6Qvs",
-   q:"妊娠して人生初便秘になり、便秘薬を処方してもらって飲むもなかなか出なくて苦しんでいましたが、このストレッチをやったら直後に出ました。",
-   src:"便秘解消ストレッチ"},
   {tag:"反り腰", front:"フルコンボ判定からの再出発💪", vid:"IPvnqtokBMk",
    q:"昨日人生初マッサージいきました！反り腰、巻き肩、ストレートネック、歯軋りフルコンボですねって言われました！がんばろ…",
    src:"反り腰ストレッチ"},
