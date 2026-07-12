@@ -10,6 +10,8 @@
 - **FAQを6問→27問**の開閉式（details/summary・.faqクラス・4グループ=きほん/記録/相談室/見ため）。「記録が消えない3つの守り」カードの本題外2行(文字サイズ・はじめてガイド)はFAQへ移管
 - FAQの相談室説明は「決まった回答パターン集からアプリが選ぶ・端末外に送信しない」の事実ベース表現（監修表示問題AUDIT-SAFETY-PROPOSALS.md③に抵触しない言い回し）
 - details/summaryはiOS6+対応・qa.jsのgJump配線はメインPCで要確認
+- **本人フィードバック第2便（同日）**: ①オンボのテロップ0.5倍速=obSay 480→960ms ②**もじの大きさ既定を「大きめ」に反転**（早期スクリプト=kyono_bigtext!=="false"で付与・applyBigtextのstore.get既定true。「ふつう」を明示選択した既存ユーザーはそのまま） ③**オンボにQ0「もじの大きさ」新設**=4問化（greet「４つだけ」・obPickでsetBigtext即反映・obAnswers.bigtextはルーティング無関係） ④ゴールドカードのCSS見本(.gcardmock=GOLDテーマ再現・gcardmini廃止) ⑤FAQ相談室の答えを「オガトレが監修した回答パターン集」表現に（本人指示）
+- **⚠️ smoke 1bはオンボ3問前提のため4問化でFAILする見込み→メインPCでsmoke.js側の更新が必要**（Q0大きめ/ふつうタップを1手追加）
 
 ## 2026-07-12 総点検minor 第3〜7バッチ＋ITP再提案（さぶPC alan14・⚠️qa/smoke未実行）
 - **⚠️ このPCはnode未導入のため qa.js/smoke.js 未実行。メインPC復帰後(7/14夜〜)に必ず実行**。代替検証=JavaScriptCoreパース+ES2020禁止構文grep+kw重複grepのみ（詳細: kyou-no-ogatore-audit-minor3-7-DONE.md）

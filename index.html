@@ -123,7 +123,6 @@
   body.dark .grad-mint{background:linear-gradient(135deg,#22403B,#33301C)}
   body.dark .grad-pink{background:linear-gradient(135deg,#33232B,#33301C)}
   body.dark .grad-soft{background:linear-gradient(160deg,#2C2822,#33232B)}
-  body.dark .gcardmini{background:linear-gradient(135deg,#4A3A15,#3A2F10);color:#E8C74C}
   body.dark [stroke="#3A3A35"]{stroke:#EDE7D9}
   body.dark .card{box-shadow:none}
   /* きょうのひとこと（card/bgの差が僅少で実機だと箱が消えて見えるため明示的に強調） */
@@ -175,7 +174,16 @@
   .gflow .gf{background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px;font-weight:800;text-align:center;min-width:84px}
   .gflow .ga{color:var(--sub);font-weight:900}
   .gmock{pointer-events:none;user-select:none}
-  .gcardmini{background:linear-gradient(135deg,#FFF6D8,#FFE8B0);border-radius:14px;padding:14px;text-align:center;color:#B8860B;font-weight:900}
+  /* ゴールドカードの見本（drawCardのGOLDテーマ=金グラデ/白カード/破線ふち/リボンピルをCSSで再現） */
+  .gcardmock{background:linear-gradient(135deg,#FFF6D8,#FFE8B0);border-radius:16px;padding:12px 14px 8px;max-width:250px;margin:4px auto 12px;text-align:center}
+  .gcardmock .gcm-pill{display:inline-block;background:#B8860B;color:#fff;font-weight:900;font-size:12px;border-radius:99px;padding:4px 14px;margin-bottom:8px}
+  .gcardmock .gcm-inner{background:rgba(255,255,255,.94);border:2px dashed rgba(184,134,11,.45);border-radius:14px;padding:10px 8px}
+  .gcardmock .gcm-inner img{width:56px;height:56px;object-fit:contain;display:block;margin:0 auto 2px}
+  .gcardmock .gcm-days{font-weight:900;color:#B8860B;font-size:14px}
+  .gcardmock .gcm-days b{font-size:24px}
+  .gcardmock .gcm-note{font-size:12px;color:#B8860B;font-weight:800;margin-top:2px}
+  .gcardmock .gcm-cap{font-size:11px;color:#B8860B;opacity:.75;font-weight:800;margin-top:6px}
+  body.dark .gcardmock{background:linear-gradient(135deg,#4A3A15,#3A2F10)}
   /* 使い方タブ: 目次チップ＋よくあるしつもん(開閉式) */
   .gtoc{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
   .gtoc .chip{color:var(--ink)}
@@ -461,7 +469,7 @@
     var h=new Date().getHours();
     var osD=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches;
     if(p==="dark"||(p==="auto"&&(osD||h>=19||h<5))) document.body.classList.add("dark");
-    if(localStorage.getItem("kyono_bigtext")==="true") document.body.classList.add("bigtext");
+    if(localStorage.getItem("kyono_bigtext")!=="false") document.body.classList.add("bigtext"); // 既定=大きめ（明示的に「ふつう」を選んだ人だけ外す）
     var sa=navigator.standalone||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
     if(!sa){ var sp=document.getElementById("appSplash"); if(sp) sp.parentNode.removeChild(sp); }
   }catch(e){}
@@ -855,8 +863,16 @@
   <div class="card" id="gd-tsuzuku">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>つづけるしくみ（ここがやさしい）</div>
     <div class="gstep"><span class="stepn">🎫</span><div><b>おやすみ券が毎月3枚</b><br>休んでも 自動でつかわれて連続がつながる<br>使い切っても<b>通算日数はぜったい消えません</b></div></div>
-    <div class="gstep" style="align-items:center"><img src="assets/chara-crown.png" alt="" style="width:60px;height:60px;object-fit:contain;flex-shrink:0"><div><b>節目はゴールドカード</b><br>3日・7日・2週間…お祝いが待ってます</div></div>
-    <div class="gcardmini gmock" style="max-width:240px;margin:4px auto 10px">👑 7日目！<br><span style="font-size:12px">記録カードがゴールドに</span></div>
+    <div class="gstep"><span class="stepn">👑</span><div><b>節目はゴールドカード</b><br>3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓</div></div>
+    <div class="gcardmock gmock">
+      <div class="gcm-pill">#きょうのオガトレ</div>
+      <div class="gcm-inner">
+        <img src="assets/chara-crown.png" alt="ゴールドカードの見本">
+        <div class="gcm-days">通算 <b>7</b>日目</div>
+        <div class="gcm-note">👑 1週間つづいた！</div>
+      </div>
+      <div class="gcm-cap">見本（ほんものは日付や あなたのメモ入り）</div>
+    </div>
     <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
     <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
   </div>
@@ -922,13 +938,13 @@
 
       <div class="faq-g">💬 きょうの1本・相談室</div>
       <details><summary>「きょうの1本」はだれが選んでるの？</summary><div class="fa">尾形さんのYouTube動画の中から 日替わりでアプリが出しています かたさチェック済みの人は「あなた用」にタイプに合わせたおすすめが出ます</div></details>
-      <details><summary>相談室はだれが答えてるの？</summary><div class="fa">決まった回答パターン集から アプリが選んで返しています 相談した内容がスマホの外に送られることはありません</div></details>
+      <details><summary>相談室はだれが答えてるの？</summary><div class="fa">オガトレが監修した回答パターン集から アプリが選んで返しています（AIが勝手に文章を作ることはありません）相談した内容がスマホの外に送られることもありません</div></details>
       <details><summary>2週間プランはやめられる？</summary><div class="fa">ホームのプランのカードにある「やめる」からいつでもやめられます つづけた日数の記録はそのまま残ります</div></details>
       <details><summary>やりたいストレッチが見つからない</summary><div class="fa">「動画を探す」のいちばん下からリクエストを送れます📮 相談室で悩みを打ってみるのも近道です</div></details>
       <details><summary>ストレッチ中に痛かったら？</summary><div class="fa">目安は「イタ気持ちいい」まで つよい痛みやしびれが出たら中止して、医療機関に相談してね</div></details>
 
       <div class="faq-g">🎨 見ため・その他</div>
-      <details><summary>文字が小さくて読みにくい</summary><div class="fa">マイ記録→つづける設定→「もじの大きさ」を「大きめ」にできます🔠</div></details>
+      <details><summary>文字の大きさは変えられる？</summary><div class="fa">マイ記録→つづける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠</div></details>
       <details><summary>画面を暗くしたい（ダークモード）</summary><div class="fa">マイ記録→つづける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙</div></details>
       <details><summary>じまんカードが見つからない</summary><div class="fa">お楽しみ機能なので最初は隠れています つづける設定で「オン」にすると マイ記録に出てきます💗</div></details>
       <details><summary>せんぱいの声って本物？</summary><div class="fa">はい オガトレの動画に実際に届いたコメントから紹介しています</div></details>
@@ -2127,7 +2143,7 @@ function setTheme(p){ store.set("theme",p); applyTheme(); }
 // ---- もじの大きさ（ふつう/大きめ・50-60代向け） ----
 // 起動直後の適用は<body>先頭の早期スクリプト側（テーマと同じ場所）。ここは切替と設定画面のボタン状態担当
 function applyBigtext(){
-  const on=store.get("bigtext",false)===true;
+  const on=store.get("bigtext",true)===true; // 既定=大きめ（対象ユーザー50-60代・本人フィードバック 2026-07-12）
   document.body.classList.toggle("bigtext",on);
   const bn=document.getElementById("bt-normal"), bb=document.getElementById("bt-big");
   if(bn) bn.classList.toggle("on",!on);
@@ -3781,9 +3797,11 @@ const ONBOARDING_SCRIPT={
   greet:[
     "はじめまして！理学療法士のオガトレです💪",
     "ここは1日1本のストレッチをいっしょに続ける場所だよ",
-    "３つだけ教えて！あなた用にととのえるね😊"
+    "４つだけ教えて！あなた用にととのえるね😊"
   ],
   questions:[
+    {key:"bigtext", q:"もじの大きさ、どっちが見やすい？",
+     chips:[{label:"大きめ（いまのまま）",v:"big"},{label:"ふつう",v:"normal"}]},
     {key:"stiff", q:"体、硬いほう？",
      chips:[{label:"ガチガチかも",v:"hard"},{label:"ふつう",v:"normal"},{label:"やわらかい",v:"soft"},{label:"わからない",v:"unknown"}]},
     {key:"worry", q:"いちばん気になるのは？",
@@ -3818,12 +3836,13 @@ function obBubble(who,text){
   log.appendChild(row);
   log.scrollTop=log.scrollHeight;
 }
-// 吹き出しを0.48秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
+// 吹き出しを0.96秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
+// ※0.48秒→0.96秒に半減速（本人フィードバック 2026-07-12「テロップのテンポを0.5倍速に」）
 function obSay(lines,then){
   const run=obRun;
   obPending=true;
   document.getElementById("obChips").innerHTML="";
-  const wait=obReducedMotion()?0:480;
+  const wait=obReducedMotion()?0:960;
   let i=0;
   (function next(){
     if(run!==obRun) return;
@@ -3856,6 +3875,9 @@ function obPick(q,c){
   if(q.key==="anchor"){
     try{ setAnchor(c.v); }catch(e){} // 本物の設定として保存（既存setAnchorに接続）
     obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],obAskQ);
+  }else if(q.key==="bigtext"){
+    try{ setBigtext(c.v==="big"); }catch(e){} // その場で反映=効果が見える（本物の設定として保存）
+    obSay(["OK！「つづける設定」でいつでも変えられるよ🔠"],obAskQ);
   }else{
     obAskQ();
   }
