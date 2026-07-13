@@ -2363,7 +2363,7 @@ function cardPatternFor(ds, effTotal, dateIdx){
   if(dateIdx<CARD_IMG_FROM) return null; // 従来drawCardに任せる
   const tk=TOKU_CARDS[effTotal];
   if(tk) return {tier:"toku", name:tk.name, bg:tk.bg, key:tk.key};
-  if(MILESTONES.indexOf(effTotal)>=0) return null; // 記念画像のない節目(7/14/21/50/150日)は従来のゴールドカードのまま
+  if(MILESTONES.indexOf(effTotal)>=0) return null; // 記念画像のない節目(3日目のみ)は従来のゴールドカードのまま
   const sp=cardSeasonPick(ds); if(sp) return sp;
   return cardRotPick(dateIdx);
 }
