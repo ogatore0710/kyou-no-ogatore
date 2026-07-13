@@ -4,6 +4,15 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-13
 
+## 2026-07-13夜 redflag/crisis安全テスト正式化（55→71/71再固定・指示書=ogatore-hub/dev-specs/kyono-qa-smoke-consolidate-spec.md）
+- **soudan-ai-poc/data.mjsを再生成**（build-data.mjs・7/12の胸痛13語+crisisフィールドを反映）→既存55/55維持を確認してから拡張
+- **norm.mjsに`crisisHit(n)`を追加**: index.htmlの`sdCrisisHit`（現在:3229）の忠実移植（redFlagHitと違い「寝転」除去なし）
+- **redflag-safety-test.mjsに16ケース追加**: 胸痛/動悸8件（AUDIT-SAFETY-PROPOSALS.md①の検証ケース・受診4/巻き込まない4）＋crisis8件（crisis.kw 8語から再構成した自然文・danger4/巻き込まない4=「肩こりで死にそう」「疲れが消えない」等）。**全16文を固定前に実際のnorm+判定関数で検証済み（16/16想定どおり・期待値の逆算なし）**→ `node soudan-ai-poc/redflag-safety-test.mjs` = **71/71 PASS**
+- **qa.jsにcrisis構造チェック追加**（任意項目4）: kwが配列8語以上+answerが非空文字列。**93→94 checks**（ベースライン後退なし）
+- 出荷ファイル（index.html/soudan-kb.js等）は**一切触っていない**。qa 94 PASS・smoke 14/14 PASS・safety 71/71 PASSの3点を再確認済み
+- 要調査（1行メモ）: crisisが赤旗より先に判定される順序（sdSend内）は関数単体スイートの範囲外。順序の自動テスト化は未着手
+- ロールバック: soudan-ai-poc配下＋scripts/qa.jsの2コミットをrevertするだけ（data.mjsはbuild-data.mjsでいつでも再生成可）
+
 ## 2026-07-13夜 メインPC復帰: QA消化＋PR#6マージ完了（引き継ぎ1・2番を消化）
 - **QA消化（引き継ぎ1番）**: main上で `npm test` 全PASS・`npm run smoke` **14/14 PASS**（さぶPC分=安全5件/minor3-7/第8バッチのnode系QA負債を解消）。並行して別セッションがsmoke.jsの3c誤クリック修正をpush済み（915a405・製品コード無変更）
 - **PR#6マージ（引き継ぎ2番）**: mainとのコンフリクト（WORKING_NOTES.md両先頭追記のみ・index.htmlは自動マージ）を4e81024で解消→チェックリスト4項目を全実施→本人承認を得て**c63c1dcでマージ**:
