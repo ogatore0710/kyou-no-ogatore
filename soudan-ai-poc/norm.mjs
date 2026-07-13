@@ -22,6 +22,17 @@ export function redFlagHit(n) {
   return false;
 }
 
+// index.html:3229 sdCrisisHit と同一（n は正規化済み前提。redFlagHitと違い「寝転」除去は無い）
+export function crisisHit(n) {
+  const c = KB.crisis;
+  if (!c || !Array.isArray(c.kw)) return false;
+  for (const k0 of c.kw) {
+    const k = norm(k0);
+    if (k.length >= 2 && n.indexOf(k) >= 0) return true;
+  }
+  return false;
+}
+
 // index.html:2847 sdScoreIntents と同一（n は正規化済み前提）
 export function scoreIntents(n) {
   const out = [];
