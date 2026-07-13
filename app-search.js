@@ -51,7 +51,9 @@ function currentHits(){
 function renderSearch(){ searchLimit=24; drawResults(); }
 // キーワード入力はデバウンス（IME変換中の毎打鍵フル再描画を間引く）
 let _searchDebT;
-function onSearchInput(){ clearTimeout(_searchDebT); _searchDebT=setTimeout(renderSearch,180); }
+function syncSearchClear(){ const b=document.getElementById("qClear"), q=document.getElementById("q"); if(b&&q) b.classList.toggle("hidden",!q.value); }
+function onSearchInput(){ syncSearchClear(); clearTimeout(_searchDebT); _searchDebT=setTimeout(renderSearch,180); }
+function clearSearch(){ const q=document.getElementById("q"); if(q) q.value=""; syncSearchClear(); clearTimeout(_searchDebT); renderSearch(); }
 function moreResults(){ searchLimit+=48; drawResults(); }
 function drawResults(){
   const hits=currentHits();
