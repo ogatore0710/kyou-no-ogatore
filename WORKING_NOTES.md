@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-13
 
+## 2026-07-13夜 本人指示の文言修正4件（実機スクショ・7日目節目画面より）
+- **節目cheerから2導線を削除**: 「YouTubeのコメント欄に報告する」リンク＋「👑きょうのゴールドカードを見る」ボタン（markDone内のms分岐。カードは下の#makeCardBtn「記録カードを画像でのこす」から従来どおり作れる）。MILESTONE_MSG_VIDEOの受け皿は無変更
+- **「これまでのありがとう ×N」表示を削除**: #thanksTotal（DOM span＋renderThanksの書き込み行の両方）。thanksカウント自体（kyono_thanks・記録カード上の「ありがとう ×N」バッジ）は残っている
+- **おやすみ券の文言**: 「連続はつながってます」→「連続はつながっています」
+- sw.js kyono-v39→**v40**。qa 94 PASS・smoke 14/14 PASS・Deploy success確認済み
+- ※index.html本体はeven-sync自動コミット8e99272に相乗り（正本はこのノートと5c2eb18のメッセージ）
+- **申し送り（本人質問・未回答）**: 「7日目って記念イラストカードじゃなかった？」→現設計では7日目はTOKU_CARDS対象外（記念イラストは4/30/66/100/200/300/365/500/730/1000/1900日の11種のみ。7/14/21/50/150日は画像なし節目=従来ゴールドカード温存）。7日目を記念イラスト化するには新素材が必要（本人判断待ち）
+
 ## 2026-07-13夜 redflag/crisis安全テスト正式化（55→71/71再固定・指示書=ogatore-hub/dev-specs/kyono-qa-smoke-consolidate-spec.md）
 - **soudan-ai-poc/data.mjsを再生成**（build-data.mjs・7/12の胸痛13語+crisisフィールドを反映）→既存55/55維持を確認してから拡張
 - **norm.mjsに`crisisHit(n)`を追加**: index.htmlの`sdCrisisHit`（現在:3229）の忠実移植（redFlagHitと違い「寝転」除去なし）
