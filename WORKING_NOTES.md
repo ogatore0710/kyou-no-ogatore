@@ -12,6 +12,19 @@
 4. 小ネタ: このさぶPCのgitアドレスがnoreply未設定だった（`ryu@RyunoMacBook-Air.local`・直近コミット群）。メインPCのnoreply値をさぶPCにも設定しておくとよい
 - 完了済みの詳細: カード画像方式=`kyou-no-ogatore-card-illustrations-DONE.md`／安全5件・minor3-7=各DONEファイル／第8バッチ=下の節
 
+## 2026-07-13 記録カード「画像方式」を実装・drawCardに接続（7/14解禁・さぶPC alan・remote-control自走）
+A案の骨格はそのまま、**背景の絵柄だけ透過WebPイラスト81種で量産**するフェーズの本体実装。3コミット構成（イラスト追加→データ+ヘルパー→描画接続）。
+- **仕組み**: `CARD_IMG_FROM`（=2026-07-14のdateIdx）**以降の日付にだけ**発動。それ未満の日付は従来コード（10テーマ+ちらし日替わり）を`else`ブロックに**1バイトも変えず温存**＝過去カード再現の絶対ルール準拠
+- **優先順位** `cardPatternFor(ds,effTotal,dateIdx)`: ①記念日（`TOKU_CARDS`=4/30/66/100/200/300/365/500/730/1000/1900日・通算effTotal基準）→ ②季節（`SEASON_CARDS`40種・mmddが期間内の最初の1件＝配列順が優先度）→ ③抽選（ノーマル20色+レアイラスト30種=50枚を`CARD_ROT_ORDER`固定シャッフル+`dateIdx%50`で決定的ローテ）
+- **画像なし節目のガード**: `MILESTONES`にあるがTOKU_CARDSにない節目（7/14/21/50/150日）は`null`を返し**従来のゴールドカード（紙吹雪）のまま**
+- **描画**: 背景グラデ（各カード定義の`bg`2色）+ `assets/cards/<key>.webp`（512px透過・全面重ね）。中央は白カードで隠れるのでモチーフは四隅・帯に描かれている前提の素材
+- **フォールバック**: 画像読込失敗/未読込時は日替わり散らし（`cardRand`決定的）を新テーマ色で描画＝オフライン初回でも破綻しない。ノーマル20色は最初から画像なし（`key:null`）で散らし方式
+- **プリロード**: makeCardでその日のパターンキーを先に計算し`loadCardMotif`でロード完了後にdrawCard（フォント→キャラ→タイプアイコン→モチーフの直列コールバック・計算はtry/catchでこけたら従来方式）
+- **sw.js触らず**: `assets/cards/`は`assets/obu/`と同じ方針で**事前キャッシュしない**（81ファイルあるため）。既存fetchハンドラのisAsset分岐がランタイムキャッシュするので2回目以降はオフラインOK
+- **⚠️ さぶPC=node未導入のため npm test/npm run smoke 未実行**。代替検証済み: 全5 scriptブロックJXA(JavaScriptCore)パースOK／ES2020禁止構文0／データkey81種↔assets/cards/81ファイル完全一致（過不足なし）／drawCard・cardPatternFor・cardRotPick・cardSeasonPick・loadCardMotif・makeCardにMath.random/Date.now/引数なしnew Dateなし（qa.jsの決定性チェックを手動再現）／makeCardプリロードのeffTotal/dateIdx計算はdrawCard本体と同式
+- **メインPC復帰後(7/14〜)に要実行**: `npm test`・`npm run smoke`、＋できれば**7/13以前の日付のピクセル回帰**（改修前後でdataURL一致・10テーマ化のときと同じ方式）と**7/14以降の新方式スクショ目視**（季節/レア/記念/ノーマル各1枚）
+- **ロールバック**: index.htmlの`CARD_IMG_FROM`を遠い未来日付に変えるだけで全面的に従来方式へ戻る（データ・画像は残しても無害）
+
 ## 2026-07-13 第8バッチ＋AUDIT-MEMO残件の棚卸し（さぶPC alan・remote-control自走）
 ※記録カード画像方式(イラスト81種・7/14解禁)は **branch claude/card-illustrations → PR #6** で別送。QA(メインPC)後にマージのこと。詳細は同ブランチのWORKING_NOTESとkyou-no-ogatore-card-illustrations-DONE.md
 - **検索クリア✕ボタン新設**（AUDIT低）: 動画を探すタブの検索窓右端に`#qClear`（38px丸・文字があるときだけ表示・`clearSearch()`/`syncSearchClear()`をapp-search.jsに追加）。WebKit標準の小さい✕は`#search`スコープで非表示化（二重防止・相談室のsdInputはtype=searchでないため影響なし）
