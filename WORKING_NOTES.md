@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 オガトレくんのサイズ感を01(chara-crown)基準に統一（本人指摘「サイズ感覚あってないのでは」）
+- 6種差し替え後、本人から「01に合うといいな」との指摘。原因を分析: 各イラストは**「頭部が画像の高さに占める割合」がポーズごとに全然違う**（クローズアップ構図のcrown=0.92 vs 全身+腕を掲げるcheer=0.55等）。従来の「幅280px固定描画」だとこの比率の差がそのまま頭の見た目サイズの差になっていた（頭部の横幅比率自体は0.88〜0.96とほぼ揃っていたのに、画像全体の縦横比が違うため描画結果は大きく異なった）
+- **`CHARA_FILES`を文字列配列→`{file,w}`オブジェクト配列に変更**（`loadChara`で`charaW`変数にも記録・drawCard内で`milestone?280:charaW`を使用）。各キャラの描画幅wを個別設定
+- crownとの完全一致（計算値: good=331/kaikyaku=365/cheer=469/cracker=435/congrats=397）だと「かたさタイプ」ピル横の猫アイコンと頭が重なったため、**crownとの差を35%だけ縮める緩和**で最終値を決定: good=298/kaikyaku=310/cheer=346/cracker=334/congrats=321（crown/milestoneは280のまま）。本人「もう少し小さいといいかも」の一声で55%緩和→35%緩和に調整した経緯あり
+- 検証: 6パターン全部を実描画（dayIndex()偽装=chara-sweep.js）し、猫アイコンとの重なりなし・サイズ感の自然な統一を確認。qa全PASS・smoke 14/14 PASS
+- ロールバック: index.htmlのCHARA_FILES定義とdrawCard内のキャラ描画1行（`const w=milestone?280:charaW`→`const w=280`に戻す）だけ
+
 ## 2026-07-14 オガトレくん6種をGoogle Drive最新版に差し替え（本人指摘「イラストこの6種類だぞ」）
 - 本人が共有したGoogle Driveフォルダ（`アプリ01〜06_90%.png`・親フォルダ内に「アーカイブ」サブフォルダあり=旧版が退避されている）が正式なキャラクターイラスト6種。既存の`CHARA_FILES`（good/kaikyaku/cheer/cracker/congrats）+`chara-crown`(節目用)を突き合わせたところ:
   - アプリ01=chara-crown／02=chara-cheer／03=chara-cracker／04=chara-congrats／05=chara-kaikyaku は絵柄が一致（既存が概ね正しい）
