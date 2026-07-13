@@ -603,7 +603,6 @@
     <div id="thanksBlock" style="text-align:center;margin-top:10px;padding-top:10px;border-top:1.5px dashed var(--line)">
       <button class="btn btn-ghost" id="thanksBtn" style="font-size:14px;width:auto;display:inline-block;padding:9px 26px" onclick="sendThanks()">💛 きょうのありがとう</button>
       <div id="thanksNote" style="font-size:13px;margin-top:6px;color:var(--sub);min-height:15px"></div>
-      <div style="font-size:13px;color:var(--sub)"><span id="thanksTotal"></span></div>
     </div>
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" id="makeCardBtn" style="margin-top:12px;font-size:16px" onclick="makeCard()">
@@ -1908,7 +1907,7 @@ function markDone(){
     }
     if(canBridgeFreezes(missed)){
       st.count++;
-      note=`おやすみ券を${gap-1}枚つかったので連続はつながってます`;
+      note=`おやすみ券を${gap-1}枚つかったので連続はつながっています`;
     } else {
       missed=null;
       newChapter=true;
@@ -1941,8 +1940,6 @@ function markDone(){
       +(ms.m?`<div style="margin-top:4px">${ms.m}</div>`:"")
       +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
       +`<img src="assets/chara-crown.png" alt="" style="width:72px;height:72px;object-fit:contain;display:block;margin:10px auto 0">`
-      +`<div style="margin-top:6px"><a href="https://www.youtube.com/watch?v=${currentTodayId()}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">YouTubeのコメント欄に報告する</a></div>`
-      +`<button class="btn btn-ghost" onclick="makeCard()" style="margin-top:10px;font-size:15px">👑 きょうのゴールドカードを見る</button>`
       +(MILESTONE_MSG_VIDEO?`<a class="btn btn-ghost" href="https://www.youtube.com/watch?v=${MILESTONE_MSG_VIDEO}" target="_blank" rel="noopener" style="margin-top:10px;font-size:15px;display:block;text-decoration:none">🎬 尾形さんからお祝いメッセージ</a>`:"");
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
@@ -1964,7 +1961,6 @@ function saveMemo(){
 // ---- ありがとうボタン（1日1回・熱量の受け皿） ----
 function renderThanks(){
   const th=store.get("thanks",{total:0,last:""});
-  document.getElementById("thanksTotal").textContent = th.total>0?`これまでのありがとう ×${th.total}`:"";
   const b=document.getElementById("thanksBtn");
   const sent=th.last===todayStr();
   b.disabled=sent;
