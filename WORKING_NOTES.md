@@ -2,7 +2,17 @@
 
 > **これは何**: README.md が「何ができるか」なら、これは「どう作られていて・どこでハマるか」。
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
-> 最終更新: 2026-07-13
+> 最終更新: 2026-07-14
+
+## 2026-07-14 オガトレくん6種をGoogle Drive最新版に差し替え（本人指摘「イラストこの6種類だぞ」）
+- 本人が共有したGoogle Driveフォルダ（`アプリ01〜06_90%.png`・親フォルダ内に「アーカイブ」サブフォルダあり=旧版が退避されている）が正式なキャラクターイラスト6種。既存の`CHARA_FILES`（good/kaikyaku/cheer/cracker/congrats）+`chara-crown`(節目用)を突き合わせたところ:
+  - アプリ01=chara-crown／02=chara-cheer／03=chara-cracker／04=chara-congrats／05=chara-kaikyaku は絵柄が一致（既存が概ね正しい）
+  - **chara-good.pngだけ瞳の描き方が他5枚と違う別画風**（星ハイライトなしの素朴な半月目）で浮いていた。アプリ06（両手グッと握るポーズ・新画風）はどこにも未使用のまま残っていた
+- 本人指示「Google Driveにある今のものにしておいて。名前がそのままに中身変わっているかも」を受け、**6ファイルとも中身を丸ごと差し替え**（ファイル名・CHARA_FILES配列は不変。アプリ06→chara-good.pngに割り当て）。Driveの透過PNGをアルファ外接矩形でタイトにトリミング→長辺700pxに縮小（縦横比維持のみ。drawCard側で`w=280`に正規化されるため元ファイルのピクセル寸法自体は無関係）
+- 検証: 5パターン+節目王冠の全6種を実描画（dayIndex()偽装=scratchpadのchara-sweep.js方式）し文字・吹き出しとの重なりなしを確認。qa全PASS・smoke 14/14 PASS
+- sw.js kyono-v42→**v43**（chara-*.pngはASSETS配列内=SHELL必須プリキャッシュのため、中身差し替えには版数バンプが必須）
+- **Google Drive中身確認の手順メモ**: MCPの`download_file_content`は大きい画像だとトークン上限で弾かれ`.txt`に保存される→`python3 -c "import json,base64; d=json.load(open(F)); open(out,'wb').write(base64.b64decode(d['content']))"`でデコード。フォルダ内一覧は`search_files`に`parentId = 'xxx'`で取得
+- ロールバック: 6ファイルを`git checkout HEAD~1 -- assets/chara-*.png assets/chara-crown.png`、sw.jsのバージョン行を1つ戻すだけ
 
 ## 2026-07-14 記録カードのオガトレくんを拡大・右下に寄せる（本人フィードバック）
 - 記録カード右下のオガトレくん画像（`CHARA_FILES`=日替わり5パターン。chara-good/kaikyaku/cheer/cracker/congrats、`dayIndex()%5`で選択。**dayIndex()は実行時=「今日」基準でカードの日付ではない**ので注意）を255px→**280px**に拡大
