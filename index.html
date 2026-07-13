@@ -217,7 +217,7 @@
   #ckCard.mini #ckHint{display:none}
   /* 記録カード保存後のコンパクト表示（日数と完了メッセージだけ残す） */
   #streakCard.mini{padding:14px 18px}
-  #streakCard.mini #doneBtn,#streakCard.mini #cheer,#streakCard.mini #memoRow,#streakCard.mini #thanksBlock,#streakCard.mini #plateauNote,#streakCard.mini #makeCardBtn,#streakCard.mini #cardHint{display:none}
+  #streakCard.mini #doneBtn,#streakCard.mini #cheer,#streakCard.mini #memoRow,#streakCard.mini #plateauNote,#streakCard.mini #makeCardBtn,#streakCard.mini #cardHint{display:none}
   #miniDone{display:none;text-align:center;font-size:14px;color:var(--sub);margin-top:8px}
   #streakCard.mini #miniDone{display:block}
   .hidden{display:none !important}
@@ -623,10 +623,6 @@
       <div style="text-align:center"><button class="btn btn-line" id="memoBtn" style="margin-top:8px;font-size:14px;width:auto;display:inline-block;padding:9px 26px" onclick="saveMemo()">メモをのこす</button></div>
       <div id="memoSaved" style="font-size:14px;color:var(--teal);margin-top:6px;min-height:14px"></div>
     </div>
-    <div id="thanksBlock" style="text-align:center;margin-top:10px;padding-top:10px;border-top:1.5px dashed var(--line)">
-      <button class="btn btn-ghost" id="thanksBtn" style="font-size:14px;width:auto;display:inline-block;padding:9px 26px" onclick="sendThanks()">💛 きょうのありがとう</button>
-      <div id="thanksNote" style="font-size:13px;margin-top:6px;color:var(--sub);min-height:15px"></div>
-    </div>
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" id="makeCardBtn" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
@@ -929,7 +925,6 @@
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「マイ記録」タブでできること</div>
     <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
     <div class="gstep"><span class="stepn">💗</span><div><b>じまんカード</b>…つづけてる日数とすきな1本を1枚のカードに（お楽しみ機能・つづける設定で「オン」にすると出ます）</div></div>
-    <div class="gstep"><span class="stepn">💛</span><div><b>きょうのありがとう</b>…つづけた日数カードから1日1回 尾形さんにありがとうを送れます</div></div>
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
     <div class="gstep"><span class="stepn">💬</span><div><b>せんぱいの声</b>…まえを歩くせんぱいたちの ほんとうの声が読めます</div></div>
     <div class="gstep"><span class="stepn">📝</span><div><b>ひとことにっき</b>…毎日のメモを読み返せます</div></div>
@@ -1054,6 +1049,7 @@
     <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
     <div id="cardMaking" class="hidden" style="text-align:center;font-size:14px;color:var(--sub);padding:14px 0">カードをつくってます…</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
+    <div id="cardTierNote" style="font-size:13px;font-weight:800;color:var(--tealink);text-align:center;margin-top:8px"></div>
     <div style="font-size:14px;color:var(--sub);text-align:center;margin:8px 0 8px">下の「保存・シェアする」を押すと 保存やSNS投稿の画面がひらきます✅</div>
     <div id="cardSaveNote" class="hidden" style="font-size:13px;color:var(--tealink);font-weight:800;text-align:center;margin:0 0 8px">保存しました✅ ダウンロード（または写真）を確認してね</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">📤 保存・シェアする</button>
@@ -1778,21 +1774,6 @@ function saveMemo(){
   mb.textContent="のこしました ✓"; mb.disabled=true;
   document.getElementById("memoInput").oninput=()=>{ mb.textContent="メモをのこす"; mb.disabled=false; };
 }
-// ---- ありがとうボタン（1日1回・熱量の受け皿） ----
-function renderThanks(){
-  const th=store.get("thanks",{total:0,last:""});
-  const b=document.getElementById("thanksBtn");
-  const sent=th.last===todayStr();
-  b.disabled=sent;
-  b.textContent= sent?"ありがとう おくりました💛":"💛 きょうのありがとう";
-}
-function sendThanks(){
-  const th=store.get("thanks",{total:0,last:""});
-  if(th.last===todayStr()) return;
-  th.total++; th.last=todayStr(); store.set("thanks",th);
-  renderThanks();
-  document.getElementById("thanksNote").textContent=["ありがとうの気持ち、のこしました💛","その気持ち、ちゃんとここに残しました😊","あしたもいっしょにやりましょうね！"][th.total%3];
-}
 // ---- とどくメーター（前屈セルフチェック） ----
 const REACH_LV=["","ひざまで","すねまで","足首まで","つま先タッチ","ゆかにベタッ"];
 function getReach(){ return store.get("reach",[]); }
@@ -2485,6 +2466,7 @@ function makeCard(ds){
   }
   const tEl=document.getElementById("cardTitle");
   if(tEl) tEl.textContent = cardDate===todayStr() ? "きょうの記録カード" : `${Number(cardDate.slice(5,7))}/${Number(cardDate.slice(8,10))} の記録カード`;
+  const tierEl=document.getElementById("cardTierNote"); if(tierEl) tierEl.textContent="";
   // タップした瞬間に開く（無反応に見せない）
   const mk=document.getElementById("cardMaking");
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
@@ -2493,16 +2475,28 @@ function makeCard(ds){
   updateFabs();
   // その日のカードパターン画像キーを先に決めてプリロード（画像方式=CARD_IMG_FROM以降のみキーが返る）
   let motifKey=null;
+  let _pat=null, _milestone=false, _msInfo=null;
   try{
     const _st=getStreakData(), _idx=_st.dates.indexOf(cardDate);
     const _off=Math.max(0,(_st.total||0)-_st.dates.length);
     const _eff=_idx>=0?_idx+1+_off:_st.total;
     const _di=Math.floor((new Date(cardDate).getTime()+9*3600*1000)/86400000);
-    const _pat=cardPatternFor(cardDate,_eff,_di);
+    _pat=cardPatternFor(cardDate,_eff,_di);
     if(_pat&&_pat.key) motifKey=_pat.key;
+    _milestone=MILESTONES.includes(_eff);
+    _msInfo=_milestone?MS.find(x=>x.d===_eff):null;
   }catch(e){}
   ensureCardFonts().then(()=>loadChara(()=>loadTypeIcon(state.type?state.type.key:null,()=>loadCardMotif(motifKey,()=>{
-    try{ drawCard(); if(mk) mk.classList.add("hidden"); }
+    try{
+      drawCard(); if(mk) mk.classList.add("hidden");
+      const tierLabel={toku:"🎉 記念日カード",season:"🌿 季節のカード",rare:"✨ レアカード",normal:"🎨 ノーマルカード"};
+      if(tierEl){
+        if(_pat&&tierLabel[_pat.tier]) tierEl.textContent=`${tierLabel[_pat.tier]}「${_pat.name}」`;
+        else if(!_pat&&_milestone&&_msInfo) tierEl.textContent=`🎉 記念日カード「${_msInfo.t}」`;
+        else tierEl.textContent="";
+      }
+      if((_pat&&(_pat.tier==="toku"||_pat.tier==="rare"))||(!_pat&&_milestone)){ try{ launchConfetti(90); }catch(e){} }
+    }
     catch(e){ if(mk) mk.textContent="うまく作れませんでした もう一度「とじる」→開き直してみて"; }
   }))));
 }
@@ -2613,11 +2607,9 @@ function drawCard(){
   // 山本さん案レイアウト: 数字+日目！を1行 → タグピル行（かたさタイプ/メモ）
   const FB='"BananaNum","M PLUS 1p",sans-serif';
   const memo=(store.get("memos",{}))[ds];
-  const _tk=store.get("thanks",{total:0});
   const rows=[];
   if(T) rows.push(["かたさタイプ",T.name]);
   if(memo) rows.push(["メモ",memo]);
-  else if(isToday&&_tk.total>0) rows.push(["ありがとう",`×${_tk.total}`]);
   const shift = milestone?0:(rows.length?0:60);
   // 数字＋日目！（1行・ベースライン揃え）
   ctx.textAlign="left";
@@ -2833,6 +2825,7 @@ function makeBragCard(){
   cardDate=null;
   const tEl=document.getElementById("cardTitle");
   if(tEl) tEl.textContent="じまんカード";
+  const tierEl=document.getElementById("cardTierNote"); if(tierEl) tierEl.textContent="";
   const mk=document.getElementById("cardMaking");
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
   const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
@@ -2972,7 +2965,7 @@ function drawBragCard(thumb){
 
 // ---- ホーム描画 ----
 function renderHome(){
-  renderToday(); renderStreak(); renderThanks(); renderQuote(); renderAnchor(); welcomeCheck(); renderRecheck(); renderPlanCard();
+  renderToday(); renderStreak(); renderQuote(); renderAnchor(); welcomeCheck(); renderRecheck(); renderPlanCard();
   const lr=document.getElementById("lastResult");
   const done2=!!(state.type&&TYPES[state.type.key]);
   document.getElementById("ckBody").classList.toggle("hidden",done2);
@@ -3421,7 +3414,6 @@ function showDay(ds){
   if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<div><a href="#" class="tapx" onclick="toggleDayVideo(this);return false" style="color:var(--tealink);font-weight:800">この日の動画 <span>▼</span></a><div class="hidden"><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">▶ この日のおすすめだった1本</a></div></div>`;
   if(memo) html+=`<br>「${memo.replace(/</g,"&lt;")}」`;
   if(!log&&!memo) html+=`<br>この日は「やった！」の印だけ残っています`;
-  html+=`<br><span id="dayThanksRow">${dayThanksRowHtml()}</span>`;
   html+=`<br><a href="#" class="tapx" onclick="makeCard('${ds}');return false" style="color:var(--tealink);font-weight:800">🖼 この日の記録カードを見る</a>`;
   el.innerHTML=html;
   el.classList.remove("hidden");
@@ -3430,16 +3422,6 @@ function toggleDayVideo(a){
   const d=a.nextElementSibling;
   const closed=d.classList.toggle("hidden");
   a.querySelector("span").textContent=closed?"▼":"▲";
-}
-function dayThanksRowHtml(){
-  const th=store.get("thanks",{total:0,last:""});
-  if(th.last===todayStr()) return `<span style="color:var(--sub);font-weight:800">💛 きょうのありがとう おくりました</span>`;
-  return `<a href="#" class="tapx" onclick="dayThanks();return false" style="color:var(--tealink);font-weight:800">💛 ありがとうを送る</a>`;
-}
-function dayThanks(){
-  sendThanks();
-  const row=document.getElementById("dayThanksRow");
-  if(row) row.innerHTML=dayThanksRowHtml();
 }
 function renderCal(){
   const y=calDate.getFullYear(), m=calDate.getMonth();
@@ -4064,9 +4046,6 @@ const OB_TOUR_SLIDES=[
   {t:"🖼 記録カードをつくる",
    v:`<div class="gcardmock gcm-n" style="margin-bottom:0"><div class="gcm-pill">#きょうのオガトレ</div><div class="gcm-inner"><img src="assets/chara-kaikyaku.png" alt=""><div class="gcm-days">通算 <b>8</b>日目</div><div class="gcm-note">きょうのメモも入ります✍️</div></div></div>`,
    d:"「きょうやった！」のあと<b>「記録カードを画像でのこす」</b>→<b>「保存・シェアする」</b>で写真に保存📷 SNSやコメント欄にもどうぞ"},
-  {t:"💛 ありがとうをのこす",
-   v:`<div class="card" style="text-align:center"><div style="font-size:13px;color:var(--sub)">「つづけた日数」カードのいちばん下</div><button class="btn btn-ghost" style="font-size:14px;width:auto;display:inline-block;padding:9px 26px;margin-top:8px">💛 きょうのありがとう</button></div>`,
-   d:"1日1回押せるよ 「ありがとう」の回数は記録カードにも刻まれます"},
   {t:"💬 悩みは相談室で質問",
    v:`<div style="text-align:left"><div class="sd-row user" style="display:flex;justify-content:flex-end;margin-bottom:8px"><div class="sd-b">肩こりがつらい</div></div><div class="sd-row oga" style="display:flex;gap:8px"><img class="sd-ava" src="assets/chara-hitokoto.png" alt="" style="width:34px;height:34px;flex-shrink:0"><div class="sd-b">それはつらいね…！まずはこの1本からやってみよう😊</div></div></div>`,
    d:"右下の<b>💬ボタン</b>から 「肩こり」みたいに打つか、チップをタップするだけ オガトレ監修の答えとおすすめ動画が返ってくるよ"},

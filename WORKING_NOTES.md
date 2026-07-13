@@ -4,6 +4,12 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 「ありがとう」ボタンを完全撤去＋記録カードに種別説明・記念/レアの紙吹雪演出を追加
+- **ありがとうボタン撤去**（本人「いい機能だけど使うシーン少ないと思う」・非表示ではなく削除）: `#streakCard`内`#thanksBlock`（`#thanksBtn`/`#thanksNote`）をHTMLごと削除／`#streakCard.mini`の非表示idリストから`#thanksBlock`を除去／`renderThanks()`・`sendThanks()`関数とrenderHome連鎖の`renderThanks();`呼び出しを削除／`drawCard()`の`_tk`変数と`else if(isToday&&_tk.total>0)`行（メモ行の`else`分岐）を削除（`if(memo)`はそのままの単純ifに）／マイ記録カレンダーの日別ポップアップから`dayThanksRowHtml()`・`dayThanks()`関数と`showDay()`内の埋め込み行(`#dayThanksRow`)を削除／使い方ガイド「マイ記録」タブの`💛きょうのありがとう`gstep行を削除／オンボーディングツアー`OB_TOUR_SLIDES`から`💛 ありがとうをのこす`スライドを削除（配列駆動なので7枚ツアーに自動的に短縮）。`kyono_thanks`のlocalStorageキー自体は方針どおり無変更（休眠データとして残置）。せんぱいの声(VOICES)配列内の通常の「ありがとう」テキストは無関係につき無傷
+- **記録カードの種別説明＋演出追加**: `makeCard(ds)`のみを拡張（ピクセル回帰対象の`drawCard()`は1バイトも触っていない）。`#cardModal`に`#cardImg`と保存案内文の間へ`#cardTierNote`を新設。`makeCard`冒頭でstale文字が残らないよう空文字にリセット。既存の`_pat`計算try節に`_milestone`(`MILESTONES.includes(_eff)`)・`_msInfo`(`MS.find(x=>x.d===_eff)`)を追加し、`drawCard()`成功後の`.then()`コールバック内で`_pat.tier`(toku/season/rare/normal)に応じたラベル文を`cardTierNote`にセット。`toku`/`rare`（および画像なし記念=3日目の`!_pat&&_milestone`パターン）だけ既存の`launchConfetti(90)`を再利用して紙吹雪を発火（season/normalは説明文のみ・演出なし）。`makeBragCard()`（じまんカード・別モーダル使い回し）にも`cardTierNote`クリアを追加し、直前に見た通常カードの説明文が残留しないようにした
+- **検証**: `npm test`=**97 checks PASS**（前回エントリと同数・後退なし）。`npm run smoke`=**14/14 PASS**（smoke.js内に元々thanks関連の操作なし・修正不要だった）。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: ①ホーム`#streakCard`にありがとうブロックが無いこと・メモ欄は健在なこと ②7/17(通算4日目=三日坊主脱出記念/TOKU)カードで`#cardTierNote`に「🎉 記念日カード「三日坊主脱出記念」」・confetti用`<canvas>`が新規追加されることをポーリングで確認 ③7/19(通算6日目=海の日/SEASON)カードで`#cardTierNote`に「🌿 季節のカード「海の日」」・confetti用canvasが**追加されない**ことを確認
+- ロールバック: 本コミットの`git revert`で両変更とも一括で戻る（互いに独立したコード領域のため部分revertも可）
+
 ## 2026-07-14 カード図鑑（かんせい図鑑）UIを配線完了（27aa5dfのバックエンド未配線ぶんを完成）
 - **背景**: 27aa5df（`auto-sync 2026-07-14 01:32`）で`getDexStatus()`（記念/季節/レア/ノーマル4層それぞれのgot/hint計算）と`ensureRotAssign()`/`cardRotPick()`（抽選枠の割当を「実際に記録した対象日の回数」ベースにする方式。休み方に関係なく50回記録すれば全種類たどり着ける決定的ローテ）が未ドキュメント・未配線のまま追加されていた。今回はそのUI側を完成させた
 - **追加したUI**: マイ記録タブ・カレンダーの上に`#dexBannerCard`（バッジ+見本4枚+「📖図鑑をひらく」ボタン）、`#dexModal`（記念日/季節/レア/ノーマルの4セクション・`.dex-grid`）。未ゲットは実イラストをアルファマスクにしたシルエット（`.dex-thumb.dex-locked`）+ヒント文、ノーマル(イラストなし)は「？」プレースホルダ(`.dex-locked-plain`)。ゲット済みは実画像 or 色スウォッチ
