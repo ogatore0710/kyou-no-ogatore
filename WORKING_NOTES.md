@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-13
 
+## 2026-07-13 さぶPC最終便・メインPC向け引き継ぎ（これを読んだら上から順に）
+さぶPC艦隊は本日で解散。**未pushなし・作業途中なし**。メインPCでの最初の仕事は以下:
+1. **QA消化（最優先）**: `npm test`＋`npm run smoke`。7/12〜13のさぶPC分（相談室安全5件・総点検minor3-7・第8バッチ・カード画像方式）はすべて代替検証のみでnode系QA未実行
+2. **PR #6（記録カード画像方式・7/14解禁）のマージ**: branch `claude/card-illustrations`。マージ前にPR本文のチェックリスト（qa/smoke・7/13以前のピクセル回帰・新方式スクショ目視）を実施。**CARD_IMG_FROMゲートがあるので7/14を過ぎてからのマージでも事故なし**。完成プレビュー（実コード描画・本人確認用）: https://claude.ai/code/artifact/66c9713e-9166-480e-8224-ab65ac72a56c
+3. **残タスクは全部「人待ち」**（下の棚卸し節参照）: 本人監修待ち／実機待ち／素材待ち／仕様判断待ち。自走可能な実装バックログは空
+4. 小ネタ: このさぶPCのgitアドレスがnoreply未設定だった（`ryu@RyunoMacBook-Air.local`・直近コミット群）。メインPCのnoreply値をさぶPCにも設定しておくとよい
+- 完了済みの詳細: カード画像方式=`kyou-no-ogatore-card-illustrations-DONE.md`／安全5件・minor3-7=各DONEファイル／第8バッチ=下の節
+
 ## 2026-07-13 第8バッチ＋AUDIT-MEMO残件の棚卸し（さぶPC alan・remote-control自走）
 ※記録カード画像方式(イラスト81種・7/14解禁)は **branch claude/card-illustrations → PR #6** で別送。QA(メインPC)後にマージのこと。詳細は同ブランチのWORKING_NOTESとkyou-no-ogatore-card-illustrations-DONE.md
 - **検索クリア✕ボタン新設**（AUDIT低）: 動画を探すタブの検索窓右端に`#qClear`（38px丸・文字があるときだけ表示・`clearSearch()`/`syncSearchClear()`をapp-search.jsに追加）。WebKit標準の小さい✕は`#search`スコープで非表示化（二重防止・相談室のsdInputはtype=searchでないため影響なし）
