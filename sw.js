@@ -1,9 +1,9 @@
 // #きょうのオガトレ オフラインキャッシュ（https配信時のみ有効）
-const C="kyono-v43";
-const ASSETS=["./","index.html","videos.js","app-search.js","obu-feed.js","soudan-kb.js","manifest.json","assets/chara.png","assets/chara-good.png","assets/chara-kaikyaku.png","assets/chara-2.png","assets/chara-3.png","assets/chara-cheer.png","assets/chara-crown.png","assets/obu-fab-photo.jpg","assets/check/q1.jpg","assets/check/q2.jpg","assets/check/meter.jpg","assets/icon-192.png","assets/icon-512.png","assets/icon-180.png","assets/fonts/banana-card.woff2?v=2","assets/type-momo.png","assets/type-kenko.png","assets/type-yawara.png","assets/pl-asa30.jpg","assets/pl-yoru30.jpg","assets/chara-cracker.png","assets/chara-congrats.png","assets/chara-hitokoto.png"];
+const C="kyono-v44";
+const ASSETS=["./","index.html","videos.js","app-search.js","obu-feed.js","soudan-kb.js","app-quiz.js","manifest.json","assets/chara.png","assets/chara-good.png","assets/chara-kaikyaku.png","assets/chara-2.png","assets/chara-3.png","assets/chara-cheer.png","assets/chara-crown.png","assets/obu-fab-photo.jpg","assets/check/q1.jpg","assets/check/q2.jpg","assets/check/meter.jpg","assets/icon-192.png","assets/icon-512.png","assets/icon-180.png","assets/fonts/banana-card.woff2?v=2","assets/type-momo.png","assets/type-kenko.png","assets/type-yawara.png","assets/pl-asa30.jpg","assets/pl-yoru30.jpg","assets/chara-cracker.png","assets/chara-congrats.png","assets/chara-hitokoto.png"];
 // シェル（app本体）は必須=addAll、画像などはベストエフォート（1枚の失敗でオフライン対応全体を失わない）
 // assets/obu/ 配下（写真・音声）は将来ファイルが増える想定のため事前キャッシュ対象に含めない
-const SHELL=["./","index.html","videos.js","app-search.js","obu-feed.js","soudan-kb.js","manifest.json"];
+const SHELL=["./","index.html","videos.js","app-search.js","obu-feed.js","soudan-kb.js","app-quiz.js","manifest.json"];
 // SHELLはcache:"reload"でHTTPキャッシュを飛ばす（デプロイ直後10分のCDNキャッシュ焼き込み防止）。旧ブラウザでRequest生成が落ちたらURLのままにフォールバック
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>{
   let shellReqs=SHELL;
@@ -15,7 +15,7 @@ self.addEventListener("fetch",e=>{
   const u=new URL(e.request.url);
   if(u.origin!==location.origin) return;
   // ページ本体とデータは常にサーバーへ再確認(10分CDNキャッシュ対策・ETag再検証なので軽い)
-  const isShell=(e.request.mode==="navigate"||u.pathname.endsWith("videos.js")||u.pathname.endsWith("app-search.js")||u.pathname.endsWith("obu-feed.js")||u.pathname.endsWith("soudan-kb.js")||u.pathname.endsWith("index.html"));
+  const isShell=(e.request.mode==="navigate"||u.pathname.endsWith("videos.js")||u.pathname.endsWith("app-search.js")||u.pathname.endsWith("obu-feed.js")||u.pathname.endsWith("soudan-kb.js")||u.pathname.endsWith("app-quiz.js")||u.pathname.endsWith("index.html"));
   // 画像・フォント等の静的アセットはキャッシュ優先(sw版更新で入れ替わる・体感速度↑・通信減)。YouTubeサムネはクロスオリジンなので対象外
   const isAsset=/\.(png|jpe?g|webp|gif|svg|woff2?|ttf)(\?|$)/i.test(u.pathname);
   if(!isShell && isAsset){
