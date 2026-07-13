@@ -684,6 +684,12 @@
     <div class="bar"><div id="msBar" style="width:0%"></div></div>
     <div id="histFreeze" style="font-size:14px;color:var(--sub);margin-top:8px"></div>
   </div>
+  <div class="card" id="dexBannerCard">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="3" fill="#FFF3C4"/><path d="M12 4v16M8 8h1.5M8 12h1.5M14.5 8H16M14.5 12H16"/></svg>カード図鑑<span class="badge" id="dexBadge"></span></div>
+    <div style="font-size:14px;color:var(--sub);margin:-4px 0 10px">記念日・季節・レアなカードをあつめよう</div>
+    <div class="dex-banner-samples" id="dexBannerSamples"></div>
+    <button class="btn btn-ghost" onclick="openDex()">📖 図鑑をひらく</button>
+  </div>
   <div class="card">
     <div class="cal-head">
       <button onclick="calMove(-1)">‹</button>
@@ -1055,6 +1061,18 @@
   </div>
 </div>
 
+<!-- ===== カード図鑑（記念日/季節/レア/ノーマルの獲得状況・ヒント） ===== -->
+<div id="dexModal" class="hidden" onclick="if(event.target===this)closeDex()">
+  <div class="dex-box" role="dialog" aria-modal="true" aria-label="カード図鑑">
+    <div class="dex-head">
+      <div class="dex-title">📖 カード図鑑</div>
+      <button class="dex-close" onclick="closeDex()" aria-label="とじる">✕</button>
+    </div>
+    <div class="dex-summary" id="dexSummary"></div>
+    <div class="dex-scroll" id="dexBody"></div>
+  </div>
+</div>
+
 <!-- ===== オガトレ相談室（ボトムシート。戻る操作で閉じる=popstate対応） ===== -->
 <div id="soudanSheet" class="hidden" onclick="if(event.target===this)closeSoudan()">
   <div class="sd-sheet" role="dialog" aria-modal="true" aria-label="オガトレ相談室">
@@ -1191,7 +1209,7 @@ function toggleObu(){
 // 相談室FABはさらにKB未読込なら常に隠す（入口カードと同じガード）
 function updateFabs(){
   const modalOpen=id=>{ const el=document.getElementById(id); return !!(el&&!el.classList.contains("hidden")); };
-  const hide=currentSection==="quiz"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome");
+  const hide=currentSection==="quiz"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome")||modalOpen("dexModal");
   document.body.classList.toggle("fabs-hide",hide);
   const sf=document.getElementById("soudanFab");
   if(sf) sf.classList.toggle("hidden",!sdKb());
@@ -1337,6 +1355,7 @@ window.addEventListener("popstate",e=>{
   // ハードウェア/スワイプの「戻る」でモーダルが開いていたら、まずそれを閉じる
   if(!document.getElementById("obuModal").classList.contains("hidden")) closeObu();
   if(!document.getElementById("cardModal").classList.contains("hidden")) closeCard();
+  if(!document.getElementById("dexModal").classList.contains("hidden")) closeDex();
   const id=(e.state&&e.state.id)||"home";
   // 相談室シート: 「進む」やリロード後にid="soudan"へ着地したらホームの上にシートを重ねて復元。
   // それ以外のstateへ移った（=「戻る」）ならシートを閉じるだけ（A6のモーダル処理と同じ流儀）
@@ -2242,6 +2261,48 @@ function loadCardMotif(key, cb){
   im.onerror=()=>{ cardMotifImg=null; cardMotifKey=null; cb(); };
   im.src="assets/cards/"+key+".webp";
 }
+// ---- カード図鑑UI: ゲット済みは実画像、未ゲットはシルエット(実画像をアルファマスクに使う)+ヒント ----
+function dexThumbHtml(item){
+  if(item.tier==="normal"){
+    return item.got
+      ? `<div class="dex-thumb" style="background:${item.bg[0]}"><div class="dex-dot" style="background:${item.main}"></div></div>`
+      : `<div class="dex-thumb dex-locked-plain">？</div>`;
+  }
+  const src="assets/cards/"+item.key+".webp";
+  return item.got
+    ? `<div class="dex-thumb"><img src="${src}" alt="" loading="lazy"></div>`
+    : `<div class="dex-thumb dex-locked" style="--m:url('${src}')"></div>`;
+}
+function dexCellHtml(item){
+  const nameShown = item.got ? item.name.replace(/</g,"&lt;") : "？？？";
+  return `<div class="dex-cell">${dexThumbHtml(item)}<div class="dex-name">${nameShown}</div>${item.hint?`<div class="dex-hint">${item.hint}</div>`:""}</div>`;
+}
+function dexSectionHtml(title,items){
+  const got=items.filter(i=>i.got).length;
+  return `<div class="dex-sec"><h3>${title}<span class="dex-seccount">${got}/${items.length}</span></h3><div class="dex-grid">${items.map(dexCellHtml).join("")}</div></div>`;
+}
+function renderDex(){
+  const d=getDexStatus();
+  const all=[...d.toku,...d.season,...d.rare,...d.normal];
+  const got=all.filter(i=>i.got).length;
+  document.getElementById("dexSummary").textContent=`${got}/${all.length}個 あつめました`;
+  document.getElementById("dexBody").innerHTML=
+    dexSectionHtml("記念日カード",d.toku)+
+    dexSectionHtml("季節のカード",d.season)+
+    dexSectionHtml("レアカード",d.rare)+
+    dexSectionHtml("ノーマルカード",d.normal);
+}
+// マイ記録カレンダー上のバナー: 代表4枚(記念/季節/レア/ノーマルを各1)を見本として見せる(ゲット済みならその絵柄・未ゲットならシルエット)
+function renderDexBanner(){
+  const d=getDexStatus();
+  const all=[...d.toku,...d.season,...d.rare,...d.normal];
+  const got=all.filter(i=>i.got).length;
+  document.getElementById("dexBadge").textContent=`${got}/${all.length}`;
+  const samples=[d.toku[0],d.season[0],d.rare[0],d.normal[0]].filter(Boolean);
+  document.getElementById("dexBannerSamples").innerHTML=samples.map(dexCellHtml).map(h=>h.replace('class="dex-cell"','class="dex-cell" style="width:56px"')).join("");
+}
+function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); updateFabs(); }
+function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); updateFabs(); }
 
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
@@ -3349,7 +3410,7 @@ function renderHistory(){
   }
   document.getElementById("histFreeze").innerHTML=`おやすみ券 のこり${freezeLeft()}枚<br>休んだ日に自動でつかわれて連続がつながります`;
   if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
-  renderCal(); renderReach(); renderDiary(); renderIcs(); applyShowBrag();
+  renderCal(); renderReach(); renderDiary(); renderIcs(); applyShowBrag(); renderDexBanner();
 }
 function calMove(n){ calDate.setMonth(calDate.getMonth()+n); renderCal(); }
 function showDay(ds){
