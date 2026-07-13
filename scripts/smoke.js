@@ -296,6 +296,8 @@ async function main() {
       return "memoSaved表示・localStorage反映を確認";
     });
     await step("3c-記録カード生成（cardImg data URL）", async () => {
+      // #doneBtnと同じ理由：固定タブバーに隠れて誤クリックしないよう中央へ寄せてから押す
+      await page.$eval("#makeCardBtn", (el) => el.scrollIntoView({ block: "center" }));
       await page.click("#makeCardBtn");
       await visible("#cardModal");
       await page.waitForFunction(() => {
