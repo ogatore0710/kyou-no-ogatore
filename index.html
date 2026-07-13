@@ -2412,17 +2412,27 @@ function tryUseFreezes(missedDates){
   return true;
 }
 
-const CHARA_FILES=["assets/chara-good.png","assets/chara-kaikyaku.png","assets/chara-cheer.png","assets/chara-cracker.png","assets/chara-congrats.png"];
+// w=カード描画幅(px)。各イラストの「頭部が画像に占める高さの割合」がポーズごとに違う
+// （クローズアップ構図 vs 全身構図）ため、幅280固定だと頭のサイズがバラバラに見える。
+// chara-crown(節目・w=280)の頭部サイズを基準に、他は頭の見た目サイズが揃うよう個別に拡大。
+const CHARA_FILES=[
+  {file:"assets/chara-good.png", w:310},
+  {file:"assets/chara-kaikyaku.png", w:325},
+  {file:"assets/chara-cheer.png", w:380},
+  {file:"assets/chara-cracker.png", w:365},
+  {file:"assets/chara-congrats.png", w:345},
+];
 const CHARA_CROWN="assets/chara-crown.png"; // 節目ゴールドカード専用（王冠ドヤ）
-let charaImg=null, crownImg=null, charaTried=false;
+let charaImg=null, charaW=280, crownImg=null, charaTried=false;
 function loadChara(cb){
   if(charaTried){cb();return}
   charaTried=true;
   let left=2;
   const done=()=>{ left--; if(left===0) cb(); };
   const im=new Image();
-  im.onload=()=>{charaImg=im;done()}; im.onerror=()=>done();
-  im.src=CHARA_FILES[dayIndex()%CHARA_FILES.length];
+  const pick=CHARA_FILES[dayIndex()%CHARA_FILES.length];
+  im.onload=()=>{charaImg=im;charaW=pick.w;done()}; im.onerror=()=>done();
+  im.src=pick.file;
   const cr=new Image();
   cr.onload=()=>{crownImg=cr;done()}; cr.onerror=()=>done();
   cr.src=CHARA_CROWN;
@@ -2726,7 +2736,7 @@ function drawCard(){
   // キャラ（日替わりローテ・節目は王冠ドヤ・右下の専用ゾーンで文字と重ねない）
   const chFig = milestone ? (crownImg||charaImg) : charaImg;
   if(chFig){
-    const w=280, h=w*chFig.height/chFig.width;
+    const w=milestone?280:charaW, h=w*chFig.height/chFig.width;
     ctx.drawImage(chFig, 985-w, 998-h, w, h);
   }
   // フッター＝キャラの吹き出し
