@@ -2447,6 +2447,22 @@ function loadTypeIcon(key, cb){
   im.src = TYPE_IMG[key] ? TYPE_IMG[key] : "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(TYPE_ART[key]);
 }
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+// 現在のctx.font基準でtxtをmaxW以内でmaxLines行に分割（最終行が収まらない分は…で省略）
+function wrapLines(ctx,txt,maxW,maxLines){
+  const lines=[]; let rest=txt;
+  while(rest.length && lines.length<maxLines){
+    let l="", i=0;
+    while(i<rest.length && ctx.measureText(l+rest[i]).width<=maxW) { l+=rest[i]; i++; }
+    if(i===0){ l=rest[0]; i=1; } // 1文字も入らない極端な幅でも無限ループしない
+    lines.push(l); rest=rest.slice(i);
+  }
+  if(rest.length){
+    let last=lines[lines.length-1]+rest;
+    while(ctx.measureText(last).width>maxW && last.length>2) last=last.slice(0,last.length-2)+"…";
+    lines[lines.length-1]=last;
+  }
+  return lines;
+}
 function drawHeart(ctx,x,y,s,color){
   ctx.save();ctx.translate(x,y);ctx.scale(s/24,s/24);ctx.fillStyle=color;
   ctx.beginPath();ctx.moveTo(12,21);
@@ -2690,6 +2706,11 @@ function drawCard(){
   if(effCount>=2){ ctx.fillStyle="#8A877D"; ctx.font="700 30px "+F; ctx.fillText(`連続記録${effCount}日`,500,by+52); }
   // タグピル行
   const rowY = milestone? [648,764] : [614,738];
+  // メモ/ありがとう行(row1)は右下のキャラと縦帯が重なる位置にあるため、実際に描画されるキャラ幅から
+  // その行だけ避け幅を動的に確保する（かたさタイプ行=row0はキャラ上端より上にあり無関係・従来通り860固定）
+  const chW = milestone?280:charaW;
+  const chActive = milestone ? !!(crownImg||charaImg) : !!charaImg;
+  const row1RightEdge = chActive ? (985-chW-24) : 860;
   ctx.textAlign="left";
   rows.slice(0,2).forEach((row,i)=>{
     const yc=rowY[i];
@@ -2702,7 +2723,7 @@ function drawCard(){
     ctx.fillText(row[0],130+24,yc+10);
     // 値（幅に合わせて縮小）
     const vx=130+pw+26;
-    const maxW=(i===1?700:860)-vx;
+    const maxW=(i===1?row1RightEdge:860)-vx;
     let fs=46;
     ctx.fillStyle="#3A3A35";
     let txt=row[1];
@@ -2715,12 +2736,18 @@ function drawCard(){
         const ix=vx+ctx.measureText(txt).width+14, iy=yc-ih/2;
         if(ix+iw<=maxW+vx) ctx.drawImage(typeIconImg, ix, iy, iw, ih);
       }
+    } else if(i===1){
+      // メモ行はキャラ回避で幅が狭くなりうるため、切り捨てる前に最大3行まで許容(20文字程度を欠けさせない)
+      fs=28; ctx.font="800 "+fs+"px "+F;
+      const lines=wrapLines(ctx,txt,maxW,3);
+      const ly0=yc-(lines.length-1)*19;
+      lines.forEach((l,li)=>ctx.fillText(l,vx,ly0+li*38));
     } else {
       // 2行に分割（30px固定・2行目に収まらない分は…）
       fs=30; ctx.font="800 "+fs+"px "+F;
-      let l1="", i=0;
-      while(i<txt.length && ctx.measureText(l1+txt[i]).width<=maxW){ l1+=txt[i]; i++; }
-      let l2=txt.slice(i);
+      let l1="", i2=0;
+      while(i2<txt.length && ctx.measureText(l1+txt[i2]).width<=maxW){ l1+=txt[i2]; i2++; }
+      let l2=txt.slice(i2);
       while(ctx.measureText(l2).width>maxW && l2.length>2){ l2=l2.slice(0,l2.length-2)+"…"; }
       ctx.fillText(l1,vx,yc-6);
       ctx.fillText(l2,vx,yc+32);
