@@ -222,6 +222,29 @@
   #streakCard.mini #miniDone{display:block}
   .hidden{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+  /* カード図鑑 */
+  #dexModal{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:55;display:flex;align-items:center;justify-content:center;padding:20px}
+  .dex-box{background:var(--card);border-radius:var(--radius);padding:18px;max-width:460px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-sizing:border-box}
+  .dex-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+  .dex-title{font-size:17px;font-weight:900}
+  .dex-close{background:none;border:none;font-size:20px;color:var(--sub);cursor:pointer;padding:4px 8px}
+  .dex-summary{font-size:13px;color:var(--sub);margin-bottom:8px}
+  .dex-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+  .dex-sec h3{font-size:14px;font-weight:800;margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between}
+  .dex-sec:first-child h3{margin-top:2px}
+  .dex-seccount{font-size:11px;font-weight:700;color:var(--sub);background:var(--bg);border-radius:999px;padding:2px 10px}
+  .dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px}
+  .dex-cell{text-align:center}
+  .dex-thumb{width:100%;aspect-ratio:1/1;border-radius:12px;background:var(--bg);border:1.5px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .dex-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .dex-thumb.dex-locked{background-color:var(--ink);opacity:.24;-webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:cover;mask-size:cover;-webkit-mask-position:center;mask-position:center;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+  .dex-thumb.dex-locked-plain{color:var(--sub);font-size:22px;font-weight:800;background:var(--line)}
+  .dex-dot{width:34%;height:34%;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
+  .dex-name{font-size:11px;font-weight:800;margin-top:5px;overflow-wrap:anywhere;line-height:1.3}
+  .dex-hint{font-size:10px;color:var(--sub);margin-top:2px;line-height:1.35}
+  /* 図鑑バナー(マイ記録のカレンダー上・見本サムネ+リンク) */
+  .dex-banner-samples{display:flex;gap:8px;margin:10px 0 12px}
+  .dex-banner-samples .dex-thumb{width:56px;height:56px;flex-shrink:0;border-radius:10px}
   /* オガトレ通信フローティングボタン＆ポップアップ */
   .obu-fab{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:45;width:56px;height:56px;border-radius:50%;border:3px solid var(--yellow);padding:0;background:var(--card);box-shadow:0 4px 14px rgba(58,52,32,.32),0 1px 3px rgba(58,52,32,.2);cursor:pointer}
   .obu-fab img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;pointer-events:none}
@@ -2345,18 +2368,55 @@ const TOKU_CARDS={
   1900:{key:"toku_1900days", name:"1900日記念", bg:["#CFEEE8","#4FB0A0"]},
 };
 const CARD_ROT_ORDER=[40, 38, 26, 16, 42, 8, 44, 0, 30, 36, 37, 31, 47, 25, 20, 41, 10, 33, 13, 7, 19, 24, 15, 22, 17, 32, 39, 27, 28, 48, 14, 12, 35, 43, 1, 49, 34, 21, 6, 9, 2, 46, 29, 11, 23, 3, 45, 18, 5, 4];
-// 抽選プール=ノーマル20+レア30=50。CARD_ROT_ORDERで並び替え、dateIdx%50で1枚選ぶ(決定的)
-function cardRotPick(dateIdx){
-  const pos=CARD_ROT_ORDER[((dateIdx%50)+50)%50];
-  if(pos<NORMAL_CARDS.length){ const t=NORMAL_CARDS[pos]; return {tier:"normal", name:t.name, bg:t.bg, main:t.main, deco:t.deco, key:null}; }
-  const r=RARE_CARDS[pos-NORMAL_CARDS.length];
-  return {tier:"rare", name:r.name, bg:r.bg, key:r.key};
-}
 // 季節: mmddが期間内の最初の1件(SEASON_CARDSの並び順=特定行事が先)
 function cardSeasonPick(ds){
   const mmdd=Number(ds.slice(5,7)+ds.slice(8,10));
   for(const s of SEASON_CARDS){ if(s.ws&&mmdd>=s.ws&&mmdd<=s.we) return {tier:"season", name:s.name, bg:s.bg, key:s.key}; }
   return null;
+}
+// 抽選プール=ノーマル20+レア30=50。posからカード内容を作る共通処理
+function cardFromRotPos(pos){
+  if(pos<NORMAL_CARDS.length){ const t=NORMAL_CARDS[pos]; return {tier:"normal", name:t.name, bg:t.bg, main:t.main, deco:t.deco, key:null}; }
+  const r=RARE_CARDS[pos-NORMAL_CARDS.length];
+  return {tier:"rare", name:r.name, bg:r.bg, key:r.key};
+}
+// 旧方式(暦日dateIdx%50固定)。移行前にすでに見せた日を寸分違わず再現するためだけに残す
+function legacyRotPos(dateIdx){ return CARD_ROT_ORDER[((dateIdx%50)+50)%50]; }
+// 抽選の割当は「実際に記録して抽選対象になった回数」ベースで日付ごとに永続化する(kyono_rotAssign)。
+// 理由: 旧方式は暦日(dateIdx)基準の固定ローテーションだったため、休む周期が50と公約数を持つ
+// (例:5日に1回休む)と、特定のカードが暦日的に永久に引けなくなるバグがあった。記録した回数を
+// 数える方式なら、どんな休み方をしても50回記録すれば必ず1周＝プール全種にたどり着ける。
+// 初回だけ、移行前にすでに記録済みだった抽選対象日を旧方式の結果でバックフィルし
+// (過去カード再現の絶対ルール)、以降はここに追記していく。
+function ensureRotAssign(){
+  let rot=store.get("rotAssign",null);
+  if(rot && typeof rot==="object" && !Array.isArray(rot)) return rot;
+  rot={};
+  const st=getStreakData();
+  const dates=(st.dates||[]).slice().sort();
+  const off=Math.max(0,(st.total||0)-dates.length);
+  dates.forEach((ds,i)=>{
+    const di=Math.floor((new Date(ds).getTime()+9*3600*1000)/86400000);
+    if(di<CARD_IMG_FROM) return; // 画像方式が始まる前は抽選対象外
+    const eff=i+1+off;
+    if(TOKU_CARDS[eff]) return; // 記念日は抽選枠を消費しない
+    if(MILESTONES.indexOf(eff)>=0) return;
+    if(cardSeasonPick(ds)) return; // 季節も抽選枠を消費しない
+    rot[ds]=legacyRotPos(di);
+  });
+  store.set("rotAssign",rot);
+  return rot;
+}
+function cardRotPick(ds){
+  const rot=ensureRotAssign();
+  let pos=rot[ds];
+  if(pos==null){
+    const seq=Object.keys(rot).length; // これまでに実際に抽選対象になった回数(休み方に関係なく単調増加)
+    pos=CARD_ROT_ORDER[seq%50];
+    rot[ds]=pos;
+    store.set("rotAssign",rot);
+  }
+  return cardFromRotPos(pos);
 }
 // その日のカードパターンを決める(CARD_IMG_FROM以降のみ画像方式・記念>季節>抽選)
 function cardPatternFor(ds, effTotal, dateIdx){
@@ -2365,7 +2425,34 @@ function cardPatternFor(ds, effTotal, dateIdx){
   if(tk) return {tier:"toku", name:tk.name, bg:tk.bg, key:tk.key};
   if(MILESTONES.indexOf(effTotal)>=0) return null; // 記念画像のない節目(3日目のみ)は従来のゴールドカードのまま
   const sp=cardSeasonPick(ds); if(sp) return sp;
-  return cardRotPick(dateIdx);
+  return cardRotPick(ds);
+}
+// ===== カード図鑑: 記念/季節/レア/ノーマルそれぞれの獲得状況とヒントを計算 =====
+function getDexStatus(){
+  const st=getStreakData();
+  const rot=ensureRotAssign();
+  const posSet=new Set(Object.values(rot));
+  const dates=st.dates||[];
+  const seasonHitKeys=new Set();
+  dates.forEach(ds=>{ const sp=cardSeasonPick(ds); if(sp) seasonHitKeys.add(sp.key); });
+  const fmtMD=w=>Math.floor(w/100)+"/"+(w%100);
+  const toku=Object.keys(TOKU_CARDS).map(Number).sort((a,b)=>a-b).map(d=>{
+    const t=TOKU_CARDS[d], got=st.total>=d;
+    return {tier:"toku", d, key:t.key, name:t.name, bg:t.bg, got, hint: got?"":`あと${d-st.total}日つづけると出会えます`};
+  });
+  const season=SEASON_CARDS.map(s=>{
+    const got=seasonHitKeys.has(s.key);
+    return {tier:"season", key:s.key, name:s.name, bg:s.bg, got, hint: got?"":`${fmtMD(s.ws)}〜${fmtMD(s.we)}ごろに記録すると出会えるかも`};
+  });
+  const rare=RARE_CARDS.map((r,i)=>{
+    const got=posSet.has(NORMAL_CARDS.length+i);
+    return {tier:"rare", key:r.key, name:r.name, bg:r.bg, got, hint: got?"":"気まぐれに出てくる1枚。記録をつづけてみて"};
+  });
+  const normal=NORMAL_CARDS.map((n,i)=>{
+    const got=posSet.has(i);
+    return {tier:"normal", key:null, idx:i, name:n.name, bg:n.bg, main:n.main, got, hint: got?"":"記録をつづけていると出会えるかも"};
+  });
+  return {toku, season, rare, normal};
 }
 // カードモチーフ画像のプリロード(loadTypeIconと同じ流儀・失敗しても止めない)
 let cardMotifImg=null, cardMotifKey=null;
