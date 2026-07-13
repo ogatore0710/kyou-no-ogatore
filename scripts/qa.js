@@ -497,6 +497,9 @@ function checkSoudanKb(catalogIds) {
   const rf = kb.redFlags;
   assert("soudan-kb.js: redFlags(赤旗)存在", !!(rf && Array.isArray(rf.kw) && rf.kw.length && rf.answer), rf ? `kw ${(rf.kw || []).length}語` : "redFlagsが無い");
 
+  const cr = kb.crisis;
+  assert("soudan-kb.js: crisis(希死念慮)存在", !!(cr && Array.isArray(cr.kw) && cr.kw.length >= 8 && typeof cr.answer === "string" && cr.answer), cr ? `kw ${(cr.kw || []).length}語` : "crisisが無い");
+
   const badFu = (kb.commonFollowups || []).filter((f) =>
     !f || !f.id || !f.chip || !f.mode ||
     !["text", "shorter", "more"].includes(f.mode) ||
