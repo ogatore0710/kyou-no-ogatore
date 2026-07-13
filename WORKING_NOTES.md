@@ -4,6 +4,15 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 カード図鑑（かんせい図鑑）UIを配線完了（27aa5dfのバックエンド未配線ぶんを完成）
+- **背景**: 27aa5df（`auto-sync 2026-07-14 01:32`）で`getDexStatus()`（記念/季節/レア/ノーマル4層それぞれのgot/hint計算）と`ensureRotAssign()`/`cardRotPick()`（抽選枠の割当を「実際に記録した対象日の回数」ベースにする方式。休み方に関係なく50回記録すれば全種類たどり着ける決定的ローテ）が未ドキュメント・未配線のまま追加されていた。今回はそのUI側を完成させた
+- **追加したUI**: マイ記録タブ・カレンダーの上に`#dexBannerCard`（バッジ+見本4枚+「📖図鑑をひらく」ボタン）、`#dexModal`（記念日/季節/レア/ノーマルの4セクション・`.dex-grid`）。未ゲットは実イラストをアルファマスクにしたシルエット（`.dex-thumb.dex-locked`）+ヒント文、ノーマル(イラストなし)は「？」プレースホルダ(`.dex-locked-plain`)。ゲット済みは実画像 or 色スウォッチ
+- **配線した3箇所**: `updateFabs()`のhide条件に`modalOpen("dexModal")`を追加／最初の`popstate`リスナーに`dexModal`を閉じる分岐を追加（戻る操作対応）／`renderHistory()`末尾に`renderDexBanner()`を追加（マイ記録を開くたびにバッジ・見本を更新）
+- **500日カバレッジの再確認**（設計判断の根拠・実配列をNodeで流用したシミュレーション）: 500日連続で記録し続けた場合、開始日をどのカレンダー日にしても、500日以内に到達可能な106枚中103枚（**到達可能集合に対して100%**）を確実に収集できる。内訳: TOKU 13/16（730/1000/1900日の3節目は定義上500日では届かないため除外＝仕様どおり・バグではない）・SEASON 40/40・RARE 30/30・NORMAL 20/20。カタログ全体(106枚)に対しては97.2%。これは確率的な運任せではなく`ensureRotAssign`の設計（記録回数ベースの決定的ローテ）による数学的な保証
+- **検証**: `npm test`=**97 checks PASS**（配線前と同じ件数・後退なし）。`npm run smoke`=**14/14 PASS**。加えてscratchpadの使い捨てpuppeteer-coreスクリプトで実描画を確認: ①マイ記録タブのカード図鑑バナー(バッジ24/106+見本4枚、ゲット済みは実画像/色ドット・未ゲットはシルエット+ヒント) ②図鑑モーダル全体(記念日5/16・季節6/40・レア7/30・ノーマル6/20の混在=ゲット済み実画像とシルエット+ヒントが両方確認できる状態) ③記録カード実描画3種(記念=3週間記念/クローバー柄・季節=海の日/ビーチ柄・レア=ぱんだ柄)。いずれも文字欠け・重なりなし
+- **qa/smokeでの気づき**: ドラフトのコードに実装バグは見つからず、追加が必要だったのは指示どおりの3配線点のみ
+- ロールバック: `#dexBannerCard`・`#dexModal`のHTML、`dexThumbHtml`/`dexCellHtml`/`dexSectionHtml`/`renderDex`/`renderDexBanner`/`openDex`/`closeDex`の7関数、および今回追加した3配線行（updateFabs 1行・popstate 1行・renderHistory 1行）を削除すれば元に戻る。バックエンド(`getDexStatus`/`ensureRotAssign`/`cardRotPick`/`CARD_ROT_ORDER`)は無害なので残してよい
+
 ## 2026-07-14 かたさチェックをapp-quiz.jsへ分割（SPLIT-PLAN 2番・夜間艦隊仕込み指示書の消化）
 - `SPLIT-PLAN.md`の「2. かたさチェック」を実行。`index.html`から`TYPE_ART`・`QUESTIONS`・`TYPES`・`WORRY`・`QUIZ_ART`・`startQuiz`/`renderQ`/`answer`/`prevQ`/`decideType`/`finishQuiz`/`currentRx`/`showResult`を新規`app-quiz.js`へ切り出し（純移動・中身は無変更）。ファイル名は`app-search.js`に揃えて`app-quiz.js`を選択
 - 対象コードは`TYPE_IMG`/`MARK_*`/`ICON_*`/`V`/`state`/`SECTIONS`/`show`/`navTo`/`quizGoHome`/`rotationIndex`/`vHTML`/`videoCard`など**移動しない共有コードと入り組んで点在**していたため、行範囲を機械検証しながら6箇所を外科的に切除。`quizGoHome`（HTML onclickから直呼び）・`rotationIndex`・`vHTML`/`videoCard`（「きょうの1本」からも共有参照）は指示書の対象外なのでindex.html側に残置。`currentRx()`は指示書どおりapp-quiz.js側でグローバル関数のまま維持（記録カード関連コードからの呼び出しをsmokeで確認）
