@@ -2226,6 +2226,151 @@ const MS=[
 ];
 const MILESTONES=MS.map(x=>x.d);
 const MILESTONE_MSG_VIDEO=""; // 節目お祝いメッセージ動画のYouTube ID。差し込み手順=ここにIDを入れるだけ（空文字=機能オフ）
+// ===== 記録カード画像方式(GPT生成モチーフ+コード背景色) =====
+// 過去カード再現の絶対ルール: CARD_IMG_FROM以降の日付にだけ効かせる。それ未満は従来drawCardのまま。
+const CARD_IMG_FROM=Math.floor((new Date("2026-07-14").getTime()+9*3600*1000)/86400000);
+const SEASON_CARDS=[
+  {key:"season_oshogatsu", name:"お正月", bg:["#FFD9C2","#E0563C"], ws:101, we:103},
+  {key:"season_yuki", name:"ゆき", bg:["#DCEEFB","#9BC4E2"], ws:105, we:131},
+  {key:"season_setsubun", name:"節分", bg:["#D6D8F5","#8E7BD0"], ws:203, we:203},
+  {key:"season_valentine", name:"バレンタイン", bg:["#FFD6E6","#F5A6C8"], ws:214, we:214},
+  {key:"season_hinamatsuri", name:"ひな祭り", bg:["#FFE3E0","#F5B6C0"], ws:301, we:303},
+  {key:"season_hanami", name:"はなみ", bg:["#FFE9F0","#F7C0D6"], ws:325, we:405},
+  {key:"season_kodomonohi", name:"こどもの日", bg:["#CFE9FF","#6FB0E0"], ws:503, we:505},
+  {key:"season_hahanohi", name:"母の日", bg:["#FFDCE6","#E88AA6"], ws:509, we:515},
+  {key:"season_ajisai", name:"あじさい・梅雨", bg:["#BFD4F5","#8E7BD0"], ws:616, we:630},
+  {key:"season_tanabata", name:"たなばた", bg:["#3A3A6E","#16163A"], ws:706, we:707},
+  {key:"season_natsumatsuri", name:"なつまつり", bg:["#2B3F72","#14204A"], ws:722, we:812},
+  {key:"season_obon", name:"おぼん", bg:["#F5C99A","#A05A6A"], ws:813, we:816},
+  {key:"season_jugoya", name:"十五夜", bg:["#3A4A78","#1A2348"], ws:917, we:919},
+  {key:"season_keirounohi", name:"敬老の日", bg:["#FFE6A8","#D4A63E"], ws:915, we:921},
+  {key:"season_halloween", name:"ハロウィン", bg:["#E0CBF0","#7C4FB0"], ws:1025, we:1031},
+  {key:"season_momiji", name:"もみじ", bg:["#FFC98A","#D14A30"], ws:1101, we:1114},
+  {key:"season_shichigosan", name:"七五三", bg:["#FFD6C2","#D45A3C"], ws:1115, we:1115},
+  {key:"season_yuzuyu", name:"ゆず湯・冬至", bg:["#FFF0C2","#E0B84A"], ws:1221, we:1222},
+  {key:"season_christmas", name:"クリスマス", bg:["#CDEBD4","#4C9A6B"], ws:1223, we:1225},
+  {key:"season_oomisoka", name:"おおみそか", bg:["#3A3A6E","#1C1C44"], ws:1229, we:1231},
+  {key:"season_chichinohi", name:"父の日", bg:["#CDE8EC","#4C8894"], ws:615, we:621},
+  {key:"season_uminohi", name:"海の日", bg:["#AEE8E0","#3F9AB5"], ws:715, we:721},
+  {key:"season_yamanohi", name:"山の日", bg:["#BFE6A0","#4F9A3E"], ws:811, we:811},
+  {key:"season_shingakki", name:"新学期", bg:["#DFF3D0","#7CB86B"], ws:406, we:410},
+  {key:"season_easter", name:"イースター", bg:["#FFD6E8","#F5A6C8"], ws:411, we:420},
+  {key:"season_ohigan", name:"お彼岸", bg:["#EAD9E0","#B08AA0"], ws:920, we:923},
+  {key:"season_kotatsu", name:"こたつ", bg:["#FFDDB8","#E08A3C"], ws:1201, we:1220},
+  {key:"season_jusanya", name:"十三夜", bg:["#4A4A80","#1E2450"], ws:1010, we:1013},
+  {key:"season_osoji", name:"大掃除", bg:["#D0F0EE","#5FBFB5"], ws:1226, we:1228},
+  {key:"season_ume", name:"梅", bg:["#FFE0EC","#E89ABF"], ws:204, we:228},
+  {key:"season_himawari", name:"ひまわり", bg:["#FFE8A0","#F0B830"], ws:817, we:831},
+  {key:"season_cosmos", name:"コスモス", bg:["#FFD8E8","#E88AB0"], ws:1001, we:1009},
+  {key:"season_nanohana", name:"菜の花", bg:["#FFF0A0","#E0C840"], ws:304, we:324},
+  {key:"season_asagao", name:"朝顔", bg:["#CFD8FF","#6E7CD0"], ws:722, we:731},
+  {key:"season_icho", name:"いちょう", bg:["#FFEDB0","#E0B030"], ws:1116, we:1130},
+  {key:"season_tsubaki", name:"椿", bg:["#FFD0D0","#D04A5A"], ws:201, we:202},
+  {key:"season_suisen", name:"水仙", bg:["#FFF6D6","#E0D080"], ws:104, we:104},
+  {key:"season_tulip", name:"チューリップ", bg:["#FFD6E0","#E86A8A"], ws:415, we:430},
+  {key:"season_kingyo", name:"金魚すくい", bg:["#FFD8D0","#E86A5A"], ws:801, we:810},
+  {key:"season_hotaru", name:"ほたる", bg:["#3A4A3A","#1E2E1E"], ws:601, we:614},
+];
+const RARE_CARDS=[
+  {key:"rare_neko", name:"ねこ", bg:["#FBEFD8","#E8C89A"]},
+  {key:"rare_wanko", name:"わんこ", bg:["#F5E2C8","#D8A868"]},
+  {key:"rare_usagi", name:"うさぎ", bg:["#DFF3E4","#9BD0A8"]},
+  {key:"rare_kitsune", name:"きつね", bg:["#FFDCB0","#E08A3C"]},
+  {key:"rare_kuma", name:"くま", bg:["#F0DCB0","#C89A5A"]},
+  {key:"rare_kotori", name:"ことり", bg:["#CFE9FF","#7AB0E0"]},
+  {key:"rare_ginga", name:"銀河", bg:["#3A2A6E","#12103A"]},
+  {key:"rare_nagareboshi", name:"流れ星", bg:["#2A3468","#12183A"]},
+  {key:"rare_wakusei", name:"惑星", bg:["#33366E","#161A44"]},
+  {key:"rare_uchufuku", name:"宇宙服", bg:["#3A356E","#1A1840"]},
+  {key:"rare_ufo", name:"UFO", bg:["#2E4A50","#123038"]},
+  {key:"rare_niji", name:"虹", bg:["#DFF0FF","#A6D0F0"]},
+  {key:"rare_shabondama", name:"しゃぼん玉", bg:["#DFF4F2","#A6DEDA"]},
+  {key:"rare_hitsujigumo", name:"ひつじ雲", bg:["#D6EAFF","#9BC4E8"]},
+  {key:"rare_hoshizora", name:"星空", bg:["#2A2E5C","#12142E"]},
+  {key:"rare_nami", name:"波", bg:["#AEE0EC","#3F9AB5"]},
+  {key:"rare_komorebi", name:"木漏れ日", bg:["#DFF0C8","#7CB05A"]},
+  {key:"rare_hanabatake", name:"花畑", bg:["#E4F0D0","#9CC868"]},
+  {key:"rare_chocho", name:"ちょうちょ", bg:["#F0F0C8","#C8D080"]},
+  {key:"rare_aurora", name:"オーロラ", bg:["#2E4A5C","#1A2E44"]},
+  {key:"rare_panda", name:"ぱんだ", bg:["#E2F0DC","#9AC090"]},
+  {key:"rare_penguin", name:"ぺんぎん", bg:["#DCEEFB","#9BC4E2"]},
+  {key:"rare_iruka", name:"いるか", bg:["#CFEAF2","#5FA8C8"]},
+  {key:"rare_risu", name:"りす", bg:["#F5E2C8","#C89A5A"]},
+  {key:"rare_fukurou", name:"ふくろう", bg:["#3A4468","#1A2044"]},
+  {key:"rare_kame", name:"かめ", bg:["#DFEFC8","#8CB868"]},
+  {key:"rare_harinezumi", name:"はりねずみ", bg:["#F0E0C8","#C8A87A"]},
+  {key:"rare_kujira", name:"くじら", bg:["#BFE0EC","#4F9AB5"]},
+  {key:"rare_ahiru", name:"あひる", bg:["#FFF0B0","#F0C840"]},
+  {key:"rare_hamster", name:"ハムスター", bg:["#FBEAD0","#E0BE88"]},
+];
+const NORMAL_CARDS=[
+  {name:"さくら", bg:["#FFEDF3","#FFF7EC"], main:"#E56A9A", deco:["#E56A9A","#FFD93B","#F5AFC6"]},
+  {name:"そら", bg:["#E9F3FF","#EFFCF6"], main:"#4E96D9", deco:["#4E96D9","#FFD93B","#F5AFC6"]},
+  {name:"ラベンダー", bg:["#F1EDFF","#FFEFF6"], main:"#8B7BD8", deco:["#8B7BD8","#FFD93B","#F5AFC6"]},
+  {name:"ミント", bg:["#E7F8F1","#F0F9FF"], main:"#2FA98C", deco:["#2FA98C","#FFD93B","#F5AFC6"]},
+  {name:"ピーチ", bg:["#FFF0E6","#FFEFF4"], main:"#F08A5D", deco:["#F08A5D","#FFD93B","#F5AFC6"]},
+  {name:"レモン", bg:["#FFF9DC","#FFEFE6"], main:"#DFA400", deco:["#DFA400","#FFD93B","#F5AFC6"]},
+  {name:"いちごみるく", bg:["#FFE9EE","#FFF7F0"], main:"#E0566E", deco:["#E0566E","#FFD93B","#F5AFC6"]},
+  {name:"ミルクティー", bg:["#F6EEE1","#FFF7EB"], main:"#A87B4F", deco:["#A87B4F","#FFD93B","#F5AFC6"]},
+  {name:"わかくさ", bg:["#EFF8E1","#F6FCEF"], main:"#6FA832", deco:["#6FA832","#FFD93B","#F5AFC6"]},
+  {name:"あさぎ", bg:["#E4F7F6","#EFFDF9"], main:"#248F89", deco:["#248F89","#FFD93B","#F5AFC6"]},
+  {name:"すみれ", bg:["#EEE4FA","#F7EEFF"], main:"#7C4FB0", deco:["#7C4FB0","#FFD93B","#F5AFC6"]},
+  {name:"あんず", bg:["#FFE9D6","#FFF6E8"], main:"#E2793A", deco:["#E2793A","#FFD93B","#F5AFC6"]},
+  {name:"しろくま", bg:["#EAF4F6","#F5FBFC"], main:"#4C8894", deco:["#4C8894","#FFD93B","#F5AFC6"]},
+  {name:"こむぎ", bg:["#F5EEE0","#FBF6EC"], main:"#A07C42", deco:["#A07C42","#FFD93B","#F5AFC6"]},
+  {name:"もえぎ", bg:["#E3F6E9","#F1FBF4"], main:"#2E9A5E", deco:["#2E9A5E","#FFD93B","#F5AFC6"]},
+  {name:"ぶどう", bg:["#EDD7F4","#F8EDF8"], main:"#8930A6", deco:["#8930A6","#FFD93B","#F5AFC6"]},
+  {name:"さんご", bg:["#F4DBD7","#F8F1ED"], main:"#A64030", deco:["#A64030","#FFD93B","#F5AFC6"]},
+  {name:"るりいろ", bg:["#D7E0F4","#EDEDF8"], main:"#3054A6", deco:["#3054A6","#FFD93B","#F5AFC6"]},
+  {name:"ばらいろ", bg:["#F4D7DC","#F8EDED"], main:"#A63044", deco:["#A63044","#FFD93B","#F5AFC6"]},
+  {name:"きなこ", bg:["#F4E8D7","#F8F6ED"], main:"#A67530", deco:["#A67530","#FFD93B","#F5AFC6"]},
+];
+const TOKU_CARDS={
+  4:{key:"toku_datsusan", name:"三日坊主脱出記念", bg:["#FFE0B0","#F0A03C"]},
+  30:{key:"toku_30days", name:"30日記念", bg:["#DFF0D0","#8CC060"]},
+  66:{key:"toku_66days", name:"66日記念", bg:["#FFE6B0","#E0B040"]},
+  100:{key:"toku_100days", name:"100日記念", bg:["#FFEBB0","#E0B030"]},
+  200:{key:"toku_200days", name:"200日記念", bg:["#CDEEF0","#4CB0C0"]},
+  300:{key:"toku_300days", name:"300日記念", bg:["#FFD6DE","#E86A8A"]},
+  365:{key:"toku_365days", name:"1年記念", bg:["#FFD8CE","#E87A5A"]},
+  500:{key:"toku_500days", name:"500日記念", bg:["#FFE0D6","#E0A08A"]},
+  730:{key:"toku_730days", name:"2年記念", bg:["#E4D6F0","#8A6AC0"]},
+  1000:{key:"toku_1000days", name:"1000日記念", bg:["#F0E0C0","#C0A040"]},
+  1900:{key:"toku_1900days", name:"1900日記念", bg:["#CFEEE8","#4FB0A0"]},
+};
+const CARD_ROT_ORDER=[40, 38, 26, 16, 42, 8, 44, 0, 30, 36, 37, 31, 47, 25, 20, 41, 10, 33, 13, 7, 19, 24, 15, 22, 17, 32, 39, 27, 28, 48, 14, 12, 35, 43, 1, 49, 34, 21, 6, 9, 2, 46, 29, 11, 23, 3, 45, 18, 5, 4];
+// 抽選プール=ノーマル20+レア30=50。CARD_ROT_ORDERで並び替え、dateIdx%50で1枚選ぶ(決定的)
+function cardRotPick(dateIdx){
+  const pos=CARD_ROT_ORDER[((dateIdx%50)+50)%50];
+  if(pos<NORMAL_CARDS.length){ const t=NORMAL_CARDS[pos]; return {tier:"normal", name:t.name, bg:t.bg, main:t.main, deco:t.deco, key:null}; }
+  const r=RARE_CARDS[pos-NORMAL_CARDS.length];
+  return {tier:"rare", name:r.name, bg:r.bg, key:r.key};
+}
+// 季節: mmddが期間内の最初の1件(SEASON_CARDSの並び順=特定行事が先)
+function cardSeasonPick(ds){
+  const mmdd=Number(ds.slice(5,7)+ds.slice(8,10));
+  for(const s of SEASON_CARDS){ if(s.ws&&mmdd>=s.ws&&mmdd<=s.we) return {tier:"season", name:s.name, bg:s.bg, key:s.key}; }
+  return null;
+}
+// その日のカードパターンを決める(CARD_IMG_FROM以降のみ画像方式・記念>季節>抽選)
+function cardPatternFor(ds, effTotal, dateIdx){
+  if(dateIdx<CARD_IMG_FROM) return null; // 従来drawCardに任せる
+  const tk=TOKU_CARDS[effTotal];
+  if(tk) return {tier:"toku", name:tk.name, bg:tk.bg, key:tk.key};
+  const sp=cardSeasonPick(ds); if(sp) return sp;
+  return cardRotPick(dateIdx);
+}
+// カードモチーフ画像のプリロード(loadTypeIconと同じ流儀・失敗しても止めない)
+let cardMotifImg=null, cardMotifKey=null;
+function loadCardMotif(key, cb){
+  if(!key){ cardMotifImg=null; cardMotifKey=null; cb(); return; }
+  if(cardMotifKey===key && cardMotifImg){ cb(); return; }
+  const im=new Image();
+  im.onload=()=>{ cardMotifImg=im; cardMotifKey=key; cb(); };
+  im.onerror=()=>{ cardMotifImg=null; cardMotifKey=null; cb(); };
+  im.src="assets/cards/"+key+".webp";
+}
+
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
 function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
