@@ -4,6 +4,17 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 かたさチェックをapp-quiz.jsへ分割（SPLIT-PLAN 2番・夜間艦隊仕込み指示書の消化）
+- `SPLIT-PLAN.md`の「2. かたさチェック」を実行。`index.html`から`TYPE_ART`・`QUESTIONS`・`TYPES`・`WORRY`・`QUIZ_ART`・`startQuiz`/`renderQ`/`answer`/`prevQ`/`decideType`/`finishQuiz`/`currentRx`/`showResult`を新規`app-quiz.js`へ切り出し（純移動・中身は無変更）。ファイル名は`app-search.js`に揃えて`app-quiz.js`を選択
+- 対象コードは`TYPE_IMG`/`MARK_*`/`ICON_*`/`V`/`state`/`SECTIONS`/`show`/`navTo`/`quizGoHome`/`rotationIndex`/`vHTML`/`videoCard`など**移動しない共有コードと入り組んで点在**していたため、行範囲を機械検証しながら6箇所を外科的に切除。`quizGoHome`（HTML onclickから直呼び）・`rotationIndex`・`vHTML`/`videoCard`（「きょうの1本」からも共有参照）は指示書の対象外なのでindex.html側に残置。`currentRx()`は指示書どおりapp-quiz.js側でグローバル関数のまま維持（記録カード関連コードからの呼び出しをsmokeで確認）
+- `<script>`読み込み順: `videos.js`→`app-search.js`→`obu-feed.js`→`soudan-kb.js`→**`app-quiz.js`**（最後尾に追加）。sw.jsは`kyono-v43`→**v44**へバンプし、`ASSETS`/`SHELL`/`isShell`判定の3箇所に`app-quiz.js`を追加（`app-search.js`と同じnetwork-first扱い）
+- `scripts/qa.js`も追随更新: `app-quiz.js`を「存在チェック」「ES2020禁止構文チェック」「`checkOperationalWiring`のonclick解決チェック」の3箇所に追加（今後app-quiz.jsにES2020構文が混入してもQAで検知できるように）
+- **検証**: `npm test`は分割前94 checks→分割後**97 checks**（app-quiz.js向けの新規チェック3件ぶん増加・既存94件は変わらずPASS）。`npm run smoke`は分割前後とも**14/14 PASS**（`かたさチェック完走と結果表示`のケースで挙動不変を確認）。`grep -c '??'`/`grep -c '?\.'`は index.html・app-quiz.js とも0件
+- `index.html`: 4472行→**4250行**（純減222行）。`app-quiz.js`: 新規229行
+- 作業中にeven-syncの自動コミットが先に拾った（検索分割時の前例と同じ現象）。コミットハッシュ`2a50e3242e9895c88448514e612684c295daf14c`（`auto-sync 2026-07-14 01:52`・対象4ファイルのみ・他作業の混入なし）。Deploy Pages success確認済み（run id 29268159591）
+- ロールバック: `git revert 2a50e3242e9895c88448514e612684c295daf14c`（このコミットは分割作業のみの単独コミットのため単純revertで戻る見込み）。手動差し戻しの詳細手順は`ogatore-hub/dev-specs/kyono-katasa-split-DONE.md`参照
+- スコープ外（意図的に未着手）: `SPLIT-PLAN.md`3番（記録・継続）・4番（記録カード）
+
 ## 2026-07-14 メモの上限文字数を28→30に統一（本人「文字は30文字までみたいな感じのルールにしようか」）
 - `memoInput`の`maxlength`と`saveMemo()`内の`.slice(0,28)`が28文字（キリの悪い既存値）だったのを、本人の提案どおり**30文字**に統一（`maxlength="30"`・`.slice(0,30)`）
 - 直前に修正した記録カードのメモ行3行折返し(下記エントリ)が、最も条件の厳しいcheer(w=378)キャラ×ちょうど30文字のメモでも省略なし・重なりなしで収まることを実描画で再検証済み
