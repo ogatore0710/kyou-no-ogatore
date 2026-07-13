@@ -2726,8 +2726,8 @@ function drawCard(){
   // キャラ（日替わりローテ・節目は王冠ドヤ・右下の専用ゾーンで文字と重ねない）
   const chFig = milestone ? (crownImg||charaImg) : charaImg;
   if(chFig){
-    const w=milestone?215:255, h=w*chFig.height/chFig.width;
-    ctx.drawImage(chFig, 965-w, 985-h, w, h);
+    const w=280, h=w*chFig.height/chFig.width;
+    ctx.drawImage(chFig, 985-w, 998-h, w, h);
   }
   // フッター＝キャラの吹き出し
   ctx.textAlign="left";
