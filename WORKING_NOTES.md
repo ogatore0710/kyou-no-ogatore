@@ -4,6 +4,12 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 使い方タブの「🌱 はじめてガイドをもう一度」「📖 使い方ツアー」を座布団化（本人がスクショレビューで「下線の裸テキストで背景が無い」と指摘）
+- ヘッダー直下の案内リンク2本を、既存の`.daychip`（マイ記録の日別詳細アクションで実装済みの丸型ピル座布団=`background:var(--teal-soft);color:var(--tealink);border-radius:999px;padding:9px 16px;font-weight:800`）に流用。新規クラス・新規配色は追加していない
+- 親`<div>`のインラインstyleを`text-align:center`から`display:flex;justify-content:center;flex-wrap:wrap;gap:10px`に変更（全角スペース区切り→flexのgapに置換）。各`<a>`は`class="tapx"`→`class="tapx daychip"`とし、`.daychip`が色/太さを持つため冗長だった`style="color:var(--tealink);font-weight:800"`を削除。`onclick`/`id`/`href`/テキストは無変更
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: switchTab('guide')後、両リンクのcomputedStyleが`border-radius:999px`・`background-color:rgb(34,64,59)`(=`--teal-soft`)であることを確認。viewport600pxでは2ピルが横並び、390px程度の狭い実機幅では`flex-wrap:wrap`により自然に2段に折り返ることを確認（指示どおりwrap許容・見た目の破綻なし）
+- ロールバック: 親divのstyleを`text-align:center;margin-bottom:10px;font-size:14px`に戻し、両`<a>`から`daychip`クラスを外して`style="color:var(--tealink);font-weight:800"`を復元、リンク間の全角スペースを戻せば元通り
+
 ## 2026-07-14 プロダクトオーナーの3画面スクショレビューで指摘された独立した3件の見た目修正
 - **Fix1「きょうのひとこと」を吹き出しらしく**: `#qbubble`がアバターと本文を同じ角丸ボックスに同居させていたのを、相談室`.sd-b`と同じ視覚言語（アバターはbox外・吹き出しは`border-bottom-left-radius:6px`のみ非対称で「しっぽ」を演出）に統一。CSSを`.qbubble{align-items:flex-end}`+新規`.qb-b{...border-bottom-left-radius:6px...}`に分割し、`body.dark .qbubble{background:#3A342A;border-color:#6E5F2E}`は削除（`.qb-b`が`var(--card)`/`var(--line)`を使うため`.sd-b`同様ダーク専用上書き不要）。`renderQuote()`のテンプレートも`<div>`→`<div class="qb-b">`に追随
 - **Fix2 カード図鑑バナーの配色統一**: `#dexBannerCard`のclassに既存の`grad-warm`（ホーム「つづけた日数」`#streakCard`と同じ）を追加するだけ。新規クラス定義なし
