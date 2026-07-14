@@ -4,6 +4,15 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 相談室カテゴリタブ・スワイプ導線・動画カード1行整形の4件修正
+プロダクトオーナーが直前の「相談室カテゴリタブ化」「ホームあなた用3本表示」のスクリーンショットをレビュー、診断・設計済みの4件を`index.html`に直接適用。
+- **Fix1**（`sdRenderChips()`のカテゴリタブ行）: `#sdCatRow`の5カテゴリタブが下の`#sdChips`トピックチップと同じ`chip-b`（teal）で見分けづらかった。カテゴリタブだけ`chip-a`（黄）に変更（1行のみのクラス名スワップ、トピックチップ側の`chip-b`は無変更）。既存の`.chip-a`/`.chip-b`とその`.on`・darkバリアントCSSはそのまま流用
+- **Fix2**（`#sdChips`のスワイプ導線）: 横スクロール可能なチップ列の「まだ続きがある」合図がCSSマスクのフェードだけで、スクショだと見落とされやすかった。`#sdChips`を`position:relative`のラッパーで囲み、右端に丸い`›`バッジ`#sdSwipeHint`を追加。表示条件は`sdChipsFadeUpdate()`の既存フェード判定`box.scrollWidth-box.scrollLeft-box.clientWidth>8`をローカル変数化して`fade-r`と`.show`の両方に使い回し、フェードと完全に同期
+- **Fix3**（`.video .vs`）: 動画カードの説明文（例:「快眠・睡眠の質向上・疲労回復」）が長いと2行に折り返しカードの高さが揃わない問題。`.video .vs`に`white-space:nowrap;overflow:hidden;text-overflow:ellipsis`を追加しグローバルに1行クランプ＋省略記号化（ホーム・相談室内カード・動画を探すすべてに影響、`.vs`は元々短い1行メタ情報用途なので副作用なし）。既存の`vsWrap()`のセグメント別`<span>`折返し防止処理はそのまま無変更（1行固定後は無害化するだけ）
+- **Fix4**（`.video .vt`のホーム限定2行クランプ）: `.video .vt{-webkit-line-clamp:3}`は動画を探すの長いタイトル対策として意図的に3のまま維持しつつ、`#todayVideo .video .vt{-webkit-line-clamp:2}`をid+class詳細度で追加し、ホームの「きょうの1本」「あなた用」カードだけ2行クランプに。動画を探す・相談室インラインカード等の他箇所は無影響
+- **検証**: `npm test`=**97 checks PASS**（同数・後退なし）。`npm run smoke`=**14/14 PASS**。puppeteer-coreの目視検証（scratchpad・非コミット）で(a)カテゴリタブが黄`chip-a`(`rgb(255,217,59)`)・トピックチップが緑teal`chip-b`(`rgb(31,53,50)`、dark配色)と実測で色が異なることを確認、(b)`#sdSwipeHint`がスクロール前は`opacity:1`（`.show`あり）→`#sdChips`を最大スクロール後は`opacity:0`（`.show`なし）に切り替わることを確認、(c)かたさチェック完走→`setMode("mine")`で「あなた用」3枚とも`.vs`の`scrollHeight`が1行分（24.5px前後）に収まり`.vt`の`-webkit-line-clamp`が`#todayVideo`内で`2`と実測、(d)動画を探すの検索結果では同じ`.video .vt`の`-webkit-line-clamp`が`3`のままであることを確認（スコープ漏れなしの回帰チェック）
+  - 検証メモ: あなた用3本表示は`state.mode`が既存のasa/yoru選択を保持したまま型判定(`typed`)だけでは自動切り替わらない仕様（`renderToday()`の`state.mode||...`のOR連鎖）だったため、検証スクリプトでは実際のUIと同じく`setMode("mine")`（＝「あなた用」segタップ相当）を挟んでから3枚表示を確認した
+
 ## 2026-07-14 ホーム「あなた用」3本表示・相談室入口4チップ目・相談室チップ119件を5カテゴリタブ化
 プロダクトオーナーがホームタブ／オガトレ相談室をボイスメモでレビュー、別セッションが文字起こし・診断・設計済みの3件を`index.html`に直接適用（`soudan-kb.js`は不変・プレゼン層のみの変更）。
 - **Fix1**（`renderToday()`のmine分岐）: 「あなた用」枠は`currentRx()`の3本中、日替わりの1本しか表示していなかった。`mainHtml`を導入し、共有バッジ`<span class="badge">きょうのあなた用</span>`＋`rx`の3本を`vHTML(V[k],null)`でそれぞれカード表示するよう変更。直下の「あなたへの3本 連続再生はこちら」ボタンは維持。2週間プラン分岐（`m==="mine"&&plan`）は無変更

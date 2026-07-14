@@ -314,7 +314,8 @@
     border-radius:16px;padding:10px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
   .video img{width:112px;aspect-ratio:16/9;height:auto;border-radius:12px;flex-shrink:0} /* aspect-ratioで読込前も高さ確保=カードのガタつき(CLS)防止 */
   .video .vt{font-size:15px;font-weight:800;line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
-  .video .vs{font-size:14px;color:var(--sub);margin-top:2px}
+  #todayVideo .video .vt{-webkit-line-clamp:2}
+  .video .vs{font-size:14px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .badge{display:inline-block;background:var(--coral-soft);color:#B4462F;font-size:12px;
     font-weight:800;border-radius:8px;padding:1px 8px;margin-bottom:4px}
   .sec-head .badge{margin-bottom:0;margin-left:2px}
@@ -448,6 +449,8 @@
   .sd-foot .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;padding-bottom:2px}
   .sd-foot .sd-catrow{flex-wrap:wrap;overflow-x:visible;margin-bottom:6px}
   .sd-foot .chips.fade-r{-webkit-mask-image:linear-gradient(to right,#000 86%,transparent);mask-image:linear-gradient(to right,#000 86%,transparent)}
+  .sd-swipehint{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:var(--card);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--sub);pointer-events:none;opacity:0;transition:opacity .2s}
+  .sd-swipehint.show{opacity:1}
   .sd-foot .chip{flex-shrink:0;white-space:nowrap}
   .sd-foot .searchbox{margin-bottom:0}
   body.sd-lock{overflow:hidden}
@@ -1114,7 +1117,7 @@
     <div id="sdLog"></div>
     <div class="sd-foot">
       <div class="chips sd-catrow" id="sdCatRow"></div>
-      <div class="chips" id="sdChips"></div>
+      <div style="position:relative"><div class="chips" id="sdChips"></div><div class="sd-swipehint" id="sdSwipeHint">›</div></div>
       <div class="searchbox">
         <input id="sdInput" placeholder="例: 肩がこる／前屈できない" enterkeyhint="send" onkeydown="if(event.key==='Enter'){sdSend()}">
         <button id="sdSendBtn" onclick="sdSend()">送信</button>
@@ -3210,7 +3213,7 @@ function sdRenderChips(){
   }else{
     if(catBox){
       catBox.innerHTML=SOUDAN_CHIP_CATS.map(c=>
-        `<button class="chip chip-b${c.key===sdActiveCat?" on":""}" onclick="sdSetCat('${c.key}')">${sdEsc(c.label)}</button>`).join("");
+        `<button class="chip chip-a${c.key===sdActiveCat?" on":""}" onclick="sdSetCat('${c.key}')">${sdEsc(c.label)}</button>`).join("");
     }
     const cat=SOUDAN_CHIP_CATS.find(c=>c.key===sdActiveCat)||SOUDAN_CHIP_CATS[0];
     const idSet=new Set(sdCatIds(cat));
@@ -3227,7 +3230,10 @@ function sdChipsFadeUpdate(){
   const box=document.getElementById("sdChips");
   if(!box) return;
   if(!box.__fadeHooked){ box.__fadeHooked=true; box.addEventListener("scroll",sdChipsFadeUpdate,{passive:true}); }
-  box.classList.toggle("fade-r", box.scrollWidth-box.scrollLeft-box.clientWidth>8);
+  const hasMore=box.scrollWidth-box.scrollLeft-box.clientWidth>8;
+  box.classList.toggle("fade-r", hasMore);
+  const hint=document.getElementById("sdSwipeHint");
+  if(hint) hint.classList.toggle("show", hasMore);
 }
 function sdShowIntentChips(){ sdChipsMode={type:"intents"}; sdRenderChips(); }
 // 相談室→かたさチェックへ。履歴のsoudan段は畳まずシートだけ閉じる=チェックから「戻る」で相談室に帰って来られる
