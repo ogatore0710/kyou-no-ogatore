@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 再生リストの最後の1枚「腰痛解消」もカスタムサムネ化（8枚目・連続再生グループ完了）
+直前の5枚追加時に唯一Driveでカスタム画像が見つからず`i.ytimg.com`の実写サムネのまま残していた「腰痛解消 連続30分」（`PLU0WWzgSTv8I`）について、同じDriveフォルダをフォルダ直接指定で再検索し「再生リスト_腰痛.jpg」を発見（他7枚と同一デザインテンプレート・同じフォント/赤バッジ/人物写真、テキストは「腰痛対策 30分」）。
+- 1280x720のJPEGを他7枚と同じ426x240にPIL（`ImageOps.exif_transpose`でEXIF回転補正→`LANCZOS`リサイズ→quality=80）でリサイズ、`assets/pl-youtsuu30.jpg`（35.7KB、既存6枚の32.5〜47.6KBと同程度）として保存
+- `index.html`の`PLAYLISTS`配列、該当行の画像パスを`https://i.ytimg.com/vi/4T9d_Oz2cnE/hqdefault.jpg`→`assets/pl-youtsuu30.jpg`に変更（video id/title/subtitleは無変更）
+- `sw.js`の`ASSETS`配列に`assets/pl-youtsuu30.jpg`を前回5枚の直後に追加、キャッシュバージョンを`kyono-v45`→`kyono-v46`にbump
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**。scratchpadの使い捨てpuppeteer-coreスクリプトで再生リストタブ「連続再生」グループの8枚全てを実測: 全て`naturalWidth/Height=426x240`・`complete=true`（読み込み成功・壊れたアイコンなし）、`src`が全て`assets/pl-*.jpg`でi.ytimg.com参照ゼロを確認。コンソールエラー0件
+- スクリーンショット（`/private/tmp/claude-501/-Users-ryunosuke-Claude/da16a6be-2184-4e7d-8404-1e90d5b97ed5/scratchpad/`）: `playlist_group_youtsuu_verify.png`（「連続再生」グループ8枚の実描画、全てカスタムデザインサムネ表示・実写サムネ0件）
+
 ## 2026-07-14 再生リストの未反映カスタムサムネ5枚を追加（座ったまま/全身/自律神経/肩こり/股関節）
 プロダクトオーナー「再生リストの画像、適応されていない」の指摘を受け調査。Google Driveの「download」フォルダにあったカスタムデザインのサムネ7枚（2026-06-15作成: 座ったまま/全身/自律神経/朝/肩こり/股関節/夜）のうち、朝/夜の2枚（`assets/pl-asa30.jpg`/`pl-yoru30.jpg`）は既に実装済みだったが、残り5枚（座ったまま/全身/自律神経/肩こり/股関節）は`PLAYLISTS`配列に反映されず`i.ytimg.com`の実写サムネ（hqdefault.jpg）のままだった。
 - 別セッションがDriveから5枚をダウンロード・デコード済み（1920x1080フル解像度）だったものを受け取り、既存の`pl-asa30.jpg`/`pl-yoru30.jpg`と同じ426x240・JPEGにリサイズ（PIL、quality=80）して`assets/`に追加: `pl-suwatta20.jpg`(座ったまま,32.5KB)・`pl-zenshin35.jpg`(全身,34.3KB)・`pl-jiritsu30.jpg`(自律神経,33.5KB)・`pl-katakori30.jpg`(肩こり,35.5KB)・`pl-koukansetsu30.jpg`(股関節,35.2KB) — いずれも既存2枚（約47KB）と同程度のサイズ感
