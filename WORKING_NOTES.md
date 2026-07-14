@@ -4,6 +4,23 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 起動スプラッシュのFOUT（フォント切り替わりちらつき）を修正
+- 症状: 別セッションが画面録画をフレーム単位で解析して特定済み。起動直後のスプラッシュ`#appSplash`で「きょうの／オガトレ」の見出しがブラウザのフォールバック書体（Hiragino Kaku Gothic ProN・細め）で一瞬表示された後、本物のカスタム書体「M PLUS 1p」（太め・丸め）へ可視状態のまま切り替わる、古典的なFOUT
+- 原因: `id="gfontLink"`のGoogle Fontsスタイルシートが`media="print"→onload="this.media='all'"`の非同期loadCSSパターン＋`&display=swap`で読み込まれる設計（アプリ全体の初期描画を止めないための意図的な最適化・これ自体はスコープ外・無変更）。この結果、初回描画は必ずフォールバック書体スタック（`body{font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN",...}`）で行われ、遅延スタイルシートとWOFF2の到着後にブラウザがその場で書体を差し替える。文字が大きく他に何もないスプラッシュで特に目立っていた
+- 修正はスプラッシュに限定（`<link>`の読み込み方式・`display=swap`・`body`のフォントスタックはアプリ全体に影響するため無変更）:
+  - `#appSplash .spl-inner{opacity:1;...}`を`opacity:0`始まりにし、`.show`クラスが付いたら`opacity:1`にフェードインする方式に変更（`index.html`のCSS）
+  - `#appSplash`直後の起動スクリプトの直後に新しい`<script>`ブロックを追加。`gfontLink`の`media`が`"print"`から`"all"`に変わる（=スタイルシート適用）のを20ms間隔でポーリングし、確認できたら`document.fonts.ready`を待ってから`.spl-inner`に`.show`を付与。`onload`属性は一切上書きしない（既存の`onload="this.media='all'"`と同じプロパティスロットを奪い合うため、ポーリング方式のみ採用）
+  - オフライン等でフォントが一切読み込めない場合にスプラッシュが永久非表示のまま固まらないよう、`setTimeout(reveal,700)`の保険タイムアウトを追加（既存のMIN=850ms最低表示時間より短いので、フェードアウトが始まる前に必ずrevealが先に効く）
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**（`scripts/smoke.js`に`appSplash`/`spl-inner`を直接見るステップは無く、影響なしを確認済み）
+- タイミングバグのため、スクリーンショット1枚では実証にならず、scratchpadの使い捨てpuppeteer-coreスクリプトでCDPの`setRequestInterception`により`fonts.googleapis.com`/`fonts.gstatic.com`へのリクエストだけを人為的に遅延させ（300ms/2000ms/実質無限大の3パターン）、`navigator.standalone`と`matchMedia("(display-mode: standalone)")`を偽装してPWA起動相当を再現。50ms間隔で`.spl-inner`のopacityと「実際に`M PLUS 1p`のFontFaceが`status==="loaded"`か」を評価し続け、「可視のままフォールバック→本物へ切り替わる」瞬間（＝元のバグの狭義の定義）を検出する仕組みで比較
+  - 修正前スナップショット（コミット`692f6ec`時点）+ 300ms遅延: **元のバグを完全再現**（t=78msで`opacity:1`かつフォールバック書体のまま表示開始→t=1277msで同じ要素が可視のまま本物書体へスワップ）。スクリーンショットでも太さの違いを目視確認
+  - 修正後 + 同じ300ms遅延: 可視状態でのスワップは検出されず（フォント準備完了までopacity:0を維持→準備できてからフェードイン、最初から太字で表示）
+  - 修正後 + 2000ms遅延・実質オフライン相当（60000ms遅延）: 700ms保険タイムアウトでフォールバック書体のまま一旦revealされる（想定内の安全弁動作）が、スプラッシュ自体がMIN=850ms+フェード500msで退場するまでの間に本物フォントが到着しないため、「可視のまま切り替わる」ちらつきは発生せず
+  - 修正後 + 通常回線（遅延なし）: フォント準備完了（`fontReady`）が約84msで成立、フェードイン完了は約332ms。体感の遅延なし・スプラッシュ表示テンポは変わらず
+  - スクリーンショット（すべて`/private/tmp/claude-501/-Users-ryunosuke-Claude/da16a6be-2184-4e7d-8404-1e90d5b97ed5/scratchpad/shots/`）: `OLD-moderate300ms-VIOLATION-t78ms.png`（旧版・フォールバック書体で即表示）／`OLD-moderate300ms-t700ms.png`（旧版・700ms時点でまだ細字のまま可視）／`OLD-moderate300ms-SWAP-WHILE-VISIBLE-t1277ms.png`（旧版・可視のまま本物へスワップした瞬間）／`NEW-moderate300ms-t900ms.png`（新版・reveal後は最初から太字）／`NEW-normal-t400ms.png`（新版・通常回線で400ms時点で完全表示、体感即時）
+- コミット: `index.html`の変更はeven-syncが本セッションの編集直後に自動コミット済み（コミット`b15c60b0aa4c8ec9e990b7149ee36020a16340bb` auto-sync 2026-07-14 13:10）。`git show`で内容が意図した差分と一致することを確認済みのため、本エントリでは`index.html`は再コミットせず`WORKING_NOTES.md`のみをコミット
+- ロールバック: `#appSplash .spl-inner{opacity:0;...}`/`.show`のCSSと追加した`<script>`ブロックを削除し、`opacity:1;transition:opacity .35s ease`に戻せば元通り（コミット`692f6ec`時点のindex.htmlが修正前の完全な状態）
+
 ## 2026-07-14 `scripts/check_public.py`の恒久修正（直前エントリで発見・応急対応止まりだった設計欠陥を解消）
 - 直前エントリで発覚した欠陥: `check_public.py`が「現在の`videos.js`に載っているID」だけをoEmbedチェックする設計だったため、一度除外された非公開動画は二度とチェック対象にならず、かつ`json.dump(...)`が毎回`private_videos.json`を新規検出分だけで上書きするため、既知の非公開動画リストが実行のたびに失われる構造的なバグを持っていた（前回セッションは手動union書き込みで応急対応のみ・スクリプト自体は無修正のまま持ち越しとフォローアップ指定されていた）
 - 恒久修正: `ids=...`の取得元を`videos.js`の正規表現パースから、`build_catalog.py`と同じ`~/Claude/ogatore-growth/data/ogatore.db`（`videos`テーブル・`video_id`列）の直読みに変更。DBが知る全動画（551件）を毎回チェックする設計にしたことで循環依存を解消（除外済み動画も毎回再チェックされ続けるため、二度と消えない・非公開→公開に戻った場合も自然に復帰する）。不要になった`re`importと`videos.js`パース行を削除、`json`importは`json.dump`用に残置。docstringの「カタログ全動画」も「DB全動画」表記に修正
