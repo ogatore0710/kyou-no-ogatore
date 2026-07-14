@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""カタログ全動画の公開状態をoEmbedで確認し、非公開/削除を private_videos.json に書き出す。
+"""DB全動画（videos.js経由ではなくvideosテーブル直読み）の公開状態をoEmbedで確認し、非公開/削除を private_videos.json に書き出す。
 月次DB更新→ build_catalog.py の前に回すと「さがす」から非公開動画が消える。
 実行: python3 scripts/check_public.py（約2分・APIキー不要）"""
-import json, re, urllib.request, concurrent.futures, datetime, os
+import json, urllib.request, concurrent.futures, datetime, os, sqlite3
 d=os.path.dirname(__file__)
-s=open(os.path.join(d,"..","videos.js")).read()
-ids=sorted({v["id"] for v in json.loads(re.search(r"const CATALOG=(\[.*\]);",s).group(1))})
+DB=os.path.expanduser("~/Claude/ogatore-growth/data/ogatore.db")
+con=sqlite3.connect(DB)
+ids=sorted({r[0] for r in con.execute("SELECT video_id FROM videos").fetchall()})
 def check(vid):
     try:
         urllib.request.urlopen(f"https://www.youtube.com/oembed?url=https%3A//www.youtube.com/watch%3Fv%3D{vid}&format=json",timeout=10)

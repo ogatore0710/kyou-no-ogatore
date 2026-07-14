@@ -1,6 +1,6 @@
 {
  "checked": "2026-07-14",
- "method": "oembed 403 (union with prior known-private list; see build_catalog.py note)",
+ "method": "oembed 403",
  "ids": [
   "0Jec1LMv2YE",
   "1PLWPkxhjWg",
@@ -21,14 +21,19 @@
   "J1pBKXmGq5k",
   "VVgsVUv0W10",
   "WXKbTMAI-jQ",
+  "XQt5n7y0jng",
   "XsgSRy2Z_oQ",
   "ZK6lC6f0Glg",
+  "_3nWfD6LQT4",
   "_q72phqGgB8",
   "de2TxMdog98",
   "eUQArU0nPSo",
   "ejCpd2PDIyg",
   "g49ThCHK0Lk",
   "gw-g-6ca4MQ",
+  "h66wF9ElKdc",
+  "iwiDRMC0gLg",
+  "kRA6DI1ihQA",
   "kiILzUeLiuk",
   "lAn-1-Np8qs",
   "n7hYlJpBrvo",
@@ -38,6 +43,8 @@
   "u962IzRYPIE",
   "uIllW5Y_HIk",
   "ur_E6JZYm1o",
-  "vc9n-6vHyUI"
+  "vTNWMNIeTMA",
+  "vc9n-6vHyUI",
+  "y3pJd9r664s"
  ]
 }
