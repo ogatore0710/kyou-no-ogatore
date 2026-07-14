@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 お楽しみ機能ページにタイトル追加・じまんカードの重複バッジ削除／きょうのひとこと吹き出しを左右反転
+プロダクトオーナー診断済みの2件を`index.html`に直接適用。
+- **Fix1**（`#fun`セクション）: ページ自体に見出しが無く「じまんカード」がいきなり始まって見えた問題。`<section id="fun" class="hidden">`直後・`#bragCard`直前に`<div style="text-align:center;font-size:19px;font-weight:900;margin:4px 0 14px">🎉 お楽しみ機能</div>`を追加。あわせて`#bragCard`の`.sec-head`（じまんカードの見出し）から`<span class="badge">お楽しみ</span>`を削除（ページ全体が既に「お楽しみ機能」を名乗っているため冗長・旧じまんカード単体ハブ時代の名残）。事前grepで該当行はファイル内1箇所のみ（`#fun`内）と確認済み
+- **Fix2**（`renderQuote()`の吹き出し）: ホームの「きょうのひとこと」がアバター左・吹き出し右（しっぽが左下）だったのを反転。`document.getElementById("qbubble").innerHTML`のテンプレート内で`<img>`と`<div class="qb-b">`の順序を入れ替え（flex行のためDOM順=見た目の左右）、CSS`.qbubble .qb-b`の`border-bottom-left-radius:6px`を`border-bottom-right-radius:6px`に変更（しっぽの角がアバターのある右下に移動、他3角は`border-radius:16px`のまま）。`.qbubble`本体・`.qbubble img`・`.qbubble .ql`は無変更
+- **検証**: `npm test`=**97 checks PASS**（同数・後退なし）。`npm run smoke`=**14/14 PASS**。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: (a)`#fun`ページ先頭に「🎉 お楽しみ機能」の見出し、じまんカード見出しHTMLに`class="badge"`が含まれないことを確認、(b)`#qbubble`の子要素順が`[DIV, IMG]`（div=吹き出し先、img=アバター後）、`getComputedStyle`で`border-bottom-right-radius:6px`・`border-bottom-left-radius:16px`（元の16pxに復帰）、画像の`left`座標(331px)が吹き出しの`right`座標(320px)より右にあることを実測。コンソールエラー0件
+  - 本セッション中、別エージェントが同じ`index.html`の`showDay()`（メモ表示アイコンのSVG化）と`OB_TOUR_SLIDES`（記録カードスライドのSVG化）を並行編集中だったが、対象領域が完全に別（本修正は`#fun`セクション冒頭と`renderQuote()`/CSSのみ）でありコミット時の`git diff`で行の重複が無いことを確認して両者をそのままステージ
+- スクリーンショット（`/private/tmp/claude-501/-Users-ryunosuke-Claude/da16a6be-2184-4e7d-8404-1e90d5b97ed5/scratchpad/`）: `fix1_fun_page_top.png`（`#fun`ページ先頭・見出しとバッジ無しのじまんカード）／`fix1_fun_page_full.png`（`#fun`全体fullPage）／`fix2_qbubble_mirrored.png`（吹き出し左・アバター右・しっぽ右下）
+
 ## 2026-07-14 じまんカードON/OFFトグル廃止（常時表示化）・使い方タブ絵文字3件retune
 プロダクトオーナー診断済みの2件を`index.html`に直接適用。
 - **Fix1**（じまんカードトグル廃止）: 前回の修正でじまんカードは既に「お楽しみ機能」(`#fun`)という任意訪問のハブ内に格納済みのため、じまんカード単体のON/OFFトグルは冗長と判断・廃止。`#history`の「つづける設定」カードから「じまんカードを表示する」の`.seg`ブロック（`#sb-off`/`#sb-on`ボタン）を削除、`applyShowBrag()`/`setShowBrag(v)`関数を丸ごと削除、`renderHistory()`内の`applyShowBrag();`呼び出しを削除。`#bragCard`は元々`hidden`クラスが付いていない（トグルが`hidden`を付け外ししていただけ）ため、削除後は何もトグルするものがなくなり常時表示のまま＝意図どおり。旧`kyono_show_brag`localStorageキーは触れず放置（過去データは無視されるだけ、既存の廃止設定の扱いに合わせた）
