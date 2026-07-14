@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 オガトレ相談室 品質総点検バッチ2: kw(検索語)が薄い20インテントに自然な言い回しを追加
+バッチ1に続く品質監査の2本目。`analyze.js`のkw件数集計で「他インテントに比べて薄い」上位20件（2〜6語）を特定し、各2〜3語ずつ自然な言い回し・漢字形・口語形を追加（計47語・KBの既存原則「かな形＋頻出漢字形を併記」に準拠。新規の医療的判断や見立て文言の変更は一切なし=純粋にルーティング用の検索語追加のみ）。
+- 追加内訳（新規kw数）: `kounenki`+6（更年期障害/ほてり/ホットフラッシュ等）・`kenkohagashi`+3・`henpeisoku`+3・`gaihanboshi`+3・`swayback`+2・`rajio`+2・`kintore`+2・`arukikata`+3・`nechigae`+2・`makura`+3・`kenkogori`+3・`senakate`+2・`ashidaru`+2・`ninoude`+2・`handou`+2・`yoga`+2・`ase`+2・`suwarikata`+2・`sorigoshi`+2・`fuyu`+2
+- **追加前後で新規のインテント間kw重複はゼロ**（`analyze.js`で確認・既知の8組=12件から変化なし）。同一インテント内重複もqa.jsでok確認
+- **soudan-ai-poc/data.mjsを再生成**（`node build-data.mjs`）してkw追加を反映してから`redflag-safety-test.mjs`を再実行
+- **検証**: `npm test`=**97 checks PASS**（後退なし）。`npm run smoke`=**14/14 PASS**。`node soudan-ai-poc/redflag-safety-test.mjs`=**71/71 PASS**（kw変更後の再確認・想定どおり無影響）
+- ロールバック: soudan-kb.jsの該当20行のkw配列から追加分を削除し、`node soudan-ai-poc/build-data.mjs`でdata.mjsを再生成すれば元通り
+
 ## 2026-07-14 オガトレ相談室 品質総点検バッチ1: 文字数規律の機械チェック＋M2の字数はみ出し8件を修正
 本人指示による約2時間の自走品質監査（対象=soudan-kb.js 119インテント＋redFlags/crisis/commonFollowups/smalltalk）の1本目。scratchpadに`analyze.js`（KBをvmでロードし全文字数をArray.from().lengthでUnicodeコードポイント単位カウント）を書いて機械チェックを実施。
 - **字数規律**: empathy15-30字/mitate60-120字/keizoku30-60字の帯から「meaningfully out of range」（目安3字以上の逸脱）だった11件を特定・うち10件（M2=本人検収前セクション所属）を修正。1字・2字の軽微な逸脱（sebone/fuyu/sokeibu/unten/oyako/undogo/nagara/tsukare/kogao/seiri/kounenki/handou/ofuro/kyounani/tanoshiku/suwarikata/arukikata、いずれも1-2字）は指示どおり据え置き
