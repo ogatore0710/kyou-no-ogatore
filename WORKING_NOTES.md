@@ -4,6 +4,11 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 使い方タブの座布団2枚「🌱 はじめてガイドをもう一度」「📖 使い方ツアー」が390px幅で2段に折り返す指摘（本人「横に並べて 文字数減らしてもいいよ」）
+- 先の座布団化(直下のエントリ)で`flex-wrap:wrap`にした結果、390px標準機では2つの座布団の合計文字数が収まらず2段に折り返っていた。本人からテキスト短縮の明示許可があったため、`id="obReenterLink"`の表示テキストのみ「🌱 はじめてガイドをもう一度」→「🌱 はじめてガイド」に短縮（「をもう一度」を削除。ヘッダー直下の小さな再入場リンクであり、タップすれば案内が再生されることは文脈上自明なため意味は失われない）。「📖 使い方ツアー」はもともと短く無変更。`id`/`onclick`/`href`、`.daychip`クラスのCSS（padding/font-size等）はいずれも無変更（指示どおりテキストのみ短縮・チップを縮めない）
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**（`scripts/smoke.js`は`#obReenterLink`をidのみで参照しテキスト非依存のため無修正で通過）。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: viewport390×844で`switchTab('guide')`後、両リンクの`getBoundingClientRect().top`が完全一致（105.25px）＝1行に並んでいることを確認。スクリーンショットでも視覚的に横並びの2チップとして収まっていることを確認。1段階の短縮で390px幅に収まったため、さらなる短縮（「🌱 ガイド」等）は不要と判断し見送り
+- ロールバック: `id="obReenterLink"`のテキストを「🌱 はじめてガイドをもう一度」に戻せば元通り
+
 ## 2026-07-14 使い方タブの「🌱 はじめてガイドをもう一度」「📖 使い方ツアー」を座布団化（本人がスクショレビューで「下線の裸テキストで背景が無い」と指摘）
 - ヘッダー直下の案内リンク2本を、既存の`.daychip`（マイ記録の日別詳細アクションで実装済みの丸型ピル座布団=`background:var(--teal-soft);color:var(--tealink);border-radius:999px;padding:9px 16px;font-weight:800`）に流用。新規クラス・新規配色は追加していない
 - 親`<div>`のインラインstyleを`text-align:center`から`display:flex;justify-content:center;flex-wrap:wrap;gap:10px`に変更（全角スペース区切り→flexのgapに置換）。各`<a>`は`class="tapx"`→`class="tapx daychip"`とし、`.daychip`が色/太さを持つため冗長だった`style="color:var(--tealink);font-weight:800"`を削除。`onclick`/`id`/`href`/テキストは無変更
