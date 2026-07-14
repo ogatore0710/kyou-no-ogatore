@@ -3151,9 +3151,16 @@ function sdScrollToTop(row){
   if(!log||!row) return;
   // offsetTopは最寄りのposition祖先基準になり得て信頼できないため、
   // getBoundingClientRect差分で現在のスクロール位置からの相対移動量を出す
-  const delta=row.getBoundingClientRect().top-log.getBoundingClientRect().top;
-  const top=log.scrollTop+delta-4;
-  log.scrollTop=Math.max(0,Math.min(top,log.scrollHeight-log.clientHeight));
+  const apply=function(){
+    const delta=row.getBoundingClientRect().top-log.getBoundingClientRect().top;
+    const top=log.scrollTop+delta-4;
+    log.scrollTop=Math.max(0,Math.min(top,log.scrollHeight-log.clientHeight));
+  };
+  apply();
+  // 入場アニメ(sdpopのtranslateY)やスクロールバー出現に伴う再折り返しは
+  // このタイミングではまだ確定していないことがあるため、次フレームで再補正する
+  // (2026-07-15実測: 一発だけだと数十px単位でずれることがあった)
+  requestAnimationFrame(apply);
 }
 function sdBubbleNode(m){
   const row=document.createElement("div");
@@ -3171,6 +3178,15 @@ function sdSyncSend(){ const b=document.getElementById("sdSendBtn"); if(b) b.dis
 function sdPush(msgs){
   const log=document.getElementById("sdLog");
   if(!log||!msgs.length){ sdRenderChips(); return; }
+  // カテゴリタブ2段の高さのまま返信が流れきるのを待つと、狭いメッセージ欄で
+  // 長文の途中まで見切れが続いてしまう。会話が「べつの悩みへ」を離れる
+  // 瞬間(=followups等へモード確定した時点)で、返信本文が出る前に先にタブ列を
+  // 畳んでおき、最初の吹き出しから広い表示領域を使えるようにする
+  // (2026-07-15実測: 末尾のsdRenderChips()待ちだと表示中ずっと狭いままだった根本対応)。
+  if(sdChipsMode.type!=="intents"){
+    const catBox=document.getElementById("sdCatRow");
+    if(catBox) catBox.innerHTML="";
+  }
   const reduced=sdReduced();
   sdPending++; sdSyncSend();
   let i=0;
