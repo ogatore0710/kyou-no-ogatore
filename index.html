@@ -1254,10 +1254,13 @@ function toggleObu(){
 }
 // ---- FAB表示制御（オガトレ通信+相談室の2段縦積み共通） ----
 // クイズ中・相談室シート・記録カード・オガトレ通信・オンボーディング表示中は両FABとも隠す。
+// とどくメーター(#reach)もクイズと同じ理由で隠す: 実測(390x844)でFAB2段(右下固定)が
+// reach-rowの5番目のボタン「ゆか」に約2/3重なり、タップ可能な帯が18px程度しか残らないバグを発見。
+// 短いページゆえ、5段階ボタンの行がFABの固定y帯とちょうど重なってしまうため（2026-07-15実測修正）
 // 相談室FABはさらにKB未読込なら常に隠す（入口カードと同じガード）
 function updateFabs(){
   const modalOpen=id=>{ const el=document.getElementById(id); return !!(el&&!el.classList.contains("hidden")); };
-  const hide=currentSection==="quiz"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome")||modalOpen("dexModal");
+  const hide=currentSection==="quiz"||currentSection==="reach"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome")||modalOpen("dexModal");
   document.body.classList.toggle("fabs-hide",hide);
   const sf=document.getElementById("soudanFab");
   if(sf) sf.classList.toggle("hidden",!sdKb());
@@ -2890,7 +2893,9 @@ function wrapLines(ctx,text,maxW,maxLines){
   return lines;
 }
 function drawBragCard(thumb){
-  const days=Math.max(1,Math.min(9999,Number(document.getElementById("bragDays").value)||1));
+  // 実測: type="number"は小数の直接入力(例"3.7")を弾かないため、丸めないと「3.7日つづいてる！」のような
+  // カードができてしまうバグがあった。Math.roundで整数化してからクランプする（2026-07-15実測修正）
+  const days=Math.max(1,Math.min(9999,Math.round(Number(document.getElementById("bragDays").value))||1));
   const ds=todayStr();
   const dateIdx=Math.floor((new Date(ds).getTime()+9*3600*1000)/86400000);
   const th=CARD_THEMES[dateIdx%CARD_THEMES.length];
