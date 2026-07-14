@@ -162,7 +162,8 @@
   @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
   @media (max-width:340px){ h1{font-size:19px} .cal .d{width:32px;height:32px;line-height:32px} .reach-btn{font-size:12px;padding:10px 0} }
   #appSplash{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:var(--bg);z-index:99;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
-  #appSplash .spl-inner{opacity:1;transition:opacity .35s ease}
+  #appSplash .spl-inner{opacity:0;transition:opacity .25s ease}
+  #appSplash .spl-inner.show{opacity:1}
   .spl-badge{width:92px;height:92px;margin:0 auto;background:var(--yellow);border-radius:26px;transform:rotate(-8deg);
     box-shadow:0 5px 0 #E8BE1E;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:900;color:#fff}
   .stepn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;
@@ -516,6 +517,35 @@
     var sa=navigator.standalone||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
     if(!sa){ var sp=document.getElementById("appSplash"); if(sp) sp.parentNode.removeChild(sp); }
   }catch(e){}
+})();
+</script>
+<script>
+(function(){
+  // スプラッシュの見出し文字がフォールバック書体(細め)で一瞬見えてから
+  // 本物のM PLUS 1p(太め)へ入れ替わるFOUTのちらつき防止。
+  // gfontLinkの読み込み完了(or本文フォント準備完了)を待ってから.spl-innerをフェードイン表示する。
+  // 700ms保険タイムアウトはMIN=850msの最低表示時間より短いので、オフライン等でフォントが
+  // 一切読み込めない場合でもスプラッシュが表示されないまま固まることはない。
+  var el=document.querySelector("#appSplash .spl-inner");
+  if(!el) return;
+  var done=false;
+  function reveal(){ if(done) return; done=true; el.classList.add("show"); }
+  function waitFont(){
+    try{
+      if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(reveal).catch(reveal); return; }
+    }catch(e){}
+    reveal();
+  }
+  var link=document.getElementById("gfontLink");
+  if(link && link.media==="print"){
+    var n=0;
+    var iv=setInterval(function(){
+      if(link.media==="all"||++n>30){ clearInterval(iv); waitFont(); }
+    },20);
+  } else {
+    waitFont();
+  }
+  setTimeout(reveal,700);
 })();
 </script>
 
