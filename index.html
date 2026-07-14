@@ -3142,6 +3142,16 @@ function sdMsgLen(m){ return String((m&&m.html)||"").replace(/<[^>]*>/g,"").repl
 // スクロールはログ（シート内のoverflow-y:auto領域）のscrollTopだけを動かす。
 // ページ全体のscroll位置は一切触らない=「タップすると画面が上に飛ぶ」問題の根治
 function sdScrollEnd(){ const log=document.getElementById("sdLog"); if(log) log.scrollTop=log.scrollHeight; }
+// 新しい吹き出しの「頭」が見える位置までスクロール。下端合わせ一辺倒だと、
+// カテゴリタブが2段になって表示領域が狭いときに、長い見立て文の冒頭が
+// 画面外へ押し出されて読みにくくなるため(2026-07-15実測修正)。行の下に
+// まだ読める余地がないとき(=最後の短い行)は従来どおり下端まで送る。
+function sdScrollToTop(row){
+  const log=document.getElementById("sdLog");
+  if(!log||!row) return;
+  const top=row.offsetTop-4;
+  log.scrollTop=Math.min(top,log.scrollHeight-log.clientHeight);
+}
 function sdBubbleNode(m){
   const row=document.createElement("div");
   row.className="sd-row "+(m.who==="user"?"user":"oga")+(m.red?" sd-red":"")+" sd-pop";
@@ -3162,10 +3172,10 @@ function sdPush(msgs){
   sdPending++; sdSyncSend();
   let i=0;
   function showNext(){
-    log.appendChild(sdBubbleNode(msgs[i])); i++;
-    sdScrollEnd();
+    const row=sdBubbleNode(msgs[i]); log.appendChild(row); i++;
+    sdScrollToTop(row);
     if(i>=msgs.length){
-      sdPending--; sdSyncSend(); sdRenderChips(); sdScrollEnd();
+      sdPending--; sdSyncSend(); sdRenderChips(); sdScrollToTop(row);
       // 挨拶などの表示中に指定されたインテント（入口カードのチップ・結果画面の逆導線）をここで流す
       if(!sdPending&&sdQueuedIntent){
         const qit=sdIntentById(sdQueuedIntent); sdQueuedIntent=null;
@@ -3178,7 +3188,9 @@ function sdPush(msgs){
   function queueNext(){
     if(reduced){ showNext(); return; }
     const tip=sdTypingNode();
-    log.appendChild(tip); sdScrollEnd();
+    // タイピングドットの出現でスクロールを動かさない: 直前の吹き出しが長文だと
+    // ドットの位置合わせでその冒頭が即座に画面外へ押し戻されてしまうため(2026-07-15実測修正)
+    log.appendChild(tip);
     // 矢継ぎ早対策(dev69): 次の吹き出しの文字数に比例した「打っている間」を置く。
     // 500+字数*22ms(上限1600)=短い共感は素早く・長い見立ては溜め。最初の1個だけは軽く400ms。
     // 3個目以降は倍の間(上限3200)=読み終わるリズムに合わせる(本人フィードバック 2026-07-12)
