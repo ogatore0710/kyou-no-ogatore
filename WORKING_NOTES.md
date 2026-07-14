@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 プロダクトオーナーの3画面スクショレビューで指摘された独立した3件の見た目修正
+- **Fix1「きょうのひとこと」を吹き出しらしく**: `#qbubble`がアバターと本文を同じ角丸ボックスに同居させていたのを、相談室`.sd-b`と同じ視覚言語（アバターはbox外・吹き出しは`border-bottom-left-radius:6px`のみ非対称で「しっぽ」を演出）に統一。CSSを`.qbubble{align-items:flex-end}`+新規`.qb-b{...border-bottom-left-radius:6px...}`に分割し、`body.dark .qbubble{background:#3A342A;border-color:#6E5F2E}`は削除（`.qb-b`が`var(--card)`/`var(--line)`を使うため`.sd-b`同様ダーク専用上書き不要）。`renderQuote()`のテンプレートも`<div>`→`<div class="qb-b">`に追随
+- **Fix2 カード図鑑バナーの配色統一**: `#dexBannerCard`のclassに既存の`grad-warm`（ホーム「つづけた日数」`#streakCard`と同じ）を追加するだけ。新規クラス定義なし
+- **Fix3 カード図鑑モーダルでの上端白ギャップ**: `openDex()`/`closeDex()`が背面スクロールをロックしておらず、iOSでモーダル内スクロール中に背面がラバーバンドして隙間が見えていた。相談室の`openSoudan()`/`closeSoudan()`と同じ`document.body.classList.add/remove("sd-lock")`を追加（既存の`body.sd-lock{overflow:hidden}`を流用、新規CSSなし）
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: ①ホーム`#qbubble`をライト/ダーク両方でスクリーンショット→アバターが吹き出し外に出て`.qb-b`の`border-bottom-left-radius`のみ`6px`（他3隅`16px`）の非対称吹き出しになっていることを確認 ②マイ記録タブで`#dexBannerCard`と`#streakCard`のcomputed `background-image`が完全一致（`linear-gradient(135deg, rgb(255, 243, 196), rgb(255, 237, 243))`）することを確認 ③`openDex()`実行後`document.body.classList.contains("sd-lock")`=true、`closeDex()`後=falseを確認（iOSラバーバンドの実際の目視再現はヘッドレスでは困難なためクラス切替確認どまり）
+- ロールバック: `.qbubble`/`.qb-b`のCSSを削除し元の単一ルール+`body.dark .qbubble`上書きに戻す／`renderQuote()`の`class="qb-b"`を削除／`#dexBannerCard`から`grad-warm`クラスを外す／`openDex()`/`closeDex()`から`sd-lock`のadd/removeを削除、で全て元通り
+
 ## 2026-07-14 3画面のスクショレビューで指摘された不自然な折返しを一括修正（本人「動画タイトルは自動短縮でもいい」・きょうの1本/2週間プラン/動画を探すで共通のバグ）
 - **動画タイトルの3行クランプ**（Fix A）: `.video .vt{font-size:15px;font-weight:800;line-height:1.45}`にトリミングが無く、長いタイトルが際限なく折り返し続けていた。`display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden`を追加し3行+省略に統一。`vHTML()`（ホーム「きょうの1本」・app-search.jsの`drawResults()`が共有）と`planVideoHTML()`（2週間プランカード）の両方が同じCSSクラスを使うため、この1行でスクショ3枚全部の指摘に対応。font-sizeは指示通り無変更
 - **メタ行(例「2021年・6分・63万回再生」)の途中折返し**（Fix B）: `v.s`/`c.s`が`・`区切りの生文字列としてそのまま`.vs`に流し込まれ、日本語には空白が無いため「63万回再\n生」のような単語途中の改行が発生していた。`vHTML`の直前に`vsWrap(s)`ヘルパーを新設（`・`で分割し各断片を`<span style="white-space:nowrap">`で包んでから`・`で再結合＝断片内は改行禁止・`・`の位置では改行OK）。`vHTML()`は`${v.s}`→`${vsWrap(v.s)}`（無エスケープのまま、素性は変えない）、`planVideoHTML()`は`${planEsc(c?c.s:"")}`→`${vsWrap(planEsc(c?c.s:""))}`（planEscで先にエスケープしてからvsWrap＝`・`分割はエスケープ後の文字列に対しても安全）

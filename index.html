@@ -125,8 +125,6 @@
   body.dark .grad-soft{background:linear-gradient(160deg,#2C2822,#33232B)}
   body.dark [stroke="#3A3A35"]{stroke:#EDE7D9}
   body.dark .card{box-shadow:none}
-  /* きょうのひとこと（card/bgの差が僅少で実機だと箱が消えて見えるため明示的に強調） */
-  body.dark .qbubble{background:#3A342A;border-color:#6E5F2E}
   body.dark .tabbar{background:rgba(33,30,25,.97);border-top-color:#3D382F}
   body.dark .tabbar button{color:#847D6C}
   body.dark .tabbar button.on{color:var(--ink)}
@@ -429,8 +427,9 @@
   .chip-c.on{background:var(--pink);border-color:var(--pink);color:#fff}
   .chip-d.on{background:#8B7BD8;border-color:#8B7BD8;color:#fff}
   /* きょうのひとこと */
-  .qbubble{display:flex;gap:10px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:14px;font-size:15px;line-height:1.7}
+  .qbubble{display:flex;gap:10px;align-items:flex-end;margin-bottom:14px}
   .qbubble img{width:auto;height:44px;flex-shrink:0;object-fit:contain}
+  .qbubble .qb-b{background:var(--card);border:1.5px solid var(--line);border-radius:16px;border-bottom-left-radius:6px;padding:10px 14px;font-size:15px;line-height:1.7;min-width:0}
   .qbubble .ql{display:block;font-size:11px;color:var(--sub);font-weight:900}
   /* オガトレ相談室（ボトムシート型チャットUI） */
   #soudanSheet{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(20,16,8,.35);z-index:60;display:flex;align-items:flex-end;justify-content:center}
@@ -683,7 +682,7 @@
     <div class="bar"><div id="msBar" style="width:0%"></div></div>
     <div id="histFreeze" style="font-size:14px;color:var(--sub);margin-top:8px"></div>
   </div>
-  <div class="card" id="dexBannerCard">
+  <div class="card grad-warm" id="dexBannerCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="3" fill="#FFF3C4"/><path d="M12 4v16M8 8h1.5M8 12h1.5M14.5 8H16M14.5 12H16"/></svg>カード図鑑<span class="badge" id="dexBadge"></span></div>
     <div style="font-size:14px;color:var(--sub);margin:-4px 0 10px">記念日・季節・レアなカードをあつめよう</div>
     <div class="dex-banner-samples" id="dexBannerSamples"></div>
@@ -1990,7 +1989,7 @@ function setShowBrag(v){ store.set("show_brag",v); applyShowBrag(); }
 // ---- きょうのひとこと（尾形さんの声かけ） ----
 const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","つづけてるあなたがいちばんすごい","お膝もいたわってあげてくださいね"];
 function renderQuote(){
-  document.getElementById("qbubble").innerHTML=`<img src="assets/chara-hitokoto.png" alt=""><div><span class="ql">きょうのひとこと</span>「${QUOTES[dayIndex()%QUOTES.length]}」</div>`;
+  document.getElementById("qbubble").innerHTML=`<img src="assets/chara-hitokoto.png" alt=""><div class="qb-b"><span class="ql">きょうのひとこと</span>「${QUOTES[dayIndex()%QUOTES.length]}」</div>`;
 }
 
 // ---- 記録カード（女性向けポップ・日替わりテーマ＋節目ゴールド） ----
@@ -2288,8 +2287,8 @@ function renderDexBanner(){
   const samples=[d.toku[0],d.season[0],d.rare[0],d.normal[0]].filter(Boolean);
   document.getElementById("dexBannerSamples").innerHTML=samples.map(dexCellHtml).map(h=>h.replace('class="dex-cell"','class="dex-cell" style="width:56px"')).join("");
 }
-function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); updateFabs(); }
-function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); updateFabs(); }
+function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); document.body.classList.add("sd-lock"); updateFabs(); }
+function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); document.body.classList.remove("sd-lock"); updateFabs(); }
 
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
