@@ -3417,7 +3417,7 @@ function showDay(ds){
   const memo=(store.get("memos",{}))[ds];
   const el=document.getElementById("dayInfo");
   let html=`<b>${Number(ds.slice(5,7))}/${Number(ds.slice(8,10))} にやった記録</b>`;
-  if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<div><a href="#" class="tapx daychip" onclick="toggleDayVideo(this);return false">この日の動画 <span class="daytoggle">＋</span></a><div class="hidden"><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" class="tapx daychip">▶ この日のおすすめだった1本</a></div></div>`;
+  if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<div><a href="#" class="tapx daychip" onclick="toggleDayVideo(this);return false">この日の動画 <span class="daytoggle">＋</span></a><div class="hidden"><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" class="tapx" style="color:var(--tealink);font-weight:800">▶ YouTubeでチェックする</a></div></div>`;
   if(memo) html+=`<br>「${memo.replace(/</g,"&lt;")}」`;
   if(!log&&!memo) html+=`<br>この日は「やった！」の印だけ残っています`;
   html+=`<br><a href="#" class="tapx daychip" onclick="makeCard('${ds}');return false">🖼 この日の記録カードを見る</a>`;
