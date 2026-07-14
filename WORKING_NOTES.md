@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 マイ記録の日別詳細ポップアップの3リンクを丸型ピル(座布団)に変更（本人「文字の箇条書き感が気になる」「この日やった動画に座布団おける？丸型の」）
+- `showDay(ds)`内の3つのアクションリンク（①「この日の動画 ＋」トグル ②展開後に現れる「▶ この日のおすすめだった1本」 ③「🖼 この日の記録カードを見る」）が、下線付きの裸テキストを`<br>`/入れ子`<div>`で並べただけで箇条書き然として見えていた指摘に対応
+- CSSに`.daychip{display:inline-flex;align-items:center;gap:4px;background:var(--teal-soft);color:var(--tealink);border-radius:999px;padding:9px 16px;font-weight:800;text-decoration:none;margin-top:8px}`を`.daytoggle`の直後に追加。既存の`--teal-soft`/`--tealink`（`.btn-ghost`と同じ配色ペア）を再利用した丸型の座布団
+- 3リンクとも`class="tapx"`に`daychip`を追加（`"tapx daychip"`）し、各リンクが個別に持っていた冗長なインラインstyle(`style="color:var(--tealink);font-weight:800"`)は`daychip`が色/太さをカバーするため削除。`href`/`onclick`/`target`/`rel`・テキスト内容・`toggleDayVideo()`本体・`calSelected`/`renderCal()`は無変更
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: 動画ログ済みの日をタップ→折りたたみ状態で「この日の動画＋」チップと「記録カードを見る」チップが両方とも丸型ソフトティール座布団として表示（下線裸テキストではない）／トグルタップ後の展開状態で3チップ（－バッジのトグル・新規表示された▶動画チップ・記録カードチップ）が縦に並び全て座布団背景を持つことを確認。computedStyleでも`border-radius:999px`・`background-color`が`--teal-soft`と一致することを確認
+- 作業中にeven-syncの自動コミットが先にindex.htmlを拾った（前例と同じ現象）。コミットハッシュ`7c91c1df7d97bbbc0d8f5f8c6a1dd56e82a9f386`（`auto-sync 2026-07-14 09:37`・対象index.htmlのみ）の差分を確認し、意図通りの変更（CSS1行追加＋showDay内3箇所のclass置換のみ）であることを確認済み
+- ロールバック: CSSの`.daychip{...}`ルールを削除し、`showDay()`内3箇所の`class="tapx daychip"`を`class="tapx"`に戻して元のインラインstyleを復元すれば元通り
+
 ## 2026-07-14 この日の動画トグルの＋/－を「裸の文字」から「塗りつぶし円バッジ」に変更（本人「わかりにくい、もっと視覚的に」）
 - 直前のコミット(75144ae)で▼/▲→＋/－に変えたが、本人がスクショレビューで「＋が裸の文字のままでトグルだと気づきにくい」と指摘。原因は`<span>＋</span>`にクラスが無く、リンクと同じフォントサイズ/太さで地続きに見えていたこと
 - `showDay(ds)`内の対象spanに`class="daytoggle"`を追加（`<span>＋</span>`→`<span class="daytoggle">＋</span>`）。CSSに`.daytoggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;font-weight:900;font-size:14px;line-height:1;margin-left:4px;vertical-align:-5px}`を`.cal .d.sel`の直後に追加。これで＋/－が22px角の塗りつぶしティール円バッジになり、`.dex-close`/`.cal-head button`と同じ「小さい丸アイコンボタン」の見た目言語に揃った
