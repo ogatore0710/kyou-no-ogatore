@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 とどくメーター（前屈チェック）を独自サブページ`#reach`に分離・マイ記録の2枚のカード順を入替（お楽しみ機能に続く2件目のハブ化）
+プロダクトオーナーが別セッションでの提案に合意: 直前の「お楽しみ機能ハブへ統合」と同じ扱いを、`#history`直下に常時表示だったとどくメーターのフル機能（写真＋5ボタン＋記録表示）にも適用してマイ記録の窮屈さを解消。あわせてカード順（現状お楽しみ機能が先）を入替、とどくメーターを先に。
+- `#history`内の2枚のカードを新しい順序（とどくメーター先・お楽しみ機能後）のコンパクトカード2枚に置換。とどくメーターの新カードは`grad-warm`（既存ユーティリティ、ホームのstreakCard等で使用中のもの・お楽しみ機能の`grad-pink`と対で視覚的に揃える）・`onclick="navTo('reach')"`・`id="reachCard"`は維持（新カードに付け替え、フル機能UIとは無関係の識別子として存続）
+- とどくメーターの元のフル機能ブロック（写真・5ボタン・`reachMsg`/`reachNow`/`reachPrev`/`reachTrend`、`id`/`onclick`すべてverbatim）を新規`<section id="reach" class="hidden">`（`#fun`と`#voices`の間）に移設。既存の`#brag`/`#fun`/`#voices`と同じ「← マイ記録にもどる」ボタンを設置
+- `SECTIONS`配列に`"reach"`追加（`"voices"`の直後）、`TAB_OF`に`reach:"history"`追加（`brag`/`fun`/`voices`と同じパターン、閲覧中も下タブは「マイ記録」がハイライトされたまま）
+- `goRecheck()`（2週間後の再チェック誘導）を`switchTab('history')`+`scrollIntoView`のハックから`navTo('reach')`への直接遷移に簡素化。元のscrollIntoViewは「`#reachCard`が`#history`内のフル機能UIそのもの」だった時代の仕組みで、コンパクトカード化後はそこにスクロールしても計測ボタンにたどり着けず本来の意図（実際に計測させる）を満たさなくなるため
+- 使い方タブ`id="gd-myrec"`のgstep順を新カード順に合わせて「📏 とどくメーター」→「🎉 お楽しみ機能」に入替（カレンダー・つづける設定の行は無変更、テキスト自体も無変更）
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**（`scripts/smoke.js`に`reach`/`rlv`/`setReach`への参照は無く無修正で通過）
+- scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認（viewport390×844）: (a)マイ記録タブの`#history`直下カード順が`["つづけた記録","カード図鑑","","📏 とどくメーター","🎉 お楽しみ機能","つづける設定"]`（とどくメーターが先）であることを確認、(b)とどくメーターの「見てみる」タップ→`#reach`のみが可視になりフル機能UI（写真・5ボタン等）が表示、`rlv2`（すね）をタップ→`localStorage.kyono_reach`に`{"d":"2026-07-14","lv":2}`が記録され画面表示も反映、「← マイ記録にもどる」で`#history`に復帰、(c)`state.type`をセットした状態で`goRecheck()`を直接呼び出し→`#reach`のみが可視になり`currentSection==="reach"`であることを確認（`#history`を経由したスクロールではなく直接遷移）。コンソール/ページエラー0件
+- スクリーンショット（`/private/tmp/claude-501/-Users-ryunosuke-Claude/da16a6be-2184-4e7d-8404-1e90d5b97ed5/scratchpad/`）: `reach_a_history_new_order.png`（マイ記録・新カード順）／`reach_b1_reach_page_full.png`（`#reach`ページ全体）／`reach_b2_after_setReach.png`（rlv2タップ後の記録反映）／`reach_b3_back_to_history.png`（戻るボタン後の`#history`）／`reach_c_goRecheck_direct_to_reach.png`（`goRecheck()`直接遷移後）
+- ロールバック手順: `#reach`のフル機能コンテンツを`#history`の元位置（`#reachCard`として、お楽しみ機能カードより後）に戻し、カード順を元（お楽しみ機能が先）に復元、`#reach`セクション自体を削除、`SECTIONS`/`TAB_OF`から`"reach"`/`reach:"history"`を削除、`goRecheck()`を`switchTab('history')`+`setTimeout`+`scrollIntoView`版に戻し、使い方タブのgstep2行を元順（お楽しみ機能→とどくメーター）に戻せば元通り。データ・関数（`setReach`等）の変更は無くコンテナの再配置とナビゲーションの単純化のみ
+
 ## 2026-07-14 きょうのひとこと吹き出しがアバターを右端に押し出さない（文言の長さでアバター位置がズレる）を修正
 プロダクトオーナーがスクリーンショットに矢印で「アバターのさらに右」を指摘。直前の「吹き出し左右反転」修正でアバターは右側に来たが、`.qb-b`が中身の幅にしかサイズせず、行全体の幅（吹き出し＋gap＋アバター）がコンテナ幅に満たない日（＝その日の一言が短い日）はアバターがコンテナ右端まで届かず、右側に隙間が残っていた。
 - `.qbubble .qb-b`（line 434）に`flex:1`を追加し、吹き出しが残りの水平スペースを全部埋めるよう変更。既存の`min-width:0`はそのまま維持（`flex:1`と併用しないと吹き出しが中身の自然幅より縮めず、テキストの折返し/省略が効かなくなる典型的なflexboxの罠のため）。`.qbubble{...}`（外側flexコンテナ）・`.qbubble img{...}`は無変更

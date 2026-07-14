@@ -737,29 +737,16 @@
     <div class="hint">「きょうやった！」を押した日に印がつきます<br>印をタップするとその日の記録が見られます</div>
   </div>
 
+  <div class="card grad-warm" style="text-align:center" id="reachCard">
+    <div class="sec-head" style="justify-content:center">📏 とどくメーター</div>
+    <div style="font-size:14px;color:var(--sub);margin:-4px 0 12px">前屈チェックで、のびていく証拠を記録</div>
+    <button class="btn btn-ghost" onclick="navTo('reach')">見てみる</button>
+  </div>
+
   <div class="card grad-pink" style="text-align:center">
     <div class="sec-head" style="justify-content:center">🎉 お楽しみ機能</div>
     <div style="font-size:14px;color:var(--sub);margin:-4px 0 12px">じまんカード・せんぱいの声・ひとことにっき</div>
     <button class="btn btn-ghost" onclick="navTo('fun')">見てみる</button>
-  </div>
-
-  <div class="card" id="reachCard">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
-    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈 手はどこまで届く？<br>届いたところのボタンを押すと記録されます（週1回でOK）</div>
-    <div style="text-align:center;margin:4px 0 10px">
-      <img src="assets/check/meter.jpg" alt="前屈のお手本" style="width:70%;max-width:250px;border-radius:16px;border:1.5px solid var(--line)">
-    </div>
-    <div class="reach-row">
-      <button class="reach-btn" id="rlv1" onclick="setReach(1)">ひざ</button>
-      <button class="reach-btn" id="rlv2" onclick="setReach(2)">すね</button>
-      <button class="reach-btn" id="rlv3" onclick="setReach(3)">足首</button>
-      <button class="reach-btn" id="rlv4" onclick="setReach(4)">つま先</button>
-      <button class="reach-btn" id="rlv5" onclick="setReach(5)">ゆか</button>
-    </div>
-    <div id="reachMsg" style="font-size:14px;margin:10px 0 2px;min-height:18px"></div>
-    <div id="reachNow" style="font-size:15px;margin-top:4px"></div>
-    <div id="reachPrev" style="font-size:14px;margin-top:6px"></div>
-    <div class="rtrack" id="reachTrend"></div>
   </div>
 
   <div class="card">
@@ -848,6 +835,29 @@
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="3" fill="#FFEDF3"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>ひとことにっき</div>
     <div id="diaryList"></div>
+  </div>
+  <button class="btn btn-line" onclick="navTo('history')">← マイ記録にもどる</button>
+</section>
+
+<!-- ===== とどくメーター（前屈チェック） ===== -->
+<section id="reach" class="hidden">
+  <div class="card">
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L17 3l4 4L7 21H3z" fill="#FFF3C4"/><path d="M13 7l4 4M7 13l2 2M10 10l2 2"/></svg>とどくメーター（前屈チェック）</div>
+    <div style="font-size:14px;color:var(--sub);margin-bottom:10px">ひざを伸ばして前屈 手はどこまで届く？<br>届いたところのボタンを押すと記録されます（週1回でOK）</div>
+    <div style="text-align:center;margin:4px 0 10px">
+      <img src="assets/check/meter.jpg" alt="前屈のお手本" style="width:70%;max-width:250px;border-radius:16px;border:1.5px solid var(--line)">
+    </div>
+    <div class="reach-row">
+      <button class="reach-btn" id="rlv1" onclick="setReach(1)">ひざ</button>
+      <button class="reach-btn" id="rlv2" onclick="setReach(2)">すね</button>
+      <button class="reach-btn" id="rlv3" onclick="setReach(3)">足首</button>
+      <button class="reach-btn" id="rlv4" onclick="setReach(4)">つま先</button>
+      <button class="reach-btn" id="rlv5" onclick="setReach(5)">ゆか</button>
+    </div>
+    <div id="reachMsg" style="font-size:14px;margin:10px 0 2px;min-height:18px"></div>
+    <div id="reachNow" style="font-size:15px;margin-top:4px"></div>
+    <div id="reachPrev" style="font-size:14px;margin-top:6px"></div>
+    <div class="rtrack" id="reachTrend"></div>
   </div>
   <button class="btn btn-line" onclick="navTo('history')">← マイ記録にもどる</button>
 </section>
@@ -967,8 +977,8 @@
   <div class="card" id="gd-myrec">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「マイ記録」タブでできること</div>
     <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
-    <div class="gstep"><span class="stepn">🎉</span><div><b>お楽しみ機能</b>…じまんカード・せんぱいの声・ひとことにっきがまとまっています</div></div>
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
+    <div class="gstep"><span class="stepn">🎉</span><div><b>お楽しみ機能</b>…じまんカード・せんぱいの声・ひとことにっきがまとまっています</div></div>
     <div class="gstep"><span class="stepn">⚙️</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
     <div class="gstep"><span class="stepn">🎬</span><div>（こちらは下のタブ）<b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
     <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">マイ記録タブをひらく</button>
@@ -1352,11 +1362,11 @@ const store = {
 let state = { type: store.get("type",null), mode:null, qi:0, scores:{}, worry:null };
 
 // ================= 画面制御 =================
-const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","fun","voices","obu"];
+const SECTIONS=["home","quiz","result","history","playlists","search","guide","brag","fun","voices","reach","obu"];
 // obuは特定タブに固定所属しないため、TAB_OFのobuエントリはあくまでフォールバック値。
 // 実際のハイライトはshow()内でobuReturnTo（オガトレ通信を開く直前にいたセクション）を優先して解決する
 // 相談室(soudan)はセクションではなくボトムシート（#soudanSheet）。履歴stateのid="soudan"だけ特別扱いする
-const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",fun:"history",voices:"history",obu:"home"};
+const TAB_OF={home:"home",quiz:"home",result:"home",history:"history",playlists:"playlists",search:"search",guide:"guide",brag:"history",fun:"history",voices:"history",reach:"history",obu:"home"};
 let currentSection="home"; // 現在表示中のセクション（show()で更新）
 let obuReturnTo="home"; // オガトレ通信(obu)を開く直前にいたセクション。戻るボタン＆タブハイライトに使用（記憶が無い場合はhomeへフォールバック）
 let quizRendered=false; // このセッションでrenderQ()が一度でも呼ばれたか（popstateでquizへ直接着地した空画面を防ぐ判定に使用）
@@ -1938,9 +1948,7 @@ function renderRecheck(){
 function recheckLater(){ store.set("recheck_seen",state.type.at); document.getElementById("recheckCard").classList.add("hidden"); }
 function goRecheck(){
   recheckLater();
-  switchTab('history');
-  // show()がscrollTo(0,0)するため描画後にとどくメーターへスクロール
-  setTimeout(()=>{ const c=document.getElementById("reachCard"); if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); },80);
+  navTo('reach');
 }
 // ---- 記録のひっこし（機種変・バックアップ） ----
 // 形式: "KYONO1:" + Base64({v:1, data:{kyono_*: 値}})。vは将来の形式変更用
