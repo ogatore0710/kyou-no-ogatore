@@ -4,6 +4,24 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 オガトレ相談室 品質総点検の提案書5項目、本人回答を反映（①-A/B/C/D・②-1）
+
+`SOUDAN-QUALITY-AUDIT-2026-07-14.md`の全5判断項目に本人がYES/NO/案を回答済み（プロンプト経由）だったため、この場で反映した。
+
+- **①-A（案B採用・膝の不安定感の誤着地を修正）**: `hiza.kw`に「ぐらつく」「ひざがぐらぐら」「ひざがぐらつく」「膝がぐらぐら」「膝がぐらつく」を追加、`kotsuban2`は無変更。実測（node再現・sdNorm+スコアリング同等ロジック）: 追加前"膝がグラグラする"→hiza(score1) < kotsuban2(score4)で骨盤インテントに誤着地／追加後→hiza(score7) > kotsuban2(score4)に反転（"歩くと膝がグラグラして怖い"も同様に反転）。追加1回で想定どおり反転したため追加語の調整は不要だった。
+- **①-B（YES）**: redFlags.kwに「締め付けられる」「締め付け感」「胸が締め付け」「むねがしめつけ」「冷や汗」「ひやあせ」の6語を追加。
+- **①-C（YES）**: redFlags.kwに「力が抜けて歩け」「力が抜けて立て」「急に力が抜け」「足に力が入らず」「脚に力が入らず」の5語（誤爆回避の絞り込み形）を追加。
+- **①-D（YESのみ・NEW-INTENTS-PROPOSALは今回不採用）**: redFlags.kwに「わきの下にしこり」「わきにしこり」「脇にしこり」「わきのしたにしこり」の4語（部位限定の絞り込み形）を追加。`NEW-INTENTS-PROPOSAL.md`は今回は着手せず無変更。
+- **②-1（句点に揃える採用）**: `nechigae.empathy`を「寝違えはつらい！まず無理しないで。」→「寝違えはつらい。まず無理しないで。」に変更（M1の「つらい」系empathyが全て句点どまりの慣例に統一）。mitate/keizoku/videos/kwは無変更。
+- **②-2/④は対応不要（本人確認済み・現状維持）**: `koureisha`/`nenrei`の敬体混在は意図的な「先生モード」演出として維持。`youtsuu`のmitate160字は安全上の理由で据え置き（`scripts/qa.js`の`LEN_EXCEPTIONS`に既に登録済み）。いずれも無変更。
+
+**検証**:
+- ①-A/B/C/Dのredflags.kw・hiza.kw変更は、本セッション中のeven-sync自動同期（`auto-sync 2026-07-14 19:46`＝コミット`dbbd61c`）に先に取り込まれる形で保存された（作業中のファイルを自動コミットしたため）。git showで内容を確認し、二重適用なしを確認済み。
+- 追加後、`soudan-ai-poc/data.mjs`をbuild-data.mjsで再生成し、`node soudan-ai-poc/redflag-safety-test.mjs`で新規3グループ（締め付け+冷や汗/力が抜ける系/わき下しこり）の受診側3ケース・巻き込まない側2ケース（「肩を締め付けるような服がきつい」「筋トレで追い込んで力が抜けた」）を実測し、全て意図どおりであることを確認。この5ケースを恒久回帰テストとして`redflag-safety-test.mjs`に追加。
+- **最終検証**: `npm test`=**98 checks PASS**（変動なし）。`npm run smoke`=**14/14 PASS**。`node soudan-ai-poc/redflag-safety-test.mjs`=**76/76 PASS**（既存71+新規5、後退ゼロ）。
+- `SOUDAN-QUALITY-AUDIT-2026-07-14.md`に各項目の「反映済み」注記とコミット参照を追記。
+- コミット: `dbbd61c`(①-A hiza.kw + ①-B/C/D redFlags.kw・even-sync自動取り込み) / `b9104d9`(②-1 nechigae) / `5eeaf25`(data.mjs再生成+回帰テスト恒久化5件) / `d2141c2`(提案書ステータス更新)。push未実施。
+
 ## 2026-07-14 オガトレ相談室 品質総点検（約2時間の自走監査）完了まとめ・提案書 SOUDAN-QUALITY-AUDIT-2026-07-14.md
 本人依頼「オガトレ相談室の品質を約2時間かけて自走で磨く」を完了。`SOUDAN-DESIGN.md`/`SOUDAN-AI-DESIGN.md`/`AUDIT-MEMO.md`/`AUDIT-SAFETY-PROPOSALS.md`/`SANGO-REDFLAG-PROPOSAL.md`/`NEW-INTENTS-PROPOSAL.md`＋本ファイル全体を読み、`soudan-kb.js`の全119インテント（M1コア14件+M2の A〜G 105件）＋redFlags(158語)/crisis(8語)/commonFollowups(4件)/smalltalk を1件ずつ精読。バッチ1〜3（下記の個別エントリ参照）で直接適用、判断が要るものは提案書へ。
 - **総レビュー数**: 119インテント全件＋redFlags/crisis/commonFollowups/smalltalk構造
