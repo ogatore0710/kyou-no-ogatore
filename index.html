@@ -603,9 +603,10 @@
   <div class="card hidden" id="soudanCard" onclick="openSoudan()">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>オガトレ相談室</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <div style="flex:1;font-size:15px;color:var(--sub2)">からだの悩み、オガトレに聞いてみて💬</div>
+      <div style="flex:1;font-size:15px;color:var(--sub2)">からだの悩み<br>オガトレに聞いてみて💬</div>
       <img src="assets/chara-hitokoto.png" alt="" style="width:64px;height:64px;object-fit:contain;flex-shrink:0">
     </div>
+    <button class="btn btn-primary" style="margin-top:10px" onclick="event.stopPropagation();openSoudan()">💬 相談する</button>
     <div class="chips" id="soudanCardChips"></div>
   </div>
 
@@ -618,7 +619,7 @@
       <button id="segYoru" onclick="setMode('yoru')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 14.5A8 8 0 0 1 9.5 5 8 8 0 1 0 19 14.5z" fill="#B8A9F0" stroke="#3A3A35" stroke-width="2.2" stroke-linejoin="round"/></svg>よる</button>
     </div>
     <div id="todayVideo"></div>
-    <div class="hint" style="margin-top:8px">動画がおわったら アプリにもどって下の「きょうやった！」を押してね✅</div>
+    <div class="hint" style="margin-top:8px">動画がおわったら アプリにもどって<br>下の「きょうやった！」を押してね✅</div>
   </div>
 
   <!-- 2週間プラン（処方箋モード・dev67専有域）: 相談室でつくったプランの進捗。非実行時は非表示 -->
@@ -1474,8 +1475,7 @@ function renderToday(){
     const rx=currentRx(state.type.key);
     const i=dayIndex()%rx.length;
     vk=rx[i]; badge="きょうのあなた用";
-    extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ あなたへの3本 連続再生はこちら</a>
-      <div style="font-size:14px;margin-top:6px;text-align:center"><a href="#" onclick="showResult(state.type);return false" class="tapx" style="color:var(--sub);font-weight:800;text-decoration:none">3本の一覧とタイプ解説を見る→</a></div>`;
+    extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:-5px;margin-right:6px"><rect x="1" y="3" width="22" height="18" rx="5" fill="#FF0000"/><path d="M9.5 7.5l8 4.5-8 4.5z" fill="#fff"/></svg>あなたへの3本 連続再生はこちら</a>`;
   } else {
     const list = m==="asa"?TODAY_ASA:TODAY_YORU;
     vk = list[dayIndex()%list.length];
