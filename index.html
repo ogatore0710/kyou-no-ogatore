@@ -3149,8 +3149,11 @@ function sdScrollEnd(){ const log=document.getElementById("sdLog"); if(log) log.
 function sdScrollToTop(row){
   const log=document.getElementById("sdLog");
   if(!log||!row) return;
-  const top=row.offsetTop-4;
-  log.scrollTop=Math.min(top,log.scrollHeight-log.clientHeight);
+  // offsetTopは最寄りのposition祖先基準になり得て信頼できないため、
+  // getBoundingClientRect差分で現在のスクロール位置からの相対移動量を出す
+  const delta=row.getBoundingClientRect().top-log.getBoundingClientRect().top;
+  const top=log.scrollTop+delta-4;
+  log.scrollTop=Math.max(0,Math.min(top,log.scrollHeight-log.clientHeight));
 }
 function sdBubbleNode(m){
   const row=document.createElement("div");
