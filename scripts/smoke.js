@@ -597,6 +597,33 @@ async function main() {
       return "開始(肩こり3本)→+1日でローテ次番+daylog=プラン動画→+15日で完走お祝い+plan削除→再開1/14→やめるで解除文言";
     });
 
+    // 6e. とどくメーター(#reach)でFAB(相談室/オガトレ通信)が隠れるか(2026-07-15実測監査で発見した重なりバグの再発防止)
+    //     実測(390x844)でreach-rowの5番目のボタンがFAB2段と大きく重なりタップ不能に近い状態だったため、
+    //     quizと同様にreachでもFABを隠す修正をした。ホームに戻るとFABが復帰することも合わせて確認する
+    await step("6e-とどくメーターでFABが隠れる（重なりバグの再発防止）", async () => {
+      await page.click("#tab-history");
+      await visible("#history");
+      await page.click('#reachCard button[onclick="navTo(\'reach\')"]');
+      await visible("#reach");
+      const hiddenOnReach = await page.evaluate(() => ({
+        bodyClass: document.body.classList.contains("fabs-hide"),
+        soudanDisplay: getComputedStyle(document.getElementById("soudanFab")).display,
+        obuDisplay: getComputedStyle(document.getElementById("obuFab")).display,
+      }));
+      if (!hiddenOnReach.bodyClass) throw new Error("reachでbody.fabs-hideが付いていない");
+      if (hiddenOnReach.soudanDisplay !== "none") throw new Error("reachで相談室FABが非表示になっていない (display=" + hiddenOnReach.soudanDisplay + ")");
+      if (hiddenOnReach.obuDisplay !== "none") throw new Error("reachでオガトレ通信FABが非表示になっていない (display=" + hiddenOnReach.obuDisplay + ")");
+      await page.click("#tab-home");
+      await visible("#home");
+      const shownOnHome = await page.evaluate(() => ({
+        bodyClass: document.body.classList.contains("fabs-hide"),
+        obuDisplay: getComputedStyle(document.getElementById("obuFab")).display,
+      }));
+      if (shownOnHome.bodyClass) throw new Error("ホームに戻ってもfabs-hideが残っている");
+      if (shownOnHome.obuDisplay === "none") throw new Error("ホームに戻ってもオガトレ通信FABが復帰していない");
+      return "reachでFAB(相談室・オガトレ通信とも)非表示→ホーム復帰で再表示を確認";
+    });
+
     // 7. 破損データ耐性: kyono_streak2に不正文字列→リロードで白画面にならない
     await step("7-破損データ耐性（kyono_streak2）", async () => {
       await page.evaluate(() => localStorage.setItem("kyono_streak2", "{oops!!broken"));

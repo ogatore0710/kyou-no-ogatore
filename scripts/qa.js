@@ -209,6 +209,19 @@ function checkHtml(html) {
   assert("drawCard: no Date.now", !/Date\.now\s*\(/.test(drawCard), "card output is date-driven");
   assert("drawCard: no new Date() without args", !/new\s+Date\s*\(\s*\)/.test(drawCard), "card output is not current-time-driven");
 
+  // 2026-07-15実測監査で発見: type="number"は小数の直接入力("3.7"等)を弾かないため、
+  // Math.roundで整数化してからクランプしないと「3.7日つづいてる！」のようなカードができてしまう
+  const drawBragCard = extractFunction(main, "drawBragCard");
+  assert("drawBragCard: found", drawBragCard.length > 0, `${drawBragCard.length} chars`);
+  assert("drawBragCard: days input rounded to integer", /Math\.round\(Number\(document\.getElementById\("bragDays"\)\.value\)\)/.test(drawBragCard), "小数日数のカード化を防止");
+
+  // 2026-07-15実測監査で発見: とどくメーター(#reach)のreach-row(5段階ボタン)が、二段重ねのFAB
+  // (相談室/オガトレ通信・右下固定)と実測(390x844)でy座標が重なり、5番目のボタンの約2/3が隠れて
+  // タップ不能に近い状態になっていた。quizと同様にFABを隠すことで解消（updateFabsのhide条件を機械チェック）
+  const updateFabs = extractFunction(main, "updateFabs");
+  assert("updateFabs: found", updateFabs.length > 0, `${updateFabs.length} chars`);
+  assert("updateFabs: hides FABs on #reach (FAB重なり対策)", /currentSection===["']reach["']/.test(updateFabs), "reach-rowとFABの重なり対策");
+
   const ensureCardFonts = extractFunction(main, "ensureCardFonts");
   assert("ensureCardFonts: timeout guard", /Promise\.race/.test(ensureCardFonts) && /2200/.test(ensureCardFonts), "font load cannot hang forever");
   const importData = extractFunction(main, "importData");
