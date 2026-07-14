@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 座布団化した3リンクのうち「▶ この日のおすすめだった1本」のみ座布団を外し文言変更（本人がスクショレビューで「座布団なしでいいかも」「文言が微妙」）
+- 直前のコミット(1806c55直前=7c91c1d時点)で3リンク全部に`daychip`（丸型ピル背景）を付けたが、本人が実物を見て「▶ この日のおすすめだった1本」の座布団だけ浮いて見える、文言も硬いと指摘。「この日の動画 ＋/－」トグルと「🖼 この日の記録カードを見る」の座布団・文言はそのままでよいとのこと
+- `showDay(ds)`内、展開後に現れる動画リンク`<a>`（入れ子`<div class="hidden">`の中）のみ変更: `class="tapx daychip"`→`class="tapx" style="color:var(--tealink);font-weight:800"`（座布団化以前と同じインラインstyleを復元し、素の太字ティールリンクに戻した）。テキストを`▶ この日のおすすめだった1本`→`▶ YouTubeでチェックする`に変更。トグルリンク・記録カードリンクの`daychip`クラス・文言は無変更
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: 今日を含む3日連続＋今日にYouTube動画ID(`v`)をログしたリアルな状態を`localStorage`に仕込み→マイ記録タブ→当日セルをタップ→「この日の動画」トグルをタップして展開→computedStyleで確認: トグル・記録カードは`border-radius:999px`+`background-color:rgb(34,64,59)`（daychip座布団のまま）、動画リンクは`border-radius:0px`+`background-color:rgba(0,0,0,0)`（座布団なし）で`color:rgb(123,208,196)`（`--tealink`）・`font-weight:800`を保持しつつテキストが「▶ YouTubeでチェックする」になっていることを確認
+- 作業中にeven-syncの自動コミットが先にindex.htmlを拾った（前例と同じ現象）。コミットハッシュ`1806c55ed55edaba8179b1c2f47375e091880593`（`auto-sync 2026-07-14 09:47`・対象index.html1箇所のみ、差分1行）の内容を`git show`で確認し、意図通りの変更のみであることを確認済み
+- ロールバック: 動画リンクの`class="tapx"`+インラインstyleを`class="tapx daychip"`に戻し、テキストを`▶ この日のおすすめだった1本`に戻せば元通り
+
 ## 2026-07-14 マイ記録の日別詳細ポップアップの3リンクを丸型ピル(座布団)に変更（本人「文字の箇条書き感が気になる」「この日やった動画に座布団おける？丸型の」）
 - `showDay(ds)`内の3つのアクションリンク（①「この日の動画 ＋」トグル ②展開後に現れる「▶ この日のおすすめだった1本」 ③「🖼 この日の記録カードを見る」）が、下線付きの裸テキストを`<br>`/入れ子`<div>`で並べただけで箇条書き然として見えていた指摘に対応
 - CSSに`.daychip{display:inline-flex;align-items:center;gap:4px;background:var(--teal-soft);color:var(--tealink);border-radius:999px;padding:9px 16px;font-weight:800;text-decoration:none;margin-top:8px}`を`.daytoggle`の直後に追加。既存の`--teal-soft`/`--tealink`（`.btn-ghost`と同じ配色ペア）を再利用した丸型の座布団
