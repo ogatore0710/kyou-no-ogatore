@@ -449,6 +449,7 @@ function checkSoudanKb(catalogIds) {
   const badIds = [];
   const badVideos = [];
   const dupKwSameIntent = [];
+  const dupKwNormSameIntent = [];
   const crossDupKw = [];
   const badFollowupRefs = [];
   const intentIds = new Set();
@@ -456,6 +457,17 @@ function checkSoudanKb(catalogIds) {
   const followupIds = new Set((kb.commonFollowups || []).map((f) => f && f.id).filter(Boolean));
   const allIntentIds = new Set((kb.intents || []).map((it) => it && it.id).filter(Boolean));
   const kwOwner = new Map();
+
+  // index.html sdNorm / soudan-ai-poc/norm.mjs の簡易移植。
+  // 同一インテント内で「カタカナ/ひらがな」「大文字/小文字」だけが違うkwを検出するために使う
+  // （エンジンのスコアリングは正規化後に一致文字数を合算するため、この種の重複は
+  //  見た目は別語でも実質は同じ語の二重計上=近似インテントとの僅差誤答の温床になる）。
+  function sdNormLite(s) {
+    s = String(s == null ? "" : s).toLowerCase();
+    s = s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
+    s = s.replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+    return s.replace(/[^0-9a-zぁ-ゖー一-鿿々]/g, "");
+  }
 
   for (const it of kb.intents || []) {
     const label = (it && it.id) || JSON.stringify(it);
@@ -474,9 +486,15 @@ function checkSoudanKb(catalogIds) {
       else if (catalogIds && !catalogIds.has(v.v)) badVideos.push(`${it.id}: ${v.v}(カタログに無い)`);
     }
     const seen = new Set();
+    const seenNorm = new Map();
     for (const k of it.kw) {
       if (seen.has(k)) dupKwSameIntent.push(`${it.id}: ${k}`);
       seen.add(k);
+      const nk = sdNormLite(k);
+      if (nk) {
+        if (seenNorm.has(nk) && seenNorm.get(nk) !== k) dupKwNormSameIntent.push(`${it.id}: ${seenNorm.get(nk)}/${k}`);
+        else seenNorm.set(nk, k);
+      }
       if (kwOwner.has(k) && kwOwner.get(k) !== it.id) crossDupKw.push(`${k}(${kwOwner.get(k)}/${it.id})`);
       else kwOwner.set(k, it.id);
     }
@@ -490,6 +508,7 @@ function checkSoudanKb(catalogIds) {
   assert("soudan-kb.js: intent id重複なし", dupIntentIds.length === 0, dupIntentIds.slice(0, 10).join(", ") || "ok");
   assert("soudan-kb.js: 動画ID実在(1〜3本・CATALOG照合)", badVideos.length === 0, badVideos.slice(0, 10).join(", ") || "ok");
   assert("soudan-kb.js: kw重複なし(同一インテント内)", dupKwSameIntent.length === 0, dupKwSameIntent.slice(0, 10).join(", ") || "ok");
+  assert("soudan-kb.js: kw正規化後重複なし(同一インテント内・カナ/大小文字違いの二重計上防止)", dupKwNormSameIntent.length === 0, dupKwNormSameIntent.slice(0, 10).join(", ") || "ok");
   // インテント間の同一kwは順序で解決されるため警告どまり（設計§4-4: 先頭寄り優先）
   pass("soudan-kb.js: kw重複(インテント間・警告のみ)", crossDupKw.length ? `警告${crossDupKw.length}件: ${crossDupKw.slice(0, 8).join(", ")}` : "なし");
   assert("soudan-kb.js: followups参照が解決できる", badFollowupRefs.length === 0, badFollowupRefs.slice(0, 10).join(", ") || "ok");
