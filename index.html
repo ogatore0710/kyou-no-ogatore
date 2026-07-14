@@ -389,6 +389,7 @@
   .cal .d{width:40px;height:40px;line-height:40px;border-radius:50%;display:inline-block;font-size:15px;font-weight:800}
   .cal .d.done{background:var(--teal);color:#fff}
   .cal .d.today{box-shadow:inset 0 0 0 2.5px var(--pink)}
+  .cal .d.sel{outline:3px solid var(--ink);outline-offset:2px}
   .cal .d.mute{color:#D5CFBE}
   .bar{background:var(--line);border-radius:99px;height:14px;overflow:hidden;margin-top:8px}
   .bar>div{height:100%;background:linear-gradient(90deg,var(--teal),#7BD0C4);border-radius:99px;transition:width .4s}
@@ -3388,6 +3389,7 @@ function sdEnsureGreeting(){
 
 // ================= マイ記録（カレンダー） =================
 let calDate=null;
+let calSelected=null;
 function renderHistory(){
   const st=getStreakData();
   document.getElementById("histStreak").textContent=effectiveStreakCount(st);
@@ -3407,11 +3409,13 @@ function renderHistory(){
 }
 function calMove(n){ calDate.setMonth(calDate.getMonth()+n); renderCal(); }
 function showDay(ds){
+  calSelected=ds;
+  renderCal();
   const log=(store.get("daylog",{}))[ds];
   const memo=(store.get("memos",{}))[ds];
   const el=document.getElementById("dayInfo");
   let html=`<b>${Number(ds.slice(5,7))}/${Number(ds.slice(8,10))} にやった記録</b>`;
-  if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<div><a href="#" class="tapx" onclick="toggleDayVideo(this);return false" style="color:var(--tealink);font-weight:800">この日の動画 <span>▼</span></a><div class="hidden"><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">▶ この日のおすすめだった1本</a></div></div>`;
+  if(log&&log.v&&/^[\w-]{11}$/.test(log.v)) html+=`<div><a href="#" class="tapx" onclick="toggleDayVideo(this);return false" style="color:var(--tealink);font-weight:800">この日の動画 <span>＋</span></a><div class="hidden"><a href="https://www.youtube.com/watch?v=${log.v}" target="_blank" rel="noopener" style="color:var(--tealink);font-weight:800">▶ この日のおすすめだった1本</a></div></div>`;
   if(memo) html+=`<br>「${memo.replace(/</g,"&lt;")}」`;
   if(!log&&!memo) html+=`<br>この日は「やった！」の印だけ残っています`;
   html+=`<br><a href="#" class="tapx" onclick="makeCard('${ds}');return false" style="color:var(--tealink);font-weight:800">🖼 この日の記録カードを見る</a>`;
@@ -3421,7 +3425,7 @@ function showDay(ds){
 function toggleDayVideo(a){
   const d=a.nextElementSibling;
   const closed=d.classList.toggle("hidden");
-  a.querySelector("span").textContent=closed?"▼":"▲";
+  a.querySelector("span").textContent=closed?"＋":"－";
 }
 function renderCal(){
   const y=calDate.getFullYear(), m=calDate.getMonth();
@@ -3434,7 +3438,7 @@ function renderCal(){
   for(let i=0;i<first;i++){ html+="<td></td>"; cell++; }
   for(let d=1;d<=days;d++){
     const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const cls=["d", done.has(ds)?"done":"", ds===today?"today":"", ds>today?"mute":""].join(" ");
+    const cls=["d", done.has(ds)?"done":"", ds===today?"today":"", ds===calSelected?"sel":"", ds>today?"mute":""].join(" ");
     html+=`<td${done.has(ds)?` onclick="showDay('${ds}')" style="cursor:pointer"`:""}><span class="${cls}">${d}</span></td>`;
     if(++cell%7===0&&d<days) html+="</tr><tr>";
   }

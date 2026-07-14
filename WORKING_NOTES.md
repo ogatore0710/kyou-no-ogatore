@@ -4,6 +4,12 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 マイ記録カレンダーのUXバグ2件を修正（プロダクトオーナーの録画レビュー指摘）
+- **選択日の視覚フィードバック不足**: `.cal .d.today`のピンクリングは「今日の実日付」専用で、「いま下に詳細が表示されている日」を示す手段が無かった（13日をタップしても14日=今日のリングしか出ない）。`let calSelected=null;`を`calDate`の隣に新設し、`renderCal()`のクラス生成に`ds===calSelected?"sel":""`を追加、`showDay(ds)`冒頭で`calSelected=ds;renderCal();`してから`#dayInfo`を書くよう変更。CSSに`.cal .d.sel{outline:3px solid var(--ink);outline-offset:2px}`を`.today`の直後に追加（box-shadowではなくoutlineにしたのは、today兼selの日にピンクの内側リングとダークの外側リングを同時に出すため。`.today`自体は無変更）
+- **展開トグルの▼/▲が▶（動画再生）と紛らわしい**: `showDay()`内`toggleDayVideo`のトグル`<span>`と`toggleDayVideo(a)`関数内のテキスト切替を、全角プラス/マイナス(＋/－)に変更（▼▲→＋－）。展開後は▶で始まる動画リンクの真上に－が並ぶだけになり、▶とは字形が完全に別物になる。アプリ内の▶用法（6箇所以上）は今回無変更・意図的に触っていない
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**（smoke.jsはcalBody/showDay/toggleDayVideoを直接参照していないため無修正）。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: ①7/12(今日でない完了日)をタップ→7/12のセルにダークのoutlineリングが付き、今日(7/14)のピンクリングは別セルのまま影響なし ②今日(7/14)自身をタップ→同じセルにピンク内側リング＋ダーク外側リングが同時に表示 ③動画ログ済みの日でトグル展開→ラベルが＋→－に変化し、直下の「▶ この日のおすすめだった1本」とは字形が別物であることを確認
+- ロールバック: `calSelected`変数・CSSの`.sel`ルール・`renderCal()`のcls配列1項・`showDay()`冒頭2行・トグル文字列2箇所（＋/－→▼/▲）を戻せば元通り
+
 ## 2026-07-14 「ありがとう」ボタンを完全撤去＋記録カードに種別説明・記念/レアの紙吹雪演出を追加
 - **ありがとうボタン撤去**（本人「いい機能だけど使うシーン少ないと思う」・非表示ではなく削除）: `#streakCard`内`#thanksBlock`（`#thanksBtn`/`#thanksNote`）をHTMLごと削除／`#streakCard.mini`の非表示idリストから`#thanksBlock`を除去／`renderThanks()`・`sendThanks()`関数とrenderHome連鎖の`renderThanks();`呼び出しを削除／`drawCard()`の`_tk`変数と`else if(isToday&&_tk.total>0)`行（メモ行の`else`分岐）を削除（`if(memo)`はそのままの単純ifに）／マイ記録カレンダーの日別ポップアップから`dayThanksRowHtml()`・`dayThanks()`関数と`showDay()`内の埋め込み行(`#dayThanksRow`)を削除／使い方ガイド「マイ記録」タブの`💛きょうのありがとう`gstep行を削除／オンボーディングツアー`OB_TOUR_SLIDES`から`💛 ありがとうをのこす`スライドを削除（配列駆動なので7枚ツアーに自動的に短縮）。`kyono_thanks`のlocalStorageキー自体は方針どおり無変更（休眠データとして残置）。せんぱいの声(VOICES)配列内の通常の「ありがとう」テキストは無関係につき無傷
 - **記録カードの種別説明＋演出追加**: `makeCard(ds)`のみを拡張（ピクセル回帰対象の`drawCard()`は1バイトも触っていない）。`#cardModal`に`#cardImg`と保存案内文の間へ`#cardTierNote`を新設。`makeCard`冒頭でstale文字が残らないよう空文字にリセット。既存の`_pat`計算try節に`_milestone`(`MILESTONES.includes(_eff)`)・`_msInfo`(`MS.find(x=>x.d===_eff)`)を追加し、`drawCard()`成功後の`.then()`コールバック内で`_pat.tier`(toku/season/rare/normal)に応じたラベル文を`cardTierNote`にセット。`toku`/`rare`（および画像なし記念=3日目の`!_pat&&_milestone`パターン）だけ既存の`launchConfetti(90)`を再利用して紙吹雪を発火（season/normalは説明文のみ・演出なし）。`makeBragCard()`（じまんカード・別モーダル使い回し）にも`cardTierNote`クリアを追加し、直前に見た通常カードの説明文が残留しないようにした
