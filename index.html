@@ -777,11 +777,6 @@
       <button id="bt-normal" onclick="setBigtext(false)">ふつう</button>
       <button id="bt-big" onclick="setBigtext(true)">大きめ</button>
     </div>
-    <div style="font-size:15px;margin:4px 0 6px">じまんカードを表示する</div>
-    <div class="seg" style="margin-bottom:12px">
-      <button id="sb-off" onclick="setShowBrag(false)">オフ</button>
-      <button id="sb-on" onclick="setShowBrag(true)">オン</button>
-    </div>
     <div style="font-size:15px;margin-bottom:10px">カレンダーのおしらせ時間: <input type="time" id="icsTime" onchange="saveIcsTime()" style="border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-family:inherit;font-size:16px;font-weight:800;color:var(--ink);background:var(--card)"></div>
     <a class="btn btn-line" id="icsLink" download="kyono-ogatore.ics" style="font-size:15px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>
     <a class="btn btn-line" id="gcalLink" target="_blank" rel="noopener" style="font-size:15px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>
@@ -933,7 +928,7 @@
     <div class="gstep"><span class="stepn">2</span><div><b>あなたの「かたさタイプ」が出ます</b><br>タイプに合わせた おすすめ3本つき</div></div>
     <div class="gstep"><span class="stepn">3</span><div><b>まず1本 動画をやってみる</b><br>おわったらホームの「きょうやった！」を押す</div></div>
     <div class="gstep"><span class="stepn">💬</span><div><b>オガトレ相談室</b>…からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます<br>右下の💬ボタンか ホームのカードからいつでもどうぞ</div></div>
-    <div class="gstep"><span class="stepn">📅</span><div><b>2週間プラン</b>…相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります</div></div>
+    <div class="gstep"><span class="stepn">🎯</span><div><b>2週間プラン</b>…相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります</div></div>
     <button class="btn btn-primary" onclick="startQuiz()">チェックをはじめる</button>
   </div>
 
@@ -973,8 +968,8 @@
     <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
     <div class="gstep"><span class="stepn">🎉</span><div><b>お楽しみ機能</b>…じまんカード・せんぱいの声・ひとことにっきがまとまっています（じまんカードはつづける設定で「オン」にすると出ます）</div></div>
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
-    <div class="gstep"><span class="stepn">⏰</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
-    <div class="gstep"><span class="stepn">📺</span><div>（こちらは下のタブ）<b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
+    <div class="gstep"><span class="stepn">⚙️</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
+    <div class="gstep"><span class="stepn">🎬</span><div>（こちらは下のタブ）<b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
     <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">マイ記録タブをひらく</button>
   </div>
 
@@ -2016,17 +2011,6 @@ function applyBigtext(){
   if(bb) bb.classList.toggle("on",on);
 }
 function setBigtext(on){ store.set("bigtext",!!on); applyBigtext(); }
-
-// ---- じまんカード表示設定 ----
-function applyShowBrag(){
-  const on=store.get("show_brag",false);
-  const bo=document.getElementById("sb-off"), bn=document.getElementById("sb-on");
-  if(bo) bo.classList.toggle("on",!on);
-  if(bn) bn.classList.toggle("on",on);
-  const card=document.getElementById("bragCard");
-  if(card) card.classList.toggle("hidden",!on);
-}
-function setShowBrag(v){ store.set("show_brag",v); applyShowBrag(); }
 
 // ---- きょうのひとこと（尾形さんの声かけ） ----
 const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","つづけてるあなたがいちばんすごい","お膝もいたわってあげてくださいね"];
@@ -3482,7 +3466,7 @@ function renderHistory(){
   }
   document.getElementById("histFreeze").innerHTML=`おやすみ券 のこり${freezeLeft()}枚<br>休んだ日に自動でつかわれて連続がつながります`;
   if(!calDate){ const n=new Date(); calDate=new Date(n.getFullYear(),n.getMonth(),1); }
-  renderCal(); renderReach(); renderDiary(); renderIcs(); applyShowBrag(); renderDexBanner();
+  renderCal(); renderReach(); renderDiary(); renderIcs(); renderDexBanner();
 }
 function calMove(n){ calDate.setMonth(calDate.getMonth()+n); renderCal(); }
 function showDay(ds){
