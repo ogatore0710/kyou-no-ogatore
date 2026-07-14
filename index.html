@@ -314,7 +314,7 @@
   .video{display:flex;gap:12px;align-items:center;background:var(--card);border:1.5px solid var(--line);
     border-radius:16px;padding:10px;margin-bottom:10px;text-decoration:none;color:var(--ink)}
   .video img{width:112px;aspect-ratio:16/9;height:auto;border-radius:12px;flex-shrink:0} /* aspect-ratioで読込前も高さ確保=カードのガタつき(CLS)防止 */
-  .video .vt{font-size:15px;font-weight:800;line-height:1.45}
+  .video .vt{font-size:15px;font-weight:800;line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
   .video .vs{font-size:14px;color:var(--sub);margin-top:2px}
   .badge{display:inline-block;background:var(--coral-soft);color:#B4462F;font-size:12px;
     font-weight:800;border-radius:8px;padding:1px 8px;margin-bottom:4px}
@@ -618,7 +618,7 @@
       <span class="num" id="streakNum" style="font-size:46px;line-height:1;color:var(--pink)">0</span><span style="font-weight:900;font-size:18px">日目</span>
     </div>
     <div class="lbl" id="totalDays" style="margin-top:2px"></div>
-    <div id="miniDone">きょうの分は完了！おつかれさまでした😊</div>
+    <div id="miniDone">きょうの分は完了！<br>おつかれさまでした😊</div>
     <button class="btn done-btn" id="doneBtn" onclick="markDone()" style="font-size:17px;margin-top:12px">きょうやった！</button>
     <div id="cheer" style="text-align:center;font-size:15px;margin-top:10px;color:var(--sub)"></div>
     <div id="memoRow" class="hidden" style="margin-top:10px">
@@ -1386,10 +1386,13 @@ function quizGoHome(){ if(state.qi>0 && !confirm("回答を消してホームに
 // dayIndex()と同じ「深夜3時JST」境界に合わせる（+9h→+6hで日またぎ判定を統一。境界外では値は変化しない）
 function rotationIndex(){ return Math.floor((Date.now()+6*3600*1000)/86400000/3); }
 
+function vsWrap(s){
+  return String(s==null?"":s).split("・").map(x=>`<span style="white-space:nowrap">${x}</span>`).join("・");
+}
 function vHTML(v, badge){
   return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
     <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-    <div>${badge?`<span class="badge">${badge}</span><br>`:""}<span class="vt">${v.t}</span><div class="vs">${v.s}</div></div></a>`;
+    <div>${badge?`<span class="badge">${badge}</span><br>`:""}<span class="vt">${v.t}</span><div class="vs">${vsWrap(v.s)}</div></div></a>`;
 }
 function videoCard(vk, badge){ return vHTML(V[vk], badge); }
 
@@ -1432,7 +1435,7 @@ function renderToday(){
   document.getElementById("segYoru").classList.toggle("on",m==="yoru");
   document.getElementById("logoMark").innerHTML = pickLogoMark(m);
   if(m==="mine"&&plan){
-    const badge2=`プラン${planDayNum(plan)}日目/${planDays(plan)}: ${plan.label||""}`;
+    const badge2=`プラン${planDayNum(plan)}日目/${planDays(plan)}:\n${plan.label||""}`;
     document.getElementById("todayVideo").innerHTML = planVideoHTML(planTodayVideoId(plan), badge2)
       +`<div style="font-size:13px;color:var(--sub);margin-top:6px;text-align:center;font-weight:800">相談室でつくった2週間プランの1本だよ🌱</div>`;
     return;
@@ -1477,7 +1480,7 @@ function planVideoHTML(id,badge){
   const t=c?c.t:"きょうのプランの1本（YouTubeでひらきます）";
   return `<a class="video" href="https://www.youtube.com/watch?v=${planEsc(id)}" target="_blank" rel="noopener">
     <img src="https://i.ytimg.com/vi/${planEsc(id)}/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-    <div>${badge?`<span class="badge">${planEsc(badge)}</span><br>`:""}<span class="vt">${planEsc(t)}</span><div class="vs">${planEsc(c?c.s:"")}</div></div></a>`;
+    <div>${badge?`<span class="badge">${planEsc(badge).replace(/\n/g,"<br>")}</span><br>`:""}<span class="vt">${planEsc(t)}</span><div class="vs">${vsWrap(planEsc(c?c.s:""))}</div></div></a>`;
 }
 // ---- ホームのプランカード（進捗・完走お祝い・解除） ----
 function renderPlanCard(){
@@ -1623,7 +1626,7 @@ function renderStreak(){
   if(!did && streakBrokenNow(st)) contTxt="きょうやると新しい章のスタート🌱";
   document.getElementById("totalDays").textContent = contTxt;
   const btn=document.getElementById("doneBtn");
-  btn.textContent = did?"きょうの分完了！おつかれさまでした✨":"きょうやった！";
+  btn.innerHTML = did?"きょうの分完了！<br>おつかれさまでした✨":"きょうやった！";
   btn.classList.toggle("did",did);
   btn.disabled=did;
   const memos=store.get("memos",{});
