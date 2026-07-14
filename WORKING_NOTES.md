@@ -4,6 +4,16 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 オガトレ相談室 品質総点検バッチ1: 文字数規律の機械チェック＋M2の字数はみ出し8件を修正
+本人指示による約2時間の自走品質監査（対象=soudan-kb.js 119インテント＋redFlags/crisis/commonFollowups/smalltalk）の1本目。scratchpadに`analyze.js`（KBをvmでロードし全文字数をArray.from().lengthでUnicodeコードポイント単位カウント）を書いて機械チェックを実施。
+- **字数規律**: empathy15-30字/mitate60-120字/keizoku30-60字の帯から「meaningfully out of range」（目安3字以上の逸脱）だった11件を特定・うち10件（M2=本人検収前セクション所属）を修正。1字・2字の軽微な逸脱（sebone/fuyu/sokeibu/unten/oyako/undogo/nagara/tsukare/kogao/seiri/kounenki/handou/ofuro/kyounani/tanoshiku/suwarikata/arukikata、いずれも1-2字）は指示どおり据え置き
+  - mitate短縮（意味・安全記載は温存）: `asagoshi`(151→115字)・`okyaku`(153→122字)
+  - keizoku延伸（同じトーンで自然に加筆）: `mukumi`(25→40字)・`ashidaru`(26→35字)・`shakitto`(25→38字)・`osake`(26→32字)・`ase`(25→32字)・`gaihanboshi`(27→32字)・`dougu`(27→40字)・`tsuiteikenai`(27→33字)
+- **M1既存15件は本文不変の原則を維持**: 唯一の逸脱`youtsuu`のmitate(160字・M1コア=既に本人校正済み固定)は、安全上重要な受診案内文言を含むため機械的に縮めず**据え置き＋提案書行き**（`SOUDAN-QUALITY-AUDIT-2026-07-14.md`）。値下げ判断は本人へ
+- **他の機械チェックも実施・問題なし**: 動画ID実在(119件×videos全数、videos.jsのCATALOGと照合)=全OK、followups参照解決=全OK、kw重複(インテント間)=12件だが全て既知の8組(意図的優先度上書き、WORKING_NOTES既報の「8件」と一致・新規流入なし)
+- **検証**: `npm test`=**97 checks PASS**（後退なし）。`npm run smoke`=**14/14 PASS**。`node soudan-ai-poc/redflag-safety-test.mjs`=**71/71 PASS**（kw無変更のため影響なし、確認のみ）
+- ロールバック: 上記10件のmitate/keizoku文字列をこのコミット前の値に戻すだけ（データのみの変更、コード無変更）
+
 ## 2026-07-14 とどくメーター（前屈チェック）を独自サブページ`#reach`に分離・マイ記録の2枚のカード順を入替（お楽しみ機能に続く2件目のハブ化）
 プロダクトオーナーが別セッションでの提案に合意: 直前の「お楽しみ機能ハブへ統合」と同じ扱いを、`#history`直下に常時表示だったとどくメーターのフル機能（写真＋5ボタン＋記録表示）にも適用してマイ記録の窮屈さを解消。あわせてカード順（現状お楽しみ機能が先）を入替、とどくメーターを先に。
 - `#history`内の2枚のカードを新しい順序（とどくメーター先・お楽しみ機能後）のコンパクトカード2枚に置換。とどくメーターの新カードは`grad-warm`（既存ユーティリティ、ホームのstreakCard等で使用中のもの・お楽しみ機能の`grad-pink`と対で視覚的に揃える）・`onclick="navTo('reach')"`・`id="reachCard"`は維持（新カードに付け替え、フル機能UIとは無関係の識別子として存続）
