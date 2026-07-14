@@ -4,6 +4,15 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 ホームタブ4件のUX修正（相談室CTA・改行2箇所・連続再生の再生ボタンアイコン化）
+プロダクトオーナーがホームタブをボイスメモでレビュー、別セッションが文字起こし・診断済みの4件を`index.html`に直接適用。
+- 相談室入口カード（`#soudanCard`）: 本文を「からだの悩み、オガトレに聞いてみて💬」→「からだの悩み<br>オガトレに聞いてみて💬」に改行（「、」は削除）。カード全体が`onclick="openSoudan()"`でタップ可能なことが視覚的に伝わっていなかったため、チップ行の直前に大きい`btn btn-primary`のCTAボタン`💬 相談する`を追加（`onclick="event.stopPropagation();openSoudan()"`で外側カードのonclickと二重発火しないよう既存チップと同じパターンを踏襲）
+- 「きょうの1本」カードの視聴後ヒント文（`.hint`）: 「動画がおわったら アプリにもどって下の「きょうやった！」を押してね✅」の「アプリにもどって」の直後で改行（本人が実機で確認した折返し崩れの位置）
+- `renderToday()`内「あなたへの3本 連続再生はこちら」ボタン: 素の「▶」文字をYouTube風の赤丸角四角＋白三角のインラインSVGに置換。あわせて直下の「3本の一覧とタイプ解説を見る→」リンク（`showResult(state.type)`呼び出し）は「タップ可能か分かりにくい・タイプ一覧画面と内容が重複」との指摘で削除（`showResult`自体は「前回の結果」等の別導線でまだ使われているため関数は無変更）
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**（`scripts/smoke.js`が`showResult(state.type)`を呼ぶのは削除したリンク経由ではなく直接`page.evaluate`によるものなので無関係・無修正で通過）
+- scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認（viewport390×844）: 相談室カードのinnerHTMLに`からだの悩み<br>`と`相談する`ボタンが含まれることを確認、CTAボタンをクリックして`openSoudan`の呼び出し回数が1回のみ（`event.stopPropagation()`が機能）・`#soudanSheet`が可視化されることを確認。`kyono_type`をmomoタイプにセットして「あなた用」枠を描画、`todayVideo`のinnerHTMLに赤(`#FF0000`)＋白(`#fff`)のSVGが含まれ、旧`▶`文字と「3本の一覧とタイプ解説を見る」リンクが両方とも存在しないことを確認。コンソールエラー0件
+- スクリーンショット（`/private/tmp/claude-501/-Users-ryunosuke-Claude/da16a6be-2184-4e7d-8404-1e90d5b97ed5/scratchpad/`）: `fix1_soudan_card.png`（2行文言＋黄色い大きいCTAボタン）／`fix1_soudan_sheet_after_click.png`（クリック後シートが1回だけ開いた状態）／`fix2_hint_linebreak.png`（ヒント文の2行改行）／`fix3_play_button_icon.png`（赤白の再生ボタンアイコン・旧リンク無し）
+
 ## 2026-07-14 起動スプラッシュのFOUT（フォント切り替わりちらつき）を修正
 - 症状: 別セッションが画面録画をフレーム単位で解析して特定済み。起動直後のスプラッシュ`#appSplash`で「きょうの／オガトレ」の見出しがブラウザのフォールバック書体（Hiragino Kaku Gothic ProN・細め）で一瞬表示された後、本物のカスタム書体「M PLUS 1p」（太め・丸め）へ可視状態のまま切り替わる、古典的なFOUT
 - 原因: `id="gfontLink"`のGoogle Fontsスタイルシートが`media="print"→onload="this.media='all'"`の非同期loadCSSパターン＋`&display=swap`で読み込まれる設計（アプリ全体の初期描画を止めないための意図的な最適化・これ自体はスコープ外・無変更）。この結果、初回描画は必ずフォールバック書体スタック（`body{font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN",...}`）で行われ、遅延スタイルシートとWOFF2の到着後にブラウザがその場で書体を差し替える。文字が大きく他に何もないスプラッシュで特に目立っていた
