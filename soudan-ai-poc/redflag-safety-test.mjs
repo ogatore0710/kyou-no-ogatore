@@ -1,6 +1,7 @@
 // 相談室 赤旗の穴4件（夜間痛/発熱漢字形/転倒口語/吐き気頭痛）の回帰テスト。
 // Fable設計の referCases→受診 / normalCases→通常 を固定。寝転誤爆回避も含む。
 // 2026-07-13追加: 胸痛/動悸の赤旗13語（AUDIT-SAFETY-PROPOSALS.md①）とcrisis分岐（同②）の8+8ケース。
+// 2026-07-14追加: SOUDAN-QUALITY-AUDIT-2026-07-14.md ①-B/①-C/①-Dの赤旗15語（締め付け・冷や汗/力が抜ける系/わき下しこり）の受診3+巻き込まない2ケース。
 // 使い方: node soudan-ai-poc/redflag-safety-test.mjs
 import { readFileSync } from "node:fs";
 import { norm, redFlagHit, crisisHit } from "./norm.mjs";
@@ -56,6 +57,18 @@ for (const [c, want] of crisis) {
   if (crisisHit(norm(c)) === want) pass++; else { fail++; fails.push(`[crisis] ${c} → 期待:${want ? "crisis" : "通常"}`); }
 }
 
+// 締め付け・冷や汗/力が抜ける系/わき下しこり（SOUDAN-QUALITY-AUDIT-2026-07-14.md ①-B/①-C/①-D・本人YES適用分の固定）
+const newFlags2026_07_14 = [
+  ["胸が締め付けられる感じで冷や汗が出る", true],
+  ["急に力が抜けて歩けなくなった", true],
+  ["わきの下にしこりがある", true],
+  ["肩を締め付けるような服がきつい", false],
+  ["筋トレで追い込んで力が抜けた", false],
+];
+for (const [c, want] of newFlags2026_07_14) {
+  if (redFlagHit(norm(c)) === want) pass++; else { fail++; fails.push(`[締め付け/脱力/しこり] ${c} → 期待:${want ? "受診" : "通常"}`); }
+}
+
 fails.forEach((m) => console.log("❌ " + m));
-console.log(`赤旗の穴4件+寝転+胸痛動悸+crisis: ${pass}/${pass + fail} pass` + (fail ? " ❌" : " ✅"));
+console.log(`赤旗の穴4件+寝転+胸痛動悸+crisis+締め付け脱力しこり: ${pass}/${pass + fail} pass` + (fail ? " ❌" : " ✅"));
 process.exit(fail ? 1 : 0);
