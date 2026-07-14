@@ -446,6 +446,7 @@
   #sdLog{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:14px 16px 8px}
   .sd-foot{flex-shrink:0;background:var(--card);border-top:1.5px solid var(--line);padding:10px 14px calc(12px + env(safe-area-inset-bottom))}
   .sd-foot .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;padding-bottom:2px}
+  .sd-foot .sd-catrow{flex-wrap:wrap;overflow-x:visible;margin-bottom:6px}
   .sd-foot .chips.fade-r{-webkit-mask-image:linear-gradient(to right,#000 86%,transparent);mask-image:linear-gradient(to right,#000 86%,transparent)}
   .sd-foot .chip{flex-shrink:0;white-space:nowrap}
   .sd-foot .searchbox{margin-bottom:0}
@@ -1112,6 +1113,7 @@
     <div class="sd-disc">※回答はオガトレ監修のパターン集から選んでいます<br>※目安をつかむ相談室です <b>強い痛み・しびれがあるときは医療機関へ</b></div>
     <div id="sdLog"></div>
     <div class="sd-foot">
+      <div class="chips sd-catrow" id="sdCatRow"></div>
       <div class="chips" id="sdChips"></div>
       <div class="searchbox">
         <input id="sdInput" placeholder="例: 肩がこる／前屈できない" enterkeyhint="send" onkeydown="if(event.key==='Enter'){sdSend()}">
@@ -1470,18 +1472,17 @@ function renderToday(){
       +`<div style="font-size:13px;color:var(--sub);margin-top:6px;text-align:center;font-weight:800">相談室でつくった2週間プランの1本だよ🌱</div>`;
     return;
   }
-  let vk, badge, extra="";
+  let vk, badge, extra="", mainHtml=null;
   if(m==="mine"&&typed){
     const rx=currentRx(state.type.key);
-    const i=dayIndex()%rx.length;
-    vk=rx[i]; badge="きょうのあなた用";
+    mainHtml=`<span class="badge">きょうのあなた用</span>`+rx.map(k=>vHTML(V[k],null)).join("");
     extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:-5px;margin-right:6px"><rect x="1" y="3" width="22" height="18" rx="5" fill="#FF0000"/><path d="M9.5 7.5l8 4.5-8 4.5z" fill="#fff"/></svg>あなたへの3本 連続再生はこちら</a>`;
   } else {
     const list = m==="asa"?TODAY_ASA:TODAY_YORU;
     vk = list[dayIndex()%list.length];
     badge = m==="asa"?"きょうのあさ":"きょうのよる";
   }
-  document.getElementById("todayVideo").innerHTML = videoCard(vk, badge)+extra;
+  document.getElementById("todayVideo").innerHTML = (mainHtml!==null?mainHtml:videoCard(vk,badge))+extra;
 }
 
 // ================= 2週間プラン（処方箋モード・dev67専有域） =================
@@ -3056,6 +3057,23 @@ const SOUDAN_TYPE_INTENT={momo:["zenkutsu","kaikyaku"],koka:["kokansetsu","kaiky
 // 「体の悩み系」インテント（未チェックの人にかたさチェック導線チップを出す対象）。
 // デリケート枠（safety:true=頭痛/ひざ/痛くなった）と雑談・共通followup・赤旗には出さない
 const SOUDAN_BODY_INTENTS=["katakori","youtsuu","zenkutsu","kokansetsu","ashikubi","kaikyaku","nekoze","nemuri","zenshin"];
+// 相談室の悩み一覧(119件)を5つの大項目タブに束ねる。境界は soudan-kb.js の既存セクションコメント（M1+A+B+C/D/E/F/G）をそのまま踏襲
+const SOUDAN_CHIP_CATS=[
+  {key:"body",label:"からだの部位で",from:"katakori",to:"oshirikori"},
+  {key:"ashi",label:"脚・足まわりで",from:"momomae",to:"ashidaru"},
+  {key:"scene",label:"状況・シーンで",from:"deskwork",to:"shakitto"},
+  {key:"nayami",label:"お悩み・体型で",from:"tsukare",to:"wakibara"},
+  {key:"howto",label:"やり方・Q&Aで",from:"mainichi",to:"kubinaru"},
+];
+let sdActiveCat="body";
+function sdCatIds(cat){
+  const kb=sdKb(); if(!kb) return [];
+  const arr=kb.intents;
+  const i0=arr.findIndex(x=>x.id===cat.from), i1=arr.findIndex(x=>x.id===cat.to);
+  if(i0<0||i1<0) return arr.map(x=>x.id); // 万一idが見つからなければ全件へフォールバック（壊れて出なくなるより安全）
+  return arr.slice(i0,i1+1).map(x=>x.id);
+}
+function sdSetCat(key){ sdActiveCat=key; sdRenderChips(); }
 let sdFlavorShown=false; // シートを開き直すたびリセット
 let sdQueuedIntent=null; // 初回オープン時: 挨拶の吹き出し表示が終わってから答えるチップ指定インテント
 let sdCtx={lastIntentId:null,shownVideoIds:[],smalltalkStreak:0,nextBestId:null}; // セッション内のみ・保存なし
@@ -3167,10 +3185,11 @@ function sdUserBubble(text){
 }
 // ---- チップ ----
 function sdRenderChips(){
-  const kb=sdKb(); const box=document.getElementById("sdChips");
+  const kb=sdKb(); const box=document.getElementById("sdChips"); const catBox=document.getElementById("sdCatRow");
   if(!kb||!box) return;
   let html="";
   if(sdChipsMode.type==="followups"){
+    if(catBox) catBox.innerHTML="";
     const it=sdIntentById(sdChipsMode.intentId);
     const ids=(it&&Array.isArray(it.followups))?it.followups:[];
     for(const fid of ids){
@@ -3189,7 +3208,14 @@ function sdRenderChips(){
     }
     html+=`<button class="chip chip-d" onclick="sdShowIntentChips()">べつの悩みをそうだん</button>`;
   }else{
+    if(catBox){
+      catBox.innerHTML=SOUDAN_CHIP_CATS.map(c=>
+        `<button class="chip chip-b${c.key===sdActiveCat?" on":""}" onclick="sdSetCat('${c.key}')">${sdEsc(c.label)}</button>`).join("");
+    }
+    const cat=SOUDAN_CHIP_CATS.find(c=>c.key===sdActiveCat)||SOUDAN_CHIP_CATS[0];
+    const idSet=new Set(sdCatIds(cat));
     for(const it2 of kb.intents){
+      if(!idSet.has(it2.id)) continue;
       html+=`<button class="chip chip-b" onclick="sdChipTap('${sdEsc(it2.id)}')">${sdEsc(it2.chip)}</button>`;
     }
   }
@@ -3383,7 +3409,10 @@ function renderSoudanEntry(){
   if(!kb){ card.classList.add("hidden"); return; }
   const ck=document.getElementById("ckCard"); // かたさチェックカードの直下に置く（カード移動後も追従）
   if(ck&&ck.nextElementSibling!==card) ck.insertAdjacentElement("afterend",card);
-  document.getElementById("soudanCardChips").innerHTML=kb.intents.slice(0,3).map(it=>
+  const picks=kb.intents.slice(0,3).slice();
+  const extraIntent=kb.intents.find(x=>x.id==="jikan");
+  if(extraIntent&&picks.indexOf(extraIntent)<0) picks.push(extraIntent);
+  document.getElementById("soudanCardChips").innerHTML=picks.map(it=>
     `<button class="chip chip-b" onclick="event.stopPropagation();openSoudan('${sdEsc(it.id)}')">${sdEsc(it.chip)}</button>`).join("");
   card.classList.remove("hidden");
 }

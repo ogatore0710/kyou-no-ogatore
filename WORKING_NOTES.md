@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 ホーム「あなた用」3本表示・相談室入口4チップ目・相談室チップ119件を5カテゴリタブ化
+プロダクトオーナーがホームタブ／オガトレ相談室をボイスメモでレビュー、別セッションが文字起こし・診断・設計済みの3件を`index.html`に直接適用（`soudan-kb.js`は不変・プレゼン層のみの変更）。
+- **Fix1**（`renderToday()`のmine分岐）: 「あなた用」枠は`currentRx()`の3本中、日替わりの1本しか表示していなかった。`mainHtml`を導入し、共有バッジ`<span class="badge">きょうのあなた用</span>`＋`rx`の3本を`vHTML(V[k],null)`でそれぞれカード表示するよう変更。直下の「あなたへの3本 連続再生はこちら」ボタンは維持。2週間プラン分岐（`m==="mine"&&plan`）は無変更
+- **Fix2**（`renderSoudanEntry()`）: 相談室入口カードのチップが3個で「前屈できない」の隣に空きが出ていた。既存インテント`jikan`（チップ「時間がない・続かない」）を4個目として追加（`indexOf`で将来のKB順序変更による重複表示を防止）
+- **Fix3**（相談室のチップ一覧・最大の修正）: 悩みチップ119件が横スクロール1行にフラットで並び発見しづらかった問題を解消。`soudan-kb.js`の既存セクション区切り（M1+A+B+C/D/E/F/G、119件と一致を実測確認）をそのまま5カテゴリに統合: 「からだの部位で」(35=katakori〜oshirikori)／「脚・足まわりで」(20=momomae〜ashidaru)／「状況・シーンで」(16=deskwork〜shakitto)／「お悩み・体型で」(20=tsukare〜wakibara)／「やり方・Q&Aで」(28=mainichi〜kubinaru)。新規`SOUDAN_CHIP_CATS`定数・`sdActiveCat`（既定`"body"`）・`sdCatIds()`・`sdSetCat()`を追加、`sdRenderChips()`のintentsモード分岐で`#sdCatRow`にカテゴリタブを描画し`#sdChips`を選択中カテゴリだけにフィルタ。followupsモード（回答後）では`#sdCatRow`を空にしてタブを隠す。HTML: `#sdChips`の直前に`<div class="chips sd-catrow" id="sdCatRow"></div>`を追加
+  - **仕様からの逸脱1件**: 与えられたCSS`.sd-catrow{flex-wrap:wrap;overflow-x:visible;...}`は既存の`.sd-foot .chips{flex-wrap:nowrap;overflow-x:auto;...}`（クラス2個・詳細度で単純クラス1個より強い）に負けて無効化される実バグを実機描画で発見（`getComputedStyle`で`flexWrap:"nowrap"`のままと確認）。`.sd-foot .sd-catrow{...}`に詳細度を上げて修正・タブが2行に折り返し横スクロール不要になることを確認
+  - タブの選択色は新規ルールを足さず既存`.chip-b.on{background:var(--teal);border-color:var(--teal);color:#fff}`（line ~427）にそのまま乗る設計（カテゴリボタンは`chip chip-b`+`on`クラスのため）。動画を探すの`.catbtn.on`と並ぶ「選択中フィルタ」の見た目と統一
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**（`scripts/smoke.js`の6b/6c/6d は`#sdChips`のfollowupsモードや「肩」を含むチップを掴む処理のみで、既定カテゴリ"body"に「肩こり・首こり」を含むため無修正で通過。intentsモードの全件フラット依存箇所は無し）
+- scratchpadの使い捨てpuppeteer-coreスクリプト（`verify_3fixes.js`、viewport390×844）で実描画確認: (a) mineモードで`#todayVideo .video`が3枚・バッジ1個・連続再生ボタンありを確認、(b) 相談室入口カードのチップが`["肩こり・首こり","腰痛","前屈できない","時間がない・続かない"]`の4個であることを確認、(c) シートを開くと`#sdCatRow`に5タブ・既定で「からだの部位で」がon・`#sdChips`が35件（フル119件ではない）を確認。4タブすべて切替→件数が20/16/20/28に変化しサンプルチップも該当カテゴリの内容（例:「やり方・Q&Aで」→「毎日やっていい?」等）であることを確認。「やり方・Q&Aで」のチップ(`mainichi`)をタップ→followupsモードに遷移し`#sdCatRow`が空になることを確認。「べつの悩みをそうだん」タップ→タブ再表示・アクティブカテゴリが直前の「やり方・Q&Aで」のまま保持されていることを確認。コンソールエラー0件
+- スクリーンショット（`/private/tmp/claude-501/-Users-ryunosuke-Claude/da16a6be-2184-4e7d-8404-1e90d5b97ed5/scratchpad/`）: `fix1_home_mine_3cards.png`（あなた用3本カード＋連続再生ボタン、fullPage）／`fix2_soudan_entry_4chips.png`（入口カード4チップ）／`fix3_soudan_cat_body_default.png`（既定「からだの部位で」・タブ2行折返し確認）／`fix3_soudan_cat_ashi.png`・`fix3_soudan_cat_scene.png`・`fix3_soudan_cat_nayami.png`・`fix3_soudan_cat_howto.png`（各カテゴリ切替後）／`fix3_soudan_after_answer_catrow_empty.png`（回答後にタブ非表示）／`fix3_soudan_back_to_browse_howto_remembered.png`（「べつの悩み」後もタブ復帰・選択維持）
+- ロールバック手順: `SOUDAN_CHIP_CATS`/`sdActiveCat`/`sdCatIds`/`sdSetCat`の削除、HTML`#sdCatRow`要素の削除、CSS`.sd-foot .sd-catrow{...}`の削除、`sdRenderChips()`のintentsモード分岐を`for(const it2 of kb.intents){ html+=...}`（フィルタなし）に戻すだけ。`soudan-kb.js`はどちらの向きでも無変更
+
 ## 2026-07-14 ホームタブ4件のUX修正（相談室CTA・改行2箇所・連続再生の再生ボタンアイコン化）
 プロダクトオーナーがホームタブをボイスメモでレビュー、別セッションが文字起こし・診断済みの4件を`index.html`に直接適用。
 - 相談室入口カード（`#soudanCard`）: 本文を「からだの悩み、オガトレに聞いてみて💬」→「からだの悩み<br>オガトレに聞いてみて💬」に改行（「、」は削除）。カード全体が`onclick="openSoudan()"`でタップ可能なことが視覚的に伝わっていなかったため、チップ行の直前に大きい`btn btn-primary`のCTAボタン`💬 相談する`を追加（`onclick="event.stopPropagation();openSoudan()"`で外側カードのonclickと二重発火しないよう既存チップと同じパターンを踏襲）
