@@ -4,6 +4,25 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 オガトレ相談室 品質総点検（約2時間の自走監査）完了まとめ・提案書 SOUDAN-QUALITY-AUDIT-2026-07-14.md
+本人依頼「オガトレ相談室の品質を約2時間かけて自走で磨く」を完了。`SOUDAN-DESIGN.md`/`SOUDAN-AI-DESIGN.md`/`AUDIT-MEMO.md`/`AUDIT-SAFETY-PROPOSALS.md`/`SANGO-REDFLAG-PROPOSAL.md`/`NEW-INTENTS-PROPOSAL.md`＋本ファイル全体を読み、`soudan-kb.js`の全119インテント（M1コア14件+M2の A〜G 105件）＋redFlags(158語)/crisis(8語)/commonFollowups(4件)/smalltalk を1件ずつ精読。バッチ1〜3（下記の個別エントリ参照）で直接適用、判断が要るものは提案書へ。
+- **総レビュー数**: 119インテント全件＋redFlags/crisis/commonFollowups/smalltalk構造
+- **直接適用した修正（3バッチ・コミット済み）**:
+  1. 字数規律はみ出し10件を修正（M2のmitate2件短縮・keizoku8件延伸。M1コアの唯一の逸脱`youtsuu`は本文不変原則により据え置き→提案書へ）
+  2. kwが薄かった20インテントに自然な言い回し47語を追加（更年期/肩甲骨はがし/扁平足/外反母趾/スウェイバック/ラジオ体操/筋トレ/歩き方/寝違え/枕/肩甲骨ゴリゴリ/背中で手/脚だるい/二の腕/反動/ヨガ/汗/座り方/反り腰/寒さ）。追加前後でインテント間kw重複の新規発生ゼロを確認
+  3. qa.jsに文字数規律の機械チェックを新設（97→98checks・±2字許容・既知例外1件を明示登録）
+- **動画ID破損参照**: 119件×videos全数をvideos.jsのCATALOGと突合し**ゼロ件**（今朝のカタログ再生成後も破損なし）
+- **followups参照解決**: 全件解決（未定義参照なし）
+- **kw重複(インテント間)**: 12件検出、全て既知の8組（意図的な優先度上書き・WORKING_NOTES既報のとおりで新規流入なし）
+- **提案書`SOUDAN-QUALITY-AUDIT-2026-07-14.md`（本人YES/NO待ち・4項目）**:
+  - ①赤旗のヒヤリハット候補4件: A)「膝がグラグラ」が`hiza`でなく`kotsuban2`(骨盤・safety:false)に誤着地する実測ずみのkw取り合い問題（安全上いちばん実害が大きい発見） B)胸の締め付け感・冷や汗の赤旗未カバー C)「力が抜ける」系の赤旗未カバー(誤爆リスクの絞り込み案つき) D)わきの下の「しこり」未カバー(NEW-INTENTS-PROPOSAL①との関連つき・誤爆リスクの絞り込み案つき)
+  - ②M1(校正済み14件)とM2(105件)のトーン比較: 総じて一貫、軽微な確認2件のみ(`nechigae`のempathy語尾/`koureisha`・`nenrei`の敬体混在)
+  - ③`SOUDAN_CHIP_CATS`のカテゴリ分類の気づき: M1由来4件(nemuri/jikan/kikanai/itakunatta)が「からだの部位で」に位置ベースで入る点を記録のみ(変更提案ではない・対応不要)
+  - ④`youtsuu`(M1)のmitate字数超過(160字)と本文不変原則の兼ね合い: 現状維持/軽微短縮/踏み込み短縮の3択
+- **本セッション中に判明した並行作業**: 同じ`soudan-kb.js`に対して**別のエージェントがsmalltalk[]の拡充(21→45件)とshadowingバグ修正を並行して実施**していたことをgit logで確認（本監査のスコープ=intents[]/redFlags/crisis/commonFollowups/qa.jsとは領域が完全に分離しており、コミット前のgit status/diff確認で衝突なしを都度確認ずみ）
+- **最終検証**: `npm test`=**98 checks PASS**（新規チェック1件込み）。`npm run smoke`=**14/14 PASS**。`node soudan-ai-poc/redflag-safety-test.mjs`=**71/71 PASS**
+- 次にやること: `SOUDAN-QUALITY-AUDIT-2026-07-14.md`の4項目に本人がYES/NO/案を返し、反映が必要なものがあれば次のセッションで`soudan-kb.js`のredFlags.kw等に適用する
+
 ## 2026-07-14 オガトレ相談室 smalltalk[]拡充・手動検証＆1件の順序バグ修正（配列内shadowingの総当りチェック新設）
 バッチ1〜4で追加した24件について、scratchpadの使い捨てスクリプトでindex.htmlの実マッチングロジック（sdNorm/sdScoreIntents/sdRedFlagHit/sdCrisisHit/sdSmalltalkHit相当）を再現し、抜粋8トピックがintents/redFlags/crisisに横取りされずsmalltalkまで届くことを確認。
 - **1件バグ発見・修正**: `smalltalk[]`は配列先頭から順にkw一致を探して最初の1件を返す仕様のため、「げんきですか」エントリ（kw内に短い`元気`単体）が先に来ると、後ろの「げんきない」エントリ（kw`元気ない`等）が**絶対に発火しない**shadowing状態だった（`元気`が`元気ない`の部分文字列のため）。2エントリの並び順を入れ替えて（げんきない→げんきですかの順）解消
