@@ -2,6 +2,7 @@
 // Fable設計の referCases→受診 / normalCases→通常 を固定。寝転誤爆回避も含む。
 // 2026-07-13追加: 胸痛/動悸の赤旗13語（AUDIT-SAFETY-PROPOSALS.md①）とcrisis分岐（同②）の8+8ケース。
 // 2026-07-14追加: SOUDAN-QUALITY-AUDIT-2026-07-14.md ①-B/①-C/①-Dの赤旗15語（締め付け・冷や汗/力が抜ける系/わき下しこり）の受診3+巻き込まない2ケース。
+// 2026-07-14追加②: SOUDAN-QUALITY-AUDIT-ROUND2-2026-07-14.md ①(締め付け語の胸限定化)・②-1(夜間痛の語順ゆらぎ4語追加)の回帰5ケース（本人YES適用分の固定）。
 // 使い方: node soudan-ai-poc/redflag-safety-test.mjs
 import { readFileSync } from "node:fs";
 import { norm, redFlagHit, crisisHit } from "./norm.mjs";
@@ -69,6 +70,18 @@ for (const [c, want] of newFlags2026_07_14) {
   if (redFlagHit(norm(c)) === want) pass++; else { fail++; fails.push(`[締め付け/脱力/しこり] ${c} → 期待:${want ? "受診" : "通常"}`); }
 }
 
+// 締め付け語の胸限定化＋夜間痛の語順ゆらぎ（SOUDAN-QUALITY-AUDIT-ROUND2-2026-07-14.md ①・②-1・本人YES適用分の固定）
+const round2_2026_07_14 = [
+  ["頭が締め付けられるように痛い", false],
+  ["胸の締め付け感がある", true],
+  ["胸が締め付けられる感じで冷や汗が出る", true],
+  ["腰が痛くて夜中に目が覚める", true],
+  ["夜中に腰が痛くて目が覚める", true],
+];
+for (const [c, want] of round2_2026_07_14) {
+  if (redFlagHit(norm(c)) === want) pass++; else { fail++; fails.push(`[締め付け胸限定/夜間痛語順] ${c} → 期待:${want ? "受診" : "通常"}`); }
+}
+
 fails.forEach((m) => console.log("❌ " + m));
-console.log(`赤旗の穴4件+寝転+胸痛動悸+crisis+締め付け脱力しこり: ${pass}/${pass + fail} pass` + (fail ? " ❌" : " ✅"));
+console.log(`赤旗の穴4件+寝転+胸痛動悸+crisis+締め付け脱力しこり+締め付け胸限定/夜間痛語順: ${pass}/${pass + fail} pass` + (fail ? " ❌" : " ✅"));
 process.exit(fail ? 1 : 0);
