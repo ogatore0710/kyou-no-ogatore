@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 オガトレ相談室 品質総点検バッチ3: qa.jsに文字数規律の機械チェックを新設（97→98checks）
+バッチ1で手作業スクリプト（scratchpadのanalyze.js）で行った字数チェックを、qa.jsの`checkSoudanKb()`に恒久化。今後この帯を外れる新規追加・改変を自動検出できるようにする。
+- **新規チェック**: `soudan-kb.js: 文字数規律 (empathy15-30/mitate60-120/keizoku30-60字・±2字許容)`。帯から±2字までの軽微な逸脱は許容（バッチ1方針を踏襲）、それ以上はfail
+- **既知の例外1件を明示的に許容**: `youtsuu.mitate`(160字・M1コア本文不変の原則により据え置き中)を`LEN_EXCEPTIONS`セットで除外。理由と経緯はこのファイルとSOUDAN-QUALITY-AUDIT-2026-07-14.mdに記載
+- **検証**: `npm test`=**98 checks PASS**（97→98、新規チェック1件の純増・既存97件は無傷）。`npm run smoke`=**14/14 PASS**
+- ロールバック: `scripts/qa.js`の`checkSoudanKb()`内、`followups参照が解決できる`のassertの直後に追加した`LEN_BANDS`〜新規assertのブロックを削除するだけ
+
 ## 2026-07-14 オガトレ相談室 品質総点検バッチ2: kw(検索語)が薄い20インテントに自然な言い回しを追加
 バッチ1に続く品質監査の2本目。`analyze.js`のkw件数集計で「他インテントに比べて薄い」上位20件（2〜6語）を特定し、各2〜3語ずつ自然な言い回し・漢字形・口語形を追加（計47語・KBの既存原則「かな形＋頻出漢字形を併記」に準拠。新規の医療的判断や見立て文言の変更は一切なし=純粋にルーティング用の検索語追加のみ）。
 - 追加内訳（新規kw数）: `kounenki`+6（更年期障害/ほてり/ホットフラッシュ等）・`kenkohagashi`+3・`henpeisoku`+3・`gaihanboshi`+3・`swayback`+2・`rajio`+2・`kintore`+2・`arukikata`+3・`nechigae`+2・`makura`+3・`kenkogori`+3・`senakate`+2・`ashidaru`+2・`ninoude`+2・`handou`+2・`yoga`+2・`ase`+2・`suwarikata`+2・`sorigoshi`+2・`fuyu`+2

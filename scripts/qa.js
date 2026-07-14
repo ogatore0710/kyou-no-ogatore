@@ -494,6 +494,26 @@ function checkSoudanKb(catalogIds) {
   pass("soudan-kb.js: kw重複(インテント間・警告のみ)", crossDupKw.length ? `警告${crossDupKw.length}件: ${crossDupKw.slice(0, 8).join(", ")}` : "なし");
   assert("soudan-kb.js: followups参照が解決できる", badFollowupRefs.length === 0, badFollowupRefs.slice(0, 10).join(", ") || "ok");
 
+  // 文字数規律（empathy15-30/mitate60-120/keizoku30-60字・±2字は軽微な逸脱として許容）。
+  // youtsuu.mitateはM1コア(本人校正済み・本文不変の原則)で安全上重要な受診案内を含むため
+  // 例外的に据え置き中（詳細: SOUDAN-QUALITY-AUDIT-2026-07-14.md）。新規の逸脱はここで検出する。
+  const LEN_BANDS = { empathy: [15, 30], mitate: [60, 120], keizoku: [30, 60] };
+  const LEN_TOLERANCE = 2;
+  const LEN_EXCEPTIONS = new Set(["youtsuu:mitate"]);
+  const lenOffenders = [];
+  for (const it of kb.intents || []) {
+    if (!it || !it.id) continue;
+    for (const field of Object.keys(LEN_BANDS)) {
+      if (typeof it[field] !== "string") continue;
+      const len = Array.from(it[field]).length;
+      const [lo, hi] = LEN_BANDS[field];
+      if ((len < lo - LEN_TOLERANCE || len > hi + LEN_TOLERANCE) && !LEN_EXCEPTIONS.has(`${it.id}:${field}`)) {
+        lenOffenders.push(`${it.id}.${field}=${len}字(目安${lo}-${hi})`);
+      }
+    }
+  }
+  assert("soudan-kb.js: 文字数規律 (empathy15-30/mitate60-120/keizoku30-60字・±2字許容)", lenOffenders.length === 0, lenOffenders.slice(0, 10).join(", ") || `${(kb.intents || []).length}件すべて帯内(既知例外1件除く)`);
+
   const rf = kb.redFlags;
   assert("soudan-kb.js: redFlags(赤旗)存在", !!(rf && Array.isArray(rf.kw) && rf.kw.length && rf.answer), rf ? `kw ${(rf.kw || []).length}語` : "redFlagsが無い");
 
