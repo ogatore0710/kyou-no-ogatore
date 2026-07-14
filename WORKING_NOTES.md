@@ -4,6 +4,14 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-14
 
+## 2026-07-14 この日の動画トグルの＋/－を「裸の文字」から「塗りつぶし円バッジ」に変更（本人「わかりにくい、もっと視覚的に」）
+- 直前のコミット(75144ae)で▼/▲→＋/－に変えたが、本人がスクショレビューで「＋が裸の文字のままでトグルだと気づきにくい」と指摘。原因は`<span>＋</span>`にクラスが無く、リンクと同じフォントサイズ/太さで地続きに見えていたこと
+- `showDay(ds)`内の対象spanに`class="daytoggle"`を追加（`<span>＋</span>`→`<span class="daytoggle">＋</span>`）。CSSに`.daytoggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;font-weight:900;font-size:14px;line-height:1;margin-left:4px;vertical-align:-5px}`を`.cal .d.sel`の直後に追加。これで＋/－が22px角の塗りつぶしティール円バッジになり、`.dex-close`/`.cal-head button`と同じ「小さい丸アイコンボタン」の見た目言語に揃った
+- `toggleDayVideo(a)`本体は無変更（`a.querySelector("span").textContent=closed?"＋":"－"`はtextContentの差し替えなのでclass属性には影響せず、トグル後もバッジの見た目が自動で維持されることを確認）
+- **検証**: `npm test`=**97 checks PASS**（前回と同数・後退なし）。`npm run smoke`=**14/14 PASS**。scratchpadの使い捨てpuppeteer-coreスクリプトで実描画確認: 日別詳細パネルを開いた状態のスクリーンショットで「この日の動画」の右に22×22pxの塗りつぶしティール円+白い＋が表示されていること、タップ後は同じバッジが－に変わり直下に「▶ この日のおすすめだった1本」が現れることを確認（computedStyleでもbackground-color: rgb(43,179,163)=var(--teal)、border-radius:50%、width/height≈22pxを確認）
+  - ハマりどころメモ: 最初`page.scrollIntoView()`後に取った`getBoundingClientRect()`（ビューポート相対）をそのまま`page.screenshot({clip})`に渡したらズレた画像になった。`clip`はドキュメント絶対座標を要求するため、手動スクロール後の相対座標と混ざると不一致になる。スクロールせず素の絶対座標で`clip`を使うのが安全
+- ロールバック: `showDay()`内のspanから`class="daytoggle"`を外し、CSSの`.daytoggle{...}`ルールを削除すれば元通り（▼/▲への差し戻しは1つ前のコミット参照）
+
 ## 2026-07-14 マイ記録カレンダーのUXバグ2件を修正（プロダクトオーナーの録画レビュー指摘）
 - **選択日の視覚フィードバック不足**: `.cal .d.today`のピンクリングは「今日の実日付」専用で、「いま下に詳細が表示されている日」を示す手段が無かった（13日をタップしても14日=今日のリングしか出ない）。`let calSelected=null;`を`calDate`の隣に新設し、`renderCal()`のクラス生成に`ds===calSelected?"sel":""`を追加、`showDay(ds)`冒頭で`calSelected=ds;renderCal();`してから`#dayInfo`を書くよう変更。CSSに`.cal .d.sel{outline:3px solid var(--ink);outline-offset:2px}`を`.today`の直後に追加（box-shadowではなくoutlineにしたのは、today兼selの日にピンクの内側リングとダークの外側リングを同時に出すため。`.today`自体は無変更）
 - **展開トグルの▼/▲が▶（動画再生）と紛らわしい**: `showDay()`内`toggleDayVideo`のトグル`<span>`と`toggleDayVideo(a)`関数内のテキスト切替を、全角プラス/マイナス(＋/－)に変更（▼▲→＋－）。展開後は▶で始まる動画リンクの真上に－が並ぶだけになり、▶とは字形が完全に別物になる。アプリ内の▶用法（6箇所以上）は今回無変更・意図的に触っていない
