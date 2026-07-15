@@ -4,6 +4,16 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-15
 
+## 2026-07-15 リポジトリ全ドキュメントの鮮度棚卸し（監督依頼・第2弾＝全.md対象・コード無変更）
+保留中リスト棚卸し（下記エントリ）に続き、「実装/決定は完了しているのに記録が古いまま」のズレをリポジトリ全.mdで洗い出した。司令塔(Fable)が実測したグラウンドトゥルース（qa=103checks・smoke=15/15・safety=83/83・sw.js=kyono-v46・app-quiz.js分割済み・soudan 119インテント/smalltalk54/赤旗178語・PLAYLISTS16本・配布方法/Gmailフィルタ決定済み）を照合基準に、Sonnet監査員2名が全文書スキャン→全編集を司令塔が差分監査:
+- **現状系文書を更新**: HANDOFF.md（62→103checks・「次はかたさチェック分割」→完了済みに・次候補=SPLIT-PLAN3番）／README.md（旧タブ名きろく/リスト/さがす→現名称・再生リスト17→16本=実数え直し・エイリアス「作成が必要」→設定済み）／SPLIT-PLAN.md（2番完了記載）／SURVIVAL.md（93→103項目）／BETA-CHECKLIST.md（配布判断前6項目に✓・リリース前ゲート群はテンプレとして未チェックのまま温存）／REQUEST-INBOX-HANDOFF.md（5項目すべて決定・設定済みに）
+- **スナップショット系は本文不改変・冒頭注記のみ**: QA-REPORT.md／CATALOG-AUDIT.md（catalog451本・年別/タグ別は現videos.jsと一致確認済み。「除外62本」だけは再検証できず未確定と明記）
+- **提案書・監査メモにステータス注記追記**: AUDIT-MEMO.md（要対応10件すべてにコード実測ベースの対応済み注記＋総括。119個チップ問題=5カテゴリタブ化で解決も注記）／NEW-INTENTS-PROPOSAL.md（①不採用決定・②③④のみ監修待ち）／SOUDAN-DESIGN.md（冒頭に「本書はM1設計時のもの・実装との主な差分」注記）
+- **DONE系4ファイルに消化済み注記**: audit-minor3-7（qa/smoke 7/12消化済み）・card-illustrations（PR#6=c63c1dcマージ済み）・full-audit・handoff-qa（次候補5件すべて対応済み注記）。監査員の「viewport 375px」誤記は司令塔監査で発見しsmoke.js実測の390×844に訂正
+- **ズレなしを確認**: SOUDAN-AI-DESIGN.md（LLM層の採否は本当に未決のまま=正確）・AUDIT-SAFETY-PROPOSALS.md・SAFETY-REDFLAG-FIXES.md・SANGO-REDFLAG-PROPOSAL.md（いずれも既に正確なステータス注記あり）・SCALE-NOTES.md・docs/配下・catalog-pipeline/qa/split-tags-mailの各DONE
+- **未解決として残した数値2件**（推測で書き換えない方針）: CATALOG-AUDIT.mdの「除外62本」（再集計には`npm run catalog:update:offline`実行が必要）／README.mdの「声120件」（実測VOICES=116だが履歴的な概数記述のため保留）
+- 編集の大半はeven-sync自動コミット**39fb784**に相乗り（正本はこのノート）。残り=DONE2ファイル+このエントリを本コミットで追加。hc_dev*.txt（通信ログ）とWORKING_NOTES.mdの過去エントリは意図的に不改変（時系列ログの歴史は書き換えない）
+
 ## 2026-07-15 保留中リストのドキュメント棚卸し（監督依頼・実態確認済みのみ反映・コード無変更）
 「実際は終わっているのに保留中に残ったままの項目」を洗い出し、末尾の「## 保留中」欄と過去エントリ内の待ち表記を実態に合わせた。全件、コード/コミット履歴/提案書のステータス注記で裏取りしてから更新（推測での消し込みなし）:
 - **保留中欄から除去（完了確認済み）**: ①茜さんイラスト「お祝い」待ち→chara-congrats.pngとして受領・CHARA_FILES接続済み・7/14にDrive正式版へ差し替え完了 ②配布方法の判断+配布前Gmailフィルタ→本人確認（監督経由 2026-07-15）で決定・設定済み

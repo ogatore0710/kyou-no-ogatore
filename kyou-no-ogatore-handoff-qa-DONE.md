@@ -28,10 +28,15 @@
 
 ## Claude向けの次候補
 - 実ブラウザでのmobile幅操作QA
+  → **対応済み**: `scripts/smoke.js`（`npm run smoke`・viewport 390×844のスマホ想定）で自動化済み（2026-07-15時点15/15 PASS）
 - `index.html` 分割方針の検討
+  → **対応済み**: `SPLIT-PLAN.md`を作成し、検索は`app-search.js`（2026-07-07）・かたさチェックは`app-quiz.js`（2026-07-14）へ分割済み。残る2項目（記録・継続／記録カード）は意図的に未着手（WORKING_NOTES.md 2026-07-14エントリで「スコープ外」と明記）
 - カタログ更新の1コマンド化
+  → **対応済み**: `npm run catalog:update`（`kyou-no-ogatore-catalog-pipeline-DONE.md`参照）
 - GitHub Pages上でのPWA検収強化
+  → **対応済み**: `kyou-no-ogatore-full-audit-DONE.md`の「PWA検収 実測」で実施済み（manifest/sw.js/icons確認・console error 0）
 - β配布前の `kyou-no@ogatore.jp` 受信導線確認
+  → **対応済み**: HANDOFF.md 2026-07-15更新で「配布方法・Gmailフィルタとも本人確認のうえ設定済み」と記載
 
 ## 補足
 - アプリ本体のUI・挙動は変更していない
