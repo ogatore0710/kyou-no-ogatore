@@ -1,11 +1,11 @@
 # kyou-no-ogatore 開発ハンドオフ
 
-最終更新: 2026-07-07
+最終更新: 2026-07-15
 
 ## 現状
 - アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `sw.js` + `manifest.json`
 - 公開はGitHub Pages。push後に `.github/workflows/pages.yml` が配信物を作る
-- 自動QAは `npm test` で実行。2026-07-07時点で62 checks PASS
+- 自動QAは `npm test` で実行。2026-07-15時点で103 checks PASS。実機ゴールデンフローは `npm run smoke` で15/15 PASS（別コマンド・実ブラウザQAはこちらでリポジトリ内自動化済み）
 - 実ブラウザQA / PWA検収結果: [QA-REPORT.md](QA-REPORT.md)
 - β配布前チェックリスト: [BETA-CHECKLIST.md](BETA-CHECKLIST.md)
 - `index.html` 分割計画: [SPLIT-PLAN.md](SPLIT-PLAN.md)
@@ -34,11 +34,11 @@
 - 操作配線チェック: inline handler、タブ、主要section、記録カード、チェック、検索UIのDOM接続
 
 ## 次の改善候補
-- 実ブラウザQAをリポジトリ内で自動化する。現状は [QA-REPORT.md](QA-REPORT.md) の手動/半自動検収
-- [SPLIT-PLAN.md](SPLIT-PLAN.md) に沿って、次はかたさチェックを小さく分割する
+- （2026-07-15更新: 完了）実ブラウザQAをリポジトリ内で自動化する → `npm run smoke`（puppeteer-core・ヘッドレスChrome）で15/15 PASSまで自動化済み。[QA-REPORT.md](QA-REPORT.md) は手動検収時点のスナップショットとして残す
+- （2026-07-15更新: 完了）[SPLIT-PLAN.md](SPLIT-PLAN.md) のかたさチェック分割 → `app-quiz.js` に切り出し済み。次候補はSPLIT-PLANの3番（記録・継続）
 - PWA検収を強化する。GitHub Pages上でmanifest/icon/sw登録/オフライン fallback を確認する
-- β配布前に [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md) をもとに `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する
-- [CATALOG-AUDIT.md](CATALOG-AUDIT.md) の除外62本を必要に応じて目視確認する
+- （2026-07-15更新: 決定済み）β配布前に [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md) をもとに `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する → 配布方法・Gmailフィルタとも本人確認のうえ設定済み
+- [CATALOG-AUDIT.md](CATALOG-AUDIT.md) の除外62本を必要に応じて目視確認する（この数値自体2026-07-07時点のスナップショット。直近の再集計は未実施のため要再確認）
 
 ## カタログ更新
 - 通常更新: `npm run catalog:update`

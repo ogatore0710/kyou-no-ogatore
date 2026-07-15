@@ -1,5 +1,7 @@
 # kyou-no-ogatore QAレポート
 
+> ※2026-07-15注: 本書は2026-07-07時点の検収結果のスナップショット。現在は `npm test`=103 checks PASS・`npm run smoke`=15/15 PASS（実ブラウザ相当の自動スモークテストがリポジトリ内に追加済み）・sw.jsキャッシュ版数は`kyono-v46`。最新の状態は [WORKING_NOTES.md](WORKING_NOTES.md) を参照。
+
 実施日: 2026-07-07
 
 ## 結論

@@ -3,12 +3,12 @@
 作成日: 2026-07-07
 
 ## 配布判断前
-- [ ] 配布URLを確定する
-- [ ] 配布人数と対象を決める
-- [ ] β版として検索流入を広げない方針を確認する
-- [ ] `kyou-no@ogatore.jp` のエイリアス/受信先を確認する
-- [ ] リクエストメールのラベル・通知・集計方法を決める
-- [ ] [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md) をもとにGmail側の運用を決める
+- [x] 配布URLを確定する（2026-07-15時点: `https://ogatore0710.github.io/kyou-no-ogatore/`。[docs/invite-kit.md](docs/invite-kit.md)参照）
+- [x] 配布人数と対象を決める（2026-07-15時点: オガトレ部 約60人。[docs/invite-kit.md](docs/invite-kit.md)参照）
+- [x] β版として検索流入を広げない方針を確認する（`index.html`に`noindex`あり・確認済み）
+- [x] `kyou-no@ogatore.jp` のエイリアス/受信先を確認する（2026-07-15本人確認で決定・設定済み）
+- [x] リクエストメールのラベル・通知・集計方法を決める（2026-07-15本人確認でGmailフィルタ設定済み。朝ブリーフへの集計追加はハブ=alan本体側の作業として申し送り済み）
+- [x] [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md) をもとにGmail側の運用を決める（同上・決定済み）
 
 ## アプリ文言
 - [ ] 「診断」ではなく「チェック」になっている
