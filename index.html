@@ -4247,7 +4247,12 @@ function obPick(q,c){
   obQi++;
   if(q.key==="anchor"){
     try{ setAnchor(c.v); }catch(e){} // 本物の設定として保存（既存setAnchorに接続）
-    obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],obAskQ);
+    // 唯一の再来訪装置（カレンダー通知）をここでオンボに接続。タップしてもしなくても
+    // 自動的に次の質問(obAskQ)へ進む＝スキップ用チップは用意しない（本人承認済み仕様）
+    obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],function(){
+      try{ obCalendarBubble(); }catch(e){}
+      obAskQ();
+    });
   }else if(q.key==="bigtext"){
     try{ setBigtext(c.v==="big"); }catch(e){} // その場で反映=効果が見える（本物の設定として保存）
     obSay(["OK！「つづける設定」でいつでも変えられるよ🔠"],obAskQ);

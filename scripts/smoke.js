@@ -231,6 +231,93 @@ async function main() {
       return "Q0大きめ→Q1ガチガチ→Q2肩こり・首→Q3朝(anchor=asa保存)→CTAでかたさチェックQ1へ→ホーム復帰";
     });
 
+    // 1c. オンボーディングのカレンダー登録カード（2026-07-16・唯一の再来訪装置をオンボに接続）:
+    //     Q3「いつやる派？」の直後にobCalendarBubble()が自動で挟まり、あさ/おふろ上がり/ねるまえの
+    //     各アンカーで正しい時刻のICS/Googleカレンダーリンクが実際に生成されること、タップしても
+    //     （あさ）タップしなくても（おふろ上がり・ねるまえ）自動で次（Q3が最終問のためルーティング
+    //     CTA）へ進むこと、最後はかたさチェックへの遷移が壊れていないこと、そして既存の「つづける
+    //     設定」側(#icsLink/#gcalLink)がオンボ側の変更で壊れていないこと（回帰）を実測で確認する
+    await step("1c-オンボーディングのカレンダー登録カード（各アンカー実測+回帰）", async () => {
+      async function tapObChip2(text) {
+        await page.waitForFunction((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) return true; }
+          return false;
+        }, { timeout: 8000 }, text);
+        await page.evaluate((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) { btns[i].click(); return; } }
+        }, text);
+      }
+      const cases = [
+        { anchorChip: "朝おきて", tm: "073000", tap: true },
+        { anchorChip: "おふろ上がり", tm: "203000", tap: false },
+        { anchorChip: "寝るまえ", tm: "213000", tap: false },
+      ];
+      for (const c of cases) {
+        await page.evaluate(() => localStorage.clear());
+        await page.reload({ waitUntil: "load" });
+        await visible("#home");
+        await page.click("#tab-guide");
+        await visible("#obReenterLink");
+        await page.click("#obReenterLink");
+        await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"));
+        await tapObChip2("大きめ");       // Q0
+        await tapObChip2("ガチガチかも"); // Q1（ルーティング=かたさチェックに固定）
+        await tapObChip2("肩こり・首");   // Q2
+        await tapObChip2(c.anchorChip);   // Q3（アンカー実保存）
+        await page.waitForFunction(() => !!document.getElementById("obIcsLink"), { timeout: 8000 });
+        const hrefs = await page.evaluate(() => ({
+          ics: document.getElementById("obIcsLink").href,
+          gcal: document.getElementById("obGcalLink").href,
+        }));
+        const icsDecoded = decodeURIComponent(hrefs.ics);
+        if (hrefs.ics.indexOf("data:text/calendar") !== 0) throw new Error(c.anchorChip + ": ICSリンクがdata:text/calendarで始まっていない");
+        if (icsDecoded.indexOf("DTSTART:20260701T" + c.tm) === -1) {
+          throw new Error(c.anchorChip + ": ICSの時刻が" + c.tm + "になっていない (" + icsDecoded.slice(0, 200) + ")");
+        }
+        if (hrefs.gcal.indexOf("dates=20260701T" + c.tm) === -1) {
+          throw new Error(c.anchorChip + ": Googleカレンダーリンクの時刻が" + c.tm + "になっていない (" + hrefs.gcal + ")");
+        }
+        if (c.tap) {
+          // タップしてもページ遷移せず（ダウンロードリンク）、その後の質問フローも壊れないことを確認
+          const before = page.url();
+          await page.click("#obIcsLink");
+          const after = page.url();
+          if (before !== after) throw new Error("カレンダーボタンのタップでページ遷移してしまった");
+        }
+        // タップの有無に関わらず、自動的に次（Q3が最終問なのでルーティングCTA）まで進む
+        await page.waitForFunction(() => {
+          const box = document.getElementById("obChips");
+          return box && box.textContent.indexOf("かたさチェックをはじめる") !== -1;
+        }, { timeout: 10000 });
+      }
+      // 最後（ねるまえ）のまま実際にかたさチェックへ進み、案内後も質問フローが継続することを確認
+      await tapObChip2("かたさチェックをはじめる");
+      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      await visible("#quiz");
+      const qn = await $text("#qnum");
+      if (qn.indexOf("Q1") !== 0) throw new Error("カレンダー案内のあともかたさチェックQ1に遷移できていない (" + qn + ")");
+      // 回帰確認: マイ記録タブの「つづける設定」側(#icsLink/#gcalLink)がオンボ側の変更で壊れていない
+      await page.click("#tab-home");
+      await visible("#home");
+      await page.click("#tab-history");
+      await visible("#history");
+      const myRecord = await page.evaluate(() => ({
+        ics: document.getElementById("icsLink").href,
+        anchorNow: document.getElementById("anchorNow").textContent,
+      }));
+      const myIcsDecoded = decodeURIComponent(myRecord.ics);
+      if (myRecord.ics.indexOf("data:text/calendar") !== 0) throw new Error("マイ記録タブの#icsLinkが壊れている");
+      if (myIcsDecoded.indexOf("DTSTART:20260701T213000") === -1) {
+        throw new Error("マイ記録タブの#icsLinkがねるまえ(21:30)を反映していない (" + myIcsDecoded.slice(0, 200) + ")");
+      }
+      if (myRecord.anchorNow.indexOf("寝るまえ") === -1) throw new Error("マイ記録タブのanchorNowがねるまえになっていない (" + myRecord.anchorNow + ")");
+      await page.click("#tab-home");
+      await visible("#home");
+      return "あさ(07:30・タップ後も継続)/おふろ上がり(20:30)/ねるまえ(21:30)の3アンカーでICS/Googleカレンダーの時刻一致を実測、タップ有無いずれも自動で次へ継続、マイ記録タブ#icsLink/anchorNowの回帰も確認";
+    });
+
     // 2. かたさチェック5問を実ボタンクリックで完走 → タイプ名・アイコン・処方3本
     await step("2-かたさチェック完走と結果表示", async () => {
       await visible("#ckBtn");

@@ -230,6 +230,43 @@ function checkHtml(html) {
   assert("importData: count guard", /cnt\s*>\s*50/.test(importData), "key count capped");
   assert("importData: value size guard", /200000/.test(importData), "individual value capped");
 
+  // 2026-07-16実測監査対応: 唯一の再来訪装置（カレンダー通知）をオンボQ3「いつやる派？」の直後に接続。
+  // obBubble()は台本文言をtextContentで描画する安全設計（意図的にHTML埋め込み禁止）のため不変であること、
+  // 新設のobCalendarBubble()がICS生成ロジックを重複実装せず既存renderIcs()の結果（#icsLink/#gcalLinkのhref）
+  // を読むだけであること、obPick()のanchor分岐がobCalendarBubble()を経て自動でobAskQ()へ進むこと（スキップ
+  // チップなしでタップ有無に関わらず継続する仕様）を機械チェックで固定する。
+  const obBubbleFn = extractFunction(main, "obBubble");
+  assert("obBubble: found", obBubbleFn.length > 0, `${obBubbleFn.length} chars`);
+  assert(
+    "obBubble: still safe (textContent only, no innerHTML of variable text)",
+    /\.textContent\s*=\s*text/.test(obBubbleFn) && !/innerHTML\s*=\s*text/.test(obBubbleFn),
+    "existing textContent-only safety design preserved"
+  );
+  const obCalendarBubbleFn = extractFunction(main, "obCalendarBubble");
+  assert("obCalendarBubble: found", obCalendarBubbleFn.length > 0, `${obCalendarBubbleFn.length} chars`);
+  assert(
+    "obCalendarBubble: reuses renderIcs (ICS生成ロジックの重複実装なし)",
+    /renderIcs\s*\(\s*\)/.test(obCalendarBubbleFn),
+    "calls existing renderIcs() instead of rebuilding the ICS string"
+  );
+  assert(
+    "obCalendarBubble: does not duplicate ICS string generation",
+    !/BEGIN:VCALENDAR/.test(obCalendarBubbleFn),
+    "no independent ICS payload built here"
+  );
+  assert(
+    "obCalendarBubble: copies href from existing settings-card links",
+    /getElementById\(["']icsLink["']\)/.test(obCalendarBubbleFn) && /getElementById\(["']gcalLink["']\)/.test(obCalendarBubbleFn),
+    "reads #icsLink/#gcalLink produced by renderIcs()"
+  );
+  const obPickFn = extractFunction(main, "obPick");
+  assert("obPick: found", obPickFn.length > 0, `${obPickFn.length} chars`);
+  assert(
+    "obPick: anchor answer wires obCalendarBubble before obAskQ (Q3直後にカレンダー案内を接続)",
+    /obCalendarBubble\s*\(\s*\)\s*;\s*\}\s*catch[\s\S]{0,20}\}\s*obAskQ\s*\(\s*\)\s*;/.test(obPickFn),
+    "calendar card renders then flow auto-advances to the next question/route, no skip chip needed"
+  );
+
   const assetRefs = new Set();
   for (const m of html.matchAll(/\b(?:src|href)=["'](assets\/[^"']+)["']/g)) {
     assetRefs.add(m[1].split("#")[0].split("?")[0]);
