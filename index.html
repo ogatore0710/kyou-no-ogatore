@@ -4180,6 +4180,35 @@ function obBubble(who,text){
   log.appendChild(row);
   log.scrollTop=log.scrollHeight;
 }
+// カレンダー登録カード（オンボQ3「いつやる派？」の直後専用・唯一の再来訪装置をオンボに接続 2026-07-16）
+// obBubble()は台本文言をtextContentで描画する安全設計（意図的にHTML埋め込み禁止）のため、この関数自体は変更しない。
+// ここは開発者が用意した固定HTMLテンプレート（ユーザー入力や可変スクリプト文言を一切含まないハードコードのボタン）だけを
+// obLogに直接追加する専用関数。ICS/Googleカレンダーのリンク生成ロジックは重複実装せず、既存のrenderIcs()を呼んで
+// 「つづける設定」カードの#icsLink/#gcalLink（SPA構造上、非表示タブでも常にDOMに存在＝SECTIONSはhiddenクラス切替のみ）
+// が計算した結果のhrefをそのままコピーするだけにする。
+function obCalendarBubble(){
+  const log=document.getElementById("obLog"); if(!log) return;
+  try{ renderIcs(); }catch(e){} // setAnchor()で保存済みのanchorを反映させてからhrefを読む
+  const srcIcs=document.getElementById("icsLink"), srcGcal=document.getElementById("gcalLink");
+  const icsHref=srcIcs?srcIcs.href:"#", gcalHref=srcGcal?srcGcal.href:"#";
+  const row=document.createElement("div");
+  row.className="sd-row oga sd-pop";
+  row.innerHTML='<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">'
+    +'<div class="sd-b">'
+    +'<div style="margin-bottom:10px">📅 カレンダーに毎日の合図も入れておく？</div>'
+    +'<a class="btn btn-line" id="obIcsLink" download="kyono-ogatore.ics" style="font-size:14px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>'
+    +'<a class="btn btn-line" id="obGcalLink" target="_blank" rel="noopener" style="font-size:14px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>'
+    +'<div class="hint" style="text-align:left;margin:8px 0 0" id="obIcsNote"></div>'
+    +'</div>';
+  log.appendChild(row);
+  const oi=row.querySelector("#obIcsLink"), og=row.querySelector("#obGcalLink"), note=row.querySelector("#obIcsNote");
+  if(oi) oi.href=icsHref; // hrefはプロパティ代入のみ（innerHTMLへの再埋め込みはしない）
+  if(og) og.href=gcalHref;
+  if(note) note.textContent = navigator.standalone
+    ? "Appleカレンダー登録はSafariで開いてからどうぞ Googleカレンダーはこのままでいけます"
+    : "あとで「つづける設定」からでも登録できるよ";
+  log.scrollTop=log.scrollHeight;
+}
 // 吹き出しを0.96秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
 // ※0.48秒→0.96秒に半減速（本人フィードバック 2026-07-12「テロップのテンポを0.5倍速に」）
 function obSay(lines,then){
