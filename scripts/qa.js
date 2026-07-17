@@ -267,6 +267,31 @@ function checkHtml(html) {
     "calendar card renders then flow auto-advances to the next question/route, no skip chip needed"
   );
 
+  // 2026-07-17実装: 相談室シートのiOSソフトキーボード対応(visualViewport)。実測で踏んだ2つの回帰を機械チェックで固定する。
+  // ①#soudanSheetにheightを直接pxで代入すると、子要素.sd-sheetのheight:92%解決が崩れて内容量ぶん縦に伸びる
+  //   (Chromeでgetボundinglientrectがgetcomputedstyleと食い違う実行時バグ)ため、height自体は触らずtop/bottomの
+  //   間接指定でブラウザに計算させる方式にした。
+  // ②本アプリの「もじの大きさ：大きめ」機能(body.bigtext{zoom:1.12})が有効だと、JSで代入したpx値がzoom倍に
+  //   さらに拡大されてしまう(zoomは要素のローカル座標系を拡大するため)。visualViewportの値は割り戻す必要がある。
+  // また、sdVvOn/sdVvOffがopenSoudan/closeSoudanと連動して確実にon/offされること
+  // (つけっぱなしでイベントリスナーが増え続けたり、閉じたシートに古いinline styleが残ったりするのを防止)も確認する。
+  const sdVvHandlerFn = extractFunction(main, "sdVvHandler");
+  assert("sdVvHandler: found", sdVvHandlerFn.length > 0, `${sdVvHandlerFn.length} chars`);
+  assert(
+    "sdVvHandler: leaves height for the browser to derive (regression: explicit px height breaks .sd-sheet's 92% resolution)",
+    /style\.height\s*=\s*""/.test(sdVvHandlerFn) && !/style\.height\s*=\s*[^;]*vv\.height/.test(sdVvHandlerFn),
+    "height is reset to \"\" instead of being assigned a computed pixel value"
+  );
+  assert(
+    "sdVvHandler: compensates for body zoom (bigtext) before writing px values",
+    /getComputedStyle\(document\.body\)\.zoom/.test(sdVvHandlerFn),
+    "raw visualViewport px values are divided by the effective zoom factor"
+  );
+  const openSoudanFn = extractFunction(main, "openSoudan");
+  assert("openSoudan: calls sdVvOn()", /sdVvOn\s*\(\s*\)/.test(openSoudanFn), "visualViewport監視をシートオープン時に開始");
+  const closeSoudanFn = extractFunction(main, "closeSoudan");
+  assert("closeSoudan: calls sdVvOff()", /sdVvOff\s*\(\s*\)/.test(closeSoudanFn), "visualViewport監視をシートクローズ時に停止");
+
   const assetRefs = new Set();
   for (const m of html.matchAll(/\b(?:src|href)=["'](assets\/[^"']+)["']/g)) {
     assetRefs.add(m[1].split("#")[0].split("?")[0]);
