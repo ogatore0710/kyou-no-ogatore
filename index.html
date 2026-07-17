@@ -3773,25 +3773,25 @@ const ONBOARDING_SCRIPT={
 const OB_TOUR_SLIDES=[
   {t:"📺 まいにち1本、動画をやる",
    v:`<div class="card"><div style="font-weight:900;margin-bottom:8px">きょうの1本</div><a class="video"><img src="https://i.ytimg.com/vi/Re5FPU5_37g/mqdefault.jpg" alt="" onerror="this.style.visibility='hidden'"><div><span class="vt">開脚できるようになる2週間ストレッチ</span><div class="vs">▶ タップでYouTubeがひらきます</div></div></a></div>`,
-   d:"ホームの<b>「きょうの1本」</b>をタップするとYouTubeがひらくよ 見おわったらこのアプリにもどってきてね"},
+   d:"ホームの<b>「きょうの1本」</b>をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"},
   {t:"✅ おわったら「きょうやった！」",
    v:`<div class="card" style="text-align:center"><div style="font-weight:900">つづけた日数（通算）</div><div style="margin:2px 0"><span class="num" style="font-size:38px;color:var(--pink)">8</span><span style="font-weight:900;font-size:16px">日目</span></div><button class="btn done-btn" style="margin-top:6px">きょうやった！</button></div>`,
-   d:"押すと連続と通算がのびるよ 休んでも毎月3枚の<b>🎫おやすみ券</b>が自動で連続を守ってくれます"},
+   d:"アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚の<b>🎫おやすみ券</b>が自動で連続を守ってくれます"},
   {t:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#3A3A35" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードをつくる`,
    v:`<div class="gcardmock gcm-n" style="margin-bottom:0"><div class="gcm-pill">#きょうのオガトレ</div><div class="gcm-inner"><img src="assets/chara-kaikyaku.png" alt=""><div class="gcm-days">通算 <b>8</b>日目</div><div class="gcm-note">きょうのメモも入ります✍️</div></div></div>`,
-   d:"「きょうやった！」のあと<b>「記録カードを画像でのこす」</b>→<b>「保存・シェアする」</b>で写真に保存📷 SNSやコメント欄にもどうぞ"},
+   d:"「きょうやった！」のあと<b>「記録カードを画像でのこす」</b>を押す→<b>「保存・シェアする」</b>で写真に保存📷 SNSやコメント欄にもどうぞ"},
   {t:"💬 悩みは相談室で質問",
    v:`<div style="text-align:left"><div class="sd-row user" style="display:flex;justify-content:flex-end;margin-bottom:8px"><div class="sd-b">肩こりがつらい</div></div><div class="sd-row oga" style="display:flex;gap:8px"><img class="sd-ava" src="assets/chara-hitokoto.png" alt="" style="width:34px;height:34px;flex-shrink:0"><div class="sd-b">それはつらいね…！まずはこの1本からやってみよう😊</div></div></div>`,
-   d:"右下の<b>💬ボタン</b>から 「肩こり」みたいに打つか、チップをタップするだけ オガトレ監修の答えとおすすめ動画が返ってくるよ"},
+   d:"右下の<b>💬ボタン</b>をタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"},
   {t:"📣 オガトレ通信をのぞく",
    v:`<div style="display:flex;align-items:center;justify-content:center;gap:12px"><img src="assets/obu-fab-photo.jpg" alt="" style="width:56px;height:56px;border-radius:50%;border:3px solid var(--yellow);object-fit:cover;flex-shrink:0"><div style="text-align:left;font-size:13px;font-weight:800;line-height:1.7">右下のこの写真ボタン<br><span style="color:var(--sub);font-weight:700">ひとこと・写真・ラジオ📻</span></div></div>`,
-   d:"尾形さんからのお知らせが届くよ ホームの<b>「きょうのひとこと」</b>も毎日かわります✅"},
+   d:"尾形さんからのお知らせが届くよ ホームいちばん上の<b>「きょうのひとこと」</b>も毎日かわります✅"},
   {t:"📅 マイ記録でふりかえる",
    v:`<div class="card" style="text-align:center"><div style="font-weight:900;margin-bottom:8px">カレンダー</div><div style="display:flex;gap:7px;justify-content:center">${[1,2,3,4,5].map(n=>`<span style="width:34px;height:34px;line-height:34px;border-radius:50%;display:inline-block;font-weight:800;font-size:14px;${n<=3?"background:var(--teal-strong);color:#fff":"color:var(--sub)"}">${n}</span>`).join("")}</div></div>`,
-   d:"やった日に印がつくよ（×はつきません）<b>とどくメーター📏・せんぱいの声・ひとことにっき📝</b>もこのタブ"},
+   d:"やった日に印がつくカレンダーがあるよ（×はつきません）<br><b>📏とどくメーター</b>と<b>🎉お楽しみ機能</b>（じまんカード・せんぱいの声・ひとことにっき）もこのタブの「見てみる」から見られるよ"},
   {t:"📖 忘れてもだいじょうぶ",
    v:`<div class="card" style="text-align:center;font-size:14px;line-height:1.9">下の<b>「使い方」タブ</b>に<br>ぜんぶ書いてあります</div>`,
-   d:"このツアーも使い方タブの<b>「📖 使い方ツアー」</b>からいつでももう一度見られるよ"}
+   d:"このツアーも使い方タブの<b>「📖 使い方ツアー」</b>から いつでももう一度見られるよ"}
 ];
 let obAnswers={}, obQi=0, obRouteKey=null, obPending=false, obRun=0;
 function obReducedMotion(){ try{ return !!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){ return false; } }

@@ -29,8 +29,9 @@ function renderStreak(){
   if(!did && st.total===0) contTxt="きょう1本やると「1日目」がはじまります🌱";
   if(!did){
     const ce=document.getElementById("cheer"); if(ce) ce.innerHTML="";
-    // 前回記録日の#calAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
+    // 前回記録日の#calAsk/#tourAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
     const ca=document.getElementById("calAsk"); if(ca) ca.innerHTML="";
+    const ta=document.getElementById("tourAsk"); if(ta) ta.innerHTML="";
   }
   // はじめの1本ガイド中、まだきょうの記録がついていない間は「きょうやった！」ボタンの直上に
   // 常時表示の案内を出す（動画タップ→復帰のタイミング検知に依存するcheckDoneNudge()と違い、
@@ -134,10 +135,7 @@ function markDone(){
     // 念のため節目表示(if(ms))を優先する構造にしてある（このelse ifは節目でないときだけ通る）
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
       +`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 1日目クリア！ナイスご自愛！</div>`
-      +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`
-      +`<div style="margin-top:4px;font-size:14px">📖 アプリの使い方は下の「使い方」タブからいつでも見られるよ</div>`
-      +`<button class="btn btn-primary" id="cheerTourBtn" style="margin-top:10px;font-size:15px" onclick="obOpenTour()">📖 使い方ツアーを見る</button>`
-      +`<button class="btn btn-line" id="cheerTourSkipBtn" style="margin-top:8px;font-size:14px" onclick="this.style.display='none';const b=document.getElementById('cheerTourBtn');if(b)b.style.display='none'">あとで</button>`;
+      +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
@@ -148,10 +146,24 @@ function markDone(){
       const ca=document.getElementById("calAsk");
       if(ca && typeof calendarAskEl==="function"){
         ca.innerHTML="";
-        ca.appendChild(calendarAskEl("あしたも同じじかんに会おう📅 カレンダーに毎日の合図を入れておく？"));
+        ca.appendChild(calendarAskEl("明日も同じ時間に会いましょう。\nカレンダーに毎日の合図を入れておく？"));
       }
     }catch(e){}
     store.set("calseen",1);
+  }
+  // 使い方ツアーの案内（はじめの1本ガイド完了の直後に一度だけ#tourAskへ出す。カレンダー案内と同じ見た目のカードで統一感を持たせる）
+  if(guide){
+    try{
+      const ta=document.getElementById("tourAsk");
+      if(ta){
+        ta.innerHTML="";
+        const wrap=document.createElement("div");
+        wrap.style.cssText="margin-top:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
+        wrap.innerHTML='<button class="btn btn-primary" id="cheerTourBtn" style="font-size:15px" onclick="obOpenTour()">📖 使い方ツアーを見る</button>'
+          +'<button class="btn btn-line" id="cheerTourSkipBtn" style="margin-top:8px;font-size:14px" onclick="document.getElementById(\'tourAsk\').innerHTML=\'\'">あとで</button>';
+        ta.appendChild(wrap);
+      }
+    }catch(e){}
   }
 }
 function saveMemo(){

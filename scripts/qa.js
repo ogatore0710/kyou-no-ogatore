@@ -688,24 +688,41 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     "guide text can never override a milestone celebration"
   );
   assert(
-    "markDone: guide cheer uses the exact fixed copy (1日目クリア／メモ促し／使い方タブ案内)",
+    "markDone: guide cheer uses the exact fixed copy (1日目クリア／メモ促しの2行のみ・シンプル化済み)",
     /🎉 1日目クリア！ナイスご自愛！/.test(markDoneFn)
-      && /よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）/.test(markDoneFn)
-      && /📖 アプリの使い方は下の「使い方」タブからいつでも見られるよ/.test(markDoneFn),
+      && /よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）/.test(markDoneFn),
     "wording matches the approved design verbatim"
   );
   assert(
-    "markDone: calendar card renders into #calAsk exactly once, gated on total===1 && !calseen, then sets calseen",
-    /st\.total===1\s*&&\s*!store\.get\(["']calseen["']\)[\s\S]{0,300}calendarAskEl\(["']あしたも同じじかんに会おう📅 カレンダーに毎日の合図を入れておく？["']\)[\s\S]{0,80}store\.set\(["']calseen["'],\s*1\)/.test(markDoneFn),
-    "matches the exact lead copy from the approved design and the one-time guard"
+    "markDone: guide cheer branch no longer embeds the tour button/使い方タブ案内 inline (moved to #tourAsk・2026-07-17 PO実機フィードバック)",
+    (function () {
+      const guideBlock = (/\}\s*else\s+if\s*\(\s*guide\s*\)\s*\{([\s\S]*?)\}\s*else\s*\{/.exec(markDoneFn) || [])[1] || "";
+      return guideBlock.indexOf("cheerTourBtn") === -1 && guideBlock.indexOf("使い方タブ") === -1;
+    })(),
+    "cheer text itself stays to the 2-line copy; the tour ask lives in its own #tourAsk block below"
+  );
+  assert(
+    "markDone: calendar card renders into #calAsk exactly once, gated on total===1 && !calseen, then sets calseen (2026-07-17改行入り文言)",
+    /st\.total===1\s*&&\s*!store\.get\(["']calseen["']\)[\s\S]{0,300}calendarAskEl\(["']明日も同じ時間に会いましょう。\\nカレンダーに毎日の合図を入れておく？["']\)[\s\S]{0,80}store\.set\(["']calseen["'],\s*1\)/.test(markDoneFn),
+    "matches the exact 2-line lead copy (\\n) from the approved design and the one-time guard"
+  );
+  assert(
+    "markDone: tour-ask card renders into #tourAsk exactly when guide is true (使い方ツアー案内・カレンダー案内カードの直後)",
+    /if\s*\(\s*guide\s*\)\s*\{[\s\S]{0,80}getElementById\(["']tourAsk["'][\s\S]{0,400}cheerTourBtn[\s\S]{0,200}obOpenTour\(\)[\s\S]{0,300}cheerTourSkipBtn/.test(markDoneFn),
+    "renders the tour button + skip button into #tourAsk, styled like the calendar ask card"
+  );
+  assert(
+    "markDone: #tourAsk skip button clears #tourAsk innerHTML (あとで＝カード自体を消す)",
+    /cheerTourSkipBtn["'][\s\S]{0,150}getElementById\(\\?['"]tourAsk\\?['"]\)\.innerHTML\s*=\s*\\?['"]\\?['"]/.test(markDoneFn),
+    "skip removes the whole card, not just the buttons"
   );
 
   const renderStreakFn = extractFunction(recordScript, "renderStreak");
   assert("renderStreak: found", renderStreakFn.length > 0, `${renderStreakFn.length} chars`);
   assert(
-    "renderStreak: clears #calAsk when today is not yet recorded (再訪日に前回の残骸を残さない)",
-    /!did\)\{[\s\S]{0,200}getElementById\(["']calAsk["']\)/.test(renderStreakFn),
-    "stale calendar card content is wiped alongside the existing cheer-clearing logic"
+    "renderStreak: clears #calAsk and #tourAsk when today is not yet recorded (再訪日に前回の残骸を残さない)",
+    /!did\)\{[\s\S]{0,300}getElementById\(["']calAsk["'][\s\S]{0,200}getElementById\(["']tourAsk["']/.test(renderStreakFn),
+    "stale calendar/tour-ask card content is wiped alongside the existing cheer-clearing logic"
   );
 
   // checkDoneNudge(index.html): 既存の早期return群は全て維持。#resultが表示中なら#rDoneNudgeへ、
@@ -753,11 +770,18 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     `found ${pendingNudgeIifeCount} occurrences (expected 2: #todayVideo + #result)`
   );
 
-  // DOM: #calAsk（#memoRowの直後）、#rDoneNudge（#result内、rTourBtnの近く）、.fd-hero用CSSの存在
+  // DOM順序（2026-07-17 PO実機フィードバック）: 「きょうやった！」後の導線は
+  // cheer→#memoRow→「記録カードを画像でのこす」ボタン(#makeCardBtn)/#cardHint→#calAsk→#tourAsk、の順。
+  // #calAskをカード保存ボタンより後ろに、#tourAskをさらにその後ろに置く(以前は#memoRowの直後に#calAskだけがあった)。
   assert(
-    "index.html: #calAsk exists immediately after #memoRow inside #streakCard",
-    /id="memoRow"[\s\S]{0,900}id="calAsk"/.test(html),
-    "matches design placement"
+    "index.html: #streakCard order is #memoRow → #makeCardBtn → #cardHint → #calAsk → #tourAsk (PO要望の並び替え・2026-07-17)",
+    /id="memoRow"[\s\S]{0,900}id="makeCardBtn"[\s\S]{0,700}id="cardHint"[\s\S]{0,100}id="calAsk"[\s\S]{0,100}id="tourAsk"/.test(html),
+    "記録カードを画像でのこす→カレンダー案内→使い方ツアー案内、の順で並んでいること"
+  );
+  assert(
+    "index.html: #calAskLead has white-space:pre-line so a literal \\n in leadText renders as a line break (textContentのみの安全設計は維持)",
+    /style="[^"]*white-space:pre-line[^"]*"\s+id="calAskLead"/.test(html),
+    "calendarAskEl()はtextContent代入のみ・改行はCSS側で表現する設計"
   );
   assert(
     "index.html: #rDoneNudge exists inside #result, ahead of #rTourBtn",
@@ -768,6 +792,32 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     "index.html: .fd-hero CSS rule provides a visible pink border on the hero video card",
     /\.fd-hero \.video\{[^}]*border:2\.5px solid var\(--pink\)/.test(html),
     "hero card is visually distinguished per design"
+  );
+}
+
+// 使い方ツアー(OB_TOUR_SLIDES・2026-07-17 PO実機フィードバックでブラッシュアップ)が、
+// 「じまんカード・せんぱいの声・ひとことにっき」が「お楽しみ機能」ページに統合され、
+// 「とどくメーター」が独自ページ(#reach)として独立した実際の構成と食い違っていないことを固定する。
+// 旧文言は「とどくメーター・せんぱいの声・ひとことにっき」を一括で「このタブ」と案内しており、
+// とどくメーターとお楽しみ機能が別々の導線(見てみるボタン)であることが読み取れなかった。
+function checkTourSlides(mainScript) {
+  const slidesMatch = /const OB_TOUR_SLIDES=\[([\s\S]*?)\n\];/.exec(mainScript);
+  const slidesSrc = slidesMatch ? slidesMatch[1] : "";
+  assert("OB_TOUR_SLIDES: found", slidesSrc.length > 0, `${slidesSrc.length} chars`);
+  assert(
+    "OB_TOUR_SLIDES: 7枚構成を維持(📺→✅→カード→💬→📣→📅→📖)",
+    (slidesSrc.match(/\{t:/g) || []).length === 7,
+    "枚数が変わっていないこと(内容のブラッシュアップのみが目的)"
+  );
+  assert(
+    "OB_TOUR_SLIDES: 「マイ記録」スライドがとどくメーターとお楽しみ機能を別の導線として案内している(旧: 一括で「このタブ」と誤解を招く表現だった)",
+    /📏とどくメーター<\/b>と<b>🎉お楽しみ機能<\/b>（じまんカード・せんぱいの声・ひとことにっき）/.test(slidesSrc),
+    "実際のSECTIONS構成(reach/funが別セクション)に合わせた文言であること"
+  );
+  assert(
+    "OB_TOUR_SLIDES: 「せんぱいの声・ひとことにっきもこのタブ」という旧・不正確な一文が復活していない",
+    !/とどくメーター📏・せんぱいの声・ひとことにっき📝もこのタブ/.test(slidesSrc),
+    "とどくメーターとお楽しみ機能を混同させる旧文言が再発していないこと"
   );
 }
 
@@ -1294,6 +1344,7 @@ function main() {
   checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}\n${cardScript}`);
   checkOnboardingWorrySkip(mainScript, quizScript);
   checkFirstDayGuide(html, mainScript, quizScript, recordScript);
+  checkTourSlides(mainScript);
   checkA2hsPopup(html, mainScript);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);

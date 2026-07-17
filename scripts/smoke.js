@@ -294,7 +294,14 @@ async function main() {
           gcal: (document.getElementById("calAskGcalLink") || {}).href,
           note: (document.getElementById("calAskNote") || {}).textContent,
         }));
-        if (info.lead.indexOf("あしたも同じじかんに会おう") === -1) throw new Error(c.anchorChip + ": #calAskのリード文言が設計どおりでない (" + info.lead + ")");
+        // 2026-07-17 PO実機フィードバック: 文言を2行に変更(「明日も同じ時間に会いましょう。」+改行+「カレンダーに毎日の合図を入れておく？」)。
+        // textContentのみの安全設計は維持しつつ、実際の改行文字(\n)を含み#calAskLeadのwhite-space:pre-lineで見た目に反映される想定。
+        if (info.lead.indexOf("明日も同じ時間に会いましょう。") === -1 || info.lead.indexOf("カレンダーに毎日の合図を入れておく？") === -1) {
+          throw new Error(c.anchorChip + ": #calAskのリード文言が設計どおりでない (" + info.lead + ")");
+        }
+        if (info.lead.indexOf("\n") === -1) throw new Error(c.anchorChip + ": #calAskのリード文言に改行文字が含まれていない (textContentで改行を渡す設計のはず)");
+        const leadWhiteSpace = await page.evaluate(() => getComputedStyle(document.getElementById("calAskLead")).whiteSpace);
+        if (leadWhiteSpace !== "pre-line") throw new Error(c.anchorChip + ": #calAskLeadのwhite-spaceがpre-lineでない (" + leadWhiteSpace + ")、改行が見た目に反映されない");
         const icsDecoded = decodeURIComponent(info.ics || "");
         if (!info.ics || info.ics.indexOf("data:text/calendar") !== 0) throw new Error(c.anchorChip + ": #calAskのICSリンクがdata:text/calendarで始まっていない");
         // 2026-07-17 実機バグ修正: DTSTART/datesはハードコードされた過去日(20260701)ではなく
@@ -1341,10 +1348,38 @@ async function main() {
       }));
       if (afterDone.cheer.indexOf("🎉 1日目クリア！ナイスご自愛！") === -1) throw new Error("cheerが固定文言「1日目クリア」になっていない (" + afterDone.cheer + ")");
       if (afterDone.cheer.indexOf("きょうのひとことをどうぞ") === -1) throw new Error("cheerにメモ促し文言が無い");
-      if (afterDone.cheer.indexOf("「使い方」タブ") === -1) throw new Error("cheerに使い方タブ案内が無い");
+      // 2026-07-17 PO実機フィードバック: cheer自体は2行のみにシンプル化し、使い方タブ案内の一文と
+      // 「使い方ツアーを見る」ボタンはcheerから追い出して#tourAskへ独立させた(下の確認5c/5dで検証)。
+      if (afterDone.cheer.indexOf("「使い方」タブ") !== -1) throw new Error("cheerに旧・使い方タブ案内の一文が残っている（#tourAskへ移設したはず）");
+      if (afterDone.cheer.indexOf("cheerTourBtn") !== -1) throw new Error("cheer内に「使い方ツアーを見る」ボタンが残っている（#tourAskへ移設したはず）");
       if (afterDone.placeholder !== "例: 肩がかるくなった気がする😊") throw new Error("メモ欄のplaceholderがguide用に変わっていない (" + afterDone.placeholder + ")");
-      if (!afterDone.calAskLead || afterDone.calAskLead.indexOf("あしたも同じじかんに会おう") === -1) throw new Error("#calAskがguide完了後に表示されていない");
+      // 2026-07-17: カレンダー案内の文言を2行に変更(「明日も同じ時間に会いましょう。」+改行+「カレンダーに毎日の合図を入れておく？」)
+      if (!afterDone.calAskLead || afterDone.calAskLead.indexOf("明日も同じ時間に会いましょう。") === -1 || afterDone.calAskLead.indexOf("カレンダーに毎日の合図を入れておく？") === -1) {
+        throw new Error("#calAskがguide完了後に表示されていない、または文言が設計どおりでない (" + afterDone.calAskLead + ")");
+      }
       if (afterDone.fd !== "1") throw new Error("kyono_fdが完了値1になっていない (" + afterDone.fd + ")");
+
+      // ---- 確認5a(2026-07-17追加): DOM順序（cheer→#memoRow→記録カードボタン→#calAsk→#tourAsk）と、
+      // 「使い方ツアーを見る」ボタンが#tourAsk側にあり#cheer側には無いことを確認 ----
+      const domOrder = await page.evaluate(() => {
+        const streakCard = document.getElementById("streakCard");
+        const ids = ["memoRow", "makeCardBtn", "cardHint", "calAsk", "tourAsk"];
+        const positions = ids.map((id) => {
+          const el = document.getElementById(id);
+          let n = 0, node = streakCard.firstChild;
+          while (node) { if (node === el || (node.contains && node.contains(el))) return n; n++; node = node.nextSibling; }
+          return -1;
+        });
+        return {
+          orderOk: positions.every((p, i) => i === 0 || p > positions[i - 1]),
+          positions,
+          tourAskHasBtn: document.getElementById("tourAsk").contains(document.getElementById("cheerTourBtn")),
+          cheerHasBtn: document.getElementById("cheer").contains(document.getElementById("cheerTourBtn")),
+        };
+      });
+      if (!domOrder.orderOk) throw new Error("#streakCard内の並び順が想定どおりでない (memoRow→makeCardBtn→cardHint→calAsk→tourAsk) positions=" + JSON.stringify(domOrder.positions));
+      if (!domOrder.tourAskHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#tourAskの中に無い");
+      if (domOrder.cheerHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#cheerの中に残っている（移設漏れ）");
 
       // ---- 確認5b(2026-07-17追加): 記録完了で持続的な案内(#fdDoneStaticNudge)が消えること ----
       const staticNudgeGone = await page.evaluate(() => document.getElementById("fdDoneStaticNudge").classList.contains("hidden"));
@@ -1371,6 +1406,14 @@ async function main() {
       await page.evaluate(() => { obClose(true); });
       await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
       await page.click("#tab-home");
+      await visible("#home");
+
+      // ---- 確認5d(2026-07-17追加): ツアーへ進んでも#tourAskのカード自体は消えない(obOpenTour()は
+      // #tourAskをクリアしない設計)ことを利用し、同じカードで「あとで」ボタンを実タップ→#tourAskの
+      // 中身が空になることを確認する ----
+      await visible("#cheerTourSkipBtn");
+      await page.click("#cheerTourSkipBtn");
+      await page.waitForFunction(() => (document.getElementById("tourAsk").innerHTML || "").trim() === "", { timeout: 5000 });
       await visible("#home");
 
       // ---- 確認6: fd完了後はホーム「あなた用」が自動的に通常の3本表示へ戻る ----
