@@ -4,6 +4,23 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 プロダクトオーナー実機フィードバック4件の修正
+
+PO本人が実機（iPhone Safari/Chrome）で操作して見つけた4件を修正。
+
+1. **「ホーム画面に追加」ポップアップの文言修正（2点）**: `index.html`の`a2hsShow()`。
+   - `ios-other`分岐: 「Safariで開く必要があるみたい🙏」の曖昧な言い回しを「Safariで開いてくださいね🙏」の直接的なお願いに変更。
+   - `ios-safari`分岐: 「右下の共有ボタン」→「画面下部の共有ボタン」。実機（本人のiPhone）では共有ボタンが下部中央寄りで、機種/iOSバージョンでも位置が変わるため「右下」の限定を削除。
+2. **【実バグ】カレンダー連携が単発予定になる不具合を修正**: `index.html`の`renderIcs()`で、ICS(`DTSTART`)とGoogleカレンダーリンク(`dates=`)双方の日付が`"20260701"`（過去日）にハードコードされており、`RRULE:FREQ=DAILY`が付いていても実機のGoogleカレンダーで単発予定として表示される不具合があった。`todayStr()`（`app-record.js`・3時間オフセットJSTの「今日」）由来の`icsDate`変数を新設し、ICS/Googleカレンダーリンクとも今ここから動的に生成するよう修正。`calendarAskEl()`→`renderIcs()`という既存の共通関数構造のおかげで、オンボ後の`#calAsk`・マイ記録タブの「つづける設定」・はじめの1本ガイド完了後、すべての呼び出し元に自動的に反映される。
+3. **「はじめの1本ガイド」の分かりやすさ強化（3点）**:
+   - 4a: `app-quiz.js`の`showResult()`のguide時吹き出し文言を「タップするとYouTubeがひらくよ おわったらこのアプリにもどってきてね💪」→「タップするとYouTubeがひらくよ 見おわったらこのアプリにもどってきて、下の「きょうやった！」を押してね💪」に変更。戻ったあとにやることを明示。
+   - 4b: `checkDoneNudge()`（タイミング検知型・環境依存の可能性あり）とは別に、検知に依存しない持続的な案内を追加。`index.html`の`#doneBtn`直上に新規`#fdDoneStaticNudge`（既定hidden）を配置し、`app-record.js`の`renderStreak()`でホーム描画のたびに`fdActive() && !did`（guide中かつ今日未記録）なら表示、記録がつく/guide終了で自動的に隠す。既存の`checkDoneNudge()`/`#rDoneNudge`はそのまま併存。
+   - 4c: `app-record.js`の`markDone()`のguide時cheer文言（「🎉 1日目クリア！」＋メモ促し＋使い方タブ案内の受動的な一文）の後に、実際にタップできる「📖 使い方ツアーを見る」ボタン(`#cheerTourBtn`・タップで既存`obOpenTour()`を呼ぶ)と「あとで」スキップボタン(`#cheerTourSkipBtn`)を追加。強制はしない。
+
+**機械チェックの追加（再発防止）**: `scripts/qa.js`に`renderIcs()`が`todayStr()`由来の`icsDate`を`DTSTART`/`&dates=`双方で使っていること、ハードコードされた過去日リテラル`"20260701"`が復活していないこと、`RRULE:FREQ=DAILY`（ICS本体・Googleカレンダーリンクの`recur=`双方）が維持されていることを固定するチェックを新設（3件）。`scripts/smoke.js`は既存1c/7dシナリオを更新: 1cは`DTSTART:20260701T...`のハードコード比較を`todayStr()`から計算した動的な今日日付の比較に置き換え、日付を跨ぐケース(`Date.now`を+2日ずらして`renderIcs()`を再実行)でも新しい今日日付に追従することを確認する検証を追加。7dは`#fdDoneStaticNudge`が「guide中・未記録」の間だけ表示され記録後に消えること、`#cheerTourBtn`のタップで実際に`obOpenTour()`のツアーが起動すること（`obClose(true)`で不要な`history.back()`を踏まないよう明示的にfromPop=trueで閉じてクリーンアップ）を検証する手順を追加。`npm test`は231 checksへ増加（新規qa.js側3件）、全PASS。`npm run smoke`は引き続き21ステップ、全PASS。
+
+**実測確認の要点**: 生成されたICS(data URL)をデコードして`DTSTART`が実行時点の今日日付になっていること・`RRULE:FREQ=DAILY`を含むこと、Googleカレンダーリンクの`dates=`/`recur=`パラメータが同様に正しいことをheadless Chrome上のスモークテストで確認。Googleカレンダー実サーバーへの実際のfetch/ヘッドレス表示確認は行っていない（URLパラメータの正しさで代替。実際のGoogleカレンダーUIでの「毎日」表示までは本セッションでは未確認）。日付跨ぎ（`Date.now`+2日）でも`renderIcs()`が新しい`todayStr()`に追従することは確認済み。
+
 ## 2026-07-17 オンボーディング改善2点（カレンダー通知の移設＋「はじめの1本ガイド」新設・Fable設計・PO承認済み）
 
 Fableが設計したオンボーディング改善2点を実装。既存の「オンボチャット→かたさチェック→結果画面」フローに、新しい仕組みを極力作らず、既存のpendingNudge/markDone後UIフローに一言ずつ重ねる方式で実装した。新規localStorageキー: `kyono_fd`（"go"=ガイド中／1=完了）・`kyono_calseen`（カレンダー案内を出し切ったら1・二度と出さない）。

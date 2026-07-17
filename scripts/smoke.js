@@ -1442,7 +1442,7 @@ async function main() {
       // 深くなっており、back()が意図しない古いエントリへ着地しうる（実測で確認済み・アプリのバグではない）
       // ため、状態非依存の最終ステップでは意図的にこの経路を避けている。
 
-      return "オンボ完走(quizルート)→結果画面①強調(fd-hero/バッジ/オガトレ一言/3本つづけて再生ボタン非表示/rotate-note非表示/rTourBtn非表示)→①タップで新規タブ+pendingNudge系セット→checkDoneNudge()で#rDoneNudge表示(ホームcheerは不可侵)→ボタンでホームへ+doneBtn強調→きょうやった！で固定cheer文言/メモplaceholder/#calAsk表示→kyono_fd=1→あなた用が3本表示に復帰→リロード後も#calAsk再出現なし→既存ユーザーの再チェックは回帰なし→" + soudanNote;
+      return "オンボ完走(quizルート)→結果画面①強調(fd-hero/バッジ/オガトレ一言/3本つづけて再生ボタン非表示/rotate-note非表示/rTourBtn非表示)→①タップで新規タブ+pendingNudge系セット→checkDoneNudge()で#rDoneNudge表示(ホームcheerは不可侵)→ボタンでホームへ+doneBtn強調→#fdDoneStaticNudge常時案内を確認→きょうやった！で固定cheer文言/メモplaceholder/#calAsk表示/#fdDoneStaticNudge消失→#cheerTourBtnタップでobOpenTour()実起動を確認→kyono_fd=1→あなた用が3本表示に復帰→リロード後も#calAsk再出現なし→既存ユーザーの再チェックは回帰なし→" + soudanNote;
     });
 
     // 8. 最終確認: コンソールエラー総数0
