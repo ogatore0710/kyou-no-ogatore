@@ -501,7 +501,6 @@ function checkContrast(html) {
     ".chip-b.on",
     "body.dark .chip-b.on",
     ".reach-btn.on",
-    ".gcm-n .gcm-pill",
   ];
   for (const selector of requiredStrongRules) {
     const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

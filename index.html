@@ -184,22 +184,6 @@
   .gflow .gf{background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px;font-weight:800;text-align:center;min-width:84px}
   .gflow .ga{color:var(--sub);font-weight:900}
   .gmock{pointer-events:none;user-select:none}
-  /* ゴールドカードの見本（drawCardのGOLDテーマ=金グラデ/白カード/破線ふち/リボンピルをCSSで再現） */
-  .gcardmock{background:linear-gradient(135deg,#FFF6D8,#FFE8B0);border-radius:var(--radius);padding:12px 14px 8px;max-width:250px;margin:4px auto 12px;text-align:center}
-  .gcardmock .gcm-pill{display:inline-block;background:#B8860B;color:#fff;font-weight:900;font-size:12px;border-radius:99px;padding:4px 14px;margin-bottom:8px}
-  .gcardmock .gcm-inner{background:rgba(255,255,255,.94);border:2px dashed rgba(184,134,11,.45);border-radius:14px;padding:10px 8px}
-  .gcardmock .gcm-inner img{width:56px;height:56px;object-fit:contain;display:block;margin:0 auto 2px}
-  .gcardmock .gcm-days{font-weight:900;color:#B8860B;font-size:14px}
-  .gcardmock .gcm-days b{font-size:24px}
-  .gcardmock .gcm-note{font-size:12px;color:#B8860B;font-weight:800;margin-top:2px}
-  .gcardmock .gcm-cap{font-size:11px;color:#B8860B;opacity:.75;font-weight:800;margin-top:6px}
-  body.dark .gcardmock{background:linear-gradient(135deg,#4A3A15,#3A2F10)}
-  /* 記録カード見本の通常配色版（使い方ツアー用） */
-  .gcardmock.gcm-n{background:linear-gradient(135deg,#FFEDF3,#DFF5F2)}
-  .gcm-n .gcm-pill{background:var(--teal-strong)}
-  .gcm-n .gcm-inner{border-color:rgba(43,179,163,.45)}
-  .gcm-n .gcm-days,.gcm-n .gcm-note,.gcm-n .gcm-cap{color:var(--teal)}
-  body.dark .gcardmock.gcm-n{background:linear-gradient(135deg,#3A2530,#1F3A35)}
   /* 使い方ツアー（スライド形式・#welcome内） */
   .obt{text-align:center;padding:2px 2px 6px}
   .obt-t{font-size:17px;font-weight:900;margin:4px 0 10px}
@@ -988,15 +972,11 @@
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>つづけるしくみ（ここがやさしい）</div>
     <div class="gstep"><span class="stepn">🎫</span><div><b>おやすみ券が毎月3枚</b><br>休んでも 自動でつかわれて連続がつながる<br>使い切っても<b>通算日数はぜったい消えません</b></div></div>
     <div class="gstep"><span class="stepn">👑</span><div><b>節目はゴールドカード</b><br>3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓</div></div>
-    <div class="gcardmock gmock">
-      <div class="gcm-pill">#きょうのオガトレ</div>
-      <div class="gcm-inner">
-        <img src="assets/chara-crown.png" alt="ゴールドカードの見本">
-        <div class="gcm-days">通算 <b>7</b>日目</div>
-        <div class="gcm-note">👑 1週間つづいた！</div>
-      </div>
-      <div class="gcm-cap">見本（ほんものは日付や あなたのメモ入り）</div>
+    <div style="text-align:center;margin-bottom:6px">
+      <img src="assets/card-sample-gold.png" alt="ゴールドカードの見本" style="width:180px;height:180px;border-radius:20px;margin:4px auto 6px;display:block">
+      <div style="font-size:13px;color:var(--sub)">見本（ほんものは日付や あなたのメモ入り）</div>
     </div>
+    <div style="font-size:14px;line-height:1.9;margin-bottom:10px">記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は<b>「マイ記録」タブのカード図鑑</b>📖でいつでも見返せます</div>
     <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
     <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
   </div>
