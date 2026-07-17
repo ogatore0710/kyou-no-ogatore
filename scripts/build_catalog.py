@@ -24,6 +24,16 @@ EXCLUDE = [
     r"してみた結果",
 ]
 
+# ---- 除外の明示allowlist（ピンポイントで動画IDを指定。EXCLUDE正規表現は緩めない） ----
+# 2026-07-17 CATALOG-AUDIT.md「除外62本の目視確認」対応。本人承認済みの復活3本のみ
+# （ポケモンコラボの企画だが内容は実質「ラジオ体操」で実技価値が高いため）。
+# ライブ配信シリーズ6本・グッズ紹介4本などその他の復活候補は本人判断で見送り＝EXCLUDEのまま。
+ALLOWLIST_IDS = {
+    "RmjQNmxILMg",  # 【ポケモン】ラジオ体操第一を"ルカリオ・ラプラス"と一緒にやってみよう！
+    "mO8bXLLky4I",  # 【ポケモン】ラジオ体操第二を"ラッキー・ルカリオ"と一緒にやってみよう！
+    "kOyRA7cvLD8",  # ラジオ体操第一をポケモンたちとやってみた
+}
+
 # ---- タグ判定（先勝ちでなく全部付与・上limit3つ） ----
 RULES = [
     ("開脚",           r"開脚|Middle Splits|Split Stretches"),
@@ -75,9 +85,12 @@ catalog, excluded, untagged = [], [], []
 for vid, title, year, dur, is_short, views in rows:
     if not title: continue
     if vid in PRIVATE: continue
-    if any(re.search(p, title) for p in EXCLUDE):
+    if vid not in ALLOWLIST_IDS and any(re.search(p, title) for p in EXCLUDE):
         excluded.append(title); continue
     tags = [t for t, p in RULES if re.search(p, title)][:3]
+    if vid in ALLOWLIST_IDS and "全身" not in tags:
+        # ラジオ体操=全身を動かす軽い体操。タイトルに「全身」の語がないため明示付与
+        tags.append("全身")
     if dur and dur <= 600: tags.append("10分以内")
     if is_short: tags.append("ショート")
     import re as _re
