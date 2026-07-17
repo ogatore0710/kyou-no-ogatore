@@ -4,6 +4,25 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 独自ドメイン化: kyou-no.ogatore.net をお名前.com+GitHub Pagesに設定（本人承認・SCALE-NOTES.mdの「先にやる2つ」の1つ）
+
+配布拡大前に独自ドメインを被せる作業（`SCALE-NOTES.md`「先にやる2つ」参照）を実施。本人がお名前.comで`ogatore.net`を既に所有していることを確認（他に`ogatore.jp`/`ogatorejuku.org`/`ogatore.shop`/`ogatore.com`も所有だが対象外）。ogatore.net/www.ogatore.netの既存Aレコード（`34.111.141.225`、別サイトで使用中と思われる）には一切手を加えず、新規サブドメインのみ追加。
+
+- お名前.comの「ドメインDNS設定」で`kyou-no.ogatore.net`のCNAMEレコードを`ogatore0710.github.io`宛に新規追加（本人の許可を得て、Claude in Chromeで実際にお名前.com管理画面を操作。確認画面で既存レコードが変更されないことを確認してから最終確定）。ドメインプロテクション等の有料オプションのアップセルは全て辞退。
+- GitHub Pages側は`gh api -X PUT repos/ogatore0710/kyou-no-ogatore/pages -f cname="kyou-no.ogatore.net"`でカスタムドメインを設定。リポジトリ直下に`CNAME`ファイル（内容: `kyou-no.ogatore.net`）も追加し、Actions経由のデプロイ（`.github/workflows/pages.yml`）でも設定が失われないようにした。
+- **残作業（本人対応不要・時間経過で自動）**: DNS伝播後、GitHubが自動でLet's Encrypt証明書を発行する。現時点で`https_enforced=false`のため、証明書発行完了を確認後に「Enforce HTTPS」を有効化する必要がある（次回セッションで`gh api repos/ogatore0710/kyou-no-ogatore/pages`を確認し、`https_enforced`をtrueにできる状態か見ること）。
+- 既存の`ogatore0710.github.io/kyou-no-ogatore/`のURLは今後も生きたまま（GitHub Pagesは元のURLも並行して機能する）。配布物・共有リンクを新ドメインに切り替えるかどうかは別途本人判断。
+
+## 2026-07-17 相談室シートのiOSソフトキーボード対応（visualViewport・AUDIT-MEMO.md本人監修待ちリスト項目）
+
+AUDIT-MEMO.mdの本人監修待ちリストにあった「相談室シートの入力欄がiOSキーボードに隠れる（visualViewport未対応）」を実装。`#soudanSheet`は`position:fixed;inset:0`のオーバーレイで、中の`.sd-sheet`が`height:92%`の固定フレックス。iOS Safariはキーボード表示時に`window.innerHeight`が縮まず、実際に見えている高さは`window.visualViewport`でしか分からないため、対応しないと最下部の`#sdInput`がキーボードの下に隠れる。
+
+- `index.html`: `sdVvHandler()`/`sdVvOn()`/`sdVvOff()`を新設。`sdVvOn()`は`openSoudan()`から、`sdVvOff()`は`closeSoudan()`から呼び、`window.visualViewport`の`resize`/`scroll`イベントを**シートが開いている間だけ**監視する（`sdVvBound`フラグで多重bind防止・閉じたら確実にremoveEventListener）。`window.visualViewport`が存在しない環境では何もしない漸進的機能拡張（既存の見た目・動作は不変）。
+- **実装の紆余曲折（実測で踏んだバグ2つ）**: 当初は`#soudanSheet`に`height`を直接pxで代入する案で書いたが、実測すると子要素`.sd-sheet{height:92%}`のパーセンテージ解決が崩れて内容量ぶん縦に伸びてしまう実行時バグを発見（Chromeで`getComputedStyle`上のheightは正しいのに`getBoundingClientRect`は別の値になる）。加えて、本アプリの「もじの大きさ：大きめ」機能（`body.bigtext{zoom:1.12}`）が有効な状態だと、JSで代入したpx値がzoom倍にさらに拡大されてしまうバグも発見（bigtextはデフォルトで有効になりうる設定のため看過できない）。最終的に「`height`は触らずbrowserに計算させ、`top`/`bottom`だけを`window.innerHeight-(vv.height+vv.offsetTop)`から算出してzoom倍率で割り戻す」方式に変更し、両方を解消した。
+- **実測での確認**: 実iOS実機は無いため、ヘッドレスChrome(puppeteer-core)で`window.visualViewport.height`/`offsetTop`を`Object.defineProperty`で差し替え可能なことを確認したうえで`window.visualViewport.dispatchEvent(new Event("resize"))`を実際に発火させ、キーボード表示相当（可視領域を844→544pxに縮小）を再現。`#soudanSheet`が縮小後の高さ(544px)に正しく追従し、`#sdSendBtn`が縮小後の可視範囲内に収まること、`closeSoudan()`でinline styleが確実にリセットされること、再オープン時に通常の844pxへ戻ることを確認した。通常時（キーボードなし）の見た目・スクロール・他モーダル（記録カード・図鑑等）への影響がないことは`npm run smoke`の全16ステップ（相談室ゴールデンフロー含む）がPASSすることで回帰確認済み。
+- **開発メモ（並行編集への対処）**: 作業中、同一リポジトリで並行セッションが赤旗2バケット化・`app-record.js`分離等を並行編集しており、実行中のスモークテストが両者の未コミット変更が混ざった状態を拾って原因不明のFAILを出す事象に遭遇した。`git archive <commit>`で作業中のHEAD/直前コミットをスクラッチ領域に複製し、そこにPythonスクリプトで自分のパッチだけを当てて`npm test`/`npm run smoke`を実行する「隔離コピーでの検証」に切り替えて解決（`git stash`は他セッションの作業を巻き込むリスクがあるため使用しなかった）。
+- **npm test/npm run smoke**: 隔離コピーで`npm test`(qa.js)111 checks / `npm run smoke`16/16 いずれもPASSを確認。ライブの作業ディレクトリは他セッションの並行作業とeven-syncの自動コミットが重なり続けていたため、最終的な差分はコミット6554497（auto-sync）に既に取り込まれている。
+
 ## 2026-07-17 相談室の赤旗回答を症状系/状態系の2バケットに分岐（AUDIT-MEMO.md低優先項目・本人YES承認済み）
 
 AUDIT-MEMO.mdの本人監修待ち項目「赤旗回答が一種類のため、妊娠・術後など『症状ではない状態語』への文面が不自然」を実装。従来は`redFlags`が単一の`kw`配列と単一の`answer`しか持たず、「妊娠中で腰が痛い」のような単なる状態申告にも「げきつう」等の急性症状と同じ「ストレッチより先に受診を」という文面が返っていた。
