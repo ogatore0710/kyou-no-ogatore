@@ -186,7 +186,7 @@
   - 非standalone判定(3617行目)のユーザーには、記録日数が伸びるほど(例: 7日・14日節目で)ホーム追加 or 記録エクスポートを再提案する。バナー閉じても節目では再表示。ガイドタブにも『Safariだけで使うと記録が消えることがある』を明記
 - 🟡中 **相談室ボトムシートの入力欄がiOSキーボードに隠れる/背面スクロールが抜ける(iOS15以前)** — /Users/ryunosuke/Claude/kyou-no-ogatore/index.html #soudanSheet/.sd-foot CSS(369〜383行目)・openSoudanのsd-lock(3009行目)・#sdInput(954行目)
   - window.visualViewportのresize/scrollでsd-sheetの高さ(またはsd-footのbottom)を追従させる。背面ロックはsd-lock時にbodyへposition:fixed+top:-scrollY方式(閉じる時に復元)を併用
-  - **ステータス: 前半のみ対応済み（2026-07-17）**: visualViewportのresize/scrollでシートの可視領域を追従させる部分（キーボードに隠れる問題）は`sdVvHandler`等で実装済み（詳細はWORKING_NOTES.md該当エントリ・上の同種項目のステータス注記を参照）。後半の「iOS15以前の背面スクロール抜け」対策（body position:fixed+top:-scrollY方式）は今回のスコープ外・未対応のまま残っている。
+  - **ステータス: 前半・後半とも対応済み（2026-07-17・コミット59faea8）**: visualViewportのresize/scrollでシートの可視領域を追従させる部分（キーボードに隠れる問題）は`sdVvHandler`等で実装済み（詳細はWORKING_NOTES.md該当エントリ・上の同種項目のステータス注記を参照）。後半の「iOS15以前の背面スクロール抜け」対策も、共通ヘルパー`lockBodyScroll()`/`unlockBodyScroll()`（index.html）でposition:fixed+top:-scrollY方式を実装し、`openSoudan`/`closeSoudan`・`openDex`/`closeDex`の全sd-lock箇所をこの2関数経由に統一した。ヘッドレスChrome実測（scripts/smoke.js「6f-背面スクロールロック」）でopen時のbody.style.position/top・close時のscrollY復元・通常時のスクロール無影響を確認済み。機械チェック（scripts/qa.js）にも回帰防止アサーションを追加。
 - ⚪低 **standalone起動のたびスプラッシュが固定1.8秒+フェード0.55秒 — 起動準備完了(__kyonoBoot)と連動していない** — /Users/ryunosuke/Claude/kyou-no-ogatore/index.html 3543〜3549行目(setTimeout 1800ms固定)・431〜447行目(splash生成/非standalone即削除)
   - スクリプト末尾(window.__kyonoBoot=true到達時)にフェード開始し、最低表示時間は600〜900ms程度に短縮。obOpenの遅延も同じフラグ起点にする
 - ⚪低 **SWのinstall時プリキャッシュがHTTPキャッシュ(max-age=600)を経由 — デプロイ直後の10分間は古いshellを新キャッシュに焼き込みうる** — /Users/ryunosuke/Claude/kyou-no-ogatore/sw.js installハンドラ(7行目・addAll/add)
@@ -229,6 +229,7 @@
   - 境界を17時程度に後ろ倒しするか、15-17時は『きょうの1本』のニュートラルバッジにする
 - ⚪低 **『きょうやった！』の記録動画は実際に見た動画ではなく、その日のおすすめ動画IDが記録される** — index.html 1726-1731（currentTodayId）／1824-1830（markDoneのdaylog保存）
   - 文言は現状維持でも成立するが、直近タップした動画（pendingNudgeで既に検知している）があればそちらをdaylogに優先記録すると1行で精度が上がる
+  - **ステータス: 対応済み（2026-07-17）**: 提案どおりの実装。`#todayVideo`内の動画タップ時に、既存の`kyono_pendingNudge`（日付のみ）に加えて新設の`kyono_pendingNudgeVideo`（`{d:今日, v:タップされた動画ID}`のJSON、href内の`v=`パラメータから抽出）をsessionStorageへ記録。`markDone()`（app-record.js）は、この動画IDが存在しかつ日付が今日と一致する場合はそれをdaylogへ優先記録し、無い場合は従来どおり`currentTodayId()`（おすすめ動画ID）にフォールバック。既存の`kyono_pendingNudge`は`checkDoneNudge()`が確認後に消してしまうため、あえて別キーにして「きょうやった？」ナッジ機構と独立させ、ナッジが先に発火してもタップした動画IDは消えずmarkDone側に届くようにした。scripts/smoke.jsに回帰テスト「7b」を追加し、①タップ動画がおすすめと別IDでもdaylogにタップ側が残ること ②タップなしでは従来どおりおすすめ動画IDにフォールバックすること ③checkDoneNudge実行後もタップの動画ID記録が消えないこと（ナッジとの非干渉）の3点を実測確認（npm run smoke 18/18 pass・npm test 132checks pass）。マイ記録タブのカレンダー（showDay()）は元々daylogの`v`をそのまま表示するため、この変更で自動的に正しい動画へのリンクに反映される。
 - ⚪低 **SWがナビゲーションをネットワーク優先（タイムアウトなし）で処理するため、電波が微弱な環境でPWA起動が数十秒待たされ得る** — sw.js 13-26（navigate=no-cache付きfetch→失敗時のみcache）
   - navigateのみ3秒程度のPromise.raceでcacheに倒す（stale-while-revalidate化）。更新はどのみち既存の更新トーストが拾う
 - ⚪低 **β運用の学習手段が皆無（解析なし・アンケート導線なし）で、100人配布の成否を判定できない** — index.html 892（『アクセス解析もありません』）／フィードバック経路はmailtoリクエストのみ（app-search.js 66・sdAnswerFallback 2927）

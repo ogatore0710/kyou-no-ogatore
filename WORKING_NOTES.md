@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 「きょうやった！」の記録動画を、タップした実際の動画優先に変更（AUDIT-MEMO.md低優先項目・本人承認済み）
+
+AUDIT-MEMO.mdの低優先項目「『きょうやった！』の記録動画は実際に見た動画ではなく、その日のおすすめ動画IDが記録される」に対応した。
+
+- `index.html`の`#todayVideo`タップ時ハンドラに、既存の`kyono_pendingNudge`（日付のみ・「きょうやった？」ナッジ用）に加えて新設の`kyono_pendingNudgeVideo`（`{d:今日の日付, v:タップされた動画ID}`のJSON。`a.href`の`v=`パラメータから正規表現で抽出）をsessionStorageに記録する処理を追加。
+- `app-record.js`の`markDone()`は、`kyono_pendingNudgeVideo`が存在し日付が今日と一致すればその動画IDをdaylogへ優先記録し、無ければ従来どおり`currentTodayId()`（おすすめ動画ID）にフォールバックする。
+- 既存の`kyono_pendingNudge`は`checkDoneNudge()`がチェック後に消してしまう（ナッジは一度出したら終わりの仕様）ため、あえて別キーに分けてナッジ機構と独立させた。これにより「タップ→アプリ離脱→戻ってきてナッジが出る→そのあときょうやった！を押す」という順序でも、動画IDの記録がナッジに巻き込まれて消えることはない。
+- `scripts/smoke.js`に回帰テスト「7b」を新規追加し、①タップした動画がおすすめと別IDでもdaylogにタップ側のIDが残ること ②タップせず「きょうやった！」だけ押した場合は従来どおりおすすめ動画IDにフォールバックすること ③`checkDoneNudge()`実行後も`kyono_pendingNudgeVideo`は消えずmarkDoneに反映されること（ナッジ機能との非干渉）の3点を実測確認した。
+- マイ記録タブのカレンダー（`showDay()`、`app-record.js`）は元々daylogの`v`をそのまま参照してリンク表示するため、コード変更不要でこの修正が自動的に反映される。
+- 検証: `npm test`=132checks PASS、`npm run smoke`=18/18 PASS（新規追加分含む）。
+- 補足: 本作業中もリポジトリは複数セッションが並行編集中（記録カード機能の`app-card.js`分割・独自ドメインURL反映などが同時進行）で、`index.html`が何度も上書きされた。自分の変更（本エントリの2箇所）が既にHEADへ反映済みであることを確認したうえで、検証は`git worktree`で作った隔離コピー（HEAD+自分のscripts/smoke.js差分のみ）で実施し、他セッションのWIPには一切触れていない。
+
 ## 2026-07-17 配布物・OGPメタタグのURLを独自ドメイン(kyou-no.ogatore.net)へ一本化（本人承認済み）
 
 `kyou-no.ogatore.net`のGitHub Pagesカスタムドメイン設定（同日先行実施・`WORKING_NOTES.md`の別エントリ参照）を受けて、対外的に見せる絶対URLを旧`https://ogatore0710.github.io/kyou-no-ogatore/`から新ドメイン`https://kyou-no.ogatore.net/`へ置き換えた。
