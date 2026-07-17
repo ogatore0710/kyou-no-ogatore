@@ -183,7 +183,7 @@ function checkNoForbiddenModernSyntax(files) {
   }
 }
 
-function checkHtml(html) {
+function checkHtml(html, cardScript) {
   const inline = extractInlineScripts(html);
   assert("index.html: inline scripts found", inline.length >= 2, `${inline.length} inline scripts`);
   parseJs("index.html inline scripts", inline.join("\n;\n"));
@@ -203,7 +203,10 @@ function checkHtml(html) {
   assert("oldBrowserNote script: ES5-only guard", !oldForbidden.test(oldScript), "no modern syntax in final fallback");
 
   const main = inline[inline.length - 2] || "";
-  const drawCard = extractFunction(main, "drawCard");
+  // drawCard/ensureCardFontsはapp-card.jsへ移動済み（2026-07-17・SPLIT-PLAN.md「4. 記録カード」）。
+  // 抽出元をmain(index.html)からcardScript(app-card.js)へ切り替え。ピクセル回帰の絶対ルール
+  // （Math.random/Date.now/引数なしnew Date()禁止）は移動後も変わらず機械チェックする。
+  const drawCard = extractFunction(cardScript, "drawCard");
   assert("drawCard: found", drawCard.length > 0, `${drawCard.length} chars`);
   assert("drawCard: no Math.random", !/Math\.random\s*\(/.test(drawCard), "card output stays reproducible");
   assert("drawCard: no Date.now", !/Date\.now\s*\(/.test(drawCard), "card output is date-driven");
@@ -222,7 +225,7 @@ function checkHtml(html) {
   assert("updateFabs: found", updateFabs.length > 0, `${updateFabs.length} chars`);
   assert("updateFabs: hides FABs on #reach (FAB重なり対策)", /currentSection===["']reach["']/.test(updateFabs), "reach-rowとFABの重なり対策");
 
-  const ensureCardFonts = extractFunction(main, "ensureCardFonts");
+  const ensureCardFonts = extractFunction(cardScript, "ensureCardFonts");
   assert("ensureCardFonts: timeout guard", /Promise\.race/.test(ensureCardFonts) && /2200/.test(ensureCardFonts), "font load cannot hang forever");
   const importData = extractFunction(main, "importData");
   assert("importData: size limit", /300000/.test(importData), "import payload capped");
@@ -869,23 +872,24 @@ function checkPythonScripts() {
 }
 
 function main() {
-  for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "sw.js", "manifest.json"]) {
+  for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "app-card.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
   }
 
-  const shipped = ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "sw.js"];
+  const shipped = ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "app-card.js", "sw.js"];
   if (exists("soudan-kb.js")) shipped.push("soudan-kb.js");
   checkNoForbiddenModernSyntax(shipped);
 
   const html = read("index.html");
   const inline = extractInlineScripts(html);
   const mainScript = inline[inline.length - 2] || "";
-  checkHtml(html);
+  const cardScript = read("app-card.js");
+  checkHtml(html, cardScript);
   const searchScript = read("app-search.js");
   const allowedTags = checkSearchScript(searchScript);
   const quizScript = read("app-quiz.js");
   const recordScript = read("app-record.js");
-  checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}`);
+  checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}\n${cardScript}`);
   checkOnboardingWorrySkip(mainScript, quizScript);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);
