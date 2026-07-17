@@ -1449,7 +1449,7 @@ function vHTML(v, badge){
 function videoCard(vk, badge){ return vHTML(V[vk], badge); }
 
 // ---- きょうの1本 ----
-function autoMode(){ const h=new Date().getHours(); return (h>=4&&h<15)?"asa":"yoru"; }
+function autoMode(){ const h=new Date().getHours(); return (h>=4&&h<17)?"asa":"yoru"; }
 // asa/yoru の意味は壊さず、季節モチーフを上乗せするロゴマーク選択（Math.random()不使用・日付ハッシュで決定的）
 // 通年カレンダー: 梅雨6/1-7/15・夏7/16-8/31・秋9/15-11/30・冬12/1-2月末・桜3/20-4/15・七夕7/7・正月1/1-1/3（毎日）
 function pickLogoMark(m){

@@ -4,6 +4,10 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 「きょうのよる」バッジの境界を15時→17時に後ろ倒し（本人YES承認済み・AUDIT-MEMO低優先項目）
+
+`autoMode()`（index.html）が`h>=4&&h<15`で「あさ」判定していたため、15時台の初見ユーザーに「きょうのよる」バッジが出て昼なのに夜扱いに見える件。境界を17時に変更（`h<17`）。既存テストに15時境界を前提にした assertion はなく回帰なし。`npm test`132checks・`npm run smoke`17/17、PASS。
+
 ## 2026-07-17 記録・継続をapp-record.jsへ分割（SPLIT-PLAN 3番の消化）
 
 `SPLIT-PLAN.md`の「3. 記録・継続」を実行。`index.html`から`store`/`todayStr`/`getStreakData`/`renderStreak`/`markDone`/`saveMemo`/`setReach`/`renderReach`/`renderDiary`/`renderHistory`/`renderCal`/`showDay`の12個を新規`app-record.js`へ切り出した（純移動・中身は無変更）。当初案にあった`renderThanks`/`sendThanks`は実装時点で既に「ありがとうボタン撤去」（コミット`f179275`）でindex.htmlから削除済みだったため対象外（12個のみ移動）。
