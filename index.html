@@ -2189,7 +2189,7 @@ function renderDexBanner(){
   document.getElementById("dexBannerSamples").innerHTML=samples.map(dexCellHtml).map(h=>h.replace('class="dex-cell"','class="dex-cell" style="width:56px"')).join("");
 }
 function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); modalFocusOpen("dexModalBox"); lockBodyScroll(); updateFabs(); }
-function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); modalFocusClose(); unlockBodyScroll(); updateFabs(); }
+function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); unlockBodyScroll(); updateFabs(); modalFocusClose(); }
 
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
@@ -2344,7 +2344,7 @@ function markCardSaved(){
   if(cardDate===todayStr() && getStreakData().dates.includes(todayStr())) store.set("card_saved", todayStr());
 }
 // downloadCard/shareCardはapp-card.jsへ移動済み（2026-07-17）
-function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); modalFocusClose(); applyMiniStreak(); updateFabs(); }
+function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); modalFocusClose(); }
 
 // ================= じまんカード（つづけてる日数＋すきな1本を1枚に） =================
 let bragPick=null;
@@ -3087,10 +3087,10 @@ function openSoudan(intentId){
 // fromPop=true: popstate起点（履歴はすでに1段戻っている）。✕タップ等の画面起点ならこちらからhistory.back()して整合を取る
 function closeSoudan(fromPop){
   document.getElementById("soudanSheet").classList.add("hidden");
-  modalFocusClose();
   unlockBodyScroll();
   sdVvOff();
   updateFabs();
+  modalFocusClose();
   sdQueuedIntent=null; // 未消化のチップ指定は捨てる（次回オープン時に古い回答が突然流れないように）
   if(fromPop!==true){ try{ if(history.state&&history.state.id==="soudan") history.back(); }catch(e){} }
 }
@@ -3979,8 +3979,8 @@ function obClose(fromPop){
   store.set("onboarded",1);
   const w=document.getElementById("welcome");
   if(w) w.classList.add("hidden");
-  modalFocusClose();
   updateFabs();
+  modalFocusClose();
   if(fromPop!==true){ try{ if(history.state&&history.state.ob) history.back(); }catch(e){} }
 }
 function obSkip(){ obClose(); }

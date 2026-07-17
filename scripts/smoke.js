@@ -1565,6 +1565,65 @@ async function main() {
       return "SW登録(localhost経由)→シェルキャッシュ確認(" + cachedShellCount + "件)→オフライン化→リロード後もホーム画面/きょうやった！ボタンが表示・操作可能なことを確認";
     });
 
+    // 7f. モーダルのフォーカス管理: 開いた瞬間にダイアログへフォーカスが移り、閉じたら元のトリガー要素へ戻ることを
+    //     4つのモーダル(相談室/カード図鑑/記録カード/はじめてガイド)すべてで実測する（2026-07-18 Fable監査でaria-live/
+    //     フォーカス管理の欠如を指摘・対応。updateFabs()がbody.fabs-hideでFABをCSS非表示にする関係で、
+    //     modalFocusClose()をupdateFabs()より前に呼ぶとフォーカス対象が非表示のままで失敗する落とし穴があったため、
+    //     呼び出し順そのものを固定する回帰テストとして重要）
+    await step("7f-モーダルのフォーカス管理(開く→ダイアログへ・閉じる→元のトリガーへ)", async () => {
+      const p = await browser.newPage();
+      await wirePage(p);
+      await p.goto(url, { waitUntil: "load" });
+      await p.waitForFunction(() => window.__kyonoBoot === true, { timeout: 8000 });
+      await p.evaluate(() => { try { document.getElementById("obSkipBtn").click(); } catch (e) { /* ignore */ } });
+      await p.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 }).catch(() => {});
+
+      async function checkModal(label, triggerSelector, openInPage, boxId, closeInPage) {
+        const focused = await p.evaluate((sel) => {
+          const el = document.querySelector(sel);
+          if (!el) return null;
+          el.focus();
+          return document.activeElement === el;
+        }, triggerSelector);
+        if (!focused) throw new Error(label + ": トリガー要素(" + triggerSelector + ")にフォーカスできない");
+        await openInPage();
+        await new Promise((r) => setTimeout(r, 300));
+        const duringId = await p.evaluate(() => document.activeElement && document.activeElement.id);
+        if (duringId !== boxId) throw new Error(label + ": 開いた直後のフォーカスが" + boxId + "でない (実測=" + duringId + ")");
+        await closeInPage();
+        await new Promise((r) => setTimeout(r, 150));
+        const returned = await p.evaluate((sel) => {
+          const el = document.querySelector(sel);
+          return !!el && document.activeElement === el;
+        }, triggerSelector);
+        if (!returned) throw new Error(label + ": 閉じたあとフォーカスがトリガー要素(" + triggerSelector + ")に戻っていない");
+      }
+
+      await checkModal("相談室", "#soudanFab",
+        () => p.evaluate(() => openSoudan()), "soudanSheetBox",
+        () => p.evaluate(() => closeSoudan()));
+      await p.click("#tab-history");
+      await p.waitForSelector("#history", { visible: true });
+      await checkModal("カード図鑑", "button[onclick=\"openDex()\"]",
+        () => p.evaluate(() => openDex()), "dexModalBox",
+        () => p.evaluate(() => closeDex()));
+      await p.click("#tab-home");
+      await p.waitForSelector("#home", { visible: true });
+      await p.evaluate(() => { store.set("streak2", { dates: ["2026-07-01"], count: 1, total: 1 }); });
+      await checkModal("記録カード", "#doneBtn",
+        () => p.evaluate(() => makeCard("2026-07-01")), "cardModalBox",
+        () => p.evaluate(() => closeCard()));
+      await new Promise((r) => setTimeout(r, 2200)); // makeCard内のフォント/画像読み込み(ensureCardFonts等)が閉じたあとも走るための猶予
+      await p.click("#tab-guide");
+      await p.waitForSelector("#obReenterLink", { visible: true });
+      await checkModal("はじめてガイド", "#obReenterLink",
+        () => p.evaluate(() => obOpen()), "welcomeBox",
+        () => p.evaluate(() => obClose()));
+
+      await p.close();
+      return "相談室→カード図鑑→記録カード→はじめてガイド の4モーダルすべてで、開く→ダイアログへフォーカス移動・閉じる→トリガー要素へフォーカス復帰を確認";
+    });
+
     // 8. 最終確認: コンソールエラー総数0
     currentStep = "8-最終確認";
     if (consoleErrors.length === 0) {
