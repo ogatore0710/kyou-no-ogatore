@@ -1,11 +1,11 @@
 # kyou-no-ogatore 開発ハンドオフ
 
-最終更新: 2026-07-15
+最終更新: 2026-07-17
 
 ## 現状
-- アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `sw.js` + `manifest.json`
+- アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `app-quiz.js` + `app-record.js` + `soudan-kb.js` + `obu-feed.js` + `sw.js` + `manifest.json`
 - 公開はGitHub Pages。push後に `.github/workflows/pages.yml` が配信物を作る
-- 自動QAは `npm test` で実行。2026-07-15時点で103 checks PASS。実機ゴールデンフローは `npm run smoke` で15/15 PASS（別コマンド・実ブラウザQAはこちらでリポジトリ内自動化済み）
+- 自動QAは `npm test` で実行。2026-07-17時点で132 checks PASS。実機ゴールデンフローは `npm run smoke` で17/17 PASS（別コマンド・実ブラウザQAはこちらでリポジトリ内自動化済み）
 - 実ブラウザQA / PWA検収結果: [QA-REPORT.md](QA-REPORT.md)
 - β配布前チェックリスト: [BETA-CHECKLIST.md](BETA-CHECKLIST.md)
 - `index.html` 分割計画: [SPLIT-PLAN.md](SPLIT-PLAN.md)

@@ -1256,6 +1256,28 @@ function toggleObu(){
   const m=document.getElementById("obuModal");
   if(m.classList.contains("hidden")) openObu(); else closeObu();
 }
+// ---- 背面スクロールロック（sd-lock共通ヘルパー） ----
+// body.sd-lock{overflow:hidden}(CSS)だけではiOS15以前のSafariで背面ページが指1本でスクロールできてしまう
+// (「スクロール抜け」既知バグ)ため、position:fixed+top:-scrollY方式を併用する。
+// sd-lockを付け外しする箇所(相談室シート・カード図鑑・他モーダル)は必ずこの2関数経由にすること。
+// 個別にclassList.add/remove("sd-lock")するとscrollYの記憶/復元が漏れて背面が飛ぶバグの元になる。
+let sdLockScrollY=0;
+function lockBodyScroll(){
+  if(document.body.classList.contains("sd-lock")) return; // 多重ロック防止（先勝ちのscrollYを保持）
+  sdLockScrollY=window.scrollY||window.pageYOffset||0;
+  document.body.classList.add("sd-lock");
+  document.body.style.position="fixed";
+  document.body.style.top=(-sdLockScrollY)+"px";
+  document.body.style.width="100%";
+}
+function unlockBodyScroll(){
+  if(!document.body.classList.contains("sd-lock")) return;
+  document.body.classList.remove("sd-lock");
+  document.body.style.position="";
+  document.body.style.top="";
+  document.body.style.width="";
+  window.scrollTo(0,sdLockScrollY); // 開く前のスクロール位置へ復元
+}
 // ---- FAB表示制御（オガトレ通信+相談室の2段縦積み共通） ----
 // クイズ中・相談室シート・記録カード・オガトレ通信・オンボーディング表示中は両FABとも隠す。
 // とどくメーター(#reach)もクイズと同じ理由で隠す: 実測(390x844)でFAB2段(右下固定)が
@@ -2171,8 +2193,8 @@ function renderDexBanner(){
   const samples=[d.toku[0],d.season[0],d.rare[0],d.normal[0]].filter(Boolean);
   document.getElementById("dexBannerSamples").innerHTML=samples.map(dexCellHtml).map(h=>h.replace('class="dex-cell"','class="dex-cell" style="width:56px"')).join("");
 }
-function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); document.body.classList.add("sd-lock"); updateFabs(); }
-function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); document.body.classList.remove("sd-lock"); updateFabs(); }
+function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); lockBodyScroll(); updateFabs(); }
+function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); unlockBodyScroll(); updateFabs(); }
 
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
@@ -3370,7 +3392,7 @@ function openSoudan(intentId){
   // 履歴に1段積む（すでにsoudan stateならpopstate復元中なので積まない）→「戻る」でシートが閉じる
   try{ if(!(history.state&&history.state.id==="soudan")) history.pushState({id:"soudan"},""); }catch(e){}
   document.getElementById("soudanSheet").classList.remove("hidden");
-  document.body.classList.add("sd-lock"); // 背面ページのスクロールを止める
+  lockBodyScroll(); // 背面ページのスクロールを止める（position:fixed+top:-scrollY方式。iOS15以前のスクロール抜け対策）
   sdVvOn();
   updateFabs();
   sdFlavorShown=false; // タイプ挨拶は開くたび最初の1回答だけ
@@ -3387,7 +3409,7 @@ function openSoudan(intentId){
 // fromPop=true: popstate起点（履歴はすでに1段戻っている）。✕タップ等の画面起点ならこちらからhistory.back()して整合を取る
 function closeSoudan(fromPop){
   document.getElementById("soudanSheet").classList.add("hidden");
-  document.body.classList.remove("sd-lock");
+  unlockBodyScroll();
   sdVvOff();
   updateFabs();
   sdQueuedIntent=null; // 未消化のチップ指定は捨てる（次回オープン時に古い回答が突然流れないように）
@@ -3862,7 +3884,15 @@ let lastDay=todayStr();
 // タップ時にきょう日付でフラグを立てておき、復帰時(refreshDay)に当日未記録なら一度だけ声かけする
 (function(){ const tv=document.getElementById("todayVideo"); if(tv) tv.addEventListener("click",e=>{
   const a=e.target.closest&&e.target.closest("a.video");
-  if(a){ try{ sessionStorage.setItem("kyono_pendingNudge", todayStr()); }catch(err){} }
+  if(a){
+    try{ sessionStorage.setItem("kyono_pendingNudge", todayStr()); }catch(err){}
+    // タップした動画のIDも別キーで記録しておく（きょうやった！のdaylogに「実際に見た動画」を残すため）。
+    // kyono_pendingNudgeはcheckDoneNudgeが一度見たら消してしまうため、あえて別キーにして影響しないようにする。
+    try{
+      const m=(a.getAttribute("href")||"").match(/[?&]v=([\w-]{11})(?:&|$)/);
+      if(m) sessionStorage.setItem("kyono_pendingNudgeVideo", JSON.stringify({d:todayStr(), v:m[1]}));
+    }catch(err){}
+  }
 }); })();
 function checkDoneNudge(){
   try{

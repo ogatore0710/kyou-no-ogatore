@@ -85,8 +85,14 @@ function markDone(){
   if(missed) tryUseFreezes(missed);
   if(newChapter){ const ch=(store.get("chapters",1))+1; store.set("chapters",ch); note=`第${ch}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨`; }
   // きょうの動画をカレンダー用に記録
+  // 「きょうの1本」でタップされた動画IDがあればそれを優先（実際に見た動画とおすすめが違うケースに対応）。
+  // タップ記録がない/日付が違う場合はこれまでどおりおすすめ動画IDにフォールバック。
   try{
-    const vid=currentTodayId();
+    let vid=currentTodayId();
+    try{
+      const pv=JSON.parse(sessionStorage.getItem("kyono_pendingNudgeVideo")||"null");
+      if(pv&&pv.d===today&&pv.v&&/^[\w-]{11}$/.test(pv.v)) vid=pv.v;
+    }catch(e2){}
     let vt=""; for(const k in V){ if(V[k].id===vid){ vt=V[k].t; break; } }
     const dl=store.get("daylog",{}); dl[today]={v:vid,t:vt,c:st.count};
     const ks=Object.keys(dl).sort(); if(ks.length>400) ks.slice(0,ks.length-400).forEach(k=>delete dl[k]);
