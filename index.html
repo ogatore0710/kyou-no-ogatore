@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://i.ytimg.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; object-src 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://i.ytimg.com; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>#きょうのオガトレ｜みんなで一緒にストレッチを習慣化</title>
 <meta name="description" content="タップするだけ３０秒のかたさチェック あなたに合うオガトレのストレッチが見つかります">
@@ -50,11 +50,6 @@
 <link rel="apple-touch-startup-image" media="screen and (prefers-color-scheme: light) and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="assets/splash/splash-2048x2732.png">
 <link rel="apple-touch-startup-image" media="screen and (prefers-color-scheme: dark) and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="assets/splash/splash-2048x2732-dark.png">
 <meta name="theme-color" content="#FFD93B">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap">
-<link id="gfontLink" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&display=swap" rel="stylesheet"></noscript>
 <script>
   // ホーム画面追加ポップアップ(#a2hsModal)用: Android Chrome等のbeforeinstallpromptは
   // 発火が早く・一度しか飛ばないため、できるだけ早い段階（head先頭付近）で拾って保持しておく。
@@ -65,32 +60,15 @@
     window.__a2hsEvent = e;
   });
 </script>
-<script>
-  // フォントCSSの読み込み保険: 遅延回線でのonload未発火や、まれな失敗で
-  // フォールバック書体(Hiragino/Yu Gothic)に固定されたまま戻ってこないのを防ぐ。
-  // ・timeoutで強制的にmedia="all"へ（onloadが遅い/来ない場合の保険。二重実行しても無害）
-  // ・error時は1回だけ同じhrefで読み直しを試す（一時的なネットワーク失敗対策）
-  (function(){
-    var l=document.getElementById('gfontLink');
-    if(!l) return;
-    var forced=false;
-    function force(){ if(!forced){ forced=true; l.media='all'; } }
-    l.addEventListener('load', force);
-    l.addEventListener('error', function(){
-      force();
-      if(!l.getAttribute('data-retried')){
-        l.setAttribute('data-retried','1');
-        var retry=document.createElement('link');
-        retry.rel='stylesheet';
-        retry.href=l.href;
-        document.head.appendChild(retry);
-      }
-    });
-    setTimeout(force, 3000);
-  })();
-</script>
 <style>
   @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-card.woff2?v=2") format("woff2");font-display:swap}
+  /* M PLUS 1p 自己ホスト版（2026-07-18・Google Fonts依存の除去）。本文で実際に使う文字だけを
+     pyftsubsetでサブセット化（各150-170KB）。新しい漢字を本文に追加したら再サブセットが必要
+     （banana-card.woff2と同じ流儀・詳細はWORKING_NOTES参照）。
+     元フォント: google/fontsリポジトリの ofl/mplus1p/MPLUS1p-{Bold,ExtraBold,Black}.ttf */
+  @font-face{font-family:"M PLUS 1p";font-weight:700;src:url("assets/fonts/mplus1p-700.woff2") format("woff2");font-display:swap}
+  @font-face{font-family:"M PLUS 1p";font-weight:800;src:url("assets/fonts/mplus1p-800.woff2") format("woff2");font-display:swap}
+  @font-face{font-family:"M PLUS 1p";font-weight:900;src:url("assets/fonts/mplus1p-900.woff2") format("woff2");font-display:swap}
   :root{
     --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#6E6B5F;
     --teal:#2BB3A3; --teal-strong:#1E7B70; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
@@ -534,28 +512,16 @@
 (function(){
   // スプラッシュの見出し文字がフォールバック書体(細め)で一瞬見えてから
   // 本物のM PLUS 1p(太め)へ入れ替わるFOUTのちらつき防止。
-  // gfontLinkの読み込み完了(or本文フォント準備完了)を待ってから.spl-innerをフェードイン表示する。
+  // document.fonts.ready(=自己ホストの@font-face読み込み完了)を待ってから.spl-innerをフェードイン表示する。
   // 700ms保険タイムアウトはMIN=850msの最低表示時間より短いので、オフライン等でフォントが
   // 一切読み込めない場合でもスプラッシュが表示されないまま固まることはない。
   var el=document.querySelector("#appSplash .spl-inner");
   if(!el) return;
   var done=false;
   function reveal(){ if(done) return; done=true; el.classList.add("show"); }
-  function waitFont(){
-    try{
-      if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(reveal).catch(reveal); return; }
-    }catch(e){}
-    reveal();
-  }
-  var link=document.getElementById("gfontLink");
-  if(link && link.media==="print"){
-    var n=0;
-    var iv=setInterval(function(){
-      if(link.media==="all"||++n>30){ clearInterval(iv); waitFont(); }
-    },20);
-  } else {
-    waitFont();
-  }
+  try{
+    if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(reveal).catch(reveal); } else { reveal(); }
+  }catch(e){ reveal(); }
   setTimeout(reveal,700);
 })();
 </script>
