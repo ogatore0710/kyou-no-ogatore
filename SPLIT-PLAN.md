@@ -60,9 +60,9 @@
 - 画面として独立している
 - 実ブラウザQAで5問完走を確認できる
 
-### 3. 記録・継続（次候補・2026-07-15時点）
-候補ファイル:
-- `record.js` または `app-record.js`
+### 3. 記録・継続（完了・2026-07-17）
+ファイル:
+- `app-record.js`
 
 対象:
 - `store`
@@ -71,14 +71,15 @@
 - `renderStreak`
 - `markDone`
 - `saveMemo`
-- `renderThanks`
-- `sendThanks`
 - `setReach`
 - `renderReach`
 - `renderDiary`
 - `renderHistory`
 - `renderCal`
 - `showDay`
+
+（`renderThanks`/`sendThanks`は当初案に含まれていたが、実装時点では既に「ありがとうボタン撤去」で
+index.htmlから削除済みだったため対象外。実在する12個のみ移動）
 
 理由:
 - localStorageと日付境界が絡むため、検索・チェックより後に切る

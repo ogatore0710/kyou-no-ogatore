@@ -4,6 +4,28 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 記録・継続をapp-record.jsへ分割（SPLIT-PLAN 3番の消化）
+
+`SPLIT-PLAN.md`の「3. 記録・継続」を実行。`index.html`から`store`/`todayStr`/`getStreakData`/`renderStreak`/`markDone`/`saveMemo`/`setReach`/`renderReach`/`renderDiary`/`renderHistory`/`renderCal`/`showDay`の12個を新規`app-record.js`へ切り出した（純移動・中身は無変更）。当初案にあった`renderThanks`/`sendThanks`は実装時点で既に「ありがとうボタン撤去」（コミット`f179275`）でindex.htmlから削除済みだったため対象外（12個のみ移動）。
+
+- **依存関係の扱い**: `store`はほぼ全域から参照されるためscriptタグの読み込み順（`app-record.js`を`app-quiz.js`の直後・メインのインラインscriptより前に配置）で解決。`getStreakData`/`todayStr`/`store`は`streakBrokenNow`/`effectiveStreakCount`/`applyMiniStreak`/`currentTodayId`/`launchConfetti`/`getReach`/`REACH_LV`/`calDate`/`calSelected`/`calMove`/`toggleDayVideo`など**index.htmlに残した多数の関数から呼ばれ続ける**ため、これらは対象外のまま残置（app-quiz.js分割時と同じ「外科的切除」方式）。関数呼び出しは実行時にグローバルスコープで解決されるため、ファイルをまたいでも従来どおり動作する。
+- **sw.js**: `kyono-v47`→**v48**へバンプ、`ASSETS`/`SHELL`/`isShell`判定の3箇所に`app-record.js`を追加（`app-quiz.js`と同じnetwork-first扱い）。
+- **scripts/qa.js**: `app-record.js`を「存在チェック」「ES2020禁止構文チェック」「`checkOperationalWiring`の関数解決チェック」の3箇所に追加。
+- **検証**: `npm test`は分割前111checks→分割後**114checks**（他セッションの並行作業分と合わせて実測時点では127〜132まで増加、後退なし）。`npm run smoke`は**16/16 PASS**を確認（分割直後に相談室ゴールデンフローが1件flakyに見えた瞬間があったが、`git stash`で完全にクリーンな状態（自分の差分ゼロ）に戻して再実行しても同じ箇所が落ちる／別セッションの並行修正完了後は16/16に戻ることを確認し、自分の変更が原因でないことを実測で切り分け済み）。実ブラウザ（puppeteer-core、使い捨てスクリプト）で「きょうやった！」（streakNum 0→1）→メモ保存→記録カード生成（data URL 130万字超）→マイ記録タブのカレンダーで本日セルをタップしshowDayで当日メモが表示されることを一気通貫で確認、コンソールエラー0件。
+- `index.html`: 12関数ぶん純減（複数箇所に分散していたため6箇所以上に分けて外科的に切除）。`app-record.js`: 新規216行。
+- **裏取り環境について**: 作業中、同一リポジトリで複数の並行セッション（OGPカード作成・相談室赤旗2バケット化・iOSソフトキーボード対応・オンボQ2→Q5引き継ぎ等）がeven-syncの自動commit/pull(rebase)/pushと絶えず絡み合って稼働しており、一時的に自分の編集（scriptタグ追加・関数削除の一部）がstashに巻き込まれて消えたように見える場面が複数回あった。`git show stash@{N}:path`で内容を直接確認しながら再適用し、最終的に自分の担当ファイル（`index.html`の該当箇所・`app-record.js`・`sw.js`・`scripts/qa.js`）だけが正しい状態であることを確認してから確定させた。他セッションの担当ファイル（`app-quiz.js`・`soudan-kb.js`・`soudan-ai-poc/*`・`AUDIT-MEMO.md`等）には一切手を触れていない。作業中に生成した使い捨てのstash（`other-session-redflag-wip-temp`等）はいずれも内容がHEADまたは作業ツリーに既に反映済み（重複）であることを確認したが、削除の許可が下りなかったため未整理のまま残っている。気になれば`git stash list`で確認のうえ`git stash drop`で本人判断で消してよい。
+
+## 2026-07-17 オンボQ2「いちばん気になるのは？」の悩み回答を、直後のかたさチェックQ5に引き継いでスキップ（AUDIT-MEMO.md仕様判断待ち項目・本人YES=Q5スキップで承認済み）
+
+AUDIT-MEMO.mdの仕様判断待ちだった「オンボーディングQ2の悩み回答が保存されず捨てられる＋quizルートではかたさチェックQ5で同じ質問を二度される」を実装した。
+
+- **問題**: オンボーディング（`obDecideRoute()`）はQ1「体、硬いほう？」が"hard"/"unknown"なら無条件で`quiz`ルートを選ぶため、Q2「いちばん気になるのは？」で肩こり等の実質的な悩みに答えていても`obGo()`は`startQuiz()`を引数なしで呼ぶだけで、Q2の回答（`obAnswers.worry`）を一切渡していなかった。結果、`app-quiz.js`の`startQuiz()`は毎回`state.worry=null`にリセットし、Q1〜Q4（もも裏/股関節/肩甲骨/足首）に続けてQ5「いちばんの悩みは？」で全く同じ主旨の質問を再度聞いていた。
+- **語彙の差異に注意**: オンボQ2の回答値（`katakori`/`youtsuu`/`zenkutsu`/`nemuri`/`none`）はsoudan-kb.jsのインテントID語彙で、かたさチェックQ5の回答値（`katakori`/`yotsu`/`tsukare`/`yawaraka`、`app-quiz.js`の`WORRY`定義のキー）とは別の語彙体系だったため、単純に値を渡すだけでは結果画面の「＋もう1本」（`WORRY[saved.worry]`）が正しく引けなかった。`index.html`に新設した対応表`OB_WORRY_TO_QUIZ`（katakori→katakori、youtsuu→yotsu、zenkutsu→yawaraka、nemuri→tsukare）で変換してから`startQuiz(presetWorry)`に渡す。`none`（とくにない）は対応表に含めず、実質的な悩みではないためQ5スキップの対象外とした（仕様どおり）。
+- **実装**: `app-quiz.js`の`startQuiz(presetWorry)`を引数対応に拡張。`presetWorry`があれば`state.worry`をその値で初期化し`state.presetWorry=true`をセット。新設の`activeQuestions()`ヘルパーが`state.presetWorry`のときだけ`QUESTIONS`からk:"worry"のQ5を除いた4問配列を返す（worryは配列の最後尾なので、除いてもQUIZ_ARTのインデックス対応(0〜3)やmomo/koka/kenko/ashiの並びは崩れない）。`renderQ()`/`answer()`/進捗ドットは全て`QUESTIONS`直参照から`activeQuestions()`参照に置き換え、`answer()`は`state.qi>=activeQuestions().length`でQ4(ashi)直後にそのまま`finishQuiz()`へ抜けるようにした。`presetWorry`省略時（使い方タブ/マイ記録等からの単独起動）は`state.presetWorry=false`のままなので、既存の5問フル構成は完全に不変。
+- **機械チェック追加**: `scripts/qa.js`に`checkOnboardingWorrySkip()`を新設し、`OB_WORRY_TO_QUIZ`の網羅性（4語彙すべて）と"none"を含まないこと、`obGo()`が`presetWorry`を`startQuiz()`に渡すこと、`app-quiz.js`側の`startQuiz`/`activeQuestions`/`answer`が期待どおりの分岐を持つことを固定（qa=127→132checks、他セッションの並行作業分と合わせて実測時点で132）。`scripts/smoke.js`に新規ステップ「2b」を追加し、実ブラウザで①オンボ「肩こり・首」選択→かたさチェックが4問構成になりQ5が出現しないこと・「まえの質問へ」で戻っても壊れないこと・結果画面の「＋もう1本」に肩こりが反映されること、②オンボ「とくにない」選択→Q5スキップ対象外で従来どおり5問（Q5あり）のまま完走できること、③オンボを経由しない単独起動（ホーム#ckBtn）は従来どおり5問のまま（回帰なし）であることを実測確認した（smoke 16→17ステップ、17/17 PASS）。
+- **裏取り環境について**: 作業中、同一リポジトリで複数の並行セッション（赤旗2バケット化・visualViewport対応・独自ドメイン化・OGPカード作成等）がeven-syncの自動commit/pull(rebase)/pushと絡み合って稼働しており、一時的に本タスクの編集内容がstashの入れ替わりで見えなくなる場面があった。dangling commit（`git fsck --unreachable`）から該当stashの内容を特定し、正しい差分のみを復元した上でコミットしている。他セッションの未コミット分（AUDIT-MEMO.mdのvisualViewport注記等）には一切触れていない。
+- 検証: `npm test`=**132 checks PASS**（本タスクの新規追加は`checkOnboardingWorrySkip`関連13件）／`npm run smoke`=**17/17 PASS**（本タスクの新規追加は「2b」1ステップ）。
+
 ## 2026-07-17 独自ドメイン化: kyou-no.ogatore.net をお名前.com+GitHub Pagesに設定（本人承認・SCALE-NOTES.mdの「先にやる2つ」の1つ）
 
 配布拡大前に独自ドメインを被せる作業（`SCALE-NOTES.md`「先にやる2つ」参照）を実施。本人がお名前.comで`ogatore.net`を既に所有していることを確認（他に`ogatore.jp`/`ogatorejuku.org`/`ogatore.shop`/`ogatore.com`も所有だが対象外）。ogatore.net/www.ogatore.netの既存Aレコード（`34.111.141.225`、別サイトで使用中と思われる）には一切手を加えず、新規サブドメインのみ追加。
