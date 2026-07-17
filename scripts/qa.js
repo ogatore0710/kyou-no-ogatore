@@ -374,6 +374,97 @@ function checkHtml(html, cardScript) {
   return srcScripts;
 }
 
+// WCAG相対輝度・コントラスト比計算（実測監査 2026-07-17: --teal(#2BB3A3)背景+白文字が
+// 約2.6:1しかなくAA基準4.5:1を大きく下回っていた問題への対応）。
+function relLuminance(hex) {
+  const n = hex.replace("#", "");
+  const r = parseInt(n.slice(0, 2), 16) / 255;
+  const g = parseInt(n.slice(2, 4), 16) / 255;
+  const b = parseInt(n.slice(4, 6), 16) / 255;
+  const lin = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+function contrastRatio(hexA, hexB) {
+  const l1 = relLuminance(hexA);
+  const l2 = relLuminance(hexB);
+  const [lighter, darker] = l1 >= l2 ? [l1, l2] : [l2, l1];
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// 2026-07-17実測監査で発見: --teal(#2BB3A3)を背景に白文字(#fff)を乗せている箇所
+// （「きょうやった！」ボタン・選択中タグチップ・とどくメーター選択ボタン・カレンダー実施日セル等）が
+// WCAG AA基準(4.5:1)を大きく下回る約2.6:1しかコントラストが無かった。白文字が乗る背景専用の
+// --teal-strong(#1E7B70)を新設し、装飾用途(ボーダー・アイコン・グラデーション等)の--tealはそのまま
+// 維持しつつ、白文字の背景としてのみ--teal-strongに置き換えたことを機械チェックで固定する。
+function checkContrast(html) {
+  const rootMatch = /:root\s*\{([^}]*)\}/.exec(html);
+  assert(":root variables found", !!rootMatch, "for --teal/--teal-strong extraction");
+  const rootBody = rootMatch ? rootMatch[1] : "";
+  const tealMatch = /--teal:\s*(#[0-9A-Fa-f]{6})/.exec(rootBody);
+  const strongMatch = /--teal-strong:\s*(#[0-9A-Fa-f]{6})/.exec(rootBody);
+  assert("--teal defined in :root", !!tealMatch, tealMatch && tealMatch[1]);
+  assert("--teal-strong defined in :root", !!strongMatch, strongMatch && strongMatch[1]);
+
+  const teal = tealMatch ? tealMatch[1] : "#2BB3A3";
+  const tealStrong = strongMatch ? strongMatch[1] : null;
+  assert("--teal-strong value is #1E7B70 (実測計算済みの値)", tealStrong === "#1E7B70", tealStrong);
+
+  if (tealStrong) {
+    const white = "#FFFFFF";
+    const lightBg = "#FFFAF3";
+    const darkBg = "#211E19";
+    const ratioWhite = contrastRatio(tealStrong, white);
+    const ratioLightBg = contrastRatio(tealStrong, lightBg);
+    const ratioDarkBg = contrastRatio(tealStrong, darkBg);
+    const ratioOldWhite = contrastRatio(teal, white);
+    assert(
+      "--teal-strong vs white text: AA (>=4.5:1)",
+      ratioWhite >= 4.5,
+      `${ratioWhite.toFixed(2)}:1`
+    );
+    assert(
+      "--teal-strong vs light bg #FFFAF3: >=3:1 (UI非文字パーツ基準)",
+      ratioLightBg >= 3,
+      `${ratioLightBg.toFixed(2)}:1`
+    );
+    assert(
+      "--teal-strong vs dark bg #211E19: >=3:1 (UI非文字パーツ基準)",
+      ratioDarkBg >= 3,
+      `${ratioDarkBg.toFixed(2)}:1`
+    );
+    assert(
+      "--teal (旧・装飾用) vs white text stays below AA (置き換えの動機が再発しないことの記録)",
+      ratioOldWhite < 4.5,
+      `${ratioOldWhite.toFixed(2)}:1`
+    );
+  }
+
+  // 白文字(color:#fff)が乗る背景として--tealが再度使われていないことを固定する
+  // （装飾用途のvar(--teal)自体は維持してよいが、background:var(--teal); ... color:#fffの
+  // 組み合わせだけは禁止パターンとして機械チェックする）。
+  const whiteOnPlainTealPattern = /background:var\(--teal\)[^}]*color:#fff|color:#fff[^}]*background:var\(--teal\)(?!-strong)/;
+  assert(
+    "no background:var(--teal) (旧・低コントラスト値) paired with color:#fff remains",
+    !whiteOnPlainTealPattern.test(html.replace(/var\(--teal-strong\)/g, "var(--TEALSTRONG)")),
+    "white text must sit on --teal-strong, not the decorative --teal"
+  );
+
+  const requiredStrongRules = [
+    ".done-btn",
+    ".cal .d.done",
+    ".daytoggle",
+    ".chip-b.on",
+    "body.dark .chip-b.on",
+    ".reach-btn.on",
+    ".gcm-n .gcm-pill",
+  ];
+  for (const selector of requiredStrongRules) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`${escaped}\\{[^}]*background:var\\(--teal-strong\\)`);
+    assert(`${selector} uses --teal-strong as background`, re.test(html), selector);
+  }
+}
+
 // 2026-07-17仕様判断待ち項目の対応: オンボQ2「いちばん気になるのは？」で答えた悩みが保存されず、
 // 直後のかたさチェックQ5「いちばんの悩みは？」で同じ質問を繰り返していた問題（本人YES=Q5スキップ承認済み）。
 // index.html側のobGo()がOB_WORRY_TO_QUIZ変換表でオンボ語彙→クイズ語彙(WORRYキー)に変換してstartQuiz()へ渡すこと、
@@ -885,6 +976,7 @@ function main() {
   const mainScript = inline[inline.length - 2] || "";
   const cardScript = read("app-card.js");
   checkHtml(html, cardScript);
+  checkContrast(html);
   const searchScript = read("app-search.js");
   const allowedTags = checkSearchScript(searchScript);
   const quizScript = read("app-quiz.js");

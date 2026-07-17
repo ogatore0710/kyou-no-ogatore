@@ -83,7 +83,7 @@
   @font-face{font-family:"BananaNum";src:url("assets/fonts/banana-card.woff2?v=2") format("woff2");font-display:swap}
   :root{
     --yellow:#FFD93B; --yellow-soft:#FFF3C4; --ink:#3A3A35; --sub:#6E6B5F;
-    --teal:#2BB3A3; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
+    --teal:#2BB3A3; --teal-strong:#1E7B70; --teal-soft:#DFF5F2; --coral:#FF8A70; --coral-soft:#FFE8E2;
     --pink:#E56A9A; --pink-soft:#FFEDF3;
     --bg:#FFFAF3; --card:#FFFFFF; --line:#F2EADB; --radius:22px;
     --sub2:#6B6857; --tealink:#177065; --sub-faint:#827F72;
@@ -138,7 +138,7 @@
   body.dark .chip-c{background:#3A2730;border-color:#5E3A4C;color:#F09BC0}
   body.dark .chip-d{background:#2C2740;border-color:#4A4070;color:#B8A9F0}
   body.dark .chip-a.on{background:var(--yellow);border-color:var(--yellow);color:#211E19}
-  body.dark .chip-b.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  body.dark .chip-b.on{background:var(--teal-strong);border-color:var(--teal-strong);color:#fff}
   body.dark .chip-c.on{background:var(--pink);border-color:var(--pink);color:#fff}
   body.dark .chip-d.on{background:#8B7BD8;border-color:#8B7BD8;color:#fff}
   body.dark .badge{background:#3A2A24;color:#F0A58E}
@@ -186,7 +186,7 @@
   body.dark .gcardmock{background:linear-gradient(135deg,#4A3A15,#3A2F10)}
   /* 記録カード見本の通常配色版（使い方ツアー用） */
   .gcardmock.gcm-n{background:linear-gradient(135deg,#FFEDF3,#DFF5F2)}
-  .gcm-n .gcm-pill{background:var(--teal)}
+  .gcm-n .gcm-pill{background:var(--teal-strong)}
   .gcm-n .gcm-inner{border-color:rgba(43,179,163,.45)}
   .gcm-n .gcm-days,.gcm-n .gcm-note,.gcm-n .gcm-cap{color:var(--teal)}
   body.dark .gcardmock.gcm-n{background:linear-gradient(135deg,#3A2530,#1F3A35)}
@@ -364,7 +364,7 @@
   .streak{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .streak .num{font-size:38px;font-weight:900;color:var(--pink)}
   .streak .lbl{font-size:15px;color:var(--sub)}
-  .done-btn{background:var(--teal);color:#fff;box-shadow:0 4px 0 #1E8A7D}
+  .done-btn{background:var(--teal-strong);color:#fff;box-shadow:0 4px 0 #1E8A7D}
   .done-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #1E8A7D}
   .done-btn.did{background:var(--line);color:var(--sub);box-shadow:none;font-size:14px}
   @keyframes doneNudgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
@@ -391,10 +391,10 @@
   .cal th{font-size:12px;color:var(--sub);padding:4px 0;font-weight:800}
   .cal td{text-align:center;padding:3px 0}
   .cal .d{width:40px;height:40px;line-height:40px;border-radius:50%;display:inline-block;font-size:15px;font-weight:800}
-  .cal .d.done{background:var(--teal);color:#fff}
+  .cal .d.done{background:var(--teal-strong);color:#fff}
   .cal .d.today{box-shadow:inset 0 0 0 2.5px var(--pink)}
   .cal .d.sel{outline:3px solid var(--ink);outline-offset:2px}
-  .daytoggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;font-weight:900;font-size:14px;line-height:1;margin-left:4px;vertical-align:-5px}
+  .daytoggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal-strong);color:#fff;font-weight:900;font-size:14px;line-height:1;margin-left:4px;vertical-align:-5px}
   .daychip{display:inline-flex;align-items:center;gap:4px;background:var(--teal-soft);color:var(--tealink);border-radius:999px;padding:9px 16px;font-weight:800;text-decoration:none;margin-top:8px}
   .cal .d.mute{color:#D5CFBE}
   .bar{background:var(--line);border-radius:99px;height:14px;overflow:hidden;margin-top:8px}
@@ -429,7 +429,7 @@
   .chip-c{background:#FFEDF3;border-color:#F5C6D8;color:#C2477E}
   .chip-d{background:#F1EDFF;border-color:#D6CCF5;color:#6A58B5}
   .chip-a.on{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
-  .chip-b.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  .chip-b.on{background:var(--teal-strong);border-color:var(--teal-strong);color:#fff}
   .chip-c.on{background:var(--pink);border-color:var(--pink);color:#fff}
   .chip-d.on{background:#8B7BD8;border-color:#8B7BD8;color:#fff}
   /* きょうのひとこと */
@@ -488,7 +488,7 @@
   /* とどくメーター */
   .reach-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
   .reach-btn{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:13px 2px;font-family:inherit;font-size:14px;font-weight:800;color:var(--sub);cursor:pointer}
-  .reach-btn.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  .reach-btn.on{background:var(--teal-strong);border-color:var(--teal-strong);color:#fff}
   .rtrack{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:10px}
   .rbar{width:16px;height:100%;display:flex;align-items:flex-end}
   .rbar>div{width:100%;background:linear-gradient(180deg,#7BD0C4,var(--teal));border-radius:4px}
@@ -3705,7 +3705,7 @@ const OB_TOUR_SLIDES=[
    v:`<div style="display:flex;align-items:center;justify-content:center;gap:12px"><img src="assets/obu-fab-photo.jpg" alt="" style="width:56px;height:56px;border-radius:50%;border:3px solid var(--yellow);object-fit:cover;flex-shrink:0"><div style="text-align:left;font-size:13px;font-weight:800;line-height:1.7">右下のこの写真ボタン<br><span style="color:var(--sub);font-weight:700">ひとこと・写真・ラジオ📻</span></div></div>`,
    d:"尾形さんからのお知らせが届くよ ホームの<b>「きょうのひとこと」</b>も毎日かわります✅"},
   {t:"📅 マイ記録でふりかえる",
-   v:`<div class="card" style="text-align:center"><div style="font-weight:900;margin-bottom:8px">カレンダー</div><div style="display:flex;gap:7px;justify-content:center">${[1,2,3,4,5].map(n=>`<span style="width:34px;height:34px;line-height:34px;border-radius:50%;display:inline-block;font-weight:800;font-size:14px;${n<=3?"background:var(--teal);color:#fff":"color:var(--sub)"}">${n}</span>`).join("")}</div></div>`,
+   v:`<div class="card" style="text-align:center"><div style="font-weight:900;margin-bottom:8px">カレンダー</div><div style="display:flex;gap:7px;justify-content:center">${[1,2,3,4,5].map(n=>`<span style="width:34px;height:34px;line-height:34px;border-radius:50%;display:inline-block;font-weight:800;font-size:14px;${n<=3?"background:var(--teal-strong);color:#fff":"color:var(--sub)"}">${n}</span>`).join("")}</div></div>`,
    d:"やった日に印がつくよ（×はつきません）<b>とどくメーター📏・せんぱいの声・ひとことにっき📝</b>もこのタブ"},
   {t:"📖 忘れてもだいじょうぶ",
    v:`<div class="card" style="text-align:center;font-size:14px;line-height:1.9">下の<b>「使い方」タブ</b>に<br>ぜんぶ書いてあります</div>`,
