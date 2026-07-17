@@ -632,11 +632,11 @@ function checkPythonScripts() {
 }
 
 function main() {
-  for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "sw.js", "manifest.json"]) {
+  for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
   }
 
-  const shipped = ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "sw.js"];
+  const shipped = ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "sw.js"];
   if (exists("soudan-kb.js")) shipped.push("soudan-kb.js");
   checkNoForbiddenModernSyntax(shipped);
 
@@ -647,7 +647,8 @@ function main() {
   const searchScript = read("app-search.js");
   const allowedTags = checkSearchScript(searchScript);
   const quizScript = read("app-quiz.js");
-  checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}`);
+  const recordScript = read("app-record.js");
+  checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}`);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);
   checkObuFeed(read("obu-feed.js"));
