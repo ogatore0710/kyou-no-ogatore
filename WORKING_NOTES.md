@@ -4,6 +4,12 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 カード図鑑の資産整合を機械チェック昇格・オフライン耐性の初のE2Eテスト追加(Fable発案2巡目④⑦)
+
+- **④カード図鑑86件の資産整合**: `scripts/qa.js`に`checkCardDex()`を新設。SEASON_CARDS/RARE_CARDS/TOKU_CARDSの`key`全86個と`assets/cards/*.webp`が過不足なく1:1対応することを検証（実測=既に86/86一致・問題なし。今後の追加時のtypo/ファイル追加漏れを機械的に検知するための昇格）。ファイル名を一時的に変えて検知することも確認済み。
+- **⑦オフラインE2Eテストがゼロだった件**: `scripts/smoke.js`の全21ステップは`http://127.0.0.1:PORT`経由で実行していたため、index.htmlのSW登録条件（`location.protocol==="https:"||location.hostname==="localhost"`）に一致せず、**Service Workerが一度も実登録されていなかった**ことが判明（`navigator.serviceWorker.controller`が`127.0.0.1`経由では常に`false`になることを実測確認）。新設した「7e」ステップだけ`http://localhost:PORT`経由の専用フレッシュページを開き、SW登録→シェルキャッシュ確認→`page.setOfflineMode(true)`→リロード→オフラインでもホーム画面と「きょうやった！」ボタンが機能することを実測。既存21ステップの`url`（127.0.0.1のまま）は挙動変化のリスクを避けるため触っていない。
+- 検証: `npm test`=259checks、`npm run smoke`=22/22。
+
 ## 2026-07-18【重要・セキュリティ】GitHub Pages配信がリポジトリ全体を公開していた不具合を修正・iPadでホーム画面追加案内が出ない不具合も修正
 
 Fable監査（2巡目・別領域を深掘り）で発見。実測で確認した重大事項:

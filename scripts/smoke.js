@@ -1509,6 +1509,62 @@ async function main() {
       return "オンボ完走(quizルート)→結果画面①強調(fd-hero/バッジ/オガトレ一言/3本つづけて再生ボタン非表示/rotate-note非表示/rTourBtn非表示)→①タップで新規タブ+pendingNudge系セット→checkDoneNudge()で#rDoneNudge表示(ホームcheerは不可侵)→ボタンでホームへ+doneBtn強調→#fdDoneStaticNudge常時案内を確認→きょうやった！で固定cheer文言(2行のみ)/メモplaceholder/#calAsk(改行入り新文言)表示/#fdDoneStaticNudge消失→DOM順序(#memoRow→makeCardBtn→cardHint→#calAsk→#tourAsk)を確認→#tourAskの「使い方ツアーを見る」タップでobOpenTour()実起動を確認→「あとで」タップで#tourAskが空になることを確認→kyono_fd=1→あなた用が3本表示に復帰→リロード後も#calAsk/#tourAsk再出現なし→既存ユーザーの再チェックは回帰なし→" + soudanNote;
     });
 
+    // 7e. オフライン耐性: SWが実際にshellをキャッシュし、回線切断後もホーム画面が表示できることを実測する
+    //     （2026-07-18 Fable監査で指摘: これまでのステップは全部 http://127.0.0.1 経由のため、
+    //     index.htmlのSW登録条件(location.protocol==="https:"||location.hostname==="localhost")に
+    //     一致せずSWが一度も実登録されていなかった＝オフライン動作は一度も実機検証されていなかった）
+    await step("7e-オフライン耐性(SW実キャッシュ・localhost経由でのみ登録条件を満たす)", async () => {
+      const localUrl = "http://localhost:" + port + "/index.html";
+      const p = await browser.newPage();
+      await wirePage(p);
+      await p.goto(localUrl, { waitUntil: "load" });
+      await p.waitForFunction(() => window.__kyonoBoot === true, { timeout: 8000 });
+      const swSupported = await p.evaluate(() => "serviceWorker" in navigator);
+      if (!swSupported) throw new Error("このヘッドレスChromeでserviceWorkerが未サポート");
+      // installイベントのc.addAll(SHELL)完了を待つ（=シェルが実際にキャッシュされた状態）
+      await p.waitForFunction(() => navigator.serviceWorker.ready.then(() => true), { timeout: 15000 });
+      // 初回のcontroller付与を待ってからreloadしないと、次のreloadでもSWがcontrollerにならないことがある
+      await p.waitForFunction(
+        () => new Promise((resolve) => {
+          if (navigator.serviceWorker.controller) return resolve(true);
+          navigator.serviceWorker.addEventListener("controllerchange", () => resolve(true), { once: true });
+        }),
+        { timeout: 10000 }
+      );
+      await p.reload({ waitUntil: "load" });
+      await p.waitForFunction(() => window.__kyonoBoot === true, { timeout: 8000 });
+      const controlled = await p.evaluate(() => !!navigator.serviceWorker.controller);
+      if (!controlled) throw new Error("SWがcontrollerになっていない（オフラインテストの前提が崩れている）");
+      // 実際にキャッシュへ入っているシェルファイル数を確認（sw.jsのSHELL配列の分だけ入っているはず）
+      const cachedShellCount = await p.evaluate(async () => {
+        const keys = await caches.keys();
+        let count = 0;
+        for (const k of keys) {
+          const c = await caches.open(k);
+          const reqs = await c.keys();
+          count += reqs.filter((r) => /index\.html|app-env\.js|app-record\.js/.test(r.url)).length;
+        }
+        return count;
+      });
+      if (cachedShellCount < 3) throw new Error("シェルファイルがCache Storageに入っていない (検出数=" + cachedShellCount + ")");
+      // ここからオフラインにして再読み込み。ブラウザ標準の「インターネット未接続」画面にならず、
+      // SWのfetchハンドラがCache Storageから応答してアプリのホーム画面が出ることを確認する
+      await p.setOfflineMode(true);
+      await p.reload({ waitUntil: "load" });
+      const homeVisible = await p.waitForSelector("#home", { visible: true, timeout: 8000 }).then(() => true).catch(() => false);
+      if (!homeVisible) throw new Error("オフライン時にホーム画面が表示されない（SWのキャッシュ応答が機能していない）");
+      const bootOffline = await p.evaluate(() => window.__kyonoBoot === true);
+      if (!bootOffline) throw new Error("オフライン時に__kyonoBootが立っていない");
+      const doneBtnClickable = await p.evaluate(() => {
+        const b = document.getElementById("doneBtn");
+        return !!b && !b.disabled;
+      });
+      if (!doneBtnClickable) throw new Error("オフライン時に「きょうやった！」ボタンが操作可能でない");
+      await p.setOfflineMode(false);
+      await p.close();
+      return "SW登録(localhost経由)→シェルキャッシュ確認(" + cachedShellCount + "件)→オフライン化→リロード後もホーム画面/きょうやった！ボタンが表示・操作可能なことを確認";
+    });
+
     // 8. 最終確認: コンソールエラー総数0
     currentStep = "8-最終確認";
     if (consoleErrors.length === 0) {
