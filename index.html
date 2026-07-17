@@ -676,6 +676,7 @@
     </div>
     <div class="lbl" id="totalDays" style="margin-top:2px"></div>
     <div id="miniDone">きょうの分は完了！<br>おつかれさまでした😊</div>
+    <div id="fdDoneStaticNudge" class="hidden" style="text-align:center;font-size:14px;font-weight:800;color:var(--pink);margin-top:10px">動画を見おわったら、ここを押してね👇</div>
     <button class="btn done-btn" id="doneBtn" onclick="markDone()" style="font-size:17px;margin-top:12px">きょうやった！</button>
     <div id="cheer" style="text-align:center;font-size:15px;margin-top:10px;color:var(--sub)"></div>
     <div id="memoRow" class="hidden" style="margin-top:10px">
@@ -1841,13 +1842,16 @@ function renderIcs(){
   document.getElementById("appUrl").value=location.origin+location.pathname;
   const tm=hhmm.replace(":","")+"00";
   const stamp=new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
-  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//kyono-ogatore//JP","BEGIN:VEVENT","UID:kyono-ogatore-daily","DTSTAMP:"+stamp,"DTSTART:20260701T"+tm,"RRULE:FREQ=DAILY","SUMMARY:きょうのオガトレ（1本だけ）","BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:ストレッチの時間です","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  // 繰り返し予定のDTSTART/datesは必ず「今日」の日付を使う（過去日固定だとGoogleカレンダーが
+  // 単発予定として扱ってしまう不具合の再発防止。todayStr()はapp-record.jsで定義=3時間オフセットJST）。
+  const icsDate=todayStr().replace(/-/g,"");
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//kyono-ogatore//JP","BEGIN:VEVENT","UID:kyono-ogatore-daily","DTSTAMP:"+stamp,"DTSTART:"+icsDate+"T"+tm,"RRULE:FREQ=DAILY","SUMMARY:きょうのオガトレ（1本だけ）","BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:ストレッチの時間です","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
   document.getElementById("icsLink").href="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
   // Googleカレンダー派向けリンク
   const end=String(Number(tm.slice(0,2))).padStart(2,"0")+tm.slice(2,4);
   const endHH=String((Number(tm.slice(0,2))))+"";
-  const gEnd="20260701T"+String(Number(tm.slice(0,2))).padStart(2,"0")+String(Math.min(59,Number(tm.slice(2,4))+10)).padStart(2,"0")+"00";
-  document.getElementById("gcalLink").href="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("きょうのオガトレ（1本だけ）")+"&dates=20260701T"+tm+"/"+gEnd+"&recur=RRULE:FREQ=DAILY";
+  const gEnd=icsDate+"T"+String(Number(tm.slice(0,2))).padStart(2,"0")+String(Math.min(59,Number(tm.slice(2,4))+10)).padStart(2,"0")+"00";
+  document.getElementById("gcalLink").href="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("きょうのオガトレ（1本だけ）")+"&dates="+icsDate+"T"+tm+"/"+gEnd+"&recur=RRULE:FREQ=DAILY";
   // ホーム画面版iOSではdataダウンロードが無反応になるため案内
   const note=document.getElementById("icsNote");
   if(note) note.textContent = navigator.standalone ? "Appleカレンダー登録はSafariで開いてからどうぞ Googleカレンダーはこのままでいけます" : "";
@@ -4060,10 +4064,10 @@ function a2hsShow(kind,cont){
   body.innerHTML="";
   box.innerHTML="";
   if(kind==="ios-safari"){
-    body.innerHTML="右下の共有ボタン（□に↑のマーク）をタップして<br>「ホーム画面に追加」を選んでね📲<br>次からアプリみたいにワンタップで開けるようになるよ😊";
+    body.innerHTML="画面下部の共有ボタン（□に↑のマーク）をタップして<br>「ホーム画面に追加」を選んでね📲<br>次からアプリみたいにワンタップで開けるようになるよ😊";
     a2hsAddBtn("あとで","btn-line",function(){ a2hsClose(); });
   }else if(kind==="ios-other"){
-    body.innerHTML="ホーム画面に追加するには<b>Safari</b>で開く必要があるみたい🙏<br>共有メニューなどから「Safariで開く」を選んでみてね";
+    body.innerHTML="ホーム画面に追加するために、<b>Safari</b>で開いてくださいね🙏<br>共有メニューから「Safariで開く」を選んでみてね";
     a2hsAddBtn("あとで","btn-line",function(){ a2hsClose(); });
   }else if(kind==="android-prompt"){
     body.innerHTML="ホーム画面に追加すると、次からアプリみたいにワンタップで開けるようになるよ😊";

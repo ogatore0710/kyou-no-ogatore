@@ -32,6 +32,16 @@ function renderStreak(){
     // 前回記録日の#calAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
     const ca=document.getElementById("calAsk"); if(ca) ca.innerHTML="";
   }
+  // はじめの1本ガイド中、まだきょうの記録がついていない間は「きょうやった！」ボタンの直上に
+  // 常時表示の案内を出す（動画タップ→復帰のタイミング検知に依存するcheckDoneNudge()と違い、
+  // ホーム描画のたびにfdActive()＋未記録の条件だけで出る保険。記録がつく/guide終了で消える）。
+  try{
+    const fdNudge=document.getElementById("fdDoneStaticNudge");
+    if(fdNudge){
+      const showFdNudge=(typeof fdActive==="function")&&fdActive()&&!did;
+      fdNudge.classList.toggle("hidden", !showFdNudge);
+    }
+  }catch(e){}
   // 数日あいて券でもつなげない時は、古い連続を見せない（押した瞬間に消えたと誤解させない）
   if(!did && streakBrokenNow(st)) contTxt="きょうやると新しい章のスタート🌱";
   document.getElementById("totalDays").textContent = contTxt;
@@ -125,7 +135,9 @@ function markDone(){
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
       +`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 1日目クリア！ナイスご自愛！</div>`
       +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`
-      +`<div style="margin-top:4px;font-size:14px">📖 アプリの使い方は下の「使い方」タブからいつでも見られるよ</div>`;
+      +`<div style="margin-top:4px;font-size:14px">📖 アプリの使い方は下の「使い方」タブからいつでも見られるよ</div>`
+      +`<button class="btn btn-primary" id="cheerTourBtn" style="margin-top:10px;font-size:15px" onclick="obOpenTour()">📖 使い方ツアーを見る</button>`
+      +`<button class="btn btn-line" id="cheerTourSkipBtn" style="margin-top:8px;font-size:14px" onclick="this.style.display='none';const b=document.getElementById('cheerTourBtn');if(b)b.style.display='none'">あとで</button>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];

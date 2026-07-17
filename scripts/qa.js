@@ -293,6 +293,30 @@ function checkHtml(html, cardScript) {
     "anchorAck bubble now calls obAskQ directly as the completion callback"
   );
 
+  // 2026-07-17実機バグ修正: renderIcs()のDTSTART/datesがハードコードされた過去日("20260701")固定に
+  // なっており、Googleカレンダー側で単発予定として扱われてしまう不具合が実機で確認された。
+  // todayStr()（app-record.js・3時間オフセットJSTの「今日」）を必ず参照するよう修正し、再発防止として
+  // ハードコード日付リテラルが復活していないことを機械チェックで固定する。
+  const renderIcsFn = extractFunction(main, "renderIcs");
+  assert("renderIcs: found", renderIcsFn.length > 0, `${renderIcsFn.length} chars`);
+  assert(
+    "renderIcs: DTSTART/dates derive from todayStr() (今日の日付を動的に使う)",
+    /const\s+icsDate\s*=\s*todayStr\(\)\.replace\(\/-\/g,["']["']\)/.test(renderIcsFn)
+      && /["']DTSTART:["']\s*\+\s*icsDate/.test(renderIcsFn)
+      && /["']&dates=["']\s*\+\s*icsDate/.test(renderIcsFn),
+    "ICS/Googleカレンダーリンクとも todayStr() 由来の icsDate を使う"
+  );
+  assert(
+    "renderIcs: no hardcoded past date literal (過去日ハードコードの再発防止)",
+    !/20260701/.test(renderIcsFn),
+    "no fixed calendar date string baked into the function"
+  );
+  assert(
+    "renderIcs: RRULE:FREQ=DAILY preserved (毎日の繰り返し設定)",
+    /RRULE:FREQ=DAILY/.test(renderIcsFn) && /recur=RRULE:FREQ=DAILY/.test(renderIcsFn),
+    "both ICS body and Google Calendar link keep the daily recurrence rule"
+  );
+
   // 2026-07-17実装: 相談室シートのiOSソフトキーボード対応(visualViewport)。実測で踏んだ2つの回帰を機械チェックで固定する。
   // ①#soudanSheetにheightを直接pxで代入すると、子要素.sd-sheetのheight:92%解決が崩れて内容量ぶん縦に伸びる
   //   (Chromeでgetボundinglientrectがgetcomputedstyleと食い違う実行時バグ)ため、height自体は触らずtop/bottomの

@@ -297,11 +297,27 @@ async function main() {
         if (info.lead.indexOf("あしたも同じじかんに会おう") === -1) throw new Error(c.anchorChip + ": #calAskのリード文言が設計どおりでない (" + info.lead + ")");
         const icsDecoded = decodeURIComponent(info.ics || "");
         if (!info.ics || info.ics.indexOf("data:text/calendar") !== 0) throw new Error(c.anchorChip + ": #calAskのICSリンクがdata:text/calendarで始まっていない");
-        if (icsDecoded.indexOf("DTSTART:20260701T" + c.tm) === -1) {
-          throw new Error(c.anchorChip + ": #calAskのICS時刻が" + c.tm + "になっていない (" + icsDecoded.slice(0, 200) + ")");
+        // 2026-07-17 実機バグ修正: DTSTART/datesはハードコードされた過去日(20260701)ではなく
+        // 「今日」(todayStr())を使う必要がある。過去日固定だとGoogleカレンダーが単発予定として
+        // 扱ってしまう不具合が実機で確認されたため、再発防止として動的な今日日付を検証する。
+        const todayDigits = await page.evaluate(() => todayStr().replace(/-/g, ""));
+        if (icsDecoded.indexOf("DTSTART:20260701T") !== -1) {
+          throw new Error(c.anchorChip + ": #calAskのICSにハードコードされた過去日(20260701)が残っている（todayStr()参照に修正したはず）");
         }
-        if (!info.gcal || info.gcal.indexOf("dates=20260701T" + c.tm) === -1) {
-          throw new Error(c.anchorChip + ": #calAskのGoogleカレンダー時刻が" + c.tm + "になっていない (" + info.gcal + ")");
+        if (icsDecoded.indexOf("DTSTART:" + todayDigits + "T" + c.tm) === -1) {
+          throw new Error(c.anchorChip + ": #calAskのICS日時が今日(" + todayDigits + ")+" + c.tm + "になっていない (" + icsDecoded.slice(0, 200) + ")");
+        }
+        if (icsDecoded.indexOf("RRULE:FREQ=DAILY") === -1) {
+          throw new Error(c.anchorChip + ": #calAskのICSにRRULE:FREQ=DAILYが含まれていない（毎日繰り返しが壊れている）");
+        }
+        if (!info.gcal || info.gcal.indexOf("dates=20260701T") !== -1) {
+          throw new Error(c.anchorChip + ": #calAskのGoogleカレンダーリンクにハードコードされた過去日(20260701)が残っている");
+        }
+        if (!info.gcal || info.gcal.indexOf("dates=" + todayDigits + "T" + c.tm) === -1) {
+          throw new Error(c.anchorChip + ": #calAskのGoogleカレンダー日時が今日(" + todayDigits + ")+" + c.tm + "になっていない (" + info.gcal + ")");
+        }
+        if (info.gcal.indexOf("recur=RRULE:FREQ=DAILY") === -1) {
+          throw new Error(c.anchorChip + ": #calAskのGoogleカレンダーリンクにrecur=RRULE:FREQ=DAILYが含まれていない");
         }
         if (info.note.indexOf("つづける設定") === -1) throw new Error(c.anchorChip + ": #calAskの注記が設計どおりでない (" + info.note + ")");
         if (c.tap) {
@@ -327,11 +343,38 @@ async function main() {
         anchorNow: document.getElementById("anchorNow").textContent,
       }));
       const myIcsDecoded = decodeURIComponent(myRecord.ics);
+      const myTodayDigits = await page.evaluate(() => todayStr().replace(/-/g, ""));
       if (myRecord.ics.indexOf("data:text/calendar") !== 0) throw new Error("マイ記録タブの#icsLinkが壊れている");
-      if (myIcsDecoded.indexOf("DTSTART:20260701T213000") === -1) {
-        throw new Error("マイ記録タブの#icsLinkがねるまえ(21:30)を反映していない (" + myIcsDecoded.slice(0, 200) + ")");
+      if (myIcsDecoded.indexOf("DTSTART:20260701T") !== -1) {
+        throw new Error("マイ記録タブの#icsLinkにハードコードされた過去日(20260701)が残っている");
+      }
+      if (myIcsDecoded.indexOf("DTSTART:" + myTodayDigits + "T213000") === -1) {
+        throw new Error("マイ記録タブの#icsLinkが今日(" + myTodayDigits + ")+ねるまえ(21:30)を反映していない (" + myIcsDecoded.slice(0, 200) + ")");
       }
       if (myRecord.anchorNow.indexOf("寝るまえ") === -1) throw new Error("マイ記録タブのanchorNowがねるまえになっていない (" + myRecord.anchorNow + ")");
+      // 日付を跨いだ場合の回帰確認: Date.nowを+2日ずらしてrenderIcs()を再実行し、
+      // #icsLink/#gcalLinkの日付がtodayStr()の新しい値に追従して更新されることを確認
+      // （renderIcs()が起動時の日付を握ったまま固定化されていないか＝再発防止）。
+      const rollover = await page.evaluate(() => {
+        const real = Date.now;
+        Date.now = function () { return real() + 2 * 86400000; };
+        try {
+          const expected = todayStr().replace(/-/g, "");
+          renderIcs();
+          const ics = decodeURIComponent(document.getElementById("icsLink").href);
+          const gcal = document.getElementById("gcalLink").href;
+          return { expected: expected, ics: ics, gcal: gcal };
+        } finally { Date.now = real; }
+      });
+      if (rollover.ics.indexOf("DTSTART:" + rollover.expected + "T") === -1) {
+        throw new Error("日付を+2日ずらしてもrenderIcs()のICS日付が新しい今日(" + rollover.expected + ")に更新されない (" + rollover.ics.slice(0, 200) + ")");
+      }
+      if (rollover.gcal.indexOf("dates=" + rollover.expected + "T") === -1) {
+        throw new Error("日付を+2日ずらしてもrenderIcs()のGoogleカレンダーリンクが新しい今日(" + rollover.expected + ")に更新されない (" + rollover.gcal + ")");
+      }
+      // 後始末: ページに残ったDate.now上書きの影響が後続ステップに漏れないよう、明示的にrenderIcs()を
+      // 通常時刻で再実行しておく（上のfinallyでDate.now自体は既に復元済みだが、念のため描画も戻す）
+      await page.evaluate(() => { renderIcs(); });
       // 後続ステップ用にクリーンな状態へ戻す（このテストで作った記録/fd/calseenを持ち越さない）。
       // 注意: #obSkipBtn(obSkip()→obClose())は内部でhistory.state.obが立っていればhistory.back()を呼ぶ経路。
       // このスモークテストは1ページを使い回すため、ここまでの多数のpushState(オンボ/かたさチェック等)で
@@ -1261,6 +1304,15 @@ async function main() {
       await page.waitForFunction(() => !document.getElementById("home").classList.contains("hidden"), { timeout: 5000 });
       await page.waitForFunction(() => document.getElementById("doneBtn").classList.contains("nudge-pulse"), { timeout: 5000 });
 
+      // ---- 確認4a(2026-07-17追加): checkDoneNudge()のタイミング検知に依存しない持続的な案内。
+      // guide中・きょうの記録がまだの間は#doneBtn直上の#fdDoneStaticNudgeが常に見えていること ----
+      const staticNudgeBeforeDone = await page.evaluate(() => ({
+        hidden: document.getElementById("fdDoneStaticNudge").classList.contains("hidden"),
+        text: document.getElementById("fdDoneStaticNudge").textContent,
+      }));
+      if (staticNudgeBeforeDone.hidden) throw new Error("guide中・未記録なのに#fdDoneStaticNudgeが隠れている（持続的な記録案内が出ていない）");
+      if (staticNudgeBeforeDone.text.indexOf("ここを押してね") === -1) throw new Error("#fdDoneStaticNudgeの文言が設計どおりでない (" + staticNudgeBeforeDone.text + ")");
+
       // ---- 確認4b: ホーム「あなた用」がまだ①だけの導線になっていること ----
       // renderToday()はstate.modeが一度でも真値になると以後それを使い回す(既存仕様・本機能とは無関係の
       // 既存の挙動)。初回起動時のrenderHome()がクイズ未完了時点で既にstate.modeをasa/yoruへ確定させて
@@ -1293,6 +1345,33 @@ async function main() {
       if (afterDone.placeholder !== "例: 肩がかるくなった気がする😊") throw new Error("メモ欄のplaceholderがguide用に変わっていない (" + afterDone.placeholder + ")");
       if (!afterDone.calAskLead || afterDone.calAskLead.indexOf("あしたも同じじかんに会おう") === -1) throw new Error("#calAskがguide完了後に表示されていない");
       if (afterDone.fd !== "1") throw new Error("kyono_fdが完了値1になっていない (" + afterDone.fd + ")");
+
+      // ---- 確認5b(2026-07-17追加): 記録完了で持続的な案内(#fdDoneStaticNudge)が消えること ----
+      const staticNudgeGone = await page.evaluate(() => document.getElementById("fdDoneStaticNudge").classList.contains("hidden"));
+      if (!staticNudgeGone) throw new Error("記録後も#fdDoneStaticNudgeが表示されたまま（fdActive()false/今日記録済みで消えるはず）");
+
+      // ---- 確認5c(2026-07-17追加): cheer後に「使い方ツアーを見る」ボタンが出て、タップで実際にツアーが始まること ----
+      await visible("#cheerTourBtn");
+      const tourBtnText = await $text("#cheerTourBtn");
+      if (tourBtnText.indexOf("使い方ツアーを見る") === -1) throw new Error("#cheerTourBtnの文言が設計どおりでない (" + tourBtnText + ")");
+      await visible("#cheerTourSkipBtn"); // 「あとで」的なスキップ手段も確保されていること
+      await page.click("#cheerTourBtn");
+      await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+      await page.waitForFunction(() => (document.getElementById("obLog") || {}).innerHTML !== undefined && document.getElementById("obLog").children.length > 0, { timeout: 8000 });
+      const tourStarted = await page.evaluate(() => ({
+        welcomeHidden: document.getElementById("welcome").classList.contains("hidden"),
+        obLogHasContent: document.getElementById("obLog").children.length > 0,
+      }));
+      if (tourStarted.welcomeHidden) throw new Error("「使い方ツアーを見る」タップ後もwelcome(オンボ/ツアーのシート)が開いていない");
+      if (!tourStarted.obLogHasContent) throw new Error("「使い方ツアーを見る」タップ後にobOpenTour()のツアー内容(#obLog)が始まっていない");
+      // ツアーを閉じてホームへ戻す（後続ステップへの影響を避ける）。obClose()の既定引数だと
+      // history.back()を呼ぶ経路になるが、このスモークテストは1ページを使い回すため
+      // history本来のスタックが深く、back()が意図しない古いエントリへ着地しうる（他ステップの
+      // コメント済みの既知の注意点と同じ）。obClose(true)でback()を意図的にスキップする。
+      await page.evaluate(() => { obClose(true); });
+      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+      await page.click("#tab-home");
+      await visible("#home");
 
       // ---- 確認6: fd完了後はホーム「あなた用」が自動的に通常の3本表示へ戻る ----
       await page.evaluate(() => { renderHome(); });
