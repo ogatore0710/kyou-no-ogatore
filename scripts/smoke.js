@@ -972,19 +972,25 @@ async function main() {
             try { Object.defineProperty(navigator, "standalone", { get: () => true, configurable: true }); } catch (e) { /* ignore */ }
           });
         }
-        if (opts.bip) {
-          // beforeinstallpromptは実ブラウザのインストール可否判定に依存し自動テストで自然発火させられないため、
-          // 本物同等のAPI形状(prompt()/userChoice)を持つEventを合成してdispatchし、アプリ側の実リスナー
-          // （window.__a2hsEvent保持→ボタンでe.prompt()呼び出し）を実コードのまま検証する。
-          await p.evaluateOnNewDocument(() => {
-            window.addEventListener("DOMContentLoaded", function () {
-              const ev = new Event("beforeinstallprompt", { cancelable: true });
-              ev.prompt = function () { window.__a2hsPromptCalled = true; return Promise.resolve(); };
-              ev.userChoice = Promise.resolve({ outcome: "accepted" });
-              window.dispatchEvent(ev);
-            });
+        // window.__a2hsEventをアクセサ化してテスト用の値に固定する。
+        // 理由: この配信環境(python http.serverのlocalhost+有効なmanifest+SW登録済み)はChrome自身が
+        // 実インストール可能と判定し、本物のネイティブbeforeinstallpromptイベントを発火させてしまう。
+        // 実測で確認済み: 本物のイベントはprompt()を持つ本物のAPI形状のため型チェックはすり抜けるが、
+        // page.evaluateの非トラステッドクリックからprompt()を呼んでもuserChoiceが解決されずテストが
+        // ハングする（実ブラウザの「ユーザー操作必須」仕様のため）。アプリ自身のheadスクリプトが
+        // window.__a2hsEventへ代入する前（evaluateOnNewDocumentは全スクリプトより先に実行される）に
+        // アクセサ化しておき、代入(=本物のイベントの上書き含む)を無視してテスト用の固定値だけを
+        // 返すようにすることで、環境依存の実イベント発火タイミングに左右されない決定的なテストにする。
+        await p.evaluateOnNewDocument((fakeEnabled) => {
+          const forced = fakeEnabled
+            ? { prompt: function () { window.__a2hsPromptCalled = true; return Promise.resolve(); }, userChoice: Promise.resolve({ outcome: "accepted" }) }
+            : null;
+          Object.defineProperty(window, "__a2hsEvent", {
+            configurable: true,
+            get: function () { return forced; },
+            set: function () { /* 実ブラウザ由来のbeforeinstallpromptによる上書きを無視 */ },
           });
-        }
+        }, !!opts.bip);
         await p.goto(url, { waitUntil: "load" });
         await p.evaluate(() => localStorage.clear()); // 同一プロファイル内の他シナリオ分の記録を消し、フレッシュ起動を再現
         await p.reload({ waitUntil: "load" });

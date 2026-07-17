@@ -529,6 +529,74 @@ function checkOnboardingWorrySkip(mainScript, quizScript) {
   );
 }
 
+// ホーム画面に追加ポップアップ(#a2hsModal・初回起動ではじめてガイドの直前に出す)の静的配線チェック。
+// 端末/ブラウザごとの分岐そのものの実挙動は scripts/smoke.js の7c(実機UA差し替え・7シナリオ)が担保する。
+// ここでは「配線が壊れていないか」（beforeinstallpromptの早期登録・関数/DOM要素の存在・
+// はじめてガイドの直前に必ず割り込む配線）だけを機械的に固定し、リファクタ時の巻き戻り事故を防ぐ。
+function checkA2hsPopup(html, mainScript) {
+  const bipIdx = html.indexOf('addEventListener("beforeinstallprompt"');
+  const bodyIdx = html.indexOf("<body>");
+  assert("beforeinstallprompt: listener registered", bipIdx !== -1, "window.addEventListener(\"beforeinstallprompt\",...) not found");
+  assert(
+    "beforeinstallprompt: registered early in <head> (できるだけ早い段階で保持するため)",
+    bipIdx !== -1 && bodyIdx !== -1 && bipIdx < bodyIdx,
+    "registration must appear before <body> so it can catch the event before user interaction"
+  );
+  assert(
+    "beforeinstallprompt: preventDefault()して保持する(自動バナーを止めてこちらのタイミングでprompt()する)",
+    /window\.addEventListener\(\s*"beforeinstallprompt"[\s\S]{0,200}?e\.preventDefault\(\)[\s\S]{0,200}?window\.__a2hsEvent\s*=\s*e/.test(html),
+    "e.preventDefault() then window.__a2hsEvent = e expected"
+  );
+
+  const ids = ["a2hsModal", "a2hsBody", "a2hsBtns"];
+  const missingIds = ids.filter((id) => !new RegExp(`id=["']${id}["']`).test(html));
+  assert("index.html: #a2hsModal markup exists", missingIds.length === 0, missingIds.join(", ") || ids.join(", "));
+
+  const fns = ["a2hsBoot", "a2hsShow", "a2hsClose", "a2hsIsStandalone"];
+  const missingFns = fns.filter((name) => extractFunction(mainScript, name).length === 0);
+  assert("a2hsBoot/a2hsShow/a2hsClose/a2hsIsStandalone: found", missingFns.length === 0, missingFns.join(", ") || fns.join(", "));
+
+  const bootFn = extractFunction(mainScript, "a2hsBoot");
+  assert(
+    "a2hsBoot: standalone起動中は即座に次へ進む(ポップアップ不要)",
+    /a2hsIsStandalone\(\)\)\{\s*cont\(\)/.test(bootFn),
+    "standalone short-circuit missing"
+  );
+  assert(
+    "a2hsBoot: デスクトップ(iPhone/iPad/iPod/Android以外)も即座に次へ進む",
+    /!\/iPhone\|iPad\|iPod\|Android\/\.test\(ua\)\)\{\s*cont\(\)/.test(bootFn),
+    "desktop short-circuit missing"
+  );
+  assert(
+    "a2hsBoot: iOSはSafari本体とそれ以外(CriOS/FxiOS/EdgiOS/OPiOS)を区別する",
+    /CriOS\|FxiOS\|EdgiOS\|OPiOS/.test(bootFn) && /iPhone\|iPad\|iPod/.test(bootFn),
+    "iOS Safari vs other-browser branch missing"
+  );
+  assert(
+    "a2hsBoot: Androidはwindow.__a2hsEventの有無でprompt分岐する",
+    /window\.__a2hsEvent\)\s*a2hsShow\(\s*["']android-prompt["']/.test(bootFn) && /a2hsShow\(\s*["']android-menu["']/.test(bootFn),
+    "android-prompt/android-menu branch missing"
+  );
+
+  assert(
+    "はじめてガイド起動: 初回起動フローがobOpen()の前に必ずa2hsBoot()を通す(ポップアップをスキップして直接開始しない)",
+    /setTimeout\(function\(\)\{\s*a2hsBoot\(obOpen\);\s*\}/.test(mainScript),
+    "boot IIFE must call a2hsBoot(obOpen), not obOpen directly"
+  );
+
+  const closeFn = extractFunction(mainScript, "a2hsClose");
+  assert(
+    "a2hsClose: 閉じ方によらず必ずcont()(=obOpen)へ進む(進行不能防止の必須要件)",
+    /if\s*\(\s*cont\s*\)\s*cont\(\)/.test(closeFn),
+    "must always call the continuation, regardless of how it was closed"
+  );
+  assert(
+    "a2hsModal: popstate(戻る操作)でも閉じられる",
+    /popstate[\s\S]{0,300}?a2hsModal[\s\S]{0,200}?a2hsClose\(\)/.test(mainScript),
+    "back-button close wiring missing"
+  );
+}
+
 function checkSearchScript(code) {
   parseJs("app-search.js", code);
   let tags = [];
@@ -983,6 +1051,7 @@ function main() {
   const recordScript = read("app-record.js");
   checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}\n${cardScript}`);
   checkOnboardingWorrySkip(mainScript, quizScript);
+  checkA2hsPopup(html, mainScript);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);
   checkObuFeed(read("obu-feed.js"));
