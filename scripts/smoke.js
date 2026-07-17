@@ -349,6 +349,102 @@ async function main() {
       return "タイプ=" + name + " / アイコン=" + icon + " / 処方=" + rxCount + "本";
     });
 
+    // 2b. オンボQ2「いちばん気になるのは？」→かたさチェックQ5「いちばんの悩みは？」の二度聞き解消
+    //     （2026-07-17・仕様判断待ち項目、本人YES=Q5スキップで承認済み）。
+    //     ①オンボで実質的な悩み（肩こり）に回答→直後のかたさチェックが4問構成になりQ5が出ないこと、
+    //     結果画面のworryExtraにオンボの悩み(katakori)がちゃんと反映されること、「戻る」で壊れないこと。
+    //     ②オンボで「とくにない」を選んだ場合はQ5がスキップされず通常通り5問出ること（回帰・除外確認）。
+    //     ③オンボを経由しない単独起動（使い方タブ「チェックをはじめる」）は従来どおり5問のままなこと（回帰）。
+    await step("2b-オンボQ2の悩みでかたさチェックQ5を二重に聞かない", async () => {
+      async function tapObChip3(text) {
+        await page.waitForFunction((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) return true; }
+          return false;
+        }, { timeout: 8000 }, text);
+        await page.evaluate((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) { btns[i].click(); return; } }
+        }, text);
+      }
+      async function runOnboardingToQuiz(worryChip) {
+        await page.evaluate(() => localStorage.clear());
+        await page.reload({ waitUntil: "load" });
+        await visible("#home");
+        await page.click("#tab-guide");
+        await visible("#obReenterLink");
+        await page.click("#obReenterLink");
+        await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"));
+        await tapObChip3("大きめ");          // Q0
+        await tapObChip3("ガチガチかも");    // Q1（ルーティング=かたさチェックに固定）
+        await tapObChip3(worryChip);         // Q2（ここが本題）
+        await tapObChip3("きめてない");      // Q3
+        await tapObChip3("かたさチェックをはじめる"); // ルーティングCTA
+        await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+        await visible("#quiz");
+      }
+
+      // ① 肩こり・首 → 4問構成（Q5=悩み質問が出ない）
+      await runOnboardingToQuiz("肩こり・首");
+      let qn = await $text("#qnum");
+      if (qn !== "Q1 / 4") throw new Error("①4問構成になっていない (実測 " + qn + ")");
+      let dotCount = await page.$$eval("#dots .dot", (a) => a.length);
+      if (dotCount !== 4) throw new Error("①進捗ドットが4個でない (実測 " + dotCount + "個)");
+      // Q1「まえの質問へ」は非表示、回答して次に進んだらQ2で表示される（既存挙動の回帰確認）
+      const backHiddenAtQ1 = await page.$eval("#qBackBtn", (b) => b.classList.contains("hidden"));
+      if (!backHiddenAtQ1) throw new Error("①Q1で「まえの質問へ」が表示されている（既存仕様に反する）");
+      await page.click("#opts .opt");
+      await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q2 / 4");
+      // 「まえの質問へ」でQ1に戻れること（回帰）→ Q1へ戻ったら再度Q1の回答をやり直して進める
+      await page.click("#qBackBtn");
+      await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q1 / 4");
+      await page.click("#opts .opt");
+      await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q2 / 4");
+      // 残り3問（Q2〜Q4=momo以降/ashiまで）を進めて完走。Q5(悩み)は一度も出現しないまま結果画面へ到達するはず
+      for (let i = 2; i <= 4; i++) {
+        await page.waitForFunction((n) => document.getElementById("qnum").textContent === "Q" + n + " / 4", {}, i);
+        await page.waitForSelector("#opts .opt:not([disabled])", { visible: true });
+        await page.click("#opts .opt");
+      }
+      await visible("#result");
+      const worryExtraHtml1 = await page.$eval("#worryExtra", (el) => el.innerHTML);
+      if (worryExtraHtml1.indexOf("肩こりさんへ") === -1) {
+        throw new Error("①結果画面のworryExtraにオンボの悩み(肩こり)が反映されていない (" + worryExtraHtml1.slice(0, 120) + ")");
+      }
+
+      // ② とくにない → Q5スキップ対象外。従来どおり5問（Q5=悩み質問あり）で完走できること
+      await runOnboardingToQuiz("とくにない");
+      qn = await $text("#qnum");
+      if (qn !== "Q1 / 5") throw new Error("②「とくにない」なのに5問構成になっていない (実測 " + qn + ")");
+      for (let i = 1; i <= 4; i++) {
+        await page.waitForFunction((n) => document.getElementById("qnum").textContent === "Q" + n + " / 5", {}, i);
+        await page.waitForSelector("#opts .opt:not([disabled])", { visible: true });
+        await page.click("#opts .opt");
+      }
+      await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q5 / 5");
+      const q5Title = await $text("#qtitle");
+      if (q5Title.indexOf("いちばんの悩み") === -1) throw new Error("②Q5(悩み質問)が出ていない (" + q5Title + ")");
+      await page.click("#opts .opt"); // Q5に自分で回答
+      await visible("#result");
+
+      // ③ オンボを経由しない単独起動（ホームの「チェックをはじめる」#ckBtn）は従来どおり5問のまま（回帰）
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: "load" });
+      await visible("#home");
+      await visible("#obSkipBtn"); // フレッシュ状態ではオンボが自動起動するので、まずスキップ
+      await page.click("#obSkipBtn");
+      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      await visible("#ckBtn");
+      await page.click("#ckBtn");
+      await visible("#quiz");
+      qn = await $text("#qnum");
+      if (qn !== "Q1 / 5") throw new Error("③単独起動が5問構成でない=回帰 (実測 " + qn + ")");
+      dotCount = await page.$$eval("#dots .dot", (a) => a.length);
+      if (dotCount !== 5) throw new Error("③単独起動の進捗ドットが5個でない=回帰 (実測 " + dotCount + "個)");
+
+      return "①肩こり選択→4問構成(Q5非出現)・戻る操作OK・結果に肩こり反映 ②とくにない→5問のまま(Q5あり) ③単独起動は5問のまま(回帰なし)";
+    });
+
     // 3. きょうやった！→日数増加→メモ保存→記録カード生成
     await step("3-きょうやった！で日数が増える", async () => {
       await page.click("#tab-home");

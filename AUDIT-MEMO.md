@@ -146,8 +146,10 @@
   - 2行折り返し(wrap)＋max-height+縦スクロールにするか、右端にフェードグラデーション＋見切れ配置（次のチップを半分見せる）でスクロール可能を示す
 - 🟡中 **相談室ボトムシートの入力欄がiOSキーボードに隠れる可能性（visualViewport未対応）** — index.html 369-383行 #soudanSheet/.sd-foot（position:fixedシート＋最下部input）、383行 body.sd-lock{overflow:hidden}
   - window.visualViewportのresizeでシート高さを補正するか、input focus時に sdScrollEnd＋sd-footを visualViewport.height 基準で持ち上げる。実機（旧iOS含む）での検証を優先
+  - **ステータス: 対応済み（2026-07-17）**: `sdVvHandler`/`sdVvOn`/`sdVvOff`を追加し、`openSoudan()`/`closeSoudan()`と連動してvisualViewportのresize/scrollを監視、キーボード分だけシートの可視領域を追従させるよう実装。ヘッドレスChromeでvisualViewportの値を差し替えてresizeイベントを発火させる形で実測確認、npm test(111)/npm run smoke(16/16)ともPASS。詳細はWORKING_NOTES.md該当エントリ参照。実iOS実機での最終確認は未実施（本人監修待ち）。
 - 🟡中 **はじめてガイドで聞いた「いちばん気になるのは？」が、直後のかたさチェックQ5でほぼ同じ質問として再出題される** — index.html 3662-3663行 ONBOARDING_SCRIPT.questions(worry) と 1203-1208行 QUESTIONS[4](worry)。obGo(3760-3767行)はquizルートでobAnswers.worryを渡していない
   - obAnswers.worryがあればstate.worryへ事前セットしてQ5をスキップ（4問化）するか、Q5の該当選択肢を「さっき選んだ◯◯でOK？」の確認形にする
+  - **ステータス: 対応済み（2026-07-17・本人YES=Q5スキップで承認済み）**: `app-quiz.js`の`startQuiz(presetWorry)`が悩みのプリセットを受け取り、`activeQuestions()`が`state.presetWorry`時にQ5(worry)を除いた4問構成にする形で実装。`index.html`の`obGo()`が新設の対応表`OB_WORRY_TO_QUIZ`（オンボの悩み語彙→かたさチェックQ5の悩み語彙）で変換した値を渡す。「とくにない」は対応表から除外しQ5スキップ対象外、単独起動（引数なし）は従来どおり5問のまま。qa.js`checkOnboardingWorrySkip`（13件）・smoke.js「2b」で実測確認済み（npm test 132checks / npm run smoke 17/17）。詳細はWORKING_NOTES.md 2026-07-17エントリ参照。
 - 🟡中 **「通算」と「連続」の色分けがホームとマイ記録で逆転している** — index.html 547行（ホーム: 通算=streakNumがピンク）と612-613行（マイ記録: 通算histTotal=ティール、連続histStreak=ピンク）
   - 「通算=ピンク・連続=ティール」に全画面で統一（マイ記録側の2色を入れ替えるだけ）
 - 🟡中 **相談室の安全注意書き（受診案内を含む）が全画面中最小の11px** — index.html 377行 `.sd-disc{font-size:11px}`、および2898行 safety脚注(13px)
@@ -184,6 +186,7 @@
   - 非standalone判定(3617行目)のユーザーには、記録日数が伸びるほど(例: 7日・14日節目で)ホーム追加 or 記録エクスポートを再提案する。バナー閉じても節目では再表示。ガイドタブにも『Safariだけで使うと記録が消えることがある』を明記
 - 🟡中 **相談室ボトムシートの入力欄がiOSキーボードに隠れる/背面スクロールが抜ける(iOS15以前)** — /Users/ryunosuke/Claude/kyou-no-ogatore/index.html #soudanSheet/.sd-foot CSS(369〜383行目)・openSoudanのsd-lock(3009行目)・#sdInput(954行目)
   - window.visualViewportのresize/scrollでsd-sheetの高さ(またはsd-footのbottom)を追従させる。背面ロックはsd-lock時にbodyへposition:fixed+top:-scrollY方式(閉じる時に復元)を併用
+  - **ステータス: 前半のみ対応済み（2026-07-17）**: visualViewportのresize/scrollでシートの可視領域を追従させる部分（キーボードに隠れる問題）は`sdVvHandler`等で実装済み（詳細はWORKING_NOTES.md該当エントリ・上の同種項目のステータス注記を参照）。後半の「iOS15以前の背面スクロール抜け」対策（body position:fixed+top:-scrollY方式）は今回のスコープ外・未対応のまま残っている。
 - ⚪低 **standalone起動のたびスプラッシュが固定1.8秒+フェード0.55秒 — 起動準備完了(__kyonoBoot)と連動していない** — /Users/ryunosuke/Claude/kyou-no-ogatore/index.html 3543〜3549行目(setTimeout 1800ms固定)・431〜447行目(splash生成/非standalone即削除)
   - スクリプト末尾(window.__kyonoBoot=true到達時)にフェード開始し、最低表示時間は600〜900ms程度に短縮。obOpenの遅延も同じフラグ起点にする
 - ⚪低 **SWのinstall時プリキャッシュがHTTPキャッシュ(max-age=600)を経由 — デプロイ直後の10分間は古いshellを新キャッシュに焼き込みうる** — /Users/ryunosuke/Claude/kyou-no-ogatore/sw.js installハンドラ(7行目・addAll/add)
@@ -212,6 +215,7 @@
   - ナッジは画面下固定のトースト（update-toastの流儀を流用）にするか、doneBtnをscrollIntoViewする。フラグ削除は『当日中に記録されるまで』保持に変える
 - 🟡中 **オンボーディングQ2の悩み回答が保存されず捨てられる＋quizルートではかたさチェックQ5で同じ質問を二度される** — index.html 3723-3745（obPick/obDecideRoute: obAnswersはルーティングのみに使用）／1203-1208（かたさチェックQ5 worry）
   - quizルート時はQ2回答をstate.worry初期値としてQ5をスキップ（または既選択表示）する。少なくとも結果画面の相談室逆導線にQ2のインテントを優先させる
+  - **ステータス: 対応済み（2026-07-17・本人YES=Q5スキップで承認済み）**: `obGo()`が`OB_WORRY_TO_QUIZ`変換表を介してQ2回答を`startQuiz(presetWorry)`に渡し、`app-quiz.js`側がQ5(悩み)をスキップして4問構成にする形で実装（結果画面の「＋もう1本」にも正しく反映）。詳細は上のUI/UX項目の同日ステータス注記・WORKING_NOTES.md 2026-07-17エントリ参照。
 - 🟡中 **唯一の再来訪装置（カレンダー通知）がオンボーディングに接続されておらず、マイ記録タブの設定カード深部に埋没** — index.html 3664-3665（Q3いつやる派→setAnchorのみ）／690-694（ICS/GCalリンクは『つづける設定』カード内）
   - Q3回答直後のanchorAckに『カレンダーに毎日の合図を入れる？』ボタンを1個足す（icsLink/gcalLinkの生成関数は既存流用可）。または初回done後のcheerに1回だけ差し込む
   - **ステータス: 対応済み（2026-07-16実装・コミットは本エントリ直後を参照）**: プロダクトオーナー承認済み仕様（Q3回答直後・タップしてもしなくても自動で次へ・スキップチップなし）で実装。`obPick`のanchor分岐に新設`obCalendarBubble()`を接続し、既存`renderIcs()`の結果(`#icsLink`/`#gcalLink`のhref)をそのままコピーする方式（ICS生成ロジックの重複実装なし・`obBubble()`のtextContent安全設計は不変）。あさ/おふろ上がり/ねるまえの3アンカーで正しい時刻のICS/Googleカレンダーリンクが生成されることをpuppeteer-core実測で確認済み（`npm test`103→111checks・`npm run smoke`15→16ステップ）。詳細はWORKING_NOTES.md 2026-07-16エントリ「カレンダー通知（唯一の再来訪装置）をオンボーディングに接続」参照。
