@@ -4,6 +4,15 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 `--teal`地に白文字のコントラスト不足を修正（7/17実測監査の🔴最重要項目1件を解消）
+
+同日の実測監査（本ファイル下記「未監査領域の実測ベース品質監査」項目1）で見つかった、`--teal`(#2BB3A3)を背景に白文字を重ねている箇所がWCAG AA基準4.5:1を大きく下回る約2.6:1しかない問題を修正した。ライトモード・ダークモード両方で同じ問題だった（`--teal`自体が`body.dark`で再定義されていないため）。
+
+- 新しいCSS変数`--teal-strong:#1E7B70`（ライト/ダーク共通）を追加。白文字が乗る背景色としてのみ使い、ボーダー・アイコン・グラデーション等の装飾用途の既存`--teal`はそのまま維持した（変更範囲を意図的に限定し、アプリ全体のトーンが変わらないようにした）。
+- `var(--teal)`の全出現箇所を`grep`で洗い出し、`background:var(--teal)`＋`color:#fff`の組み合わせだった8箇所を`--teal-strong`に置き換え: `.done-btn`（「きょうやった！」ボタン）／`.chip-b.on`（タグ選択中チップ・ライト/ダーク両方）／`.reach-btn.on`（とどくメーター選択ボタン）／`.cal .d.done`（カレンダー実施日セル）／`.daytoggle`（日別トグル）／`.gcm-n .gcm-pill`（記録カード見本の帯・使い方ツアー用の通常配色版）／使い方ツアー内カレンダーモック（JS内テンプレートリテラルの動的style文字列）。
+- 実測確認（puppeteer-core・ヘッドレスChromeの`getComputedStyle`、ライト/ダーク両モードを`emulateMediaFeatures`で強制切替）: 上記6セレクタすべてで実レンダリング後の背景色が`rgb(30,123,112)`(#1E7B70)、文字色が白であることを確認し、コントラスト比は両モードとも**5.09:1**（旧`--teal`は2.60:1）。背景として`--teal-strong`は明背景(#FFFAF3)で4.91:1、暗背景(#211E19)で3.26:1（非テキストUIパーツの3:1ガイドラインもクリア）。装飾用途（`.soudan-fab`のボーダー・`.bar`のグラデーション等）は`--teal`のまま変更されていないことも確認済み。スクリーンショットで見た目も他要素のトーンと乖離せず自然であることを確認。
+- `scripts/qa.js`に`checkContrast()`を新設（WCAG相対輝度計算を実装し、`--teal-strong`の値・コントラスト比・対象6セレクタの背景割り当てを機械チェックに固定、再発防止）。`npm test`は159→175 checksへ増加（新規16件）、全PASS。`npm run smoke`は19/19 PASS。
+
 ## 2026-07-17 記録カード分割（app-card.js化・SPLIT-PLAN.md「4. 記録カード」完了）
 
 index.htmlから記録カード生成ロジックを`app-card.js`（新規）へ切り出した。対象は`CARD_THEMES`/`GOLD`/`MS`/`CHARA_FILES`/`ensureCardFonts`/`makeCard`/`drawCard`/`downloadCard`/`shareCard`の9個（SPLIT-PLAN.md記載どおり）。挙動を一切変えない機械的な移動で、他の関数（`store`/`todayStr`/`getStreakData`はapp-record.js、`TYPES`はapp-quiz.js、`cardPatternFor`/`roundRect`/`wrapLines`/`drawHeart`等の描画ヘルパー・`cardDate`/`lastBlob`/`lastShareText`等の共有state・`cardFile`/`markCardSaved`/`closeCard`）はこれまでの分割と同じ方針でindex.html側に残し、app-card.js側からグローバル参照する形にした（クロスファイル参照は`<script>`実行順に関わらず、実際の呼び出しが全スクリプト読み込み後になるため問題なく動作する。app-record.jsが既にMS/store等をこの方式で参照しており、本分割で新たに導入した挙動ではない）。
