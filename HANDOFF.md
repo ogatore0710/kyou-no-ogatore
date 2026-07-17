@@ -15,7 +15,7 @@
 - CodexはQA・検収・課題棚卸し、Claude Codeは継続的な画面/体験開発を担当する想定
 
 ## 壊れやすい箇所
-- `index.html` に主要ロジックがまだ集中している。検索・カタログ表示だけ `app-search.js` へ分割済み
+- `index.html` に主要ロジックがまだ集中している。検索・カタログ表示は `app-search.js`、かたさチェックは `app-quiz.js`、記録・継続は `app-record.js` へ分割済み（残るのは記録カード・PWA/環境案内など。[SPLIT-PLAN.md](SPLIT-PLAN.md)参照）
 - 古いiOS対応のため `??` / `?.` は禁止。最終scriptの `oldBrowserNote` はES5のみ
 - `drawCard()` は日付から同じカードを再構成する設計。`Math.random()` や現在時刻依存を入れると過去カードの再現性が壊れる
 - `localStorage` は端末内だけ。import/exportは防御済みなので、prefix・件数・サイズ制限を弱めない
@@ -34,8 +34,9 @@
 - 操作配線チェック: inline handler、タブ、主要section、記録カード、チェック、検索UIのDOM接続
 
 ## 次の改善候補
-- （2026-07-15更新: 完了）実ブラウザQAをリポジトリ内で自動化する → `npm run smoke`（puppeteer-core・ヘッドレスChrome）で15/15 PASSまで自動化済み。[QA-REPORT.md](QA-REPORT.md) は手動検収時点のスナップショットとして残す
-- （2026-07-15更新: 完了）[SPLIT-PLAN.md](SPLIT-PLAN.md) のかたさチェック分割 → `app-quiz.js` に切り出し済み。次候補はSPLIT-PLANの3番（記録・継続）
+- （2026-07-15更新: 完了）実ブラウザQAをリポジトリ内で自動化する → `npm run smoke`（puppeteer-core・ヘッドレスChrome）で自動化済み。2026-07-17時点で17/17 PASS。[QA-REPORT.md](QA-REPORT.md) は手動検収時点のスナップショットとして残す
+- （2026-07-15更新: 完了）[SPLIT-PLAN.md](SPLIT-PLAN.md) のかたさチェック分割 → `app-quiz.js` に切り出し済み
+- （2026-07-17更新: 完了）[SPLIT-PLAN.md](SPLIT-PLAN.md) の3番（記録・継続）→ `app-record.js` に切り出し済み。次候補はSPLIT-PLANの4番（記録カード）
 - PWA検収を強化する。GitHub Pages上でmanifest/icon/sw登録/オフライン fallback を確認する
 - （2026-07-15更新: 決定済み）β配布前に [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md) をもとに `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する → 配布方法・Gmailフィルタとも本人確認のうえ設定済み
 - [CATALOG-AUDIT.md](CATALOG-AUDIT.md) の除外62本を必要に応じて目視確認する（この数値自体2026-07-07時点のスナップショット。直近の再集計は未実施のため要再確認）
