@@ -4,6 +4,19 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 ホーム画面に追加ポップアップ（初回起動・はじめてガイドの直前に割り込み・PO依頼対応）
+
+初回起動時、スプラッシュ退場後に直接`obOpen()`（はじめてガイド）を呼んでいた箇所に割り込み、端末/ブラウザに応じた「ホーム画面に追加」案内ポップアップ(`#a2hsModal`)を先に出すようにした。閉じ方（ボタン/ブラウザバックいずれも）を問わず必ず`obOpen()`へ進み、ユーザーが先に進めなくなることは絶対に避ける設計。
+
+- **判定ロジック（`a2hsBoot()`）**: ①`navigator.standalone===true`またはstandalone表示モードなら即`obOpen()`（インストール済みで不要）。②UAに`iPhone|iPad|iPod|Android`のいずれも含まれないデスクトップも即`obOpen()`（「ホーム画面」の概念がスマホ前提のため）。③iOS（iPhone/iPad/iPod）はSafari本体（UAに`CriOS|FxiOS|EdgiOS|OPiOS`を含まない）なら「共有ボタン（□に↑）から『ホーム画面に追加』」案内、含む場合は「Safariで開く必要がある」案内（ボタンは共に「あとで」のみ）。④Androidは`beforeinstallprompt`を保持できていれば「📲 ホーム画面に追加する」ボタン（タップで実際に`event.prompt()`を呼び、`userChoice`解決後に閉じる）＋「あとで」の2ボタン、保持できていなければ「⋮メニューから『ホーム画面に追加』」案内（ボタンは「わかった」）。
+- **`beforeinstallprompt`の早期捕捉**: `<head>`内、既存のフォント読み込みスクリプトより前（実質最初のスクリプト）に`window.addEventListener("beforeinstallprompt", e=>{e.preventDefault(); window.__a2hsEvent=e;})`を登録。発火が早く一度しか飛ばないイベントのため、可能な限り早い段階で保持する設計。
+- **UI**: 新規`#a2hsModal`は既存の`#welcome`（はじめてガイド）と同じ`.ob-sheet`（下からせり上がるシート・`rgba(40,35,20,.55)`の半透明オーバーレイ）を流用し統一感を保った。文言トーンも既存オンボーディング（一人称「僕」相当の明るい語り口・絵文字）に合わせた。
+- **履歴管理**: `#welcome`同様、開いたら`history.pushState({id:currentSection,a2hs:1},"")`で履歴を1つ積み、popstate（戻る操作）でも`a2hsClose()`が呼ばれて安全に閉じる。`a2hsClose()`は閉じ方（ボタン/戻る操作）によらず必ず保持しておいたcontinuation（`obOpen`）を呼ぶ設計にし、`history.back()`は明示的に呼ばない（`obOpen()`自身が独自にpushStateするため、`obGo()`が同じ理由で`obClose(true)`を使っているのと同じレース防止の流儀）。
+- **実測確認（puppeteer-core・ヘッドレスChromeでUA/standalone/beforeinstallpromptをオーバーライドし7シナリオを実機シミュレーション）**: ①iOS Safari→共有ボタン案内が出て「あとで」→はじめてガイドへ進行を確認。②iOS Chrome(CriOS UA)→「Safariで開く」案内を確認。③Android+beforeinstallprompt保持→「ホーム画面に追加する」タップで実際に`prompt()`が呼ばれ、`userChoice`解決後にはじめてガイドへ進行することを確認。④Android未発火→メニュー案内。ブラウザバックで閉じても必ずはじめてガイドへ進む（進行不能防止の要件）ことも確認。⑤standalone起動中→ポップアップなしで直接はじめてガイド。⑥デスクトップUA→同じく直接はじめてガイド。⑦LINE等アプリ内ブラウザ→従来どおりポップアップ・はじめてガイドとも非表示（回帰なし）。
+  - **テスト実装上の注意（重要）**: 検証に使ったpython http.server配信のlocalhost環境は有効なmanifest/Service Workerを備えているため、Chrome自身が「インストール可能」と判定し**本物のネイティブ`beforeinstallprompt`イベントも実際に発火する**ことを実測で確認した。これが自作の合成イベント（`new Event("beforeinstallprompt")`をdispatch）と衝突し、`window.__a2hsEvent`が本物のネイティブイベントに上書きされて、非トラステッドな`page.evaluate`経由のクリックから本物の`prompt()`を呼んでも`userChoice`が解決されずテストがハングする事象に遭遇した。対策として、`window.__a2hsEvent`をアプリの本体スクリプトが読み込まれる前（`evaluateOnNewDocument`は全スクリプトより先に実行される）にアクセサ化し、代入（本物のイベントによる上書き含む）を無視してテスト用の固定値だけを返すようにすることで、環境依存の実イベント発火タイミングに左右されない決定的なテストにした。
+- **回帰確認**: 既存の初回オンボーディングフロー（Q0〜Q3・ルーティング・カレンダー登録カード）、popstateでの戻る動作、LINE等アプリ内ブラウザでの非表示仕様、いずれも壊れていないことを確認した。
+- `scripts/smoke.js`に実機シナリオ「7c」を新設（上記7シナリオ全て）。`scripts/qa.js`に`checkA2hsPopup()`を新設し、`beforeinstallprompt`の早期登録・`#a2hsModal`関連DOM/関数の存在・端末分岐の各条件式・初回起動フローが`a2hsBoot(obOpen)`を経由すること・閉じ方によらず必ず継続すること等を静的に固定した（再発防止）。`npm test`は175→187 checksへ増加（新規12件）、全PASS。`npm run smoke`は19→20ステップへ増加、全PASS。
+
 ## 2026-07-17 `--teal`地に白文字のコントラスト不足を修正（7/17実測監査の🔴最重要項目1件を解消）
 
 同日の実測監査（本ファイル下記「未監査領域の実測ベース品質監査」項目1）で見つかった、`--teal`(#2BB3A3)を背景に白文字を重ねている箇所がWCAG AA基準4.5:1を大きく下回る約2.6:1しかない問題を修正した。ライトモード・ダークモード両方で同じ問題だった（`--teal`自体が`body.dark`で再定義されていないため）。
