@@ -116,37 +116,43 @@ async function main() {
       headless: true,
       args: ["--no-first-run", "--no-default-browser-check", "--disable-extensions", "--hide-scrollbars"].concat(extraArgs),
     });
-    const page = await browser.newPage();
-    page.setDefaultTimeout(10000);
-    await page.setViewport({ width: 390, height: 844 }); // スマホ想定
-    // SMOKE_BLOCK_EXTERNAL=1: 外部リソース(fonts/ytimg等)を即時abortする。プロキシ環境（クラウド
-    // セッション等）では外部リクエストがエラーにならず黙って固まり、loadイベントが10秒を超えて
-    // 全ステップがNavigation timeoutで連鎖失敗するため。アプリは外部失敗を警告扱いのオフライン
-    // 耐性設計なので、遮断＝オフライン相当のテストになる。Mac等の通常実行では指定不要（挙動不変）。
-    if (process.env.SMOKE_BLOCK_EXTERNAL === "1") {
-      await page.setRequestInterception(true);
-      page.on("request", (req) => {
-        if (isExternal(req.url())) req.abort().catch(() => {});
-        else req.continue().catch(() => {});
+    // ページ共通の配線（メインpage・7c用の使い捨てpageの両方から呼ぶ）。
+    // consoleErrors/externalWarnsは外側のクロージャ変数を共有するので、使い捨てpageのエラーも
+    // 最終確認(8-コンソールエラー総数0)に正しく合算される。
+    async function wirePage(p) {
+      p.setDefaultTimeout(10000);
+      await p.setViewport({ width: 390, height: 844 }); // スマホ想定
+      // SMOKE_BLOCK_EXTERNAL=1: 外部リソース(fonts/ytimg等)を即時abortする。プロキシ環境（クラウド
+      // セッション等）では外部リクエストがエラーにならず黙って固まり、loadイベントが10秒を超えて
+      // 全ステップがNavigation timeoutで連鎖失敗するため。アプリは外部失敗を警告扱いのオフライン
+      // 耐性設計なので、遮断＝オフライン相当のテストになる。Mac等の通常実行では指定不要（挙動不変）。
+      if (process.env.SMOKE_BLOCK_EXTERNAL === "1") {
+        await p.setRequestInterception(true);
+        p.on("request", (req) => {
+          if (isExternal(req.url())) req.abort().catch(() => {});
+          else req.continue().catch(() => {});
+        });
+      }
+      p.on("dialog", (d) => d.accept().catch(() => {}));
+      p.on("pageerror", (err) => {
+        consoleErrors.push("[" + currentStep + "] pageerror: " + String(err && err.message ? err.message : err));
+      });
+      p.on("console", (msg) => {
+        if (msg.type() !== "error") return;
+        const loc = msg.location() || {};
+        const at = loc.url || "";
+        const text = msg.text();
+        if (isExternal(at) && /Failed to load resource|net::ERR/.test(text)) {
+          externalWarns.push("[" + currentStep + "] " + text + " (" + at + ")");
+        } else if (!soudanKbExists && at.indexOf("soudan-kb.js") !== -1) {
+          externalWarns.push("[" + currentStep + "] soudan-kb.js未着による404（想定内）: " + text);
+        } else {
+          consoleErrors.push("[" + currentStep + "] console.error: " + text + (at ? " (" + at + ")" : ""));
+        }
       });
     }
-    page.on("dialog", (d) => d.accept().catch(() => {}));
-    page.on("pageerror", (err) => {
-      consoleErrors.push("[" + currentStep + "] pageerror: " + String(err && err.message ? err.message : err));
-    });
-    page.on("console", (msg) => {
-      if (msg.type() !== "error") return;
-      const loc = msg.location() || {};
-      const at = loc.url || "";
-      const text = msg.text();
-      if (isExternal(at) && /Failed to load resource|net::ERR/.test(text)) {
-        externalWarns.push("[" + currentStep + "] " + text + " (" + at + ")");
-      } else if (!soudanKbExists && at.indexOf("soudan-kb.js") !== -1) {
-        externalWarns.push("[" + currentStep + "] soudan-kb.js未着による404（想定内）: " + text);
-      } else {
-        consoleErrors.push("[" + currentStep + "] console.error: " + text + (at ? " (" + at + ")" : ""));
-      }
-    });
+    const page = await browser.newPage();
+    await wirePage(page);
 
     const $text = (sel) => page.$eval(sel, (el) => el.textContent.trim());
     const visible = (sel) => page.waitForSelector(sel, { visible: true });
@@ -943,6 +949,150 @@ async function main() {
       if (result.dlA === result.recA) throw new Error("daylogがおすすめ動画IDのままになっている（タップ優先が効いていない）");
       if (result.dlB !== result.recB) throw new Error("タップなしのフォールバックでおすすめ動画IDが記録されていない (記録=" + result.dlB + " 期待=" + result.recB + ")");
       return "タップ動画(" + result.otherId + ")がdaylogに反映／ナッジ後も動画ID保持／タップなしはおすすめ(" + result.recB + ")にフォールバック";
+    });
+
+    // 7c. ホーム画面に追加ポップアップ(#a2hsModal)の端末/ブラウザ分岐（実機UA差し替えで7シナリオを検証）
+    //     メインpageのUAは書き換えず、シナリオごとに使い捨てpageをwirePage()で配線して検証する
+    //     （UA/standalone/beforeinstallpromptのevaluateOnNewDocumentはpage生存中ずっと残るため、
+    //     シナリオ間で汚染しないよう毎回新しいpageを使い捨てる）。
+    await step("7c-ホーム画面追加ポップアップの端末分岐（iOS Safari/iOS Chrome/Android/standalone/デスクトップ/アプリ内ブラウザ）", async () => {
+      const UA_IOS_SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+      const UA_IOS_CHROME = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/125.0.6422.80 Mobile/15E148 Safari/604.1";
+      const UA_ANDROID = "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36";
+      const UA_DESKTOP = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+      const UA_ANDROID_LINE = UA_ANDROID + " Line/12.7.0";
+
+      async function freshPage(opts) {
+        opts = opts || {};
+        const p = await browser.newPage();
+        await wirePage(p);
+        await p.setUserAgent(opts.ua);
+        if (opts.standalone) {
+          await p.evaluateOnNewDocument(() => {
+            try { Object.defineProperty(navigator, "standalone", { get: () => true, configurable: true }); } catch (e) { /* ignore */ }
+          });
+        }
+        if (opts.bip) {
+          // beforeinstallpromptは実ブラウザのインストール可否判定に依存し自動テストで自然発火させられないため、
+          // 本物同等のAPI形状(prompt()/userChoice)を持つEventを合成してdispatchし、アプリ側の実リスナー
+          // （window.__a2hsEvent保持→ボタンでe.prompt()呼び出し）を実コードのまま検証する。
+          await p.evaluateOnNewDocument(() => {
+            window.addEventListener("DOMContentLoaded", function () {
+              const ev = new Event("beforeinstallprompt", { cancelable: true });
+              ev.prompt = function () { window.__a2hsPromptCalled = true; return Promise.resolve(); };
+              ev.userChoice = Promise.resolve({ outcome: "accepted" });
+              window.dispatchEvent(ev);
+            });
+          });
+        }
+        await p.goto(url, { waitUntil: "load" });
+        await p.evaluate(() => localStorage.clear()); // 同一プロファイル内の他シナリオ分の記録を消し、フレッシュ起動を再現
+        await p.reload({ waitUntil: "load" });
+        await p.waitForFunction(() => window.__kyonoBoot === true, { timeout: 8000 });
+        return p;
+      }
+      function waitPopupOrGuide(p) {
+        return p.waitForFunction(() => {
+          const w = document.getElementById("welcome"), m = document.getElementById("a2hsModal");
+          return (w && !w.classList.contains("hidden")) || (m && !m.classList.contains("hidden"));
+        }, { timeout: 6000 });
+      }
+      const notes = [];
+
+      // 1) iOS Safari → 共有ボタンからの案内、ボタンは「あとで」のみ
+      {
+        const p = await freshPage({ ua: UA_IOS_SAFARI });
+        await waitPopupOrGuide(p);
+        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        if (kind !== "ios-safari") throw new Error("iOS Safariでkindがios-safariでない (実測=" + kind + ")");
+        const welcomeHidden = await p.$eval("#welcome", (el) => el.classList.contains("hidden"));
+        if (!welcomeHidden) throw new Error("iOS Safari: a2hsModal表示中にwelcomeも同時に見えている");
+        await p.click("#a2hsBtns button"); // 「あとで」
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.close();
+        notes.push("iOS Safari→共有ボタン案内→あとで→はじめてガイド");
+      }
+
+      // 2) iOS Chrome(CriOS) → 「Safariで開く必要がある」案内
+      {
+        const p = await freshPage({ ua: UA_IOS_CHROME });
+        await waitPopupOrGuide(p);
+        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        if (kind !== "ios-other") throw new Error("iOS Chromeでkindがios-otherでない (実測=" + kind + ")");
+        await p.click("#a2hsBtns button"); // 「あとで」
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.close();
+        notes.push("iOS Chrome(CriOS)→Safariで開く案内→あとで→はじめてガイド");
+      }
+
+      // 3) Android + beforeinstallprompt発火保持あり → 「ホーム画面に追加する」タップでprompt()実行
+      {
+        const p = await freshPage({ ua: UA_ANDROID, bip: true });
+        await waitPopupOrGuide(p);
+        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        if (kind !== "android-prompt") throw new Error("Android+bip保持でkindがandroid-promptでない (実測=" + kind + ")");
+        const btnCount = await p.$$eval("#a2hsBtns button", (a) => a.length);
+        if (btnCount !== 2) throw new Error("Android+bip保持でボタンが2個(インストール/あとで)でない (実測=" + btnCount + ")");
+        await p.evaluate(() => {
+          const btns = document.querySelectorAll("#a2hsBtns button");
+          for (const b of btns) { if (b.textContent.indexOf("ホーム画面に追加する") !== -1) { b.click(); return; } }
+        });
+        await p.waitForFunction(() => window.__a2hsPromptCalled === true, { timeout: 5000 });
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.close();
+        notes.push("Android(beforeinstallprompt保持)→「ホーム画面に追加する」→prompt()実行確認→はじめてガイド");
+      }
+
+      // 4) Android（beforeinstallprompt未発火）→ 「⋮」メニュー案内。戻る操作でも進行不能にならないことも確認
+      {
+        const p = await freshPage({ ua: UA_ANDROID });
+        await waitPopupOrGuide(p);
+        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        if (kind !== "android-menu") throw new Error("Android未発火でkindがandroid-menuでない (実測=" + kind + ")");
+        await p.goBack(); // ボタンを押さず戻る操作で閉じても、必ずはじめてガイドへ進む（進行不能防止の必須要件）
+        await p.waitForFunction(() => document.getElementById("a2hsModal").classList.contains("hidden"), { timeout: 5000 });
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.close();
+        notes.push("Android(未発火)→メニュー案内→戻る操作で閉じても必ずはじめてガイドへ進行(スタック防止)");
+      }
+
+      // 5) すでにstandalone起動中 → ポップアップなしで直接はじめてガイド
+      {
+        const p = await freshPage({ ua: UA_ANDROID, standalone: true });
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 6000 });
+        const modalTouched = await p.$eval("#a2hsModal", (el) => !el.classList.contains("hidden") || el.hasAttribute("data-a2hs-kind"));
+        if (modalTouched) throw new Error("standalone起動中なのにa2hsModalが出た");
+        await p.close();
+        notes.push("standalone起動中→a2hsModalなしで直接はじめてガイド");
+      }
+
+      // 6) デスクトップUA → ポップアップなしで直接はじめてガイド（「ホーム画面」の概念がスマホ前提のため）
+      {
+        const p = await freshPage({ ua: UA_DESKTOP });
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 6000 });
+        const modalTouched = await p.$eval("#a2hsModal", (el) => !el.classList.contains("hidden") || el.hasAttribute("data-a2hs-kind"));
+        if (modalTouched) throw new Error("デスクトップUAなのにa2hsModalが出た");
+        await p.close();
+        notes.push("デスクトップUA→a2hsModalなしで直接はじめてガイド");
+      }
+
+      // 7) アプリ内ブラウザ(LINE) → 従来どおりポップアップ・はじめてガイドとも出さない（既存仕様の回帰確認）
+      {
+        const p = await freshPage({ ua: UA_ANDROID_LINE });
+        await new Promise((r) => setTimeout(r, 2200)); // スプラッシュ無し(0.6秒)+ポップアップ判定の猶予を待っても出ないことを確認
+        const state = await p.evaluate(() => ({
+          welcomeHidden: document.getElementById("welcome").classList.contains("hidden"),
+          modalHidden: document.getElementById("a2hsModal").classList.contains("hidden"),
+          boot: window.__kyonoBoot === true,
+        }));
+        if (!state.boot) throw new Error("LINEアプリ内UAで起動マーカーが立っていない");
+        if (!state.welcomeHidden) throw new Error("LINEアプリ内UAなのにwelcomeが表示された（既存仕様の回帰）");
+        if (!state.modalHidden) throw new Error("LINEアプリ内UAなのにa2hsModalが表示された");
+        await p.close();
+        notes.push("アプリ内ブラウザ(LINE)→従来どおりポップアップ/はじめてガイドとも非表示(回帰なし)");
+      }
+
+      return notes.join(" / ");
     });
 
     // 8. 最終確認: コンソールエラー総数0
