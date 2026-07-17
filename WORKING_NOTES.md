@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 相談室シート/カード図鑑の背面スクロール抜け対策（position:fixed+top:-scrollY方式・AUDIT-MEMO.md 187〜189行目の残課題を解消）
+
+AUDIT-MEMO.mdの残課題「相談室ボトムシート等でのiOS15以前の背面スクロール抜け」に対応した。`body.sd-lock{overflow:hidden}`（CSS）だけではiOS15以前のSafariで背面ページが指でスクロールできてしまう既知バグがあるため、定番のposition:fixed+top:-scrollY方式を追加した。
+
+- `index.html`に共通ヘルパー`lockBodyScroll()`/`unlockBodyScroll()`を新設（`updateFabs()`の直前）。`lockBodyScroll()`は`window.scrollY`を変数`sdLockScrollY`に記憶したうえで`sd-lock`クラスを付け、`document.body`に`position:fixed; top:-{scrollY}px; width:100%`をインラインで適用する。`unlockBodyScroll()`はインラインstyleを解除して`window.scrollTo(0, sdLockScrollY)`で元の位置へ戻す。多重呼び出しは`sd-lock`クラスの有無で判定してガードしている（既にロック中なら二重にscrollYを取り直さない／ロック解除済みなら何もしない）。
+- `sd-lock`クラスを直接`classList.add/remove`していた4箇所（`openSoudan`/`closeSoudan`・`openDex`/`closeDex`）を全てこの2関数経由に置き換えた。個別実装だと対策漏れのモーダルが増える懸念があったため、共通化して一本化した。
+- 前回実装済みの相談室シートのvisualViewport対応（`sdVvOn`/`sdVvOff`・キーボード追従）とは別の関心事として独立させており、`openSoudan`では`lockBodyScroll()`→`sdVvOn()`の順、`closeSoudan`では`unlockBodyScroll()`→`sdVvOff()`の順で呼ぶだけで競合しない（`#soudanSheet`自体は元々`position:fixed`のためbody側のposition:fixed化の影響を受けず、visualViewport計算はbodyでなくwindow基準のため無関係）。
+- `scripts/qa.js`に静的チェックを追加: `lockBodyScroll`/`unlockBodyScroll`の存在・position/top/width設定・scrollTo復元の有無、および`openSoudan`/`closeSoudan`/`openDex`/`closeDex`が生の`classList.add/remove("sd-lock")`ではなく共通ヘルパー経由であること、`sd-lock`という文字列のclassList操作がヘルパー内の2箇所以外に出現しないこと（対策漏れモーダルの新設防止）を機械チェック化した。
+- `scripts/smoke.js`にヘッドレスChrome実測テスト「6f-背面スクロールロック」を追加。ページを220px/150pxスクロールした状態から相談室シート・カード図鑑をそれぞれ開き、`document.body.style.position==="fixed"`と`style.top`がその時点の`scrollY`と一致すること、閉じた後にインラインstyleが解除され`window.scrollY`が元の値に正確に戻ることを実測確認。あわせて通常時（モーダル未使用時）のスクロールが従来どおり効くことも確認した。なお`page.click()`は対象要素を自動でscrollIntoViewしてしまい検証用のスクロール位置を上書きするため、この検証では`page.evaluate`経由で素の`.click()`を発火している。
+- 検証: `npm test`は本エントリ時点で155 checks中154 PASS（1件のみ失敗=`ensureCardFonts: timeout guard`。これは並行編集中の別セッションによる記録カード機能の`app-card.js`分割作業が未完了のためで、本変更とは無関係。自分が追加した`lockBodyScroll`/`unlockBodyScroll`関連の全アサーションはPASS）。`npm run smoke`は6b/6c/6d/6e/6f/7/7bを含む該当ステップが全てPASS（1系列のステップは同じ並行編集の影響で一時的にFAILしていたが本変更起因ではない）。
+- 補足: 本作業中もリポジトリは複数セッションが並行編集中で、`index.html`・`scripts/qa.js`・`scripts/smoke.js`への自分の変更が一度作業途中でeven-syncの自動コミット・pull-rebaseの狭間で消える事象が発生した。`git log -S`で追跡した結果、最終的にはauto-syncコミット（`e906576`→`59faea8`）に自分の変更が正しく取り込まれ済みであることをHEADとの内容比較（`git show HEAD:<file> | grep`等）で確認した。index.html側に残っていた未コミット差分は全て他セッションのWIP（記録カード`app-card.js`分割・オガトレ通信の既読しきい値機能）であることを確認し、一切手を加えていない。
+
 ## 2026-07-17 「きょうやった！」の記録動画を、タップした実際の動画優先に変更（AUDIT-MEMO.md低優先項目・本人承認済み）
 
 AUDIT-MEMO.mdの低優先項目「『きょうやった！』の記録動画は実際に見た動画ではなく、その日のおすすめ動画IDが記録される」に対応した。
