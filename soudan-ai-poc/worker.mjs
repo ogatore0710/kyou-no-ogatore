@@ -99,7 +99,7 @@ export async function handle(request, env) {
   const n = norm(message);
 
   // 第0層: 赤旗は AI を通さず即返す
-  if (redFlagHit(n)) return json(redFlagAnswer());
+  if (redFlagHit(n)) return json(redFlagAnswer(n));
 
   // 上限: 超えたら fallback シグナル（クライアントがパターン集に切替）
   const lim = overLimit(ip, env);
@@ -160,7 +160,7 @@ export default {
 // クライアント側フォールバック（パターン集）— 参考用にサーバでも計算できるように公開
 export function patternAnswer(message) {
   const n = norm(message);
-  if (redFlagHit(n)) return redFlagAnswer();
+  if (redFlagHit(n)) return redFlagAnswer(n);
   const top = scoreIntents(n)[0];
   if (!top) return { source: "fallback", empathy: "うまく聞き取れなかったかも。部位で言ってみて？", mitate: "", videoId: null, keizoku: "", needsReferral: false };
   const it = top.it;

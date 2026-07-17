@@ -6,7 +6,7 @@
 // 2026-07-14追加③: SOUDAN-QUALITY-AUDIT-ROUND3-2026-07-14.md ②-2（「過呼吸」を新規赤旗語として追加）の新規カバー1件+非該当1件の固定。
 // 使い方: node soudan-ai-poc/redflag-safety-test.mjs
 import { readFileSync } from "node:fs";
-import { norm, redFlagHit, crisisHit } from "./norm.mjs";
+import { norm, redFlagHit, crisisHit, redFlagKind } from "./norm.mjs";
 
 const fixes = JSON.parse(readFileSync(new URL("./safety-fixes.raw.json", import.meta.url), "utf8")).result.fixes;
 
@@ -91,6 +91,29 @@ const round3_2026_07_14 = [
 ];
 for (const [c, want] of round3_2026_07_14) {
   if (redFlagHit(norm(c)) === want) pass++; else { fail++; fails.push(`[過呼吸] ${c} → 期待:${want ? "受診" : "通常"}`); }
+}
+
+// 赤旗の症状系/状態系2バケット化（AUDIT-MEMO.md「赤旗回答が一種類のため妊娠・術後等の状態語への文面が不自然」対応・
+// 2026-07-17本人YES承認済み）。赤旗ヒット自体(redFlagHit)はtrueのまま変わらないこと、かつ状態語のみのヒットは
+// "state"（主治医OK待ちの文面）、症状語ヒットは"symptom"（従来の受診案内文面）に分岐すること、症状語と状態語が
+// 混在する入力は安全側に倒して"symptom"を優先することを固定する。
+const redFlagKindCases = [
+  // 状態系（現在の状態の申告。急性の危険症状そのものではない）
+  ["妊娠中で腰が痛い", "state"],
+  ["術後でまだ痛い", "state"],
+  ["産後1ヶ月です", "state"],
+  // 症状系（急性の危険症状。従来通りの受診案内文面のまま）
+  ["激痛がある", "symptom"],
+  ["胸が痛くて冷や汗が出る", "symptom"],
+  ["しびれがある", "symptom"],
+  // 混在（状態語+症状語）→ 安全側で症状系を優先
+  ["妊娠中で急に激痛が走った", "symptom"],
+];
+for (const [c, want] of redFlagKindCases) {
+  const n = norm(c);
+  if (!redFlagHit(n)) { fail++; fails.push(`[赤旗2バケット] ${c} → 赤旗ヒットするべきなのにhit=false`); continue; }
+  const kind = redFlagKind(n);
+  if (kind === want) pass++; else { fail++; fails.push(`[赤旗2バケット] ${c} → 期待:${want} 実際:${kind}`); }
 }
 
 fails.forEach((m) => console.log("❌ " + m));

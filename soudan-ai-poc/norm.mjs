@@ -22,6 +22,25 @@ export function redFlagHit(n) {
   return false;
 }
 
+// index.html sdRedFlagKind と同一（n は正規化済み前提）。赤旗ヒット後にどちらの文面(answer=症状系/answerState=状態系)を
+// 返すかの判定。stateKw(妊娠・術後等の状態語=kwの部分集合)にしかヒットしていなければ"state"、症状語が1つでも
+// ヒットすれば"symptom"(安全側優先。両方ヒット時も症状系を優先)。
+export function redFlagKind(n) {
+  const rf = KB.redFlags;
+  if (!rf || !Array.isArray(rf.kw)) return null;
+  const stateSet = new Set((rf.stateKw || []).map(norm));
+  n = n.replace(/寝転|ねころ|寝ころ|ねっころ|寝っこ/g, "");
+  let stateHit = false;
+  for (const k0 of rf.kw) {
+    const k = norm(k0);
+    if (k.length >= 2 && n.indexOf(k) >= 0) {
+      if (stateSet.has(k)) stateHit = true;
+      else return "symptom";
+    }
+  }
+  return stateHit ? "state" : null;
+}
+
 // index.html:3229 sdCrisisHit と同一（n は正規化済み前提。redFlagHitと違い「寝転」除去は無い）
 export function crisisHit(n) {
   const c = KB.crisis;
@@ -51,11 +70,13 @@ export function scoreIntents(n) {
   return out;
 }
 
-export function redFlagAnswer() {
+export function redFlagAnswer(n) {
   const rf = KB.redFlags || {};
+  const kind = redFlagKind(n || "");
+  const mitate = (kind === "state" && rf.answerState) ? rf.answerState : (rf.answer || "");
   return {
     empathy: rf.empathy || "その状態はまず専門家にみてもらうのが安心だよ。",
-    mitate: rf.answer || "",
+    mitate,
     keizoku: "",
     videoId: null,
     needsReferral: true,

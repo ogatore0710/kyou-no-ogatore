@@ -3133,6 +3133,25 @@ function sdRedFlagHit(n){
   for(const k0 of kb.redFlags.kw){ const k=sdNorm(k0); if(k.length>=2&&n.indexOf(k)>=0) return true; }
   return false;
 }
+// 赤旗ヒット後、どちらの文面(answer=症状系／answerState=状態系)を返すか判定する。
+// kw配列自体は症状語・状態語が混在したまま(ヒット判定=sdRedFlagHitは変えない)で、
+// stateKw(状態語の部分集合)にしかヒットしていない場合だけ状態系文面にする。
+// 症状語(stateKw外のkw)に1つでもヒットしたら、状態語も同時にヒットしていても安全側に倒して症状系を優先する
+// (例:「妊娠中で急に激痛が走った」→症状系の受診案内を優先)。
+function sdRedFlagKind(n){
+  const kb=sdKb(); const rf=(kb&&kb.redFlags)||{};
+  if(!Array.isArray(rf.kw)) return null;
+  const stateSet=new Set((rf.stateKw||[]).map(sdNorm));
+  n=n.replace(/寝転|ねころ|寝ころ|ねっころ|寝っこ/g,"");
+  let stateHit=false;
+  for(const k0 of rf.kw){
+    const k=sdNorm(k0);
+    if(k.length>=2&&n.indexOf(k)>=0){
+      if(stateSet.has(k)) stateHit=true; else return "symptom";
+    }
+  }
+  return stateHit?"state":null;
+}
 // 希死念慮など緊急語。赤旗よりさらに先に判定し、動画やチップを出さず静かな窓口案内だけ返す
 function sdCrisisHit(n){
   const kb=sdKb(); if(!kb||!kb.crisis||!Array.isArray(kb.crisis.kw)) return false;
@@ -3196,12 +3215,15 @@ function sdAnswerIntent(it,nextBestId,sangoNote){
   sdChipsMode={type:"followups",intentId:it.id,nextBestId:sdCtx.nextBestId};
   sdPush(msgs);
 }
-function sdAnswerRedFlag(){
+function sdAnswerRedFlag(n){
   const kb=sdKb(); const rf=kb.redFlags||{};
   sdCtx.smalltalkStreak=0;
   const msgs=[];
+  // 状態語(妊娠・術後等)のみのヒットなら状態系文面、症状語が1つでも混ざれば症状系文面(安全側優先)
+  const kind=sdRedFlagKind(n||"");
+  const ans=(kind==="state"&&rf.answerState)?rf.answerState:(rf.answer||"そのつらさは、動画より先にお医者さん・専門家に相談してほしい！よくなったら、また一緒にやろうね");
   if(rf.empathy) msgs.push({who:"oga",html:sdText(rf.empathy),red:true});
-  msgs.push({who:"oga",html:sdText(rf.answer||"そのつらさは、動画より先にお医者さん・専門家に相談してほしい！よくなったら、また一緒にやろうね"),red:true});
+  msgs.push({who:"oga",html:sdText(ans),red:true});
   sdChipsMode={type:"intents"};
   sdPush(msgs);
 }
@@ -3278,7 +3300,7 @@ function sdSend(){
   sdUserBubble(raw);
   const n=sdNorm(raw);
   if(sdCrisisHit(n)){ sdAnswerCrisis(); return; } // ⓪希死念慮は赤旗よりさらに先。動画やチップを出さず静かな窓口案内だけ
-  if(sdRedFlagHit(n)){ sdAnswerRedFlag(); return; } // ①赤旗は他を見ずに最優先（産後の急性・早期はここで受診案内）
+  if(sdRedFlagHit(n)){ sdAnswerRedFlag(n); return; } // ①赤旗は他を見ずに最優先（産後の急性・早期はここで受診案内。文面は症状系/状態系の2バケットで分岐=sdRedFlagKind）
   const sango=sdSangoChronic(n);                     // ②赤旗を抜けた産後=慢性/時期不明→通常回答＋一言注意
   const ranked=sdScoreIntents(n);                    // ③スコア=ヒットkwの文字数合計
   if(ranked.length&&ranked[0].score>=2){             // 閾値=かな2文字ヒット相当
@@ -4193,12 +4215,21 @@ function obOpenTour(){
   try{ if(!(history.state&&history.state.ob)) history.pushState({id:currentSection,ob:1},""); }catch(e){}
   obTourStart();
 }
+// オンボQ2「いちばん気になるのは？」の回答（soudan-kb.jsのインテントID語彙）を、
+// かたさチェックQ5「いちばんの悩みは？」の回答語彙（app-quiz.js WORRY定義のキー）へ変換する対応表。
+// "none"（とくにない）はここに含めない＝実質的な悩みではないためQ5スキップ対象外にする（仕様判断 2026-07-17）。
+const OB_WORRY_TO_QUIZ={ katakori:"katakori", youtsuu:"yotsu", zenkutsu:"yawaraka", nemuri:"tsukare" };
 function obGo(){
   const r=obRouteKey, worry=obAnswers.worry;
   // かたさチェックへ行く人がまだツアーを見ていなければ、チェック結果画面に「つづき：使い方ツアー」を出す
   if(r==="quiz"&&!obTourDone) obTourAfterQuiz=true;
   obClose(true); // 直後にstartQuiz/openSoudan等が履歴を積むため、ここではback()しない（レース防止）
-  if(r==="quiz"){ startQuiz(); return; }
+  if(r==="quiz"){
+    // Q2で実質的な悩みに回答済みなら、直後のかたさチェックQ5で同じ質問を繰り返さない（本人承認済み仕様 2026-07-17）
+    const presetWorry=(worry&&worry!=="none")?(OB_WORRY_TO_QUIZ[worry]||null):null;
+    startQuiz(presetWorry);
+    return;
+  }
   if(r==="soudan"){ try{ openSoudan(worry); return; }catch(e){} }
   goHome();
   setTimeout(function(){ const tv=document.getElementById("todayVideo"); if(tv&&tv.scrollIntoView) tv.scrollIntoView(); },60);
