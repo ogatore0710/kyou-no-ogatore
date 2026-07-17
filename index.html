@@ -684,11 +684,12 @@
       <div style="text-align:center"><button class="btn btn-line" id="memoBtn" style="margin-top:8px;font-size:14px;width:auto;display:inline-block;padding:9px 26px" onclick="saveMemo()">メモをのこす</button></div>
       <div id="memoSaved" style="font-size:14px;color:var(--teal);margin-top:6px;min-height:14px"></div>
     </div>
-    <div id="calAsk"></div>
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" id="makeCardBtn" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
     <div class="hint" id="cardHint">カード画像を保存かシェアでのこしてね📤</div>
+    <div id="calAsk"></div>
+    <div id="tourAsk"></div>
   </div>
 </section>
 
@@ -3815,7 +3816,7 @@ function calendarAskEl(leadText){
   const icsHref=srcIcs?srcIcs.href:"#", gcalHref=srcGcal?srcGcal.href:"#";
   const wrap=document.createElement("div");
   wrap.style.cssText="margin-top:4px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
-  wrap.innerHTML='<div style="margin-bottom:10px;font-weight:800" id="calAskLead"></div>'
+  wrap.innerHTML='<div style="margin-bottom:10px;font-weight:800;white-space:pre-line" id="calAskLead"></div>'
     +'<a class="btn btn-line" id="calAskIcsLink" download="kyono-ogatore.ics" style="font-size:14px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>'
     +'<a class="btn btn-line" id="calAskGcalLink" target="_blank" rel="noopener" style="font-size:14px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>'
     +'<div class="hint" style="text-align:left;margin:8px 0 0" id="calAskNote"></div>';
