@@ -4,6 +4,20 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 配布物・OGPメタタグのURLを独自ドメイン(kyou-no.ogatore.net)へ一本化（本人承認済み）
+
+`kyou-no.ogatore.net`のGitHub Pagesカスタムドメイン設定（同日先行実施・`WORKING_NOTES.md`の別エントリ参照）を受けて、対外的に見せる絶対URLを旧`https://ogatore0710.github.io/kyou-no-ogatore/`から新ドメイン`https://kyou-no.ogatore.net/`へ置き換えた。
+
+- `index.html`: `og:url`/`og:image`/`twitter:image`の3箇所を新ドメインに変更。
+- `docs/invite-kit.md`: 「配るリンク」と告知文中のURLを新ドメインに変更。あわせて`SCALE-NOTES.md`の「LINE配布用URLは`?openExternalBrowser=1`付きにする」を反映し、`?openExternalBrowser=1`を付与（オガトレ部はLINEでの配布のため）。
+- `docs/qa-checklist.md`: 冒頭のチェック対象URLを新ドメインに変更（本人実機チェック用・パラメータ付与なし）。
+- `README.md`: 該当URL記載なし（変更不要と確認済み）。
+- `manifest.json`の`start_url`/`id`はもともと相対パス（`./`）でドメイン非依存のため変更不要（技術的な相対パス指定はそのまま維持）。
+- **意図的に変更していない箇所**: `BETA-CHECKLIST.md`・`kyou-no-ogatore-full-audit-DONE.md`・`QA-REPORT.md`、および本ファイル内の2026-07-07付エントリ（1051行目付近）に残る旧URL。これらは特定時点の実施記録・監査スナップショットであり、実施当時は実際に旧URLで検証したという事実を保持するため書き換えていない（記録の正確性を優先）。
+- HTTPS証明書は本作業時点で未発行（`gh api repos/ogatore0710/kyou-no-ogatore/pages`が`https_enforced:false`、`curl https://kyou-no.ogatore.net/`はGitHubの`*.github.io`ワイルドカード証明書しか返らずSSL検証エラー）。`http://kyou-no.ogatore.net/`は200 OKで疎通確認済み。コード上は`https://`で統一し、証明書発行を待てば自動的に有効になる想定。
+- 検証: `npm test`=156 checks PASS。
+- 補足: このリポジトリは他セッションと並行編集中で、作業中に`index.html`が記録カード機能の分割（`app-card.js`化、他セッションWIP）で複数回上書きされたため、`git stash`で自分の変更のみ退避→クリーンな状態に再適用→コミットする形で衝突を回避した。
+
 ## 2026-07-17 ドキュメント整合性の是正（README.md/HANDOFF.mdの実装ズレ解消・残骸ファイル削除）
 
 README.md が実装と食い違っていた箇所を実測して修正した。①撤去済みの「💛きょうのありがとう」機能の説明が残っていたため削除（コミット`f179275`で既に撤去、`sendThanks`等の関数は現存しない）。②数字のズレを`node`でSOUDAN_KB/CATALOG/VOICESを実際にevalして再集計し修正: 相談室インテント119→**122件**、動画本数451→**454本**、せんぱいの声120→**116件**（処方プール64本は実測どおりで変更なし・再生リスト16本も実測どおりで変更なし）。③技術構成欄に`app-quiz.js`/`app-record.js`/`soudan-kb.js`/`obu-feed.js`の分割済み記載が漏れていたため追記。`HANDOFF.md`も`npm test`=132checks・`npm run smoke`=17/17に更新し、SPLIT-PLANの進捗記述（3番=記録・継続=完了、次候補=4番）も同期させた。

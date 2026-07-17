@@ -1,7 +1,7 @@
 # 招待キット — #きょうのオガトレ 100人テスト
 
 > これは何: オガトレ部（約60人）への配布に使う一式。①告知文 ②使い方1ページ ③ホーム画面追加の手順。
-> 配るリンク: **https://ogatore0710.github.io/kyou-no-ogatore/**
+> 配るリンク: **https://kyou-no.ogatore.net/?openExternalBrowser=1**
 > 使い方: ①をそのままコミュニティに投稿 → 質問が出たら②③を貼る。全部まとめて1投稿でもOK。
 
 ---
@@ -22,7 +22,7 @@
 > ・休んでもおやすみ券が守ってくれる！責めません！
 >
 > 👇ここから開くだけ！インストール不要！
-> https://ogatore0710.github.io/kyou-no-ogatore/
+> https://kyou-no.ogatore.net/?openExternalBrowser=1
 >
 > 開いたら「ホーム画面に追加」しておくのがおすすめ！
 > （やり方はアプリの「使い方」タブにあります）

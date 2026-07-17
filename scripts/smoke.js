@@ -807,6 +807,68 @@ async function main() {
       return "reachでFAB(相談室・オガトレ通信とも)非表示→ホーム復帰で再表示を確認";
     });
 
+    // 6f. 背面スクロールロック(position:fixed+top:-scrollY方式・iOS15以前の「overflow:hiddenだけでは背面が
+    //     指でスクロールできてしまう」既知バグの対策)を実機相当(ヘッドレスChrome)で実測する。
+    //     相談室シート・カード図鑑ともopen時にscrollYを記憶してbodyへposition:fixed+top:-scrollYを適用し、
+    //     close時にインラインstyleを解除してwindow.scrollToで元の位置へ正確に復元することを確認する。
+    await step("6f-背面スクロールロック(position:fixed+top:-scrollY)", async () => {
+      if (!soudanKbExists) return "SKIP扱い: soudan-kb.js未着（相談室シート側は検証不可）";
+      // ---- 相談室シート ----
+      await page.click("#tab-home");
+      await visible("#home");
+      await page.evaluate(() => window.scrollTo(0, 220)); // 少しスクロールした状態を作ってから開く
+      const sdScrollBefore = await page.evaluate(() => window.scrollY);
+      if (sdScrollBefore < 100) throw new Error("事前スクロールが効いていない (scrollY=" + sdScrollBefore + ")");
+      await visible("#soudanCard");
+      // page.click()は要素を自動でscrollIntoViewしてしまい、直前にwindow.scrollToで作った検証用の
+      // スクロール位置が上書きされてしまうため、ここは素のclick()をevaluate経由で発火する
+      await page.evaluate(() => { document.querySelector("#soudanCard .sec-head").click(); });
+      await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
+      const sdLocked = await page.evaluate(() => ({
+        position: document.body.style.position,
+        top: document.body.style.top,
+        width: document.body.style.width,
+        hasClass: document.body.classList.contains("sd-lock"),
+      }));
+      if (sdLocked.position !== "fixed") throw new Error("相談室オープン時にbody.style.positionがfixedでない (" + sdLocked.position + ")");
+      if (sdLocked.top !== "-" + sdScrollBefore + "px") throw new Error("body.style.topがscrollYと不一致 (" + sdLocked.top + " / scrollY=" + sdScrollBefore + ")");
+      if (sdLocked.width !== "100%") throw new Error("body.style.widthが100%でない (" + sdLocked.width + ")");
+      if (!sdLocked.hasClass) throw new Error("sd-lockクラスが付いていない");
+      await page.click(".sd-close");
+      await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
+      const sdAfter = await page.evaluate(() => ({ position: document.body.style.position, top: document.body.style.top, scrollY: window.scrollY }));
+      if (sdAfter.position !== "" || sdAfter.top !== "") throw new Error("相談室クローズ後もインラインstyleが残っている (position=" + sdAfter.position + " top=" + sdAfter.top + ")");
+      if (sdAfter.scrollY !== sdScrollBefore) throw new Error("相談室クローズ後にscrollYが復元されていない (" + sdScrollBefore + "→" + sdAfter.scrollY + ")");
+
+      // ---- カード図鑑モーダル ----
+      await page.click("#tab-history");
+      await visible("#history");
+      await page.evaluate(() => window.scrollTo(0, 150));
+      const dexScrollBefore = await page.evaluate(() => window.scrollY);
+      if (dexScrollBefore < 50) throw new Error("図鑑オープン前のスクロールが効いていない (scrollY=" + dexScrollBefore + ")");
+      await page.evaluate(() => { document.querySelector('#dexBannerCard button[onclick="openDex()"]').click(); });
+      await visible("#dexModal");
+      const dexLocked = await page.evaluate(() => ({ position: document.body.style.position, top: document.body.style.top }));
+      if (dexLocked.position !== "fixed") throw new Error("図鑑オープン時にbody.style.positionがfixedでない (" + dexLocked.position + ")");
+      if (dexLocked.top !== "-" + dexScrollBefore + "px") throw new Error("図鑑オープン時のtopがscrollYと不一致 (" + dexLocked.top + " / scrollY=" + dexScrollBefore + ")");
+      await page.click(".dex-close");
+      await page.waitForFunction(() => document.getElementById("dexModal").classList.contains("hidden"));
+      const dexAfter = await page.evaluate(() => ({ position: document.body.style.position, scrollY: window.scrollY }));
+      if (dexAfter.position !== "") throw new Error("図鑑クローズ後もposition:fixedが残っている (" + dexAfter.position + ")");
+      if (dexAfter.scrollY !== dexScrollBefore) throw new Error("図鑑クローズ後にscrollYが復元されていない (" + dexScrollBefore + "→" + dexAfter.scrollY + ")");
+
+      // ---- 通常時(モーダル未オープン)のスクロールは今まで通り効くこと ----
+      await page.click("#tab-home");
+      await visible("#home");
+      await page.evaluate(() => window.scrollTo(0, 80));
+      const normal = await page.evaluate(() => ({ scrollY: window.scrollY, position: getComputedStyle(document.body).position }));
+      if (normal.scrollY !== 80) throw new Error("モーダル未使用時に通常スクロールができていない (scrollY=" + normal.scrollY + ")");
+      if (normal.position === "fixed") throw new Error("モーダル未使用時にbodyがposition:fixedのままになっている");
+      await page.evaluate(() => window.scrollTo(0, 0));
+
+      return "相談室シート/カード図鑑ともopen時body.position=fixed+top=-scrollY(" + sdScrollBefore + "px/" + dexScrollBefore + "px)・close時に元のscrollYへ復元・通常時のスクロールは影響なしを実測確認";
+    });
+
     // 7. 破損データ耐性: kyono_streak2に不正文字列→リロードで白画面にならない
     await step("7-破損データ耐性（kyono_streak2）", async () => {
       await page.evaluate(() => localStorage.setItem("kyono_streak2", "{oops!!broken"));
@@ -821,6 +883,66 @@ async function main() {
       if (state.textLen < 100) throw new Error("画面がほぼ空（本文" + state.textLen + "字）＝白画面相当");
       if (!/^\d+$/.test(state.streak)) throw new Error("streakNumが数字でない (" + state.streak + ")");
       return "リロード後も描画OK / streakNum=" + state.streak + "（既定値へフォールバック）";
+    });
+
+    // 7b. 「きょうの1本」タップで実際に見た動画IDがdaylogに残る（AUDIT-MEMO低優先項目の回帰確認）
+    //     ケースA: タップした動画がおすすめと別IDでもdaylogにはタップ側が残る
+    //     ケースB: タップなしで「きょうやった！」→従来どおりおすすめ動画IDにフォールバック
+    //     あわせて、既存の「きょうやった？」ナッジ(checkDoneNudge)がタップの動画ID記録を消してしまわないことも確認
+    await step("7b-タップ動画IDのdaylog反映（おすすめと別ID／フォールバック／ナッジ非干渉）", async () => {
+      const result = await page.evaluate(() => {
+        const real = Date.now;
+        try {
+          // ---- ケースA ----
+          Date.now = function () { return real() + 2 * 86400000; };
+          renderHome();
+          const dayA = todayStr();
+          const recA = currentTodayId();
+          const otherId = Object.keys(V).map((k) => V[k].id).find((id) => id !== recA);
+          if (!otherId) throw new Error("catalogに別動画candidateが見つからない");
+          const tv = document.getElementById("todayVideo");
+          const fakeA = document.createElement("a");
+          fakeA.className = "video";
+          fakeA.href = "https://www.youtube.com/watch?v=" + otherId;
+          fakeA.target = "_blank"; fakeA.rel = "noopener";
+          tv.appendChild(fakeA);
+          // 実際にYouTubeへ遷移させない（テスト用のfakeAだけpreventDefault、既存の動画リンクの挙動には触れない）
+          const guard = (ev) => { if (ev.target === fakeA) ev.preventDefault(); };
+          document.addEventListener("click", guard, true);
+          fakeA.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+          document.removeEventListener("click", guard, true);
+          fakeA.remove();
+          const pendingVideoAfterTap = sessionStorage.getItem("kyono_pendingNudgeVideo");
+          // 「戻ってきた」ナッジチェックを挟む。旧kyono_pendingNudgeは消えるが、動画IDキーは影響を受けないはず
+          checkDoneNudge();
+          const pendingNudgeAfterCheck = sessionStorage.getItem("kyono_pendingNudge");
+          const pendingVideoAfterCheck = sessionStorage.getItem("kyono_pendingNudgeVideo");
+          markDone();
+          const dlA = (JSON.parse(localStorage.getItem("kyono_daylog") || "{}"))[dayA];
+
+          // ---- ケースB: タップせず「きょうやった！」だけ→フォールバック ----
+          Date.now = function () { return real() + 3 * 86400000; };
+          renderHome();
+          const dayB = todayStr();
+          const recB = currentTodayId();
+          markDone();
+          const dlB = (JSON.parse(localStorage.getItem("kyono_daylog") || "{}"))[dayB];
+
+          return {
+            dayA, recA, otherId, pendingVideoAfterTap, pendingNudgeAfterCheck, pendingVideoAfterCheck,
+            dlA: dlA ? dlA.v : null,
+            dayB, recB, dlB: dlB ? dlB.v : null,
+          };
+        } finally { Date.now = real; }
+      });
+      if (!result.pendingVideoAfterTap) throw new Error("タップでkyono_pendingNudgeVideoが記録されていない");
+      if (JSON.parse(result.pendingVideoAfterTap).v !== result.otherId) throw new Error("記録された動画IDがタップしたものと不一致");
+      if (result.pendingNudgeAfterCheck !== null) throw new Error("checkDoneNudge後もkyono_pendingNudgeが残っている（従来のナッジ仕様が壊れている）");
+      if (!result.pendingVideoAfterCheck) throw new Error("checkDoneNudgeでkyono_pendingNudgeVideoまで消えてしまっている（ナッジと動画記録が独立していない）");
+      if (result.dlA !== result.otherId) throw new Error("daylogにタップした動画IDが残っていない (記録=" + result.dlA + " 期待=" + result.otherId + ")");
+      if (result.dlA === result.recA) throw new Error("daylogがおすすめ動画IDのままになっている（タップ優先が効いていない）");
+      if (result.dlB !== result.recB) throw new Error("タップなしのフォールバックでおすすめ動画IDが記録されていない (記録=" + result.dlB + " 期待=" + result.recB + ")");
+      return "タップ動画(" + result.otherId + ")がdaylogに反映／ナッジ後も動画ID保持／タップなしはおすすめ(" + result.recB + ")にフォールバック";
     });
 
     // 8. 最終確認: コンソールエラー総数0

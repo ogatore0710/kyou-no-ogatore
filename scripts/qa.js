@@ -227,7 +227,9 @@ function checkHtml(html) {
   const importData = extractFunction(main, "importData");
   assert("importData: size limit", /300000/.test(importData), "import payload capped");
   assert("importData: key prefix guard", /startsWith\("kyono_"\)/.test(importData), "only kyono_ keys imported");
-  assert("importData: count guard", /cnt\s*>\s*50/.test(importData), "key count capped");
+  // 2026-07-17実測監査で発見: cnt>50だと51件目まで通ってしまうオフバイワンだったため cnt>=50 に修正。
+  // 60キーのインポートを実機ヘッドレスChromeで実測し、取り込み件数が50件ちょうどであることを確認済み
+  assert("importData: count guard", /cnt\s*>=\s*50/.test(importData), "key count capped (ちょうど50件までしか通さない)");
   assert("importData: value size guard", /200000/.test(importData), "individual value capped");
 
   // 2026-07-16実測監査対応: 唯一の再来訪装置（カレンダー通知）をオンボQ3「いつやる派？」の直後に接続。
@@ -291,6 +293,73 @@ function checkHtml(html) {
   assert("openSoudan: calls sdVvOn()", /sdVvOn\s*\(\s*\)/.test(openSoudanFn), "visualViewport監視をシートオープン時に開始");
   const closeSoudanFn = extractFunction(main, "closeSoudan");
   assert("closeSoudan: calls sdVvOff()", /sdVvOff\s*\(\s*\)/.test(closeSoudanFn), "visualViewport監視をシートクローズ時に停止");
+
+  // 2026-07-17実装: 背面スクロールロック(position:fixed+top:-scrollY方式)。
+  // body.sd-lock{overflow:hidden}(CSS)だけではiOS15以前のSafariで背面が指でスクロールできてしまう
+  // (「スクロール抜け」既知バグ)ため、lockBodyScroll/unlockBodyScrollの共通ヘルパーで
+  // scrollYの記憶→position:fixed適用→復元を行う。sd-lockを使う全モーダルがこの2関数経由であることを固定する
+  // (個別にclassList.add/remove("sd-lock")する実装が新設されると、スクロール抜け対策が漏れたモーダルが
+  // サイレントに増えてしまうため)。
+  const lockBodyScrollFn = extractFunction(main, "lockBodyScroll");
+  assert("lockBodyScroll: found", lockBodyScrollFn.length > 0, `${lockBodyScrollFn.length} chars`);
+  assert(
+    "lockBodyScroll: saves window.scrollY before locking",
+    /scrollY/.test(lockBodyScrollFn),
+    "開く前のスクロール位置を記憶している"
+  );
+  assert(
+    "lockBodyScroll: applies position:fixed + top:-scrollY + width:100%",
+    /style\.position\s*=\s*["']fixed["']/.test(lockBodyScrollFn) &&
+      /style\.top\s*=\s*\(?-\s*\w+/.test(lockBodyScrollFn) &&
+      /style\.width\s*=\s*["']100%["']/.test(lockBodyScrollFn),
+    "inline styleでposition:fixed/top(負値)/width:100%を適用"
+  );
+  const unlockBodyScrollFn = extractFunction(main, "unlockBodyScroll");
+  assert("unlockBodyScroll: found", unlockBodyScrollFn.length > 0, `${unlockBodyScrollFn.length} chars`);
+  assert(
+    "unlockBodyScroll: clears the inline position/top/width styles",
+    /style\.position\s*=\s*""/.test(unlockBodyScrollFn) &&
+      /style\.top\s*=\s*""/.test(unlockBodyScrollFn) &&
+      /style\.width\s*=\s*""/.test(unlockBodyScrollFn),
+    "position:fixedを解除して通常レイアウトに戻す"
+  );
+  assert(
+    "unlockBodyScroll: restores window.scrollTo to the saved position",
+    /window\.scrollTo\s*\(/.test(unlockBodyScrollFn),
+    "記憶しておいたscrollYへ復元"
+  );
+  assert(
+    "openSoudan: locks via lockBodyScroll() (not a raw sd-lock classList.add)",
+    /lockBodyScroll\s*\(\s*\)/.test(openSoudanFn) && !/classList\.add\(["']sd-lock["']\)/.test(openSoudanFn),
+    "共通ヘルパー経由でロック"
+  );
+  assert(
+    "closeSoudan: unlocks via unlockBodyScroll() (not a raw sd-lock classList.remove)",
+    /unlockBodyScroll\s*\(\s*\)/.test(closeSoudanFn) && !/classList\.remove\(["']sd-lock["']\)/.test(closeSoudanFn),
+    "共通ヘルパー経由でアンロック"
+  );
+  const openDexFn = extractFunction(main, "openDex");
+  assert("openDex: found", openDexFn.length > 0, `${openDexFn.length} chars`);
+  assert(
+    "openDex: locks via lockBodyScroll() (not a raw sd-lock classList.add)",
+    /lockBodyScroll\s*\(\s*\)/.test(openDexFn) && !/classList\.add\(["']sd-lock["']\)/.test(openDexFn),
+    "共通ヘルパー経由でロック"
+  );
+  const closeDexFn = extractFunction(main, "closeDex");
+  assert("closeDex: found", closeDexFn.length > 0, `${closeDexFn.length} chars`);
+  assert(
+    "closeDex: unlocks via unlockBodyScroll() (not a raw sd-lock classList.remove)",
+    /unlockBodyScroll\s*\(\s*\)/.test(closeDexFn) && !/classList\.remove\(["']sd-lock["']\)/.test(closeDexFn),
+    "共通ヘルパー経由でアンロック"
+  );
+  // sd-lockの付け外しがlockBodyScroll/unlockBodyScrollの定義以外から直接行われていないこと
+  // (新しいモーダルがこの2関数を経由せず直接classList.add/remove("sd-lock")するとスクロール抜け対策が漏れる)
+  const rawLockSites = (main.match(/classList\.(?:add|remove)\(["']sd-lock["']\)/g) || []).length;
+  assert(
+    "sd-lock classList.add/remove(\"sd-lock\") appears only inside lockBodyScroll/unlockBodyScroll (2 sites)",
+    rawLockSites === 2,
+    `raw occurrences=${rawLockSites}`
+  );
 
   const assetRefs = new Set();
   for (const m of html.matchAll(/\b(?:src|href)=["'](assets\/[^"']+)["']/g)) {
@@ -468,6 +537,83 @@ function checkCatalog(code, allowedTags) {
     assert("videos.js: private videos excluded", leaked.length === 0, leaked.slice(0, 10).join(", ") || "none");
   }
   return ids;
+}
+
+// 2026-07-17実装(AUDIT-MEMO低優先項目対応): オガトレ通信(OBU_FEED)は運用ゼロ設計の中で唯一の
+// 人力更新箇所＝投稿が止まりやすい。「未読/既読」だけでNEW📣を判定すると、初見の新規ユーザーには
+// 投稿がどれだけ古くても永遠にNEWが出続ける(=更新停止が逆に目立つ見せ方になる)ため、obuHasNew()に
+// 鮮度しきい値(OBU_STALE_DAYS)を追加した。regexでの存在確認だけでなく、実際にロジックを実行して
+// 「未読でも古い投稿はNEWにならない／新しい投稿は従来どおりNEWになる」を固定する。
+function checkObuStaleness(mainScript, html) {
+  const daysBetweenBody = extractFunction(mainScript, "daysBetween");
+  const obuIsLaterOrEqualBody = extractFunction(mainScript, "obuIsLaterOrEqual");
+  const obuLatestBody = extractFunction(mainScript, "obuLatest");
+  const obuIsStaleDateBody = extractFunction(mainScript, "obuIsStaleDate");
+  const obuHasNewBody = extractFunction(mainScript, "obuHasNew");
+  const staleMatch = /const\s+OBU_STALE_DAYS\s*=\s*(\d+)/.exec(mainScript);
+
+  assert("obuHasNew: found", obuHasNewBody.length > 0, `${obuHasNewBody.length} chars`);
+  assert("obuIsStaleDate: found", obuIsStaleDateBody.length > 0, `${obuIsStaleDateBody.length} chars`);
+  assert(
+    "obuHasNew: gates on post staleness, not just read/unread (obu_seenだけの判定に戻さない)",
+    /obuIsStaleDate\s*\(\s*latest\.date\s*\)/.test(obuHasNewBody),
+    "obuHasNew still calls obuIsStaleDate before falling back to obu_seen comparison"
+  );
+  assert("OBU_STALE_DAYS: defined as a plain number literal", !!staleMatch, "threshold constant not found or not a literal");
+
+  if (daysBetweenBody && obuIsLaterOrEqualBody && obuLatestBody && obuIsStaleDateBody && obuHasNewBody && staleMatch) {
+    const runObuHasNew = (latestDate, todayDate, seen) => {
+      const code = `
+        const OBU_STALE_DAYS=${staleMatch[1]};
+        function daysBetween(a,b){${daysBetweenBody}}
+        function obuIsLaterOrEqual(a,b){${obuIsLaterOrEqualBody}}
+        function obuLatest(){${obuLatestBody}}
+        function obuIsStaleDate(ds){${obuIsStaleDateBody}}
+        function obuHasNew(){${obuHasNewBody}}
+        obuHasNew();
+      `;
+      const sandbox = {
+        OBU_FEED: [{ id: "post-1", date: latestDate, type: "text" }],
+        store: { get: (k, d) => (k === "obu_seen" ? seen : d) },
+        todayStr: () => todayDate,
+      };
+      return vm.runInNewContext(code, sandbox, { timeout: 2000 });
+    };
+
+    assert(
+      "obuHasNew: 60日前・未読の投稿はNEW扱いにしない(息切れが目立つ見せ方を回避)",
+      runObuHasNew("2026-05-01", "2026-07-17", null) === false,
+      "expected false"
+    );
+    assert(
+      "obuHasNew: 数日前・未読の投稿は従来どおりNEW扱い(回帰防止)",
+      runObuHasNew("2026-07-15", "2026-07-17", null) === true,
+      "expected true"
+    );
+    assert(
+      "obuHasNew: しきい値ちょうど(OBU_STALE_DAYS日前)は古い扱い(境界値)",
+      runObuHasNew("2026-06-17", "2026-07-17", null) === false,
+      "expected false at the exact threshold boundary"
+    );
+    assert(
+      "obuHasNew: 新しい投稿でも既読ならNEWでない(既読判定は維持)",
+      runObuHasNew("2026-07-15", "2026-07-17", "post-1") === false,
+      "expected false"
+    );
+  }
+
+  const obuPostInnerBody = extractFunction(mainScript, "obuPostInner");
+  assert("obuPostInner: found", obuPostInnerBody.length > 0, `${obuPostInnerBody.length} chars`);
+  assert(
+    "obuPostInner: applies obu-date-old class for stale posts (日付を控えめな体裁にする)",
+    /obuIsStaleDate\s*\(\s*item\.date\s*\)/.test(obuPostInnerBody) && /obu-date-old/.test(obuPostInnerBody),
+    "date label styling still depends on obuIsStaleDate"
+  );
+  assert(
+    "index.html: .obu-date-old CSS rule exists (督促ではなく控えめな見た目のみ)",
+    /\.obu-date\.obu-date-old\{/.test(html || ""),
+    "css rule present"
+  );
 }
 
 function checkObuFeed(code) {
@@ -744,6 +890,7 @@ function main() {
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);
   checkObuFeed(read("obu-feed.js"));
+  checkObuStaleness(mainScript, html);
   checkSw(read("sw.js"));
   checkManifest();
   checkPythonScripts();

@@ -5,7 +5,7 @@
 > ✕がひとつでもあったら配布を止めて、スクショを撮って開発側に渡す。
 > 開発者向けの網羅版は [../BETA-CHECKLIST.md](../BETA-CHECKLIST.md)。
 
-URL: https://ogatore0710.github.io/kyou-no-ogatore/
+URL: https://kyou-no.ogatore.net/
 
 ## iPhone（Safari）— 約3分
 
