@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 ダブルタップズームを無効化
+
+PO指摘: 連打気味の操作（例: 「きょうやった！」を素早く2回タップ等）でブラウザ標準のダブルタップズームが発動し、アプリらしさを損ねていた。
+
+- `*{...}`のグローバルリセット規則（index.html）に`touch-action:manipulation`を追加。パン（スクロール）とピンチズーム（アクセシビリティのため維持）はそのまま、ダブルタップズームだけを無効化する標準的な手法（`user-scalable=no`のような手荒な方法とは異なりピンチズームは殺さない）。
+- 検証: 実ブラウザで`getComputedStyle(document.body).touchAction`が`"manipulation"`になることを確認。`npm test`=251checks、`npm run smoke`=21/21、いずれも回帰なし。
+
 ## 2026-07-18 SPLIT-PLAN 5番「PWA・環境案内」完了(app-env.js新設・Fable発案⑩)
 
 `SPLIT-PLAN.md`の最後の分割項目。対象は`applyTheme`・`refreshDay`・`dismissHomeHint`・a2hs系(`a2hsIsStandalone`/`a2hsAddBtn`/`a2hsShow`/`a2hsClose`/`a2hsBoot`)＋状態変数`a2hsCont`の**純粋な関数定義のみ**を`app-env.js`へ移動。
