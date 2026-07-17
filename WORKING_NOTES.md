@@ -4,6 +4,17 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 記録カード分割（app-card.js化・SPLIT-PLAN.md「4. 記録カード」完了）
+
+index.htmlから記録カード生成ロジックを`app-card.js`（新規）へ切り出した。対象は`CARD_THEMES`/`GOLD`/`MS`/`CHARA_FILES`/`ensureCardFonts`/`makeCard`/`drawCard`/`downloadCard`/`shareCard`の9個（SPLIT-PLAN.md記載どおり）。挙動を一切変えない機械的な移動で、他の関数（`store`/`todayStr`/`getStreakData`はapp-record.js、`TYPES`はapp-quiz.js、`cardPatternFor`/`roundRect`/`wrapLines`/`drawHeart`等の描画ヘルパー・`cardDate`/`lastBlob`/`lastShareText`等の共有state・`cardFile`/`markCardSaved`/`closeCard`）はこれまでの分割と同じ方針でindex.html側に残し、app-card.js側からグローバル参照する形にした（クロスファイル参照は`<script>`実行順に関わらず、実際の呼び出しが全スクリプト読み込み後になるため問題なく動作する。app-record.jsが既にMS/store等をこの方式で参照しており、本分割で新たに導入した挙動ではない）。
+
+- **script読み込み順**: `<script src="app-record.js">`の直後に`<script src="app-card.js">`を追加。
+- **sw.js**: `ASSETS`/`SHELL`/`isShell`判定に`app-card.js`を追加し、キャッシュバージョンを`kyono-v48`→`kyono-v49`に更新。
+- **scripts/qa.js**: `checkHtml()`が`drawCard`/`ensureCardFonts`をindex.htmlの`main`ではなく新規`cardScript`（app-card.js）から抽出するよう変更。`drawCard`のピクセル回帰ルール（Math.random/Date.now/引数なしnew Date()禁止）は移動後も同じ関数本文に対して機械チェックが効いている。`checkOperationalWiring`の関数解決対象にも`cardScript`を追加（`makeCard()`/`shareCard()`等のonclickハンドラが解決できることを確認）。
+- **ピクセル同一性の検証**: 分割前のindex.htmlをスナップショットし、ヘッドレスChrome(puppeteer-core)で分割前後それぞれに対し同一localStorage状態から`makeCard(ds)`を呼び、生成された`cardCanvas`の`toDataURL()`をSHA-256ハッシュ比較した。6パターン（①旧方式ノーマル ②節目ゴールド(7日目) ③かたさタイプ+メモ入り ④季節カード「お正月」画像方式 ⑤rotAssign強制のレアカード画像方式 ⑥rotAssign強制のノーマルカード画像方式(画像なしフォールバック)）すべてでハッシュ完全一致を確認。加えて`makeCard`/`drawCard`/`ensureCardFonts`/`downloadCard`/`shareCard`の関数本文とCARD_THEMES/GOLD/MS/CHARA_FILESのデータ本体が分割前後でバイト単位で同一であることも別途確認した。
+- **実ブラウザフロー確認**: 「きょうやった！」→カード生成→「保存・シェアする」ボタンタップを、ノーマル/節目/季節カードの3パターンでヘッドレスChromeから実行し、コンソールエラー0件を確認。`npm test`は159 checks全PASS（分割直前は132だったが、並行して進んでいた別セッションの背面スクロールロック・オガトレ通信の鮮度判定機能追加分のcheckが増えたためで、本分割によるcheck減少はなし）、`npm run smoke`は19/19 全PASS（同様に並行セッション由来の2件増）。
+- **並行編集の注意**: 作業中、同一リポジトリを別セッションが並行編集しており（背面スクロールロック・オガトレ通信の鮮度判定機能）、index.htmlへの編集が数回にわたり意図せず巻き戻される事象があった（Writeベースの上書きが古い内容で衝突したとみられる）。都度grepで反映確認しながら再適用し、最終的な内容は上記の通り。
+
 ## 2026-07-17 オガトレ通信のNEW📣が投稿の古さを見ずに出続ける問題（AUDIT-MEMO低〜中優先項目対応）
 
 `obuHasNew()`が「既読/未読」だけでNEW📣バブルを判定していたため、初見の新規ユーザーには投稿がどれだけ古くても永遠にNEWが出続けていた（obu-feed.jsの実投稿は2026-07-09の1件のみ＝運用ゼロ設計の中で唯一の人力更新箇所で、更新が止まりやすい）。本人に更新を促す方向ではなく「更新が止まっても自然に見える」受け身の対策として実装した。
