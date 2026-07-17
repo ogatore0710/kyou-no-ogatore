@@ -282,9 +282,12 @@ async function main() {
         // まだ#calAskは空（1日目クリア前）
         const calAskBefore = await page.evaluate(() => (document.getElementById("calAsk").innerHTML || "").trim());
         if (calAskBefore !== "") throw new Error(c.anchorChip + ": きょうやった！を押す前から#calAskに何か出ている");
+        await visible("#doneBtn");
         await page.$eval("#doneBtn", (el) => el.scrollIntoView({ block: "center" }));
+        await page.waitForFunction(() => !document.getElementById("doneBtn").disabled, { timeout: 5000 });
         await page.click("#doneBtn"); // markDone() 成功 → total=1 → #calAskへ一度だけ描画される
-        await page.waitForFunction(() => (document.getElementById("calAsk").innerHTML || "").trim() !== "", { timeout: 8000 });
+        await page.waitForFunction(() => document.getElementById("doneBtn").disabled, { timeout: 8000 });
+        await page.waitForFunction(() => (document.getElementById("calAsk").innerHTML || "").trim() !== "", { timeout: 12000 });
         const info = await page.evaluate(() => ({
           lead: (document.getElementById("calAskLead") || {}).textContent,
           ics: (document.getElementById("calAskIcsLink") || {}).href,
@@ -329,14 +332,41 @@ async function main() {
         throw new Error("マイ記録タブの#icsLinkがねるまえ(21:30)を反映していない (" + myIcsDecoded.slice(0, 200) + ")");
       }
       if (myRecord.anchorNow.indexOf("寝るまえ") === -1) throw new Error("マイ記録タブのanchorNowがねるまえになっていない (" + myRecord.anchorNow + ")");
-      // 後続ステップ用にクリーンな状態へ戻す（このテストで作った記録/fd/calseenを持ち越さない）
+      // 後続ステップ用にクリーンな状態へ戻す（このテストで作った記録/fd/calseenを持ち越さない）。
+      // 注意: #obSkipBtn(obSkip()→obClose())は内部でhistory.state.obが立っていればhistory.back()を呼ぶ経路。
+      // このスモークテストは1ページを使い回すため、ここまでの多数のpushState(オンボ/かたさチェック等)で
+      // history本来のスタックがかなり深くなっており、back()が意図しない古いエントリ(例:マイ記録タブ)へ
+      // 着地しうる（実測で再現・アプリ本体のバグではなくテストの使い回しに起因）。そのため、ここでは
+      // back()を使わない経路（CTAボタン経由のobGo()。obClose(true)でback()を意図的にスキップする設計）で
+      // クリーンな状態に戻す
+      async function tapObChip2b(text) {
+        await page.waitForFunction((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) return true; }
+          return false;
+        }, { timeout: 8000 }, text);
+        await page.evaluate((t) => {
+          const btns = document.querySelectorAll("#obChips button");
+          for (let i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf(t) !== -1) { btns[i].click(); return; } }
+        }, text);
+      }
       await page.evaluate(() => localStorage.clear());
       await page.reload({ waitUntil: "load" });
       await visible("#home");
-      await page.waitForFunction(() => { const w = document.getElementById("welcome"); return w && !w.classList.contains("hidden"); }, { timeout: 5000 });
-      await page.click("#obSkipBtn");
+      await page.click("#tab-guide");
+      await visible("#obReenterLink");
+      await page.click("#obReenterLink");
+      await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"));
+      await tapObChip2b("大きめ");
+      await tapObChip2b("ふつう");
+      await tapObChip2b("とくにない");
+      await tapObChip2b("きめてない");
+      await tapObChip2b("きょうの1本を見る");
       await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
       await visible("#ckBtn");
+      // このtodayルート通過ではじめの1本ガイド(kyono_fd="go")が立つが、後続の「2」はガイド非対象の
+      // 素の結果画面を検証する意図のテストのため、ここだけ剥がしてクリーンな前提に揃える
+      await page.evaluate(() => localStorage.removeItem("kyono_fd"));
       return "あさ(07:30・タップ後も継続)/おふろ上がり(20:30)/ねるまえ(21:30)の3アンカーで、1日目クリア直後の#calAskがICS/Googleカレンダーの時刻を正しく反映、オンボQ3直後には出ない(移設確認)、リロード後は二度と出ない(kyono_calseenガード)、マイ記録タブ#icsLink/anchorNowの回帰も確認";
     });
 
@@ -1183,6 +1213,12 @@ async function main() {
       if (!r1.tourBtnHidden) throw new Error("guide中なのにrTourBtn(つづき:使い方ツアーへ)が隠れていない");
 
       // ---- 確認2(タップ検知): ①の動画リンクを実際にクリック→新規タブが開く→pendingNudge系がセットされる ----
+      // 新規タブが開くと(target=_blank)、実機同様このページはdocument.hidden=trueになり、タブを閉じて
+      // フォーカスが戻ると本物のvisibilitychangeでrefreshDay()→checkDoneNudge()が自動発火することを実測で
+      // 確認済み。そのためpendingNudge系のセットは「新規タブが実際に開いてフォーカスを奪う前」の時点
+      // （page.click()が返った直後・popup検出を待つ前）で読み取る。読み取り後にpopupを閉じることで、
+      // 実際のvisibilitychangeを経由した自動checkDoneNudge()発火（=よりリアルな「アプリに戻った」経路）を
+      // 妨げない。
       const popupWait = new Promise((resolve) => {
         browser.once("targetcreated", (t) => { t.page().then(resolve).catch(() => resolve(null)); });
         setTimeout(() => resolve(null), 4000);
@@ -1192,19 +1228,23 @@ async function main() {
         return a && (a.getAttribute("href").match(/[?&]v=([\w-]{11})/) || [])[1];
       });
       await page.click("#rxList .fd-hero a.video");
-      const popup = await popupWait;
-      if (!popup) throw new Error("①タップで新規タブ(target=_blank)が開かなかった");
-      const popupUrl = popup.url();
-      await popup.close().catch(() => {});
-      if (!heroId || popupUrl.indexOf(heroId) === -1) throw new Error("開いた新規タブのURLがタップした動画IDと一致しない (" + popupUrl + " / " + heroId + ")");
       const pendingAfterTap = await page.evaluate(() => ({
         nudge: sessionStorage.getItem("kyono_pendingNudge"),
         video: sessionStorage.getItem("kyono_pendingNudgeVideo"),
       }));
       if (!pendingAfterTap.nudge) throw new Error("#result内の①タップでkyono_pendingNudgeがセットされていない（#result専用タップ検知IIFEの不備）");
       if (!pendingAfterTap.video || JSON.parse(pendingAfterTap.video).v !== heroId) throw new Error("kyono_pendingNudgeVideoがタップした①の動画IDと一致しない");
+      const popup = await popupWait;
+      if (!popup) throw new Error("①タップで新規タブ(target=_blank)が開かなかった");
+      const popupUrl = popup.url();
+      await popup.close().catch(() => {});
+      if (!heroId || popupUrl.indexOf(heroId) === -1) throw new Error("開いた新規タブのURLがタップした動画IDと一致しない (" + popupUrl + " / " + heroId + ")");
 
-      // ---- 確認3(復帰ナッジ): 結果画面が表示中のままcheckDoneNudge()相当を発火→#rDoneNudgeが出る ----
+      // ---- 確認3(復帰ナッジ): 結果画面が表示中のまま「アプリに戻った」状態を再現→#rDoneNudgeが出る ----
+      // 新規タブを閉じてフォーカスが戻ると本物のvisibilitychangeでcheckDoneNudge()が自動発火することがある
+      // （実測で確認済み・環境依存の可能性があるため）。ここではさらに明示的にcheckDoneNudge()を呼んで
+      // 確実性を担保する（既に自動発火済みならkyono_pendingNudgeは既に消えており、早期returnの単なる
+      // no-opになるだけで害はない＝どちらの経路でも同じ結果になることを利用した決定的なテスト）。
       await page.evaluate(() => { checkDoneNudge(); });
       await page.waitForFunction(() => !document.getElementById("rDoneNudge").classList.contains("hidden"), { timeout: 5000 });
       const rDoneNudgeText = await page.$eval("#rDoneNudge", (el) => el.innerText);
@@ -1233,7 +1273,7 @@ async function main() {
       }));
       if (afterDone.cheer.indexOf("🎉 1日目クリア！ナイスご自愛！") === -1) throw new Error("cheerが固定文言「1日目クリア」になっていない (" + afterDone.cheer + ")");
       if (afterDone.cheer.indexOf("きょうのひとことをどうぞ") === -1) throw new Error("cheerにメモ促し文言が無い");
-      if (afterDone.cheer.indexOf("使い方タブ") === -1) throw new Error("cheerに使い方タブ案内が無い");
+      if (afterDone.cheer.indexOf("「使い方」タブ") === -1) throw new Error("cheerに使い方タブ案内が無い");
       if (afterDone.placeholder !== "例: 肩がかるくなった気がする😊") throw new Error("メモ欄のplaceholderがguide用に変わっていない (" + afterDone.placeholder + ")");
       if (!afterDone.calAskLead || afterDone.calAskLead.indexOf("あしたも同じじかんに会おう") === -1) throw new Error("#calAskがguide完了後に表示されていない");
       if (afterDone.fd !== "1") throw new Error("kyono_fdが完了値1になっていない (" + afterDone.fd + ")");
@@ -1301,13 +1341,11 @@ async function main() {
         soudanNote = "soudanルート実行→kyono_fd未セットを確認(対象外)";
         try { await page.evaluate(() => { if (typeof closeSoudan === "function") closeSoudan(true); }); } catch (e) { /* ignore */ }
       }
-      // 後続ステップへの影響を残さないよう、まっさらな状態に戻す
-      await page.evaluate(() => localStorage.clear());
-      await page.reload({ waitUntil: "load" });
-      await visible("#home");
-      await page.waitForFunction(() => { const w = document.getElementById("welcome"); return w && !w.classList.contains("hidden"); }, { timeout: 5000 });
-      await page.click("#obSkipBtn");
-      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      // このステップが本スイート最後の機能テストのため（残るは8のコンソールエラー集計のみ・状態非依存）、
+      // 後続ステップ用のクリーンアップは行わない。#obSkipBtnはhistory.state.obが立っていればhistory.back()
+      // する経路で、この1ページを使い回すスモークテストではここまでの大量のpushStateでhistoryスタックが
+      // 深くなっており、back()が意図しない古いエントリへ着地しうる（実測で確認済み・アプリのバグではない）
+      // ため、状態非依存の最終ステップでは意図的にこの経路を避けている。
 
       return "オンボ完走(quizルート)→結果画面①強調(fd-hero/バッジ/オガトレ一言/3本つづけて再生ボタン非表示/rotate-note非表示/rTourBtn非表示)→①タップで新規タブ+pendingNudge系セット→checkDoneNudge()で#rDoneNudge表示(ホームcheerは不可侵)→ボタンでホームへ+doneBtn強調→きょうやった！で固定cheer文言/メモplaceholder/#calAsk表示→kyono_fd=1→あなた用が3本表示に復帰→リロード後も#calAsk再出現なし→既存ユーザーの再チェックは回帰なし→" + soudanNote;
     });
