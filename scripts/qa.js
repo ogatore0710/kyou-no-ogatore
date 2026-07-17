@@ -235,11 +235,12 @@ function checkHtml(html, cardScript) {
   assert("importData: count guard", /cnt\s*>=\s*50/.test(importData), "key count capped (ちょうど50件までしか通さない)");
   assert("importData: value size guard", /200000/.test(importData), "individual value capped");
 
-  // 2026-07-16実測監査対応: 唯一の再来訪装置（カレンダー通知）をオンボQ3「いつやる派？」の直後に接続。
+  // 2026-07-16実測監査対応→2026-07-17「はじめの1本ガイド」設計で移設: 唯一の再来訪装置（カレンダー通知）は
+  // オンボQ3直後の吹き出しではなく「1日目クリア」直後(#calAsk・markDone側)に出す。
   // obBubble()は台本文言をtextContentで描画する安全設計（意図的にHTML埋め込み禁止）のため不変であること、
-  // 新設のobCalendarBubble()がICS生成ロジックを重複実装せず既存renderIcs()の結果（#icsLink/#gcalLinkのhref）
-  // を読むだけであること、obPick()のanchor分岐がobCalendarBubble()を経て自動でobAskQ()へ進むこと（スキップ
-  // チップなしでタップ有無に関わらず継続する仕様）を機械チェックで固定する。
+  // 新設のcalendarAskEl()がICS生成ロジックを重複実装せず既存renderIcs()の結果（#icsLink/#gcalLinkのhref）
+  // を読むだけであること、リード文言/注記がtextContentのみ・リンクはhrefプロパティ代入のみ（安全設計維持）
+  // であること、obPick()のanchor分岐がもうカレンダー案内を呼ばず素直にobAskQ()へ進むことを機械チェックで固定する。
   const obBubbleFn = extractFunction(main, "obBubble");
   assert("obBubble: found", obBubbleFn.length > 0, `${obBubbleFn.length} chars`);
   assert(
@@ -247,29 +248,49 @@ function checkHtml(html, cardScript) {
     /\.textContent\s*=\s*text/.test(obBubbleFn) && !/innerHTML\s*=\s*text/.test(obBubbleFn),
     "existing textContent-only safety design preserved"
   );
-  const obCalendarBubbleFn = extractFunction(main, "obCalendarBubble");
-  assert("obCalendarBubble: found", obCalendarBubbleFn.length > 0, `${obCalendarBubbleFn.length} chars`);
+  const calendarAskElFn = extractFunction(main, "calendarAskEl");
+  assert("calendarAskEl: found", calendarAskElFn.length > 0, `${calendarAskElFn.length} chars`);
   assert(
-    "obCalendarBubble: reuses renderIcs (ICS生成ロジックの重複実装なし)",
-    /renderIcs\s*\(\s*\)/.test(obCalendarBubbleFn),
+    "calendarAskEl: reuses renderIcs (ICS生成ロジックの重複実装なし)",
+    /renderIcs\s*\(\s*\)/.test(calendarAskElFn),
     "calls existing renderIcs() instead of rebuilding the ICS string"
   );
   assert(
-    "obCalendarBubble: does not duplicate ICS string generation",
-    !/BEGIN:VCALENDAR/.test(obCalendarBubbleFn),
+    "calendarAskEl: does not duplicate ICS string generation",
+    !/BEGIN:VCALENDAR/.test(calendarAskElFn),
     "no independent ICS payload built here"
   );
   assert(
-    "obCalendarBubble: copies href from existing settings-card links",
-    /getElementById\(["']icsLink["']\)/.test(obCalendarBubbleFn) && /getElementById\(["']gcalLink["']\)/.test(obCalendarBubbleFn),
+    "calendarAskEl: copies href from existing settings-card links",
+    /getElementById\(["']icsLink["']\)/.test(calendarAskElFn) && /getElementById\(["']gcalLink["']\)/.test(calendarAskElFn),
     "reads #icsLink/#gcalLink produced by renderIcs()"
+  );
+  assert(
+    "calendarAskEl: lead text/note are textContent only (安全設計の維持)",
+    /lead\.textContent\s*=\s*leadText/.test(calendarAskElFn) && /note\.textContent\s*=/.test(calendarAskElFn),
+    "variable copy/lead text never goes through innerHTML"
+  );
+  assert(
+    "calendarAskEl: link hrefs are property assignment only",
+    /oi\.href\s*=\s*icsHref/.test(calendarAskElFn) && /og\.href\s*=\s*gcalHref/.test(calendarAskElFn),
+    "href copied via property assignment, not re-embedded into innerHTML"
+  );
+  assert(
+    "calendarAskEl: returns a DOM element (呼び出し側でリード文言だけ差し替え可能)",
+    /function\s+calendarAskEl\s*\(\s*leadText\s*\)/.test(main) && /return\s+wrap\s*;/.test(calendarAskElFn),
+    "caller controls placement; only leadText is parameterized"
   );
   const obPickFn = extractFunction(main, "obPick");
   assert("obPick: found", obPickFn.length > 0, `${obPickFn.length} chars`);
   assert(
-    "obPick: anchor answer wires obCalendarBubble before obAskQ (Q3直後にカレンダー案内を接続)",
-    /obCalendarBubble\s*\(\s*\)\s*;\s*\}\s*catch[\s\S]{0,20}\}\s*obAskQ\s*\(\s*\)\s*;/.test(obPickFn),
-    "calendar card renders then flow auto-advances to the next question/route, no skip chip needed"
+    "obPick: anchor answer no longer wires a calendar bubble inline (移設済み・#calAsk側に一本化)",
+    !/calendarAskEl|obCalendarBubble/.test(obPickFn),
+    "anchor branch no longer calls any calendar-card renderer directly"
+  );
+  assert(
+    "obPick: anchor answer advances straight to obAskQ (Q3直後は相槌のみ)",
+    /obSay\(\[ONBOARDING_SCRIPT\.anchorAck\[c\.v\]\|\|["'][^"']*["']\]\s*,\s*obAskQ\s*\)/.test(obPickFn),
+    "anchorAck bubble now calls obAskQ directly as the completion callback"
   );
 
   // 2026-07-17実装: 相談室シートのiOSソフトキーボード対応(visualViewport)。実測で踏んだ2つの回帰を機械チェックで固定する。
@@ -526,6 +547,203 @@ function checkOnboardingWorrySkip(mainScript, quizScript) {
     "answer: uses activeQuestions().length to decide when to finish (Q5スキップ時にashi直後で結果画面へ)",
     /state\.qi\s*>=\s*activeQuestions\(\)\.length/.test(answerFn),
     "handles both the 4-question preset path and the normal 5-question path"
+  );
+}
+
+// はじめの1本ガイド（2026-07-17・Fable設計・PO承認済み）: オンボ完走→通算0日の初回ユーザーだけに、
+// かたさチェック結果画面/ホーム「あなた用」を①1本だけに絞った能動ガイドを重ねる。新しい仕組みは作らず
+// 既存のpendingNudge/markDone後UIフローに一言ずつ重ねる方式のため、フラグ配線・各画面の分岐条件・
+// 復帰ナッジの拡張・カレンダー案内の移設先(#calAsk)を機械チェックで固定する。
+function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
+  const fdActiveFn = extractFunction(mainScript, "fdActive");
+  assert("fdActive: found", fdActiveFn.length > 0, `${fdActiveFn.length} chars`);
+  assert(
+    'fdActive: gates on kyono_fd==="go" AND total===0 (完了/未開始では発動しない)',
+    /store\.get\(\s*["']fd["']\s*,\s*null\s*\)\s*===\s*["']go["']/.test(fdActiveFn) && /getStreakData\(\)\.total\s*===\s*0/.test(fdActiveFn),
+    "both conditions required"
+  );
+
+  const obGoFn = extractFunction(mainScript, "obGo");
+  assert(
+    "obGo: sets kyono_fd=\"go\" only for quiz/today routes on a fresh (total===0) user, before obClose(true)",
+    /\(r===["']quiz["']\|\|r===["']today["']\)\s*&&\s*getStreakData\(\)\.total===0\s*&&\s*!store\.get\(["']fd["']\)\)\s*store\.set\(["']fd["'],\s*["']go["']\)[\s\S]{0,20}obClose\(true\)/.test(obGoFn),
+    "soudan route is excluded (not in the r===quiz||r===today condition); does not double-set once fd exists"
+  );
+  assert(
+    "obGo: does not start the guide for the soudan route",
+    !/r===["']soudan["'][\s\S]{0,40}store\.set\(["']fd["']/.test(obGoFn),
+    "soudan explicitly out of scope per design"
+  );
+
+  // かたさチェック結果画面(app-quiz.js showResult): guideをfdActive()経由(typeofガード)で判定し、
+  // ①だけをfd-heroで主役化・rxHeadとバッジ文言を差し替え・3本連続再生ボタンとrotate-noteを隠し・
+  // rTourBtn/obTourAfterQuizを強制falseにすること。guide=false時は既存ロジックのまま(else節)であることを固定する。
+  const showResultFn = extractFunction(quizScript, "showResult");
+  assert("showResult: found", showResultFn.length > 0, `${showResultFn.length} chars`);
+  assert(
+    "showResult: reads guide via typeof-guarded fdActive() (読み込み順ガード)",
+    /const\s+guide\s*=\s*\(typeof\s+fdActive\s*===\s*["']function["']\)\s*&&\s*fdActive\(\)/.test(showResultFn),
+    "cross-file forward reference guarded as required by design"
+  );
+  assert(
+    "showResult: guide forces obTourAfterQuiz=false and hides rTourBtn",
+    /if\s*\(\s*guide\s*\)\s*obTourAfterQuiz\s*=\s*false/.test(showResultFn) && /tb\.classList\.toggle\(["']hidden["'],\s*guide\s*\|\|/.test(showResultFn),
+    "guide users never see the tour continuation button"
+  );
+  assert(
+    "showResult: rxHead text differs in guide (まずはこの1本から) vs normal (fixed?)",
+    /まずはこの1本から！②③はあしたからでOKだよ/.test(showResultFn) && /おすすめの3本: まずは/.test(showResultFn),
+    "both branches present"
+  );
+  assert(
+    "showResult: guide branch wraps rx[0] in .fd-hero with the hero badge label",
+    /class="fd-hero"[\s\S]{0,40}videoCard\(rx\[0\],\s*["']きょうはこれ1本でOK！["']\)/.test(showResultFn),
+    "hero card uses the ① video and the replacement label"
+  );
+  assert(
+    "showResult: guide branch still renders ②③ (rx.slice(1), not hidden/grayed)",
+    /rx\.slice\(1\)\.map/.test(showResultFn),
+    "②③ remain visible per design (do not hide/gray them out)"
+  );
+  assert(
+    "showResult: guide branch omits the '3本つづけて再生する' continuous-playback button",
+    (function () {
+      const guideBlock = (/if\s*\(\s*guide\s*\)\s*\{([\s\S]*?)\}\s*else\s*\{/.exec(showResultFn) || [])[1] || "";
+      return guideBlock.indexOf("3本つづけて再生する") === -1 && /videoCard\(rx\[0\]/.test(guideBlock);
+    })(),
+    "button only exists in the non-guide (else) branch"
+  );
+  assert(
+    "showResult: rotate-note (#rRotateNote) hidden only in guide",
+    /getElementById\(["']rRotateNote["']\)[\s\S]{0,20}classList\.toggle\(["']hidden["'],\s*guide\)/.test(showResultFn),
+    "3日ごと入れ替わりの注記もguide中は隠す"
+  );
+  assert(
+    "showResult: clears any leftover #rDoneNudge content on (re)render",
+    /getElementById\(["']rDoneNudge["'][\s\S]{0,80}classList\.add\(["']hidden["']\)/.test(showResultFn),
+    "prevents a stale nudge banner surviving into a fresh result screen"
+  );
+
+  // ホーム「あなた用」(index.html renderToday): fdActive()中は①だけ・バッジ/注記付き・連続再生リンク非表示。
+  const renderTodayFn = extractFunction(mainScript, "renderToday");
+  assert("renderToday: found", renderTodayFn.length > 0, `${renderTodayFn.length} chars`);
+  assert(
+    "renderToday: guards fdActive() with typeof (読み込み順ガード)",
+    /\(typeof\s+fdActive\s*===\s*["']function["']\)\s*&&\s*fdActive\(\)/.test(renderTodayFn),
+    "same defensive pattern as showResult"
+  );
+  assert(
+    "renderToday: guide branch shows only rx[0] with the hero badge + tomorrow note, no continuous-playback extra",
+    /きょうはこれ1本でOK！[\s\S]{0,40}vHTML\(V\[rx\[0\]\],null\)[\s\S]{0,120}②と③はあしたからでだいじょうぶ😊/.test(renderTodayFn),
+    "matches result-screen wording for consistency"
+  );
+
+  // markDone(app-record.js): guideは fdActive() ではなく生の store.get("fd")==="go" で判定（完了マーク前に評価する必要がある
+  // ため。fdActive()はtotal===0が条件で、markDone内では既にtotalがインクリメント済みで使えない）。
+  // 完了マークはstore.set("fd",1)。cheer文言はms(節目)優先→guide専用文言→通常文言の順。
+  const markDoneFn = extractFunction(recordScript, "markDone");
+  assert("markDone: found", markDoneFn.length > 0, `${markDoneFn.length} chars`);
+  assert(
+    'markDone: captures guide via raw store.get("fd")==="go" BEFORE marking complete (fdActive()はtotal===0前提のため使えない)',
+    /const\s+guide\s*=\s*store\.get\(\s*["']fd["']\s*,\s*null\s*\)\s*===\s*["']go["']/.test(markDoneFn),
+    "guide captured before store.set(\"fd\",1)"
+  );
+  assert(
+    'markDone: marks the guide complete with store.set("fd",1) only when guide was active',
+    /if\s*\(\s*guide\s*\)\s*\{\s*store\.set\(["']fd["'],\s*1\)/.test(markDoneFn),
+    "fd flips go -> 1 on the first successful record"
+  );
+  assert(
+    "markDone: sets #memoInput placeholder only in guide (no other forced focus/required behavior)",
+    /mi\.placeholder\s*=\s*["']例: 肩がかるくなった気がする😊["']/.test(markDoneFn),
+    "placeholder-only nudge, per design (no forced input)"
+  );
+  assert(
+    "markDone: milestone(ms) cheer takes priority; guide-specific cheer only in the non-milestone else-if branch",
+    /if\s*\(\s*ms\s*\)\s*\{[\s\S]*?\}\s*else\s+if\s*\(\s*guide\s*\)\s*\{/.test(markDoneFn),
+    "guide text can never override a milestone celebration"
+  );
+  assert(
+    "markDone: guide cheer uses the exact fixed copy (1日目クリア／メモ促し／使い方タブ案内)",
+    /🎉 1日目クリア！ナイスご自愛！/.test(markDoneFn)
+      && /よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）/.test(markDoneFn)
+      && /📖 アプリの使い方は下の「使い方」タブからいつでも見られるよ/.test(markDoneFn),
+    "wording matches the approved design verbatim"
+  );
+  assert(
+    "markDone: calendar card renders into #calAsk exactly once, gated on total===1 && !calseen, then sets calseen",
+    /st\.total===1\s*&&\s*!store\.get\(["']calseen["']\)[\s\S]{0,300}calendarAskEl\(["']あしたも同じじかんに会おう📅 カレンダーに毎日の合図を入れておく？["']\)[\s\S]{0,80}store\.set\(["']calseen["'],\s*1\)/.test(markDoneFn),
+    "matches the exact lead copy from the approved design and the one-time guard"
+  );
+
+  const renderStreakFn = extractFunction(recordScript, "renderStreak");
+  assert("renderStreak: found", renderStreakFn.length > 0, `${renderStreakFn.length} chars`);
+  assert(
+    "renderStreak: clears #calAsk when today is not yet recorded (再訪日に前回の残骸を残さない)",
+    /!did\)\{[\s\S]{0,200}getElementById\(["']calAsk["']\)/.test(renderStreakFn),
+    "stale calendar card content is wiped alongside the existing cheer-clearing logic"
+  );
+
+  // checkDoneNudge(index.html): 既存の早期return群は全て維持。#resultが表示中なら#rDoneNudgeへ、
+  // ホーム表示中なら従来どおりcheer文言へ（片方だけが実行される=早期returnで分岐）。
+  const checkDoneNudgeFn = extractFunction(mainScript, "checkDoneNudge");
+  assert("checkDoneNudge: found", checkDoneNudgeFn.length > 0, `${checkDoneNudgeFn.length} chars`);
+  assert(
+    "checkDoneNudge: all pre-existing early returns preserved (pendingNudge/day-boundary/already-done guards)",
+    /if\s*\(!d\)\s*return;/.test(checkDoneNudgeFn)
+      && /if\s*\(d\s*!==\s*todayStr\(\)\)\s*return;/.test(checkDoneNudgeFn)
+      && /if\s*\(getStreakData\(\)\.dates\.includes\(todayStr\(\)\)\)\s*return;/.test(checkDoneNudgeFn),
+    "regression guard: none of the original bail-out conditions were altered"
+  );
+  assert(
+    "checkDoneNudge: when #result is visible, populates #rDoneNudge and returns before touching home's #cheer",
+    /!resultEl\.classList\.contains\(["']hidden["']\)\)\{[\s\S]{0,600}rDoneNudge[\s\S]{0,600}return;\s*\}/.test(checkDoneNudgeFn),
+    "result-screen branch is mutually exclusive with the home cheer branch"
+  );
+  assert(
+    "checkDoneNudge: rDoneNudge button routes home, scrolls #doneBtn into view, and reuses nudge-pulse",
+    /rDoneNudgeBtn[\s\S]{0,300}goHome\(\)[\s\S]{0,200}nudge-pulse[\s\S]{0,100}scrollIntoView\(\{block:["']center["']\}\)/.test(checkDoneNudgeFn),
+    "reuses the existing 'make the button impossible to miss' pattern"
+  );
+  assert(
+    "checkDoneNudge: home branch (cheer text + nudge-pulse) is untouched (回帰防止)",
+    /おかえりなさい！おわったら下の「きょうやった！」を押してね✅/.test(checkDoneNudgeFn),
+    "existing home behavior preserved verbatim"
+  );
+
+  // #todayVideoタップ検知IIFEは変更せず、#result専用の同型IIFEを追加しただけであることを確認する
+  const pendingNudgeIifeCount = (mainScript.match(/kyono_pendingNudgeVideo/g) || []).length;
+  assert(
+    "index.html: #todayVideo tap-detection IIFE is untouched (byte-identical listener body reused for #result)",
+    /getElementById\(["']todayVideo["']\)[\s\S]{0,60}addEventListener\(["']click["']/.test(mainScript),
+    "original listener still attaches to #todayVideo"
+  );
+  assert(
+    "index.html: a second tap-detection IIFE attaches the same logic to #result (rxList/worryExtraの動画リンクも対象)",
+    /getElementById\(["']result["']\)[\s\S]{0,60}addEventListener\(["']click["'][\s\S]{0,400}kyono_pendingNudgeVideo/.test(mainScript),
+    "new listener added without touching the #todayVideo one"
+  );
+  assert(
+    "index.html: pendingNudgeVideo write logic appears exactly twice (once per listener, no third copy)",
+    pendingNudgeIifeCount === 2,
+    `found ${pendingNudgeIifeCount} occurrences (expected 2: #todayVideo + #result)`
+  );
+
+  // DOM: #calAsk（#memoRowの直後）、#rDoneNudge（#result内、rTourBtnの近く）、.fd-hero用CSSの存在
+  assert(
+    "index.html: #calAsk exists immediately after #memoRow inside #streakCard",
+    /id="memoRow"[\s\S]{0,900}id="calAsk"/.test(html),
+    "matches design placement"
+  );
+  assert(
+    "index.html: #rDoneNudge exists inside #result, ahead of #rTourBtn",
+    /id="result"[\s\S]{0,4000}id="rDoneNudge"[\s\S]{0,400}id="rTourBtn"/.test(html),
+    "matches design placement"
+  );
+  assert(
+    "index.html: .fd-hero CSS rule provides a visible pink border on the hero video card",
+    /\.fd-hero \.video\{[^}]*border:2\.5px solid var\(--pink\)/.test(html),
+    "hero card is visually distinguished per design"
   );
 }
 
@@ -1051,6 +1269,7 @@ function main() {
   const recordScript = read("app-record.js");
   checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}\n${cardScript}`);
   checkOnboardingWorrySkip(mainScript, quizScript);
+  checkFirstDayGuide(html, mainScript, quizScript, recordScript);
   checkA2hsPopup(html, mainScript);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);

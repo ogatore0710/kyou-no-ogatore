@@ -208,8 +208,17 @@ function currentRx(typeKey){
 
 function showResult(saved){
   const T=TYPES[saved.key];
-  // オンボからかたさチェックに来た人（ツアー未見）には「つづき：使い方ツアー」を出す
-  try{ const tb=document.getElementById("rTourBtn"); if(tb) tb.classList.toggle("hidden",!(typeof obTourAfterQuiz!=="undefined"&&obTourAfterQuiz)); }catch(e){}
+  // はじめの1本ガイド中（オンボ完走→通算0日の初回ユーザー）は結果画面を①1本だけの導線に絞る
+  const guide=(typeof fdActive==="function")&&fdActive();
+  // オンボからかたさチェックに来た人（ツアー未見）には「つづき：使い方ツアー」を出す。
+  // guide時はrTourBtnを出さない＆obTourAfterQuizを強制falseにする（設計指定）
+  try{
+    if(guide) obTourAfterQuiz=false;
+    const tb=document.getElementById("rTourBtn");
+    if(tb) tb.classList.toggle("hidden", guide || !(typeof obTourAfterQuiz!=="undefined"&&obTourAfterQuiz));
+  }catch(e){}
+  // 復帰ナッジ(rDoneNudge)は前回表示分の残骸を持ち越さない（結果画面を新しく描画するたびクリア）
+  try{ const rd=document.getElementById("rDoneNudge"); if(rd){ rd.classList.add("hidden"); rd.innerHTML=""; } }catch(e){}
   {
     const img=TYPE_IMG[saved.key];
     document.getElementById("rIllust").innerHTML = img
@@ -221,10 +230,24 @@ function showResult(saved){
   document.getElementById("rHope").textContent="🌱 "+T.hope;
   document.getElementById("rPT").innerHTML=`<div class="pt-head">${ICON_PT}理学療法士のひとくち解説</div>`+T.pt;
   const fixed=T.rx.length>0;
-  document.getElementById("rxHead").innerHTML=`${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
+  document.getElementById("rxHead").innerHTML = guide
+    ? `${ICON_RX}まずはこの1本から！②③はあしたからでOKだよ`
+    : `${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
   const rx=currentRx(saved.key);
-  document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("")
-    +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ 3本つづけて再生する</a>`;
+  if(guide){
+    // ①だけを主役化(fd-hero)し、オガトレの一言吹き出しを添える。②③はそのまま表示（隠さない）
+    document.getElementById("rxList").innerHTML =
+      '<div class="sd-row oga" style="display:flex;gap:8px;margin-bottom:8px">'
+        +'<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">'
+        +'<div class="sd-b">タップするとYouTubeがひらくよ おわったらこのアプリにもどってきてね💪</div>'
+      +'</div>'
+      +'<div class="fd-hero">'+videoCard(rx[0], "きょうはこれ1本でOK！")+'</div>'
+      +rx.slice(1).map((vk,i)=>videoCard(vk, fixed?["②メインの1本","③しあげ"][i]:null)).join("");
+  }else{
+    document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("")
+      +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ 3本つづけて再生する</a>`;
+  }
+  try{ const rn=document.getElementById("rRotateNote"); if(rn) rn.classList.toggle("hidden", guide); }catch(e){}
   const w=WORRY[saved.worry];
   document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
   // 逆導線: タイプのareaに対応するインテントで相談室を開く（KB未読込なら出さない）

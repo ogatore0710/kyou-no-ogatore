@@ -237,13 +237,13 @@ async function main() {
       return "Q0大きめ→Q1ガチガチ→Q2肩こり・首→Q3朝(anchor=asa保存)→CTAでかたさチェックQ1へ→ホーム復帰";
     });
 
-    // 1c. オンボーディングのカレンダー登録カード（2026-07-16・唯一の再来訪装置をオンボに接続）:
-    //     Q3「いつやる派？」の直後にobCalendarBubble()が自動で挟まり、あさ/おふろ上がり/ねるまえの
+    // 1c. カレンダー登録カード（2026-07-16にオンボQ3直後の吹き出しとして導入→2026-07-17「はじめの1本
+    //     ガイド」設計でPO承認のうえ移設）: いまはQ3直後には出ず、オンボ完走後の「1日目クリア」
+    //     （きょうやった！markDone成功）の直後に#calAskへ一度だけ出る。あさ/おふろ上がり/ねるまえの
     //     各アンカーで正しい時刻のICS/Googleカレンダーリンクが実際に生成されること、タップしても
-    //     （あさ）タップしなくても（おふろ上がり・ねるまえ）自動で次（Q3が最終問のためルーティング
-    //     CTA）へ進むこと、最後はかたさチェックへの遷移が壊れていないこと、そして既存の「つづける
-    //     設定」側(#icsLink/#gcalLink)がオンボ側の変更で壊れていないこと（回帰）を実測で確認する
-    await step("1c-オンボーディングのカレンダー登録カード（各アンカー実測+回帰）", async () => {
+    //     ページ遷移しないこと、リロード後は二度と出ない（kyono_calseenガード）こと、そして既存の
+    //     「つづける設定」側(#icsLink/#gcalLink)が壊れていないこと（回帰）を実測で確認する
+    await step("1c-カレンダー登録カード（1日目クリア後の#calAsk・移設後）", async () => {
       async function tapObChip2(text) {
         await page.waitForFunction((t) => {
           const btns = document.querySelectorAll("#obChips button");
@@ -269,44 +269,57 @@ async function main() {
         await page.click("#obReenterLink");
         await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"));
         await tapObChip2("大きめ");       // Q0
-        await tapObChip2("ガチガチかも"); // Q1（ルーティング=かたさチェックに固定）
-        await tapObChip2("肩こり・首");   // Q2
-        await tapObChip2(c.anchorChip);   // Q3（アンカー実保存）
-        await page.waitForFunction(() => !!document.getElementById("obIcsLink"), { timeout: 8000 });
-        const hrefs = await page.evaluate(() => ({
-          ics: document.getElementById("obIcsLink").href,
-          gcal: document.getElementById("obGcalLink").href,
+        await tapObChip2("ふつう");       // Q1（stiff=ふつう。「今回はkyono_fdのanchor→calAsk動線だけを見たいので、
+                                          // かたさチェックのquizルートではなく5問を経由しない today ルートを選ぶ）
+        await tapObChip2("とくにない");   // Q2（worry=none → soudanに振られずtodayルートへ）
+        await tapObChip2(c.anchorChip);   // Q3（アンカー実保存・最終問なのでルーティングCTAが出る）
+        // Q3直後にカレンダー案内の吹き出しは出ない（移設済み・obLog内にcalAsk関連idが無いこと）ことを確認
+        const bubbleGone = await page.evaluate(() => !document.getElementById("calAskIcsLink") && !document.getElementById("obIcsLink"));
+        if (!bubbleGone) throw new Error(c.anchorChip + ": オンボQ3直後にまだカレンダー案内の吹き出しが出ている（移設漏れ）");
+        await page.waitForFunction(() => {
+          const box = document.getElementById("obChips");
+          return box && box.textContent.indexOf("きょうの1本を見る") !== -1;
+        }, { timeout: 10000 });
+        await page.click("#tab-home"); // CTAを押さずタブ移動しても閉じられる（既存仕様）→まっさらなhomeへ
+        await visible("#home");
+        // まだ#calAskは空（1日目クリア前）
+        const calAskBefore = await page.evaluate(() => (document.getElementById("calAsk").innerHTML || "").trim());
+        if (calAskBefore !== "") throw new Error(c.anchorChip + ": きょうやった！を押す前から#calAskに何か出ている");
+        await page.$eval("#doneBtn", (el) => el.scrollIntoView({ block: "center" }));
+        await page.click("#doneBtn"); // markDone() 成功 → total=1 → #calAskへ一度だけ描画される
+        await page.waitForFunction(() => (document.getElementById("calAsk").innerHTML || "").trim() !== "", { timeout: 8000 });
+        const info = await page.evaluate(() => ({
+          lead: (document.getElementById("calAskLead") || {}).textContent,
+          ics: (document.getElementById("calAskIcsLink") || {}).href,
+          gcal: (document.getElementById("calAskGcalLink") || {}).href,
+          note: (document.getElementById("calAskNote") || {}).textContent,
         }));
-        const icsDecoded = decodeURIComponent(hrefs.ics);
-        if (hrefs.ics.indexOf("data:text/calendar") !== 0) throw new Error(c.anchorChip + ": ICSリンクがdata:text/calendarで始まっていない");
+        if (info.lead.indexOf("あしたも同じじかんに会おう") === -1) throw new Error(c.anchorChip + ": #calAskのリード文言が設計どおりでない (" + info.lead + ")");
+        const icsDecoded = decodeURIComponent(info.ics || "");
+        if (!info.ics || info.ics.indexOf("data:text/calendar") !== 0) throw new Error(c.anchorChip + ": #calAskのICSリンクがdata:text/calendarで始まっていない");
         if (icsDecoded.indexOf("DTSTART:20260701T" + c.tm) === -1) {
-          throw new Error(c.anchorChip + ": ICSの時刻が" + c.tm + "になっていない (" + icsDecoded.slice(0, 200) + ")");
+          throw new Error(c.anchorChip + ": #calAskのICS時刻が" + c.tm + "になっていない (" + icsDecoded.slice(0, 200) + ")");
         }
-        if (hrefs.gcal.indexOf("dates=20260701T" + c.tm) === -1) {
-          throw new Error(c.anchorChip + ": Googleカレンダーリンクの時刻が" + c.tm + "になっていない (" + hrefs.gcal + ")");
+        if (!info.gcal || info.gcal.indexOf("dates=20260701T" + c.tm) === -1) {
+          throw new Error(c.anchorChip + ": #calAskのGoogleカレンダー時刻が" + c.tm + "になっていない (" + info.gcal + ")");
         }
+        if (info.note.indexOf("つづける設定") === -1) throw new Error(c.anchorChip + ": #calAskの注記が設計どおりでない (" + info.note + ")");
         if (c.tap) {
-          // タップしてもページ遷移せず（ダウンロードリンク）、その後の質問フローも壊れないことを確認
+          // タップしてもページ遷移しない（ダウンロードリンク）ことを確認
           const before = page.url();
-          await page.click("#obIcsLink");
+          await page.click("#calAskIcsLink");
           const after = page.url();
           if (before !== after) throw new Error("カレンダーボタンのタップでページ遷移してしまった");
         }
-        // タップの有無に関わらず、自動的に次（Q3が最終問なのでルーティングCTA）まで進む
-        await page.waitForFunction(() => {
-          const box = document.getElementById("obChips");
-          return box && box.textContent.indexOf("かたさチェックをはじめる") !== -1;
-        }, { timeout: 10000 });
       }
-      // 最後（ねるまえ）のまま実際にかたさチェックへ進み、案内後も質問フローが継続することを確認
-      await tapObChip2("かたさチェックをはじめる");
-      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
-      await visible("#quiz");
-      const qn = await $text("#qnum");
-      if (qn.indexOf("Q1") !== 0) throw new Error("カレンダー案内のあともかたさチェックQ1に遷移できていない (" + qn + ")");
-      // 回帰確認: マイ記録タブの「つづける設定」側(#icsLink/#gcalLink)がオンボ側の変更で壊れていない
-      await page.click("#tab-home");
+      // 最後（ねるまえ）のケースのまま: リロードしても#calAskはもう出ない（kyono_calseenガード・二度目なし）
+      await page.reload({ waitUntil: "load" });
       await visible("#home");
+      const calAskAfterReload = await page.evaluate(() => (document.getElementById("calAsk").innerHTML || "").trim());
+      if (calAskAfterReload !== "") throw new Error("リロード後も#calAskに残っている（もう一度出てしまっている＝kyono_calseenガードが効いていない）");
+      const calseen = await page.evaluate(() => localStorage.getItem("kyono_calseen"));
+      if (calseen !== "1") throw new Error("kyono_calseenが1になっていない (" + calseen + ")");
+      // 回帰確認: マイ記録タブの「つづける設定」側(#icsLink/#gcalLink)が#calAsk移設の影響で壊れていない
       await page.click("#tab-history");
       await visible("#history");
       const myRecord = await page.evaluate(() => ({
@@ -319,9 +332,15 @@ async function main() {
         throw new Error("マイ記録タブの#icsLinkがねるまえ(21:30)を反映していない (" + myIcsDecoded.slice(0, 200) + ")");
       }
       if (myRecord.anchorNow.indexOf("寝るまえ") === -1) throw new Error("マイ記録タブのanchorNowがねるまえになっていない (" + myRecord.anchorNow + ")");
-      await page.click("#tab-home");
+      // 後続ステップ用にクリーンな状態へ戻す（このテストで作った記録/fd/calseenを持ち越さない）
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: "load" });
       await visible("#home");
-      return "あさ(07:30・タップ後も継続)/おふろ上がり(20:30)/ねるまえ(21:30)の3アンカーでICS/Googleカレンダーの時刻一致を実測、タップ有無いずれも自動で次へ継続、マイ記録タブ#icsLink/anchorNowの回帰も確認";
+      await page.waitForFunction(() => { const w = document.getElementById("welcome"); return w && !w.classList.contains("hidden"); }, { timeout: 5000 });
+      await page.click("#obSkipBtn");
+      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      await visible("#ckBtn");
+      return "あさ(07:30・タップ後も継続)/おふろ上がり(20:30)/ねるまえ(21:30)の3アンカーで、1日目クリア直後の#calAskがICS/Googleカレンダーの時刻を正しく反映、オンボQ3直後には出ない(移設確認)、リロード後は二度と出ない(kyono_calseenガード)、マイ記録タブ#icsLink/anchorNowの回帰も確認";
     });
 
     // 2. かたさチェック5問を実ボタンクリックで完走 → タイプ名・アイコン・処方3本

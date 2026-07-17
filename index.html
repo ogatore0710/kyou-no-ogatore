@@ -332,6 +332,8 @@
   .video .vs{font-size:14px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .badge{display:inline-block;background:var(--coral-soft);color:#B4462F;font-size:12px;
     font-weight:800;border-radius:8px;padding:1px 8px;margin-bottom:4px}
+  /* はじめの1本ガイド: 結果画面/ホームの①だけを視覚的に主役化する強調枠 */
+  .fd-hero .video{border:2.5px solid var(--pink);background:var(--pink-soft)}
   .sec-head .badge{margin-bottom:0;margin-left:2px}
   /* じまんカード（すきな1本えらび） */
   #brag .lbl{font-size:13px;font-weight:900;color:var(--sub);margin:14px 0 6px}
@@ -681,6 +683,7 @@
       <div style="text-align:center"><button class="btn btn-line" id="memoBtn" style="margin-top:8px;font-size:14px;width:auto;display:inline-block;padding:9px 26px" onclick="saveMemo()">メモをのこす</button></div>
       <div id="memoSaved" style="font-size:14px;color:var(--teal);margin-top:6px;min-height:14px"></div>
     </div>
+    <div id="calAsk"></div>
     <div id="plateauNote" style="font-size:14px;margin-top:8px;color:var(--sub);line-height:1.7"></div>
     <button class="btn btn-ghost" id="makeCardBtn" style="margin-top:12px;font-size:16px" onclick="makeCard()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
@@ -716,11 +719,12 @@
     <div class="rx-head" id="rxHead"></div>
     <div id="rxList"></div>
     <div id="worryExtra"></div>
-    <div class="rotate-note">おすすめは3日ごとに自動で入れ替わります</div>
+    <div class="rotate-note" id="rRotateNote">おすすめは3日ごとに自動で入れ替わります</div>
     <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想！週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
     <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
     <div id="rSoudanLink" class="hidden" style="font-size:14px;margin-top:10px;text-align:center"></div>
   </div>
+  <div id="rDoneNudge" class="hidden card" style="margin-bottom:10px"></div>
   <button class="btn btn-ghost hidden" id="rTourBtn" onclick="rTourGo()" style="margin-bottom:10px">📖 つづき：使い方ツアーへ</button>
   <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
   <button class="btn btn-ghost" onclick="startQuiz()">もう一回チェックする</button>
@@ -1497,6 +1501,12 @@ function goHome(){ try{ history.replaceState({id:"home"},""); }catch(e){} show("
 
 function quizGoHome(){ if(state.qi>0 && !confirm("回答を消してホームにもどる？")) return; quizAborted=true; goHome(); }
 
+// ---- はじめの1本ガイド（オンボ完走→初回1本を能動的にやりきってもらうための一時フラグ） ----
+// kyono_fd: "go"=ガイド中／1=完了。app-quiz.js/app-record.jsは<script>読み込み順が本ファイルより
+// 前のため、呼び出し側で typeof fdActive==="function" のガードを入れて参照する（実行時は全スクリプト
+// 読み込み後になるため実害はないが、設計どおり明示的にガードする）。
+function fdActive(){ return store.get("fd",null)==="go" && getStreakData().total===0; }
+
 // ---- 処方のローテーション（3日ごとに2・3本目が入れ替わる） ----
 // dayIndex()と同じ「深夜3時JST」境界に合わせる（+9h→+6hで日またぎ判定を統一。境界外では値は変化しない）
 function rotationIndex(){ return Math.floor((Date.now()+6*3600*1000)/86400000/3); }
@@ -1556,8 +1566,15 @@ function renderToday(){
   let vk, badge, extra="", mainHtml=null;
   if(m==="mine"&&typed){
     const rx=currentRx(state.type.key);
-    mainHtml=`<span class="badge">きょうのあなた用</span>`+rx.map(k=>vHTML(V[k],null)).join("");
-    extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:-5px;margin-right:6px"><rect x="1" y="3" width="22" height="18" rx="5" fill="#FF0000"/><path d="M9.5 7.5l8 4.5-8 4.5z" fill="#fff"/></svg>あなたへの3本 連続再生はこちら</a>`;
+    // はじめの1本ガイド中は「あなた用」も①だけに絞る（結果画面と同じ1本）。完了(fd=1)で自動的に3本表示へ戻る
+    const fdGuide=(typeof fdActive==="function")&&fdActive();
+    if(fdGuide){
+      mainHtml=`<span class="badge">きょうはこれ1本でOK！</span>`+vHTML(V[rx[0]],null)
+        +`<div style="font-size:13px;color:var(--sub);margin-top:6px;text-align:center;font-weight:800">②と③はあしたからでだいじょうぶ😊</div>`;
+    }else{
+      mainHtml=`<span class="badge">きょうのあなた用</span>`+rx.map(k=>vHTML(V[k],null)).join("");
+      extra=`<a class="btn btn-ghost" style="font-size:15px;margin-top:8px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:-5px;margin-right:6px"><rect x="1" y="3" width="22" height="18" rx="5" fill="#FF0000"/><path d="M9.5 7.5l8 4.5-8 4.5z" fill="#fff"/></svg>あなたへの3本 連続再生はこちら</a>`;
+    }
   } else {
     const list = m==="asa"?TODAY_ASA:TODAY_YORU;
     vk = list[dayIndex()%list.length];
@@ -3574,6 +3591,18 @@ let lastDay=todayStr();
     }catch(err){}
   }
 }); })();
+// はじめの1本ガイド用: かたさチェック結果画面(#result・rxList/worryExtraの動画リンク)にも
+// 同じタップ検知を追加する。#todayVideo側は一切変更せず、新しいリスナーを重ねるだけ
+(function(){ const rs=document.getElementById("result"); if(rs) rs.addEventListener("click",e=>{
+  const a=e.target.closest&&e.target.closest("a.video");
+  if(a){
+    try{ sessionStorage.setItem("kyono_pendingNudge", todayStr()); }catch(err){}
+    try{
+      const m=(a.getAttribute("href")||"").match(/[?&]v=([\w-]{11})(?:&|$)/);
+      if(m) sessionStorage.setItem("kyono_pendingNudgeVideo", JSON.stringify({d:todayStr(), v:m[1]}));
+    }catch(err){}
+  }
+}); })();
 function checkDoneNudge(){
   try{
     const d=sessionStorage.getItem("kyono_pendingNudge");
@@ -3581,6 +3610,28 @@ function checkDoneNudge(){
     sessionStorage.removeItem("kyono_pendingNudge"); // 一度出したら消す（毎回は出さない）
     if(d!==todayStr()) return; // 日をまたいでいたら対象外
     if(getStreakData().dates.includes(todayStr())) return; // すでに記録済みなら何も出さない
+    // はじめの1本ガイド: 結果画面が表示中ならホームのcheerではなく、結果画面内のrDoneNudgeへ出す
+    const resultEl=document.getElementById("result");
+    if(resultEl && !resultEl.classList.contains("hidden")){
+      const rd=document.getElementById("rDoneNudge");
+      if(rd){
+        rd.innerHTML='<div style="font-size:15px;font-weight:800;margin-bottom:10px">おかえりなさい！✨ ストレッチできた？</div>'
+          +'<button class="btn btn-primary" id="rDoneNudgeBtn">✅ 1日目の記録をつけにいく</button>';
+        rd.classList.remove("hidden");
+        const rb=document.getElementById("rDoneNudgeBtn");
+        if(rb) rb.onclick=function(){
+          goHome();
+          setTimeout(function(){
+            const db=document.getElementById("doneBtn");
+            if(db){
+              db.classList.add("nudge-pulse");
+              try{ db.scrollIntoView({block:"center"}); }catch(e2){}
+            }
+          },60);
+        };
+      }
+      return;
+    }
     const ce=document.getElementById("cheer");
     if(ce) ce.textContent="おかえりなさい！おわったら下の「きょうやった！」を押してね✅";
     const db=document.getElementById("doneBtn");
@@ -3748,34 +3799,30 @@ function obBubble(who,text){
   log.appendChild(row);
   log.scrollTop=log.scrollHeight;
 }
-// カレンダー登録カード（オンボQ3「いつやる派？」の直後専用・唯一の再来訪装置をオンボに接続 2026-07-16）
-// obBubble()は台本文言をtextContentで描画する安全設計（意図的にHTML埋め込み禁止）のため、この関数自体は変更しない。
-// ここは開発者が用意した固定HTMLテンプレート（ユーザー入力や可変スクリプト文言を一切含まないハードコードのボタン）だけを
-// obLogに直接追加する専用関数。ICS/Googleカレンダーのリンク生成ロジックは重複実装せず、既存のrenderIcs()を呼んで
-// 「つづける設定」カードの#icsLink/#gcalLink（SPA構造上、非表示タブでも常にDOMに存在＝SECTIONSはhiddenクラス切替のみ）
-// が計算した結果のhrefをそのままコピーするだけにする。
-function obCalendarBubble(){
-  const log=document.getElementById("obLog"); if(!log) return;
+// カレンダー登録カード（共通DOM生成・唯一の再来訪装置）
+// 2026-07-16にオンボQ3直後の吹き出しとして導入したが、2026-07-17「はじめの1本ガイド」設計により
+// 「1日目クリア」直後（#calAsk・markDone側）へ移設。obLog専用の吹き出し(obCalendarBubble)ではなく、
+// 呼び出し側でリード文言だけ差し替えてどこにでも挿せるDOM要素を返す共通関数に切り出した。
+// 安全設計は完全に維持: リンク先はICS文字列を独自生成せず既存renderIcs()の結果(#icsLink/#gcalLinkのhref)
+// をプロパティ代入だけでコピーし、可変テキストはtextContentのみで描画する（innerHTMLへの再埋め込みはしない）。
+function calendarAskEl(leadText){
   try{ renderIcs(); }catch(e){} // setAnchor()で保存済みのanchorを反映させてからhrefを読む
   const srcIcs=document.getElementById("icsLink"), srcGcal=document.getElementById("gcalLink");
   const icsHref=srcIcs?srcIcs.href:"#", gcalHref=srcGcal?srcGcal.href:"#";
-  const row=document.createElement("div");
-  row.className="sd-row oga sd-pop";
-  row.innerHTML='<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">'
-    +'<div class="sd-b">'
-    +'<div style="margin-bottom:10px">📅 カレンダーに毎日の合図も入れておく？</div>'
-    +'<a class="btn btn-line" id="obIcsLink" download="kyono-ogatore.ics" style="font-size:14px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>'
-    +'<a class="btn btn-line" id="obGcalLink" target="_blank" rel="noopener" style="font-size:14px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>'
-    +'<div class="hint" style="text-align:left;margin:8px 0 0" id="obIcsNote"></div>'
-    +'</div>';
-  log.appendChild(row);
-  const oi=row.querySelector("#obIcsLink"), og=row.querySelector("#obGcalLink"), note=row.querySelector("#obIcsNote");
+  const wrap=document.createElement("div");
+  wrap.style.cssText="margin-top:4px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
+  wrap.innerHTML='<div style="margin-bottom:10px;font-weight:800" id="calAskLead"></div>'
+    +'<a class="btn btn-line" id="calAskIcsLink" download="kyono-ogatore.ics" style="font-size:14px;display:block;text-align:center;text-decoration:none">📅 Appleカレンダーに入れる</a>'
+    +'<a class="btn btn-line" id="calAskGcalLink" target="_blank" rel="noopener" style="font-size:14px;display:block;text-align:center;text-decoration:none;margin-top:8px">📅 Googleカレンダーに入れる</a>'
+    +'<div class="hint" style="text-align:left;margin:8px 0 0" id="calAskNote"></div>';
+  const lead=wrap.querySelector("#calAskLead"), oi=wrap.querySelector("#calAskIcsLink"), og=wrap.querySelector("#calAskGcalLink"), note=wrap.querySelector("#calAskNote");
+  if(lead) lead.textContent=leadText; // 可変文言はtextContentのみ
   if(oi) oi.href=icsHref; // hrefはプロパティ代入のみ（innerHTMLへの再埋め込みはしない）
   if(og) og.href=gcalHref;
   if(note) note.textContent = navigator.standalone
     ? "Appleカレンダー登録はSafariで開いてからどうぞ Googleカレンダーはこのままでいけます"
     : "あとで「つづける設定」からでも登録できるよ";
-  log.scrollTop=log.scrollHeight;
+  return wrap;
 }
 // 吹き出しを0.96秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
 // ※0.48秒→0.96秒に半減速（本人フィードバック 2026-07-12「テロップのテンポを0.5倍速に」）
@@ -3815,12 +3862,9 @@ function obPick(q,c){
   obQi++;
   if(q.key==="anchor"){
     try{ setAnchor(c.v); }catch(e){} // 本物の設定として保存（既存setAnchorに接続）
-    // 唯一の再来訪装置（カレンダー通知）をここでオンボに接続。タップしてもしなくても
-    // 自動的に次の質問(obAskQ)へ進む＝スキップ用チップは用意しない（本人承認済み仕様）
-    obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],function(){
-      try{ obCalendarBubble(); }catch(e){}
-      obAskQ();
-    });
+    // カレンダー登録の案内は「1日目クリア」直後（#calAsk・markDone側）に移設済み（2026-07-17）。
+    // ここでは相槌のあと素直に次の質問(obAskQ)へ進むだけにする
+    obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],obAskQ);
   }else if(q.key==="bigtext"){
     try{ setBigtext(c.v==="big"); }catch(e){} // その場で反映=効果が見える（本物の設定として保存）
     obSay(["OK！「つづける設定」でいつでも変えられるよ🔠"],obAskQ);
@@ -3939,6 +3983,9 @@ function obGo(){
   const r=obRouteKey, worry=obAnswers.worry;
   // かたさチェックへ行く人がまだツアーを見ていなければ、チェック結果画面に「つづき：使い方ツアー」を出す
   if(r==="quiz"&&!obTourDone) obTourAfterQuiz=true;
+  // はじめの1本ガイド開始条件: オンボを完走した初回ユーザー（通算0日）だけを対象にする。
+  // soudanルート（相談室へ行くケース）は対象外。二重セットしないよう既にfdが立っていたら触らない
+  if((r==="quiz"||r==="today") && getStreakData().total===0 && !store.get("fd")) store.set("fd","go");
   obClose(true); // 直後にstartQuiz/openSoudan等が履歴を積むため、ここではback()しない（レース防止）
   if(r==="quiz"){
     // Q2で実質的な悩みに回答済みなら、直後のかたさチェックQ5で同じ質問を繰り返さない（本人承認済み仕様 2026-07-17）

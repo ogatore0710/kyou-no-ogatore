@@ -27,7 +27,11 @@ function renderStreak(){
   const did = st.dates.includes(todayStr());
   let contTxt = st.count>=2 ? `いま${st.count}日連続` : "";
   if(!did && st.total===0) contTxt="きょう1本やると「1日目」がはじまります🌱";
-  if(!did){ const ce=document.getElementById("cheer"); if(ce) ce.innerHTML=""; }
+  if(!did){
+    const ce=document.getElementById("cheer"); if(ce) ce.innerHTML="";
+    // 前回記録日の#calAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
+    const ca=document.getElementById("calAsk"); if(ca) ca.innerHTML="";
+  }
   // 数日あいて券でもつなげない時は、古い連続を見せない（押した瞬間に消えたと誤解させない）
   if(!did && streakBrokenNow(st)) contTxt="きょうやると新しい章のスタート🌱";
   document.getElementById("totalDays").textContent = contTxt;
@@ -81,6 +85,14 @@ function markDone(){
   const saved_ok=store.set("streak2",st); renderStreak();
   const cheerEl=document.getElementById("cheer");
   if(!saved_ok){ cheerEl.textContent="⚠️ この画面設定では記録がのこせないみたい プライベートモードをオフにしてもう一度どうぞ"; return; }
+  // はじめの1本ガイド中の記録かどうかは、完了マーク(fd=1)を立てる前に判定しておく
+  // （fdActive()はtotal===0が条件のため、この時点で既にtotal===1になっている＝markDone側では使えない）
+  const guide=store.get("fd",null)==="go";
+  if(guide){
+    store.set("fd",1);
+    const mi=document.getElementById("memoInput");
+    if(mi) mi.placeholder="例: 肩がかるくなった気がする😊";
+  }
   // ここまででstreak2の保存が確定したので、初めておやすみ券・章カウント・カレンダー記録を確定させる
   if(missed) tryUseFreezes(missed);
   if(newChapter){ const ch=(store.get("chapters",1))+1; store.set("chapters",ch); note=`第${ch}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨`; }
@@ -107,9 +119,27 @@ function markDone(){
       +(ms.q?`<div style="margin-top:8px;font-size:13px;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px"><span style="font-weight:900;color:var(--teal)">💬 せんぱいの声</span><br><span style="color:var(--sub)">${ms.q.replace(/（先輩の声）$/,"")}</span></div>`:"")
       +`<img src="assets/chara-crown.png" alt="" style="width:72px;height:72px;object-fit:contain;display:block;margin:10px auto 0">`
       +(MILESTONE_MSG_VIDEO?`<a class="btn btn-ghost" href="https://www.youtube.com/watch?v=${MILESTONE_MSG_VIDEO}" target="_blank" rel="noopener" style="margin-top:10px;font-size:15px;display:block;text-decoration:none">🎬 尾形さんからお祝いメッセージ</a>`:"");
+  } else if(guide){
+    // 節目とは重ならない前提（通算1日目=guideの唯一の発生タイミングはMSの最小値3より前）だが、
+    // 念のため節目表示(if(ms))を優先する構造にしてある（このelse ifは節目でないときだけ通る）
+    cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
+      +`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 1日目クリア！ナイスご自愛！</div>`
+      +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`
+      +`<div style="margin-top:4px;font-size:14px">📖 アプリの使い方は下の「使い方」タブからいつでも見られるよ</div>`;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
+  }
+  // カレンダー登録カード（唯一の再来訪装置）: 通算1日目クリアの直後に一度だけ#calAskへ出す
+  if(st.total===1 && !store.get("calseen")){
+    try{
+      const ca=document.getElementById("calAsk");
+      if(ca && typeof calendarAskEl==="function"){
+        ca.innerHTML="";
+        ca.appendChild(calendarAskEl("あしたも同じじかんに会おう📅 カレンダーに毎日の合図を入れておく？"));
+      }
+    }catch(e){}
+    store.set("calseen",1);
   }
 }
 function saveMemo(){
