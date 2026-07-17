@@ -4,6 +4,20 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 SPLIT-PLAN 5番「PWA・環境案内」完了(app-env.js新設・Fable発案⑩)
+
+`SPLIT-PLAN.md`の最後の分割項目。対象は`applyTheme`・`refreshDay`・`dismissHomeHint`・a2hs系(`a2hsIsStandalone`/`a2hsAddBtn`/`a2hsShow`/`a2hsClose`/`a2hsBoot`)＋状態変数`a2hsCont`の**純粋な関数定義のみ**を`app-env.js`へ移動。
+
+**安全設計（この領域が起動順序に依存するため特に慎重に）**: 既存3分割(app-record.js/app-quiz.js/app-card.js)を調査したところ、いずれも「関数/const定義のみを含み、トップレベルで実行される副作用文（addEventListener登録・IIFE・setInterval等）は一切含まない」という一貫したパターンだったため、今回もこれを踏襲。具体的には:
+- `document.addEventListener("visibilitychange",...)`・`setInterval(refreshDay,60000)`・`navigator.serviceWorker.register(...)`・envBannerを組み立てるIIFE・`renderSoudanEntry()`呼び出し・`window.addEventListener("popstate",...)`・初回起動のa2hsBoot起動IIFE・`window.__kyonoBoot=true`等の**実行文は全部index.htmlに残したまま**、関数定義だけを外に出した。
+- classic `<script>`タグ間では`let`/`const`のトップレベル宣言もグローバル字句スコープを共有する（`state`を`app-quiz.js`/`app-card.js`から既に参照できているのと同じ仕組み）ため、`app-env.js`内の関数から`store`/`state`/`lastDay`/`SECTIONS`等のindex.html側の変数を問題なく参照できる。
+- `app-env.js`の`<script src>`は他の分割ファイルと同じ並び（`app-card.js`の直後）に追加＝`applyTheme()`の最初の呼び出し行より確実に前に来るため、読み込み順の問題なし。
+- `sw.js`: ASSETS/SHELL両方に`app-env.js`追加、fetchハンドラの`isShell`判定にも追加。キャッシュ版`kyono-v52`→`kyono-v53`。
+- `scripts/qa.js`: 必須ファイル一覧・ES2020構文禁止対象一覧に`app-env.js`追加。`checkA2hsPopup()`が`extractFunction(mainScript,"a2hsBoot")`等でa2hs関数本体を探していたため、呼び出し側で`mainScript+envScript`を渡すよう修正（関数定義は移動済みだがa2hsBoot起動IIFE・popstateリスナー等の実行文はmainScript側に残っているので、両方を合成して渡せば既存アサーションはそのまま使える）。`checkOperationalWiring`は静的onclick属性から呼ばれる関数だけを見るチェックで、移動した関数はどれも動的innerHTML経由(dismissHomeHint等)or間接呼び出し(applyTheme等)のため対象外・変更不要と確認。
+- 検証: `npm test`=251checks（app-env.js追加後は+3、内訳はa2hs関連アサーションの母数が増えたため）、`npm run smoke`=21/21。さらにローカルプレビューで実際に`app-env.js`が200 OKで配信されること、リロード後`window.__kyonoBoot===true`・`applyTheme`等が`function`として存在・ダークモード適用済み・コンソールエラー0件を実機（ヘッドレスでなく本物のChrome拡張経由）で目視確認。
+
+これで`SPLIT-PLAN.md`の5項目すべてが完了。
+
 ## 2026-07-18 使い方ツアーのモック画面ドリフト検知を機械チェック化(Fable発案②)
 
 `OB_TOUR_SLIDES`は実UIから独立した手描きモックのため、ボタン名や機能名をリネームしてもツアー側の文言だけ取り残される事故が過去に複数回発生していた（7/17にも実UIとのズレを修正済み）。再発防止のため`scripts/qa.js`の`checkTourSlides()`を拡張。
