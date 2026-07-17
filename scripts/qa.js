@@ -655,9 +655,11 @@ function checkSoudanKb(catalogIds) {
   // 文字数規律（empathy15-30/mitate60-120/keizoku30-60字・±2字は軽微な逸脱として許容）。
   // youtsuu.mitateはM1コア(本人校正済み・本文不変の原則)で安全上重要な受診案内を含むため
   // 例外的に据え置き中（詳細: SOUDAN-QUALITY-AUDIT-2026-07-14.md）。新規の逸脱はここで検出する。
+  // yubikansetsu/touhi/kaidan.mitate（2026-07-17追加）も同じ理由（受診の線引きの一文を含む）で
+  // 帯を超過するが、本人監修済みの文言を変更しない前例踏襲として例外に追加（NEW-INTENTS-PROPOSAL.md②③④）。
   const LEN_BANDS = { empathy: [15, 30], mitate: [60, 120], keizoku: [30, 60] };
   const LEN_TOLERANCE = 2;
-  const LEN_EXCEPTIONS = new Set(["youtsuu:mitate"]);
+  const LEN_EXCEPTIONS = new Set(["youtsuu:mitate", "yubikansetsu:mitate", "touhi:mitate", "kaidan:mitate"]);
   const lenOffenders = [];
   for (const it of kb.intents || []) {
     if (!it || !it.id) continue;
