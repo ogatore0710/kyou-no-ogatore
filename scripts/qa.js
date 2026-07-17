@@ -1366,7 +1366,7 @@ function main() {
   checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}\n${cardScript}`);
   checkOnboardingWorrySkip(mainScript, quizScript);
   checkFirstDayGuide(html, mainScript, quizScript, recordScript);
-  checkTourSlides(mainScript);
+  checkTourSlides(mainScript, html);
   checkA2hsPopup(html, mainScript);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);
