@@ -4,6 +4,8 @@
 > 全4件 safety:true（受診導線あり）＝**追加は本人監修のあと**。動画は全部 videos.js 実在確認済み。
 >
 > **ステータス（2026-07-15追記）**: ①腕・上肢のだるさ／張り は2026-07-14に本人回答で**「今回は不採用」に決定済み**（SOUDAN-QUALITY-AUDIT-2026-07-14.mdの①-D注記「反映済み（YESだけ・NEW-INTENTS-PROPOSALは今回は不採用）」が根拠。関連するわきの下しこりの赤旗語だけは同日別途redFlags.kwに追加済み）。②指の関節の朝のこわばり／③頭皮のこり／④シニアの階段・歩行の衰え の3件は2026-07-15時点でも soudan-kb.js に該当id（yubikansetsu/touhi/kaidan）が存在せず、引き続き本人監修待ち。
+>
+> **ステータス（2026-07-17追記）**: ②③④は本人が内容・受診の線引きともにYESで承認済み・**soudan-kb.jsに反映済み**（コミット`c824f97`）。文言（chip/empathy/mitate/keizoku/kw）は本ファイル記載のまま一字一句変更なし。動画は本文どおり1本構成（3本構成の推奨は今回不採用）。②に付随して yubimukumi のkw「指がこわば」は yubikansetsu へ移管済み（実測でyubimukumiの他kwは横取りされず健在・「朝起きると指がこわばる」は正しくyubikansetsuに着地することを実機で確認）。③の複合相談は現状どおりdeskwork着地のまま変更なし。3件ともmitateが文字数バンド(60-120字)を超過（yubikansetsu 240字/touhi 198字/kaidan 218字）するが、youtsuu.mitateの前例（160字）を踏襲しscripts/qa.jsのLEN_EXCEPTIONSに個別追加して対応。npm test 132checks・npm run smoke 17/17・redflag-safety-test.mjs 90/90 いずれもPASS。
 
 ## 検証まとめ
 - 動画4本すべて実在。referCases も狙い通り着地（危険例は既存の赤旗が先に拾って受診案内）。
