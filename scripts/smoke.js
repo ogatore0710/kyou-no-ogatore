@@ -1431,6 +1431,8 @@ async function main() {
       await visible("#home");
       const calAskAfterReload2 = await page.evaluate(() => (document.getElementById("calAsk").innerHTML || "").trim());
       if (calAskAfterReload2 !== "") throw new Error("リロード後も#calAskが残っている（もう一度出てしまっている）");
+      const tourAskAfterReload = await page.evaluate(() => (document.getElementById("tourAsk").innerHTML || "").trim());
+      if (tourAskAfterReload !== "") throw new Error("リロード後も#tourAskが残っている（DOM状態はリロードで消える想定・renderStreak側の残骸クリアも回帰していないこと）");
 
       // ---- 確認8(回帰・最重要): 既存ユーザー(ガイド対象外)の「もう一回チェックする」は従来どおり ----
       await visible("#ckBtn");
@@ -1485,7 +1487,7 @@ async function main() {
       // 深くなっており、back()が意図しない古いエントリへ着地しうる（実測で確認済み・アプリのバグではない）
       // ため、状態非依存の最終ステップでは意図的にこの経路を避けている。
 
-      return "オンボ完走(quizルート)→結果画面①強調(fd-hero/バッジ/オガトレ一言/3本つづけて再生ボタン非表示/rotate-note非表示/rTourBtn非表示)→①タップで新規タブ+pendingNudge系セット→checkDoneNudge()で#rDoneNudge表示(ホームcheerは不可侵)→ボタンでホームへ+doneBtn強調→#fdDoneStaticNudge常時案内を確認→きょうやった！で固定cheer文言/メモplaceholder/#calAsk表示/#fdDoneStaticNudge消失→#cheerTourBtnタップでobOpenTour()実起動を確認→kyono_fd=1→あなた用が3本表示に復帰→リロード後も#calAsk再出現なし→既存ユーザーの再チェックは回帰なし→" + soudanNote;
+      return "オンボ完走(quizルート)→結果画面①強調(fd-hero/バッジ/オガトレ一言/3本つづけて再生ボタン非表示/rotate-note非表示/rTourBtn非表示)→①タップで新規タブ+pendingNudge系セット→checkDoneNudge()で#rDoneNudge表示(ホームcheerは不可侵)→ボタンでホームへ+doneBtn強調→#fdDoneStaticNudge常時案内を確認→きょうやった！で固定cheer文言(2行のみ)/メモplaceholder/#calAsk(改行入り新文言)表示/#fdDoneStaticNudge消失→DOM順序(#memoRow→makeCardBtn→cardHint→#calAsk→#tourAsk)を確認→#tourAskの「使い方ツアーを見る」タップでobOpenTour()実起動を確認→「あとで」タップで#tourAskが空になることを確認→kyono_fd=1→あなた用が3本表示に復帰→リロード後も#calAsk/#tourAsk再出現なし→既存ユーザーの再チェックは回帰なし→" + soudanNote;
     });
 
     // 8. 最終確認: コンソールエラー総数0
