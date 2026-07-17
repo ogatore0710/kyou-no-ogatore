@@ -2,7 +2,17 @@
 
 > **これは何**: README.md が「何ができるか」なら、これは「どう作られていて・どこでハマるか」。
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
-> 最終更新: 2026-07-17
+> 最終更新: 2026-07-18
+
+## 2026-07-18 「記録カードのつくりかた」モック画像のキャラ差し替え
+
+POからGoogle Driveの参考画像（新デザインの記録カードモック、新キャラのイラストつき）を受け取り、「使い方ツアーのモック画像だけ」差し替える指示（実際に生成される記録カード本体=`app-card.js`の`drawCard()`は対象外、と本人確認済み）。
+
+- 参考画像から新キャラ部分だけをPython/PIL+scipyで抽出（角からのフラッドフィルで背景透過、連結成分解析で最大の島以外の断片を除去、`getbbox()`でトリミング）。既存アセットと同じ透過PNG形式で`assets/chara-cardtour.png`（276×333px）として保存。
+- `index.html`の2箇所を`assets/chara-kaikyaku.png`→`assets/chara-cardtour.png`に差し替え：①使い方タブ「記録カードのつくりかた」セクション（line 1021）、②`OB_TOUR_SLIDES`の「記録カードをつくる」スライドのモック（line 3781）。
+- `chara-kaikyaku.png`自体は`app-card.js`の`CHARA_FILES`（本物のカード生成）で現役使用中のため変更・削除せず維持。
+- `sw.js`: キャッシュ版`kyono-v49`→`kyono-v50`、`ASSETS`に`assets/chara-cardtour.png`追加。
+- 検証: ローカルプレビュー(http://localhost:8899)にpuppeteer/Claude-in-Chromeで接続し、使い方タブの当該箇所と`OB_TOUR_SLIDES`両方で新画像が`naturalWidth/Height=276×333・complete:true`で正しく読み込まれることをJS経由で実測確認（スクリーンショット機構が不調だったため、画像ロード状態の直接検査で代替）。`npm test`=239/239 PASS。
 
 ## 2026-07-17 「きょうやった！」後の導線・カレンダー文言・使い方ツアーのブラッシュアップ（PO実機フィードバック3件）
 
