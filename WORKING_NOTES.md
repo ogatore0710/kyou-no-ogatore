@@ -4,6 +4,22 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18【重要・セキュリティ】GitHub Pages配信がリポジトリ全体を公開していた不具合を修正・iPadでホーム画面追加案内が出ない不具合も修正
+
+Fable監査（2巡目・別領域を深掘り）で発見。実測で確認した重大事項:
+
+**① 内部ドキュメント・非公開データが本番ドメインで誰でも閲覧可能だった**
+`.github/workflows/pages.yml`が`rsync -a --exclude .git --exclude .github ./ _site/`でリポジトリ全体を配信していたため、`https://kyou-no.ogatore.net/WORKING_NOTES.md`（354KB・関係者名を含む内部開発メモ）や`scripts/private_videos.json`（非公開動画IDの一覧）が実際に200で公開されていることをcurlで確認（`robots.txt`も404で検索除外の効力なし。index.htmlの`noindex`メタタグは他ファイルには効かない）。
+- 対処: allowlist方式に変更。`cp`で実際に必要なファイル（index.html/manifest.json/sw.js/CNAME/.nojekyll/robots.txt/8個のapp-*.js/assets/）だけを`_site/`に集める形に書き換え。`robots.txt`（全面Disallow）を新設。
+- 再発防止: `scripts/qa.js`に`checkDeployAllowlist()`を新設。pages.ymlの実際のコピーコマンド行に`WORKING_NOTES`/`scripts/`/`node_modules`等が現れないこと、必要ファイルが列挙されていること、危険な全体コピーパターンが復活していないことを機械チェック。わざとrsync方式に戻して検知することも確認済み。
+
+**② iPadユーザーに「ホーム画面に追加」ポップアップが一切出ない不具合**
+`app-env.js`の`a2hsBoot()`のUA判定が`/iPhone|iPad|iPod|Android/`のみで、**iPadOS 13以降のSafariが既定でMacintosh系UAを名乗る**ことを考慮していなかったため、実機iPadが「デスクトップ」判定されポップアップが出ない状態だった。
+- 対処: `/Macintosh/.test(ua) && navigator.maxTouchPoints>1`（本物のMacはタッチなし）を追加条件にして、iPadOS偽装UAをiPhone/iPadと同じ扱いに。
+- `scripts/smoke.js`にシナリオ追加（7c内・1b番）: Macintosh偽装UA+`maxTouchPoints=5`で`kind==="ios-safari"`になることを実測。わざと修正を戻して未検知（`kind===null`）になることも確認済み。
+
+両方とも「本人監修待ち」ではなく明確なバグのため、確認のうえ即修正・commit。`npm test`=256checks、`npm run smoke`=21/21。
+
 ## 2026-07-18 ダブルタップズームを無効化
 
 PO指摘: 連打気味の操作（例: 「きょうやった！」を素早く2回タップ等）でブラウザ標準のダブルタップズームが発動し、アプリらしさを損ねていた。
