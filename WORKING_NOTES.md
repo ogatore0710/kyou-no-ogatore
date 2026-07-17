@@ -4,6 +4,35 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-17
 
+## 2026-07-17 オンボーディング改善2点（カレンダー通知の移設＋「はじめの1本ガイド」新設・Fable設計・PO承認済み）
+
+Fableが設計したオンボーディング改善2点を実装。既存の「オンボチャット→かたさチェック→結果画面」フローに、新しい仕組みを極力作らず、既存のpendingNudge/markDone後UIフローに一言ずつ重ねる方式で実装した。新規localStorageキー: `kyono_fd`（"go"=ガイド中／1=完了）・`kyono_calseen`（カレンダー案内を出し切ったら1・二度と出さない）。
+
+**依頼1: カレンダー通知プロンプトの移設**（2026-07-16実装分・オンボQ3直後の吹き出し表示をやめて「1日目クリア」直後へ）
+- `obPick()`のanchor分岐から`obCalendarBubble()`呼び出しを削除。`anchorAck`のあと直接`obAskQ()`に進むだけに戻した。
+- `obCalendarBubble()`（`#obLog`専用のハードコードHTML注入関数）を、DOM要素を返す共通関数`calendarAskEl(leadText)`に切り出した。安全設計（可変テキストはtextContentのみ・ICSはrenderIcs()の結果を#icsLink/#gcalLinkからhrefプロパティ代入のみでコピー・独自ICS生成なし）は完全に維持。
+- `#streakCard`の`#memoRow`直後に新規の空div`#calAsk`を追加。
+- `app-record.js`の`markDone()`内、`saved_ok`確定後に「`st.total===1 && !store.get("calseen")`」を満たす場合だけ一度、`#calAsk`へ`calendarAskEl("あしたも同じじかんに会おう📅 カレンダーに毎日の合図を入れておく？")`の内容を描画し、`store.set("calseen",1)`をセット（二度と出さない）。この条件はガイド対象（後述の`kyono_fd`）と無関係で、soudanルート経由も含めた「通算1日目クリア」全ユーザーが対象。
+- `renderStreak()`で当日まだ未記録（`!did`）のときは`#calAsk`を空にし、再訪日に前回の残骸が残らないようにした。
+
+**依頼2: 「はじめの1本ガイド」新設**（オンボ完走→初回1本を能動的にやりきってもらう導線）
+- `store`経由（`kyono_fd`）で管理するフラグ。`index.html`にヘルパー`fdActive(){ return store.get("fd",null)==="go" && getStreakData().total===0; }`を新設。`app-quiz.js`/`app-record.js`からは読み込み順の関係で`(typeof fdActive==="function")&&fdActive()`のガード付きで参照する（設計指定どおり）。
+- 開始条件: `obGo()`内、`obClose(true)`を呼ぶ前に「`(r==="quiz"||r==="today") && getStreakData().total===0 && !store.get("fd")`」なら`store.set("fd","go")`。soudanルートは対象外（設計どおり）。
+- 終了条件: `markDone()`内、guideフラグは`fdActive()`ではなく生の`store.get("fd",null)==="go"`で判定してから`store.set("fd",1)`（fdActive()はtotal===0が条件のため、markDone内では既にtotal===1になっていて使えない。完了マーク前に判定するタイミングに注意、という設計の指摘どおりに実装）。
+- `app-quiz.js`の`showResult()`: `guide`がtrueのとき、`rxHead`を「まずはこの1本から！②③はあしたからでOKだよ」に、`rxList`の①だけを`.fd-hero`クラスで主役化しラベルを「きょうはこれ1本でOK！」に、直上にオガトレの一言吹き出し（`sd-row`/`sd-b`の既存チャットCSSを流用した静的HTML、可変値なしなので安全）を追加。②③はそのまま表示（隠さない）。「▶3本つづけて再生する」ボタンと`#rRotateNote`（3日ごと入れ替わり注記、新規id付与）は`guide`時は非表示。`obTourAfterQuiz`を`guide`時はfalseに強制し`rTourBtn`も出さない。`guide`falseは完全に既存動作のまま（分岐で完全分離）。
+- ホーム「あなた用」（`renderToday()`）: `fdActive()`中は`rx[0]`のみ・バッジ「きょうはこれ1本でOK！」・注記「②と③はあしたからでだいじょうぶ😊」・連続再生リンク非表示。`fdActive()`がfalseに戻ったら次のレンダリングで自動的に通常の3本表示に戻る（新しい状態は持たず毎回`fdActive()`を再評価するだけなので自動復帰する設計）。
+- 動画タップ検知の拡張: 既存の`#todayVideo`タップ検知IIFE（`kyono_pendingNudge`/`kyono_pendingNudgeVideo`をセットする仕組み）と全く同じロジックを`#result`セクション（`rxList`/`worryExtra`の動画リンク）にも新規リスナーとして追加。`#todayVideo`側は一切変更していない。
+- 復帰ナッジ（`checkDoneNudge()`）: 既存の早期return群は全て維持したうえで、cheer表示の直前に分岐を追加。結果画面(`#result`)が表示中なら新規div`#rDoneNudge`（`rTourBtn`の近くに配置）へ「おかえりなさい！✨ ストレッチできた？」＋「✅ 1日目の記録をつけにいく」ボタンを描画し、ボタンは`goHome()`→`#doneBtn`を`scrollIntoView({block:"center"})`＋`nudge-pulse`クラス付与（既存の強調パターンを流用）。ホーム表示中は従来どおりの動作をそのまま維持（早期returnで相互排他）。
+- 「きょうやった！」後のメモ促し（`markDone()`）: guide時、節目でない通常cheerを固定文言「🎉 1日目クリア！ナイスご自愛！」＋メモ促し1行＋使い方タブ案内1行に差し替え。`#memoInput`のplaceholderをguide時のみ「例: 肩がかるくなった気がする😊」に変更（強制フォーカス・必須化は一切なし）。節目(ms)とguideが同時発生する可能性は通算1日目=guideの唯一の発生タイミングがMS最小値3より前のため実質ないが、念のため`if(ms){...} else if(guide){...} else{...}`の順にして節目表示を必ず優先する構造にした。
+
+**実測確認（puppeteer-core・ヘッドレスChrome、依頼書の9項目を実際に操作して確認）**: ①オンボ完走(quizルート)→かたさチェック5問完走→結果画面で①だけが`.fd-hero`で強調・バッジ/文言差し替え・オガトレ一言吹き出し・②③は表示のまま・「3本つづけて再生する」ボタン/`rRotateNote`/`rTourBtn`すべて非表示、を確認。②ホーム「あなた用」（`#segMine`）が①の1本＋バッジ＋注記のみになっていることを確認（実装上の注意: `state.mode`は一度真値になると使い回される既存の仕様のため、実ユーザーと同じ「あなた用」タップ操作で明示的に切り替えて確認）。③①のカードを実クリック→`target=_blank`で新規タブが実際に開くことをpuppeteerの`targetcreated`イベントで確認、開いたURLがタップした動画IDと一致することも確認、`kyono_pendingNudge`/`kyono_pendingNudgeVideo`がタップ直後（新規タブがフォーカスを奪う前）に正しくセットされることを確認。④新規タブを閉じてフォーカスが戻ると本物の`visibilitychange`で`checkDoneNudge()`が自動発火しうることを実測で発見（アプリ本来の挙動・環境依存の可能性があるため、テスト側は追加で明示的に`checkDoneNudge()`も呼び、どちらの経路でも同じ結果になる決定的なテストにした）。結果画面表示中は`#rDoneNudge`が出て、ホームの`#cheer`は不可侵であることを確認。⑤`#rDoneNudge`のボタン→ホームへ遷移→`#doneBtn`に`nudge-pulse`が付与されることを確認。⑥「きょうやった！」→cheerが固定文言「1日目クリア」になり、メモ欄placeholderが変わり、`#calAsk`にカレンダー登録カードが表示されることを確認。⑦`kyono_fd`が完了値`1`になり、その後ホーム「あなた用」が通常の3本表示（連続再生リンク込み）に自動復帰することを確認。⑧リロード後`#calAsk`が空のまま（二度と出ない）ことを確認。⑨比較のため、オンボを経由しない既存ユーザーの「もう一回チェックする」では`.fd-hero`なし・「3本つづけて再生する」ボタンあり・`rRotateNote`非表示のまま、という従来どおりの表示を確認（回帰なし）。⑩soudanルート（このテスト環境はsoudan-kb.js配備済みのため実ルートで検証）でオンボ完走しても`kyono_fd`がセットされないことを確認（対象外条件が守られている）。
+
+**テスト実装上の注意（2点、再発防止として記録）**:
+1. `page.click()`で`target=_blank`の実リンクをタップすると新規タブが開き、実機同様このページの`document.hidden`が一時的に`true`になる。新規タブを閉じてフォーカスが戻ると本物の`visibilitychange`イベントが発火し、アプリの`checkDoneNudge()`が自動的に呼ばれることがある（環境依存）。`kyono_pendingNudge`のような「一度読んだら消す」フラグを検証するテストは、新規タブの検出を待つ前（フォーカスを奪われる前）に読み取る必要がある。
+2. `renderToday()`の`state.mode`はJS変数として一度真値になると使い回される既存の仕様（本機能の変更ではない）。初回起動時の`renderHome()`はクイズ未完了時点で既に`state.mode`をasa/yoruへ確定させてしまうため、クイズ完了後にhome へ戻ってもデフォルトでは「あなた用」に自動で切り替わらない。テストで「あなた用」の表示を検証する際は、実ユーザーと同じ`#segMine`タップ操作を明示的に行う必要がある。
+
+**機械チェックの追加**: `scripts/qa.js`に`checkFirstDayGuide()`を新設し、`calendarAskEl`/`fdActive`/`obGo`のガイド開始条件/`showResult`のguide分岐/`renderToday`のguide分岐/`markDone`のguide判定順序とcheer文言/`renderStreak`の`#calAsk`クリア/`checkDoneNudge`の早期return維持と結果画面分岐/`#result`専用タップ検知IIFEの追加/DOM配置（`#calAsk`・`#rDoneNudge`・`.fd-hero`CSS）を機械チェックで固定した（新規約40件）。`scripts/smoke.js`は既存1cシナリオ（オンボQ3直後のカレンダー案内を検証していたもの）を移設後の仕様（1日目クリア後の`#calAsk`）に合わせて全面書き換えし、新規シナリオ「7d」を追加。`npm test`は187→227 checksへ増加（新規40件）、全PASS。`npm run smoke`は20→21ステップへ増加（1cはリライト・7dが新規）、全PASS。
+
 ## 2026-07-17 ホーム画面に追加ポップアップ（初回起動・はじめてガイドの直前に割り込み・PO依頼対応）
 
 初回起動時、スプラッシュ退場後に直接`obOpen()`（はじめてガイド）を呼んでいた箇所に割り込み、端末/ブラウザに応じた「ホーム画面に追加」案内ポップアップ(`#a2hsModal`)を先に出すようにした。閉じ方（ボタン/ブラウザバックいずれも）を問わず必ず`obOpen()`へ進み、ユーザーが先に進めなくなることは絶対に避ける設計。

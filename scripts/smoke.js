@@ -1261,6 +1261,22 @@ async function main() {
       await page.waitForFunction(() => !document.getElementById("home").classList.contains("hidden"), { timeout: 5000 });
       await page.waitForFunction(() => document.getElementById("doneBtn").classList.contains("nudge-pulse"), { timeout: 5000 });
 
+      // ---- 確認4b: ホーム「あなた用」がまだ①だけの導線になっていること ----
+      // renderToday()はstate.modeが一度でも真値になると以後それを使い回す(既存仕様・本機能とは無関係の
+      // 既存の挙動)。初回起動時のrenderHome()がクイズ未完了時点で既にstate.modeをasa/yoruへ確定させて
+      // いるため、ここでは実ユーザーと同じ操作(segMineタップ)で明示的に「あなた用」へ切り替えて確認する。
+      await visible("#segMine");
+      await page.click("#segMine");
+      await page.waitForFunction(() => document.getElementById("segMine").classList.contains("on"), { timeout: 5000 });
+      const mineBefore = await page.evaluate(() => ({
+        html: document.getElementById("todayVideo").innerHTML,
+        videoCount: document.querySelectorAll("#todayVideo .video").length,
+      }));
+      if (mineBefore.html.indexOf("きょうはこれ1本でOK！") === -1) throw new Error("guide中なのにホーム「あなた用」のバッジがガイド用になっていない");
+      if (mineBefore.videoCount !== 1) throw new Error("guide中のホーム「あなた用」が1本でない (実測" + mineBefore.videoCount + "本)");
+      if (mineBefore.html.indexOf("②と③はあしたからでだいじょうぶ") === -1) throw new Error("guide中のホーム「あなた用」に②③注記が無い");
+      if (mineBefore.html.indexOf("連続再生") !== -1) throw new Error("guide中なのにホーム「あなた用」に連続再生リンクが出ている");
+
       // ---- 確認5: 「きょうやった！」→固定cheer文言・メモplaceholder変更・#calAsk表示 ----
       await page.$eval("#doneBtn", (el) => el.scrollIntoView({ block: "center" }));
       await page.click("#doneBtn");
