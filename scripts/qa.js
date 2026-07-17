@@ -877,8 +877,8 @@ function checkA2hsPopup(html, mainScript) {
     "standalone short-circuit missing"
   );
   assert(
-    "a2hsBoot: デスクトップ(iPhone/iPad/iPod/Android以外)も即座に次へ進む",
-    /!\/iPhone\|iPad\|iPod\|Android\/\.test\(ua\)\)\{\s*cont\(\)/.test(bootFn),
+    "a2hsBoot: デスクトップ(iPhone/iPad/iPod/Android以外、かつiPadOSのMacintosh偽装UAでもない)も即座に次へ進む",
+    /!\/iPhone\|iPad\|iPod\|Android\/\.test\(ua\)[\s\S]{0,40}\)\{\s*cont\(\)/.test(bootFn),
     "desktop short-circuit missing"
   );
   assert(
@@ -1326,6 +1326,41 @@ function checkManifest() {
   assert("manifest.json: icons exist", missing.length === 0, missing.join(", ") || `${(manifest.icons || []).length} icons`);
 }
 
+// GitHub Pagesの配信ワークフローが「リポジトリ全体を配信」に巻き戻ると、WORKING_NOTES.md（内部メモ・
+// 関係者名）やscripts/private_videos.json（非公開動画ID一覧）が本番ドメインで200公開されてしまう
+// 事故が過去に発生した（2026-07-18発見）。allowlist方式に固定し、巻き戻りをここで機械的に検知する。
+function checkDeployAllowlist() {
+  const workflowPath = ".github/workflows/pages.yml";
+  if (!exists(workflowPath)) {
+    fail("pages.yml: found", `${workflowPath} not found`);
+    return;
+  }
+  const yml = read(workflowPath);
+  assert("pages.yml: found", yml.length > 0, `${yml.length} chars`);
+  assert(
+    "pages.yml: リポジトリ全体を配信する危険なコピー(rsync -a ./ / cp -r . )が使われていない",
+    !/rsync\s+-a[^\n]*\s\.\/\s+_site/.test(yml) && !/cp\s+-r\s+\.\s+_site/.test(yml) && !/cp\s+-r\s+\.\/\s+_site/.test(yml),
+    "whole-repo copy pattern must not reappear"
+  );
+  const requiredInAllowlist = ["index.html", "manifest.json", "sw.js", "robots.txt", "app-env.js"];
+  const missingFromAllowlist = requiredInAllowlist.filter((f) => !yml.includes(f));
+  assert(
+    "pages.yml: 配信allowlistに必要なファイルが列挙されている",
+    missingFromAllowlist.length === 0,
+    missingFromAllowlist.join(", ") || requiredInAllowlist.join(", ")
+  );
+  // 実際にコピーされるファイル名だけを見る（ステップ名等の説明コメントに単語として出てくるのは無関係）
+  const copyLines = yml.split("\n").filter((line) => /^\s*(cp|rsync)\s/.test(line));
+  const sensitivePatterns = ["WORKING_NOTES", "scripts/", "node_modules", "soudan-ai-poc", "package.json"];
+  const leaked = sensitivePatterns.filter((p) => copyLines.some((line) => line.includes(p)));
+  assert(
+    "pages.yml: コピー対象に内部ドキュメント/非公開スクリプトが含まれていない",
+    leaked.length === 0,
+    leaked.join(", ") || "none in copy commands"
+  );
+  assert("robots.txt: exists", exists("robots.txt"), "required for defense-in-depth alongside the allowlist");
+}
+
 function checkPythonScripts() {
   const scripts = fs.readdirSync(path.join(ROOT, "scripts"))
     .filter((name) => name.endsWith(".py"))
@@ -1375,6 +1410,7 @@ function main() {
   checkObuStaleness(mainScript, html);
   checkSw(read("sw.js"));
   checkManifest();
+  checkDeployAllowlist();
   checkPythonScripts();
 
   if (failures.length) {

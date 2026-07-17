@@ -95,8 +95,12 @@ function a2hsBoot(cont){
   try{
     if(a2hsIsStandalone()){ cont(); return; }
     const ua=navigator.userAgent||"";
-    if(!/iPhone|iPad|iPod|Android/.test(ua)){ cont(); return; } // デスクトップ（ホーム画面という概念が前提と合わないため）
-    if(/iPhone|iPad|iPod/.test(ua)){
+    // iPadOS 13以降のSafariは既定でMacintosh系UAを名乗り、実機iPadでもタッチ操作を持つ点だけが
+    // 本物のMacと違う（maxTouchPoints>1）。この判定がないとiPadユーザーに「ホーム画面に追加」の
+    // 案内が一切出ない（2026-07-18発見）。
+    const isIpadDesktopUA = /Macintosh/.test(ua) && navigator.maxTouchPoints>1;
+    if(!/iPhone|iPad|iPod|Android/.test(ua) && !isIpadDesktopUA){ cont(); return; } // デスクトップ（ホーム画面という概念が前提と合わないため）
+    if(/iPhone|iPad|iPod/.test(ua) || isIpadDesktopUA){
       // iOS上のChrome/Firefox/Edge等はUAにCriOS/FxiOS/EdgiOS/OPiOSが入りSafari本体と区別できる
       if(/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) a2hsShow("ios-other",cont);
       else a2hsShow("ios-safari",cont);

@@ -1057,6 +1057,8 @@ async function main() {
       const UA_ANDROID = "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36";
       const UA_DESKTOP = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
       const UA_ANDROID_LINE = UA_ANDROID + " Line/12.7.0";
+      // iPadOS 13以降のSafariは既定でMacintosh系UAを名乗る（本物のMacと区別できるのはmaxTouchPointsだけ）
+      const UA_IPAD_DESKTOP = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15";
 
       async function freshPage(opts) {
         opts = opts || {};
@@ -1067,6 +1069,11 @@ async function main() {
           await p.evaluateOnNewDocument(() => {
             try { Object.defineProperty(navigator, "standalone", { get: () => true, configurable: true }); } catch (e) { /* ignore */ }
           });
+        }
+        if (opts.maxTouchPoints != null) {
+          await p.evaluateOnNewDocument((mtp) => {
+            try { Object.defineProperty(navigator, "maxTouchPoints", { get: () => mtp, configurable: true }); } catch (e) { /* ignore */ }
+          }, opts.maxTouchPoints);
         }
         // window.__a2hsEventをアクセサ化してテスト用の値に固定する。
         // 理由: この配信環境(python http.serverのlocalhost+有効なmanifest+SW登録済み)はChrome自身が
@@ -1113,6 +1120,18 @@ async function main() {
         await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
         await p.close();
         notes.push("iOS Safari→共有ボタン案内→あとで→はじめてガイド");
+      }
+
+      // 1b) iPadOS(Macintosh偽装UA+タッチあり) → デスクトップ扱いされず、iOS Safariと同じ案内が出る(2026-07-18修正の回帰防止)
+      {
+        const p = await freshPage({ ua: UA_IPAD_DESKTOP, maxTouchPoints: 5 });
+        await waitPopupOrGuide(p);
+        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        if (kind !== "ios-safari") throw new Error("iPadOS(Macintosh偽装UA)でkindがios-safariでない (実測=" + kind + ")");
+        await p.click("#a2hsBtns button"); // 「あとで」
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.close();
+        notes.push("iPadOS(Macintosh偽装UA+タッチ)→デスクトップ誤判定せずiOS Safari案内→あとで→はじめてガイド");
       }
 
       // 2) iOS Chrome(CriOS) → 「Safariで開く必要がある」案内
