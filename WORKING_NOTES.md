@@ -4,6 +4,16 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 モーダルのフォーカス管理・aria-live/aria-currentを追加(Fable発案2巡目③)
+
+相談室・カード図鑑・記録カード・はじめてガイド・ホーム画面追加ポップアップ、全5モーダルにキーボード/スクリーンリーダー対応のフォーカス管理を追加。
+
+- 共通ヘルパー`modalFocusOpen(boxId)`/`modalFocusClose()`を新設（`lockBodyScroll`/`unlockBodyScroll`と同じ「必ずこの2関数経由」方式）。各モーダルの内側コンテナに`tabindex="-1"`を付け、開いた瞬間に`document.activeElement`を記憶しつつダイアログへフォーカス移動、閉じたら記憶していた元の要素へフォーカスを戻す。
+- **ハマった点**: `updateFabs()`は`body.fabs-hide`というCSSクラスでFABを非表示にする方式のため、`modalFocusClose()`を`updateFabs()`より前に呼ぶと、まだ非表示のFABにフォーカスしようとして失敗し、フォーカスが`<body>`に落ちてしまう（実測で発見）。4つの`close*()`関数すべてで`updateFabs()`→`modalFocusClose()`の順に統一。
+- `#sdLog`（相談室）・`#obLog`（はじめてガイド/ツアー）に`aria-live="polite"`を追加し、新しい吹き出しが読み上げられるようにした。
+- タブバーに`aria-current="page"`をアクティブなタブへ動的に付与（`show()`内、`.on`クラス切り替えと同じ箇所）。
+- 検証: 4モーダル（相談室/カード図鑑/記録カード/はじめてガイド）すべてで「トリガー要素→ダイアログ→トリガー要素」のフォーカス往復を実測確認。`scripts/smoke.js`に新規ステップ「7f」として恒久化（`updateFabs()`の呼び出し順をわざと戻すと検知することも確認済み）。`npm test`=259checks、`npm run smoke`=23/23。
+
 ## 2026-07-18 M PLUS 1pフォントを自己ホスト化・Google Fonts依存を完全除去(Fable発案2巡目②)
 
 唯一残っていた外部ランタイム依存（Google Fonts）を除去。オフライン時・Google側障害時でも太字フォントが確実に表示されるようにした。
