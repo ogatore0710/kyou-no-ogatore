@@ -1361,6 +1361,30 @@ function checkDeployAllowlist() {
   assert("robots.txt: exists", exists("robots.txt"), "required for defense-in-depth alongside the allowlist");
 }
 
+// カード図鑑(記念日/季節/レア)のkeyは`"assets/cards/"+key+".webp"`という動的パス生成で画像を読むため、
+// typoがあっても実行時に静かにフォールバックし気づきにくい(2026-07-18 Fable監査で裏取り・現状は86/86一致)。
+// 一致関係を機械チェックとして固定し、今後の追加時のtypo/ファイル追加漏れを検知する。
+function checkCardDex(mainScript) {
+  function extractBlock(name) {
+    const m = new RegExp(`const ${name}\\s*=\\s*[\\[{][\\s\\S]*?\\n(?:\\];|};)`).exec(mainScript);
+    return m ? m[0] : "";
+  }
+  const blocks = ["SEASON_CARDS", "RARE_CARDS", "TOKU_CARDS"].map(extractBlock).join("\n");
+  const keys = [...blocks.matchAll(/key:\s*"([^"]+)"/g)].map((m) => m[1]);
+  assert("SEASON_CARDS/RARE_CARDS/TOKU_CARDS: key抽出", keys.length > 0, `${keys.length} keys`);
+  const missingAssets = keys.filter((k) => !exists(`assets/cards/${k}.webp`));
+  assert("カード図鑑: 全keyに対応するassets/cards/*.webpが存在する", missingAssets.length === 0, missingAssets.join(", ") || `${keys.length} keys matched`);
+  let files = [];
+  try {
+    files = fs.readdirSync(path.join(ROOT, "assets/cards")).filter((f) => f.endsWith(".webp"));
+  } catch (err) {
+    fail("assets/cards: readable", err.message);
+    return;
+  }
+  const unreferenced = files.filter((f) => !keys.includes(f.replace(/\.webp$/, "")));
+  assert("カード図鑑: 参照されていない孤立webpファイルがない", unreferenced.length === 0, unreferenced.join(", ") || `${files.length} files all referenced`);
+}
+
 function checkPythonScripts() {
   const scripts = fs.readdirSync(path.join(ROOT, "scripts"))
     .filter((name) => name.endsWith(".py"))
@@ -1411,6 +1435,7 @@ function main() {
   checkSw(read("sw.js"));
   checkManifest();
   checkDeployAllowlist();
+  checkCardDex(mainScript);
   checkPythonScripts();
 
   if (failures.length) {
