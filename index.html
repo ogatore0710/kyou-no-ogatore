@@ -171,7 +171,7 @@
   #memoInput::placeholder{font-size:14px}
   .video>div{min-width:0}
   @media (max-width:400px){ .streak{flex-wrap:wrap} .streak>div:last-child{flex-basis:100%} }
-  @media (max-width:340px){ h1{font-size:19px} .cal .d{width:32px;height:32px;line-height:32px} .reach-btn{font-size:12px;padding:10px 0} }
+  @media (max-width:340px){ h1{font-size:19px} .cal .d{width:36px;height:36px;line-height:36px} .reach-btn{font-size:12px;padding:10px 0} }
   #appSplash{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:var(--bg);z-index:99;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .5s}
   #appSplash .spl-inner{opacity:0;transition:opacity .25s ease}
   #appSplash .spl-inner.show{opacity:1}
@@ -386,7 +386,7 @@
   .cal{width:100%;border-collapse:collapse;table-layout:fixed}
   .cal th{font-size:12px;color:var(--sub);padding:4px 0;font-weight:800}
   .cal td{text-align:center;padding:3px 0}
-  .cal .d{width:40px;height:40px;line-height:40px;border-radius:50%;display:inline-block;font-size:15px;font-weight:800}
+  .cal .d{width:44px;height:44px;line-height:44px;border-radius:50%;display:inline-block;font-size:15px;font-weight:800}
   .cal .d.done{background:var(--teal-strong);color:#fff}
   .cal .d.today{box-shadow:inset 0 0 0 2.5px var(--pink)}
   .cal .d.sel{outline:3px solid var(--ink);outline-offset:2px}
@@ -1052,6 +1052,8 @@
       <details><summary>文字の大きさは変えられる？</summary><div class="fa">マイ記録→つづける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠</div></details>
       <details><summary>画面を暗くしたい（ダークモード）</summary><div class="fa">マイ記録→つづける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙</div></details>
       <details><summary>じまんカードが見つからない</summary><div class="fa">マイ記録の「🎉お楽しみ機能」を開くと出てきます💗</div></details>
+      <details><summary>カード図鑑ってなに？</summary><div class="fa">記録カードには記念日・季節・レアなど何種類もデザインがあります マイ記録タブの「📖 図鑑をひらく」で、集めたデザインを見返せます</div></details>
+      <details><summary>レアカードはどうやったら出るの？</summary><div class="fa">運ではありません！記録をつづけていると全種類が順番にまわってくる仕組みです 記念日・季節のカードは決まった日に自動で出ます</div></details>
       <details><summary>せんぱいの声って本物？</summary><div class="fa">はい オガトレの動画に実際に届いたコメントから紹介しています</div></details>
       <details><summary>とどくメーターは毎日やるの？</summary><div class="fa">週1回くらいでOK！のびていく証拠づくりです📏</div></details>
       <details><summary>使い方をもう一度おしえてほしい</summary><div class="fa">この使い方タブのいちばん上からどうぞ 「🌱 はじめてガイドをもう一度」は最初の質問から、「📖 使い方ツアー」は機能の説明だけを1つずつ見られます</div></details>
@@ -2802,6 +2804,13 @@ function sdRenderChips(){
       html+=`<button class="chip chip-a" onclick="sdQuizTap()">30秒のかたさチェックやってみる?</button>`;
     }
     html+=`<button class="chip chip-d" onclick="sdShowIntentChips()">べつの悩みをそうだん</button>`;
+  }else if(sdChipsMode.type==="nearmiss"){
+    if(catBox) catBox.innerHTML="";
+    for(const nid of sdChipsMode.ids){
+      const ni=sdIntentById(nid);
+      if(ni) html+=`<button class="chip chip-a" onclick="sdChipTap('${sdEsc(ni.id)}')">${sdEsc(ni.chip)}</button>`;
+    }
+    html+=`<button class="chip chip-d" onclick="sdShowIntentChips()">べつの悩みをそうだん</button>`;
   }else{
     if(catBox){
       catBox.innerHTML=SOUDAN_CHIP_CATS.map(c=>
@@ -2951,14 +2960,16 @@ function sdAnswerSmalltalk(st){
   }
   sdPush(msgs);
 }
-function sdAnswerFallback(raw){
+function sdAnswerFallback(raw,ranked){
   sdCtx.smalltalkStreak=0;
   const subject=encodeURIComponent("【相談室リクエスト】きょうのオガトレ");
   const body=encodeURIComponent("相談した内容:\n"+raw+"\n---\n送信元: きょうのオガトレ「オガトレ相談室」");
   const html2=`<a class="btn btn-ghost" style="font-size:14px" href="mailto:${SD_MAIL}?subject=${subject}&body=${body}">📮 この悩み、オガトレに届ける</a>`
     +`<a href="#" class="tapx" onclick="copyMailAddr(this);return false" style="color:var(--tealink);font-weight:800;font-size:14px">📋 メールがひらかない方はアドレスをコピー</a>`
     +`<br><a href="#" class="tapx" onclick="switchTab('search');return false" style="color:var(--tealink);font-weight:800;font-size:14px">🔍 動画を探すタブでさがしてみる</a>`;
-  sdChipsMode={type:"intents"};
+  // 「近いのはこのあたりかも」の文言どおり、スコア閾値未満でも1文字以上ヒットした候補があれば実際にチップで出す(最大3件)
+  const near=(ranked||[]).filter(function(r){ return r.score>0; }).slice(0,3);
+  sdChipsMode = near.length ? {type:"nearmiss", ids:near.map(function(r){ return r.it.id; })} : {type:"intents"};
   sdPush([{who:"oga",html:"ごめんね、その悩みはまだ勉強中🙏<br>近いのはこのあたりかも！下のチップからどうぞ<br><span style=\"font-size:13px;color:var(--sub)\">※つらい症状（強い痛み・胸の苦しさ・熱など）があるときは、メールより先に医療機関に相談してね</span>"},{who:"oga",html:html2}]);
 }
 function sdAnswerFollowup(f){
@@ -3019,7 +3030,7 @@ function sdSend(){
   if(fu){ sdAnswerFollowup(fu); return; }
   const st=sdSmalltalkHit(n);
   if(st){ sdAnswerSmalltalk(st); return; }
-  sdAnswerFallback(raw);
+  sdAnswerFallback(raw,ranked);
 }
 // ---- 入口 ----
 function renderSoudanEntry(){
