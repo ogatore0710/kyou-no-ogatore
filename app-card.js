@@ -85,6 +85,7 @@ function makeCard(ds){
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
   const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
   document.getElementById("cardModal").classList.remove("hidden");
+  modalFocusOpen("cardModalBox");
   updateFabs();
   // その日のカードパターン画像キーを先に決めてプリロード（画像方式=CARD_IMG_FROM以降のみキーが返る）
   let motifKey=null;

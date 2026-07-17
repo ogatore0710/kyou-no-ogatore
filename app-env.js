@@ -79,6 +79,7 @@ function a2hsShow(kind,cont){
     a2hsAddBtn("わかった","btn-primary",function(){ a2hsClose(); });
   }
   m.classList.remove("hidden");
+  modalFocusOpen("a2hsModalBox");
   try{ if(!(history.state&&history.state.a2hs)) history.pushState({id:currentSection,a2hs:1},""); }catch(e){}
 }
 // 閉じ方（ボタン/戻る操作いずれも）を問わず必ずcont()(=obOpen)へ進む。
@@ -87,6 +88,7 @@ function a2hsShow(kind,cont){
 function a2hsClose(){
   const m=document.getElementById("a2hsModal");
   if(m){ m.classList.add("hidden"); m.removeAttribute("data-a2hs-kind"); }
+  modalFocusClose();
   const cont=a2hsCont; a2hsCont=null;
   if(cont) cont();
 }

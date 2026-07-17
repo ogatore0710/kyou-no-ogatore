@@ -1045,7 +1045,7 @@
 <nav class="tabbar">
   <button id="tab-guide" onclick="switchTab('guide')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="ic-fill" d="M4 5.5Q8 3.5 12 5.5Q16 3.5 20 5.5V19q-4-2-8 0q-4-2-8 0z"/><path d="M12 5.5V19"/></svg>使い方</button>
   <button id="tab-history" onclick="switchTab('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5"/></svg>マイ記録</button>
-  <button id="tab-home" class="on" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path class="ic-fill" d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20z"/><path d="M9.5 21v-6h5v6" stroke-linecap="round"/></svg>ホーム</button>
+  <button id="tab-home" class="on" aria-current="page" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path class="ic-fill" d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20z"/><path d="M9.5 21v-6h5v6" stroke-linecap="round"/></svg>ホーム</button>
   <button id="tab-playlists" onclick="switchTab('playlists')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect class="ic-fill" x="3" y="7" width="14" height="13" rx="3"/><path d="M6.5 4.5h11M8.5 12v5l4-2.5z"/></svg>再生リスト</button>
   <button id="tab-search" onclick="switchTab('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle class="ic-fill" cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L20 20"/></svg>動画を探す</button>
 </nav>
@@ -1075,7 +1075,7 @@
 </div>
 
 <div id="cardModal" class="hidden" onclick="if(event.target===this)closeCard()">
-  <div role="dialog" aria-modal="true" aria-label="記録カード" style="background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%">
+  <div id="cardModalBox" role="dialog" aria-modal="true" aria-label="記録カード" tabindex="-1" style="background:var(--card);border-radius:var(--radius);padding:18px;max-width:420px;width:100%;outline:none">
     <div id="cardTitle" style="font-size:15px;font-weight:900;text-align:center;margin-bottom:10px">きょうの記録カード</div>
     <div id="cardMaking" class="hidden" style="text-align:center;font-size:14px;color:var(--sub);padding:14px 0">カードをつくってます…</div>
     <img id="cardImg" alt="" style="width:100%;border-radius:16px;border:1.5px solid var(--line);-webkit-touch-callout:default">
@@ -1089,7 +1089,7 @@
 
 <!-- ===== カード図鑑（記念日/季節/レア/ノーマルの獲得状況・ヒント） ===== -->
 <div id="dexModal" class="hidden" onclick="if(event.target===this)closeDex()">
-  <div class="dex-box" role="dialog" aria-modal="true" aria-label="カード図鑑">
+  <div id="dexModalBox" class="dex-box" role="dialog" aria-modal="true" aria-label="カード図鑑" tabindex="-1" style="outline:none">
     <div class="dex-head">
       <div class="dex-title">📖 カード図鑑</div>
       <button class="dex-close" onclick="closeDex()" aria-label="とじる">✕</button>
@@ -1101,13 +1101,13 @@
 
 <!-- ===== オガトレ相談室（ボトムシート。戻る操作で閉じる=popstate対応） ===== -->
 <div id="soudanSheet" class="hidden" onclick="if(event.target===this)closeSoudan()">
-  <div class="sd-sheet" role="dialog" aria-modal="true" aria-label="オガトレ相談室">
+  <div id="soudanSheetBox" class="sd-sheet" role="dialog" aria-modal="true" aria-label="オガトレ相談室" tabindex="-1" style="outline:none">
     <div class="sd-head">
       <div class="sd-title"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H10l-4 3.5v-3.5H4z" fill="#DFF5F2"/><path d="M8.5 9h7M8.5 12h4.5" stroke="#2BB3A3"/></svg>オガトレ相談室</div>
       <button class="sd-close" onclick="closeSoudan()" aria-label="とじる">✕</button>
     </div>
     <div class="sd-disc">※回答はオガトレ監修のパターン集から選んでいます<br>※目安をつかむ相談室です <b>強い痛み・しびれがあるときは医療機関へ</b></div>
-    <div id="sdLog"></div>
+    <div id="sdLog" aria-live="polite" aria-atomic="false"></div>
     <div class="sd-foot">
       <div class="chips sd-catrow" id="sdCatRow"></div>
       <div style="position:relative"><div class="chips" id="sdChips"></div><div class="sd-swipehint" id="sdSwipeHint">›</div></div>
@@ -1121,19 +1121,19 @@
 
 <!-- ===== はじめてガイド（初回オンボーディング・独立オーバーレイ） ===== -->
 <div id="welcome" class="hidden">
-  <div class="ob-sheet">
+  <div id="welcomeBox" class="ob-sheet" role="dialog" aria-modal="true" aria-label="はじめてガイド" tabindex="-1" style="outline:none">
     <div class="ob-head">
       <div class="ob-title">🌱 はじめてガイド</div>
       <button class="ob-skip" id="obSkipBtn" onclick="obSkip()">スキップ</button>
     </div>
-    <div id="obLog"></div>
+    <div id="obLog" aria-live="polite" aria-atomic="false"></div>
     <div id="obChips"></div>
   </div>
 </div>
 
 <!-- ===== ホーム画面に追加ポップアップ（初回起動・はじめてガイドの直前だけ出す独立オーバーレイ） ===== -->
 <div id="a2hsModal" class="hidden">
-  <div class="ob-sheet">
+  <div id="a2hsModalBox" class="ob-sheet" role="dialog" aria-modal="true" aria-labelledby="a2hsTitle" tabindex="-1" style="outline:none">
     <div class="ob-head">
       <div class="ob-title" id="a2hsTitle">📲 ホーム画面に追加しよう</div>
     </div>
@@ -1278,6 +1278,23 @@ function unlockBodyScroll(){
   document.body.style.width="";
   window.scrollTo(0,sdLockScrollY); // 開く前のスクロール位置へ復元
 }
+// ---- モーダルのフォーカス管理共通ヘルパー（キーボード・スクリーンリーダー対応） ----
+// 開いた瞬間の要素をmodalFocusOpenで覚えておき、閉じるときmodalFocusCloseで元の位置へ戻す。
+// ダイアログ自体（tabindex="-1"のコンテナ）にフォーカスを移すことで、スクリーンリーダーが
+// aria-label(見出し)を読み上げてから中身を辿れるようにする（特定のボタンへ飛ばさない）。
+// 相談室・カード図鑑・記録カード・はじめてガイド・ホーム画面追加ポップアップ、どれもこの2関数経由にすること。
+let modalFocusReturnEl=null;
+function modalFocusOpen(boxId){
+  modalFocusReturnEl=document.activeElement;
+  const box=document.getElementById(boxId);
+  if(box) try{ box.focus({preventScroll:true}); }catch(e){ try{ box.focus(); }catch(e2){} }
+}
+function modalFocusClose(){
+  const el=modalFocusReturnEl; modalFocusReturnEl=null;
+  if(el&&typeof el.focus==="function"&&document.body.contains(el)){
+    try{ el.focus({preventScroll:true}); }catch(e){ try{ el.focus(); }catch(e2){} }
+  }
+}
 // ---- FAB表示制御（オガトレ通信+相談室の2段縦積み共通） ----
 // クイズ中・相談室シート・記録カード・オガトレ通信・オンボーディング表示中は両FABとも隠す。
 // とどくメーター(#reach)もクイズと同じ理由で隠す: 実測(390x844)でFAB2段(右下固定)が
@@ -1401,7 +1418,12 @@ function show(id){
   // obuはどのタブにも属さない独立画面なので、表示中はタブのハイライトを全消灯する
   // （もどるとnavTo(obuReturnTo)→show()が呼ばれ、直前にいたタブのハイライトが自然に復元される）
   const tabTarget = id==="obu" ? null : TAB_OF[id];
-  for(const t of ["home","history","playlists","search","guide"]) document.getElementById("tab-"+t).classList.toggle("on", tabTarget===t);
+  for(const t of ["home","history","playlists","search","guide"]){
+    const btn=document.getElementById("tab-"+t);
+    const active=tabTarget===t;
+    btn.classList.toggle("on", active);
+    if(active) btn.setAttribute("aria-current","page"); else btn.removeAttribute("aria-current");
+  }
   window.scrollTo(0,0);
   currentSection=id;
   updateFabs();
@@ -2166,8 +2188,8 @@ function renderDexBanner(){
   const samples=[d.toku[0],d.season[0],d.rare[0],d.normal[0]].filter(Boolean);
   document.getElementById("dexBannerSamples").innerHTML=samples.map(dexCellHtml).map(h=>h.replace('class="dex-cell"','class="dex-cell" style="width:56px"')).join("");
 }
-function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); lockBodyScroll(); updateFabs(); }
-function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); unlockBodyScroll(); updateFabs(); }
+function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); modalFocusOpen("dexModalBox"); lockBodyScroll(); updateFabs(); }
+function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); modalFocusClose(); unlockBodyScroll(); updateFabs(); }
 
 // ---- おやすみ券（月3枚・自動でつかわれる） ----
 const FREEZE_PER_MONTH=3;
@@ -2322,7 +2344,7 @@ function markCardSaved(){
   if(cardDate===todayStr() && getStreakData().dates.includes(todayStr())) store.set("card_saved", todayStr());
 }
 // downloadCard/shareCardはapp-card.jsへ移動済み（2026-07-17）
-function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); }
+function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); modalFocusClose(); applyMiniStreak(); updateFabs(); }
 
 // ================= じまんカード（つづけてる日数＋すきな1本を1枚に） =================
 let bragPick=null;
@@ -2386,6 +2408,7 @@ function makeBragCard(){
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
   const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
   document.getElementById("cardModal").classList.remove("hidden");
+  modalFocusOpen("cardModalBox");
   updateFabs();
   ensureCardFonts().then(()=>loadChara(()=>loadBragThumb(th=>{
     try{ drawBragCard(th); if(mk) mk.classList.add("hidden"); }
@@ -3046,6 +3069,7 @@ function openSoudan(intentId){
   // 履歴に1段積む（すでにsoudan stateならpopstate復元中なので積まない）→「戻る」でシートが閉じる
   try{ if(!(history.state&&history.state.id==="soudan")) history.pushState({id:"soudan"},""); }catch(e){}
   document.getElementById("soudanSheet").classList.remove("hidden");
+  modalFocusOpen("soudanSheetBox");
   lockBodyScroll(); // 背面ページのスクロールを止める（position:fixed+top:-scrollY方式。iOS15以前のスクロール抜け対策）
   sdVvOn();
   updateFabs();
@@ -3063,6 +3087,7 @@ function openSoudan(intentId){
 // fromPop=true: popstate起点（履歴はすでに1段戻っている）。✕タップ等の画面起点ならこちらからhistory.back()して整合を取る
 function closeSoudan(fromPop){
   document.getElementById("soudanSheet").classList.add("hidden");
+  modalFocusClose();
   unlockBodyScroll();
   sdVvOff();
   updateFabs();
@@ -3908,6 +3933,7 @@ function obOpenTour(){
   document.getElementById("obLog").innerHTML="";
   document.getElementById("obChips").innerHTML="";
   w.classList.remove("hidden");
+  modalFocusOpen("welcomeBox");
   updateFabs();
   try{ if(!(history.state&&history.state.ob)) history.pushState({id:currentSection,ob:1},""); }catch(e){}
   obTourStart();
@@ -3941,6 +3967,7 @@ function obOpen(){
   document.getElementById("obLog").innerHTML="";
   document.getElementById("obChips").innerHTML="";
   w.classList.remove("hidden");
+  modalFocusOpen("welcomeBox");
   updateFabs();
   try{ if(!(history.state&&history.state.ob)) history.pushState({id:currentSection,ob:1},""); }catch(e){}
   obSay(ONBOARDING_SCRIPT.greet,obAskQ);
@@ -3952,6 +3979,7 @@ function obClose(fromPop){
   store.set("onboarded",1);
   const w=document.getElementById("welcome");
   if(w) w.classList.add("hidden");
+  modalFocusClose();
   updateFabs();
   if(fromPop!==true){ try{ if(history.state&&history.state.ob) history.back(); }catch(e){} }
 }
