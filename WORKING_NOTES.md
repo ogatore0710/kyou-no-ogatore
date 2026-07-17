@@ -4,6 +4,17 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 M PLUS 1pフォントを自己ホスト化・Google Fonts依存を完全除去(Fable発案2巡目②)
+
+唯一残っていた外部ランタイム依存（Google Fonts）を除去。オフライン時・Google側障害時でも太字フォントが確実に表示されるようにした。
+
+- **手順**: `google/fonts`リポジトリの元フォント（`ofl/mplus1p/MPLUS1p-{Bold,ExtraBold,Black}.ttf`＝Google Fontsが実際に配信しているのと同一バイト）を取得 → アプリの全ソース（index.html/app-*.js/videos.js/soudan-kb.js/obu-feed.js/manifest.json）から実際に使われている文字（1653種）を抽出 → `python3 -m fontTools.subset`（pyftsubsetと同等）でその文字だけにサブセット化 → `assets/fonts/mplus1p-{700,800,900}.woff2`として保存（各150-170KB、計約500KB）。**同一の元フォントバイトを使っているため、`drawCard()`のテキスト計測・レイアウトへの影響はゼロ**（banana-card.woff2と同じ流儀を踏襲）。
+- `index.html`: Google Fontsの`<link>`群（preconnect/preload/gfontLink/noscript）と、その読み込み失敗保険用スクリプト（timeout+retry）を削除。ローカル`@font-face`を3つ追加（`font-display:swap`）。スプラッシュのFOUT防止ロジックも`gfontLink`のmedia監視をやめ、`document.fonts.ready`だけのシンプルな待ち方に整理。
+- CSP: `style-src`/`font-src`/`connect-src`から`fonts.googleapis.com`/`fonts.gstatic.com`を削除。外部ドメインへの接続がYouTubeサムネ(i.ytimg.com、img-srcのみ)を除いて完全にゼロになった。
+- `sw.js`: 3つのフォントファイルをASSETSに追加。キャッシュ版`kyono-v53`→`kyono-v54`。
+- **新しい漢字を本文に追加したら再サブセットが必要**（banana-card.woff2と同じ制約）。手順はここに追記済み。
+- 検証: `document.fonts`で3ウェイトとも`status:"loaded"`を確認、実際にレンダリングした記録カード画像が変更前と完全に同一の見た目であることを目視確認（フォントが同一バイトのため当然だが念のため実測）。`npm test`=259checks、`npm run smoke`=22/22、いずれもPASS。
+
 ## 2026-07-18 カード図鑑の資産整合を機械チェック昇格・オフライン耐性の初のE2Eテスト追加(Fable発案2巡目④⑦)
 
 - **④カード図鑑86件の資産整合**: `scripts/qa.js`に`checkCardDex()`を新設。SEASON_CARDS/RARE_CARDS/TOKU_CARDSの`key`全86個と`assets/cards/*.webp`が過不足なく1:1対応することを検証（実測=既に86/86一致・問題なし。今後の追加時のtypo/ファイル追加漏れを機械的に検知するための昇格）。ファイル名を一時的に変えて検知することも確認済み。
