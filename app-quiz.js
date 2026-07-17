@@ -134,14 +134,25 @@ const QUIZ_ART=[
 ];
 
 // ---- 診断 ----
-function startQuiz(){ state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0}; state.worry=null; state.picked={}; quizAborted=false; renderQ(); navTo("quiz"); }
+// presetWorry: オンボーディングQ2で悩みに回答済みの場合、その悩み(WORRYキー)を渡すとQ5(悩み質問)を
+// スキップして4問構成にする。省略時（使い方タブ/マイ記録等からの単独起動）は従来どおり5問すべて聞く。
+function startQuiz(presetWorry){
+  state.qi=0; state.scores={momo:0,koka:0,kenko:0,ashi:0};
+  state.worry = presetWorry || null;
+  state.presetWorry = !!presetWorry; // trueならQ5(悩み)を出題しない
+  state.picked={}; quizAborted=false; renderQ(); navTo("quiz");
+}
+// 出題対象の質問配列（presetWorry時はk:"worry"のQ5を除く）。worryは常に配列の最後尾のため、
+// 除いてもmomo/koka/kenko/ashiの並び順・QUIZ_ARTのインデックス対応(0〜3)はそのまま
+function activeQuestions(){ return state.presetWorry ? QUESTIONS.filter(q=>q.k!=="worry") : QUESTIONS; }
 function renderQ(){
   quizRendered=true;
   // 質問ごとに履歴を1件積む（ブラウザ/スワイプの「戻る」で1問ずつ遡れるようにする）。
   // popstateでの復元時はhistory.stateのqiと一致するため重複pushしない
   try{ if(!(history.state&&history.state.id==="quiz"&&history.state.qi===state.qi)) history.pushState({id:"quiz",qi:state.qi},""); }catch(e){}
-  const q = QUESTIONS[state.qi];
-  document.getElementById("qnum").textContent = `Q${state.qi+1} / ${QUESTIONS.length}`;
+  const QS = activeQuestions();
+  const q = QS[state.qi];
+  document.getElementById("qnum").textContent = `Q${state.qi+1} / ${QS.length}`;
   document.getElementById("qtitle").textContent = q.title;
   document.getElementById("qArt").innerHTML = QUIZ_ART[state.qi]||"";
   document.getElementById("qnote").textContent = q.note;
@@ -154,7 +165,7 @@ function renderQ(){
     b.onclick=()=>answer(q.k,o[2]); box.appendChild(b);
   });
   const dots=document.getElementById("dots"); dots.innerHTML="";
-  QUESTIONS.forEach((_,i)=>{const d=document.createElement("div");d.className="dot"+(i<=state.qi?" on":"");dots.appendChild(d)});
+  QS.forEach((_,i)=>{const d=document.createElement("div");d.className="dot"+(i<=state.qi?" on":"");dots.appendChild(d)});
   document.getElementById("qBackBtn").classList.toggle("hidden", state.qi===0);
 }
 function answer(k,val){
@@ -162,7 +173,10 @@ function answer(k,val){
   if(!state.picked) state.picked={};
   state.picked[k]=val;
   if(k==="worry"){ state.worry=val; finishQuiz(); return; }
-  state.scores[k]=val; state.qi++; renderQ();
+  state.scores[k]=val; state.qi++;
+  // presetWorry時はQ5(悩み)が配列に無いため、最後の身体質問(ashi)の直後でそのまま結果へ
+  if(state.qi>=activeQuestions().length){ finishQuiz(); return; }
+  renderQ();
 }
 function prevQ(){ if(state.qi>0){ state.qi--; renderQ(); } }
 

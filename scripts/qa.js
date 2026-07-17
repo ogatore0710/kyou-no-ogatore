@@ -277,6 +277,70 @@ function checkHtml(html) {
   return srcScripts;
 }
 
+// 2026-07-17仕様判断待ち項目の対応: オンボQ2「いちばん気になるのは？」で答えた悩みが保存されず、
+// 直後のかたさチェックQ5「いちばんの悩みは？」で同じ質問を繰り返していた問題（本人YES=Q5スキップ承認済み）。
+// index.html側のobGo()がOB_WORRY_TO_QUIZ変換表でオンボ語彙→クイズ語彙(WORRYキー)に変換してstartQuiz()へ渡すこと、
+// "none"（とくにない）はスキップ対象外のままであること、app-quiz.js側がpresetWorry未指定時は従来どおり5問
+// (worry込み)を維持すること（回帰防止が最優先）を機械チェックで固定する。
+function checkOnboardingWorrySkip(mainScript, quizScript) {
+  const mapMatch = /const\s+OB_WORRY_TO_QUIZ\s*=\s*\{([^}]*)\}/.exec(mainScript);
+  assert("index.html: OB_WORRY_TO_QUIZ mapping found", !!mapMatch, "オンボ悩み語彙→クイズ悩み語彙の対応表");
+  const mapBody = mapMatch ? mapMatch[1] : "";
+  assert(
+    "OB_WORRY_TO_QUIZ: covers all real onboarding worry choices (katakori/youtsuu/zenkutsu/nemuri)",
+    ["katakori", "youtsuu", "zenkutsu", "nemuri"].every((k) => new RegExp(`\\b${k}\\s*:`).test(mapBody)),
+    mapBody.trim()
+  );
+  assert(
+    'OB_WORRY_TO_QUIZ: does NOT map "none" (とくにない＝実質的な悩みではないためQ5スキップ対象外)',
+    !/\bnone\s*:/.test(mapBody),
+    "none was intentionally excluded"
+  );
+  const obGoFn = extractFunction(mainScript, "obGo");
+  assert("obGo: found", obGoFn.length > 0, `${obGoFn.length} chars`);
+  assert(
+    'obGo: quiz route excludes worry==="none" before mapping (実質的な悩みが無ければQ5は通常どおり出題)',
+    /worry\s*&&\s*worry\s*!==\s*["']none["']/.test(obGoFn),
+    "none guard present"
+  );
+  assert(
+    "obGo: quiz route passes mapped presetWorry into startQuiz(...) (Q2の回答をQ5に引き継ぐ)",
+    /startQuiz\s*\(\s*presetWorry\s*\)/.test(obGoFn),
+    "startQuiz receives the mapped worry value, not called bare"
+  );
+
+  const startQuizFn = extractFunction(quizScript, "startQuiz");
+  assert("app-quiz.js: startQuiz found", startQuizFn.length > 0, `${startQuizFn.length} chars`);
+  assert(
+    "startQuiz: accepts presetWorry parameter",
+    /function\s+startQuiz\s*\(\s*presetWorry\s*\)/.test(quizScript),
+    "signature carries the optional preset"
+  );
+  assert(
+    "startQuiz: presetWorry falls back to null (単独起動/未指定時はQ5を出す既定へ)",
+    /state\.worry\s*=\s*presetWorry\s*\|\|\s*null/.test(startQuizFn),
+    "no preset -> state.worry stays null, same as before"
+  );
+
+  const activeQuestionsFn = extractFunction(quizScript, "activeQuestions");
+  assert("app-quiz.js: activeQuestions found", activeQuestionsFn.length > 0, `${activeQuestionsFn.length} chars`);
+  assert(
+    'activeQuestions: only filters out Q5(worry) when state.presetWorry is set, otherwise keeps all 5 (回帰防止)',
+    /state\.presetWorry\s*\?\s*QUESTIONS\.filter\(\s*q\s*=>\s*q\.k\s*!==\s*["']worry["']\s*\)\s*:\s*QUESTIONS/.test(
+      activeQuestionsFn
+    ),
+    "default (no preset) path returns the untouched QUESTIONS array"
+  );
+
+  const answerFn = extractFunction(quizScript, "answer");
+  assert("app-quiz.js: answer found", answerFn.length > 0, `${answerFn.length} chars`);
+  assert(
+    "answer: uses activeQuestions().length to decide when to finish (Q5スキップ時にashi直後で結果画面へ)",
+    /state\.qi\s*>=\s*activeQuestions\(\)\.length/.test(answerFn),
+    "handles both the 4-question preset path and the normal 5-question path"
+  );
+}
+
 function checkSearchScript(code) {
   parseJs("app-search.js", code);
   let tags = [];
@@ -649,6 +713,7 @@ function main() {
   const quizScript = read("app-quiz.js");
   const recordScript = read("app-record.js");
   checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}`);
+  checkOnboardingWorrySkip(mainScript, quizScript);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);
   checkObuFeed(read("obu-feed.js"));

@@ -3337,11 +3337,17 @@ function sdVvHandler(){
   const vv=window.visualViewport;
   const wrap=document.getElementById("soudanSheet");
   if(!vv||!wrap) return;
-  // 見えている高さぶんだけラッパーを縮め、offsetTopぶん位置をずらす。bottomはautoにして
-  // top+heightの指定と衝突させない（inset:0由来のbottom:0を無効化）
-  wrap.style.height=vv.height+"px";
-  wrap.style.top=vv.offsetTop+"px";
-  wrap.style.bottom="auto";
+  // 「もじの大きさ：大きめ」時はbody.bigtextにzoom:1.12がかかる。zoomは要素のローカル座標系を拡大するため、
+  // window.visualViewport(zoom非依存の実ビューポート値)のpx値をそのまま代入すると、ズームぶん二重に拡大されてしまう
+  // （実測で確認済みのバグ）。ここで割り戻す。zoom非対応ブラウザ(getComputedStyleがzoomを返さない)ではz=1。
+  const z=parseFloat(getComputedStyle(document.body).zoom)||1;
+  // heightを直接指定すると子要素(.sd-sheetのheight:92%)のパーセンテージ解決が崩れ、
+  // ログの中身の分だけ縦に伸びてしまう実測バグがあるため、height自体はbrowserに計算させ、
+  // top/bottomの間接指定だけでキーボード分の可視領域に合わせる（inset:0由来のbottom:0をbottomの実測値で上書き）
+  const gap=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop)); // レイアウトビューポートに対して「見えていない」量=キーボード等の高さ
+  wrap.style.top=(vv.offsetTop/z)+"px";
+  wrap.style.bottom=(gap/z)+"px";
+  wrap.style.height="";
 }
 function sdVvOn(){
   if(sdVvBound||!window.visualViewport) return;
