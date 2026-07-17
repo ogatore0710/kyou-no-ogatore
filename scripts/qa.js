@@ -799,7 +799,7 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
 // 「とどくメーター」が独自ページ(#reach)として独立した実際の構成と食い違っていないことを固定する。
 // 旧文言は「とどくメーター・せんぱいの声・ひとことにっき」を一括で「このタブ」と案内しており、
 // とどくメーターとお楽しみ機能が別々の導線(見てみるボタン)であることが読み取れなかった。
-function checkTourSlides(mainScript) {
+function checkTourSlides(mainScript, html) {
   const slidesMatch = /const OB_TOUR_SLIDES=\[([\s\S]*?)\n\];/.exec(mainScript);
   const slidesSrc = slidesMatch ? slidesMatch[1] : "";
   assert("OB_TOUR_SLIDES: found", slidesSrc.length > 0, `${slidesSrc.length} chars`);
@@ -818,6 +818,29 @@ function checkTourSlides(mainScript) {
     !/とどくメーター📏・せんぱいの声・ひとことにっき📝もこのタブ/.test(slidesSrc),
     "とどくメーターとお楽しみ機能を混同させる旧文言が再発していないこと"
   );
+  // ツアーは実UIから独立した手描きモックのため、機能名/ボタン名を変更してもツアー側の文言だけ
+  // 取り残されがち（過去に実際発生）。<b>で強調されたUI参照が、ツアー配列の外(=実際の画面)にも
+  // 存在することを機械チェックし、リネーム時の置き去りを検知する（本人指摘「ツアーのモック画面
+  // ドリフト対策」2026-07-18）。絵文字プレフィックスと「」の装飾は表記ゆれとして正規化して比較する。
+  if (html && slidesMatch) {
+    const arrayStart = html.indexOf("const OB_TOUR_SLIDES=[");
+    const arrayEnd = html.indexOf("\n];", arrayStart) + 3;
+    const rest = arrayStart >= 0 ? html.slice(0, arrayStart) + html.slice(arrayEnd) : html;
+    const bolds = [...slidesSrc.matchAll(/<b>(.*?)<\/b>/g)].map((m) => m[1]);
+    const coreOf = (s) => {
+      const quoted = /「(.+?)」/.exec(s);
+      const inner = quoted ? quoted[1] : s;
+      return inner.replace(/^[^\wぁ-んァ-ヶ一-龠]+/u, "");
+    };
+    for (const b of new Set(bolds)) {
+      const core = coreOf(b);
+      assert(
+        `OB_TOUR_SLIDES: UI参照「${core}」が実際の画面にも存在する`,
+        core.length > 0 && rest.includes(core),
+        `tour text <b>${b}</b> → core "${core}"`
+      );
+    }
+  }
 }
 
 // ホーム画面に追加ポップアップ(#a2hsModal・初回起動ではじめてガイドの直前に出す)の静的配線チェック。
