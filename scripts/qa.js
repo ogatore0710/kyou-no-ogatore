@@ -1375,6 +1375,24 @@ function checkDeployAllowlist(html) {
   assert("robots.txt: exists", exists("robots.txt"), "required for defense-in-depth alongside the allowlist");
 }
 
+// カタログ(videos.js)配信中の動画が非公開/削除になっても、次に手動でcatalog:updateを回すまで誰も
+// 気づけない問題（2026-07-18 Fable監査で指摘）への対応。月次スケジュールでcheck_catalog_public.pyを
+// 実行し、非公開動画が見つかったらワークフロー失敗→GitHub既定のメール通知、という運用ゼロの安全網。
+// ここではワークフローの配線（存在・cronスケジュール・正しいスクリプトを呼んでいる）だけを固定する。
+function checkCatalogHealthWorkflow() {
+  const workflowPath = ".github/workflows/catalog-health.yml";
+  assert("catalog-health.yml: exists", exists(workflowPath), "monthly scheduled health check workflow");
+  if (!exists(workflowPath)) return;
+  const yml = read(workflowPath);
+  assert("catalog-health.yml: cronスケジュールが定義されている", /cron:\s*"[^"]+"/.test(yml), "schedule.cron required for zero-touch monitoring");
+  assert(
+    "catalog-health.yml: check_catalog_public.pyを実行している",
+    yml.includes("check_catalog_public.py"),
+    "must call the CI-safe (no local DB dependency) checker script"
+  );
+  assert("scripts/check_catalog_public.py: exists", exists("scripts/check_catalog_public.py"), "referenced by catalog-health.yml");
+}
+
 // カード図鑑(記念日/季節/レア)のkeyは`"assets/cards/"+key+".webp"`という動的パス生成で画像を読むため、
 // typoがあっても実行時に静かにフォールバックし気づきにくい(2026-07-18 Fable監査で裏取り・現状は86/86一致)。
 // 一致関係を機械チェックとして固定し、今後の追加時のtypo/ファイル追加漏れを検知する。
@@ -1449,6 +1467,7 @@ function main() {
   checkSw(read("sw.js"));
   checkManifest();
   checkDeployAllowlist(html);
+  checkCatalogHealthWorkflow();
   checkCardDex(mainScript);
   checkPythonScripts();
 

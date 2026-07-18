@@ -1,0 +1,12 @@
+name: Catalog Health Check
+on:
+  schedule:
+    - cron: "0 3 1 * *" # 毎月1日 12:00 JST (03:00 UTC)
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 配信中カタログ(videos.js)の動画が非公開/削除されていないか確認
+        run: python3 scripts/check_catalog_public.py
