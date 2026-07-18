@@ -133,6 +133,39 @@ function extractConstArray(code, name) {
   return vm.runInNewContext(match[1]);
 }
 
+// {}リテラル用。バレワードキー(rare_neko:"...")混在で不正JSONになるため、extractJsonAssignment(JSON.parse)は使えず
+// vm評価する。波かっこの深さと文字列(エスケープ込み)を追いながら対応する"};"を探す。
+function extractConstObject(code, name) {
+  const marker = `const ${name}=`;
+  const start = code.indexOf(marker);
+  if (start === -1) throw new Error(`${name} assignment not found`);
+  const braceStart = code.indexOf("{", start);
+  if (braceStart === -1) throw new Error(`${name} object start not found`);
+  let depth = 0;
+  let inString = false;
+  let quote = "";
+  let escaped = false;
+  for (let i = braceStart; i < code.length; i++) {
+    const ch = code[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === quote) inString = false;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      inString = true;
+      quote = ch;
+    } else if (ch === "{") {
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0) return vm.runInNewContext(code.slice(braceStart, i + 1));
+    }
+  }
+  throw new Error(`${name} object boundary not found`);
+}
+
 function extractFunctionNames(code) {
   const names = new Set();
   for (const match of code.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)) {
@@ -1459,6 +1492,44 @@ function checkCardDex(mainScript) {
   assert("カード図鑑: 参照されていない孤立webpファイルがない", unreferenced.length === 0, unreferenced.join(", ") || `${files.length} files all referenced`);
 }
 
+// 図鑑の未取得ティーザー(DEX_TEASE)/取得済みフレーバー(DEX_FLAVOR/DEX_FLAVOR_NORMAL)が
+// カードマスタ(RARE_CARDS/TOKU_CARDS/SEASON_CARDS/NORMAL_CARDS)の全keyを網羅しているかの機械チェック。
+// 2026-07-18 PO依頼「図鑑カード説明をワクワクする文言に・レア全部同一文の解消」でFableが文言を全件創作した際、
+// 手作業の転記漏れ/将来のカード追加時の文言漏れをビルド時に検知するため。
+function checkDexCopyCoverage(mainScript) {
+  let rareCards, seasonCards, normalCards, tokuCards, dexTease, dexFlavor, dexFlavorNormal;
+  try {
+    rareCards = extractConstArray(mainScript, "RARE_CARDS");
+    seasonCards = extractConstArray(mainScript, "SEASON_CARDS");
+    normalCards = extractConstArray(mainScript, "NORMAL_CARDS");
+    tokuCards = extractConstObject(mainScript, "TOKU_CARDS");
+    dexTease = extractConstObject(mainScript, "DEX_TEASE");
+    dexFlavor = extractConstObject(mainScript, "DEX_FLAVOR");
+    dexFlavorNormal = extractConstObject(mainScript, "DEX_FLAVOR_NORMAL");
+  } catch (err) {
+    fail("図鑑文言カバレッジ: 定数抽出", err.message);
+    return;
+  }
+  const rareKeys = rareCards.map((c) => c.key);
+  const seasonKeys = seasonCards.map((c) => c.key);
+  const tokuKeys = Object.keys(tokuCards).map((d) => tokuCards[d].key);
+  const normalNames = normalCards.map((c) => c.name);
+
+  const missingTease = rareKeys.filter((k) => !(k in dexTease));
+  assert("DEX_TEASE: RARE_CARDS全key網羅", missingTease.length === 0, missingTease.join(", ") || `${rareKeys.length} keys`);
+
+  const flavorKeys = [...tokuKeys, ...seasonKeys, ...rareKeys];
+  const missingFlavor = flavorKeys.filter((k) => !(k in dexFlavor));
+  assert(
+    "DEX_FLAVOR: toku+season+rare全key網羅",
+    missingFlavor.length === 0,
+    missingFlavor.join(", ") || `${flavorKeys.length} keys (toku${tokuKeys.length}+season${seasonKeys.length}+rare${rareKeys.length})`
+  );
+
+  const missingFlavorNormal = normalNames.filter((n) => !(n in dexFlavorNormal));
+  assert("DEX_FLAVOR_NORMAL: NORMAL_CARDS全name網羅", missingFlavorNormal.length === 0, missingFlavorNormal.join(", ") || `${normalNames.length} names`);
+}
+
 function checkPythonScripts() {
   const scripts = fs.readdirSync(path.join(ROOT, "scripts"))
     .filter((name) => name.endsWith(".py"))
@@ -1511,6 +1582,7 @@ function main() {
   checkDeployAllowlist(html);
   checkCatalogHealthWorkflow();
   checkCardDex(mainScript);
+  checkDexCopyCoverage(mainScript);
   checkPythonScripts();
 
   if (failures.length) {

@@ -2128,6 +2128,150 @@ function cardPatternFor(ds, effTotal, dateIdx){
   const sp=cardSeasonPick(ds); if(sp) return sp;
   return cardRotPick(ds);
 }
+// ===== 図鑑コピー: 未取得ティーザー(レアのみ)/取得済みフレーバー(Fable創作 2026-07-18) =====
+const DEX_TEASE={
+  rare_neko:"まんまるおめめが こっちをみてる…？",
+  rare_wanko:"しっぽをふる音が きこえてきそう…？",
+  rare_usagi:"ぴょんとはねる 足あとのぬし…？",
+  rare_kitsune:"もふもふのしっぽが ちらり…？",
+  rare_kuma:"のっしのっしと おおきなかげ…？",
+  rare_kotori:"あさのうたごえの ぬしはだれ…？",
+  rare_ginga:"うずをまく ひかりのかたまり…？",
+  rare_nagareboshi:"ねがいごとは おはやめに…？",
+  rare_wakusei:"わっかをつけた あのほし…？",
+  rare_uchufuku:"ふわふわうかぶ だれかさん…？",
+  rare_ufo:"よぞらにひかる なぞのえんばん…？",
+  rare_niji:"あめあがりにしか あえない…？",
+  rare_shabondama:"ふわふわとんで ぱちんときえる…？",
+  rare_hitsujigumo:"そらいっぱいの もこもこ…？",
+  rare_hoshizora:"みあげれば いちめんのきらめき…？",
+  rare_nami:"よせてはかえす あのおと…？",
+  rare_komorebi:"はっぱのすきまから ちらちら…？",
+  rare_hanabatake:"あまいかおりが いちめんに…？",
+  rare_chocho:"ひらひらと まいおりてくる…？",
+  rare_aurora:"よぞらのカーテンが ゆれている…？",
+  rare_panda:"しろとくろの にんきもの…？",
+  rare_penguin:"よちよちあるきの みなみのこ…？",
+  rare_iruka:"なみまから だいジャンプ…？",
+  rare_risu:"ほっぺにどんぐり つめこんで…？",
+  rare_fukurou:"くらやみで めをひからせる…？",
+  rare_kame:"ゆっくりだけど たしかなあゆみ…？",
+  rare_harinezumi:"ちくちくだけど あまえんぼう…？",
+  rare_kujira:"うみでいちばん おおきなしぶき…？",
+  rare_ahiru:"ぷかぷかおよぐ きいろいこ…？",
+  rare_hamster:"くるくるまわる かいてんぐるま…？"
+};
+const DEX_FLAVOR={
+  rare_neko:"きまぐれにやってきた ふわふわのおとも🐾",
+  rare_wanko:"きょうもいっしょに がんばるあいぼう🐶",
+  rare_usagi:"はねてよろこぶ すばしっこいおとも🐰",
+  rare_kitsune:"もりのかしこい おきゃくさま🦊",
+  rare_kuma:"みためより ずっとやさしいちからもち🐻",
+  rare_kotori:"まいあさ さえずりをおとどけ🐦",
+  rare_ginga:"よぞらのはてから きらきらとうちゃく🌌",
+  rare_nagareboshi:"ねがいがひとつ かないますように✨",
+  rare_wakusei:"くるくるまわる ふしぎなおとなりさん⭐",
+  rare_uchufuku:"むじゅうりょくで ストレッチきぶん🚀",
+  rare_ufo:"ちきゅうのストレッチを ちょうさちゅう✨",
+  rare_niji:"あめあがりのそらから ごほうび🌈",
+  rare_shabondama:"われるまえの いっしゅんのきらめき✨",
+  rare_hitsujigumo:"もこもこならんで おひるねびより☁️",
+  rare_hoshizora:"きょうのがんばりに ほしのかんむり⭐",
+  rare_nami:"ざぶんとリズムよく きょうもひといき🌊",
+  rare_komorebi:"やわらかいひかりで ぽかぽかタイム☀️",
+  rare_hanabatake:"どこまでもつづく はなのじゅうたん💐",
+  rare_chocho:"がんばるあなたに ひらりとごあいさつ🦋",
+  rare_aurora:"いちばんきたのそらから おくりもの✨",
+  rare_panda:"ささをかじりながら おうえんちゅう🐼",
+  rare_penguin:"こおりのうえから よちよちおうえん🐧",
+  rare_iruka:"だれよりたかく とんでみせるよ🐬",
+  rare_risu:"ほっぺいっぱいに あきをためこみちゅう🌰",
+  rare_fukurou:"よふかしさんのことも みまもってるよ🦉",
+  rare_kame:"ゆっくりこそ さいきょうのちかみち🐢",
+  rare_harinezumi:"はりのおくは ふわふわのこころ💕",
+  rare_kujira:"おおきなせなかで しおふきサービス🐳",
+  rare_ahiru:"ぷかぷかマイペースに おうえんちゅう🐥",
+  rare_hamster:"ほおぶくろに げんきをためて🐹",
+  toku_datsusan:"三日坊主 さようなら！ここからがほんばん🎉",
+  toku_7days:"はじめての1週間 からだがおぼえはじめてる🌱",
+  toku_14days:"2週間つづいた それはもう とくべつなこと✨",
+  toku_21days:"3週間 あたらしいあなたのリズム🎵",
+  toku_30days:"ひとつき まいにち よくがんばりました🏅",
+  toku_50days:"50日のつみかさね ちゃんとちからになってます💪",
+  toku_66days:"66日はしゅうかんが根づく日 もうみについてる🌳",
+  toku_100days:"3けたのなかまいり おめでとうございます👑",
+  toku_150days:"150日 はなたばをあなたに💐",
+  toku_200days:"200日 つづけるのがあたりまえになった🌟",
+  toku_300days:"300日 ちりもつもれば やまとなる⛰️",
+  toku_365days:"1年間 4つのきせつをぜんぶみてきたね🎊",
+  toku_500days:"500日 もはやレジェンドのいき🏆",
+  toku_730days:"2年間 からだはうらぎらない🥇",
+  toku_1000days:"1000日 ことばはいらない だいきろく👑",
+  toku_1900days:"1900日 ここまでくるとは…！でんせつです🌈",
+  season_oshogatsu:"あけましておめでとう 年のはじめのいちまい🎍",
+  season_suisen:"さむさのなかで しゃんとさくはな❄️",
+  season_yuki:"しんしんふるゆきと しずかないちにち⛄",
+  season_setsubun:"おにはそと ふくはうち！👹",
+  season_tsubaki:"ふゆのにわを ぽっとあかるく🌺",
+  season_valentine:"あまいごほうびと いっしょに💝",
+  season_ume:"さむさのおわりを いちばんにしらせるはな🌸",
+  season_hinamatsuri:"おだいりさまと おひなさま🎎",
+  season_nanohana:"いちめんのきいろに はるのあしおと💛",
+  season_hanami:"さくらのしたで ひとやすみ🌸",
+  season_shingakki:"あたらしいはじまりの きせつ📚",
+  season_easter:"たまごのなかに おたのしみ🥚",
+  season_tulip:"ならんださいた あかしろきいろ🌷",
+  season_kodomonohi:"こいのぼりと おおきくのびのび🎏",
+  season_hahanohi:"いつもありがとうの きもちをこめて🌹",
+  season_hotaru:"よるのかわべに ひかりのまい✨",
+  season_chichinohi:"おとうさんにも ありがとうを💛",
+  season_ajisai:"あめのひも いろとりどりにさく☔",
+  season_tanabata:"ねがいをたくす ほしのよる🎋",
+  season_uminohi:"なみのおとと しおかぜと🌊",
+  season_asagao:"あさいちばんに さくかお🌼",
+  season_natsumatsuri:"ゆかたでおでかけ たいこのおと🏮",
+  season_kingyo:"ポイをかまえて しんけんしょうぶ🐟",
+  season_yamanohi:"みどりのやまで しんこきゅう⛰️",
+  season_obon:"ごせんぞさまと しずかなじかん🏮",
+  season_himawari:"たいようにまっすぐ せのびのはな🌻",
+  season_jugoya:"まんまるおつきさまと おだんご🌕",
+  season_keirounohi:"いつまでもげんきで いてほしいから💛",
+  season_ohigan:"あかいはなが あきのいりぐちをしらせる🍂",
+  season_cosmos:"あきかぜにゆれる ピンクのはな🌸",
+  season_jusanya:"もうひとつの おつきみのよる🌙",
+  season_halloween:"かぼちゃのランタンと ちいさなおばけ🎃",
+  season_momiji:"やまがもえるような あかときいろ🍁",
+  season_shichigosan:"ちとせあめをもって おめかしすがた🎀",
+  season_icho:"きんいろのじゅうたん ふみしめて🍂",
+  season_kotatsu:"はいったらでられない まほうのばしょ🍊",
+  season_yuzuyu:"ゆずをうかべて ゆっくりあったまろう☕",
+  season_christmas:"きよしこのよる きらめくよる🎄",
+  season_osoji:"ことしのよごれは ことしのうちに✨",
+  season_oomisoka:"よいおとしを！かねのねとともに🔔"
+};
+const DEX_FLAVOR_NORMAL={
+  "さくら":"はるいろの きほんのいちまい🌸",
+  "そら":"すこーんとはれた ひのいろ☀️",
+  "ラベンダー":"ふんわりむらさきで リラックス💜",
+  "ミント":"すーっとさわやか みどりのかぜ🍃",
+  "ピーチ":"あまいももいろで ごきげんに🍑",
+  "レモン":"きゅんとすっぱい げんきいろ🍋",
+  "いちごみるく":"まぜたらしあわせ あまーいいろ🍓",
+  "ミルクティー":"ほっとひといき やさしいいろ☕",
+  "わかくさ":"のびのびそだつ わかばのいろ🌱",
+  "あさぎ":"すきとおる あさのみずいろ💧",
+  "すみれ":"ひっそりさく こむらさき💜",
+  "あんず":"やさしいだいだい おやつのいろ🍊",
+  "しろくま":"まっしろふわふわ きままにひとやすみ⛄",
+  "こむぎ":"こんがりやけた パンのいろ🍞",
+  "もえぎ":"めばえたばかりの あたらしいみどり🌿",
+  "ぶどう":"たわわにみのる むらさきいろ🍇",
+  "さんご":"うみのそこから あかるいいろ🐚",
+  "るりいろ":"ふかくすんだ たからもののあお💎",
+  "ばらいろ":"はなやかにきめる とっておき🌹",
+  "きなこ":"ほっこりあまい わふうのいろ🍡"
+};
+const DEX_NORMAL_TEASE="きろくをつづけると ある日ふらっとであえます🎨";
 // ===== カード図鑑: 記念/季節/レア/ノーマルそれぞれの獲得状況とヒントを計算 =====
 function getDexStatus(){
   const st=getStreakData();
@@ -2139,19 +2283,27 @@ function getDexStatus(){
   const fmtMD=w=>Math.floor(w/100)+"/"+(w%100);
   const toku=Object.keys(TOKU_CARDS).map(Number).sort((a,b)=>a-b).map(d=>{
     const t=TOKU_CARDS[d], got=st.total>=d;
-    return {tier:"toku", d, key:t.key, name:t.name, bg:t.bg, got, hint: got?"":`あと${d-st.total}日つづけると出会えます`};
+    const item={tier:"toku", d, key:t.key, name:t.name, bg:t.bg, got, hint: got?"":`あと${d-st.total}日つづけると出会えます`};
+    if(got) item.flavor=DEX_FLAVOR[t.key]||"";
+    return item;
   });
   const season=SEASON_CARDS.map(s=>{
     const got=seasonHitKeys.has(s.key);
-    return {tier:"season", key:s.key, name:s.name, bg:s.bg, got, hint: got?"":`${fmtMD(s.ws)}〜${fmtMD(s.we)}ごろに記録すると出会えるかも`};
+    const item={tier:"season", key:s.key, name:s.name, bg:s.bg, got, hint: got?"":`${fmtMD(s.ws)}〜${fmtMD(s.we)}ごろに記録すると出会えるかも`};
+    if(got) item.flavor=DEX_FLAVOR[s.key]||"";
+    return item;
   });
   const rare=RARE_CARDS.map((r,i)=>{
     const got=posSet.has(NORMAL_CARDS.length+i);
-    return {tier:"rare", key:r.key, name:r.name, bg:r.bg, got, hint: got?"":"気まぐれに出てくる1枚。記録をつづけてみて"};
+    const item={tier:"rare", key:r.key, name:r.name, bg:r.bg, got, hint: got?"":(DEX_TEASE[r.key]||"気まぐれに出てくる1枚。記録をつづけてみて")};
+    if(got) item.flavor=DEX_FLAVOR[r.key]||"";
+    return item;
   });
   const normal=NORMAL_CARDS.map((n,i)=>{
     const got=posSet.has(i);
-    return {tier:"normal", key:null, idx:i, name:n.name, bg:n.bg, main:n.main, got, hint: got?"":"記録をつづけていると出会えるかも"};
+    const item={tier:"normal", key:null, idx:i, name:n.name, bg:n.bg, main:n.main, got, hint: got?"":DEX_NORMAL_TEASE};
+    if(got) item.flavor=DEX_FLAVOR_NORMAL[n.name]||"";
+    return item;
   });
   return {toku, season, rare, normal};
 }
@@ -2177,13 +2329,15 @@ function dexThumbHtml(item){
     ? `<div class="dex-thumb"><img src="${src}" alt="" loading="lazy"></div>`
     : `<div class="dex-thumb dex-locked" style="--m:url('${src}')"></div>`;
 }
-function dexCellHtml(item){
+function dexCellHtml(item, opts){
+  opts=opts||{};
   const nameShown = item.got ? item.name.replace(/</g,"&lt;") : "？？？";
-  return `<div class="dex-cell">${dexThumbHtml(item)}<div class="dex-name">${nameShown}</div>${item.hint?`<div class="dex-hint">${item.hint}</div>`:""}</div>`;
+  const subText = item.got ? (opts.noFlavor?"":(item.flavor||"")) : item.hint;
+  return `<div class="dex-cell">${dexThumbHtml(item)}<div class="dex-name">${nameShown}</div>${subText?`<div class="dex-hint">${subText}</div>`:""}</div>`;
 }
 function dexSectionHtml(title,items){
   const got=items.filter(i=>i.got).length;
-  return `<div class="dex-sec"><h3>${title}<span class="dex-seccount">${got}/${items.length}</span></h3><div class="dex-grid">${items.map(dexCellHtml).join("")}</div></div>`;
+  return `<div class="dex-sec"><h3>${title}<span class="dex-seccount">${got}/${items.length}</span></h3><div class="dex-grid">${items.map(item=>dexCellHtml(item)).join("")}</div></div>`;
 }
 function renderDex(){
   const d=getDexStatus();
