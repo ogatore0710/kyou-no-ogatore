@@ -6,9 +6,11 @@
     "catalog:update:offline": "python3 scripts/update_catalog.py --skip-public-check",
     "qa": "node scripts/qa.js",
     "test": "node scripts/qa.js",
-    "smoke": "node scripts/smoke.js"
+    "smoke": "node scripts/smoke.js",
+    "smoke:webkit": "node scripts/smoke-webkit.js"
   },
   "devDependencies": {
+    "playwright-core": "^1.61.1",
     "puppeteer-core": "^24.9.0"
   }
 }
