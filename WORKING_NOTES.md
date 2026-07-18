@@ -4,6 +4,21 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 図鑑カードの説明文をワクワクする文言に（レア全部同一文の解消・Fable創作/Sonnet実装）
+
+PO指摘「図鑑のレアカード説明が未取得時すべて同じ文言（気まぐれに出てくる1枚。記録をつづけてみて）で、
+コンプリート欲を刺激できていない」に対応。**文言は司令塔Fableが全件創作**（Sonnetは一字一句そのまま転記のみ・改変なし）。**文言はPO実機レビューで最終確認が必要**。
+
+- `index.html`に新定数3つ+1文字列を追加（`getDexStatus()`直前）: `DEX_TEASE`（レア30件・未取得時のなぞなぞ調ティーザー、名前は「？？？」のまま絵柄を匂わせるだけでネタバレしない）、`DEX_FLAVOR`（toku16+season40+rare30=86件・取得済み時のフレーバー文）、`DEX_FLAVOR_NORMAL`（ノーマル20色名キー・取得済みフレーバー）、`DEX_NORMAL_TEASE`（ノーマル未取得共通1行）。
+- `getDexStatus()`: rare未取得の`hint`を共通文→`DEX_TEASE[key]`（キー欠落時は旧共通文にフォールバック）に、normal未取得の`hint`を新共通1行に変更。**toku/season未取得のhint（「あと◯日」「◯/◯ごろ」カウントダウン/日付）は無変更**。全tier取得済み時に新フィールド`flavor`を追加（toku/season/rare=`DEX_FLAVOR[key]`、normal=`DEX_FLAVOR_NORMAL[name]`）。
+- `dexCellHtml(item, opts)`にオプション引数を追加。取得済みかつ`flavor`があれば名前の下に既存`.dex-hint`クラスを流用して表示（未取得時のhint表示ロジックは無変更・同じdiv要素で出し分け）。`opts.noFlavor`で明示的にflavor非表示にできる。
+- **バナー(`renderDexBanner`・56px幅×4枚見本)はflavor非表示のまま**（`dexCellHtml(item,{noFlavor:true})`）: 実機ヘッドレス検証で、flavor表示するとカード縦が伸び固定表示の相談室チャットFABと視覚衝突することを確認したため（司令塔許可済みのフォールバック）。図鑑モーダル本体（`renderDex`）側はflavor表示のまま・横スクロールなしを実測確認済み。
+- `scripts/qa.js`に文言カバレッジの機械チェックを追加（`checkDexCopyCoverage`・`extractConstObject`ヘルパー新設）: DEX_TEASEがRARE_CARDS全key網羅／DEX_FLAVORがtoku+season+rare全key網羅／DEX_FLAVOR_NORMALがNORMAL_CARDS全name網羅、を将来のカード追加時に検知する。
+- 検証: ヘッドレス実測で(a)未取得レア2枚のティーザーが異なる文言（`rare_neko`="まんまるおめめが こっちをみてる…？"／`rare_wanko`="しっぽをふる音が きこえてきそう…？"）であること、(b)取得済みカードに名前+フレーバー表示、(c)未取得toku/seasonの「あと◯日」「◯/◯ごろ」ヒントが従来どおり、(d)図鑑モーダルの横スクロールなし（scrollWidth===clientWidth）、をすべて確認。`npm test`=272 checks（269→+3）、`npm run smoke`=25/25、`npm run smoke:webkit`=9/9、全PASS。
+- **ハマった点**: 検証用に作った一時スクリプト`scripts/_verify-dex-tmp.js`をリポジトリ直下に置いたまま作業していたところ、even-syncの自動コミット（`auto-sync 2026-07-18 12:57`＝コミット`9f58b6e`）が実装途中の`index.html`/`scripts/qa.js`差分ごと拾ってpushしてしまった（MEMORY.md記載の既知パターン）。`pages.yml`の配信allowlistは`scripts/`を含まないため本番Pagesには出ていないが、git履歴には一時ファイルが残った。後続コミットで削除。**教訓: ヘッドレス検証スクリプトも最初からscratchpad配下（リポジトリ外）に置くべきだった**。
+- drawCard()は不可侵のまま。ES2020構文なし。新しいlocalStorageキーは追加していない。`sw.js`の版数バンプなし（アプリシェルはnetwork-first）。
+- commit: `90054cd`（banner修正+qa.jsバグ修正+一時ファイル削除）。Deploy Pages success確認済み（実装本体を含む`9f58b6e`・修正差分の`90054cd`とも）。
+
 ## 2026-07-18 継続施策の提案3案のうち①のみ本人選定（②③は設計済み・見送り）
 
 司令塔Fableが継続率施策3案（①あした節目予告／②前屈再測定のそっと促し=最終測定から14日で「また はかってみる?」／③週のちいさなふりかえり=肯定のみ・0日の週は非表示）を本人に提示し、**①のみ選定・実装完了**（下記エントリ）。②③は却下ではなく今回見送り。将来再提案する場合はこのエントリの設計要旨から出発できる（いずれも決定的動作・新localStorage最小・数字圧なしの制約込みで設計済み）。
