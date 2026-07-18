@@ -4,6 +4,13 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 OGPカード画像をSW事前キャッシュから除外（kyono-v54→v55）
+
+`assets/ogp-card.png`（323KB）は`og:image`/`twitter:image`としてクローラー（LINE/X/Facebook等のリンクプレビュー）が取得するだけで、アプリの実行時には一切参照されない。それを`sw.js`のASSETSに入れて全ユーザーへ事前キャッシュさせるのは純粋な無駄だったので除外し、キャッシュ版を`kyono-v55`へ更新。
+
+- ファイル自体は配信継続（allowlist=pages.ymlは変更なし）。OGPプレビューには影響ゼロ。本番で`assets/ogp-card.png`が200を返すことも確認済み。
+- 検証: `npm test`=265checks、`npm run smoke`=23/23、Deploy Pages success、本番`sw.js`が`kyono-v55`かつ`ogp-card`非含有であることをcurlで実測確認。
+
 ## 2026-07-18 保守・運用・セキュリティ監査（Fable3巡目）— ほぼ健全・穴2件を修正
 
 本人依頼で保守/運用/セキュリティに絞った監査をFableに実施。結論から言うと、これまでのセッションで直した修正（配信allowlist・CSP・iPad判定・オフラインテスト等）はすべて健全に維持されており、セキュリティ面の実穴はゼロだった（`npm audit`=0件、CSP整合、XSS経路は全部エスケープ済み、importDataの多段検証、秘密情報の混入なし、https_enforced=true）。実際に対応したのは運用面の2件のみ：
