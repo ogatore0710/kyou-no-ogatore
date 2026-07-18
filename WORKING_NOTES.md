@@ -4,6 +4,41 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 おすすめ3本 選定ロジックv2 ＋ きょうのひとこと30本追加（Fable設計/Sonnet実装・even-syncが2件を1コミットに相乗り）
+
+PO依頼2件（A:おすすめ3本 選定ロジックv2 / B:きょうのひとこと30本追加）を実装。**本来はA/Bでコミットを分ける指示だったが、
+作業中にeven-syncの自動コミット（`auto-sync 2026-07-18 14:40` = `ffcfb83`）が両方の変更を1コミットにまとめてpush済みだった**
+（fleet-shared-worktree-autosyncの既知パターン）。手動でcommitする前に相乗りされたため分割コミットにできず、
+push済み履歴の書き換え（force push）は鉄則違反のため行っていない。以下A/Bの内容を分けて記載する。
+
+### A: おすすめ3本 選定ロジックv2（毎日ローテーション化）
+
+PO指摘「rotationIndex()が3日に1回しか進まず、しかも+1ステップなので3日間おすすめが完全に同一・同じプール動画が6日連続表示・2週間でプールの半分しか出ない」に対応。
+
+- `index.html`の`rotationIndex()`: `Math.floor((Date.now()+6*3600*1000)/86400000/3)` → `/3`を除去し毎日1進むように変更（コメントも更新）。
+- `app-quiz.js`の`currentRx()`: 旧・連番`pool[(r+i)%L]`方式 → 等間隔スペーシング方式に変更。`spacing=Math.floor(L/(need===3?3:2))`とし`picks[i]=pool[(r+i*spacing)%L]`。pickがT.rx内 or picks内で重複した場合は`+1`ずつずらして未使用のものを取る決定的フォールバックを追加（現行プールサイズでは理論上衝突しないが将来のプール増減に備える保険）。効果: 2本目・3本目が毎日両方入れ替わり、連日かぶりゼロ・プールがL日で完全1周する。
+- `app-quiz.js`のTYPES: 長尺4本を毎日のおすすめpoolから除外（**V定義からは削除していない**・検索/他導線では引き続き使用可）。
+  - robot（ガチガチロボット）: `yaruki22`(23分)・`ofuro20`(20分)・`zenshin15`(16分)を削除（pool 12→9本）
+  - kenko（飛べないダチョウ）: `yoru15`(16分)を削除（pool 11→10本）
+  - 理由: 16分以上は視聴体験として長すぎる（PO方針）
+- `scripts/qa.js`に`checkRxRotation()`を新設（機械チェック恒久化）。rotationIndexをスタブしたvmサンドボックスでapp-quiz.jsを実行しTYPES/currentRxを取り出し、r=0..29をシミュレート。アサーション: (1)全タイプ・全rで3本が互いに異なる (2)連続2日で3本とも同一にならない (3)14日間でプール由来の登場動画がmin(L,10)種以上 (4)全pickがV(mainScriptから抽出)に実在 (5)poolに長尺4本が不在。
+  - 副産物: 既存の`extractConstObject()`ヘルパーが`const NAME=`（空白なし）決め打ちだったため、`const V = {`（空白あり）が拾えず失敗。正規表現(`const\s+NAME\s*=`)に修正（他の呼び出し元の挙動は不変）。
+- ヘッドレス実測（一回きり・scratchpadの使い捨てスクリプトで実施・リポジトリには未コミット）: 6タイプ全部で「あなた用」モードをlocalStorage経由でセットし、Date.nowを+1日/+2日ずらして`renderToday()`を再実行、`#todayVideo .video`のhrefから動画IDを抽出して2本目・3本目が両方とも日替わりで入れ替わることをDOM実測で確認。
+
+**ロールバック手順**（このコミットを打ち消す場合、git revert対象がA/B混在コミットの可能性があるため手動で）:
+1. `index.html`の`rotationIndex()`を`Math.floor((Date.now()+6*3600*1000)/86400000/3)`に戻す
+2. `app-quiz.js`の`currentRx()`を旧・連番方式（`picks.push(T.pool[(r+i)%T.pool.length])`のみのループ）に戻す
+3. `app-quiz.js`のTYPES.robot.poolに`yaruki22,ofuro20,zenshin15`を、TYPES.kenko.poolに`yoru15`を復元する
+4. `scripts/qa.js`の`checkRxRotation()`・`main()`内の呼び出しは残してもよい（新ロジックが無いと5番目のアサーション「長尺4本が不在」が失敗するため、旧ロジックに戻す場合はこのチェックごと削除するかスキップする）
+
+### B: きょうのひとこと 30本追加（15本→45本）
+
+PO依頼でホーム吹き出し（`renderQuote`）用の`QUOTES`配列を15本→45本に増量。**文言は司令塔Fableが全件創作**（Sonnetは一字一句そのまま転記のみ・改変なし）。**文言はPO実機レビューで要確認**。
+
+- `index.html`の`QUOTES`配列（既存15本の末尾に30本を順序維持のまま追加）
+- 事前確認済み: QUOTESはホーム吹き出し専用で記録カードとは無関係のため、配列長変更で過去カードは壊れない。`renderQuote`の「おかえりなさい」分岐（pendingVideoReturnActive）は無変更。
+- `scripts/qa.js`に`checkQuotesCoverage()`を追加（QUOTES件数>=45の下限チェック・将来の削除/巻き戻し事故を検知）
+
 ## 2026-07-18 図鑑カードの説明文をワクワクする文言に（レア全部同一文の解消・Fable創作/Sonnet実装）
 
 PO指摘「図鑑のレアカード説明が未取得時すべて同じ文言（気まぐれに出てくる1枚。記録をつづけてみて）で、
