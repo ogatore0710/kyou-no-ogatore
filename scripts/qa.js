@@ -663,10 +663,10 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     "②③ remain visible per design (do not hide/gray them out)"
   );
   assert(
-    "showResult: guide branch omits the '3本つづけて再生する' continuous-playback button",
+    "showResult: guide branch omits the '3本続けて再生する' continuous-playback button",
     (function () {
       const guideBlock = (/if\s*\(\s*guide\s*\)\s*\{([\s\S]*?)\}\s*else\s*\{/.exec(showResultFn) || [])[1] || "";
-      return guideBlock.indexOf("3本つづけて再生する") === -1 && /videoCard\(rx\[0\]/.test(guideBlock);
+      return guideBlock.indexOf("3本続けて再生する") === -1 && /videoCard\(rx\[0\]/.test(guideBlock);
     })(),
     "button only exists in the non-guide (else) branch"
   );

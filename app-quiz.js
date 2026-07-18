@@ -244,7 +244,7 @@ function showResult(saved){
   const fixed=T.rx.length>0;
   document.getElementById("rxHead").innerHTML = guide
     ? `${ICON_RX}まずはこの1本から！②③はあしたからでOKだよ`
-    : `${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間つづけてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
+    : `${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間続けてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
   const rx=currentRx(saved.key);
   if(guide){
     // ①だけを主役化(fd-hero)し、オガトレの一言吹き出しを添える。②③はそのまま表示（隠さない）
@@ -257,7 +257,7 @@ function showResult(saved){
       +rx.slice(1).map((vk,i)=>videoCard(vk, fixed?["②メインの1本","③しあげ"][i]:null)).join("");
   }else{
     document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("")
-      +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ 3本つづけて再生する</a>`;
+      +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ 3本続けて再生する</a>`;
   }
   try{ const rn=document.getElementById("rRotateNote"); if(rn) rn.classList.toggle("hidden", guide); }catch(e){}
   const w=WORRY[saved.worry];

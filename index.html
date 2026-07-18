@@ -614,13 +614,13 @@
   <div class="card grad-mint hidden" id="planDoneCard">
     <img src="assets/chara-congrats.png" alt="" style="width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 8px">
     <div id="planDoneText" style="font-size:15px;line-height:1.9;text-align:center"></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="planAgain()">💪 もう2週間つづける</button>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="planAgain()">💪 もう2週間続ける</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="planDoneClose();startQuiz()">📏 かたさチェックで変化をみる</button>
     <button class="btn btn-line" style="margin-top:8px" onclick="planDoneClose()">とじる</button>
   </div>
 
   <div class="card grad-warm" id="streakCard">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#FFEDF3"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#E56A9A"/></svg>つづけた日数（通算）</div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#FFEDF3"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#E56A9A"/></svg>続けた日数（通算）</div>
     <div style="display:flex;align-items:baseline;gap:3px">
       <span class="num" id="streakNum" style="font-size:46px;line-height:1;color:var(--pink)">0</span><span style="font-weight:900;font-size:18px">日目</span>
     </div>
@@ -685,7 +685,7 @@
 <!-- ===== マイ記録 ===== -->
 <section id="history" class="hidden">
   <div class="card">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>つづけた記録</div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>続けた記録</div>
     <div style="display:flex;gap:20px;align-items:flex-end">
       <div><div class="lbl" style="font-size:14px;color:var(--sub)">通算</div><span class="num" style="font-size:36px;font-weight:900;color:var(--pink)" id="histTotal">0</span><span style="font-weight:900">日</span></div>
       <div><div class="lbl" style="font-size:14px;color:var(--sub)">いま連続</div><span style="font-size:36px;font-weight:900;color:var(--teal)" id="histStreak">0</span><span style="font-weight:900">日</span></div>
@@ -727,7 +727,7 @@
   </div>
 
   <div class="card">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#DFF5F2"/><path d="M12 7.5V12l3 2.5"/></svg>つづける設定</div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#DFF5F2"/><path d="M12 7.5V12l3 2.5"/></svg>続ける設定</div>
     <div style="font-size:15px;margin-bottom:8px">やるタイミング: <b id="anchorNow">未設定</b>　<a href="#" class="tapx" onclick="resetAnchor();return false" style="color:var(--tealink);font-weight:800">変える</a></div>
     <div style="font-size:15px;margin:4px 0 6px">画面のみため</div>
     <div class="seg" style="margin-bottom:12px">
@@ -775,7 +775,7 @@
 <section id="brag" class="hidden">
   <div class="card">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#E56A9A" stroke="none"/></svg>じまんカードをつくる</div>
-    <div style="font-size:14px;color:var(--sub);line-height:1.8">つづけてる日数と すきな1本を 1枚のカードに✨<br>できたカードは保存やSNS投稿ができます</div>
+    <div style="font-size:14px;color:var(--sub);line-height:1.8">続けてる日数と すきな1本を 1枚のカードに✨<br>できたカードは保存やSNS投稿ができます</div>
 
     <div class="lbl">つづいている日数</div>
     <input type="number" id="bragDays" min="1" max="9999" value="1" inputmode="numeric">
@@ -798,7 +798,7 @@
   <div style="text-align:center;font-size:19px;font-weight:900;margin:4px 0 14px">🎉 お楽しみ機能</div>
   <div class="card" id="bragCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5" fill="#FFEDF3"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#E56A9A" stroke="none"/></svg>じまんカード</div>
-    <div style="font-size:14px;color:var(--sub);margin:-4px 0 12px">つづけてる日数と すきな1本を 1枚のカードに✨</div>
+    <div style="font-size:14px;color:var(--sub);margin:-4px 0 12px">続けてる日数と すきな1本を 1枚のカードに✨</div>
     <button class="btn btn-ghost" onclick="openBrag()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><path d="M12 17c-2.6-2-4.1-3.7-3.6-5.5q.5-2 2.5-1.6q.75.2 1.1 1.2q.35-1 1.1-1.2q2-.4 2.5 1.6c.5 1.8-1 3.5-3.6 5.5z" fill="#177065" stroke="none"/></svg>じまんカードをつくる</button>
   </div>
@@ -936,7 +936,7 @@
   </div>
 
   <div class="card" id="gd-tsuzuku">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>つづけるしくみ（ここがやさしい）</div>
+    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>続けるしくみ（ここがやさしい）</div>
     <div class="gstep"><span class="stepn">🎫</span><div><b>おやすみ券が毎月3枚</b><br>休んでも 自動でつかわれて連続がつながる<br>使い切っても<b>通算日数はぜったい消えません</b></div></div>
     <div class="gstep"><span class="stepn">👑</span><div><b>節目はゴールドカード</b><br>3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓</div></div>
     <div style="text-align:center;margin-bottom:6px">
@@ -953,7 +953,7 @@
     <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
     <div class="gstep"><span class="stepn">🎉</span><div><b>お楽しみ機能</b>…じまんカード・せんぱいの声・ひとことにっきがまとまっています</div></div>
-    <div class="gstep"><span class="stepn">⚙️</span><div><b>つづける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
+    <div class="gstep"><span class="stepn">⚙️</span><div><b>続ける設定</b>…リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ</div></div>
     <div class="gstep"><span class="stepn">🎬</span><div>（こちらは下のタブ）<b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
     <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">マイ記録タブをひらく</button>
   </div>
@@ -979,7 +979,7 @@
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><img src="assets/chara-good.png" alt="" style="width:64px;height:60px;object-fit:contain;flex-shrink:0"><div style="font-size:14px;color:var(--sub)">3つおさえれば安心です</div></div>
     <div class="gstep"><span class="stepn">1</span><div><b>ホーム画面についか</b>する（共有ボタン→「ホーム画面に追加」）これがいちばん大事！アプリ版は記録がずっと残ります<br><span style="font-size:13px;color:var(--sub)">※ついか後は「記録をコピー」→アプリ版で「よみこむ」も忘れずに</span></div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>記録カードを画像で保存</b>…写真フォルダが自動でバックアップに</div></div>
-    <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…マイ記録→つづける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」</div></div>
+    <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」</div></div>
   </div>
 
   <div class="card" id="gd-faq">
@@ -989,14 +989,14 @@
 
       <div class="faq-g">📱 きほんのき</div>
       <details><summary>料金はかかるの？</summary><div class="fa">ぜんぶ<b>無料</b>です！会員登録もログインもいりません</div></details>
-      <details><summary>通知はこないの？</summary><div class="fa">きません（そのぶん軽くて安心）カレンダー登録が通知がわりです（マイ記録→つづける設定）</div></details>
+      <details><summary>通知はこないの？</summary><div class="fa">きません（そのぶん軽くて安心）カレンダー登録が通知がわりです（マイ記録→続ける設定）</div></details>
       <details><summary>動画はどこで再生されるの？</summary><div class="fa">ぜんぶYouTubeのオガトレチャンネルでひらきます</div></details>
       <details><summary>Androidでも使えるの？</summary><div class="fa">使えます！ブラウザでひらいて「ホーム画面に追加」するのも同じです</div></details>
       <details><summary>電波がないところでも使える？</summary><div class="fa">アプリをひらいて「きょうやった！」の記録はできます✅ 動画の再生だけ電波が必要です</div></details>
       <details><summary>「あたらしいバージョンがあるよ」って出た</summary><div class="fa">タップするだけで更新できます 記録は消えません</div></details>
       <details><summary>古いスマホでも使えるの？</summary><div class="fa">だいたいの端末で使えます！ただしかなり古いタイプだと オフラインでの記録やホーム画面への追加がうまくいかないことがあります📱 その場合もアプリ自体はふつうに使えるのでご安心を</div></details>
 
-      <div class="faq-g">📅 記録・つづけるについて</div>
+      <div class="faq-g">📅 記録・続けるについて</div>
       <details><summary>記録はどこに保存されてるの？</summary><div class="fa">ぜんぶあなたのスマホの中だけ サーバーには何も送りません</div></details>
       <details><summary>きのうの分を押し忘れた！</summary><div class="fa">さかのぼって記録はできません でも<b>おやすみ券が自動でつかわれて連続はつながります</b> きょうの分からまたどうぞ</div></details>
       <details><summary>おやすみ券ってなに？</summary><div class="fa">毎月3枚もらえる「お休みしてもいい券」🎫 休んだ日に自動でつかわれて連続がつながります 使い切っても<b>通算日数はぜったい消えません</b></div></details>
@@ -1004,23 +1004,23 @@
       <details><summary>まちがえて「きょうやった！」を押しちゃった</summary><div class="fa">だいじょうぶ そのままでOK！あしたまた会いましょう</div></details>
       <details><summary>1日に2本やったら2日分になる？</summary><div class="fa">記録は1日1回です 2本目はからだへのボーナス💪</div></details>
       <details><summary>通算が0日にもどってる！</summary><div class="fa">LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ✅ おひっこしは「記録をコピー」→「よみこむ」で</div></details>
-      <details><summary>機種変更のときはどうするの？</summary><div class="fa">マイ記録→つづける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」です</div></details>
+      <details><summary>機種変更のときはどうするの？</summary><div class="fa">マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」です</div></details>
       <details><summary>ホーム画面のアイコンを消したら記録は？</summary><div class="fa">消えてしまいます 消す前に「記録をコピー」でひかえを取っておくと安心です</div></details>
       <details><summary>家族と同じスマホで使える？</summary><div class="fa">記録が1人分しか持てないので まざってしまいます 1人1台がおすすめです</div></details>
 
       <div class="faq-g">💬 きょうの1本・相談室</div>
       <details><summary>「きょうの1本」はだれが選んでるの？</summary><div class="fa">尾形さんのYouTube動画の中から 日替わりでアプリが出しています かたさチェック済みの人は「あなた用」にタイプに合わせたおすすめが出ます</div></details>
       <details><summary>相談室はだれが答えてるの？</summary><div class="fa">オガトレが監修した回答パターン集から アプリが選んで返しています（AIが勝手に文章を作ることはありません）相談した内容がスマホの外に送られることもありません</div></details>
-      <details><summary>2週間プランはやめられる？</summary><div class="fa">ホームのプランのカードにある「やめる」からいつでもやめられます つづけた日数の記録はそのまま残ります</div></details>
+      <details><summary>2週間プランはやめられる？</summary><div class="fa">ホームのプランのカードにある「やめる」からいつでもやめられます 続けた日数の記録はそのまま残ります</div></details>
       <details><summary>やりたいストレッチが見つからない</summary><div class="fa">「動画を探す」のいちばん下からリクエストを送れます📮 相談室で悩みを打ってみるのも近道です</div></details>
       <details><summary>ストレッチ中に痛かったら？</summary><div class="fa">目安は「イタ気持ちいい」まで つよい痛みやしびれが出たら中止して 医療機関に相談してね</div></details>
 
       <div class="faq-g">🎨 見ため・その他</div>
-      <details><summary>文字の大きさは変えられる？</summary><div class="fa">マイ記録→つづける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠</div></details>
-      <details><summary>画面を暗くしたい（ダークモード）</summary><div class="fa">マイ記録→つづける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙</div></details>
+      <details><summary>文字の大きさは変えられる？</summary><div class="fa">マイ記録→続ける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠</div></details>
+      <details><summary>画面を暗くしたい（ダークモード）</summary><div class="fa">マイ記録→続ける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙</div></details>
       <details><summary>じまんカードが見つからない</summary><div class="fa">マイ記録の「🎉お楽しみ機能」を開くと出てきます💗</div></details>
       <details><summary>カード図鑑ってなに？</summary><div class="fa">記録カードには記念日・季節・レアなど何種類もデザインがあります マイ記録タブの「📖 図鑑をひらく」で 集めたデザインを見返せます</div></details>
-      <details><summary>レアカードはどうやったら出るの？</summary><div class="fa">運ではありません！記録をつづけていると全種類が順番にまわってくる仕組みです 記念日・季節のカードは決まった日に自動で出ます</div></details>
+      <details><summary>レアカードはどうやったら出るの？</summary><div class="fa">運ではありません！記録を続けていると全種類が順番にまわってくる仕組みです 記念日・季節のカードは決まった日に自動で出ます</div></details>
       <details><summary>せんぱいの声って本物？</summary><div class="fa">はい オガトレの動画に実際に届いたコメントから紹介しています</div></details>
       <details><summary>とどくメーターは毎日やるの？</summary><div class="fa">週1回くらいでOK！のびていく証拠づくりです📏</div></details>
       <details><summary>使い方をもう一度おしえてほしい</summary><div class="fa">この使い方タブのいちばん上からどうぞ 「🌱 はじめてガイドをもう一度」は最初の質問から 「📖 使い方ツアー」は機能の説明だけを1つずつ見られます</div></details>
@@ -1605,7 +1605,7 @@ function renderPlanCard(){
     // 14日経過後の初回ホーム表示: 卒業のお祝い→プランは削除（お祝いカードの導線はセッション内キャッシュで生かす）
     card.classList.add("hidden");
     planFinishedCache={intentId:p.intentId,label:p.label,videos:p.videos.slice(),days:planDays(p)};
-    document.getElementById("planDoneText").innerHTML=`<b style="color:var(--pink)">🎉 ${planEsc(p.label||"あなたの")}プラン完走！すごい！</b><br>${planDays(p)}日間つづけたの、ほんとにえらい👏<br>体はちゃんと応えてくれてるよ`;
+    document.getElementById("planDoneText").innerHTML=`<b style="color:var(--pink)">🎉 ${planEsc(p.label||"あなたの")}プラン完走！すごい！</b><br>${planDays(p)}日間続けたの、ほんとにえらい👏<br>体はちゃんと応えてくれてるよ`;
     done.classList.remove("hidden");
     store.set("plan",null);
     if(!planCelebrated){ planCelebrated=true; try{ launchConfetti(105); }catch(e){} }
@@ -1619,7 +1619,7 @@ function renderPlanCard(){
 }
 function planQuit(){
   const p=planData(); if(!p) return;
-  if(!confirm((p.label||"いまの")+"プランをいったんやめる？（つづけた日数の記録はそのまま残るよ）")) return;
+  if(!confirm((p.label||"いまの")+"プランをいったんやめる？（続けた日数の記録はそのまま残るよ）")) return;
   store.set("plan",null);
   planQuitNote=true; // 責めない一言をカード位置に一度だけ出す
   if(state.mode==="mine"&&!(state.type&&TYPES[state.type.key])) state.mode=null; // 型なしユーザーの手動mineを掃除
@@ -1923,7 +1923,7 @@ function applyBigtext(){
 function setBigtext(on){ store.set("bigtext",!!on); applyBigtext(); }
 
 // ---- きょうのひとこと（尾形さんの声かけ） ----
-const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","つづけてるあなたがいちばんすごい","お膝もいたわってあげてくださいね","反動はつけなくて だいじょうぶですよ","息を吐くと ゆるみますよ〜","伸びてる場所を 感じてみてくださいね","体がかたい日もあります そういう日もOK","ゆっくりでだいじょうぶ 競争じゃないですから","痛いのは がんばりすぎのサインです","お風呂あがりは ゴールデンタイムです","肩の力 ふっと抜いてみましょう","続けてる人から 変わっていきます","30秒が 体を変えていきます","きのうのあなたより きょうのあなた","深呼吸ひとつぶんの よゆうを","固まったら ほぐせばいいんです","首はやさしく いたわってあげて","のびるって 気持ちいいですね〜","サボっても再開したら それがいちばんえらい","体があったまってる夜が ねらい目です","「なんか調子いいかも」を見逃さないで","ストレッチに 遅すぎることはないです","こわばりは すこしずつ返していきましょう","手が届かなくても 気持ちは届いてます","姿勢がいいと 呼吸もふかくなりますよ","がんばりやさんほど 休むのが仕事です","伸ばした分だけ 楽になっていきます","あしたの体は きょうつくられます","完璧じゃなくていい つづくのがいちばん","気持ちいい〜って 声に出してOKです","体を大切にする時間 えらいです","ひざは軽く曲げても いいですからね","また明日も 待ってますね"];
+const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","続けてるあなたがいちばんすごい","お膝もいたわってあげてくださいね","反動はつけなくて だいじょうぶですよ","息を吐くと ゆるみますよ〜","伸びてる場所を 感じてみてくださいね","体がかたい日もあります そういう日もOK","ゆっくりでだいじょうぶ 競争じゃないですから","痛いのは がんばりすぎのサインです","お風呂あがりは ゴールデンタイムです","肩の力 ふっと抜いてみましょう","続けてる人から 変わっていきます","30秒が 体を変えていきます","きのうのあなたより きょうのあなた","深呼吸ひとつぶんの よゆうを","固まったら ほぐせばいいんです","首はやさしく いたわってあげて","のびるって 気持ちいいですね〜","サボっても再開したら それがいちばんえらい","体があったまってる夜が ねらい目です","「なんか調子いいかも」を見逃さないで","ストレッチに 遅すぎることはないです","こわばりは すこしずつ返していきましょう","手が届かなくても 気持ちは届いてます","姿勢がいいと 呼吸もふかくなりますよ","がんばりやさんほど 休むのが仕事です","伸ばした分だけ 楽になっていきます","あしたの体は きょうつくられます","完璧じゃなくていい つづくのがいちばん","気持ちいい〜って 声に出してOKです","体を大切にする時間 えらいです","ひざは軽く曲げても いいですからね","また明日も 待ってますね"];
 // 動画タップ→離脱→復帰後、まだ記録前なら常時「おかえり」表示にする（一発勝負のpulseナッジと別に、
 // ホームに来るたび状態から導出する。記録すると dates に today が入り自然に通常表示へ戻るので、
 // ここではsessionStorageの削除等の副作用は起こさない＝読み取りのみ。renderHomeから毎回呼ばれるため厳守）
@@ -2201,7 +2201,7 @@ const DEX_FLAVOR={
   toku_66days:"66日はしゅうかんが根づく日 もうみについてる🌳",
   toku_100days:"3けたのなかまいり おめでとうございます👑",
   toku_150days:"150日 はなたばをあなたに💐",
-  toku_200days:"200日 つづけるのがあたりまえになった🌟",
+  toku_200days:"200日 続けるのがあたりまえになった🌟",
   toku_300days:"300日 ちりもつもれば やまとなる⛰️",
   toku_365days:"1年間 4つのきせつをぜんぶみてきたね🎊",
   toku_500days:"500日 もはやレジェンドのいき🏆",
@@ -2271,7 +2271,7 @@ const DEX_FLAVOR_NORMAL={
   "ばらいろ":"はなやかにきめる とっておき🌹",
   "きなこ":"ほっこりあまい わふうのいろ🍡"
 };
-const DEX_NORMAL_TEASE="きろくをつづけると ある日ふらっとであえます🎨";
+const DEX_NORMAL_TEASE="きろくを続けると ある日ふらっとであえます🎨";
 // ===== カード図鑑: 記念/季節/レア/ノーマルそれぞれの獲得状況とヒントを計算 =====
 function getDexStatus(){
   const st=getStreakData();
@@ -2283,7 +2283,7 @@ function getDexStatus(){
   const fmtMD=w=>Math.floor(w/100)+"/"+(w%100);
   const toku=Object.keys(TOKU_CARDS).map(Number).sort((a,b)=>a-b).map(d=>{
     const t=TOKU_CARDS[d], got=st.total>=d;
-    const item={tier:"toku", d, key:t.key, name:t.name, bg:t.bg, got, hint: got?"":`あと${d-st.total}日つづけると出会えます`};
+    const item={tier:"toku", d, key:t.key, name:t.name, bg:t.bg, got, hint: got?"":`あと${d-st.total}日続けると出会えます`};
     if(got) item.flavor=DEX_FLAVOR[t.key]||"";
     return item;
   });
@@ -2295,7 +2295,7 @@ function getDexStatus(){
   });
   const rare=RARE_CARDS.map((r,i)=>{
     const got=posSet.has(NORMAL_CARDS.length+i);
-    const item={tier:"rare", key:r.key, name:r.name, bg:r.bg, got, hint: got?"":(DEX_TEASE[r.key]||"気まぐれに出てくる1枚。記録をつづけてみて")};
+    const item={tier:"rare", key:r.key, name:r.name, bg:r.bg, got, hint: got?"":(DEX_TEASE[r.key]||"気まぐれに出てくる1枚。記録を続けてみて")};
     if(got) item.flavor=DEX_FLAVOR[r.key]||"";
     return item;
   });
@@ -2697,9 +2697,9 @@ function drawBragCard(thumb){
   // フッター＝キャラの吹き出し
   ctx.textAlign="left";
   const pool=[
-    "つづけてるじぶん、どんどんじまんしてね✨",
-    "この1本とつづけた日々が、もうじまんです。",
-    "つづけてるあなたが、いちばんすてきです。",
+    "続けてるじぶん、どんどんじまんしてね✨",
+    "この1本と続けた日々が、もうじまんです。",
+    "続けてるあなたが、いちばんすてきです。",
   ];
   let fh=0; for(const ch of ds){ fh=(fh*31+ch.charCodeAt(0))>>>0; }
   const fmsg=pool[fh%pool.length];
@@ -3911,7 +3911,7 @@ const OB_TOUR_SLIDES=[
    v:`<div class="card"><div style="font-weight:900;margin-bottom:8px">きょうの1本</div><a class="video"><img src="https://i.ytimg.com/vi/Re5FPU5_37g/mqdefault.jpg" alt="" onerror="this.style.visibility='hidden'"><div><span class="vt">開脚できるようになる2週間ストレッチ</span><div class="vs">▶ タップでYouTubeがひらきます</div></div></a></div>`,
    d:"ホームの<b>「きょうの1本」</b>をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"},
   {t:"✅ おわったら「きょうやった！」",
-   v:`<div class="card" style="text-align:center"><div style="font-weight:900">つづけた日数（通算）</div><div style="margin:2px 0"><span class="num" style="font-size:38px;color:var(--pink)">8</span><span style="font-weight:900;font-size:16px">日目</span></div><button class="btn done-btn" style="margin-top:6px">きょうやった！</button></div>`,
+   v:`<div class="card" style="text-align:center"><div style="font-weight:900">続けた日数（通算）</div><div style="margin:2px 0"><span class="num" style="font-size:38px;color:var(--pink)">8</span><span style="font-weight:900;font-size:16px">日目</span></div><button class="btn done-btn" style="margin-top:6px">きょうやった！</button></div>`,
    d:"アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚の<b>🎫おやすみ券</b>が自動で連続を守ってくれるよ"},
   {t:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#3A3A35" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードをつくる`,
    v:`<div style="text-align:center"><img src="assets/card-sample.png" alt="" style="width:180px;height:180px;border-radius:20px;display:block;margin:0 auto"></div>`,
@@ -3962,7 +3962,7 @@ function calendarAskEl(leadText){
   if(og) og.href=gcalHref;
   if(note) note.textContent = navigator.standalone
     ? "Appleカレンダー登録はSafariで開いてからどうぞ Googleカレンダーはこのままでいけます"
-    : "あとで「つづける設定」からでも登録できるよ";
+    : "あとで「続ける設定」からでも登録できるよ";
   return wrap;
 }
 // 吹き出しを0.96秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
@@ -4008,7 +4008,7 @@ function obPick(q,c){
     obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],obAskQ);
   }else if(q.key==="bigtext"){
     try{ setBigtext(c.v==="big"); }catch(e){} // その場で反映=効果が見える（本物の設定として保存）
-    obSay(["OK！「つづける設定」でいつでも変えられるよ🔠"],obAskQ);
+    obSay(["OK！「続ける設定」でいつでも変えられるよ🔠"],obAskQ);
   }else{
     obAskQ();
   }

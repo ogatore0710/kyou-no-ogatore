@@ -242,7 +242,7 @@ async function main() {
     //     （きょうやった！markDone成功）の直後に#calAskへ一度だけ出る。あさ/おふろ上がり/ねるまえの
     //     各アンカーで正しい時刻のICS/Googleカレンダーリンクが実際に生成されること、タップしても
     //     ページ遷移しないこと、リロード後は二度と出ない（kyono_calseenガード）こと、そして既存の
-    //     「つづける設定」側(#icsLink/#gcalLink)が壊れていないこと（回帰）を実測で確認する
+    //     「続ける設定」側(#icsLink/#gcalLink)が壊れていないこと（回帰）を実測で確認する
     await step("1c-カレンダー登録カード（1日目クリア後の#calAsk・移設後）", async () => {
       async function tapObChip2(text) {
         await page.waitForFunction((t) => {
@@ -326,7 +326,7 @@ async function main() {
         if (info.gcal.indexOf("recur=RRULE:FREQ=DAILY") === -1) {
           throw new Error(c.anchorChip + ": #calAskのGoogleカレンダーリンクにrecur=RRULE:FREQ=DAILYが含まれていない");
         }
-        if (info.note.indexOf("つづける設定") === -1) throw new Error(c.anchorChip + ": #calAskの注記が設計どおりでない (" + info.note + ")");
+        if (info.note.indexOf("続ける設定") === -1) throw new Error(c.anchorChip + ": #calAskの注記が設計どおりでない (" + info.note + ")");
         if (c.tap) {
           // タップしてもページ遷移しない（ダウンロードリンク）ことを確認
           const before = page.url();
@@ -342,7 +342,7 @@ async function main() {
       if (calAskAfterReload !== "") throw new Error("リロード後も#calAskに残っている（もう一度出てしまっている＝kyono_calseenガードが効いていない）");
       const calseen = await page.evaluate(() => localStorage.getItem("kyono_calseen"));
       if (calseen !== "1") throw new Error("kyono_calseenが1になっていない (" + calseen + ")");
-      // 回帰確認: マイ記録タブの「つづける設定」側(#icsLink/#gcalLink)が#calAsk移設の影響で壊れていない
+      // 回帰確認: マイ記録タブの「続ける設定」側(#icsLink/#gcalLink)が#calAsk移設の影響で壊れていない
       await page.click("#tab-history");
       await visible("#history");
       const myRecord = await page.evaluate(() => ({
@@ -1319,7 +1319,7 @@ async function main() {
       if (r1.totalVideoCount !== 3) throw new Error("結果画面の動画総数が3本でない=②③が消えている懸念 (実測" + r1.totalVideoCount + "本)");
       if (r1.rxListHtml.indexOf("きょうはこれ1本でOK！") === -1) throw new Error("①のラベルが「きょうはこれ1本でOK！」になっていない");
       if (r1.rxListHtml.indexOf("タップするとYouTubeがひらくよ") === -1) throw new Error("オガトレの一言吹き出しが出ていない");
-      if (r1.rxListHtml.indexOf("3本つづけて再生する") !== -1) throw new Error("guide中なのに「3本つづけて再生する」ボタンが出ている");
+      if (r1.rxListHtml.indexOf("3本続けて再生する") !== -1) throw new Error("guide中なのに「3本続けて再生する」ボタンが出ている");
       if (!r1.rotateHidden) throw new Error("guide中なのにrotate-note(3日ごと入れ替わり注記)が隠れていない");
       if (!r1.tourBtnHidden) throw new Error("guide中なのにrTourBtn(つづき:使い方ツアーへ)が隠れていない");
 
@@ -1516,7 +1516,7 @@ async function main() {
       }));
       if (regress.rxHead.indexOf("おすすめの3本") === -1) throw new Error("回帰: 既存ユーザーのrxHeadがguide文言のままになっている (" + regress.rxHead + ")");
       if (regress.rxListHtml.indexOf("fd-hero") !== -1) throw new Error("回帰: 既存ユーザーの結果画面に.fd-heroが残っている");
-      if (regress.rxListHtml.indexOf("3本つづけて再生する") === -1) throw new Error("回帰: 既存ユーザーで「3本つづけて再生する」ボタンが消えている");
+      if (regress.rxListHtml.indexOf("3本続けて再生する") === -1) throw new Error("回帰: 既存ユーザーで「3本続けて再生する」ボタンが消えている");
       if (regress.rotateHidden) throw new Error("回帰: 既存ユーザーでrotate-noteが隠れたままになっている");
       await page.click("#tab-home");
       await visible("#home");
