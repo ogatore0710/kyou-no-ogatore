@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 「あした節目予告」を追加（PO承認済み継続施策・Fable設計・Sonnet実装）
+
+「きょうやった！」を押した直後の完了メッセージに、翌日が節目（`MILESTONES`）にあたる場合だけ「あしたで ◯日目🎉 おたのしみに！」の一言予告を追加した。明日アプリを開く理由を作る、圧の低いフック。
+
+- 実装は`app-record.js`の`markDone()`1箇所のみ。既存の`const ms=MS.find(x=>x.d===st.total)`（今日自身の節目判定に使っている通算値=`st.total`、markDone内では既に記録直後の値にインクリメント済み）をそのまま流用し、`const tomorrowMsPreview=(!ms&&MILESTONES.includes(st.total+1))?...:""`で判定。独自の通算値再計算はしていない。
+- 表示位置: 非節目時の完了メッセージ2箇所（`else if(guide)`＝はじめの1本ガイド中の1日目クリア文言／`else`＝通常の`cheers[]`ランダム文言）の末尾にそれぞれ`+tomorrowMsPreview`を追加。`if(ms){...}`（今日自身が節目の日）ブロックには一切触れていない＝節目のお祝いと予告は重ならない。
+- 文言: `あしたで ◯日目🎉 おたのしみに！`（節目名=`MS`配列の`t`は使わない。前日に節目名を出すと当日の新鮮味が減るため）。**文言はPO実機レビューで要確認**。
+- 新しいlocalStorageキーは追加していない（その場限りの表示、リロード後の再表示は無し）。
+- 検証: `scripts/smoke.js`に新設した`7bb-あした節目予告`ステップで、`kyono_streak2`を`dates:[]`＋記録前の通算値でシードしてから`markDone()`を直接呼ぶ形で3ケースを実測: (a)記録前通算5→`markDone()`で通算6を記録→「あしたで 7日目🎉」あり (b)記録前通算4→通算5を記録→予告なし (c)記録前通算6→通算7(節目当日)を記録→祝いメッセージのみ・予告なし。`scripts/qa.js`にも静的アサーション3件を追加（tomorrowMsPreviewの判定式そのもの／両方の非節目ブランチへのappend／節目(ms)ブランチには入っていないこと）。
+- `npm test`=269 checks、`npm run smoke`=25/25、`npm run smoke:webkit`=9/9、いずれも全PASS。ES2020構文(`??`/`?.`)は触れたファイルにゼロを確認。
+- **ハマった点（艦隊運用の既知パターン）**: 実装直後、commitする前にeven-syncの自動コミット（`auto-sync 2026-07-18 12:26`＝コミット`38d06ce`）が`app-record.js`/`scripts/qa.js`/`scripts/smoke.js`の3ファイル差分を先に拾ってpushしてしまった（MEMORY.md記載の既知動作＝艦隊が同一作業ツリーを共有し10分毎に自動commit→pull→pushするため）。`git show 38d06ce`で差分内容が意図通り（自分が書いたコードと一字一句一致）であることを確認済み・Deploy Pagesもこのコミットでsuccess（run 29628814087）。コード自体は正しく反映済みのため、このエントリだけを追記してcommitする。
+
 ## 2026-07-18 WebKit実機スモークテストをCI(GitHub Actions)で週次実走・初グリーン達成（`webkit-smoke.yml`・Fable設計・Sonnet実装）
 
 直前に新設した`scripts/smoke-webkit.js`（9ステップ）が、このMac（macOS 26.5.1）ではPlaywright 1.61のWebKitビルド起動不能（dyldシンボル欠落）によりスキップ扱いのままだった問題を、CI（ubuntu-latest）上の本物のWebKitで実走させることで解消した。
