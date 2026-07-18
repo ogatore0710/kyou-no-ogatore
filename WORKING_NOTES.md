@@ -4,6 +4,20 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 保守・運用・セキュリティ監査（Fable3巡目）— ほぼ健全・穴2件を修正
+
+本人依頼で保守/運用/セキュリティに絞った監査をFableに実施。結論から言うと、これまでのセッションで直した修正（配信allowlist・CSP・iPad判定・オフラインテスト等）はすべて健全に維持されており、セキュリティ面の実穴はゼロだった（`npm audit`=0件、CSP整合、XSS経路は全部エスケープ済み、importDataの多段検証、秘密情報の混入なし、https_enforced=true）。実際に対応したのは運用面の2件のみ：
+
+1. **配信allowlistチェックが固定リストだった**: `scripts/qa.js`の`checkDeployAllowlist`が`["index.html","manifest.json","sw.js","robots.txt","app-env.js"]`という固定5ファイルの存在確認だけで、「新しいapp-*.jsを追加したのにpages.ymlへの追記を忘れる」事故を検知できなかった。index.htmlの`<script src>`を動的抽出してpages.ymlのコピー行と突き合わせる方式に強化。わざと新しい`<script src>`を追加してcp行に入れずテストしたところ検知することを確認。
+2. **配信中カタログの死リンクを検知する仕組みがなかった**: `scripts/update_catalog.py`のpublic-video-checkはローカルDB(`~/Claude/ogatore-growth/data/ogatore.db`)依存で手動実行時にしか動かず、動画が非公開/削除されても次回の手動更新まで誰も気づけなかった。CI（ローカルDB不要）で動く軽量版`scripts/check_catalog_public.py`を新設（videos.js自身から454件のIDを抽出してoEmbedで確認・非公開があれば非ゼロ終了）。`.github/workflows/catalog-health.yml`で毎月1日に自動実行し、失敗時はGitHub既定のメール通知に任せる（ダッシュボード等は作らない・運用ゼロ設計）。実行して454/454本公開確認・exit 0を確認済み。
+
+その他の指摘：
+- GitHub Actions失敗時のメール通知は本人のGitHub通知設定（Settings→Notifications→Actions）に依存するため、一度だけ本人に目視確認してもらう必要がある（コード対応不可）。
+- `scripts/smoke.js`の6番(オガトレ通信FAB開閉)が稀に10秒タイムアウトでflakyだった件、原因は座標クリックが直前ステップ由来の演出に一瞬吸われる競合と推定。`page.click`→`page.evaluate(el.click())`のDOM直接クリックに変更し、2回連続で23/23クリーンパスを確認。
+- WORKING_NOTES.mdの肥大化・ルート直下の`*-DONE.md`群は実害なし（スクリプトがパースする対象ではない純粋な人間向けログ）と判断し、現状維持。
+
+検証: `npm test`=265checks、`npm run smoke`=23/23。
+
 ## 2026-07-18 モーダルのフォーカス管理・aria-live/aria-currentを追加(Fable発案2巡目③)
 
 相談室・カード図鑑・記録カード・はじめてガイド・ホーム画面追加ポップアップ、全5モーダルにキーボード/スクリーンリーダー対応のフォーカス管理を追加。
