@@ -2,11 +2,13 @@
 // WebKit実機スモークテスト: ユーザーの大半を占めるiPhone(Safari)相当のレンダリングエンジン(WebKit)で
 // クリティカルパスを検証する。scripts/smoke.js（puppeteer-core=Chromium・24ステップ）の完全移植ではなく、
 // 「Safari系エンジンでしか踏めない道」に絞ったサブセット版（記録カード生成のフォント待ちレース等）。
-// 使い方: npm install（初回のみ・playwright-coreはdevDependency）→ npx playwright install webkit
+// 使い方: npm install（初回のみ・playwright-coreはdevDependency）→ npx playwright-core install webkit
 //        （他マシンで初回実行するときに必要。ブラウザ本体は ~/Library/Caches/ms-playwright に入る）
 //        → npm run smoke:webkit
 // 環境変数: SMOKE_WEBKIT_PATH=WebKit実行ファイルのパス（既定の自動検出を上書き）
 //           SMOKE_ROOT=配信ルートの上書き（既定はリポジトリ直下）
+//           SMOKE_WEBKIT_REQUIRED=1 を立てると「未導入/起動失敗」を通常のスキップ(exit 0)ではなく
+//           失敗(exit 1)にする（CI用。見せかけグリーンの防止。ローカルでは未設定=従来どおりスキップ）
 // 注意: 静的チェックは scripts/qa.js（npm test）。Chromiumでの網羅的スモークは scripts/smoke.js（npm run smoke）。
 //       こちらはWebKit固有の非互換・実挙動レースを狙い撃ちする専用コマンドで、アプリ本体は一切変更しない。
 const fs = require("fs");
@@ -14,20 +16,24 @@ const net = require("net");
 const http = require("http");
 const path = require("path");
 const { spawn } = require("child_process");
+const { webkit } = require("playwright-core");
 
 const REPO = path.resolve(__dirname, "..");
 const ROOT = process.env.SMOKE_ROOT ? path.resolve(process.env.SMOKE_ROOT) : REPO;
 const SHOT_DIR = path.join(REPO, ".smoke-webkit"); // .gitignore対象（even-syncに拾わせない）
 const PREFERRED_PORT = 8802; // scripts/smoke.js(8801)と衝突しないよう別ポート
+const REQUIRED = process.env.SMOKE_WEBKIT_REQUIRED === "1";
 
 // ---- WebKit実行ファイル検出（本体ダウンロードはしない。Playwrightキャッシュの既存ブラウザを使う） ----
+// 候補の優先順: 明示指定 → playwright-core自身の解決（Linux/macOSどちらの`npx playwright-core install`
+// 配置にも追従する。既定パスはPlaywrightのバージョン間で変わりうるため、これが最も壊れにくい） →
+// このマシンで過去に実測した既定パス（playwright-core側の解決が失敗した場合の最終フォールバック）
 function findWebkit() {
   const home = process.env.HOME || "";
-  const candidates = [
-    process.env.SMOKE_WEBKIT_PATH,
-    path.join(home, "Library/Caches/ms-playwright/webkit-2311/Playwright.app/Contents/MacOS/Playwright"),
-  ].filter(Boolean);
-  for (const p of candidates) {
+  const candidates = [process.env.SMOKE_WEBKIT_PATH];
+  try { candidates.push(webkit.executablePath()); } catch (e) { /* 未導入時など。次の候補へ */ }
+  candidates.push(path.join(home, "Library/Caches/ms-playwright/webkit-2311/Playwright.app/Contents/MacOS/Playwright"));
+  for (const p of candidates.filter(Boolean)) {
     try { fs.accessSync(p, fs.constants.X_OK); return p; } catch (e) { /* 次の候補へ */ }
   }
   return null;
@@ -80,14 +86,13 @@ function waitForServer(port, timeoutMs) {
 async function main() {
   const webkitPath = findWebkit();
   if (!webkitPath) {
-    console.log("[smoke-webkit] WebKit実行ファイルが見つかりませんでした。このマシンではスキップします。");
+    console.log("[smoke-webkit] WebKit実行ファイルが見つかりませんでした。" + (REQUIRED ? "SMOKE_WEBKIT_REQUIRED=1のため失敗にします。" : "このマシンではスキップします。"));
     console.log("  既定パス: ~/Library/Caches/ms-playwright/webkit-2311/Playwright.app/Contents/MacOS/Playwright");
-    console.log("  導入するには: npx playwright install webkit");
+    console.log("  導入するには: npx playwright-core install webkit");
     console.log("  別パスを使う場合は環境変数 SMOKE_WEBKIT_PATH=/path/to/Playwright を指定してください。");
-    process.exit(0);
+    process.exit(REQUIRED ? 1 : 0);
   }
 
-  const { webkit } = require("playwright-core");
   const port = await getFreePort(PREFERRED_PORT);
   const server = startServer(port);
   const killServer = () => { try { server.kill("SIGKILL"); } catch (e) { /* already dead */ } };
@@ -108,23 +113,25 @@ async function main() {
   }
 
   await waitForServer(port, 10000);
-  // ブラウザの起動失敗は「未導入(パス不在)」と同じ扱いでスキップ(exit 0)にする。
+  // ブラウザの起動失敗は、既定では「未導入(パス不在)」と同じ扱いでスキップ(exit 0)にする。
   // 実機で確認済み: 未導入時と違い、キャッシュのWebKit実行ファイル自体は存在してもOS側の
   // 私有WebKit.framework(SPI)とのバイナリ非互換で起動プロセスがdyldレベルで即死するケースがある
   // （例: 2026-07-18実測、macOS 26.5.1でwebkit-2311が`dyld: Symbol not found:
   // _OBJC_CLASS_$__WKBrowserContext`で起動不能。--forceで再ダウンロードしても同じ症状＝キャッシュ
   // 破損ではなくOSのWebKit private SPIとの真の非互換）。これはテストコードでもアプリ本体でも
-  // 直しようがない環境要因のため、CI/npm testの流れを止めないようにここもスキップ扱いにする。
+  // 直しようがない環境要因のため、CI/npm testの流れを止めないようにここもスキップ扱いにする
+  // （ローカルmac向けの既定動作）。ただしSMOKE_WEBKIT_REQUIRED=1（CI向け）のときは
+  // 「見せかけのグリーン」を避けるため、起動失敗をそのまま失敗(exit 1)として伝播させる。
   try {
     browser = await webkit.launch({ executablePath: webkitPath, headless: true });
   } catch (launchErr) {
     killServer();
-    console.log("[smoke-webkit] WebKitの起動に失敗しました。このマシンではスキップします（exit 0）。");
+    console.log("[smoke-webkit] WebKitの起動に失敗しました。" + (REQUIRED ? "SMOKE_WEBKIT_REQUIRED=1のため失敗にします。" : "このマシンではスキップします（exit 0）。"));
     console.log("  実行ファイルは存在しますが、OS側のWebKit私有API(SPI)と非互換の可能性があります。");
     console.log("  詳細: " + String(launchErr && launchErr.message ? launchErr.message : launchErr).split("\n")[0]);
-    console.log("  対処案: 対応するmacOSバージョンで実行する／`npx playwright install webkit`で");
+    console.log("  対処案: 対応するmacOSバージョンで実行する／`npx playwright-core install webkit`で");
     console.log("  再取得しても改善しない場合はplaywright-coreの更新が必要な可能性があります（司令塔判断）。");
-    process.exit(0);
+    process.exit(REQUIRED ? 1 : 0);
   }
 
   try {
