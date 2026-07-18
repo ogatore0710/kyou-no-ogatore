@@ -4,6 +4,20 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 節目カード表示時に「記録のひかえ」を促す導線を追加（PO承認済み改善候補④・Sonnet実装）
+
+HANDOFF「次の改善候補」④に対応。記録カードモーダル（`app-card.js`の`makeCard()`）で節目日（`MILESTONES`に一致する日）のカードを表示したときだけ、カード画像の外・下部（保存・シェアするボタンの下、とじるボタンの上）に1行＋小ボタンを表示する。
+
+- 表示条件: `makeCard()`内で既に計算済みの`_milestone`（`MILESTONES.includes(_eff)`）をそのまま利用。新規判定ロジックは追加していない。
+- DOM: `index.html`の`#cardModal`に`#cardMsExportNudge`（既定`hidden`）を新設。文言案`せっかくの節目！記録のひかえを取っておくと あんしんです📦`＋ボタン`記録のひかえを取る`（**文言はPO実機レビューで要確認**）。
+- モーダルは`makeCard()`（本物の記録カード）と`makeBragCard()`（じまんカード）で共用のため、**両方の入口で`#cardMsExportNudge`をまず`hidden`にリセット**してから、`makeCard()`側だけ`_milestone`に応じて`toggle`する設計にした（じまんカードや非節目カードに前回表示の残骸が出ないようにするため）。
+- ボタンの遷移先: `exportData()`の入口は`#history`セクション内の「つづける設定」カードにある「📦 記録のひっこし（機種変・バックアップ）」見出し。この見出しに`id="exportSection"`を付与し、新設`goToExportFromCard()`から`closeCard()`（既存作法どおり`updateFabs()`→`modalFocusClose()`の順を含む）→`navTo("history")`→既存の`gJump("exportSection")`（使い方タブのチップジャンプで使っている汎用スクロール関数）で遷移・スクロールする。新規のスクロールロジックは書かず、既存ヘルパーを再利用した。
+- 検証（ヘッドレスDOM実測、`makeCard()`を直接呼んでkyono_streak2をシード）:
+  - 通算7日（節目）→`#cardMsExportNudge`表示・`cardTierNote`は`🎉 記念日カード「1週間記念」`
+  - 通算8日（非節目）→`#cardMsExportNudge`は`hidden`のまま
+  - 節目カードから「記録のひかえを取る」タップ→モーダルが閉じ・`currentSection`が`history`に切り替わり・`#exportSection`がビューポート内にスクロールされることを確認
+- `npm test`=265checks、`npm run smoke`=23/23、いずれもPASS。ES2020構文(`??`/`?.`)はgrepでゼロを確認。
+
 ## 2026-07-18 とどくメーターに安全注意書きを追加（PO承認済み改善候補①・Sonnet実装）
 
 HANDOFF「次の改善候補」①に対応。`#reach`（とどくメーター）の説明文の直下に、相談室/せんぱいの声と同系統の安全注意を1行追加した。

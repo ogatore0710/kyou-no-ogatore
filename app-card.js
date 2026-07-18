@@ -84,6 +84,7 @@ function makeCard(ds){
   const mk=document.getElementById("cardMaking");
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
   const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
+  const msExEl=document.getElementById("cardMsExportNudge"); if(msExEl) msExEl.classList.add("hidden"); // 前回のカードが節目だった名残を消す
   document.getElementById("cardModal").classList.remove("hidden");
   modalFocusOpen("cardModalBox");
   updateFabs();
@@ -99,6 +100,7 @@ function makeCard(ds){
     if(_pat&&_pat.key) motifKey=_pat.key;
     _milestone=MILESTONES.includes(_eff);
     _msInfo=_milestone?MS.find(x=>x.d===_eff):null;
+    if(msExEl) msExEl.classList.toggle("hidden",!_milestone); // 節目カードのときだけ「記録のひかえ」を促す
   }catch(e){}
   ensureCardFonts().then(()=>loadChara(()=>loadTypeIcon(state.type?state.type.key:null,()=>loadCardMotif(motifKey,()=>{
     try{

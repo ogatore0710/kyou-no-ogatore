@@ -757,7 +757,7 @@
       <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:16px;color:var(--sub);background:var(--card)">
       <div style="font-size:14px;color:var(--sub);margin-top:8px">Androidの方は「ホーム画面に追加」＋カレンダー登録がおすすめです</div>
     </details>
-    <div style="font-size:15px;margin:16px 0 8px">📦 記録のひっこし（機種変・バックアップ）</div>
+    <div style="font-size:15px;margin:16px 0 8px" id="exportSection">📦 記録のひっこし（機種変・バックアップ）</div>
     <button class="btn btn-line" style="font-size:15px" onclick="exportData()">📦 記録をコピーする</button>
     <div id="exportBox" class="hidden" style="margin-top:8px">
       <textarea id="exportText" readonly rows="3" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:14px;color:var(--sub);background:var(--card);resize:none"></textarea>
@@ -1084,6 +1084,7 @@
     <div style="font-size:14px;color:var(--sub);text-align:center;margin:8px 0 8px">下の「保存・シェアする」を押すと 保存やSNS投稿の画面がひらきます✅</div>
     <div id="cardSaveNote" class="hidden" style="font-size:13px;color:var(--tealink);font-weight:800;text-align:center;margin:0 0 8px">保存しました✅ ダウンロード（または写真）を確認してね</div>
     <button class="btn btn-primary" style="margin-bottom:8px" onclick="shareCard()">📤 保存・シェアする</button>
+    <div id="cardMsExportNudge" class="hidden" style="font-size:13px;color:var(--sub);text-align:center;margin:0 0 10px">せっかくの節目！記録のひかえを取っておくと あんしんです📦<br><button class="btn btn-ghost" style="font-size:13px;padding:8px 14px;margin-top:6px" onclick="goToExportFromCard()">記録のひかえを取る</button></div>
     <button class="btn btn-line" onclick="closeCard()">とじる</button>
   </div>
 </div>
@@ -2346,6 +2347,8 @@ function markCardSaved(){
 }
 // downloadCard/shareCardはapp-card.jsへ移動済み（2026-07-17）
 function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); modalFocusClose(); }
+// 節目カードの「記録のひかえを取る」導線: モーダルを閉じてから記録のひっこし(エクスポート)欄へ
+function goToExportFromCard(){ closeCard(); navTo("history"); gJump("exportSection"); }
 
 // ================= じまんカード（つづけてる日数＋すきな1本を1枚に） =================
 let bragPick=null;
@@ -2408,6 +2411,7 @@ function makeBragCard(){
   const mk=document.getElementById("cardMaking");
   if(mk){ mk.classList.remove("hidden"); mk.textContent="カードをつくってます…"; }
   const sn0=document.getElementById("cardSaveNote"); if(sn0) sn0.classList.add("hidden");
+  const msExEl=document.getElementById("cardMsExportNudge"); if(msExEl) msExEl.classList.add("hidden"); // じまんカードは節目対象外
   document.getElementById("cardModal").classList.remove("hidden");
   modalFocusOpen("cardModalBox");
   updateFabs();
