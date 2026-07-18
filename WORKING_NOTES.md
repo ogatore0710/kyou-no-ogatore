@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 WebKit実機スモークテストをCI(GitHub Actions)で週次実走・初グリーン達成（`webkit-smoke.yml`・Fable設計・Sonnet実装）
+
+直前に新設した`scripts/smoke-webkit.js`（9ステップ）が、このMac（macOS 26.5.1）ではPlaywright 1.61のWebKitビルド起動不能（dyldシンボル欠落）によりスキップ扱いのままだった問題を、CI（ubuntu-latest）上の本物のWebKitで実走させることで解消した。
+
+- **新規**: `.github/workflows/webkit-smoke.yml`（`workflow_dispatch` + 週1・毎週月曜09:30 JST=cron `30 0 * * 1`・`prod-health.yml`の直後の時間帯）。手順は`actions/checkout@v7`→`actions/setup-node@v5`(node-version: lts/*)→`npm ci`→`npx playwright-core install --with-deps webkit`→`npm run smoke:webkit`（`SMOKE_WEBKIT_REQUIRED=1`付き）。
+- **初グリーン実測**: run id [29627997605](https://github.com/ogatore0710/kyou-no-ogatore/actions/runs/29627997605)（`gh workflow run webkit-smoke.yml`→`gh run view`で確認）。jobトータル約57秒（Set up job 1s→checkout 1s→setup-node 3s→npm ci 4s→WebKit導入(--with-deps) 29s→スモーク本体17s→後処理1s）。9ステップすべて実測でPASS（本物のWebKit=JavaScriptCore+WebCoreで初めて踏んだ）: 1-フレッシュ起動→welcome→スキップ / 2-リロードでwelcome再出現なし / 3-かたさチェック完走(タイプ=しなやかネコ) / 4-きょうやった！(0日→1日) / 5-メモ保存 / 6-記録カード生成(885ms・data URL長898994) / 7-相談室ゴールデンフロー(チップ「肩こり・首こり」→回答4件) / 8-動画検索(「朝」→454本・カード24件表示) / 9-コンソールエラー総数0。**WebKit実機でのアプリ実バグは発見されなかった**。
+- **見せかけグリーン対策**: `SMOKE_WEBKIT_REQUIRED=1`環境変数を新設。既定（ローカルmac向け）では「WebKit未導入/起動失敗」を診断メッセージ付きexit 0（スキップ）にしているが、この変数が立っているとexit 1（失敗）に倒す。CI側のworkflowでこれを渡すことで、WebKit起動失敗が誤ってスキップ＝グリーンとして扱われることを防いでいる。
+- **`scripts/smoke-webkit.js`側のLinux対応差分（9ステップの中身・アサーションは無変更）**: `findWebkit()`の候補順を「`SMOKE_WEBKIT_PATH`→**`webkit.executablePath()`（新規）**→macOSの既定キャッシュパス」に変更。`playwright-core`本体の`executablePath()`はプラットフォームに応じて`pw_run.sh`（DYLD_FRAMEWORK_PATH/DYLD_LIBRARY_PATHを設定してから起動するラッパー）や Linux 側のMiniBrowser起動スクリプトを返すため、macOS/Linuxどちらでも自己解決できる。
+- **予期しない副産物（重要）**: 上記のfindWebkit変更により、**このMac（macOS 26.5.1）でもnpm run smoke:webkitが実際に9/9 PASSするようになった**（従来は「ローカルmacはスキップのまま」という想定だったが、実測ではスキップではなく実行・全PASSに変わった）。原因は、旧コードが直接`Playwright.app/Contents/MacOS/Playwright`バイナリを叩いていたためDYLD_FRAMEWORK_PATH/DYLD_LIBRARY_PATHが未設定のままシステムの`WebKit.framework`（私有SPI非互換）を拾っていたのに対し、`webkit.executablePath()`が返す`pw_run.sh`ラッパーはこれらの環境変数をバンドル同梱のdylibへ明示的に向けてから起動するため、システムFrameworkとの非互換を回避できたと推測される（2026-07-18実測でSMOKE_WEBKIT_REQUIRED=1でも9/9 PASSを複数回再現確認）。**旧WORKING_NOTES記載の「macOS 26.5.1ではWebKit起動不能」は、直接パス指定という実装上の制約であり、Playwright側・OS側の恒久的な非互換ではなかった**可能性が高い。念のため今後も週次CIでの実走を正とし、ローカルは補助的な確認として扱う。
+- アプリ本体のコードは一切変更していない。`npm test`=267 checks、`npm run smoke`=24/24、いずれも既存どおり全PASS（回帰なし）。
+- CI無料枠への配慮: 週1(月曜09:30 JST)+手動`workflow_dispatch`のみで、pushトリガーは設定していない。`--with-deps webkit`のシステム依存関係インストールを含め、1回あたり約1分（今回実測57秒）。
+
 ## 2026-07-18 WebKit実機スモークテストを新設（scripts/smoke-webkit.js・Sonnet実装）
 
 ユーザーの大半はiPhone(Safari)だが、既存の自動E2E（`scripts/smoke.js`・24ステップ）はpuppeteer-core=Chromiumのみで、Safari系エンジン（WebKit）でのクリティカルパス検証が丸ごと欠けていた。過去に「iOSでカード生成が固まる」実機バグ（対策=`ensureCardFonts`の2.2秒タイムアウト）があった経緯もあり、WebKit専用のサブセット版スモークテストを新設した。
