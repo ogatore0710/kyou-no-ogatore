@@ -587,7 +587,7 @@
     <div class="chips" id="soudanCardChips"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="todayCard">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="4" fill="#DFF5F2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>きょうの1本</div>
     <div id="anchorGreet" style="font-size:14px;color:var(--sub);margin:-4px 0 8px;font-weight:800"></div>
     <div class="seg">
@@ -2723,6 +2723,13 @@ function drawBragCard(thumb){
 // ---- ホーム描画 ----
 function renderHome(){
   renderToday(); renderStreak(); renderQuote(); renderAnchor(); welcomeCheck(); renderRecheck(); renderPlanCard();
+  // はじめの1本ガイドで1日目をやり終えた直後（きょうやった！済み・まだ同じ日）は、もう見る動画がないのに
+  // 「きょうの1本」カード一式（あさ/よる切替・動画・「動画がおわったら〜」の案内）が再表示されて紛らわしい
+  // という本人指摘（2026-07-18）。翌日になれば通常どおり復活する（dates.includes(todayStr())がfalseに戻るため）
+  try{
+    const fdDoneToday = store.get("fd",null)===1 && getStreakData().dates.includes(todayStr());
+    const tc=document.getElementById("todayCard"); if(tc) tc.classList.toggle("hidden",fdDoneToday);
+  }catch(e){}
   const lr=document.getElementById("lastResult");
   const done2=!!(state.type&&TYPES[state.type.key]);
   document.getElementById("ckBody").classList.toggle("hidden",done2);
@@ -3876,7 +3883,7 @@ window.addEventListener("online",()=>{
 const ONBOARDING_SCRIPT={
   greet:[
     "はじめまして！理学療法士のオガトレです💪",
-    "ここは1日1本のストレッチをいっしょに続ける場所だよ",
+    "ここは毎日のストレッチを応援する場所だよ！",
     "４つだけ教えて！あなた用にととのえるね😊"
   ],
   questions:[
@@ -3980,15 +3987,19 @@ function obSay(lines,then){
     if(wait===0) next(); else setTimeout(next,wait);
   })();
 }
+// 質問ごとに色を変える（chip-a〜dを質問の順番で巡回）。全部teal(chip-b)固定だと、会話ログを
+// あとから見返したときにどの行がどの設問への回答か見分けにくいという本人指摘（2026-07-18）に対応。
+const OB_CHIP_VARIANTS=["chip-a","chip-b","chip-c","chip-d"];
 function obAskQ(){
   const q=ONBOARDING_SCRIPT.questions[obQi];
   if(!q){ obRoute(); return; }
+  const variant=OB_CHIP_VARIANTS[obQi%OB_CHIP_VARIANTS.length];
   obSay([q.q],function(){
     const box=document.getElementById("obChips");
     box.innerHTML="";
     q.chips.forEach(c=>{
       const b=document.createElement("button");
-      b.className="chip chip-b";
+      b.className="chip "+variant;
       b.textContent=c.label;
       b.onclick=function(){ obPick(q,c); };
       box.appendChild(b);

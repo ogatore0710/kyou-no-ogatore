@@ -73,7 +73,7 @@ const TYPES = {
     copy:"おっと、けっこうしなやか！あなたはもう「しなやかネコ」。ここから先は、そのしなやかさを守るステージです。",
     hope:"しなやかさは資産。猫が毎朝伸びをするみたいに、朝と夜の習慣で守っていきましょう。悩みに合わせた1本もどうぞ。",
     pt:"関節の可動域は良好です。次の課題は<b>「維持」と「使い方」</b>。柔らかくても、支える筋力や毎日の習慣が崩れると体は硬さに戻ります。朝晩の軽いルーティンで可動域を守りつつ、悩みのある部位を先回りでケアしましょう。",
-    rx:[], pool:["asa10","asa9shi","asaGachi5","asa3","honki9","yoru9umi","jukusui9","jiritsu10","ofuro6","choyokin10","ibuki10","nagomi7"]},
+    rx:["asa10"], pool:["asa9shi","asaGachi5","asa3","honki9","yoru9umi","jukusui9","jiritsu10","ofuro6","choyokin10","ibuki10","nagomi7"]},
 };
 
 const WORRY = {
