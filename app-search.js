@@ -73,10 +73,10 @@ function drawResults(){
   const kwText=[q, activeTag].filter(Boolean).join(" ");
   document.getElementById("reqMsg").innerHTML = shown.length
     ? "やりたいストレッチが見つからない？<br>オガトレに直接リクエストを送れます📮"
-    : (offlineCat ? "" : "ごめんなさい まだなかった…！<br>リクエストを送ってもらえたら動画づくりの参考にします📮");
+    : (offlineCat ? "" : "ごめんなさい まだなかったみたい💦<br>リクエストを送ってもらえたら動画づくりの参考にします📮");
   document.getElementById("reqBtn").classList.toggle("hidden", offlineCat&&!shown.length);
   const subject=encodeURIComponent("ストレッチのリクエスト（きょうのオガトレ）");
-  const body=encodeURIComponent(`こんなストレッチの動画が欲しいです：\n${kwText||"（ここに書いてください）"}\n\n--\nきょうのオガトレ「動画を探す」から送信`);
+  const body=encodeURIComponent(`こんなストレッチの動画が欲しいです：\n${kwText||"（ここに書いてね）"}\n\n--\nきょうのオガトレ「動画を探す」から送信`);
   document.getElementById("reqBtn").href=`mailto:kyou-no@ogatore.jp?subject=${subject}&body=${body}`;
   document.getElementById("reqBtn").textContent = kwText ? `「${kwText}」をリクエストする` : "リクエストを送る";
 }

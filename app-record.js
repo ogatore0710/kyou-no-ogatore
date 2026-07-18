@@ -47,7 +47,7 @@ function renderStreak(){
   if(!did && streakBrokenNow(st)) contTxt="きょうやると新しい章のスタート🌱";
   document.getElementById("totalDays").textContent = contTxt;
   const btn=document.getElementById("doneBtn");
-  btn.innerHTML = did?"きょうの分完了！<br>おつかれさまでした✨":"きょうやった！";
+  btn.innerHTML = did?"きょうの分は完了！<br>おつかれさまでした😊":"きょうやった！";
   btn.classList.toggle("did",did);
   btn.disabled=did;
   const memos=store.get("memos",{});

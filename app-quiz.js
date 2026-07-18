@@ -251,7 +251,7 @@ function showResult(saved){
     document.getElementById("rxList").innerHTML =
       '<div class="sd-row oga" style="display:flex;gap:8px;margin-bottom:8px">'
         +'<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">'
-        +'<div class="sd-b">タップするとYouTubeがひらくよ 見おわったらこのアプリにもどってきて、下の「きょうやった！」を押してね💪</div>'
+        +'<div class="sd-b">タップするとYouTubeがひらくよ 見おわったらこのアプリにもどってきて 下の「きょうやった！」を押してね💪</div>'
       +'</div>'
       +'<div class="fd-hero">'+videoCard(rx[0], "きょうはこれ1本でOK！")+'</div>'
       +rx.slice(1).map((vk,i)=>videoCard(vk, fixed?["②メインの1本","③しあげ"][i]:null)).join("");

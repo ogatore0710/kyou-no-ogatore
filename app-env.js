@@ -60,7 +60,7 @@ function a2hsShow(kind,cont){
     body.innerHTML="画面下部の共有ボタン（□に↑のマーク）をタップして<br>「ホーム画面に追加」を選んでね📲<br>次からアプリみたいにワンタップで開けるようになるよ😊";
     a2hsAddBtn("あとで","btn-line",function(){ a2hsClose(); });
   }else if(kind==="ios-other"){
-    body.innerHTML="ホーム画面に追加するために、<b>Safari</b>で開いてくださいね🙏<br>共有メニューから「Safariで開く」を選んでみてね";
+    body.innerHTML="ホーム画面に追加するために、<b>Safari</b>で開いてね🙏<br>共有メニューから「Safariで開く」を選んでみてね";
     a2hsAddBtn("あとで","btn-line",function(){ a2hsClose(); });
   }else if(kind==="android-prompt"){
     body.innerHTML="ホーム画面に追加すると、次からアプリみたいにワンタップで開けるようになるよ😊";
