@@ -752,7 +752,9 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
   );
 
   // #todayVideoタップ検知IIFEは変更せず、#result専用の同型IIFEを追加しただけであることを確認する
-  const pendingNudgeIifeCount = (mainScript.match(/kyono_pendingNudgeVideo/g) || []).length;
+  // （2026-07-18 改善候補⑤で renderQuote 側に読み取り専用の3件目の参照が増えたため、
+  //   「書き込み」だけを数える方式に変更。読み取り箇所の存在/副作用なしは別アサーションで確認する）
+  const pendingNudgeWriteCount = (mainScript.match(/sessionStorage\.setItem\(["']kyono_pendingNudgeVideo["']/g) || []).length;
   assert(
     "index.html: #todayVideo tap-detection IIFE is untouched (byte-identical listener body reused for #result)",
     /getElementById\(["']todayVideo["']\)[\s\S]{0,60}addEventListener\(["']click["']/.test(mainScript),
@@ -765,8 +767,23 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
   );
   assert(
     "index.html: pendingNudgeVideo write logic appears exactly twice (once per listener, no third copy)",
-    pendingNudgeIifeCount === 2,
-    `found ${pendingNudgeIifeCount} occurrences (expected 2: #todayVideo + #result)`
+    pendingNudgeWriteCount === 2,
+    `found ${pendingNudgeWriteCount} write occurrences (expected 2: #todayVideo + #result)`
+  );
+  // 改善候補⑤: 復帰ナッジの常時表示化。renderQuoteが読み取るpendingVideoReturnActive()は
+  // sessionStorageへの書き込み(setItem/removeItem)を一切行わないこと（renderHomeは頻繁に呼ばれるため副作用禁止）
+  const pendingVideoReturnActiveFn = extractFunction(mainScript, "pendingVideoReturnActive");
+  assert(
+    "index.html: pendingVideoReturnActive() exists and only reads kyono_pendingNudgeVideo (read-only・no side effects)",
+    !!pendingVideoReturnActiveFn
+      && /sessionStorage\.getItem\(["']kyono_pendingNudgeVideo["']\)/.test(pendingVideoReturnActiveFn)
+      && !/sessionStorage\.(setItem|removeItem)/.test(pendingVideoReturnActiveFn),
+    "state-derived home nudge must not write to sessionStorage from renderHome's render path"
+  );
+  assert(
+    "index.html: renderQuote() consults pendingVideoReturnActive() before falling back to the daily QUOTES rotation",
+    /function renderQuote\(\)\{[\s\S]{0,200}pendingVideoReturnActive\(\)/.test(mainScript),
+    "おかえり文言は通常の「きょうのひとこと」より先に判定されること"
   );
 
   // DOM順序（2026-07-17 PO実機フィードバック）: 「きょうやった！」後の導線は

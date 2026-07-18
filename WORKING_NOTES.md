@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 復帰ナッジの「一発勝負」を常時表示化＋rDoneNudgeボタン文言バグを修正（PO承認済み改善候補⑤・Sonnet実装）
+
+HANDOFF「次の改善候補」⑤に対応。`checkDoneNudge()`の一発ナッジ（pulse+scroll）自体は現状維持のまま、`renderHome`側に状態導出型の常時表示を追加した。
+
+- **常時表示の仕組み**: 既存の`sessionStorage`キー`kyono_pendingNudgeVideo`（`{d:日付,v:動画ID}`・`checkDoneNudge`では消費されない）を、新設の読み取り専用関数`pendingVideoReturnActive()`で判定（`d===todayStr()`かつ今日が`getStreakData().dates`に未登録）。`renderQuote()`（ホーム上部の「きょうのひとこと」吹き出し=`#qbubble`、`renderHome()`から毎回呼ばれる）の先頭でこれを見て、真なら通常のQUOTES日替わり文言の代わりに`おかえりなさい / おわったら下の「きょうやった！」を押してね✅`を表示する。`renderHome`はごく頻繁に呼ばれるため、**判定は`sessionStorage.getItem`のみで書き込みなし**（副作用ゼロ）を徹底。記録すると`dates`に今日が入り条件が自然に崩れて通常表示に戻るので、明示的なキー削除は行っていない。
+- **rDoneNudgeボタン文言バグの修正**: `checkDoneNudge()`の結果画面向け分岐で、ボタン文言が常に`✅ 1日目の記録をつけにいく`固定だったのを、`fdActive()`（`store.get("fd")==="go" && getStreakData().total===0`＝はじめの1本ガイド中）で出し分け。ガイド外（例: soudanルート経由で#resultに来た既存ユーザー等）は`✅ きょうの記録をつけにいく`になるよう修正。
+- `scripts/qa.js`: 既存の「pendingNudgeVideoは書き込みが2箇所だけ」という回帰チェックが、今回追加した読み取り箇所（3件目の`kyono_pendingNudgeVideo`参照）で誤検知するようになったため、`setItem`だけを数える方式に変更。加えて`pendingVideoReturnActive()`が読み取り専用であること・`renderQuote()`が実際にこれを参照していることを新規アサーションで追加（267 checksに、+2）。
+- `scripts/smoke.js`にステップ「7g」を新設: (a)動画タップ復帰直後は「おかえり」表示 (b)別タブへ移動して戻ってきても（=renderHomeを再度呼んでも）維持される＝常時表示化の本体 (c)「きょうやった！」記録後は通常挨拶に戻る (d)pendingNudgeVideoの日付が今日と違えば発火しない (e)rDoneNudgeボタン文言がガイド中/ガイド外で出し分かれる、を実測。
+- **検証はヘッドレスでの実測必須という指示どおり**、上記(a)〜(e)すべてを`store.set`/`sessionStorage`直接操作＋`renderHome()`/`checkDoneNudge()`呼び出しで実機相当に確認（date="翌日"の偽装は`todayStr()`を直接モックせず、`pendingNudgeVideo.d`を意図的に前日にする方式で同じ分岐を検証）。
+- 文言（`おかえりなさい！おわったら下の「きょうやった！」を押してね✅`は既存のcheckDoneNudge文言を再利用、rDoneNudgeの2文言）は**PO実機レビューで要確認**。
+- `npm test`=267checks、`npm run smoke`=24/24、いずれもPASS。ES2020構文(`??`/`?.`)はgrepでゼロを確認。
+
 ## 2026-07-18 節目カード表示時に「記録のひかえ」を促す導線を追加（PO承認済み改善候補④・Sonnet実装）
 
 HANDOFF「次の改善候補」④に対応。記録カードモーダル（`app-card.js`の`makeCard()`）で節目日（`MILESTONES`に一致する日）のカードを表示したときだけ、カード画像の外・下部（保存・シェアするボタンの下、とじるボタンの上）に1行＋小ボタンを表示する。

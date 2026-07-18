@@ -1627,6 +1627,58 @@ async function main() {
       return "相談室→カード図鑑→記録カード→はじめてガイド の4モーダルすべてで、開く→ダイアログへフォーカス移動・閉じる→トリガー要素へフォーカス復帰を確認";
     });
 
+    // 7g. 復帰ナッジの常時表示化（改善候補⑤）: kyono_pendingNudgeVideoが立っている間はrenderHomeのたび
+    //     「おかえり」文言を出し続ける（一発勝負のpulseナッジとは別物）。記録すると自然に通常表示へ戻ること・
+    //     日付が違えば発火しないこと・結果画面のrDoneNudgeボタン文言がガイド中とそれ以外で出し分かれることを確認する
+    await step("7g-復帰ナッジの常時表示化(状態導出・renderHomeのたび判定/記録で解除/日付ずれで非発火)", async () => {
+      const result = await page.evaluate(() => {
+        const today = todayStr();
+        // (a)(b) タップ後の復帰想定: pendingNudgeVideoが立っている間は何度renderHomeしても出続ける
+        store.set("streak2", { dates: [], count: 0, total: 0 });
+        sessionStorage.setItem("kyono_pendingNudgeVideo", JSON.stringify({ d: today, v: "abc12345678" }));
+        renderHome();
+        const firstText = document.getElementById("qbubble").textContent;
+        navTo("history"); navTo("home"); renderHome(); // 別タブへ移動して戻ってきた相当
+        const secondText = document.getElementById("qbubble").textContent;
+        // (c) 記録すると自然に通常の「きょうのひとこと」へ戻る
+        store.set("streak2", { dates: [today], count: 1, total: 1 });
+        renderHome();
+        const afterDoneText = document.getElementById("qbubble").textContent;
+        // (d) 日付がずれていれば発火しない
+        store.set("streak2", { dates: [], count: 0, total: 0 });
+        sessionStorage.setItem("kyono_pendingNudgeVideo", JSON.stringify({ d: prevOf(today), v: "abc12345678" }));
+        renderHome();
+        const staleDayText = document.getElementById("qbubble").textContent;
+        sessionStorage.removeItem("kyono_pendingNudgeVideo");
+
+        // rDoneNudgeボタン文言: ガイド中(fd="go"かつtotal===0)は「1日目の」、それ以外は「きょうの」
+        store.set("fd", "go");
+        store.set("streak2", { dates: [], count: 0, total: 0 });
+        sessionStorage.setItem("kyono_pendingNudge", today);
+        document.getElementById("result").classList.remove("hidden");
+        document.getElementById("home").classList.add("hidden");
+        checkDoneNudge();
+        const guideLabel = document.getElementById("rDoneNudgeBtn") ? document.getElementById("rDoneNudgeBtn").textContent : null;
+        store.set("fd", 1);
+        store.set("streak2", { dates: [], count: 0, total: 3 });
+        sessionStorage.setItem("kyono_pendingNudge", today);
+        checkDoneNudge();
+        const nonGuideLabel = document.getElementById("rDoneNudgeBtn") ? document.getElementById("rDoneNudgeBtn").textContent : null;
+        document.getElementById("result").classList.add("hidden");
+        document.getElementById("home").classList.remove("hidden");
+        store.set("fd", null);
+
+        return { firstText, secondText, afterDoneText, staleDayText, guideLabel, nonGuideLabel };
+      });
+      if (result.firstText.indexOf("おかえりなさい") === -1) throw new Error("動画タップ復帰直後のホームでおかえり文言が出ていない");
+      if (result.secondText.indexOf("おかえりなさい") === -1) throw new Error("別タブへ移動して戻ってもおかえり文言が維持されていない（常時表示化になっていない）");
+      if (result.afterDoneText.indexOf("おかえりなさい") !== -1) throw new Error("記録後もおかえり文言が残っている（通常挨拶に戻っていない）");
+      if (result.staleDayText.indexOf("おかえりなさい") !== -1) throw new Error("日付が違うpendingNudgeVideoでもおかえり文言が出てしまっている");
+      if (result.guideLabel !== "✅ 1日目の記録をつけにいく") throw new Error("はじめの1本ガイド中のrDoneNudgeボタン文言が想定と違う: " + result.guideLabel);
+      if (result.nonGuideLabel !== "✅ きょうの記録をつけにいく") throw new Error("ガイド外ユーザーのrDoneNudgeボタン文言が「1日目の」のままになっている(バグ回帰): " + result.nonGuideLabel);
+      return "タップ復帰→おかえり表示／別タブ往復でも維持／記録で解除／日付ずれ非発火／rDoneNudgeボタン文言をガイド中とそれ以外で出し分け、を確認";
+    });
+
     // 8. 最終確認: コンソールエラー総数0
     currentStep = "8-最終確認";
     if (consoleErrors.length === 0) {

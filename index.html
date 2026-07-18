@@ -1924,7 +1924,22 @@ function setBigtext(on){ store.set("bigtext",!!on); applyBigtext(); }
 
 // ---- きょうのひとこと（尾形さんの声かけ） ----
 const QUOTES=["体がガチガチでもだいじょうぶ","頑張ろうね","がんばったね おつかれさまでした","痛気持ちいいところで止めましょうね","腹筋は無理に使わなくていいですよ","きつい方は足首を触ってくださいね","呼吸 止めないでね","昨日より1ミリ前に進んでたらOK","休むのもストレッチのうちです","3・2・1 はい おつかれさまでした","体は正直！ちゃんと応えてくれます","『できない』は『のびしろ』の別名です","1日1本で十分です","つづけてるあなたがいちばんすごい","お膝もいたわってあげてくださいね"];
+// 動画タップ→離脱→復帰後、まだ記録前なら常時「おかえり」表示にする（一発勝負のpulseナッジと別に、
+// ホームに来るたび状態から導出する。記録すると dates に today が入り自然に通常表示へ戻るので、
+// ここではsessionStorageの削除等の副作用は起こさない＝読み取りのみ。renderHomeから毎回呼ばれるため厳守）
+function pendingVideoReturnActive(){
+  try{
+    const raw=sessionStorage.getItem("kyono_pendingNudgeVideo");
+    if(!raw) return false;
+    const pv=JSON.parse(raw);
+    return !!(pv && pv.d===todayStr() && !getStreakData().dates.includes(todayStr()));
+  }catch(e){ return false; }
+}
 function renderQuote(){
+  if(pendingVideoReturnActive()){
+    document.getElementById("qbubble").innerHTML=`<div class="qb-b"><span class="ql">おかえりなさい</span>おわったら下の「きょうやった！」を押してね✅</div><img src="assets/chara-hitokoto.png" alt="">`;
+    return;
+  }
   document.getElementById("qbubble").innerHTML=`<div class="qb-b"><span class="ql">きょうのひとこと</span>「${QUOTES[dayIndex()%QUOTES.length]}」</div><img src="assets/chara-hitokoto.png" alt="">`;
 }
 
@@ -3602,8 +3617,11 @@ function checkDoneNudge(){
     if(resultEl && !resultEl.classList.contains("hidden")){
       const rd=document.getElementById("rDoneNudge");
       if(rd){
+        // 「1日目の」表現ははじめの1本ガイド専用（ガイド外のユーザーにも出てしまうバグの修正）
+        const isFdGuide=(typeof fdActive==="function")&&fdActive();
+        const goLabel=isFdGuide?"✅ 1日目の記録をつけにいく":"✅ きょうの記録をつけにいく";
         rd.innerHTML='<div style="font-size:15px;font-weight:800;margin-bottom:10px">おかえりなさい！✨ ストレッチできた？</div>'
-          +'<button class="btn btn-primary" id="rDoneNudgeBtn">✅ 1日目の記録をつけにいく</button>';
+          +`<button class="btn btn-primary" id="rDoneNudgeBtn">${goLabel}</button>`;
         rd.classList.remove("hidden");
         const rb=document.getElementById("rDoneNudgeBtn");
         if(rb) rb.onclick=function(){
