@@ -56,7 +56,8 @@ const TYPES = {
     copy:"背中で手がつながらないのは、肩甲骨まわりの羽根が飛べないダチョウみたいに、すっかり休眠しているから。デスクワークの勲章です。",
     hope:"ダチョウの羽根だって、バサバサ動かせば血が巡ります。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。",
     pt:"硬いのは<b>肩甲骨まわり（僧帽筋・広背筋・大胸筋など）</b>。肩甲骨の動きが小さくなると、首と肩の筋肉が代わりに働き続けて<b>肩こり・巻き肩・浅い呼吸</b>の原因に。肩甲骨を動かす習慣がつくと、背中が軽くなって姿勢も変わります。",
-    rx:["kenko12"], pool:["yoru15","asa5","kenkoIsho","kenko22","kenkoIsho2","kenko3cho","katakori","katakori8","zutsu7","suwatta8","nagomi7"]},
+    // yoru15(16分)は16分以上は毎日のおすすめから外す(2026-07-18 PO方針: 視聴体験として長すぎる)
+    rx:["kenko12"], pool:["asa5","kenkoIsho","kenko22","kenkoIsho2","kenko3cho","katakori","katakori8","zutsu7","suwatta8","nagomi7"]},
   ashi: {name:"棒立ちペンギン", area:"足首",
     copy:"しゃがむとかかとがプカッ あるいは後ろにコロン。それは足首がカチッと固まっている証拠。ペンギンは可愛いけど、転ぶと痛い。",
     hope:"足首がゆるむと、歩くのも立つのも軽くなります。つまむだけの簡単ストレッチから始めましょう。",
@@ -66,7 +67,8 @@ const TYPES = {
     copy:"全体的に、ガチガチ。でも言いかえれば、どこを伸ばしても効く「伸びしろの宝庫」ということ。",
     hope:"ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、ガチガチの体もちゃんと応えてくれます。",
     pt:"特定の場所というより<b>全身が複合的に硬い状態</b>。この場合は部位を絞るより、全身をまんべんなく動かすルーティンで底上げするのが近道です。<b>どこを伸ばしても効く＝変化を感じやすい</b>ので、実はいちばん楽しいスタート地点だったりします。",
-    rx:["honki9"], pool:["asa10","asaBaki9","yoru9umi","yoru9ice","yaruki22","zenshinCho","yoru12kai","ofuro20","zenshin15","senaka5","ofuro10","nagomi7"]},
+    // yaruki22(23分)・ofuro20(20分)・zenshin15(16分)は16分以上は毎日のおすすめから外す(2026-07-18 PO方針: 視聴体験として長すぎる)
+    rx:["honki9"], pool:["asa10","asaBaki9","yoru9umi","yoru9ice","zenshinCho","yoru12kai","senaka5","ofuro10","nagomi7"]},
   yawara:{name:"しなやかネコ", area:"メンテナンス",
     copy:"おっと、けっこうしなやか！あなたはもう「しなやかネコ」。ここから先は、そのしなやかさを守るステージです。",
     hope:"しなやかさは資産。猫が毎朝伸びをするみたいに、朝と夜の習慣で守っていきましょう。悩みに合わせた1本もどうぞ。",
@@ -201,8 +203,18 @@ function currentRx(typeKey){
   const T=TYPES[typeKey];
   const need=3-T.rx.length;
   const r=rotationIndex();
+  const L=T.pool.length;
+  const spacing=Math.floor(L/(need===3?3:2));
   const picks=[];
-  for(let i=0;i<need;i++) picks.push(T.pool[(r+i)%T.pool.length]);
+  for(let i=0;i<need;i++){
+    let idx=(r+i*spacing)%L;
+    let tries=0;
+    while((T.rx.indexOf(T.pool[idx])!==-1 || picks.indexOf(T.pool[idx])!==-1) && tries<L){
+      idx=(idx+1)%L;
+      tries++;
+    }
+    picks.push(T.pool[idx]);
+  }
   return T.rx.concat(picks);
 }
 

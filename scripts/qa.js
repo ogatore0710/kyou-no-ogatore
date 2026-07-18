@@ -136,9 +136,10 @@ function extractConstArray(code, name) {
 // {}リテラル用。バレワードキー(rare_neko:"...")混在で不正JSONになるため、extractJsonAssignment(JSON.parse)は使えず
 // vm評価する。波かっこの深さと文字列(エスケープ込み)を追いながら対応する"};"を探す。
 function extractConstObject(code, name) {
-  const marker = `const ${name}=`;
-  const start = code.indexOf(marker);
-  if (start === -1) throw new Error(`${name} assignment not found`);
+  const markerRe = new RegExp(`const\\s+${name}\\s*=`);
+  const markerMatch = markerRe.exec(code);
+  if (!markerMatch) throw new Error(`${name} assignment not found`);
+  const start = markerMatch.index;
   const braceStart = code.indexOf("{", start);
   if (braceStart === -1) throw new Error(`${name} object start not found`);
   let depth = 0;
@@ -1530,6 +1531,116 @@ function checkDexCopyCoverage(mainScript) {
   assert("DEX_FLAVOR_NORMAL: NORMAL_CARDS全name網羅", missingFlavorNormal.length === 0, missingFlavorNormal.join(", ") || `${normalNames.length} names`);
 }
 
+// 2026-07-18 PO依頼「おすすめ3本 選定ロジックv2」の機械チェック。rotationIndexをスタブしたvmサンドボックスで
+// app-quiz.jsを実行し、TYPES/currentRxを取り出してr=0..29(約1ヶ月分)をシミュレートする。
+// 検証: (1)全タイプ・全rで3本が互いに異なる (2)連続する2日で3本とも同一にならない
+// (3)14日間でプール由来の登場動画がmin(L,10)種以上(ちゃんと周回する) (4)全pickがV(動画マスタ)に実在
+// (5)16分超の長尺4本(yaruki22/ofuro20/zenshin15/yoru15)が毎日のおすすめpoolから除外されている
+function checkRxRotation(mainScript, quizScript) {
+  let V;
+  try {
+    V = extractConstObject(mainScript, "V");
+  } catch (err) {
+    fail("処方ローテーション: V抽出", err.message);
+    return;
+  }
+
+  const sandbox = { __r: 0 };
+  sandbox.rotationIndex = function () { return sandbox.__r; };
+  vm.createContext(sandbox);
+  try {
+    new vm.Script(quizScript, { filename: "app-quiz.js" }).runInContext(sandbox);
+    // app-quiz.jsのTYPES/currentRxはconstなのでsandbox自身のプロパティにはならない。
+    // 同じコンテキストで追加スクリプトを実行し、varで明示的にサンドボックスへ持ち出す。
+    new vm.Script("var __EXPORT={TYPES:TYPES,currentRx:currentRx};").runInContext(sandbox);
+  } catch (err) {
+    fail("処方ローテーション: app-quiz.js実行", err.message);
+    return;
+  }
+  const TYPES = sandbox.__EXPORT && sandbox.__EXPORT.TYPES;
+  const currentRx = sandbox.__EXPORT && sandbox.__EXPORT.currentRx;
+  if (!TYPES || typeof currentRx !== "function") {
+    fail("処方ローテーション: TYPES/currentRxの取得", "");
+    return;
+  }
+
+  const FORBIDDEN = ["yaruki22", "ofuro20", "zenshin15", "yoru15"];
+  const typeKeys = Object.keys(TYPES);
+  const foundForbidden = [];
+  for (const tk of typeKeys) {
+    for (const id of FORBIDDEN) {
+      if (TYPES[tk].pool.includes(id)) foundForbidden.push(`${tk}:${id}`);
+    }
+  }
+  assert(
+    "処方ローテーション: 長尺4本(yaruki22/ofuro20/zenshin15/yoru15)がpoolから除外されている",
+    foundForbidden.length === 0,
+    foundForbidden.join(", ") || "ok"
+  );
+
+  const DAYS = 30;
+  const history = {};
+  typeKeys.forEach((tk) => { history[tk] = []; });
+
+  let dupFail = null;
+  let notInV = null;
+  for (let r = 0; r < DAYS; r++) {
+    sandbox.__r = r;
+    for (const tk of typeKeys) {
+      const rx = currentRx(tk);
+      if (!dupFail && (!Array.isArray(rx) || new Set(rx).size !== 3)) {
+        dupFail = `${tk}@r${r}: ${JSON.stringify(rx)}`;
+      }
+      if (!notInV) {
+        const missing = (rx || []).filter((k) => !(k in V));
+        if (missing.length) notInV = `${tk}@r${r}: ${missing.join(",")}`;
+      }
+      history[tk].push(rx);
+    }
+  }
+  assert("処方ローテーション: 全タイプ・全rで3本が互いに異なる", !dupFail, dupFail || `${typeKeys.length}types x ${DAYS}r`);
+  assert("処方ローテーション: 全pickがVに実在する", !notInV, notInV || "ok");
+
+  let sameConsecutive = null;
+  for (const tk of typeKeys) {
+    const days = history[tk];
+    for (let i = 1; i < days.length && !sameConsecutive; i++) {
+      const a = days[i - 1].slice().sort().join(",");
+      const b = days[i].slice().sort().join(",");
+      if (a === b) sameConsecutive = `${tk}: r${i - 1}とr${i}が完全一致(${b})`;
+    }
+    if (sameConsecutive) break;
+  }
+  assert("処方ローテーション: 連続する2日で3本とも同一にならない", !sameConsecutive, sameConsecutive || "ok");
+
+  let coverageFail = null;
+  for (const tk of typeKeys) {
+    const T = TYPES[tk];
+    const L = T.pool.length;
+    const need = Math.min(L, 10);
+    const poolSeen = new Set();
+    for (let r = 0; r < 14; r++) {
+      sandbox.__r = r;
+      currentRx(tk).forEach((k) => { if (T.pool.includes(k)) poolSeen.add(k); });
+    }
+    if (poolSeen.size < need && !coverageFail) coverageFail = `${tk}: 14日で${poolSeen.size}種(必要${need}種, L=${L})`;
+  }
+  assert("処方ローテーション: 14日間でプール由来の登場動画がmin(L,10)種以上", !coverageFail, coverageFail || "ok");
+}
+
+// 2026-07-18 PO依頼「きょうのひとこと 30本追加」の機械チェック。QUOTESは15本→45本になったはずで、
+// 将来の削除・巻き戻し事故を検知する下限チェック(>=45)。
+function checkQuotesCoverage(mainScript) {
+  let quotes;
+  try {
+    quotes = extractConstArray(mainScript, "QUOTES");
+  } catch (err) {
+    fail("きょうのひとこと: QUOTES抽出", err.message);
+    return;
+  }
+  assert("きょうのひとこと: QUOTES件数>=45", quotes.length >= 45, `${quotes.length} quotes`);
+}
+
 function checkPythonScripts() {
   const scripts = fs.readdirSync(path.join(ROOT, "scripts"))
     .filter((name) => name.endsWith(".py"))
@@ -1583,6 +1694,8 @@ function main() {
   checkCatalogHealthWorkflow();
   checkCardDex(mainScript);
   checkDexCopyCoverage(mainScript);
+  checkRxRotation(mainScript, quizScript);
+  checkQuotesCoverage(mainScript);
   checkPythonScripts();
 
   if (failures.length) {
