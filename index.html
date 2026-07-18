@@ -3882,9 +3882,9 @@ window.addEventListener("online",()=>{
 // 吹き出しは1個40字以内・全部で15枚以内（現在10枚）
 const ONBOARDING_SCRIPT={
   greet:[
-    "はじめまして！理学療法士のオガトレです💪",
+    "いつもありがとうございます！理学療法士のオガトレです！",
     "ここは毎日のストレッチを応援する場所だよ！",
-    "４つだけ教えて！あなた用にととのえるね😊"
+    "最初に４つだけ教えてね！あなた用にこのアプリをととのえます☺️"
   ],
   questions:[
     {key:"bigtext", q:"もじの大きさ、どっちが見やすい？",
@@ -3972,13 +3972,13 @@ function calendarAskEl(leadText){
     : "あとで「続ける設定」からでも登録できるよ";
   return wrap;
 }
-// 吹き出しを0.96秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
-// ※0.48秒→0.96秒に半減速（本人フィードバック 2026-07-12「テロップのテンポを0.5倍速に」）
+// 吹き出しを1.5秒間隔で順に出す（reduced-motionは即時）。runトークンで閉じ後の残タイマーを無効化
+// ※0.48秒→0.96秒→1.5秒と2段階で減速（本人フィードバック 2026-07-12「テロップのテンポを0.5倍速に」・2026-07-18「まだ少し忙しい」）
 function obSay(lines,then){
   const run=obRun;
   obPending=true;
   document.getElementById("obChips").innerHTML="";
-  const wait=obReducedMotion()?0:960;
+  const wait=obReducedMotion()?0:1500;
   let i=0;
   (function next(){
     if(run!==obRun) return;
@@ -4019,7 +4019,7 @@ function obPick(q,c){
     obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],obAskQ);
   }else if(q.key==="bigtext"){
     try{ setBigtext(c.v==="big"); }catch(e){} // その場で反映=効果が見える（本物の設定として保存）
-    obSay(["OK！「続ける設定」でいつでも変えられるよ🔠"],obAskQ);
+    obSay(["OK！今後変えたくなったら「続ける設定」でいつでも変更できるよ！"],obAskQ);
   }else{
     obAskQ();
   }
