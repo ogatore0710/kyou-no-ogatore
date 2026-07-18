@@ -1,45 +1,37 @@
 # kyou-no-ogatore 開発ハンドオフ
 
-最終更新: 2026-07-17
+最終更新: 2026-07-18
 
-## 現状
-- アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `app-quiz.js` + `app-record.js` + `soudan-kb.js` + `obu-feed.js` + `sw.js` + `manifest.json`
-- 公開はGitHub Pages。push後に `.github/workflows/pages.yml` が配信物を作る
-- 自動QAは `npm test` で実行。2026-07-17時点で132 checks PASS。実機ゴールデンフローは `npm run smoke` で17/17 PASS（別コマンド・実ブラウザQAはこちらでリポジトリ内自動化済み）
+## 現状（2026-07-18時点）
+- アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `app-quiz.js` + `app-record.js` + `app-card.js` + `app-env.js` + `soudan-kb.js` + `obu-feed.js` + `sw.js` + `manifest.json`。**[SPLIT-PLAN.md](SPLIT-PLAN.md)の5項目は全部完了**（index.htmlからの分割は一区切り）
+- 公開はGitHub Pages・独自ドメイン `https://kyou-no.ogatore.net/`。push後に `.github/workflows/pages.yml` が配信物を作る（**allowlist方式に変更済み**＝index.htmlの実際のscript src一覧とcp対象を動的照合するqa.jsチェックつき。以前は`rsync`で**リポジトリ全体**を配信してしまいWORKING_NOTES.md等の内部文書が公開されていた事故があったので、この方式には絶対に戻さないこと）
+- `npm test` = **265 checks PASS**、`npm run smoke` = **23/23 PASS**（puppeteer-core・ヘッドレスChrome、オフライン動作・モーダルのフォーカス管理まで実機相当で自動確認）
+- 月次スケジュール済みワークフロー `.github/workflows/catalog-health.yml` が配信中カタログの動画の非公開化を自動チェック（失敗時のみGitHub既定メールで気づける設計）
+- 外部ランタイム依存はYouTubeサムネ画像1つのみ（M PLUS 1pフォントも自己ホスト化済み・Google Fonts依存ゼロ）
 - 実ブラウザQA / PWA検収結果: [QA-REPORT.md](QA-REPORT.md)
-- β配布前チェックリスト: [BETA-CHECKLIST.md](BETA-CHECKLIST.md)
-- `index.html` 分割計画: [SPLIT-PLAN.md](SPLIT-PLAN.md)
+- β配布前チェックリスト: [BETA-CHECKLIST.md](BETA-CHECKLIST.md) — **技術面のゲートは全部通過済み**。残るのは告知文の本人最終確認のみ（配布はいつでも実行可能）
+- 配布素材一式: [docs/invite-kit.md](docs/invite-kit.md)
 - 動画カタログ棚卸し: [CATALOG-AUDIT.md](CATALOG-AUDIT.md)
 - リクエストメール導線: [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md)
 - 開発者/AIがいなくなっても存続させる手引き: [SURVIVAL.md](SURVIVAL.md)
-- CodexはQA・検収・課題棚卸し、Claude Codeは継続的な画面/体験開発を担当する想定
+- **すべての変更は`WORKING_NOTES.md`の日付エントリに詳細記録済み。着手前に直近のエントリを必ず読むこと**
 
-## 壊れやすい箇所
-- `index.html` に主要ロジックがまだ集中している。検索・カタログ表示は `app-search.js`、かたさチェックは `app-quiz.js`、記録・継続は `app-record.js` へ分割済み（残るのは記録カード・PWA/環境案内など。[SPLIT-PLAN.md](SPLIT-PLAN.md)参照）
+## 壊れやすい箇所（絶対に壊さない）
+- `drawCard()`（app-card.js）は日付から同じカードを再構成する設計。`Math.random()` や現在時刻依存を入れると過去カードの再現性が壊れる（qa.jsで機械チェック済み）
 - 古いiOS対応のため `??` / `?.` は禁止。最終scriptの `oldBrowserNote` はES5のみ
-- `drawCard()` は日付から同じカードを再構成する設計。`Math.random()` や現在時刻依存を入れると過去カードの再現性が壊れる
 - `localStorage` は端末内だけ。import/exportは防御済みなので、prefix・件数・サイズ制限を弱めない
-- CSPがあるため、新しい外部画像・フォント・CDNを足す時はmetaの許可リストも見る
-- PWAは `sw.js` のcache対象と実ファイルの食い違いが事故になりやすい
+- CSPがあるため、新しい外部画像・フォント・CDNを足す時はmetaの許可リストも見る（現在は自己完結・外部依存ゼロが望ましい状態）
+- PWAは `sw.js` のcache対象と実ファイルの食い違いが事故になりやすい。新しいapp-*.jsや画像を足したら`ASSETS`/`SHELL`両方への追加とキャッシュ版(`C=`)のインクリメントを忘れないこと
+- `.github/workflows/pages.yml`のcpコマンドに新しいファイルを足し忘れると本番だけ壊れる → `npm test`の`checkDeployAllowlist`が検知するので、追加時は必ず`npm test`を通すこと
+- モーダル（相談室・カード図鑑・記録カード・はじめてガイド・ホーム画面追加ポップアップ）を新設/改修するときは`modalFocusOpen`/`modalFocusClose`を必ず経由し、`updateFabs()`を`modalFocusClose()`より**前**に呼ぶこと（順序を間違えるとFABが非表示のままフォーカス復帰に失敗する）
 
-## Codex側で整えたQA
-- HTML内script / `videos.js` / `sw.js` の構文チェック
-- ES2020禁止構文チェック
-- `oldBrowserNote` のES5維持
-- `drawCard()` の再現性ガード
-- `ensureCardFonts()` の2.2秒タイムアウト確認
-- `importData()` の防御確認
-- 動画カタログのID・重複・タグ・非公開動画除外
-- manifest / service worker / assets の存在確認
-- 操作配線チェック: inline handler、タブ、主要section、記録カード、チェック、検索UIのDOM接続
-
-## 次の改善候補
-- （2026-07-15更新: 完了）実ブラウザQAをリポジトリ内で自動化する → `npm run smoke`（puppeteer-core・ヘッドレスChrome）で自動化済み。2026-07-17時点で17/17 PASS。[QA-REPORT.md](QA-REPORT.md) は手動検収時点のスナップショットとして残す
-- （2026-07-15更新: 完了）[SPLIT-PLAN.md](SPLIT-PLAN.md) のかたさチェック分割 → `app-quiz.js` に切り出し済み
-- （2026-07-17更新: 完了）[SPLIT-PLAN.md](SPLIT-PLAN.md) の3番（記録・継続）→ `app-record.js` に切り出し済み。次候補はSPLIT-PLANの4番（記録カード）
-- PWA検収を強化する。GitHub Pages上でmanifest/icon/sw登録/オフライン fallback を確認する
-- （2026-07-15更新: 決定済み）β配布前に [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md) をもとに `kyou-no@ogatore.jp` の受信導線とGmail側運用を確認する → 配布方法・Gmailフィルタとも本人確認のうえ設定済み
-- [CATALOG-AUDIT.md](CATALOG-AUDIT.md) の除外62本を必要に応じて目視確認する（この数値自体2026-07-07時点のスナップショット。直近の再集計は未実施のため要再確認）
+## 次の改善候補（優先度目安つき・2026-07-18更新）
+- **S** とどくメーター（`#reach`）に「痛みがある日は無理しない」旨の注意書きがない。相談室の安全設計と揃えるべき
+- **S** かたさチェックQ3だけ手描きSVGで、Q1/Q2は実写（`assets/check/q3.jpg`は既に存在するが未使用のまま）
+- **M** FAB2段（相談室・オガトレ通信）が画面右下を常時占有する問題。本人の好み確認が必要（AUDIT-MEMO.md参照）
+- **S** 節目カード表示時に「記録のひかえ（エクスポート）」を促す一言がまだない
+- **S/M** 動画タップ→復帰後の「記録して」ナッジが一発勝負（はじめの1本ガイド用に作った常時表示パターンを一般ユーザーにも展開できる）
+- 上記はいずれも2026-07-18のFable監査で発見・本人未回答のまま残っている項目（過去のFable発案10件のうち未選択分）
 
 ## カタログ更新
 - 通常更新: `npm run catalog:update`
