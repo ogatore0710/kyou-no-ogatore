@@ -1,0 +1,21 @@
+name: WebKit Smoke Test
+on:
+  schedule:
+    - cron: "30 0 * * 1" # 毎週月曜 09:30 JST (00:30 UTC・prod-health.ymlの直後の時間帯)
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+      - name: 依存関係をインストール
+        run: npm ci
+      - name: WebKitブラウザ本体を導入(playwright-coreのCLI)
+        run: npx playwright-core install --with-deps webkit
+      - name: WebKit実機スモークテスト(9ステップ・見せかけグリーン禁止=起動失敗も失敗として扱う)
+        run: npm run smoke:webkit
+        env:
+          SMOKE_WEBKIT_REQUIRED: "1"
