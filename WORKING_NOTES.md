@@ -4,6 +4,18 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 WebKit実機スモークテストを新設（scripts/smoke-webkit.js・Sonnet実装）
+
+ユーザーの大半はiPhone(Safari)だが、既存の自動E2E（`scripts/smoke.js`・24ステップ）はpuppeteer-core=Chromiumのみで、Safari系エンジン（WebKit）でのクリティカルパス検証が丸ごと欠けていた。過去に「iOSでカード生成が固まる」実機バグ（対策=`ensureCardFonts`の2.2秒タイムアウト）があった経緯もあり、WebKit専用のサブセット版スモークテストを新設した。
+
+- **新規**: `scripts/smoke-webkit.js`（9ステップ: フレッシュ起動→welcome表示/スキップ→リロードしても再出現しない→かたさチェック完走→きょうやった！→メモ保存→**記録カード生成(10秒以内・cardMaking解消)**→相談室ゴールデンフロー→動画検索→コンソールエラー総数0）。`npm run smoke:webkit`で実行。`scripts/smoke.js`のサーバー起動方式（`python3 -m http.server`を子プロセス起動・空きポート確保）をそのまま流用しつつ、PlaywrightのAPIはPuppeteerと引数順序が違う箇所がある（`waitForFunction(fn, arg, options)`・`waitForSelector`は`{visible:true}`でなく`{state:"visible"}`）ため、コピペではなく書き直した。
+- **devDependency追加**: `playwright-core@^1.61.1`（`playwright`本体ではなくcoreのみ。ブラウザDL機構を持ち込まない。アプリ本体の依存ゼロ思想はQA道具には適用されない、既存のpuppeteer-core同様の前例）。
+- **他マシンでの初回実行手順**: `npm install` の後に **`npx playwright install webkit` が必要**（WebKitブラウザ本体はnode_modules管理外＝`~/Library/Caches/ms-playwright`に入る。このマシンでは既に導入済みだった）。
+- **環境変数**: `SMOKE_WEBKIT_PATH`でWebKit実行ファイルのパスを上書き可能。既定パス（`~/Library/Caches/ms-playwright/webkit-2311/Playwright.app/Contents/MacOS/Playwright`）が無ければ「未導入」としてexit 0でスキップする。
+- **実機で踏んだ罠（重要・司令塔判断待ち）**: このマシン（macOS 26.5.1）では、WebKit実行ファイルは存在するのに**起動そのものがOSレベルで失敗する**ことを実測で確認した。`dyld: Symbol not found: _OBJC_CLASS_$__WKBrowserContext`（Playwright側が依存する私有WebKit SPI）が、システムの`WebKit.framework`に存在しない（`nm -D`で実測: ヒット0件）。`playwright-core install --force webkit`でブラウザ本体を再ダウンロードしても症状は同じ＝キャッシュ破損ではなく**OS側のWebKit私有APIとの真の非互換**（macOS 26.5.1がPlaywright webkit-2311のビルド時点より新しく、Appleが該当の私有クラスを変更/削除した可能性）。アプリ本体・テストコードのどちらの問題でもなく直しようがないため、**「パス不在」と同じスキップ扱い（exit 0＋診断メッセージ）に倒した**（launch()を個別tryで囲み、失敗時はサーバーを止めてexit 0）。npm run smoke:webkitはこのマシンでは常にSKIPで終わる状態のままなので、**実際にWebKitでの実行検証が必要な場合は別のmacOSバージョン（もう少し枯れたもの）で試すか、playwright-coreの新しいstable版（本稿執筆時点でnpm最新は1.61.1で他に選択肢なし・1.62.0はalphaのみ）を待つ必要がある**。
+- **ステップロジック自体の検証方法**: 実WebKitが起動できないため、スクラッチパッドに一時コピーを作り`webkit.launch`を`chromium.launch({executablePath: 実Chromeパス})`に差し替えて実行し、9ステップすべてがPlaywrightのAPI経由でも正しく動くことを確認した（アプリ本体・成果物には一切影響しない検証専用のコピーで、リポジトリには含まれない）。この過程で相談室ステップ（旧7）がシートを閉じずに終わっていたため、続く動画検索タブのクリックが固定オーバーレイに吸われてタイムアウトするバグを発見・修正済み（`page.goBack()`でシートを閉じてホームへ戻す処理を追加）。
+- `npm test`=267checks、`npm run smoke`=24/24、いずれも既存どおり全PASS（新規devDependency/scriptsエントリによる回帰なし）。`npm run smoke:webkit`はこのマシンでは環境非互換によりSKIP（exit 0）。
+
 ## 2026-07-18 本番配信の週次ヘルスチェックGitHub Actionsワークフローを新設（`prod-health.yml`・Fable設計・Sonnet実装）
 
 デプロイ直後の確認は都度やっているが、継続監視はカタログ死リンク検知（`catalog-health.yml`・月次）のみで、証明書失効・CNAME事故・配信欠落・非公開ファイルの誤公開など「静かに壊れる」系を機械検知する仕組みがなかった。`catalog-health.yml`と同じ「運用ゼロ（失敗時のみGitHub既定メール・成功時は静か）」設計を踏襲し、週1（毎週月曜09:00 JST・cron `0 0 * * 1`）＋`workflow_dispatch`で本番URL（`https://kyou-no.ogatore.net/`）を実測する。
