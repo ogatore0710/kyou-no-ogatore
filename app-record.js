@@ -122,6 +122,9 @@ function markDone(){
     store.set("daylog",dl);
   }catch(e){}
   const ms=MS.find(x=>x.d===st.total);
+  // あした節目予告: きょうは節目でない(ms falsy)ときだけ、通算+1がMILESTONESに乗るなら1行予告する
+  // （節目名(MS.t)は出さない＝当日の新鮮味を減らさないため。判定はmarkDone本体と同じst.totalを使う）
+  const tomorrowMsPreview=(!ms&&MILESTONES.includes(st.total+1))?`<div style="margin-top:6px;font-size:13px;color:var(--sub)">あしたで ${st.total+1}日目🎉 おたのしみに！</div>`:"";
   try{ launchConfetti(ms?105:70); }catch(e){} // 節目は70粒→105粒（1.5倍）でちょっと特別に
   if(ms){
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
@@ -135,10 +138,11 @@ function markDone(){
     // 念のため節目表示(if(ms))を優先する構造にしてある（このelse ifは節目でないときだけ通る）
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
       +`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 1日目クリア！ナイスご自愛！</div>`
-      +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`;
+      +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`
+      +tomorrowMsPreview;
   } else {
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
-    cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)];
+    cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)]+tomorrowMsPreview;
   }
   // カレンダー登録カード（唯一の再来訪装置）: 通算1日目クリアの直後に一度だけ#calAskへ出す
   if(st.total===1 && !store.get("calseen")){

@@ -1050,6 +1050,45 @@ async function main() {
       return "タップ動画(" + result.otherId + ")がdaylogに反映／ナッジ後も動画ID保持／タップなしはおすすめ(" + result.recB + ")にフォールバック";
     });
 
+    // 7bb. あした節目予告（PO承認済み継続施策）: 記録直後の通算(markDone内のst.total)に+1した値がMILESTONESに
+    //      乗るときだけ1行予告する。各ケースごとにkyono_streak2をdates:[]（=今日はまだ記録されていない体）に
+    //      記録前の通算値でシードし直してからmarkDone()を直接呼ぶ（#doneBtnクリックだと同日に複数回は押せない
+    //      ため、markDone()単体の分岐を直に検証する既存7bと同じ流儀）。
+    await step("7bb-あした節目予告（通算6日で記録→予告あり／5日で記録→なし／7日目になる記録=節目当日は予告なし）", async () => {
+      const result = await page.evaluate(() => {
+        function seed(preTotal) {
+          localStorage.setItem("kyono_streak2", JSON.stringify({ dates: [], count: 0, total: preTotal }));
+        }
+        // (a) 記録前の通算=5 → markDone()で通算6日を記録 → 翌日7日目はMILESTONESに乗る → 予告が出る
+        seed(5);
+        markDone();
+        const cheerA = document.getElementById("cheer").innerHTML;
+        const totalAfterA = (JSON.parse(localStorage.getItem("kyono_streak2"))).total;
+
+        // (b) 記録前の通算=4 → markDone()で通算5日を記録 → 翌日6日目はMILESTONESに乗らない → 予告なし
+        seed(4);
+        markDone();
+        const cheerB = document.getElementById("cheer").innerHTML;
+        const totalAfterB = (JSON.parse(localStorage.getItem("kyono_streak2"))).total;
+
+        // (c) 記録前の通算=6 → markDone()で通算7日目そのものを記録＝きょうが節目 → 節目のお祝いのみ・予告は重ねない
+        seed(6);
+        markDone();
+        const cheerC = document.getElementById("cheer").innerHTML;
+        const totalAfterC = (JSON.parse(localStorage.getItem("kyono_streak2"))).total;
+
+        return { cheerA, totalAfterA, cheerB, totalAfterB, cheerC, totalAfterC };
+      });
+      if (result.totalAfterA !== 6) throw new Error("(a)検証条件が崩れている（total=" + result.totalAfterA + "、期待6）");
+      if (result.cheerA.indexOf("あしたで 7日目🎉") === -1) throw new Error("(a)通算6日での記録直後に予告が出ていない: " + result.cheerA);
+      if (result.totalAfterB !== 5) throw new Error("(b)検証条件が崩れている（total=" + result.totalAfterB + "、期待5）");
+      if (result.cheerB.indexOf("あしたで") !== -1) throw new Error("(b)通算5日(翌日6日目=非節目)で予告が出てしまっている: " + result.cheerB);
+      if (result.totalAfterC !== 7) throw new Error("(c)検証条件が崩れている（total=" + result.totalAfterC + "、期待7）");
+      if (result.cheerC.indexOf("1週間たっせい") === -1) throw new Error("(c)節目当日の祝いメッセージが出ていない: " + result.cheerC);
+      if (result.cheerC.indexOf("あしたで") !== -1) throw new Error("(c)節目当日なのに翌日予告まで重ねて出てしまっている: " + result.cheerC);
+      return "(a)通算6日を記録→「あしたで 7日目🎉」あり (b)通算5日を記録→予告なし (c)通算7日目=節目当日を記録→祝いのみ・予告なし";
+    });
+
     // 7c. ホーム画面に追加ポップアップ(#a2hsModal)の端末/ブラウザ分岐（実機UA差し替えで7シナリオを検証）
     //     メインpageのUAは書き換えず、シナリオごとに使い捨てpageをwirePage()で配線して検証する
     //     （UA/standalone/beforeinstallpromptのevaluateOnNewDocumentはpage生存中ずっと残るため、

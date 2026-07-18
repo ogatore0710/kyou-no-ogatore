@@ -716,6 +716,31 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     "skip removes the whole card, not just the buttons"
   );
 
+  // あした節目予告(2026-07-18): きょうが節目でない(!ms)ときだけ、markDone本体と同じst.total(+1)で
+  // MILESTONES判定する。独自の再計算はしない・節目名(MS.t)は使わない・今日自身が節目の日は出さない。
+  assert(
+    "markDone: tomorrow-milestone preview is computed once, gated on !ms, reusing st.total (same tally markDone uses for today's own milestone)",
+    /const\s+tomorrowMsPreview\s*=\s*\(\s*!ms\s*&&\s*MILESTONES\.includes\(\s*st\.total\+1\s*\)\s*\)\s*\?\s*`<div[^`]*あしたで \$\{st\.total\+1\}日目🎉 おたのしみに！<\/div>`\s*:\s*""/.test(markDoneFn),
+    "no independent recomputation of the running total; MS.t (milestone name) is never interpolated into this string"
+  );
+  assert(
+    "markDone: tomorrow-milestone preview is appended after both non-milestone cheer branches (guide-day and regular), and NOT inside today's own milestone(ms) branch",
+    (function () {
+      const idxMs = markDoneFn.indexOf("if(ms){");
+      const idxGuideElse = markDoneFn.indexOf("} else if(guide){", idxMs);
+      const idxPlainElse = markDoneFn.indexOf("} else {", idxGuideElse);
+      const idxEnd = markDoneFn.indexOf("\n  }\n", idxPlainElse); // end of the else{} cheer block
+      if (idxMs < 0 || idxGuideElse < 0 || idxPlainElse < 0 || idxEnd < 0) return false;
+      const msBlock = markDoneFn.slice(idxMs, idxGuideElse);
+      const guideBlock = markDoneFn.slice(idxGuideElse, idxPlainElse);
+      const elseBlock = markDoneFn.slice(idxPlainElse, idxEnd);
+      return msBlock.indexOf("tomorrowMsPreview") === -1
+        && guideBlock.indexOf("+tomorrowMsPreview;") !== -1
+        && elseBlock.indexOf("+tomorrowMsPreview;") !== -1;
+    })(),
+    "no stacking celebration+preview on the day the user hits a milestone; both ordinary cheer paths append +tomorrowMsPreview"
+  );
+
   const renderStreakFn = extractFunction(recordScript, "renderStreak");
   assert("renderStreak: found", renderStreakFn.length > 0, `${renderStreakFn.length} chars`);
   assert(
