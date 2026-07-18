@@ -2357,7 +2357,9 @@ function renderDexBanner(){
   const got=all.filter(i=>i.got).length;
   document.getElementById("dexBadge").textContent=`${got}/${all.length}`;
   const samples=[d.toku[0],d.season[0],d.rare[0],d.normal[0]].filter(Boolean);
-  document.getElementById("dexBannerSamples").innerHTML=samples.map(dexCellHtml).map(h=>h.replace('class="dex-cell"','class="dex-cell" style="width:56px"')).join("");
+  // バナーは56px幅×4枚の見本表示のみ。flavor(取得済み文言)を出すとカード縦が伸び、
+  // 固定表示の相談室チャットFABと視覚的に衝突することを実機で確認したため、バナーではflavorを出さない(hintのみ)
+  document.getElementById("dexBannerSamples").innerHTML=samples.map(item=>dexCellHtml(item,{noFlavor:true})).map(h=>h.replace('class="dex-cell"','class="dex-cell" style="width:56px"')).join("");
 }
 function openDex(){ renderDex(); document.getElementById("dexModal").classList.remove("hidden"); modalFocusOpen("dexModalBox"); lockBodyScroll(); updateFabs(); }
 function closeDex(){ document.getElementById("dexModal").classList.add("hidden"); unlockBodyScroll(); updateFabs(); modalFocusClose(); }

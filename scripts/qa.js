@@ -160,7 +160,7 @@ function extractConstObject(code, name) {
       depth++;
     } else if (ch === "}") {
       depth--;
-      if (depth === 0) return vm.runInNewContext(code.slice(braceStart, i + 1));
+      if (depth === 0) return vm.runInNewContext(`(${code.slice(braceStart, i + 1)})`);
     }
   }
   throw new Error(`${name} object boundary not found`);
