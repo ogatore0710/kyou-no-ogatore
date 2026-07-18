@@ -5,7 +5,7 @@
 ## 現状（2026-07-18時点）
 - アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `app-quiz.js` + `app-record.js` + `app-card.js` + `app-env.js` + `soudan-kb.js` + `obu-feed.js` + `sw.js` + `manifest.json`。**[SPLIT-PLAN.md](SPLIT-PLAN.md)の5項目は全部完了**（index.htmlからの分割は一区切り）
 - 公開はGitHub Pages・独自ドメイン `https://kyou-no.ogatore.net/`。push後に `.github/workflows/pages.yml` が配信物を作る（**allowlist方式に変更済み**＝index.htmlの実際のscript src一覧とcp対象を動的照合するqa.jsチェックつき。以前は`rsync`で**リポジトリ全体**を配信してしまいWORKING_NOTES.md等の内部文書が公開されていた事故があったので、この方式には絶対に戻さないこと）
-- `npm test` = **265 checks PASS**、`npm run smoke` = **23/23 PASS**（puppeteer-core・ヘッドレスChrome、オフライン動作・モーダルのフォーカス管理まで実機相当で自動確認）
+- `npm test` = **267 checks PASS**、`npm run smoke` = **24/24 PASS**（puppeteer-core・ヘッドレスChrome、オフライン動作・モーダルのフォーカス管理まで実機相当で自動確認）
 - 月次スケジュール済みワークフロー `.github/workflows/catalog-health.yml` が配信中カタログの動画の非公開化を自動チェック（失敗時のみGitHub既定メールで気づける設計）
 - 外部ランタイム依存はYouTubeサムネ画像1つのみ（M PLUS 1pフォントも自己ホスト化済み・Google Fonts依存ゼロ）
 - 実ブラウザQA / PWA検収結果: [QA-REPORT.md](QA-REPORT.md)
