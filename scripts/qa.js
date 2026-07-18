@@ -1329,7 +1329,7 @@ function checkManifest() {
 // GitHub Pagesの配信ワークフローが「リポジトリ全体を配信」に巻き戻ると、WORKING_NOTES.md（内部メモ・
 // 関係者名）やscripts/private_videos.json（非公開動画ID一覧）が本番ドメインで200公開されてしまう
 // 事故が過去に発生した（2026-07-18発見）。allowlist方式に固定し、巻き戻りをここで機械的に検知する。
-function checkDeployAllowlist() {
+function checkDeployAllowlist(html) {
   const workflowPath = ".github/workflows/pages.yml";
   if (!exists(workflowPath)) {
     fail("pages.yml: found", `${workflowPath} not found`);
@@ -1342,17 +1342,31 @@ function checkDeployAllowlist() {
     !/rsync\s+-a[^\n]*\s\.\/\s+_site/.test(yml) && !/cp\s+-r\s+\.\s+_site/.test(yml) && !/cp\s+-r\s+\.\/\s+_site/.test(yml),
     "whole-repo copy pattern must not reappear"
   );
-  const requiredInAllowlist = ["index.html", "manifest.json", "sw.js", "robots.txt", "app-env.js"];
-  const missingFromAllowlist = requiredInAllowlist.filter((f) => !yml.includes(f));
+  // 実際にコピーされるファイル名だけを見る（ステップ名等の説明コメントに単語として出てくるのは無関係）
+  const copyLines = yml.split("\n").filter((line) => /^\s*(cp|rsync)\s/.test(line));
+  const copiedText = copyLines.join("\n");
+  const requiredInAllowlist = ["index.html", "manifest.json", "sw.js", "robots.txt"];
+  const missingFromAllowlist = requiredInAllowlist.filter((f) => !copiedText.includes(f));
   assert(
     "pages.yml: 配信allowlistに必要なファイルが列挙されている",
     missingFromAllowlist.length === 0,
     missingFromAllowlist.join(", ") || requiredInAllowlist.join(", ")
   );
-  // 実際にコピーされるファイル名だけを見る（ステップ名等の説明コメントに単語として出てくるのは無関係）
-  const copyLines = yml.split("\n").filter((line) => /^\s*(cp|rsync)\s/.test(line));
+  // index.htmlが実際に読み込む<script src>を動的抽出し、pages.ymlのcp行に漏れなく含まれることを確認する。
+  // 固定リストだけだと「新しいapp-*.jsを足したのにpages.ymlへの追記を忘れる」事故を検知できない
+  // （2026-07-18 Fable監査で指摘: これが唯一の運用上の穴だった）。
+  if (html) {
+    const scriptSrcs = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]);
+    assert("pages.yml: index.htmlのscript src抽出", scriptSrcs.length > 0, `${scriptSrcs.length} scripts`);
+    const missingScripts = scriptSrcs.filter((f) => !copiedText.includes(f));
+    assert(
+      "pages.yml: index.htmlが読み込む<script src>が全部allowlistのcp対象に含まれる(新規追加ファイルの追記漏れ検知)",
+      missingScripts.length === 0,
+      missingScripts.join(", ") || `${scriptSrcs.length} scripts all present`
+    );
+  }
   const sensitivePatterns = ["WORKING_NOTES", "scripts/", "node_modules", "soudan-ai-poc", "package.json"];
-  const leaked = sensitivePatterns.filter((p) => copyLines.some((line) => line.includes(p)));
+  const leaked = sensitivePatterns.filter((p) => copiedText.includes(p));
   assert(
     "pages.yml: コピー対象に内部ドキュメント/非公開スクリプトが含まれていない",
     leaked.length === 0,
@@ -1434,7 +1448,7 @@ function main() {
   checkObuStaleness(mainScript, html);
   checkSw(read("sw.js"));
   checkManifest();
-  checkDeployAllowlist();
+  checkDeployAllowlist(html);
   checkCardDex(mainScript);
   checkPythonScripts();
 

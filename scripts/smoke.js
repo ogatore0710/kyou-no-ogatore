@@ -630,14 +630,17 @@ async function main() {
     });
 
     // 6. オガトレ通信FABを開く→閉じる
+    // 座標クリック(page.click)だと、直前ステップ由来のトースト/演出が固定FABの上に一瞬重なった場合に
+    // クリックが吸われてタイムアウトする不安定さが実測で確認された（2026-07-18 Fable監査）。
+    // DOM要素の.click()を直接呼ぶevaluateに変更し、座標の重なりに左右されないようにする。
     await step("6-オガトレ通信FAB開閉", async () => {
       await page.click("#tab-home");
       await visible("#obuFab");
-      await page.click("#obuFab");
+      await page.evaluate(() => document.getElementById("obuFab").click());
       await page.waitForFunction(() => !document.getElementById("obuModal").classList.contains("hidden"));
       const bodyLen = await page.$eval("#obuBody", (el) => el.innerText.replace(/\s+/g, "").length);
       if (bodyLen < 10) throw new Error("obuBodyが空（本文" + bodyLen + "字）");
-      await page.click('#obuModal button[onclick="closeObu()"]');
+      await page.evaluate(() => document.querySelector('#obuModal button[onclick="closeObu()"]').click());
       await page.waitForFunction(() => document.getElementById("obuModal").classList.contains("hidden"));
       return "開いて本文" + bodyLen + "字→閉じるを確認";
     });
