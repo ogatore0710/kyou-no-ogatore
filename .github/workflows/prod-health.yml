@@ -1,0 +1,12 @@
+name: Production Health Check
+on:
+  schedule:
+    - cron: "0 0 * * 1" # 毎週月曜 09:00 JST (00:00 UTC)
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 本番配信(https://kyou-no.ogatore.net/)の死活・版数・非公開ファイル漏洩を確認
+        run: bash scripts/check_prod_health.sh
