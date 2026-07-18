@@ -870,6 +870,32 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
   );
 }
 
+// PO実機フィードバック(2026-07-18「はじめてガイドまだ使いにくい」)への対応3件を機械チェックで固定する。
+function checkOnboardingUX(html, quizScript) {
+  assert(
+    "ONBOARDING_SCRIPT.greet: 「応援する場所」の新文言に更新されている(旧「いっしょに続ける場所」の再発防止)",
+    html.includes("ここは毎日のストレッチを応援する場所だよ！") && !html.includes("いっしょに続ける場所だよ"),
+    "greet[1] must use the updated wording"
+  );
+  assert(
+    "obAskQ: 4問の設問チップがOB_CHIP_VARIANTSで質問ごとに異なる色になる(全問teal固定の再発防止)",
+    /const OB_CHIP_VARIANTS=\[["']chip-a["'],["']chip-b["'],["']chip-c["'],["']chip-d["']\]/.test(html) &&
+      /b\.className="chip "\+variant/.test(html),
+    "each of the 4 onboarding questions must get a distinct chip color"
+  );
+  assert(
+    "renderHome: はじめの1本ガイドで当日きょうやった！済みのときだけ#todayCardを隠す(翌日は自動復帰)",
+    /const fdDoneToday\s*=\s*store\.get\(["']fd["'],\s*null\)===1\s*&&\s*getStreakData\(\)\.dates\.includes\(todayStr\(\)\)/.test(html) &&
+      /getElementById\(["']todayCard["']\)[\s\S]{0,40}classList\.toggle\(["']hidden["'],\s*fdDoneToday\)/.test(html),
+    "must key off both fd===1 and today already recorded, not a permanent hide"
+  );
+  assert(
+    "TYPES.yawara(しなやかネコ): rxが空でない(タイプ固有のピック無し状態の再発防止)",
+    /yawara:\{name:"しなやかネコ"[\s\S]{0,400}rx:\[["'][^"'\]]+["']\]/.test(quizScript),
+    "yawara must have at least one dedicated rx pick like every other type"
+  );
+}
+
 // 使い方ツアー(OB_TOUR_SLIDES・2026-07-17 PO実機フィードバックでブラッシュアップ)が、
 // 「じまんカード・せんぱいの声・ひとことにっき」が「お楽しみ機能」ページに統合され、
 // 「とどくメーター」が独自ページ(#reach)として独立した実際の構成と食い違っていないことを固定する。
@@ -1682,6 +1708,7 @@ function main() {
   checkOperationalWiring(html, `${mainScript}\n${searchScript}\n${quizScript}\n${recordScript}\n${cardScript}\n${envScript}`);
   checkOnboardingWorrySkip(mainScript, quizScript);
   checkFirstDayGuide(html, mainScript, quizScript, recordScript);
+  checkOnboardingUX(html, quizScript);
   checkTourSlides(mainScript, html);
   checkA2hsPopup(html, `${mainScript}\n${envScript}`);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
