@@ -4,6 +4,22 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-18
 
+## 2026-07-18 本番配信の週次ヘルスチェックGitHub Actionsワークフローを新設（`prod-health.yml`・Fable設計・Sonnet実装）
+
+デプロイ直後の確認は都度やっているが、継続監視はカタログ死リンク検知（`catalog-health.yml`・月次）のみで、証明書失効・CNAME事故・配信欠落・非公開ファイルの誤公開など「静かに壊れる」系を機械検知する仕組みがなかった。`catalog-health.yml`と同じ「運用ゼロ（失敗時のみGitHub既定メール・成功時は静か）」設計を踏襲し、週1（毎週月曜09:00 JST・cron `0 0 * * 1`）＋`workflow_dispatch`で本番URL（`https://kyou-no.ogatore.net/`）を実測する。
+
+- 新設: `.github/workflows/prod-health.yml`（`scripts/check_prod_health.sh`を呼ぶだけの薄いワークフロー）／`scripts/check_prod_health.sh`（bash・curl直叩き、8項目）
+  1. `index.html`（ルート`/`）が200・既知文字列（アプリ名）を含む
+  2. `sw.js`が200・`kyono-vN`版数文字列を含む
+  3. **sw.js版数がリポジトリmainの`sw.js`と一致**（CDN焼き込み/デプロイ滞留の検知）。不一致時は5分待って1回だけ再試行してから失敗にする（push直後のCDN過渡期の偽陽性対策）
+  4. `manifest.json`が200・`python3 -c "import json,sys;json.load(sys.stdin)"`でパース可能
+  5. `index.html`の`<script src>`を動的抽出（固定リストに頼らず、`scripts/qa.js`の`checkDeployAllowlist()`と同じ流儀）し、全app系JSが本番で200
+  6. `robots.txt`が200・`Disallow`を含む（β中の検索除外の生存確認）
+  7. **`/WORKING_NOTES.md`と`/scripts/private_videos.json`が404**（過去の全公開事故箇所の再発監視・最重要項目として最後に置いた）
+- ローカルで`bash scripts/check_prod_health.sh`を実行し**8項目全PASSを実測**（約4秒。sw.js版数は本番/リポジトリとも`kyono-v55`で一致・再試行分岐には入らず即PASS）。CIでも`gh workflow run prod-health.yml`→`gh run list`でsuccessを確認済み。
+- アプリ本体・`pages.yml`・`sw.js`は無変更。`npm test`=267 checks、`npm run smoke`=24/24、いずれもPASS。
+- **偽陽性リスクの評価**: 5分再試行は自前実装のsleep（GitHub Actions上でjobが5分余分に伸びるだけで無料枠への影響は軽微）。script src動的抽出はネットワーク一時障害でも全滅ではなく個別ファイル単位で失敗を出すため原因特定はしやすい設計。
+
 ## 2026-07-18 復帰ナッジの「一発勝負」を常時表示化＋rDoneNudgeボタン文言バグを修正（PO承認済み改善候補⑤・Sonnet実装）
 
 HANDOFF「次の改善候補」⑤に対応。`checkDoneNudge()`の一発ナッジ（pulse+scroll）自体は現状維持のまま、`renderHome`側に状態導出型の常時表示を追加した。
