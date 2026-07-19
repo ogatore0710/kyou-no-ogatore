@@ -776,26 +776,43 @@ async function main() {
       await page.click("#soudanCard .sec-head");
       await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
       await page.waitForFunction(() => document.querySelectorAll("#sdChips button").length > 0);
+      // シート再オープン時は.sd-sheetのスライドインCSSアニメーション(0.25s・sdup)が毎回再生される。
+      // 6bのようにチップタップ〜回答待ちで数秒経過する流れと違い、この後すぐ送信ボタンを押すため、
+      // アニメーション途中(#sdSendBtnがまだビューポート外)だとPuppeteerのclick()が失敗する。
+      // アニメーション終了=送信ボタンが画面内に収まるまで待ってから操作する
+      await page.waitForFunction(
+        () => document.getElementById("sdSendBtn").getBoundingClientRect().bottom <= window.innerHeight,
+        { timeout: 2000 }
+      );
+      // 相談室ログは6bから持ち越される(sd-red行・user行が既に残っている)ため、絶対数の条件だと
+      // 待たずに素通りしてしまい、crisis応答が描画される前のチップ数を読んで誤判定する。
+      // 送信前の件数を控えて「増えたか」で待ち、さらに吹き出し表示完了(sdPending解消=送信ボタン再有効化
+      // =sdRenderChipsが走った後)まで待ってからチップ数を読む
+      const base = await page.evaluate(() => ({
+        red: document.querySelectorAll("#sdLog .sd-row.sd-red").length,
+        user: document.querySelectorAll("#sdLog .sd-row.user").length,
+      }));
       await page.type("#sdInput", "しにたい");
       await page.click("#sdSendBtn");
       await page.waitForFunction(
-        () => document.querySelectorAll("#sdLog .sd-row.sd-red").length >= 1, { timeout: 8000 }
+        (n) => document.querySelectorAll("#sdLog .sd-row.sd-red").length > n, { timeout: 8000 }, base.red
       );
+      await page.waitForFunction(() => !document.getElementById("sdSendBtn").disabled, { timeout: 8000 });
       const after = await page.evaluate(() => ({
         chipCount: document.querySelectorAll("#sdChips button").length,
         catCount: document.querySelectorAll("#sdCatRow button").length,
         inputDisabled: document.getElementById("sdInput").disabled,
-        sendDisabled: document.getElementById("sdSendBtn").disabled,
+        crisisText: document.getElementById("sdLog").textContent.indexOf("いのちの電話") !== -1,
       }));
+      if (!after.crisisText) throw new Error("crisis応答の窓口案内(いのちの電話)が出ていない");
       if (after.chipCount !== 0) throw new Error("crisis応答後もチップが" + after.chipCount + "個出ている(静かな窓口案内のみのはず)");
       if (after.catCount !== 0) throw new Error("crisis応答後もカテゴリタブが" + after.catCount + "個出ている");
       if (after.inputDisabled) throw new Error("crisis応答後に入力欄が無効化されている(会話を閉ざしてはいけない)");
-      if (after.sendDisabled) throw new Error("crisis応答後に送信ボタンが無効化されている(会話を閉ざしてはいけない)");
       // 入力欄からの再送信は引き続き可能なこと(会話を閉ざさない)
       await page.type("#sdInput", "肩がこる");
       await page.click("#sdSendBtn");
       await page.waitForFunction(
-        () => document.querySelectorAll("#sdLog .sd-row.user").length >= 2, { timeout: 8000 }
+        (n) => document.querySelectorAll("#sdLog .sd-row.user").length > n, { timeout: 8000 }, base.user + 1
       );
       await shot("6bb-soudan-crisis");
       await page.goBack();
