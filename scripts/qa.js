@@ -1037,22 +1037,25 @@ function checkA2hsPopup(html, mainScript) {
   // hide条件自体にmodalOpen("a2hsModal")が入っている、の3点を機械チェックで固定する。
   const showFn = extractFunction(mainScript, "a2hsShow");
   assert("a2hsShow: found", showFn.length > 0, `${showFn.length} chars`);
+  const showCallsUpdateFabs = /updateFabs\(\)/.test(showFn);
   assert(
     "a2hsShow: 表示中はupdateFabs()を呼びFABを隠す(他モーダルと同じ扱い)",
-    /updateFabs\(\)/.test(showFn),
-    "updateFabs() call missing in a2hsShow"
+    showCallsUpdateFabs,
+    showCallsUpdateFabs ? "ok" : "updateFabs() call missing in a2hsShow"
   );
+  const closeOrderOk = /updateFabs\(\);[\s\S]{0,80}?modalFocusClose\(\)/.test(closeFn);
   assert(
     "a2hsClose: updateFabs()→modalFocusClose()の順序で呼ぶ(他close関数と同じ作法厳守)",
-    /updateFabs\(\);[\s\S]{0,80}?modalFocusClose\(\)/.test(closeFn),
-    "updateFabs→modalFocusClose order missing/changed"
+    closeOrderOk,
+    closeOrderOk ? "ok" : "updateFabs→modalFocusClose order missing/changed"
   );
   const updateFabsFn2 = extractFunction(mainScript, "updateFabs");
   assert("updateFabs: found (a2hs連携チェック用)", updateFabsFn2.length > 0, `${updateFabsFn2.length} chars`);
+  const hideHasA2hs = /modalOpen\("a2hsModal"\)/.test(updateFabsFn2);
   assert(
     "updateFabs: hide条件にmodalOpen(\"a2hsModal\")を含む(a2hsポップアップ中はFABを隠す)",
-    /modalOpen\("a2hsModal"\)/.test(updateFabsFn2),
-    "a2hsModal missing from hide condition"
+    hideHasA2hs,
+    hideHasA2hs ? "ok" : "a2hsModal missing from hide condition"
   );
 }
 
@@ -1697,6 +1700,78 @@ function checkRxRotation(mainScript, quizScript) {
   assert("処方ローテーション: 14日間でプール由来の登場動画がmin(L,10)種以上", !coverageFail, coverageFail || "ok");
 }
 
+// 2026-07-20対応: とどくメーター自動転記(REACH_FROM_MOMO・かたさチェックQ1→とどくメーター初回記録)の
+// 静的検査。配列長4(Q1の選択肢数と一致)・値域1〜5(とどくメーターの段位)を固定する。
+// あわせて、自動転記(finishQuiz)はsetReach(lv,true)のsilentモードで呼び、演出メッセージ(#reachMsg)を
+// 出さないこと(ユーザーが自分でボタンを押したときの演出と混同しないため)も機械チェックする。
+function checkReachAutoTranscribe(quizScript, recordScript) {
+  const arrMatch = /const\s+REACH_FROM_MOMO\s*=\s*\[([^\]]*)\]/.exec(quizScript);
+  assert("REACH_FROM_MOMO: app-quiz.jsに定義されている", !!arrMatch, "app-quiz.js");
+  const arr = arrMatch ? arrMatch[1].split(",").map((s) => Number(s.trim())) : [];
+  assert("REACH_FROM_MOMO: 配列長4(かたさチェックQ1の選択肢数と一致)", arr.length === 4, `実測${arr.length}件`);
+  const outOfRange = arr.filter((n) => !(Number.isInteger(n) && n >= 1 && n <= 5));
+  assert(
+    "REACH_FROM_MOMO: 全値が1〜5の整数(とどくメーターの段位)",
+    outOfRange.length === 0,
+    outOfRange.length ? `範囲外: ${outOfRange.join(",")}` : "ok"
+  );
+
+  const finishQuizFn = extractFunction(quizScript, "finishQuiz");
+  assert("finishQuiz: found", finishQuizFn.length > 0, `${finishQuizFn.length} chars`);
+  const hasSilentCall = /setReach\(\s*lv\s*,\s*true\s*\)/.test(finishQuizFn);
+  assert(
+    "finishQuiz: 自動転記はsetReach(lv,true)のsilentモードで呼ぶ(演出メッセージを出さない)",
+    hasSilentCall,
+    hasSilentCall ? "ok" : "setReach(lv,true) call missing/changed"
+  );
+
+  const setReachFn = extractFunction(recordScript, "setReach");
+  assert("setReach: found", setReachFn.length > 0, `${setReachFn.length} chars`);
+  const hasSilentShortCircuit = /if\s*\(\s*silent\s*\)\s*\{\s*msg\.textContent\s*=\s*""\s*;\s*return\s*;\s*\}/.test(setReachFn);
+  assert(
+    "setReach: silent時は#reachMsgを空にして即returnする(自動転記の演出残留防止)",
+    hasSilentShortCircuit,
+    hasSilentShortCircuit ? "ok" : "silent short-circuit missing/changed"
+  );
+}
+
+// 2026-07-20 C1検証依頼で見つかった問題のうち、専用チェック関数を持たない残り3件をまとめて固定する。
+function checkVerification20260720Fixes(html, mainScript) {
+  // fix4: 2週間プラン実行中は#segMineHintの文言(かたさチェックの結果に合わせた…)が実態と合わないため隠す。
+  // typedのみ(プランなし)のときは従来どおり表示する。
+  const renderTodayFn = extractFunction(mainScript, "renderToday");
+  assert("renderToday: found", renderTodayFn.length > 0, `${renderTodayFn.length} chars`);
+  const hasHintToggle = /segMineHint"\)\.classList\.toggle\("hidden",!typed\|\|!!plan\)/.test(renderTodayFn);
+  assert(
+    "renderToday: #segMineHintはplan実行中は隠す(typedのみのときだけ表示)",
+    hasHintToggle,
+    hasHintToggle ? "ok" : "hint toggle condition missing/changed"
+  );
+
+  // fix8: 最下部でFABがフッター(「このアプリについて」等)のタップ域と被る問題への対応。120px→180pxに拡大。
+  const hasPadding180 = /padding:20px 18px 180px;min-height:100vh/.test(html);
+  assert(
+    "body: padding-bottom 180px(下部FABとフッターの重なり対策・2026-07-20に120pxから拡大)",
+    hasPadding180,
+    hasPadding180 ? "ok" : "padding-bottom must be 180px"
+  );
+
+  // fix9: 図鑑の閉じる✕(.dex-close)のタップ域が実測35pxしかなくWCAG推奨の44pxを下回っていた。
+  // 見た目のフォントサイズは維持したままpaddingだけを拡大してタップ域を確保する。
+  const dexCloseMatch = /\.dex-close\{background:none;border:none;font-size:(\d+)px;color:var\(--sub\);cursor:pointer;padding:(\d+)px (\d+)px\}/.exec(html);
+  assert(".dex-close: CSS定義が見つかる", !!dexCloseMatch, "index.html");
+  if (dexCloseMatch) {
+    const vPad = Number(dexCloseMatch[2]);
+    // フォントサイズからの概算行高(ブラウザ既定line-height相当)+縦paddingの合計でタップ域を見積もる
+    const approxTapHeight = Number(dexCloseMatch[1]) * 1.2 + vPad * 2;
+    assert(
+      ".dex-close: 概算タップ域(縦)が44px以上(WCAG 2.5.5相当・padding拡大による確保)",
+      approxTapHeight >= 44,
+      `概算${approxTapHeight.toFixed(1)}px (font-size=${dexCloseMatch[1]}px, padding-vertical=${vPad}px)`
+    );
+  }
+}
+
 // 2026-07-18 PO依頼「きょうのひとこと 30本追加」の機械チェック。QUOTESは15本→45本になったはずで、
 // 将来の削除・巻き戻し事故を検知する下限チェック(>=45)。
 function checkQuotesCoverage(mainScript) {
@@ -1765,6 +1840,8 @@ function main() {
   checkCardDex(mainScript);
   checkDexCopyCoverage(mainScript);
   checkRxRotation(mainScript, quizScript);
+  checkReachAutoTranscribe(quizScript, recordScript);
+  checkVerification20260720Fixes(html, mainScript);
   checkQuotesCoverage(mainScript);
   checkPythonScripts();
 
