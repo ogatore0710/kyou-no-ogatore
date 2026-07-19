@@ -3904,7 +3904,6 @@ const ONBOARDING_SCRIPT={
   },
   routes:{
     quiz:{say:["そしたら30秒で硬さチェックをしよう！下のボタンタップしてね！"],btn:"かたさチェックをはじめる"},
-    soudan:{say:["それ、くわしく聞かせて！相談室で待ってるね💬"],btn:"相談室で聞いてみる"},
     today:{say:["じゃあ今日の1本から！むずかしいことはなしだよ👍"],btn:"きょうの1本を見る"}
   },
   close:[
@@ -4025,15 +4024,14 @@ function obPick(q,c){
   }
 }
 // ルーティング: 硬い/わからない→かたさチェック ＞ 悩みあり→相談室 ＞ とくにない→きょうの1本
+// 2026-07-19 本人指摘「はじめてガイドではすぐ相談に行くのはナシ。まずは硬さチェックかな」に対応し、
+// soudan(相談室へ直行)ルートを廃止。悩みを答えた場合もquizへ回し、その悩みはQ5プリセットとして
+// 引き継ぐ(obGo()のOB_WORRY_TO_QUIZ変換で既に対応済み)ため、情報は失わずかたさチェックが必ず最初に来る。
 function obDecideRoute(){
   const a=obAnswers;
-  let r;
-  if(a.stiff==="hard"||a.stiff==="unknown") r="quiz";
-  else if(a.worry&&a.worry!=="none") r="soudan";
-  else r="today";
-  // KB未着や相談室API不在のときは「きょうの1本」へ安全に倒す
-  if(r==="soudan"&&!(typeof openSoudan==="function"&&typeof sdKb==="function"&&sdKb())) r="today";
-  return r;
+  if(a.stiff==="hard"||a.stiff==="unknown") return "quiz";
+  if(a.worry&&a.worry!=="none") return "quiz";
+  return "today";
 }
 function obRoute(){
   obRouteKey=obDecideRoute();
@@ -4137,16 +4135,15 @@ function obGo(){
   // かたさチェックへ行く人がまだツアーを見ていなければ、チェック結果画面に「つづき：使い方ツアー」を出す
   if(r==="quiz"&&!obTourDone) obTourAfterQuiz=true;
   // はじめの1本ガイド開始条件: オンボを完走した初回ユーザー（通算0日）だけを対象にする。
-  // soudanルート（相談室へ行くケース）は対象外。二重セットしないよう既にfdが立っていたら触らない
+  // 二重セットしないよう既にfdが立っていたら触らない（ルートはquiz/todayの2択のみ・soudanは2026-07-19廃止）
   if((r==="quiz"||r==="today") && getStreakData().total===0 && !store.get("fd")) store.set("fd","go");
-  obClose(true); // 直後にstartQuiz/openSoudan等が履歴を積むため、ここではback()しない（レース防止）
+  obClose(true); // 直後にstartQuiz等が履歴を積むため、ここではback()しない（レース防止）
   if(r==="quiz"){
     // Q2で実質的な悩みに回答済みなら、直後のかたさチェックQ5で同じ質問を繰り返さない（本人承認済み仕様 2026-07-17）
     const presetWorry=(worry&&worry!=="none")?(OB_WORRY_TO_QUIZ[worry]||null):null;
     startQuiz(presetWorry);
     return;
   }
-  if(r==="soudan"){ try{ openSoudan(worry); return; }catch(e){} }
   goHome();
   setTimeout(function(){ const tv=document.getElementById("todayVideo"); if(tv&&tv.scrollIntoView) tv.scrollIntoView(); },60);
 }
