@@ -597,6 +597,7 @@
       <button id="segAsa" onclick="setMode('asa')"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="4.5" fill="#FFD93B"/><path d="M12 3.5v2.5M4 13H2M22 13h-2M5.5 6.5l1.8 1.8M18.5 6.5l-1.8 1.8"/></svg>あさ</button>
       <button id="segYoru" onclick="setMode('yoru')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 14.5A8 8 0 0 1 9.5 5 8 8 0 1 0 19 14.5z" fill="#B8A9F0" stroke="#3A3A35" stroke-width="2.2" stroke-linejoin="round"/></svg>よる</button>
     </div>
+    <div id="segMineHint" class="hidden hint" style="margin:-4px 0 8px;text-align:left">「あなた用」＝かたさチェックの結果に合わせたおすすめ3本です</div>
     <div id="todayVideo"></div>
     <div class="hint" style="margin-top:8px">動画がおわったら アプリにもどって<br>下の「きょうやった！」を押してね✅</div>
   </div>
@@ -1031,7 +1032,7 @@
       <div class="faq-group">
         <div class="faq-g" onclick="toggleFaqGroup(this)">💬 きょうの1本・相談室<span class="faq-g-arrow">▾</span></div>
         <div class="faq-g-body hidden">
-          <details id="faqPain"><summary>ストレッチ中に痛かったら？</summary><div class="fa">目安は「イタ気持ちいい」まで つよい痛みやしびれが出たら中止して 医療機関に相談してね</div></details>
+          <details id="faqPain"><summary>ストレッチ中に痛かったら？</summary><div class="fa">目安は「イタ気持ちいい」まで<br>すぐに中止して医療機関に相談してほしいサイン:<br>・ビリッとした鋭い痛みやしびれが出た<br>・力が入らない・まひしたように感じる<br>・安静にしていても痛む/夜眠れないほど痛む<br>・熱っぽい、または腫れがある<br>迷ったら無理せず「オガトレ相談室」で症状を伝えてもらっても大丈夫です</div></details>
           <details><summary>「きょうの1本」はだれが選んでるの？</summary><div class="fa">尾形さんのYouTube動画の中から 日替わりでアプリが出しています かたさチェック済みの人は「あなた用」にタイプに合わせたおすすめが出ます</div></details>
           <details><summary>相談室はだれが答えてるの？</summary><div class="fa">オガトレが監修した回答パターン集から アプリが選んで返しています（AIが勝手に文章を作ることはありません）相談した内容がスマホの外に送られることもありません</div></details>
           <details><summary>2週間プランはやめられる？</summary><div class="fa">ホームのプランのカードにある「やめる」からいつでもやめられます 続けた日数の記録はそのまま残ります</div></details>
@@ -1604,6 +1605,7 @@ function renderToday(){
   const plan=planCurrent();
   const mineAvail = typed || !!plan;
   document.getElementById("segMine").classList.toggle("hidden",!mineAvail);
+  document.getElementById("segMineHint").classList.toggle("hidden",!mineAvail);
   let m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || (mineAvail?"mine":autoMode());
   if(m==="mine"&&!mineAvail) m=autoMode(); // プラン終了直後などに残った手動mineの救済
   state.mode=m;

@@ -1645,11 +1645,13 @@ async function main() {
         if (!returned) throw new Error(label + ": 閉じたあとフォーカスがトリガー要素(" + triggerSelector + ")に戻っていない");
       }
 
+      // 相談室FABはホームタブでは非表示(ホームに相談室カードが常設のため2026-07-19に重複排除)。
+      // フォーカス管理の検証自体はFABが見えているタブで行う必要があるため、先にhistoryタブへ切り替える。
+      await p.click("#tab-history");
+      await p.waitForSelector("#history", { visible: true });
       await checkModal("相談室", "#soudanFab",
         () => p.evaluate(() => openSoudan()), "soudanSheetBox",
         () => p.evaluate(() => closeSoudan()));
-      await p.click("#tab-history");
-      await p.waitForSelector("#history", { visible: true });
       await checkModal("カード図鑑", "button[onclick=\"openDex()\"]",
         () => p.evaluate(() => openDex()), "dexModalBox",
         () => p.evaluate(() => closeDex()));
