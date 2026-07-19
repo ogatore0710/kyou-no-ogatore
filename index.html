@@ -79,7 +79,7 @@
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   body{font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-weight:700;
     background:var(--bg);color:var(--ink);font-size:18px;line-height:1.75;
-    max-width:480px;margin:0 auto;padding:20px 18px 120px;min-height:100vh}
+    max-width:480px;margin:0 auto;padding:20px 18px 180px;min-height:100vh}
   /* もじの大きさ「大きめ」: zoomは中身ごと12%拡大し 幅480px制約の中で自然に再折返しする（つづける設定で切替） */
   body.bigtext{zoom:1.12}
   h1{font-size:22px;letter-spacing:.01em;font-weight:900;line-height:1.3}
@@ -202,7 +202,7 @@
   .dex-box{background:var(--card);border-radius:var(--radius);padding:18px;max-width:460px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-sizing:border-box}
   .dex-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
   .dex-title{font-size:17px;font-weight:900}
-  .dex-close{background:none;border:none;font-size:20px;color:var(--sub);cursor:pointer;padding:4px 8px}
+  .dex-close{background:none;border:none;font-size:20px;color:var(--sub);cursor:pointer;padding:12px 14px}
   .dex-summary{font-size:13px;color:var(--sub);margin-bottom:8px}
   .dex-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
   .dex-sec h3{font-size:14px;font-weight:800;margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between}
@@ -373,7 +373,7 @@
   .cal .d.sel{outline:3px solid var(--ink);outline-offset:2px}
   .daytoggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal-strong);color:#fff;font-weight:900;font-size:14px;line-height:1;margin-left:4px;vertical-align:-5px}
   .daychip{display:inline-flex;align-items:center;gap:4px;background:var(--teal-soft);color:var(--tealink);border-radius:999px;padding:9px 16px;font-weight:800;text-decoration:none;margin-top:8px}
-  .daychip-alt{background:var(--yellow-soft);color:#8A6D00}
+  .daychip-alt{background:var(--yellow-soft);color:#7E6400}
   .cal .d.mute{color:#D5CFBE}
   .bar{background:var(--line);border-radius:99px;height:14px;overflow:hidden;margin-top:8px}
   .bar>div{height:100%;background:linear-gradient(90deg,var(--teal),#7BD0C4);border-radius:99px;transition:width .4s}
@@ -1346,7 +1346,7 @@ function modalFocusClose(){
 // 相談室FABはさらにKB未読込なら常に隠す（入口カードと同じガード）
 function updateFabs(){
   const modalOpen=id=>{ const el=document.getElementById(id); return !!(el&&!el.classList.contains("hidden")); };
-  const hide=currentSection==="quiz"||currentSection==="reach"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome")||modalOpen("dexModal");
+  const hide=currentSection==="quiz"||currentSection==="reach"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome")||modalOpen("dexModal")||modalOpen("a2hsModal");
   document.body.classList.toggle("fabs-hide",hide);
   // ホームタブには相談室カードが常設されているため、FABまで縦積みで重複表示すると誤タップの元になる
   // (2026-07-19 Fableレビュー「FAB縦積みで誤タップしやすい・ホームでは相談室カードと重複」対応)。
@@ -1489,6 +1489,10 @@ function switchTab(t){
 // 使い方タブの目次チップ→カードへスクロール（reduced-motionでは即ジャンプ）
 function gJump(id){
   const el=document.getElementById(id); if(!el) return;
+  // 検索で絞り込んだ後にgJumpすると、filterFaqが付けた.hiddenが残りジャンプ先が見えないままになる
+  // (2026-07-20発見)。ジャンプの直前に検索状態ごとリセットする(いちばん単純で確実な形)
+  const fs=document.getElementById("faqSearch");
+  if(fs){ fs.value=""; if(typeof filterFaq==="function") filterFaq(""); }
   let p=el;
   while(p){
     if(p.tagName==="DETAILS"&&!p.open) p.open=true;
@@ -1506,7 +1510,9 @@ function toggleFaqGroup(el){
   el.nextElementSibling.classList.toggle("hidden");
 }
 function filterFaq(q){
-  q=(q||"").trim().toLowerCase();
+  // query/対象テキストの両辺をsdNorm()で正規化（カタカナ→ひらがな・全角→半角・小文字化）し、
+  // 表記ゆれ(例:「ＬＩＮＥ」で検索してもLINEを含む項目がヒットする)を吸収する(2026-07-20対応)
+  q=sdNorm((q||"").trim());
   const groups=document.querySelectorAll(".faq-group");
   let anyHit=false;
   groups.forEach((g,gi)=>{
@@ -1514,7 +1520,7 @@ function filterFaq(q){
     const items=body.querySelectorAll("details");
     let groupHit=false;
     items.forEach(it=>{
-      const hit=!q||it.textContent.toLowerCase().indexOf(q)!==-1;
+      const hit=!q||sdNorm(it.textContent).indexOf(q)!==-1;
       it.classList.toggle("hidden",!hit);
       if(hit) groupHit=true;
     });
@@ -1611,7 +1617,10 @@ function renderToday(){
   const plan=planCurrent();
   const mineAvail = typed || !!plan;
   document.getElementById("segMine").classList.toggle("hidden",!mineAvail);
-  document.getElementById("segMineHint").classList.toggle("hidden",!mineAvail);
+  // ヒント文言「かたさチェックの結果に合わせた…」はプラン実行中(plan)は実態と合わない
+  // (プラン中の「あなた用」はプラン専用動画で、かたさチェックの結果とは無関係のため)。
+  // typedのみ(プランなし)のときは従来どおり表示する(2026-07-20対応)
+  document.getElementById("segMineHint").classList.toggle("hidden",!typed||!!plan);
   let m = state.mode || (manual&&manual.d===todayStr()?manual.m:null) || (mineAvail?"mine":autoMode());
   if(m==="mine"&&!mineAvail) m=autoMode(); // プラン終了直後などに残った手動mineの救済
   state.mode=m;
@@ -3034,7 +3043,10 @@ function sdRenderChips(){
   const kb=sdKb(); const box=document.getElementById("sdChips"); const catBox=document.getElementById("sdCatRow");
   if(!kb||!box) return;
   let html="";
-  if(sdChipsMode.type==="followups"){
+  if(sdChipsMode.type==="none"){
+    // crisis(希死念慮)応答直後: チップ・カテゴリタブは一切出さず静かな窓口案内だけにする
+    if(catBox) catBox.innerHTML="";
+  }else if(sdChipsMode.type==="followups"){
     if(catBox) catBox.innerHTML="";
     const it=sdIntentById(sdChipsMode.intentId);
     const ids=(it&&Array.isArray(it.followups))?it.followups:[];
@@ -3196,7 +3208,7 @@ function sdAnswerRedFlag(n){
 function sdAnswerCrisis(){
   const kb=sdKb(); const cf=kb.crisis||{};
   sdCtx.smalltalkStreak=0;
-  sdChipsMode={type:"intents"};
+  sdChipsMode={type:"none"}; // チップ列・カテゴリタブを出さず静かな窓口案内だけにする(2026-07-12設計の復元)。入力欄は生きたまま=再送信で会話は続けられる
   sdPush([{who:"oga",html:sdText(cf.answer||"つらい気持ちを教えてくれてありがとう。ひとりで抱えないでほしいな。「いのちの電話」0570-783-556（ナビダイヤル）など、話を聴いてくれる窓口があるよ。"),red:true}]);
 }
 function sdAnswerSmalltalk(st){

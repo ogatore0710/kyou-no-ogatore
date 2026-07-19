@@ -183,7 +183,10 @@ function saveMemo(){
   document.getElementById("memoInput").oninput=()=>{ mb.textContent="メモをのこす"; mb.disabled=false; };
 }
 
-function setReach(lv){
+// silent=true: かたさチェックQ1からの自動転記(finishQuiz)用。ユーザーが自分でボタンを押したときの
+// 演出(自己ベスト更新🎉・最初からすばらしい 等)は、押していないのに出ると誤解を招くため出さない
+// (2026-07-20対応)。値そのものの記録・renderReach()の反映は通常どおり行う
+function setReach(lv,silent){
   const arr=getReach();
   const today=todayStr();
   const best=arr.length?Math.max(...arr.map(r=>r.lv)):0;
@@ -193,6 +196,7 @@ function setReach(lv){
   const reach_ok=store.set("reach",arr);
   renderReach();
   const msg=document.getElementById("reachMsg");
+  if(silent){ msg.textContent=""; return; }
   if(!reach_ok) msg.textContent="⚠️ のこせませんでした（プライベートモードかも）";
   else if(lv>best&&best>0) msg.innerHTML=`<b style="color:var(--pink)">🎉 自己ベスト更新！「${REACH_LV[lv]}」</b> 記録カードにも入ります`;
   else if(lv>=4&&best===0) msg.innerHTML=`<b style="color:var(--pink)">最初から「${REACH_LV[lv]}」！すばらしい</b>`;

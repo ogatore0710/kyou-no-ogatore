@@ -80,6 +80,7 @@ function a2hsShow(kind,cont){
   }
   m.classList.remove("hidden");
   modalFocusOpen("a2hsModalBox");
+  updateFabs(); // a2hs表示中はFABを隠す(他モーダルと同じ扱い。2026-07-20対応=表示中FABが背後に見えるバグ修正)
   try{ if(!(history.state&&history.state.a2hs)) history.pushState({id:currentSection,a2hs:1},""); }catch(e){}
 }
 // 閉じ方（ボタン/戻る操作いずれも）を問わず必ずcont()(=obOpen)へ進む。
@@ -88,6 +89,7 @@ function a2hsShow(kind,cont){
 function a2hsClose(){
   const m=document.getElementById("a2hsModal");
   if(m){ m.classList.add("hidden"); m.removeAttribute("data-a2hs-kind"); }
+  updateFabs(); // 他モーダルのclose関数と同じ作法(updateFabs→modalFocusCloseの順序厳守)
   modalFocusClose();
   const cont=a2hsCont; a2hsCont=null;
   if(cont) cont();

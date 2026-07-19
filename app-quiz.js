@@ -211,7 +211,7 @@ function finishQuiz(){
   try{
     if(typeof getReach==="function" && typeof setReach==="function" && !getReach().length && state.picked && ("momo" in state.picked)){
       const lv=REACH_FROM_MOMO[state.picked.momo];
-      setReach(lv);
+      setReach(lv,true); // silent=true: 自動転記なので#reachMsgの演出(自己ベスト更新等)は出さない
       quizAutoReachLv=lv;
     }
   }catch(e){}
