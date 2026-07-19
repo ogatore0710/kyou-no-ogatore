@@ -192,10 +192,27 @@ function decideType(){
   if(s[best]<=1) return "yawara";
   return best;
 }
+// クイズQ1(momo・立って前屈)の選択肢インデックス(0〜3)→とどくメーターの段位(1〜5)対応表。
+// 「床につく/つま先/すねの途中/ひざ下」の4段階と「ひざ/すね/足首/つま先/ゆか」の5段階はズレがあり、
+// メーター側の「足首」に相当する選択肢はクイズに無いため自動では選ばれない(仕様上の許容差)。
+const REACH_FROM_MOMO=[5,4,2,1];
+let quizAutoReachLv=null;
 function finishQuiz(){
   const t=decideType();
   state.type={key:t, worry:state.worry, at:todayStr()};
   store.set("type", state.type);
+  // 2026-07-19 本人指摘「とどくメーターとかたさチェックのQ1が前屈を二重に測っている」対応。
+  // とどくメーターがまだ1件も無ければ、Q1の回答を初回記録として自動で書きこむ(A案・自動転記)。
+  // 既に記録がある場合は上書きしない(ユーザーが自分で測った値を優先する)。結果画面での一言表示のため
+  // quizAutoReachLvに記録し、showResult側で使い切ったらnullに戻す(再表示時に出ないように)。
+  quizAutoReachLv=null;
+  try{
+    if(typeof getReach==="function" && typeof setReach==="function" && !getReach().length && state.picked && ("momo" in state.picked)){
+      const lv=REACH_FROM_MOMO[state.picked.momo];
+      setReach(lv);
+      quizAutoReachLv=lv;
+    }
+  }catch(e){}
   showResult(state.type);
 }
 
@@ -241,6 +258,16 @@ function showResult(saved){
   document.getElementById("rCopy").textContent=T.copy;
   document.getElementById("rHope").textContent="🌱 "+T.hope;
   document.getElementById("rPT").innerHTML=`<div class="pt-head">${ICON_PT}理学療法士のひとくち解説</div>`+T.pt;
+  {
+    const rn=document.getElementById("rReachNote");
+    if(quizAutoReachLv){
+      rn.textContent=`📏 いまの前屈「${REACH_LV[quizAutoReachLv]}」を とどくメーターにも記録したよ`;
+      rn.classList.remove("hidden");
+    }else{
+      rn.classList.add("hidden"); rn.textContent="";
+    }
+    quizAutoReachLv=null;
+  }
   const fixed=T.rx.length>0;
   document.getElementById("rxHead").innerHTML = guide
     ? `${ICON_RX}まずはこの1本から！②③はあしたからでOKだよ`
