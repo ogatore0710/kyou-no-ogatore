@@ -87,28 +87,30 @@ const WORRY = {
 const QUIZ_ART=[
  `<img src="assets/check/q1.jpg" alt="立って前屈のお手本">`,
  `<img src="assets/check/q2.jpg" alt="あぐらのお手本">`,
-  // Q3 肘上げ（あご/鼻/眉のレベル線）※実写が撮れたら差し替え
+  // Q3 胸の前で両ひじをつけて上げる（肩甲骨の硬さチェック・本人のYouTube「肩甲骨12分」動画準拠）
+  // ※実写が撮れたら差し替え。あたま/あごの高さ線＝両ひじが上がる目安、ピンクの丸＝ひじをつける位置
  `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
    <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
    <g stroke="#CFC9B8" stroke-width="2.5" stroke-dasharray="2 6">
-     <path d="M168 40h66M168 54h66M168 66h66"/>
+     <path d="M136 45h74M136 68h74"/>
    </g>
    <g fill="#6E6B5F" stroke="none" font-weight="800" font-size="11">
-     <text x="240" y="44">まゆ</text><text x="240" y="58">鼻</text><text x="240" y="70">あご</text>
+     <text x="215" y="49">あたま</text><text x="215" y="72">あご</text>
    </g>
-   <path d="M116 108L112 148M130 108L134 148" stroke="#55524A" stroke-width="9"/>
-   <path d="M123 104L123 72" stroke="#3A3A35" stroke-width="15"/>
-   <circle cx="123" cy="52" r="15" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
-   <path d="M110 46q5-10 15-9q9 2 11 9q-7-3-13-2q-8 0-13 2z" fill="#3A3A35"/>
-   <circle cx="118" cy="53" r="2" fill="#3A3A35"/><circle cx="128" cy="53" r="2" fill="#3A3A35"/>
-   <path d="M120 60q3 3 6 0" stroke="#3A3A35" stroke-width="2.2"/>
-   <path d="M112 74L104 90" stroke="#E8B48C" stroke-width="7"/>
-   <path d="M134 76Q150 70 152 56" stroke="#E8B48C" stroke-width="8"/>
-   <path d="M152 56Q146 66 136 70" stroke="#E8B48C" stroke-width="7"/>
-   <circle cx="134" cy="72" r="4" fill="#E8B48C"/>
-   <circle cx="153" cy="54" r="7" stroke="#E56A9A" stroke-width="3.5"/>
-   <path d="M162 50V26" stroke="#E56A9A" stroke-width="4"/>
-   <path d="M156 32l6 -8l6 8" stroke="#E56A9A" stroke-width="3.5"/>
+   <path d="M112 118L106 150M132 118L138 150" stroke="#55524A" stroke-width="9"/>
+   <path d="M122 118L122 80" stroke="#3A3A35" stroke-width="15"/>
+   <circle cx="122" cy="58" r="13" fill="#FFE3C9" stroke="#3A3A35" stroke-width="4"/>
+   <path d="M110 51q4-9 12-8q8 2 10 8q-6-3-11-2q-7 0-11 2z" fill="#3A3A35"/>
+   <circle cx="118" cy="59" r="2" fill="#3A3A35"/><circle cx="126" cy="59" r="2" fill="#3A3A35"/>
+   <path d="M120 65q2 2 4 0" stroke="#3A3A35" stroke-width="2.2"/>
+   <path d="M108 80Q106 58 118 42" stroke="#E8B48C" stroke-width="8"/>
+   <path d="M118 42Q120 30 122 20" stroke="#E8B48C" stroke-width="7"/>
+   <path d="M136 80Q138 58 126 42" stroke="#E8B48C" stroke-width="8"/>
+   <path d="M126 42Q124 30 122 20" stroke="#E8B48C" stroke-width="7"/>
+   <circle cx="122" cy="41" r="7" fill="#E56A9A"/>
+   <circle cx="122" cy="20" r="5" fill="#FFE3C9" stroke="#3A3A35" stroke-width="2"/>
+   <path d="M122 18V4" stroke="#E56A9A" stroke-width="4"/>
+   <path d="M116 10l6 -8l6 8" stroke="#E56A9A" stroke-width="3.5"/>
  </svg>`,
  // Q4 深くしゃがむ: かかとの浮きをズーム円で拡大
  `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
