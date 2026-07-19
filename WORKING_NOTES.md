@@ -4,6 +4,26 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-20
 
+## 2026-07-20 検証依頼(VERIFICATION-REQUEST)監査で挙がった9件をまとめて修正
+
+監査(依頼1/2/3)で挙がった実装済み承認9件を一括修正。全件に恒久テストを追加した。
+
+1. **crisis(希死念慮)応答後もインテントチップ一覧が出ていた**(依頼2トーン所見①): `sdChipsMode`に`type:"none"`を新設し`sdAnswerCrisis()`で設定。チップ列・カテゴリタブとも出さず静かな窓口案内だけにする(2026-07-12設計コメント「チップを出さず」の復元)。入力欄・送信ボタンは無効化しない=会話は閉ざさない。
+2. **FAQ検索で絞り込み中に🆘ボタン等でgJumpすると、`filterFaq`が付けた`.hidden`が残りジャンプ先が不可視のまま**: `gJump()`冒頭で`#faqSearch`をクリアし`filterFaq("")`でリセットしてからジャンプ。
+3. **FAQ検索が表記ゆれ(全角/半角・カタカナ/ひらがな)でヒットしない**(依頼1指摘): `filterFaq()`でquery/対象テキスト両辺を`sdNorm()`正規化。「ＬＩＮＥ」→LINE、「さーばー」→サーバー等がヒットするようになった。
+4. **2週間プラン中の`#segMineHint`「かたさチェックの結果に合わせた…」が実態(プラン専用動画)と不一致**: `renderToday()`の表示条件を`mineAvail`→`typed&&!plan`に変更(プラン中は非表示)。
+5. **かたさチェックQ1→とどくメーター自動転記時に「🎉自己ベスト更新」等の演出が#reachMsgに残る**: `setReach(lv,silent)`にsilent引数を追加し、`finishQuiz()`の自動転記は`setReach(lv,true)`で演出なし(msg空)に。手動ボタンは従来どおり。
+6. **`.daychip-alt`(使い方ツアーボタン)ライト側文字色#8A6D00が背景#FFF3C4に対しAA未達**(依頼3): `#7E6400`へ変更(実測5.09:1でAA達成)。ダーク側#E8C74Cは元々達成済みで変更なし。
+7. **ホーム画面追加ポップアップ(a2hsModal)表示中に背後のFABが見えたまま**: `updateFabs()`のhide条件に`modalOpen("a2hsModal")`を追加、`a2hsShow()`/`a2hsClose()`から他モーダルと同じ作法(close側はupdateFabs→modalFocusCloseの順)で呼ぶ。
+8. **ページ最下部でFAB2段がフッターのタップ域に被る**(依頼3): `body`の`padding-bottom`を120px→180pxに拡大。
+9. **カード図鑑の閉じる✕(`.dex-close`)のタップ域が約35pxでWCAG推奨44px未満**(依頼3): `padding:4px 8px`→`12px 14px`(概算48px)。フォントサイズは不変。
+
+**追加した恒久テスト**: qa=281→302checks(`checkReachAutoTranscribe`/`checkVerification20260720Fixes`新設、`checkContrast`にdaychip-alt AA検査、`checkA2hsPopup`にFAB連携3点)。smoke=25→27ステップ(`4b-FAQ検索の表記ゆれ正規化とgJump不可視バグ修正`、`6bb-crisis応答後はチップ列が空`新設。既存`2-かたさチェック`に自動転記lv/reachMsg空の実測を追加)。
+
+**smokeテストのハマりどころ2件(6bb実装時に実測)**: ①相談室シート再オープン時は`.sd-sheet`のスライドインアニメ(0.25s)が毎回再生され、直後のclickが「Node is not clickable」で落ちる→送信ボタンがビューポート内に収まるまで待つ。②6bは赤旗1個目の吹き出しで先へ進むため2個目のpushがシートを閉じても走り続け、6bb再オープン直後は`sdPending>0`で`sdSend()`が無言で早期return→送信ボタン有効化まで待ってから送信+ログ持ち越し分は絶対数でなく増分で待つ。
+
+検証: `npm test`=302checks、`npm run smoke`=27/27、`npm run smoke:webkit`=9/9、`redflag-safety-test.mjs`=111/111、すべてPASS。
+
 ## 2026-07-20 赤旗すり抜け攻撃テスト(VERIFICATION-REQUEST依頼2)→口語カバーkw34語を追加
 
 医療安全監査(Fable)。kwリストを見ずに臨床知識から生成した攻撃フレーズD34件(発火すべき)+N10件(過剰検知プローブ)を`soudan-ai-poc/norm.mjs`の実判定に通した。結果: D群18/34発火・16すり抜け、N群は既知の2件(正座しびれ・昔の骨折=しびれ/骨折を広く拾う設計由来)以外は過剰検知なし。

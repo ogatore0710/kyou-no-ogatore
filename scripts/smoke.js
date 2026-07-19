@@ -784,6 +784,11 @@ async function main() {
         () => document.getElementById("sdSendBtn").getBoundingClientRect().bottom <= window.innerHeight,
         { timeout: 2000 }
       );
+      // 6bは赤旗応答の1個目の吹き出し(sd-red>=1)を確認した時点でgoBackするため、2個目の赤旗吹き出しの
+      // push(sdPending>0)がシートを閉じても走り続け、6bbの再オープン直後まで持ち越されることがある。
+      // sdPending>0の間はsdSend()が早期returnして送信が無言で失敗する(実測: 入力欄に文言が残ったまま
+      // 持ち越しの吹き出しだけが着弾して誤判定)ので、送信ボタンが有効=push完了まで待ってから操作する
+      await page.waitForFunction(() => !document.getElementById("sdSendBtn").disabled, { timeout: 8000 });
       // 相談室ログは6bから持ち越される(sd-red行・user行が既に残っている)ため、絶対数の条件だと
       // 待たずに素通りしてしまい、crisis応答が描画される前のチップ数を読んで誤判定する。
       // 送信前の件数を控えて「増えたか」で待ち、さらに吹き出し表示完了(sdPending解消=送信ボタン再有効化
