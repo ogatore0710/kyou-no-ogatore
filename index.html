@@ -125,6 +125,7 @@
   body.dark .chip-b{background:#1F3532;border-color:#2E5A52;color:#7BD0C4}
   body.dark .chip-c{background:#3A2730;border-color:#5E3A4C;color:#F09BC0}
   body.dark .chip-d{background:#2C2740;border-color:#4A4070;color:#B8A9F0}
+  body.dark .daychip-alt{color:#E8C74C}
   body.dark .chip-a.on{background:var(--yellow);border-color:var(--yellow);color:#211E19}
   body.dark .chip-b.on{background:var(--teal-strong);border-color:var(--teal-strong);color:#fff}
   body.dark .chip-c.on{background:var(--pink);border-color:var(--pink);color:#fff}
@@ -372,6 +373,7 @@
   .cal .d.sel{outline:3px solid var(--ink);outline-offset:2px}
   .daytoggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal-strong);color:#fff;font-weight:900;font-size:14px;line-height:1;margin-left:4px;vertical-align:-5px}
   .daychip{display:inline-flex;align-items:center;gap:4px;background:var(--teal-soft);color:var(--tealink);border-radius:999px;padding:9px 16px;font-weight:800;text-decoration:none;margin-top:8px}
+  .daychip-alt{background:var(--yellow-soft);color:#8A6D00}
   .cal .d.mute{color:#D5CFBE}
   .bar{background:var(--line);border-radius:99px;height:14px;overflow:hidden;margin-top:8px}
   .bar>div{height:100%;background:linear-gradient(90deg,var(--teal),#7BD0C4);border-radius:99px;transition:width .4s}
@@ -905,7 +907,7 @@
 <!-- ===== 使い方 ===== -->
 <section id="guide" class="hidden">
 
-  <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;font-size:14px"><a href="#" class="tapx daychip" id="obReenterLink" onclick="obOpen();return false" style="margin-top:0">🌱 はじめてガイド</a><a href="#" class="tapx daychip" id="obTourLink" onclick="obOpenTour();return false" style="margin-top:0;background:var(--yellow-soft,#FFF6D8);border:1.5px solid #F2DE8A;color:#8A6D00">📖 使い方ツアー</a></div>
+  <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;font-size:14px"><a href="#" class="tapx daychip" id="obReenterLink" onclick="obOpen();return false" style="margin-top:0">🌱 はじめてガイド</a><a href="#" class="tapx daychip daychip-alt" id="obTourLink" onclick="obOpenTour();return false" style="margin-top:0">📖 使い方ツアー</a></div>
   <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:18px">🌱は最初の質問からやり直したい方／📖はこのページの内容をスライドでサクッと見たい方向けです</div>
 
   <div class="card grad-warm" style="text-align:center">
