@@ -57,7 +57,7 @@ function a2hsShow(kind,cont){
   body.innerHTML="";
   box.innerHTML="";
   if(kind==="ios-safari"){
-    body.innerHTML="画面下部の共有ボタン（□に↑のマーク）をタップして<br>「ホーム画面に追加」を選んでね📲<br>次からアプリみたいにワンタップで開けるようになるよ😊";
+    body.innerHTML="①画面下部の共有ボタン（□に↑のマーク）をタップ<br>②「ホーム画面に追加」を選ぶ📲<br>これで次からアプリみたいにワンタップで開けるようになるよ😊";
     a2hsAddBtn("あとで","btn-line",function(){ a2hsClose(); });
   }else if(kind==="ios-other"){
     body.innerHTML="ホーム画面に追加するために、<b>Safari</b>で開いてね🙏<br>共有メニューから「Safariで開く」を選んでみてね";
@@ -75,7 +75,7 @@ function a2hsShow(kind,cont){
     });
     a2hsAddBtn("あとで","btn-line",function(){ a2hsClose(); });
   }else{
-    body.innerHTML="画面右上の<b>「⋮」</b>メニューから<br>「ホーム画面に追加」または「アプリをインストール」を選んでね📲";
+    body.innerHTML="①画面右上の<b>「⋮」</b>メニューをタップ<br>②「ホーム画面に追加」または「アプリをインストール」を選ぶ📲";
     a2hsAddBtn("わかった","btn-primary",function(){ a2hsClose(); });
   }
   m.classList.remove("hidden");

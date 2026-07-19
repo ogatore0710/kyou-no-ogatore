@@ -768,7 +768,9 @@
           <div class="hint" style="text-align:left">この文字を長押しでコピーしてね</div>
         </div>
         <div class="hint" style="text-align:left">コピーした文字はLINEの「じぶん専用トーク」やメモアプリに貼っておくと安心です</div>
-        <div style="font-size:15px;margin:14px 0 6px">新しいスマホでは ここに貼り付け</div>
+        <div style="font-size:15px;margin:14px 0 6px">新しいスマホでは ここに読みこみ</div>
+        <button class="btn btn-primary" style="font-size:15px" onclick="importFromClipboard()">📋 コピーした記録を自動で読みこむ</button>
+        <div class="hint" style="text-align:left">うまくいかないときは 下のわくに手で貼り付けてね</div>
         <textarea id="importText" rows="3" placeholder="コピーした文字を ここに貼ってね" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:14px;color:var(--ink);background:var(--card);resize:none"></textarea>
         <button class="btn btn-line" style="font-size:15px;margin-top:8px" onclick="importData()">📥 よみこむ</button>
         <div class="hint" style="text-align:left">機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「よみこむ」</div>
@@ -1339,8 +1341,11 @@ function updateFabs(){
   const modalOpen=id=>{ const el=document.getElementById(id); return !!(el&&!el.classList.contains("hidden")); };
   const hide=currentSection==="quiz"||currentSection==="reach"||sdSheetOpen()||modalOpen("obuModal")||modalOpen("cardModal")||modalOpen("welcome")||modalOpen("dexModal");
   document.body.classList.toggle("fabs-hide",hide);
+  // ホームタブには相談室カードが常設されているため、FABまで縦積みで重複表示すると誤タップの元になる
+  // (2026-07-19 Fableレビュー「FAB縦積みで誤タップしやすい・ホームでは相談室カードと重複」対応)。
+  // ホーム以外のタブでは引き続きFABから相談室を開ける。
   const sf=document.getElementById("soudanFab");
-  if(sf) sf.classList.toggle("hidden",!sdKb());
+  if(sf) sf.classList.toggle("hidden",!sdKb()||currentSection==="home");
 }
 // ================= 自作アイコン（タイプ別イラスト・SVG） =================
 const TYPE_IMG = { momo:"assets/type-momo.png", kenko:"assets/type-kenko.png", yawara:"assets/type-yawara.png" };
@@ -1943,6 +1948,16 @@ function showExportFallback(str){
   if(!box||!ta){ prompt("この文字列を全部コピーしてね",str); return; }
   ta.value=str; box.classList.remove("hidden");
   ta.focus(); ta.select(); try{ ta.setSelectionRange(0,str.length); }catch(e){}
+}
+// 高齢者・デジタル機器が苦手な方向け: 長押しコピー→貼り付けという操作を、ボタン1つで完結させる
+// (2026-07-19 Fableレビュー「コピペ方式は挫折点」対応)。読み取れない環境では下の手動欄にフォールバック。
+function importFromClipboard(){
+  if(!(navigator.clipboard&&navigator.clipboard.readText)){ alert("この端末では自動で読みこめません\n下のわくに手で貼り付けてね"); return; }
+  navigator.clipboard.readText().then(str=>{
+    if(!str||!str.trim()){ alert("クリップボードが空みたい\nコピーできているか確認してね"); return; }
+    const ta=document.getElementById("importText"); if(ta) ta.value=str.trim();
+    importData();
+  },()=>{ alert("読みこめませんでした\n下のわくに手で貼り付けてね"); });
 }
 function exportData(){
   const str=buildExportString();
@@ -3913,7 +3928,7 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
       if(!next&&store.get("homehint_done",false)) next=7; // 旧フラグ(とじる済み・しきい値なし)は7日目から再提案
       return days>=Math.max(next,3);
     })()){
-      bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります <a href="#" onclick="switchTab(\'guide\');return false" class="tapx" style="color:var(--tealink);font-weight:800">使い方を見る</a>　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
+      bn.innerHTML='📌 いい調子✨ <b>ホーム画面についか</b>すると記録がもっと安全にのこります <a href="#" onclick="switchTab(\'guide\');gJump(\'gd-mamori\');return false" class="tapx" style="color:var(--tealink);font-weight:800">やり方を見る</a>　<a href="#" onclick="dismissHomeHint();return false" class="tapx" style="color:var(--tealink);font-weight:800">とじる ✕</a>';
       bn.classList.remove("hidden");
     }
   }catch(e){}
