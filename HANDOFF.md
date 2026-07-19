@@ -2,8 +2,8 @@
 
 最終更新: 2026-07-20
 
-## ⚠️ 次にやること: C1(本人+Sonnet)からC2(Fable)への検証依頼
-**[VERIFICATION-REQUEST-2026-07-20.md](VERIFICATION-REQUEST-2026-07-20.md)** に3件の重め検証タスクをまとめてある。着手前に必ず読むこと。
+## ✅ 完了: C1→C2検証依頼3件（2026-07-20・C2 Fable艦隊で実施済み）
+依頼1(直近2日変更の横断監査)・依頼2(赤旗深掘り)・依頼3(マルチビューポート)とも完了。発見の修正済み分=赤旗kw34語追加+9件の修正バッチ(crisisチップ抑止/FAQ検索正規化ほか)。**本人判断待ちの提案リストはWORKING_NOTES.mdの2026-07-20「C1検証依頼3件の総括」エントリ参照**。依頼ファイルは役目を終えたため削除済み（内容はgit履歴に残存）。
 
 ## 現状（2026-07-20時点）
 - アプリ本体は依存ゼロの静的アプリ: `index.html` + `videos.js` + `app-search.js` + `app-quiz.js` + `app-record.js` + `app-card.js` + `app-env.js` + `soudan-kb.js` + `obu-feed.js` + `sw.js` + `manifest.json`。**[SPLIT-PLAN.md](SPLIT-PLAN.md)の5項目は全部完了**（index.htmlからの分割は一区切り）
