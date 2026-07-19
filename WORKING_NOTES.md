@@ -13,7 +13,7 @@
 4. **使い方タブの一番下に「✉️ アプリの使い方をオガトレに問い合わせる」mailtoボタンを新設**（既存の`kyou-no@ogatore.jp`宛リクエスト導線と同じ宛先）。
 5. **`renderHome()`の`#todayCard`非表示ロジックを撤回**（2026-07-18に追加した「はじめの1本ガイド完了後の当日は#todayCardを隠す」処理）。本人「実施した後でも自分用にリマインドされる今日の一本、自分の体にあったストレッチ動画は表示されておくといいと思います」との指摘で、以前の「今日の一本の表示がいらない」という要望から方針転換。`scripts/qa.js`の対応するassertion（`checkOnboardingUX`内）も削除。なお`renderToday()`側は元々`fdActive()`(streak総数0の間だけtrue)で判定を分けているため、コード変更なしで「ガイド中は①だけ」→「完了後は通常のあなた用3本 or あさ/よる」に自動で切り替わる（今回の撤回はトグルを消しただけ）。
 
-`npm test`・`npm run smoke`・`npm run smoke:webkit`で確認予定。
+`npm test`=281checks、`npm run smoke`=25/25（1回目に無関係な一過性flaky失敗が1件あったが再実行で解消）、`npm run smoke:webkit`=9/9で確認済み。
 
 ## 2026-07-19 とどくメーター画像(assets/check/meter.jpg)をGPT生成でリニューアル
 
