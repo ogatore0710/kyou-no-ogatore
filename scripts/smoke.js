@@ -1521,27 +1521,31 @@ async function main() {
       await page.click("#tab-home");
       await visible("#home");
 
-      // ---- 確認9: soudanルートはガイド対象外（kyono_fdをセットしない） ----
-      let soudanNote = "SKIP扱い: soudan-kb.js未着のためsoudanルート自体が発生しない(today側にフォールバックする既存仕様)";
-      if (soudanKbExists) {
-        await page.evaluate(() => localStorage.clear());
-        await page.reload({ waitUntil: "load" });
-        await visible("#home");
-        await page.click("#tab-guide");
-        await visible("#obReenterLink");
-        await page.click("#obReenterLink");
-        await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"));
-        await tapObChip4("大きめ");        // Q0
-        await tapObChip4("やわらかい");    // Q1(stiff=soft・quizルートを回避)
-        await tapObChip4("肩こり・首");    // Q2(worry=katakoriで実質的な悩みあり) → soudanルートへ
-        await tapObChip4("きめてない");    // Q3
-        await tapObChip4("相談室で聞いてみる"); // soudanルートCTA
-        await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"), { timeout: 8000 });
-        const fdAfterSoudan = await page.evaluate(() => localStorage.getItem("kyono_fd"));
-        if (fdAfterSoudan) throw new Error("soudanルートなのにkyono_fdがセットされている (" + fdAfterSoudan + ")＝設計の対象外条件が守られていない");
-        soudanNote = "soudanルート実行→kyono_fd未セットを確認(対象外)";
-        try { await page.evaluate(() => { if (typeof closeSoudan === "function") closeSoudan(true); }); } catch (e) { /* ignore */ }
-      }
+      // ---- 確認9: soudanルートは廃止済み。悩みだけ答えた(stiff=soft)場合もquizルートに一本化され、
+      //      悩みはQ5プリセットとして引き継がれ、fdも通常どおり付与されることを確認する
+      //      （2026-07-19 本人指摘「はじめてガイドではすぐ相談に行くのはナシ。まずは硬さチェックかな」対応）
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: "load" });
+      await visible("#home");
+      await page.click("#tab-guide");
+      await visible("#obReenterLink");
+      await page.click("#obReenterLink");
+      await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"));
+      await tapObChip4("大きめ");        // Q0
+      await tapObChip4("やわらかい");    // Q1(stiff=soft・以前ならsoudanルートへ回っていた条件)
+      await tapObChip4("肩こり・首");    // Q2(worry=katakori)
+      await tapObChip4("きめてない");    // Q3
+      await page.waitForFunction(() => document.querySelectorAll("#obChips button").length > 0, { timeout: 8000 });
+      const routeBtn = await page.evaluate(() => document.querySelector("#obChips button").textContent);
+      if (routeBtn.indexOf("かたさチェック") === -1) throw new Error("worry回答時のCTAがかたさチェックになっていない (" + routeBtn + ")＝soudanルートが残っている可能性");
+      await tapObChip4("かたさチェックをはじめる");
+      await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      await visible("#quiz");
+      const qAfterWorry = await $text("#qnum");
+      if (qAfterWorry.indexOf("Q1") !== 0) throw new Error("worry経由のquizルートがQ1から始まっていない (" + qAfterWorry + ")");
+      const fdAfterWorryQuiz = await page.evaluate(() => localStorage.getItem("kyono_fd"));
+      if (fdAfterWorryQuiz !== '"go"') throw new Error("worry経由でquizルートに入ったのにkyono_fd=\"go\"がセットされていない (" + fdAfterWorryQuiz + ")");
+      const soudanNote = "stiff=soft+worry=肩こりでもsoudanへ回らずquizルートに一本化(CTA=かたさチェックをはじめる)→Q1開始→kyono_fd=\"go\"付与を確認";
       // このステップが本スイート最後の機能テストのため（残るは8のコンソールエラー集計のみ・状態非依存）、
       // 後続ステップ用のクリーンアップは行わない。#obSkipBtnはhistory.state.obが立っていればhistory.back()
       // する経路で、この1ページを使い回すスモークテストではここまでの大量のpushStateでhistoryスタックが
