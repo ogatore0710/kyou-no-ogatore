@@ -448,7 +448,17 @@ async function main() {
       if (icon !== "img-ok" && icon !== "svg-ok") throw new Error("タイプアイコンが描画されていない (" + icon + ")");
       const rxCount = await page.$$eval("#rxList .video", (a) => a.length);
       if (rxCount !== 3) throw new Error("処方が3本でない (実測 " + rxCount + "本)");
-      return "タイプ=" + name + " / アイコン=" + icon + " / 処方=" + rxCount + "本";
+      // とどくメーター自動転記(2026-07-19導入): とどくメーターが1件も無い状態でのQ1完走なので、
+      // Q1(momo)の回答が初回記録として自動で書きこまれる。ただし演出メッセージ(#reachMsg)は
+      // 「自動転記」時は出さない(2026-07-20対応・ユーザーが自分でボタンを押していないため)
+      const reachState = await page.evaluate(() => ({
+        reach: JSON.parse(localStorage.getItem("kyono_reach") || "[]"),
+        reachMsg: (document.getElementById("reachMsg") || {}).textContent,
+      }));
+      if (reachState.reach.length !== 1) throw new Error("とどくメーターへの自動転記が行われていない (件数=" + reachState.reach.length + ")");
+      if (reachState.reach[0].lv !== 5) throw new Error("自動転記されたlvがREACH_FROM_MOMO[0]=5と不一致 (実測=" + reachState.reach[0].lv + ")");
+      if (reachState.reachMsg) throw new Error("自動転記なのに#reachMsgに演出メッセージが出ている (\"" + reachState.reachMsg + "\")");
+      return "タイプ=" + name + " / アイコン=" + icon + " / 処方=" + rxCount + "本 / とどくメーター自動転記lv=" + reachState.reach[0].lv + "・reachMsg空";
     });
 
     // 2b. オンボQ2「いちばん気になるのは？」→かたさチェックQ5「いちばんの悩みは？」の二度聞き解消
@@ -614,6 +624,53 @@ async function main() {
       return seen.join(" ");
     });
 
+    // 4b. 使い方タブFAQ検索: (1)表記ゆれ正規化(sdNorm両辺適用)で全角/カタカナ入力でも半角/ひらがな相当の
+    //     本文にヒットする (2)検索で絞り込んだ状態から🆘ボタンでgJumpすると、filterFaqが付けた.hiddenが
+    //     残って対象が不可視のままになるバグの再発防止(2026-07-20対応)
+    await step("4b-FAQ検索の表記ゆれ正規化とgJump不可視バグ修正", async () => {
+      async function setSearch(q) {
+        await page.evaluate(() => {
+          const el = document.getElementById("faqSearch");
+          el.value = ""; el.dispatchEvent(new Event("input"));
+        });
+        if (q) await page.type("#faqSearch", q);
+      }
+      await page.click("#tab-guide");
+      await visible("#guide");
+      // (1a) 全角「ＬＩＮＥ」検索でも半角LINEを含む項目(#faqRecordMissing)がヒットする
+      await setSearch("ＬＩＮＥ");
+      await page.waitForFunction(() => {
+        const el = document.getElementById("faqRecordMissing");
+        return el && !el.classList.contains("hidden");
+      }, { timeout: 3000 });
+      // (1b) ひらがな「さーばー」検索でもカタカナ「サーバー」を含む項目がヒットする(カタカナ→ひらがな正規化)
+      await setSearch("さーばー");
+      const serverHit = await page.evaluate(() => {
+        const items = Array.prototype.slice.call(document.querySelectorAll(".faq details"));
+        return items.some((el) => el.textContent.indexOf("サーバー") !== -1 && !el.classList.contains("hidden"));
+      });
+      if (!serverHit) throw new Error("ひらがな「さーばー」検索でカタカナ「サーバー」を含む項目がヒットしていない(表記ゆれ正規化)");
+      // (2) 「ダークモード」で絞り込むと#faqRecordMissingは非ヒットで隠れる(バグ再現の前提)
+      await setSearch("ダークモード");
+      await page.waitForFunction(() => {
+        const el = document.getElementById("faqRecordMissing");
+        return el && el.classList.contains("hidden");
+      }, { timeout: 3000 });
+      // 🆘困ったときはカードの「📅 記録が消えた・0日にもどってる」ボタン(onclick=gJump('faqRecordMissing'))をタップ
+      await page.click("button[onclick=\"gJump('faqRecordMissing')\"]");
+      const after = await page.evaluate(() => {
+        const el = document.getElementById("faqRecordMissing");
+        const fs = document.getElementById("faqSearch");
+        return { hidden: el.classList.contains("hidden"), height: el.offsetHeight, searchVal: fs.value };
+      });
+      if (after.hidden) throw new Error("検索絞り込み中に🆘ボタンでgJumpしても対象detailsがhiddenのまま");
+      if (after.height <= 0) throw new Error("gJump後も対象detailsのoffsetHeightが0(不可視) 実測=" + after.height);
+      if (after.searchVal !== "") throw new Error("gJump後も#faqSearchに検索語が残っている(実測=\"" + after.searchVal + "\")");
+      await page.click("#tab-home");
+      await visible("#home");
+      return "全角/カタカナ表記ゆれヒット確認・検索絞り込み中→🆘ボタンgJump→検索クリア&対象details可視(offsetHeight=" + after.height + ")";
+    });
+
     // 5. ダークモード切替→戻し
     await step("5-ダークモード切替と復帰", async () => {
       await page.click("#tab-history");
@@ -707,6 +764,44 @@ async function main() {
       await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
       await visible("#home");
       return "チップ「" + chipText + "」→回答" + counts.oga + "吹き出し・動画" + counts.video + "枚→ページ不動(" + scrollAfter + "px)→赤旗回答→戻るでシート閉";
+    });
+
+    // 6bb. crisis(希死念慮)応答後はチップ列・カテゴリタブを一切出さない(2026-07-12設計・2026-07-20復元)。
+    //      会話自体は閉ざさない=入力欄からの再送信は引き続き可能なことも合わせて確認する。
+    await step("6bb-crisis応答後はチップ列が空(静かな窓口案内・入力欄は生きたまま)", async () => {
+      if (!soudanKbExists) return "SKIP扱い: soudan-kb.js未着";
+      await page.click("#tab-home");
+      await visible("#home");
+      await visible("#soudanCard");
+      await page.click("#soudanCard .sec-head");
+      await page.waitForFunction(() => !document.getElementById("soudanSheet").classList.contains("hidden"));
+      await page.waitForFunction(() => document.querySelectorAll("#sdChips button").length > 0);
+      await page.type("#sdInput", "しにたい");
+      await page.click("#sdSendBtn");
+      await page.waitForFunction(
+        () => document.querySelectorAll("#sdLog .sd-row.sd-red").length >= 1, { timeout: 8000 }
+      );
+      const after = await page.evaluate(() => ({
+        chipCount: document.querySelectorAll("#sdChips button").length,
+        catCount: document.querySelectorAll("#sdCatRow button").length,
+        inputDisabled: document.getElementById("sdInput").disabled,
+        sendDisabled: document.getElementById("sdSendBtn").disabled,
+      }));
+      if (after.chipCount !== 0) throw new Error("crisis応答後もチップが" + after.chipCount + "個出ている(静かな窓口案内のみのはず)");
+      if (after.catCount !== 0) throw new Error("crisis応答後もカテゴリタブが" + after.catCount + "個出ている");
+      if (after.inputDisabled) throw new Error("crisis応答後に入力欄が無効化されている(会話を閉ざしてはいけない)");
+      if (after.sendDisabled) throw new Error("crisis応答後に送信ボタンが無効化されている(会話を閉ざしてはいけない)");
+      // 入力欄からの再送信は引き続き可能なこと(会話を閉ざさない)
+      await page.type("#sdInput", "肩がこる");
+      await page.click("#sdSendBtn");
+      await page.waitForFunction(
+        () => document.querySelectorAll("#sdLog .sd-row.user").length >= 2, { timeout: 8000 }
+      );
+      await shot("6bb-soudan-crisis");
+      await page.goBack();
+      await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
+      await visible("#home");
+      return "「しにたい」送信→赤旗(sd-red)応答・チップ0個/カテゴリタブ0個→入力欄から再送信して会話継続を確認";
     });
 
     // 6c. 相談室×かたさタイプ連携（dev66 パートB）:

@@ -541,6 +541,32 @@ function checkContrast(html) {
     const re = new RegExp(`${escaped}\\{[^}]*background:var\\(--teal-strong\\)`);
     assert(`${selector} uses --teal-strong as background`, re.test(html), selector);
   }
+
+  // 2026-07-20対応: .daychip-alt(使い方タブ「使い方ツアー」ボタン)のライト側文字色が#8A6D00だと
+  // 背景--yellow-soft(#FFF3C4)に対してAA基準(4.5:1)未達だったため#7E6400へ調整(実測5.09:1でAA達成)。
+  // ダーク側(#E8C74C)は元々AA達成済みのため変更していない。
+  const daychipAltMatch = /\.daychip-alt\{background:var\(--yellow-soft\);color:(#[0-9A-Fa-f]{6})\}/.exec(html);
+  assert(".daychip-alt: ライトモードの色定義が見つかる", !!daychipAltMatch, "index.html");
+  const daychipAltColor = daychipAltMatch ? daychipAltMatch[1] : null;
+  assert(
+    ".daychip-alt: ライト側文字色は#7E6400(AA基準未達だった#8A6D00からの2026-07-20調整)",
+    daychipAltColor === "#7E6400",
+    daychipAltColor
+  );
+  if (daychipAltColor) {
+    const yellowSoftLight = "#FFF3C4";
+    const daychipRatio = contrastRatio(daychipAltColor, yellowSoftLight);
+    assert(
+      ".daychip-alt: ライト側 文字色 vs 背景(--yellow-soft #FFF3C4) AA(>=4.5:1)",
+      daychipRatio >= 4.5,
+      `${daychipRatio.toFixed(2)}:1`
+    );
+  }
+  assert(
+    ".daychip-alt: ダークモード側の色は変更していない(#E8C74C・回帰防止)",
+    /body\.dark \.daychip-alt\{color:#E8C74C\}/.test(html),
+    "dark override changed unexpectedly"
+  );
 }
 
 // 2026-07-17仕様判断待ち項目の対応: オンボQ2「いちばん気になるのは？」で答えた悩みが保存されず、
@@ -1004,6 +1030,29 @@ function checkA2hsPopup(html, mainScript) {
     "a2hsModal: popstate(戻る操作)でも閉じられる",
     /popstate[\s\S]{0,300}?a2hsModal[\s\S]{0,200}?a2hsClose\(\)/.test(mainScript),
     "back-button close wiring missing"
+  );
+
+  // 2026-07-20対応: a2hs表示中に他モーダルと同じくFABが隠れる(表示中は背後にFABが見えていたバグの修正)。
+  // 開く側=updateFabs()を呼ぶ、閉じる側=他close関数と同じ作法(updateFabs→modalFocusCloseの順序)、
+  // hide条件自体にmodalOpen("a2hsModal")が入っている、の3点を機械チェックで固定する。
+  const showFn = extractFunction(mainScript, "a2hsShow");
+  assert("a2hsShow: found", showFn.length > 0, `${showFn.length} chars`);
+  assert(
+    "a2hsShow: 表示中はupdateFabs()を呼びFABを隠す(他モーダルと同じ扱い)",
+    /updateFabs\(\)/.test(showFn),
+    "updateFabs() call missing in a2hsShow"
+  );
+  assert(
+    "a2hsClose: updateFabs()→modalFocusClose()の順序で呼ぶ(他close関数と同じ作法厳守)",
+    /updateFabs\(\);[\s\S]{0,80}?modalFocusClose\(\)/.test(closeFn),
+    "updateFabs→modalFocusClose order missing/changed"
+  );
+  const updateFabsFn2 = extractFunction(mainScript, "updateFabs");
+  assert("updateFabs: found (a2hs連携チェック用)", updateFabsFn2.length > 0, `${updateFabsFn2.length} chars`);
+  assert(
+    "updateFabs: hide条件にmodalOpen(\"a2hsModal\")を含む(a2hsポップアップ中はFABを隠す)",
+    /modalOpen\("a2hsModal"\)/.test(updateFabsFn2),
+    "a2hsModal missing from hide condition"
   );
 }
 
