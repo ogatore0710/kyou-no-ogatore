@@ -884,12 +884,6 @@ function checkOnboardingUX(html, quizScript) {
     "each of the 4 onboarding questions must get a distinct chip color"
   );
   assert(
-    "renderHome: はじめの1本ガイドで当日きょうやった！済みのときだけ#todayCardを隠す(翌日は自動復帰)",
-    /const fdDoneToday\s*=\s*store\.get\(["']fd["'],\s*null\)===1\s*&&\s*getStreakData\(\)\.dates\.includes\(todayStr\(\)\)/.test(html) &&
-      /getElementById\(["']todayCard["']\)[\s\S]{0,40}classList\.toggle\(["']hidden["'],\s*fdDoneToday\)/.test(html),
-    "must key off both fd===1 and today already recorded, not a permanent hide"
-  );
-  assert(
     "TYPES.yawara(しなやかネコ): rxが空でない(タイプ固有のピック無し状態の再発防止)",
     /yawara:\{name:"しなやかネコ"[\s\S]{0,400}rx:\[["'][^"'\]]+["']\]/.test(quizScript),
     "yawara must have at least one dedicated rx pick like every other type"

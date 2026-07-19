@@ -757,17 +757,21 @@
       <input readonly id="appUrl" onclick="this.select()" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:16px;color:var(--sub);background:var(--card)">
       <div style="font-size:14px;color:var(--sub);margin-top:8px">Androidの方は「ホーム画面に追加」＋カレンダー登録がおすすめです</div>
     </details>
-    <div style="font-size:15px;margin:16px 0 8px" id="exportSection">📦 記録のひっこし（機種変・バックアップ）</div>
-    <button class="btn btn-line" style="font-size:15px" onclick="exportData()">📦 記録をコピーする</button>
-    <div id="exportBox" class="hidden" style="margin-top:8px">
-      <textarea id="exportText" readonly rows="3" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:14px;color:var(--sub);background:var(--card);resize:none"></textarea>
-      <div class="hint" style="text-align:left">この文字を長押しでコピーしてね</div>
-    </div>
-    <div class="hint" style="text-align:left">コピーした文字はLINEの「じぶん専用トーク」やメモアプリに貼っておくと安心です</div>
-    <div style="font-size:15px;margin:14px 0 6px">新しいスマホでは ここに貼り付け</div>
-    <textarea id="importText" rows="3" placeholder="コピーした文字を ここに貼ってね" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:14px;color:var(--ink);background:var(--card);resize:none"></textarea>
-    <button class="btn btn-line" style="font-size:15px;margin-top:8px" onclick="importData()">📥 よみこむ</button>
-    <div class="hint" style="text-align:left">機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「よみこむ」</div>
+    <details id="exportSection" style="margin-top:16px;background:var(--bg);border-radius:12px;padding:10px 14px">
+      <summary style="font-size:15px;font-weight:800;cursor:pointer">📦 記録のひっこし（機種変・バックアップ）</summary>
+      <div style="margin-top:10px">
+        <button class="btn btn-line" style="font-size:15px" onclick="exportData()">📦 記録をコピーする</button>
+        <div id="exportBox" class="hidden" style="margin-top:8px">
+          <textarea id="exportText" readonly rows="3" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:14px;color:var(--sub);background:var(--card);resize:none"></textarea>
+          <div class="hint" style="text-align:left">この文字を長押しでコピーしてね</div>
+        </div>
+        <div class="hint" style="text-align:left">コピーした文字はLINEの「じぶん専用トーク」やメモアプリに貼っておくと安心です</div>
+        <div style="font-size:15px;margin:14px 0 6px">新しいスマホでは ここに貼り付け</div>
+        <textarea id="importText" rows="3" placeholder="コピーした文字を ここに貼ってね" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:14px;color:var(--ink);background:var(--card);resize:none"></textarea>
+        <button class="btn btn-line" style="font-size:15px;margin-top:8px" onclick="importData()">📥 よみこむ</button>
+        <div class="hint" style="text-align:left">機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「よみこむ」</div>
+      </div>
+    </details>
   </div>
 </section>
 
@@ -1004,7 +1008,7 @@
       <details><summary>まちがえて「きょうやった！」を押しちゃった</summary><div class="fa">だいじょうぶ そのままでOK！あしたまた会いましょう</div></details>
       <details><summary>1日に2本やったら2日分になる？</summary><div class="fa">記録は1日1回です 2本目はからだへのボーナス💪</div></details>
       <details><summary>通算が0日にもどってる！</summary><div class="fa">LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ✅ おひっこしは「記録をコピー」→「よみこむ」で</div></details>
-      <details><summary>機種変更のときはどうするの？</summary><div class="fa">マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」です</div></details>
+      <details><summary>機種変更のときはどうするの？</summary><div class="fa">マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」です<br><button class="btn btn-line" style="font-size:14px;margin-top:8px" onclick="navTo('history');gJump('exportSection')">📦 記録のひっこしをひらく</button></div></details>
       <details><summary>ホーム画面のアイコンを消したら記録は？</summary><div class="fa">消えてしまいます 消す前に「記録をコピー」でひかえを取っておくと安心です</div></details>
       <details><summary>家族と同じスマホで使える？</summary><div class="fa">記録が1人分しか持てないので まざってしまいます 1人1台がおすすめです</div></details>
 
@@ -1026,6 +1030,11 @@
       <details><summary>使い方をもう一度おしえてほしい</summary><div class="fa">この使い方タブのいちばん上からどうぞ 「🌱 はじめてガイドをもう一度」は最初の質問から 「📖 使い方ツアー」は機能の説明だけを1つずつ見られます</div></details>
 
     </div>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <div style="font-size:15px;margin-bottom:10px">ここまで読んでもわからないことがあったら</div>
+    <a class="btn btn-line" style="font-size:15px;display:block;text-align:center;text-decoration:none" href="mailto:kyou-no@ogatore.jp?subject=%E4%BD%BF%E3%81%84%E6%96%B9%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%81%AE%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%EF%BC%88%E3%81%8D%E3%82%87%E3%81%86%E3%81%AE%E3%82%AA%E3%82%AC%E3%83%88%E3%83%AC%EF%BC%89&body=%E4%BD%BF%E3%81%84%E6%96%B9%E3%81%A7%E3%82%8F%E3%81%8B%E3%82%89%E3%81%AA%E3%81%84%E3%81%93%E3%81%A8%EF%BC%9A%0A%EF%BC%88%E3%81%93%E3%81%93%E3%81%AB%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%AD%EF%BC%89">✉️ アプリの使い方をオガトレに問い合わせる</a>
   </div>
 
 </section>
@@ -1445,6 +1454,8 @@ function switchTab(t){
 // 使い方タブの目次チップ→カードへスクロール（reduced-motionでは即ジャンプ）
 function gJump(id){
   const el=document.getElementById(id); if(!el) return;
+  const det=el.closest&&el.closest("details");
+  if(det&&!det.open) det.open=true;
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   try{ el.scrollIntoView({block:"start",behavior:rm?"auto":"smooth"}); }catch(e){ el.scrollIntoView(); }
 }
@@ -2723,13 +2734,6 @@ function drawBragCard(thumb){
 // ---- ホーム描画 ----
 function renderHome(){
   renderToday(); renderStreak(); renderQuote(); renderAnchor(); welcomeCheck(); renderRecheck(); renderPlanCard();
-  // はじめの1本ガイドで1日目をやり終えた直後（きょうやった！済み・まだ同じ日）は、もう見る動画がないのに
-  // 「きょうの1本」カード一式（あさ/よる切替・動画・「動画がおわったら〜」の案内）が再表示されて紛らわしい
-  // という本人指摘（2026-07-18）。翌日になれば通常どおり復活する（dates.includes(todayStr())がfalseに戻るため）
-  try{
-    const fdDoneToday = store.get("fd",null)===1 && getStreakData().dates.includes(todayStr());
-    const tc=document.getElementById("todayCard"); if(tc) tc.classList.toggle("hidden",fdDoneToday);
-  }catch(e){}
   const lr=document.getElementById("lastResult");
   const done2=!!(state.type&&TYPES[state.type.key]);
   document.getElementById("ckBody").classList.toggle("hidden",done2);
