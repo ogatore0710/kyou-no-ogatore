@@ -4,7 +4,23 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-20
 
-## 2026-07-20 A2HS（ホーム画面に追加）導線のデジタル弱者監査（PO依頼・Fable・報告のみ未実装）
+## 2026-07-20 A2HS導線をYouTubeコミュニティ投稿配布前提で再設計（PO承認7件を実装・Fable）
+
+7/20監査（下の「デジタル弱者監査」エントリ）のTop3+提案4件=計7件をPO承認のもと一括実装。配布経路がLINE→**YouTubeコミュニティ投稿**に変わったことが前提（invite-kit.mdは改稿済み・文言は③の手順と統一してある）。
+
+1. **iOS Safariポップアップを実4ステップ+絵入りに**（app-env.js `a2hsShow("ios-safari")`）: 旧2ステップに欠けていた「下にスクロール」「右上の追加」を追加。共有アイコンはインラインSVG定数`SHARE_SVG`を文中埋め込み。iPadは①だけ「画面の上のほう」に出し分け（判定は既存のisIpadDesktopUAと同じ`/iPad/`+`Macintosh&&maxTouchPoints>1`）。
+2. **ios-other分岐の実行不能案内を修正**: 旧「Safariで開いてね」（iOS Chromeにそのメニューは無い）→「Chromeでもだいじょうぶ😊 右上の共有→ホーム画面に追加」+Safariフォールバック1行。iOS16.4+前提。
+3. **二度目のチャンス**: 通算1日目の`markDone()`直後に一度だけ`#a2hsAsk`（#cheer直下に新設）へ再提案カード。「やり方を見る」=`a2hsShowForce()`（初回一発勝負ゲートを迂回して強制表示・新設）。一度きり制御は`kyono_a2hs2`（calseenと同じ流儀）。`a2hsKindFor()`（表示副作用なしの環境判定・新設）がkindを返し、かつinApp/ytInAppでないときだけカードを出す。**a2hsKindForはa2hsBootと意図的にロジック重複**（qa.jsがa2hsBoot本体の分岐文字列を検査しているため委譲リファクタ禁止）。
+4. **YouTube経由の検出と脱出バナー**（app-env.js `ytInAppDetect()`/`ytInAppBannerHTML()`）: document.referrerがyoutube.com/youtu.be系なら`sessionStorage.kyono_ytInApp=1`を立て、envBannerに脱出手順（iOS=右下のコンパスマーク／Android=右上⋮→Chromeで開く）を最優先表示+オンボ/a2hsBootを抑止（LINE inApp時と同じ扱い）。**正直な限界: iOSのSFSafariViewControllerはreferrerを送らない実装があり検出は保証されない**。検出できない場合の頼みの綱は配布投稿側の画像手順（invite-kit.md②）。localStorageにしないのは次回Safari起動時の誤爆防止。referrer実測はsmoke 7hでdocument.referrerのgetter差し替え（evaluateOnNewDocument・7cのUA偽装と同じ流儀）で4シナリオ検証済み＝**ヘッドレスChrome上の偽装referrerでの実測**であり、実機YouTubeアプリでの発火は未確認（referrerを送るかは実機依存）。
+5. **gd-mamori再発見経路**: 手順1にiPhone/Android並記ボックス（YouTube脱出=0番込み・invite-kit③と文言統一）+「📲 もういちど かんたん案内を見る」ボタン（`a2hsShowForce()`）。
+6. **FAQ「きほんのき」に「ホーム画面に追加（ついか）ってどうやるの？」新設**（検索語「ホーム画面」「ついか」両対応・gd-mamoriへgJumpリンク）。
+7. **LINE/インスタ警告の強化**: `.envbn`を13px→15px。文言を「⚠️ここで使うと記録がきえて見えることがあるよ😢 なおしかた👉…」+「やり方を見る」リンク(gd-mamori)に。あわせてUA正規表現2箇所を`envIsInApp()`（app-env.js）に一本化。
+
+**恒久テスト**: qa 302→331（`checkA2hsYoutubeRedesign`新設・29checks）。smoke 27→29（`7h-YouTube経由の検出と脱出バナー`=referrer偽装4シナリオ、`7i-二度目のチャンス`=1日目カード/一度きり/あとで/gd-mamoriボタン）。**7hのハマりどころ**: 非YouTube referrer+iOS Safari UAの初回起動は welcomeより先にa2hsポップアップが出るのが正しいフロー→#welcome直待ちはタイムアウトする（popup-or-guide待ち→「あとで」→welcomeの順で見届ける）。
+
+**最終ゲート**: qa 331／smoke 29/29／webkit 9/9／safety 111/111 全PASS。app実装はauto-sync 10:51、テストは同11:01に相乗りコミット済み（fleet流儀どおり単独revert不可・戻すときは手動で）。
+
+## 2026-07-20 A2HS（ホーム画面に追加）導線のデジタル弱者監査（PO依頼・Fable・報告のみ未実装→同日、上のエントリで7件実装済み）
 
 ペルソナ=58歳・LINE/YouTube/電話のみ・老眼・「下から出るものは広告」反射、で入口（LINE配布）→アイコン設置までの全行程をUA偽装6種の実走+実測で監査。**修正はまだ何もしていない**（PO選定待ち）。
 
