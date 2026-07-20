@@ -14,6 +14,7 @@
 - 外部ランタイム依存はYouTubeサムネ画像1つのみ（M PLUS 1pフォントも自己ホスト化済み・Google Fonts依存ゼロ）
 - 実ブラウザQA / PWA検収結果: [QA-REPORT.md](QA-REPORT.md)
 - β配布前チェックリスト: [BETA-CHECKLIST.md](BETA-CHECKLIST.md) — **技術面のゲートは全部通過済み**。残るのは告知文の本人最終確認のみ（配布はいつでも実行可能）
+- Android実機テスト機として**Pixel 10aを購入済み・2026-07-22到着予定**。届いたら[DEVICE-TEST-PIXEL.md](DEVICE-TEST-PIXEL.md)の手順で実機検証（最重要はテストA=YouTubeアプリ内ブラウザのreferrer実測）。結果はWORKING_NOTES.mdへ転記する
 - 配布素材一式: [docs/invite-kit.md](docs/invite-kit.md)
 - 動画カタログ棚卸し: [CATALOG-AUDIT.md](CATALOG-AUDIT.md)
 - リクエストメール導線: [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md)
