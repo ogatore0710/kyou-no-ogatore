@@ -413,10 +413,11 @@ async function main() {
       await tapObChip2b("きめてない");
       await tapObChip2b("きょうの1本を見る");
       await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"));
+      // このtodayルート通過ではじめの1本ガイド(kyono_fd="go")が立つ。ガイド中はfdFocusHome()(2026-07-21
+      // チュートリアルv2)がckCard等を隠すため、先にfdを剥がして再描画してから#ckBtnを待つ。
+      // 剥がすこと自体は従来どおり=後続の「2」はガイド非対象の素の結果画面を検証する意図のテスト
+      await page.evaluate(() => { localStorage.removeItem("kyono_fd"); renderHome(); });
       await visible("#ckBtn");
-      // このtodayルート通過ではじめの1本ガイド(kyono_fd="go")が立つが、後続の「2」はガイド非対象の
-      // 素の結果画面を検証する意図のテストのため、ここだけ剥がしてクリーンな前提に揃える
-      await page.evaluate(() => localStorage.removeItem("kyono_fd"));
       return "あさ(07:30・タップ後も継続)/おふろ上がり(20:30)/ねるまえ(21:30)の3アンカーで、1日目クリア直後の#calAskがICS/Googleカレンダーの時刻を正しく反映、オンボQ3直後には出ない(移設確認)、リロード後は二度と出ない(kyono_calseenガード)、マイ記録タブ#icsLink/anchorNowの回帰も確認";
     });
 
@@ -1435,7 +1436,8 @@ async function main() {
       if (r1.heroVideoCount !== 1) throw new Error(".fd-hero内の動画が1本でない (実測" + r1.heroVideoCount + "本)");
       if (r1.totalVideoCount !== 3) throw new Error("結果画面の動画総数が3本でない=②③が消えている懸念 (実測" + r1.totalVideoCount + "本)");
       if (r1.rxListHtml.indexOf("きょうはこれ1本でOK！") === -1) throw new Error("①のラベルが「きょうはこれ1本でOK！」になっていない");
-      if (r1.rxListHtml.indexOf("タップするとYouTubeがひらくよ") === -1) throw new Error("オガトレの一言吹き出しが出ていない");
+      // 2026-07-21チュートリアルv2: 吹き出しは練習宣言（試し押し+すぐ戻る）に変更
+      if (r1.rxListHtml.indexOf("ここからは練習だよ") === -1) throw new Error("オガトレの一言吹き出し(練習宣言)が出ていない");
       if (r1.rxListHtml.indexOf("3本続けて再生する") !== -1) throw new Error("guide中なのに「3本続けて再生する」ボタンが出ている");
       if (!r1.rotateHidden) throw new Error("guide中なのにrotate-note(3日ごと入れ替わり注記)が隠れていない");
       if (!r1.tourBtnHidden) throw new Error("guide中なのにrTourBtn(つづき:使い方ツアーへ)が隠れていない");
@@ -1498,21 +1500,16 @@ async function main() {
       if (staticNudgeBeforeDone.hidden) throw new Error("guide中・未記録なのに#fdDoneStaticNudgeが隠れている（持続的な記録案内が出ていない）");
       if (staticNudgeBeforeDone.text.indexOf("ここを押してね") === -1) throw new Error("#fdDoneStaticNudgeの文言が設計どおりでない (" + staticNudgeBeforeDone.text + ")");
 
-      // ---- 確認4b: ホーム「あなた用」がまだ①だけの導線になっていること ----
-      // renderToday()はstate.modeが一度でも真値になると以後それを使い回す(既存仕様・本機能とは無関係の
-      // 既存の挙動)。初回起動時のrenderHome()がクイズ未完了時点で既にstate.modeをasa/yoruへ確定させて
-      // いるため、ここでは実ユーザーと同じ操作(segMineタップ)で明示的に「あなた用」へ切り替えて確認する。
-      await visible("#segMine");
-      await page.click("#segMine");
-      await page.waitForFunction(() => document.getElementById("segMine").classList.contains("on"), { timeout: 5000 });
-      const mineBefore = await page.evaluate(() => ({
-        html: document.getElementById("todayVideo").innerHTML,
-        videoCount: document.querySelectorAll("#todayVideo .video").length,
-      }));
-      if (mineBefore.html.indexOf("きょうはこれ1本でOK！") === -1) throw new Error("guide中なのにホーム「あなた用」のバッジがガイド用になっていない");
-      if (mineBefore.videoCount !== 1) throw new Error("guide中のホーム「あなた用」が1本でない (実測" + mineBefore.videoCount + "本)");
-      if (mineBefore.html.indexOf("②と③はあしたからでだいじょうぶ") === -1) throw new Error("guide中のホーム「あなた用」に②③注記が無い");
-      if (mineBefore.html.indexOf("連続再生") !== -1) throw new Error("guide中なのにホーム「あなた用」に連続再生リンクが出ている");
+      // ---- 確認4b(2026-07-21チュートリアルv2で改修): ガイド中(未記録)のホームは「続けた日数」カード
+      // だけに絞られている(fdFocusHome)。きょうの1本/かたさチェック/相談室/アンカーはfd-hideで不可視 ----
+      const focusHidden = await page.evaluate(() => {
+        const ids = ["todayCard", "ckCard", "soudanCard", "anchorCard"];
+        return ids.map((id) => ({ id, hidden: document.getElementById(id).classList.contains("fd-hide") }));
+      });
+      const notHidden = focusHidden.filter((c) => !c.hidden);
+      if (notHidden.length) throw new Error("ガイド中なのにホームのカードが絞り込まれていない: " + notHidden.map((c) => c.id).join(","));
+      const streakVisible = await page.evaluate(() => !document.getElementById("streakCard").classList.contains("fd-hide") && document.getElementById("streakCard").offsetHeight > 0);
+      if (!streakVisible) throw new Error("ガイド中に続けた日数カードまで隠れている（絞り込みすぎ）");
 
       // ---- 確認5: 「きょうやった！」→固定cheer文言・メモplaceholder変更・#calAsk表示 ----
       await page.$eval("#doneBtn", (el) => el.scrollIntoView({ block: "center" }));
@@ -1537,27 +1534,29 @@ async function main() {
       }
       if (afterDone.fd !== "1") throw new Error("kyono_fdが完了値1になっていない (" + afterDone.fd + ")");
 
-      // ---- 確認5x(2026-07-20監査Top1「お願い渋滞」対応): お願いカードは1日1枚 ----
+      // ---- 確認5x(2026-07-20キュー+2026-07-21チュートリアルv2): お願いカードは1日1枚+ツアー自動起動の予約 ----
       // デスクトップUAではa2hs候補が出せない環境として同日中に消費・繰り上げされ、1日目=カレンダーだけが出る。
-      // ツアーカードは翌日(2日目)のきょうやった！まで出ないこと(旧仕様は3枚同時)をここで実測する。
+      // ツアーはキューから外れ、tourpend(自動起動の予約)だけが立ち、この時点ではまだ起動しないことを実測する。
       const day1Asks = await page.evaluate(() => ({
         a2hsAsk: (document.getElementById("a2hsAsk").innerHTML || "").trim(),
-        tourAsk: (document.getElementById("tourAsk").innerHTML || "").trim(),
         a2hs2: localStorage.getItem("kyono_a2hs2"),
         calseen: localStorage.getItem("kyono_calseen"),
+        tourpend: localStorage.getItem("kyono_tourpend"),
         tourseen: localStorage.getItem("kyono_tourseen"),
+        welcomeHidden: document.getElementById("welcome").classList.contains("hidden"),
       }));
-      if (day1Asks.tourAsk !== "") throw new Error("1日目なのに#tourAskにカードが出ている（1日1枚キューが効いていない）");
       if (day1Asks.a2hsAsk !== "") throw new Error("デスクトップUAなのに#a2hsAskにカードが出ている");
       if (day1Asks.a2hs2 !== "1") throw new Error("出せない環境のa2hs候補がフラグ消費されていない (kyono_a2hs2=" + day1Asks.a2hs2 + ")");
       if (day1Asks.calseen !== "1") throw new Error("カレンダーカード表示後にkyono_calseenが立っていない");
-      if (day1Asks.tourseen) throw new Error("1日目なのにkyono_tourseenまで消費されている（あしたの1枚が消えてしまう）");
+      if (day1Asks.tourpend !== "1") throw new Error("guideのmarkDoneでkyono_tourpend(ツアー自動起動の予約)が立っていない");
+      if (day1Asks.tourseen) throw new Error("記録直後の時点でkyono_tourseenが立っている（「区切り」前にツアーが起動してしまっている疑い）");
+      if (!day1Asks.welcomeHidden) throw new Error("記録直後にツアーシートが開いてしまっている（区切りを待たず即起動している）");
 
       // ---- 確認5a(2026-07-17追加): DOM順序（cheer→#memoRow→記録カードボタン→#calAsk→#tourAsk）と、
       // 「使い方ツアーを見る」ボタンが#tourAsk側にあり#cheer側には無いことを確認 ----
       const domOrder = await page.evaluate(() => {
         const streakCard = document.getElementById("streakCard");
-        const ids = ["memoRow", "makeCardBtn", "cardHint", "calAsk", "tourAsk"];
+        const ids = ["memoRow", "makeCardBtn", "cardHint", "calAsk"]; // #tourAskは2026-07-21にDOMごと廃止
         const positions = ids.map((id) => {
           const el = document.getElementById(id);
           let n = 0, node = streakCard.firstChild;
@@ -1567,62 +1566,57 @@ async function main() {
         return {
           orderOk: positions.every((p, i) => i === 0 || p > positions[i - 1]),
           positions,
-          tourAskHasBtn: document.getElementById("tourAsk").contains(document.getElementById("cheerTourBtn")),
-          cheerHasBtn: document.getElementById("cheer").contains(document.getElementById("cheerTourBtn")),
+          tourAskGone: !document.getElementById("tourAsk"),
         };
       });
-      if (!domOrder.orderOk) throw new Error("#streakCard内の並び順が想定どおりでない (memoRow→makeCardBtn→cardHint→calAsk→tourAsk) positions=" + JSON.stringify(domOrder.positions));
+      if (!domOrder.orderOk) throw new Error("#streakCard内の並び順が想定どおりでない (memoRow→makeCardBtn→cardHint→calAsk) positions=" + JSON.stringify(domOrder.positions));
+      if (!domOrder.tourAskGone) throw new Error("#tourAskがまだDOMに残っている（2026-07-21チュートリアルv2で廃止したはず）");
 
       // ---- 確認5b(2026-07-17追加): 記録完了で持続的な案内(#fdDoneStaticNudge)が消えること ----
       const staticNudgeGone = await page.evaluate(() => document.getElementById("fdDoneStaticNudge").classList.contains("hidden"));
       if (!staticNudgeGone) throw new Error("記録後も#fdDoneStaticNudgeが表示されたまま（fdActive()false/今日記録済みで消えるはず）");
 
-      // ---- 確認5c(2026-07-20キュー化で改修): 2日目のきょうやった！でツアーカードが出て、タップで実際にツアーが始まること ----
-      // 日送り: きょうの記録日をdatesから外してmarkDone()をもう一度呼べる状態にする(7bbのseedと同じ直接操作の流儀)。
-      // 2日目のキュー先頭は消費済みのa2hs2/calseenを飛ばしてtourseen=使い方ツアーになる。
-      await page.evaluate(() => {
-        const s = JSON.parse(localStorage.getItem("kyono_streak2"));
-        s.dates = [];
-        localStorage.setItem("kyono_streak2", JSON.stringify(s));
-        markDone();
-      });
-      const day2Asks = await page.evaluate(() => ({
-        tourAskHasBtn: document.getElementById("tourAsk").contains(document.getElementById("cheerTourBtn")),
-        cheerHasBtn: document.getElementById("cheer").contains(document.getElementById("cheerTourBtn")),
+      // ---- 確認5c(2026-07-21チュートリアルv2): 「区切り」=タブ移動で使い方ツアーが一度だけ自動起動 ----
+      // 記録カードモーダルのclose(closeCard)でも起動するが、ここでは「保存せず次の操作」経路=タブ移動で検証する。
+      await page.click("#tab-history");
+      await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 8000 });
+      await page.waitForFunction(() => document.getElementById("obLog").children.length > 0, { timeout: 8000 });
+      const autoTour = await page.evaluate(() => ({
+        tourpend: localStorage.getItem("kyono_tourpend"),
         tourseen: localStorage.getItem("kyono_tourseen"),
+        nextLabel: (document.querySelector("#obChips button") || {}).textContent || "",
       }));
-      if (!day2Asks.tourAskHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#tourAskの中に無い");
-      if (day2Asks.cheerHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#cheerの中に残っている（移設漏れ）");
-      if (day2Asks.tourseen !== "1") throw new Error("ツアーカード表示後にkyono_tourseenが立っていない");
-      await visible("#cheerTourBtn");
-      const tourBtnText = await $text("#cheerTourBtn");
-      if (tourBtnText.indexOf("使い方ツアーを見る") === -1) throw new Error("#cheerTourBtnの文言が設計どおりでない (" + tourBtnText + ")");
-      await visible("#cheerTourSkipBtn"); // 「あとで」的なスキップ手段も確保されていること
-      await page.click("#cheerTourBtn");
-      await page.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
-      await page.waitForFunction(() => (document.getElementById("obLog") || {}).innerHTML !== undefined && document.getElementById("obLog").children.length > 0, { timeout: 8000 });
-      const tourStarted = await page.evaluate(() => ({
-        welcomeHidden: document.getElementById("welcome").classList.contains("hidden"),
-        obLogHasContent: document.getElementById("obLog").children.length > 0,
+      if (autoTour.tourseen !== "1") throw new Error("ツアー自動起動後にkyono_tourseenが立っていない");
+      if (autoTour.tourpend === "1") throw new Error("ツアー自動起動後もkyono_tourpendが残っている（毎回起動してしまう）");
+      // 自動起動時は締めスライドOB_TOUR_CLOSINGが足され全9枚になる（1/9表示で締めスライドの存在も確認）
+      if (autoTour.nextLabel.indexOf("（1/9）") === -1) throw new Error("自動起動ツアーの枚数表示が（1/9）でない=締めスライドが足されていない (" + autoTour.nextLabel + ")");
+      // 最終スライドまで実クリックで送り、締めスライドの文言と「おわる」を確認する
+      for (let i = 0; i < 8; i++) {
+        await page.evaluate(() => { const b = document.querySelector("#obChips button.btn-primary"); if (b) b.click(); });
+        await new Promise((r) => setTimeout(r, 120));
+      }
+      const lastSlide = await page.evaluate(() => ({
+        title: (document.querySelector("#obLog .obt-t") || {}).textContent || "",
+        nextLabel: (document.querySelector("#obChips button") || {}).textContent || "",
       }));
-      if (tourStarted.welcomeHidden) throw new Error("「使い方ツアーを見る」タップ後もwelcome(オンボ/ツアーのシート)が開いていない");
-      if (!tourStarted.obLogHasContent) throw new Error("「使い方ツアーを見る」タップ後にobOpenTour()のツアー内容(#obLog)が始まっていない");
-      // ツアーを閉じてホームへ戻す（後続ステップへの影響を避ける）。obClose()の既定引数だと
-      // history.back()を呼ぶ経路になるが、このスモークテストは1ページを使い回すため
-      // history本来のスタックが深く、back()が意図しない古いエントリへ着地しうる（他ステップの
-      // コメント済みの既知の注意点と同じ）。obClose(true)でback()を意図的にスキップする。
+      if (lastSlide.title.indexOf("これで準備ばっちり") === -1) throw new Error("締めスライドに到達しない/文言不一致 (" + lastSlide.title + ")");
+      if (lastSlide.nextLabel.indexOf("おわる") === -1) throw new Error("締めスライドのボタンが「おわる」でない (" + lastSlide.nextLabel + ")");
+      // シートを閉じてホームへ戻す。obClose()の既定引数だとhistory.back()を呼ぶ経路になり、1ページを
+      // 使い回すsmokeではback()が意図しない古いエントリへ着地しうる（既知の注意点）→obClose(true)でスキップ
       await page.evaluate(() => { obClose(true); });
       await page.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
       await page.click("#tab-home");
       await visible("#home");
 
-      // ---- 確認5d(2026-07-17追加): ツアーへ進んでも#tourAskのカード自体は消えない(obOpenTour()は
-      // #tourAskをクリアしない設計)ことを利用し、同じカードで「あとで」ボタンを実タップ→#tourAskの
-      // 中身が空になることを確認する ----
-      await visible("#cheerTourSkipBtn");
-      await page.click("#cheerTourSkipBtn");
-      await page.waitForFunction(() => (document.getElementById("tourAsk").innerHTML || "").trim() === "", { timeout: 5000 });
+      // ---- 確認5d(2026-07-21改修): 一度きり=次のタブ移動ではもう自動起動しない+ホーム絞り込みの解除 ----
+      await page.click("#tab-playlists");
+      await new Promise((r) => setTimeout(r, 700));
+      const noReopen = await page.evaluate(() => document.getElementById("welcome").classList.contains("hidden"));
+      if (!noReopen) throw new Error("2回目のタブ移動でツアーが再起動してしまった（一度きり制御の破れ）");
+      await page.click("#tab-home");
       await visible("#home");
+      const focusReleased = await page.evaluate(() => ["todayCard", "ckCard", "soudanCard"].every((id) => !document.getElementById(id).classList.contains("fd-hide")));
+      if (!focusReleased) throw new Error("記録完了後もホームのカード絞り込み(fd-hide)が解除されていない");
 
       // ---- 確認6: fd完了後はホーム「あなた用」が自動的に通常の3本表示へ戻る ----
       await page.evaluate(() => { renderHome(); });
@@ -1639,8 +1633,8 @@ async function main() {
       await visible("#home");
       const calAskAfterReload2 = await page.evaluate(() => (document.getElementById("calAsk").innerHTML || "").trim());
       if (calAskAfterReload2 !== "") throw new Error("リロード後も#calAskが残っている（もう一度出てしまっている）");
-      const tourAskAfterReload = await page.evaluate(() => (document.getElementById("tourAsk").innerHTML || "").trim());
-      if (tourAskAfterReload !== "") throw new Error("リロード後も#tourAskが残っている（DOM状態はリロードで消える想定・renderStreak側の残骸クリアも回帰していないこと）");
+      const tourAfterReload = await page.evaluate(() => document.getElementById("welcome").classList.contains("hidden"));
+      if (!tourAfterReload) throw new Error("リロード後にツアーが再び開いてしまっている（tourseen一度きりガードの破れ）");
 
       // ---- 確認8(回帰・最重要): 既存ユーザー(ガイド対象外)の「もう一回チェックする」は従来どおり ----
       await visible("#ckBtn");
