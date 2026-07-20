@@ -763,14 +763,13 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
   // 2026-07-20監査Top1「お願い渋滞」対応: 3枚同時表示を廃止し「1日1枚」キューに変更(PO承認)。
   // 優先順=a2hs2(ホーム画面追加)→calseen(カレンダー)→tourseen(使い方ツアー)。文言・ボタンは従来どおり。
   assert(
-    "markDone: お願いキューの優先順が a2hs2 → calseen → tourseen (1日1枚・2026-07-20監査Top1)",
+    "markDone: お願いキューの優先順が a2hs2 → calseen の2枚(1日1枚・ツアーは2026-07-21に自動起動へ昇格)",
     (function () {
       const i1 = markDoneFn.indexOf('key:"a2hs2"');
       const i2 = markDoneFn.indexOf('key:"calseen"');
-      const i3 = markDoneFn.indexOf('key:"tourseen"');
-      return i1 !== -1 && i2 !== -1 && i3 !== -1 && i1 < i2 && i2 < i3;
+      return i1 !== -1 && i2 !== -1 && i1 < i2 && markDoneFn.indexOf('key:"tourseen"') === -1;
     })(),
-    "askQueue must list a2hs2, calseen, tourseen in this priority order"
+    "askQueue must list exactly a2hs2, calseen (no tourseen entry)"
   );
   assert(
     "markDone: お願いキューは1枚出したらbreak・出せない候補はフラグ消費して繰り上げ",
@@ -782,15 +781,12 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     /calendarAskEl\(["']明日も同じ時間に会いましょう。\\nカレンダーに毎日の合図を入れておく？["']\)/.test(markDoneFn),
     "matches the exact 2-line lead copy (\\n) from the approved design"
   );
+  // 2026-07-21 チュートリアルv2: ツアーは#tourAskカードから「区切り」での自動起動(fdTourMaybeStart)へ。
+  // markDone(guide)がtourpendを予約し、closeCard/switchTabが拾って一度だけobOpenTour()する。
   assert(
-    "markDone: tour-ask card renders into #tourAsk (キュー経由・カレンダー案内と同じ見た目)",
-    /getElementById\(["']tourAsk["'][\s\S]{0,400}cheerTourBtn[\s\S]{0,200}obOpenTour\(\)[\s\S]{0,300}cheerTourSkipBtn/.test(markDoneFn),
-    "renders the tour button + skip button into #tourAsk, styled like the calendar ask card"
-  );
-  assert(
-    "markDone: #tourAsk skip button clears #tourAsk innerHTML (あとで＝カード自体を消す)",
-    /cheerTourSkipBtn["'][\s\S]{0,150}getElementById\(\\?['"]tourAsk\\?['"]\)\.innerHTML\s*=\s*\\?['"]\\?['"]/.test(markDoneFn),
-    "skip removes the whole card, not just the buttons"
+    "markDone: guideブロックでtourpend(ツアー自動起動の予約)をセットする(2026-07-21チュートリアルv2)",
+    /if\s*\(\s*guide\s*\)\s*\{[\s\S]{0,400}store\.set\("tourpend",1\)/.test(recordScript),
+    "guided day-1 markDone must reserve the auto tour via kyono_tourpend"
   );
 
   // あした節目予告(2026-07-18): きょうが節目でない(!ms)ときだけ、markDone本体と同じst.total(+1)で
@@ -821,8 +817,8 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
   const renderStreakFn = extractFunction(recordScript, "renderStreak");
   assert("renderStreak: found", renderStreakFn.length > 0, `${renderStreakFn.length} chars`);
   assert(
-    "renderStreak: clears #calAsk and #tourAsk when today is not yet recorded (再訪日に前回の残骸を残さない)",
-    /!did\)\{[\s\S]{0,300}getElementById\(["']calAsk["'][\s\S]{0,200}getElementById\(["']tourAsk["']/.test(renderStreakFn),
+    "renderStreak: clears #calAsk and #a2hsAsk when today is not yet recorded (再訪日に前回の残骸を残さない・#tourAskは2026-07-21に廃止)",
+    /!did\)\{[\s\S]{0,300}getElementById\(["']calAsk["'][\s\S]{0,260}getElementById\(["']a2hsAsk["']/.test(renderStreakFn),
     "stale calendar/tour-ask card content is wiped alongside the existing cheer-clearing logic"
   );
 
@@ -892,8 +888,8 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
   // cheer→#memoRow→「記録カードを画像でのこす」ボタン(#makeCardBtn)/#cardHint→#calAsk→#tourAsk、の順。
   // #calAskをカード保存ボタンより後ろに、#tourAskをさらにその後ろに置く(以前は#memoRowの直後に#calAskだけがあった)。
   assert(
-    "index.html: #streakCard order is #memoRow → #makeCardBtn → #cardHint → #calAsk → #tourAsk (PO要望の並び替え・2026-07-17)",
-    /id="memoRow"[\s\S]{0,900}id="makeCardBtn"[\s\S]{0,700}id="cardHint"[\s\S]{0,100}id="calAsk"[\s\S]{0,100}id="tourAsk"/.test(html),
+    "index.html: #streakCard order is #memoRow → #makeCardBtn → #cardHint → #calAsk (2026-07-21: #tourAskはDOMごと廃止)",
+    /id="memoRow"[\s\S]{0,900}id="makeCardBtn"[\s\S]{0,700}id="cardHint"[\s\S]{0,100}id="calAsk"/.test(html) && html.indexOf('id="tourAsk"') === -1,
     "記録カードを画像でのこす→カレンダー案内→使い方ツアー案内、の順で並んでいること"
   );
   assert(
@@ -943,9 +939,14 @@ function checkTourSlides(mainScript, html) {
   const slidesSrc = slidesMatch ? slidesMatch[1] : "";
   assert("OB_TOUR_SLIDES: found", slidesSrc.length > 0, `${slidesSrc.length} chars`);
   assert(
-    "OB_TOUR_SLIDES: 7枚構成を維持(📺→✅→カード→💬→📣→📅→📖)",
-    (slidesSrc.match(/\{t:/g) || []).length === 7,
-    "枚数が変わっていないこと(内容のブラッシュアップのみが目的)"
+    "OB_TOUR_SLIDES: 8枚構成(📺→✅→カード→図鑑→💬→📣→📅→📖・2026-07-21チュートリアルv2で図鑑スライド追加)",
+    (slidesSrc.match(/\{t:/g) || []).length === 8,
+    "図鑑スライド込みの8枚であること"
+  );
+  assert(
+    "OB_TOUR_SLIDES: 図鑑スライドが記録カードスライドの直後にある(体験の肝の強調・2026-07-21)",
+    slidesSrc.indexOf("記録カードをつくる") !== -1 && slidesSrc.indexOf("ためると図鑑がうまる") > slidesSrc.indexOf("記録カードをつくる"),
+    "記録カード→図鑑の順で並んでいること"
   );
   assert(
     "OB_TOUR_SLIDES: 「マイ記録」スライドがとどくメーターとお楽しみ機能を別の導線として案内している(旧: 一括で「このタブ」と誤解を招く表現だった)",
@@ -1906,6 +1907,38 @@ function checkGuideDwAudit20260720(html, mainScript, quizScript) {
   assert("使い方タブ上部: 説明文がボタン名ベース(🌱は/📖はの絵文字参照をやめた)", html.indexOf("🌱は最初の質問") === -1 && html.indexOf("「はじめてガイド」＝") !== -1, "");
 }
 
+// 2026-07-21 1日目チュートリアルv2(PO承認・本人の実機動画フィードバック起点)の機械チェック。
+// 骨子: ①結果画面の吹き出しを練習宣言に ②ガイド中(未記録)のホームを続けた日数カードだけに絞る(fdFocusHome)
+// ③記録直後に図鑑の肝の一言 ④ツアーは「区切り」(closeCard/switchTab)で一度だけ自動起動(fdTourMaybeStart)
+// ⑤自動起動時だけ締めスライドOB_TOUR_CLOSINGを足す ⑥お願いキューはa2hs→calの2枚(キュー側はcheckFirstDayGuideで検査)
+function checkTutorialV2(html, mainScript, quizScript, recordScript) {
+  // ① 結果画面の吹き出し=練習宣言
+  assert("チュートリアルv2: 結果画面の吹き出しが練習宣言(ここからは練習だよ)", quizScript.indexOf("ここからは練習だよ") !== -1 && quizScript.indexOf("すぐ戻ってきてね") !== -1, "app-quiz.js showResult guide bubble");
+  // ② fdFocusHome: 4カードをfd-hideで隠す・renderHomeから呼ばれる・CSSがある
+  const focusFn = extractFunction(mainScript, "fdFocusHome");
+  assert("fdFocusHome: found", focusFn.length > 0, `${focusFn.length} chars`);
+  for (const id of ["todayCard", "ckCard", "soudanCard", "anchorCard"]) {
+    assert(`fdFocusHome: ${id}を絞り込み対象にしている`, focusFn.indexOf(`"${id}"`) !== -1, "");
+  }
+  assert("fdFocusHome: fdActive()連動でfd-hideをtoggleする(独立クラスで各カードのhidden管理と非干渉)", /fdActive/.test(focusFn) && /fd-hide/.test(focusFn), "");
+  assert("renderHome: fdFocusHome()を呼ぶ", /fdFocusHome\(\)/.test(extractFunction(mainScript, "renderHome")), "");
+  assert("CSS: .fd-hideが定義されている", /\.fd-hide\{display:none !important\}/.test(html), "");
+  // ③ 記録直後の図鑑の肝
+  assert("markDone: guideお祝いに図鑑の肝の一言(ためると図鑑がうまっていく)", recordScript.indexOf("ためると<b>図鑑</b>がうまっていく") !== -1, "");
+  // ④ fdTourMaybeStart: 一度きり(tourpend消費+tourseen)・obOpenTour呼び出し・トリガー2箇所
+  const tourFn = extractFunction(mainScript, "fdTourMaybeStart");
+  assert("fdTourMaybeStart: found", tourFn.length > 0, `${tourFn.length} chars`);
+  assert("fdTourMaybeStart: tourpend必須+tourseen済みなら起動しない(一度きり)", /if\s*\(\s*!store\.get\("tourpend"\)\s*\|\|\s*store\.get\("tourseen"\)\s*\)\s*return false/.test(tourFn), "");
+  assert("fdTourMaybeStart: tourpend消費+tourseen付与+obOpenTour()", /store\.set\("tourpend",0\)/.test(tourFn) && /store\.set\("tourseen",1\)/.test(tourFn) && /obOpenTour\(\)/.test(tourFn), "");
+  assert("closeCard: fdTourMaybeStart()を呼ぶ(記録カードを閉じた「区切り」)", /fdTourMaybeStart\(\)/.test(extractFunction(mainScript, "closeCard")), "");
+  assert("switchTab: fdTourMaybeStart()を呼ぶ(タブ移動の「区切り」)", /fdTourMaybeStart\(\)/.test(extractFunction(mainScript, "switchTab")), "");
+  // ⑤ 締めスライドは自動起動時のみ
+  assert("OB_TOUR_CLOSING: 定義がある(あしたも待ってるね+きょうの1本への導線)", mainScript.indexOf("const OB_TOUR_CLOSING=") !== -1 && mainScript.indexOf("あしたも待ってるね") !== -1, "");
+  assert("obTourSteps: 自動起動(obTourAutoClose)のときだけOB_TOUR_CLOSINGを足す", /obTourAutoClose\s*\?\s*OB_TOUR_SLIDES\.concat\(\[OB_TOUR_CLOSING\]\)\s*:\s*OB_TOUR_SLIDES/.test(mainScript), "");
+  assert("obTourStep: 枚数計算がobTourSteps()経由(締めスライドがドット/枚数表示にも反映される)", /const steps=obTourSteps\(\)/.test(extractFunction(mainScript, "obTourStep")), "");
+  assert("obTourEnd: obTourAutoCloseをリセットしfdFocusHome()でホーム絞り込みを解除", /obTourAutoClose=false/.test(extractFunction(mainScript, "obTourEnd")) && /fdFocusHome\(\)/.test(extractFunction(mainScript, "obTourEnd")), "");
+}
+
 // 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)
 // 走査で同点が常に先頭側の勝ちになり、全回答等確率の理論分布がモモンガ27.3%・ペンギン12.9%と2倍超に
 // 偏っていた。新実装: 同点はQ5「いちばんの悩み」(katakori→kenko / yotsu→momo,koka)→日付ローテーション
@@ -2114,6 +2147,7 @@ function main() {
   checkRxRotation(mainScript, quizScript);
   checkQuizTypeTiebreak(quizScript);
   checkGuideDwAudit20260720(html, mainScript, quizScript);
+  checkTutorialV2(html, mainScript, quizScript, recordScript);
   checkReachAutoTranscribe(quizScript, recordScript);
   checkVerification20260720Fixes(html, mainScript);
   checkQuotesCoverage(mainScript);

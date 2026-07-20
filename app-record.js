@@ -29,9 +29,9 @@ function renderStreak(){
   if(!did && st.total===0) contTxt="きょう1本やると「1日目」がはじまります🌱";
   if(!did){
     const ce=document.getElementById("cheer"); if(ce) ce.innerHTML="";
-    // 前回記録日の#calAsk/#tourAsk/#a2hsAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
+    // 前回記録日の#calAsk/#a2hsAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
+    // ※#tourAskは2026-07-21チュートリアルv2(ツアー自動起動化)でDOMごと廃止
     const ca=document.getElementById("calAsk"); if(ca) ca.innerHTML="";
-    const ta=document.getElementById("tourAsk"); if(ta) ta.innerHTML="";
     const aa=document.getElementById("a2hsAsk"); if(aa) aa.innerHTML="";
   }
   // はじめの1本ガイド中、まだきょうの記録がついていない間は「きょうやった！」ボタンの直上に
@@ -102,6 +102,9 @@ function markDone(){
   const guide=store.get("fd",null)==="go";
   if(guide){
     store.set("fd",1);
+    // 1日目チュートリアルv2(2026-07-21): 使い方ツアーの自動起動を予約する。実際の起動は
+    // fdTourMaybeStart()(index.html)が「区切り」(記録カードモーダルclose/タブ移動)で拾う
+    store.set("tourpend",1);
     const mi=document.getElementById("memoInput");
     if(mi) mi.placeholder="例: 肩がかるくなった気がする😊";
   }
@@ -139,6 +142,7 @@ function markDone(){
     // 念のため節目表示(if(ms))を優先する構造にしてある（このelse ifは節目でないときだけ通る）
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
       +`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 1日目クリア！ナイスご自愛！</div>`
+      +`<div style="margin-top:6px;font-size:14px">きょうの記録が1まい目のカードになったよ ためると<b>図鑑</b>がうまっていく📖</div>`
       +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`
       +tomorrowMsPreview;
   } else {
@@ -146,13 +150,13 @@ function markDone(){
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)]+tomorrowMsPreview;
   }
   // ===== お願いカードの「1日1枚」キュー（2026-07-20監査Top1「お願い渋滞」対応・PO承認） =====
-  // 旧実装は通算1日目クリアの瞬間に カレンダー・ホーム画面追加・使い方ツアーの3枚が同時に縦積みされ、
-  // 成功体験の頂点が最も混雑した画面になっていた。きょうやった！直後の提案はキューにして、
-  // 優先順=①ホーム画面追加（記録の安全に直結・最重要）→②カレンダー→③使い方ツアー の
-  // 「その日の1枚」だけを出す（典型: 1日目=追加・2日目=カレンダー・3日目=ツアー）。
-  // 一度きりフラグは従来のstoreキー（a2hs2/calseen/新設tourseen）。出せない環境の候補
-  // （a2hs不適合環境・要素なし等）はフラグだけ消費して同日中に次候補を繰り上げる
-  // （従来の「再訪のたび判定し直さない」流儀）。カードの見た目・ボタン・「あとで」の挙動は全て従来どおり。
+  // 旧実装は通算1日目クリアの瞬間に3枚が同時に縦積みされ、成功体験の頂点が最も混雑した画面になっていた。
+  // きょうやった！直後の提案はキューにして、優先順=①ホーム画面追加（記録の安全に直結・最重要）
+  // →②カレンダー の「その日の1枚」だけを出す（典型: 実機は1日目=追加・2日目=カレンダー）。
+  // 使い方ツアーは2026-07-21のチュートリアルv2でキューから外し、1日目の「区切り」での自動起動に昇格
+  // （fdTourMaybeStart・index.html。一度きりフラグtourseenはそちらで消費する）。
+  // 一度きりフラグは従来のstoreキー（a2hs2/calseen）。出せない環境の候補（a2hs不適合環境・要素なし等）は
+  // フラグだけ消費して同日中に次候補を繰り上げる（従来の「再訪のたび判定し直さない」流儀）。
   const askQueue=[
     {key:"a2hs2", can:function(){
       // ホーム画面追加「二度目のチャンス」: standalone/デスクトップ/アプリ内ブラウザ/YouTube内ブラウザでは意味がない
@@ -177,18 +181,6 @@ function markDone(){
       const ca=document.getElementById("calAsk");
       ca.innerHTML="";
       ca.appendChild(calendarAskEl("明日も同じ時間に会いましょう。\nカレンダーに毎日の合図を入れておく？"));
-    }},
-    {key:"tourseen", can:function(){
-      // 使い方ツアーの案内（カレンダー案内と同じ見た目のカードで統一感を持たせる）
-      return !!document.getElementById("tourAsk");
-    }, render:function(){
-      const ta=document.getElementById("tourAsk");
-      ta.innerHTML="";
-      const wrap=document.createElement("div");
-      wrap.style.cssText="margin-top:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
-      wrap.innerHTML='<button class="btn btn-primary" id="cheerTourBtn" style="font-size:15px" onclick="obOpenTour()">📖 使い方ツアーを見る</button>'
-        +'<button class="btn btn-line" id="cheerTourSkipBtn" style="margin-top:8px;font-size:14px" onclick="document.getElementById(\'tourAsk\').innerHTML=\'\'">あとで</button>';
-      ta.appendChild(wrap);
     }},
   ];
   for(const a of askQueue){

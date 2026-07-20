@@ -202,6 +202,8 @@
   #miniDone{display:none;text-align:center;font-size:14px;color:var(--sub);margin-top:8px}
   #streakCard.mini #miniDone{display:block}
   .hidden{display:none !important}
+  /* 1日目チュートリアル中のホーム絞り込み用(各カード自身のhidden管理と独立に重ねて隠す) */
+  .fd-hide{display:none !important}
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* カード図鑑 */
   #dexModal{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:55;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -651,7 +653,6 @@
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#177065" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#177065" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードを画像でのこす</button>
     <div class="hint" id="cardHint">カード画像を保存かシェアでのこしてね📤</div>
     <div id="calAsk"></div>
-    <div id="tourAsk"></div>
   </div>
 </section>
 
@@ -1503,6 +1504,7 @@ function navTo(id){
   show(id);
 }
 function switchTab(t){
+  fdTourMaybeStart(); // 1日目記録後の最初のタブ移動で使い方ツアーを自動起動(未該当ならno-op)
   if(t==="home"){ goHome(); return; }
   if(t==="history") renderHistory();
   if(t==="search"){ renderSearch(); try{ catRowFadeUpdate(); }catch(e){} } // 非表示中はclientWidth=0で計算できないため、開いた直後に再計算
@@ -1595,6 +1597,17 @@ function quizGoHome(){ if(state.qi>0 && !confirm("回答を消してホームに
 // 前のため、呼び出し側で typeof fdActive==="function" のガードを入れて参照する（実行時は全スクリプト
 // 読み込み後になるため実害はないが、設計どおり明示的にガードする）。
 function fdActive(){ return store.get("fd",null)==="go" && getStreakData().total===0; }
+// 1日目チュートリアルv2(2026-07-21 PO承認): ガイド中(未記録)のホームは「続けた日数」カードだけに絞る。
+// きょうの1本/かたさチェック/相談室/アンカーの各カードを隠し、次の1手(きょうやった！)が1画面に収まる
+// ようにする(「下にスクロールして」の誘導自体を不要にする)。各カード自身のhidden管理と衝突しないよう
+// 専用クラスfd-hideで重ねて隠す。記録後(fd=1)はrenderHome/ツアー閉幕時のこの関数の再実行で自動復帰。
+function fdFocusHome(){
+  const on=(typeof fdActive==="function")&&fdActive();
+  for(const id of ["todayCard","ckCard","soudanCard","anchorCard"]){
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle("fd-hide",on);
+  }
+}
 
 // ---- 処方のローテーション（毎日1進む・朝6時切り替え） ----
 // dayIndex()と同じ「深夜3時JST」境界に合わせる（+9h→+6hで日またぎ判定を統一。境界外では値は変化しない）
@@ -2641,7 +2654,7 @@ function markCardSaved(){
   if(cardDate===todayStr() && getStreakData().dates.includes(todayStr())) store.set("card_saved", todayStr());
 }
 // downloadCard/shareCardはapp-card.jsへ移動済み（2026-07-17）
-function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); modalFocusClose(); }
+function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); modalFocusClose(); fdTourMaybeStart(); }
 // 節目カードの「記録のひかえを取る」導線: モーダルを閉じてから記録のひっこし(エクスポート)欄へ
 function goToExportFromCard(){ closeCard(); navTo("history"); gJump("exportSection"); }
 
@@ -2862,6 +2875,7 @@ function renderHome(){
     if(ck.previousElementSibling!==tc){ tc.insertAdjacentElement("afterend", ck); }
   }
   renderSoudanEntry();
+  fdFocusHome();
 }
 
 // ================= オガトレ相談室 =================
@@ -4047,6 +4061,10 @@ const OB_TOUR_SLIDES=[
   {t:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:4px" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3.5"/><circle cx="9" cy="10.5" r="1.8" fill="#3A3A35" stroke="none"/><path d="M4.5 17.5l4.5-4 3.5 3 3.5-3.5 3.5 3.5"/></svg>記録カードをつくる`,
    v:`<div style="text-align:center"><img src="assets/card-sample.png" alt="" style="width:180px;height:180px;border-radius:20px;display:block;margin:0 auto"></div>`,
    d:"「きょうやった！」のあと<b>「記録カードを画像でのこす」</b>を押す→<b>「保存・シェアする」</b>で写真に保存📷 SNSやコメント欄にもどうぞ"},
+  // 1日目チュートリアルv2(2026-07-21 PO承認): 「記録が貯まって図鑑がうまる」が体験の肝のため専用スライドを追加
+  {t:"📖 ためると図鑑がうまる",
+   v:`<div class="card" style="text-align:center"><div style="font-weight:900;margin-bottom:8px">カード図鑑</div><div style="display:flex;gap:8px;justify-content:center;align-items:center"><img src="assets/card-sample.png" alt="" style="width:52px;height:52px;border-radius:10px">${[1,2,3].map(()=>`<span style="width:52px;height:52px;border-radius:10px;border:1.5px dashed var(--line);display:inline-flex;align-items:center;justify-content:center;font-weight:900;color:var(--sub)">？</span>`).join("")}</div></div>`,
+   d:"記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録で<b>カード図鑑</b>がすこしずつうまっていく（マイ記録→🎉お楽しみ機能）"},
   {t:"💬 悩みは相談室で質問",
    v:`<div style="text-align:left"><div class="sd-row user" style="display:flex;justify-content:flex-end;margin-bottom:8px"><div class="sd-b">肩こりがつらい</div></div><div class="sd-row oga" style="display:flex;gap:8px"><img class="sd-ava" src="assets/chara-hitokoto.png" alt="" style="width:34px;height:34px;flex-shrink:0"><div class="sd-b">それはつらいね…！まずはこの1本からやってみよう😊</div></div></div>`,
    d:"右下の<b>💬ボタン</b>をタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"},
@@ -4055,7 +4073,7 @@ const OB_TOUR_SLIDES=[
    d:"尾形さんからのお知らせが届くよ ホームいちばん上の<b>「きょうのひとこと」</b>も毎日かわります✅"},
   {t:"📅 マイ記録でふりかえる",
    v:`<div class="card" style="text-align:center"><div style="font-weight:900;margin-bottom:8px">カレンダー</div><div style="display:flex;gap:7px;justify-content:center">${[1,2,3,4,5].map(n=>`<span style="width:34px;height:34px;line-height:34px;border-radius:50%;display:inline-block;font-weight:800;font-size:14px;${n<=3?"background:var(--teal-strong);color:#fff":"color:var(--sub)"}">${n}</span>`).join("")}</div></div>`,
-   d:"やった日に印がつくカレンダーがあるよ（×はつかないよ）<br><b>📏とどくメーター</b>と<b>🎉お楽しみ機能</b>（じまんカード・せんぱいの声・ひとことにっき）もこのタブの「見てみる」から見られるよ"},
+   d:"やった日に印がつくカレンダーがあるよ（×はつかないよ）<br><b>📏とどくメーター</b>と<b>🎉お楽しみ機能</b>（じまんカード・せんぱいの声・ひとことにっき）もこのタブの「見てみる」から見られるよ<br>毎日の合図（カレンダー通知）は<b>続ける設定</b>からいつでも入れられるよ📅"},
   {t:"📖 忘れてもだいじょうぶ",
    v:`<div class="card" style="text-align:center;font-size:14px;line-height:1.9">下の<b>「使い方」タブ</b>に<br>ぜんぶ書いてあります</div>`,
    d:"このツアーも使い方タブの<b>「📖 使い方ツアー」</b>から いつでももう一度見られるよ"}
@@ -4185,8 +4203,27 @@ function obTourStart(){
   obTourI=0;
   obTourStep();
 }
+// 自動起動(1日目チュートリアル)のときだけ最後に足す締めスライド。「試し押しで1日目成立」の
+// 意味づけ緩和(PO承認案(b)): ちゃんとやる導線を1行添える。使い方タブからの再訪ツアーには出さない
+const OB_TOUR_CLOSING={t:"🌱 これで準備ばっちり！",
+  v:`<div style="text-align:center"><img src="assets/chara-congrats.png" alt="" style="width:110px;height:110px;object-fit:contain"></div>`,
+  d:"あしたも待ってるね🌱 きょうのぶんの動画をちゃんとやるなら ホームの<b>「きょうの1本」</b>からどうぞ💪"};
+let obTourAutoClose=false; // 自動起動時だけOB_TOUR_CLOSINGを足す（セッション内フラグ）
+function obTourSteps(){ return obTourAutoClose ? OB_TOUR_SLIDES.concat([OB_TOUR_CLOSING]) : OB_TOUR_SLIDES; }
+// 1日目チュートリアルv2(2026-07-21 PO承認): 1日目の記録を終えたガイドユーザー(markDoneでtourpend付与)に、
+// 「区切り」の瞬間=記録カードモーダルを閉じたとき/タブ移動したとき、使い方ツアーを一度だけ自動起動する。
+// メモ入力中には割り込まない(トリガーをcloseCard/switchTabに限定)。スキップは常に可能(進行不能ゼロ原則)。
+function fdTourMaybeStart(){
+  try{
+    if(!store.get("tourpend")||store.get("tourseen")) return false;
+    store.set("tourpend",0); store.set("tourseen",1);
+    obTourAutoClose=true;
+    setTimeout(function(){ obOpenTour(); },350);
+    return true;
+  }catch(e){ return false; }
+}
 function obTourStep(){
-  const steps=OB_TOUR_SLIDES;
+  const steps=obTourSteps();
   if(obTourI>=steps.length){ obTourEnd(); return; }
   const st=steps[obTourI];
   const log=document.getElementById("obLog");
@@ -4215,6 +4252,10 @@ function obTourStep(){
 }
 function obTourEnd(){
   obTourDone=true;
+  obTourAutoClose=false;
+  // チュートリアル自動起動からの閉幕なら、ツアーシートの裏でホームのカード絞り込みを解除しておく
+  // （シートが覆っている間に復帰させるのでレイアウトジャンプが見えない）
+  try{ fdFocusHome(); }catch(e){}
   if(obRouteKey){
     // オンボーディング経由: 締めのスライド＋元のルート案内ボタンで合流
     const rt=ONBOARDING_SCRIPT.routes[obRouteKey];
