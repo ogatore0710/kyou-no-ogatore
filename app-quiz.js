@@ -184,15 +184,22 @@ function answer(k,val){
 }
 function prevQ(){ if(state.qi>0){ state.qi--; renderQ(); } }
 
-function decideType(){
-  const s=state.scores;
+// 最高点が同点のときのタイブレーク優先表。Q5「いちばんの悩み」（presetWorry含む・語彙は共通）で
+// 本人の自覚症状に近い部位へ寄せる。tsukare/yawarakaは特定部位に紐づかないため無指定=ローテーションへ。
+const WORRY_TIEBREAK={katakori:["kenko"],yotsu:["momo","koka"],tsukare:[],yawaraka:[]};
+function decideType(s,worry){
   const total=s.momo+s.koka+s.kenko+s.ashi;
   if(total>=9) return "robot";
   if(total<=2) return "yawara";
-  const order=["momo","koka","kenko","ashi"];
-  let best=order[0]; for(const k of order){ if(s[k]>s[best]) best=k; }
-  if(s[best]<=1) return "yawara";
-  return best;
+  const max=Math.max(s.momo,s.koka,s.kenko,s.ashi);
+  if(max<=1) return "yawara";
+  // 同点は悩み→日付ローテーションの2段で決める。旧実装（momo→koka→kenko→ashiの固定順走査）は
+  // 同点が常に先頭側の勝ちで、全回答等確率の理論分布がモモンガ27%・ペンギン13%と2倍超に偏っていた。
+  const holders=["momo","koka","kenko","ashi"].filter(k=>s[k]===max);
+  if(holders.length===1) return holders[0];
+  const pref=WORRY_TIEBREAK[worry]||[];
+  for(const k of pref){ if(holders.includes(k)) return k; }
+  return holders[rotationIndex()%holders.length];
 }
 // クイズQ1(momo・立って前屈)の選択肢インデックス(0〜3)→とどくメーターの段位(1〜5)対応表。
 // 「床につく/つま先/すねの途中/ひざ下」の4段階と「ひざ/すね/足首/つま先/ゆか」の5段階はズレがあり、
@@ -200,7 +207,7 @@ function decideType(){
 const REACH_FROM_MOMO=[5,4,2,1];
 let quizAutoReachLv=null;
 function finishQuiz(){
-  const t=decideType();
+  const t=decideType(state.scores,state.worry);
   state.type={key:t, worry:state.worry, at:todayStr()};
   store.set("type", state.type);
   // 2026-07-19 本人指摘「とどくメーターとかたさチェックのQ1が前屈を二重に測っている」対応。

@@ -1850,6 +1850,71 @@ function checkRxRotation(mainScript, quizScript) {
   assert("処方ローテーション: 14日間でプール由来の登場動画がmin(L,10)種以上", !coverageFail, coverageFail || "ok");
 }
 
+// 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)
+// 走査で同点が常に先頭側の勝ちになり、全回答等確率の理論分布がモモンガ27.3%・ペンギン12.9%と2倍超に
+// 偏っていた。新実装: 同点はQ5「いちばんの悩み」(katakori→kenko / yotsu→momo,koka)→日付ローテーション
+// (rotationIndex()%同点数)の2段で決める。rotationIndexをスタブしたvmサンドボックスでdecideTypeを直接検証する。
+function checkQuizTypeTiebreak(quizScript) {
+  const sandbox = { __r: 0 };
+  sandbox.rotationIndex = function () { return sandbox.__r; };
+  vm.createContext(sandbox);
+  try {
+    new vm.Script(quizScript, { filename: "app-quiz.js" }).runInContext(sandbox);
+    new vm.Script("var __EXPORT_DT={decideType:decideType};").runInContext(sandbox);
+  } catch (err) {
+    fail("タイプ判定タイブレーク: app-quiz.js実行", err.message);
+    return;
+  }
+  const decideType = sandbox.__EXPORT_DT && sandbox.__EXPORT_DT.decideType;
+  if (typeof decideType !== "function") {
+    fail("タイプ判定タイブレーク: decideTypeの取得", "");
+    return;
+  }
+  const S = (momo, koka, kenko, ashi) => ({ momo, koka, kenko, ashi });
+
+  // (1) robot/yawaraのゲートは従来どおり(同点処理より優先)
+  sandbox.__r = 0;
+  assert("タイプ判定: total>=9はrobot(部位同点でも)", decideType(S(3, 3, 3, 0)) === "robot", decideType(S(3, 3, 3, 0)));
+  assert("タイプ判定: total<=2はyawara", decideType(S(2, 0, 0, 0)) === "yawara", decideType(S(2, 0, 0, 0)));
+  assert("タイプ判定: 全部1(max<=1)はyawara", decideType(S(1, 1, 1, 1)) === "yawara", decideType(S(1, 1, 1, 1)));
+
+  // (2) 単独最高点は悩み・日付に関係なくその部位
+  sandbox.__r = 5;
+  assert("タイプ判定: 単独最高点はそのまま勝つ(ashi)", decideType(S(0, 1, 0, 2), "katakori") === "ashi", "");
+
+  // (3) 悩みタイブレーク: 同点の中に悩み対応部位があればそれを選ぶ
+  assert("タイプ判定: 4部位同点+肩こり→kenko", decideType(S(2, 2, 2, 2), "katakori") === "kenko", "");
+  assert("タイプ判定: 4部位同点+腰痛→momo", decideType(S(2, 2, 2, 2), "yotsu") === "momo", "");
+  assert("タイプ判定: koka/ashi同点+腰痛→koka(第2候補)", decideType(S(1, 2, 1, 2), "yotsu") === "koka", "");
+
+  // (4) 悩みで決まらない同点は日付ローテーションで決定的に散る(ashiも同点で勝てる)
+  sandbox.__r = 0;
+  const r0 = decideType(S(2, 1, 1, 2), "yawaraka");
+  assert("タイプ判定: momo/ashi同点+r0→momo", r0 === "momo", r0);
+  assert("タイプ判定: 同一入力・同一rなら同一結果(再現性)", decideType(S(2, 1, 1, 2), "yawaraka") === r0, "");
+  sandbox.__r = 1;
+  assert("タイプ判定: momo/ashi同点+r1→ashi(旧実装では不可能だった同点勝ち)", decideType(S(2, 1, 1, 2), "yawaraka") === "ashi", "");
+  sandbox.__r = 3;
+  assert("タイプ判定: 肩こりでも同点にkenkoが居なければローテーションへ", decideType(S(2, 2, 1, 0), "katakori") === "koka", "");
+
+  // (5) 分布の対称性: 全256通り×r=0..11(2,3,4部位同点をすべて割り切る周期)を悩み無しで合算すると、
+  //     スコアはiid対称なので4部位の当選数は完全一致するはず(固定順バイアスの根絶を数で確認)
+  const counts = { momo: 0, koka: 0, kenko: 0, ashi: 0 };
+  for (let r = 0; r < 12; r++) {
+    sandbox.__r = r;
+    for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++) for (let c = 0; c < 4; c++) for (let d = 0; d < 4; d++) {
+      const t = decideType(S(a, b, c, d));
+      if (t in counts) counts[t]++;
+    }
+  }
+  const vals = Object.keys(counts).map((k) => counts[k]);
+  assert(
+    "タイプ判定: 全256通り×12日の合算で4部位の当選数が完全一致(偏りゼロ)",
+    Math.max.apply(null, vals) === Math.min.apply(null, vals),
+    JSON.stringify(counts)
+  );
+}
+
 // 2026-07-20対応: とどくメーター自動転記(REACH_FROM_MOMO・かたさチェックQ1→とどくメーター初回記録)の
 // 静的検査。配列長4(Q1の選択肢数と一致)・値域1〜5(とどくメーターの段位)を固定する。
 // あわせて、自動転記(finishQuiz)はsetReach(lv,true)のsilentモードで呼び、演出メッセージ(#reachMsg)を
@@ -1991,6 +2056,7 @@ function main() {
   checkCardDex(mainScript);
   checkDexCopyCoverage(mainScript);
   checkRxRotation(mainScript, quizScript);
+  checkQuizTypeTiebreak(quizScript);
   checkReachAutoTranscribe(quizScript, recordScript);
   checkVerification20260720Fixes(html, mainScript);
   checkQuotesCoverage(mainScript);
