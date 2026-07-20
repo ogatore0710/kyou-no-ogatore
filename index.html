@@ -145,7 +145,7 @@
   body.dark [fill="#6E6B5F"]{fill:#B9B2A0}
   body.dark [stroke="#55524A"]{stroke:#B9B2A0}
   .tapx{display:inline-block;padding:10px 4px;margin:-10px -4px}
-  .envbn{background:var(--yellow-soft);border:1.5px solid var(--yellow);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.7;margin-bottom:10px;color:var(--ink)}
+  .envbn{background:var(--yellow-soft);border:1.5px solid var(--yellow);border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.7;margin-bottom:10px;color:var(--ink)}
   body.dark .envbn{background:#3A342A;border-color:#6E5F2E}
   #memoInput::placeholder{font-size:14px}
   .video>div{min-width:0}
@@ -634,6 +634,7 @@
     <div id="fdDoneStaticNudge" class="hidden" style="text-align:center;font-size:14px;font-weight:800;color:var(--pink);margin-top:10px">動画を見おわったら、ここを押してね👇</div>
     <button class="btn done-btn" id="doneBtn" onclick="markDone()" style="font-size:17px;margin-top:12px">きょうやった！</button>
     <div id="cheer" style="text-align:center;font-size:15px;margin-top:10px;color:var(--sub)"></div>
+    <div id="a2hsAsk"></div>
     <div id="memoRow" class="hidden" style="margin-top:10px">
       <input id="memoInput" maxlength="30" placeholder="ひとことメモをどうぞ" enterkeyhint="done" onkeydown="if(event.key==='Enter'){saveMemo();this.blur()}" style="width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--card)">
       <div style="text-align:center"><button class="btn btn-line" id="memoBtn" style="margin-top:8px;font-size:14px;width:auto;display:inline-block;padding:9px 26px" onclick="saveMemo()">メモをのこす</button></div>
@@ -968,7 +969,16 @@
   <div class="card" id="gd-mamori">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9c-4-1.5-7-4.5-7-9V6z" fill="#DFF5F2"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>記録が消えない3つの守り</div>
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><img src="assets/chara-good.png" alt="" style="width:64px;height:60px;object-fit:contain;flex-shrink:0"><div style="font-size:14px;color:var(--sub)">3つおさえれば安心です</div></div>
-    <div class="gstep"><span class="stepn">1</span><div><b>このアプリをスマホのホーム画面に置く</b>（共有ボタン→「ホーム画面に追加」をタップ）これがいちばん大事！ブラウザだけで使っていると記録が消えることがありますが、ホーム画面に置いた「アプリ版」なら記録がずっと残ります<br><span style="font-size:13px;color:var(--sub)">※置いたあとは「記録をコピー」→アプリ版で「よみこむ」も忘れずに（下の3.と同じやり方です）</span></div></div>
+    <div class="gstep"><span class="stepn">1</span><div><b>このアプリをスマホのホーム画面に置く</b> これがいちばん大事！ブラウザだけで使っていると記録が消えることがありますが、ホーム画面に置いた「アプリ版」なら記録がずっと残ります
+      <div style="margin-top:10px;padding:10px 12px;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;font-size:14px;line-height:1.9">
+        <div style="font-weight:800;margin-bottom:4px">📱 iPhoneの人</div>
+        <div>YouTubeの中で開いた人はまず<b>右下のコンパスのマーク</b>を押してSafariへ→画面のいちばん下 まん中の共有ボタン<svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M8 7l4-4 4 4"/><path d="M6 10.5v7.5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7.5"/></svg>をタップ→<b>下にスクロール</b>→「ホーム画面に追加」→右上の<b>「追加」</b></div>
+        <div style="font-weight:800;margin:10px 0 4px">🤖 Androidの人</div>
+        <div>YouTubeの中で開いた人はまず<b>右上の「⋮」→「Chromeで開く」</b>→右上の「⋮」→「ホーム画面に追加」（機種により「アプリをインストール」）→「追加」</div>
+      </div>
+      <div style="text-align:center;margin-top:10px"><button class="btn btn-ghost" style="font-size:14px" onclick="a2hsShowForce()">📲 もういちど かんたん案内を見る</button></div>
+      <span style="font-size:13px;color:var(--sub)">※置いたあとは「記録をコピー」→アプリ版で「よみこむ」も忘れずに（下の3.と同じやり方です）</span>
+    </div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>記録カードを画像で保存</b>…写真フォルダが自動でバックアップになります<br><span style="font-size:13px;color:var(--sub)">つくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます👀</span><div style="text-align:center;margin-top:8px"><img src="assets/card-sample.png" alt="" style="width:140px;height:140px;border-radius:16px;display:inline-block"></div></div></div>
     <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」</div></div>
     <div style="text-align:center;margin-top:12px"><a href="#" class="tapx" onclick="gJump('gtoc');return false" style="font-size:13px;color:var(--sub);text-decoration:none">↑ 目次へ戻る</a></div>
@@ -1016,6 +1026,7 @@
           <details><summary>電波がないところでも使える？</summary><div class="fa">アプリをひらいて「きょうやった！」の記録はできます✅ 動画の再生だけ電波が必要です</div></details>
           <details><summary>「あたらしいバージョンがあるよ」って出た</summary><div class="fa">タップするだけで更新できます 記録は消えません</div></details>
           <details><summary>古いスマホでも使えるの？</summary><div class="fa">だいたいの端末で使えます！ただしかなり古いタイプだと オフラインでの記録やホーム画面への追加がうまくいかないことがあります📱 その場合もアプリ自体はふつうに使えるのでご安心を</div></details>
+          <details><summary>ホーム画面に追加（ついか）ってどうやるの？</summary><div class="fa">📱iPhone: 画面いちばん下の共有ボタン→<b>下にスクロール</b>→「ホーム画面に追加」→右上の「追加」<br>🤖Android: 右上の「⋮」→「ホーム画面に追加」→「追加」<br>YouTubeの中で開いた人はまず脱出（iPhone=右下のコンパス／Android=⋮→Chromeで開く）が先です<br>くわしくは下の<a href="#" onclick="gJump('gd-mamori');return false" class="tapx" style="color:var(--tealink);font-weight:800">「記録を守る」カード</a>へ</div></details>
         </div>
       </div>
 
@@ -3935,12 +3946,17 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 (function(){
   try{
     if(!state.type){ const a=document.getElementById("anchorCard"),c=document.getElementById("ckCard"); a.parentNode.insertBefore(c,a); }
-    const ua=navigator.userAgent||"";
-    const inApp=/\bLine\/|Instagram|FBAN|FBAV|; wv\)/.test(ua);
+    const inApp=envIsInApp();
     const standalone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
+    const ytInApp=(typeof ytInAppDetect==="function")&&ytInAppDetect();
     const bn=document.getElementById("envBanner");
-    if(inApp){
-      bn.innerHTML='⚠️ いまアプリの中でひらいています このままだと<b>記録がのこりません</b> 共有メニューから<b>「Safariで開く」（ブラウザで開く）</b>でひらき直してね🙏';
+    // YouTube脱出バナーを最優先表示（2026-07-20新規・A2HS導線再設計）。YouTubeアプリ内ブラウザでは
+    // 「ホーム画面に追加」自体が不可能なため、LINE等アプリ内警告やホーム追加リマインドより先に見せる。
+    if(ytInApp){
+      bn.innerHTML=ytInAppBannerHTML();
+      bn.classList.remove("hidden");
+    } else if(inApp){
+      bn.innerHTML='⚠️ここで使うと記録がきえて見えることがあるよ😢 なおしかた👉 共有メニューから<b>「Safariで開く」（ブラウザで開く）</b>でひらき直してね🙏 <a href="#" onclick="switchTab(\'guide\');gJump(\'gd-mamori\');return false" class="tapx" style="color:var(--tealink);font-weight:800">やり方を見る</a>';
       bn.classList.remove("hidden");
     } else if(!standalone && (function(){
       const days=(getStreakData().dates||[]).length;
@@ -4299,8 +4315,10 @@ window.addEventListener("popstate",function(){
     // アプリ内ブラウザ(LINE等)ではオンボを出さない：記録がWebView側に残って後日消えるため。
     // envBanner の「Safariで開いてね」案内を隠さず見せる（#welcomeで覆わない）。ホーム画面追加
     // ポップアップも同じ理由でアプリ内ブラウザでは出さない（a2hsBoot自体を呼ばない）。
-    var ua=navigator.userAgent||"";
-    if(/\bLine\/|Instagram|FBAN|FBAV|; wv\)/.test(ua)) return;
+    if(envIsInApp()) return;
+    // YouTubeアプリ内ブラウザも同じ扱い（2026-07-20新規）：脱出バナーを隠さず見せ、a2hsBoot/オンボとも
+    // 抑止する（既存inApp時の扱いと一貫させる）。
+    if(typeof ytInAppDetect==="function" && ytInAppDetect()) return;
     const sp=document.getElementById("appSplash");
     setTimeout(function(){ a2hsBoot(obOpen); }, sp?1500:600);
   }catch(e){}

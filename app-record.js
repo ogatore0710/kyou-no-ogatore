@@ -155,6 +155,30 @@ function markDone(){
     }catch(e){}
     store.set("calseen",1);
   }
+  // ホーム画面追加「二度目のチャンス」（2026-07-20新規・A2HS導線再設計・監査Top2対応）:
+  // 初回オンボの一発勝負ポップアップ（「あとで」1タップで実質終了）を逃した人に、通算1日目クリアという
+  // いちばんモチベーションが高い瞬間にもう一度だけ提案する。一度きり制御はkyono_calseenと同じ流儀
+  // （kyono_a2hs2・"1"で済ませる）。表示自体はstandalone/デスクトップ/アプリ内ブラウザ/YouTube内ブラウザ
+  // では意味がないため、a2hsKindFor()がkindを返すときだけ出す（それ以外でもフラグは一度きり消費する＝
+  // kyono_calseenと同じ「再訪のたび判定し直さない」単純な流儀に合わせる）。
+  if(st.total===1 && !store.get("a2hs2")){
+    try{
+      const box=document.getElementById("a2hsAsk");
+      const kind=(typeof a2hsKindFor==="function")?a2hsKindFor():null;
+      const inApp=(typeof envIsInApp==="function")&&envIsInApp();
+      const ytInApp=(typeof ytInAppDetect==="function")&&ytInAppDetect();
+      if(box && kind && !inApp && !ytInApp){
+        box.innerHTML="";
+        const wrap=document.createElement("div");
+        wrap.style.cssText="margin-top:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
+        wrap.innerHTML='<div style="font-size:14px;font-weight:800">📲 毎日つかうなら ホーム画面に追加が便利！記録もいちばん安全にのこるよ</div>'
+          +'<button class="btn btn-primary" id="a2hsAskBtn" style="margin-top:8px;font-size:15px" onclick="a2hsShowForce()">やり方を見る</button>'
+          +'<button class="btn btn-line" id="a2hsAskSkipBtn" style="margin-top:8px;font-size:14px" onclick="document.getElementById(\'a2hsAsk\').innerHTML=\'\'">あとで</button>';
+        box.appendChild(wrap);
+      }
+    }catch(e){}
+    store.set("a2hs2",1);
+  }
   // 使い方ツアーの案内（はじめの1本ガイド完了の直後に一度だけ#tourAskへ出す。カレンダー案内と同じ見た目のカードで統一感を持たせる）
   if(guide){
     try{
