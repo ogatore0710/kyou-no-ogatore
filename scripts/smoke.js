@@ -1537,6 +1537,22 @@ async function main() {
       }
       if (afterDone.fd !== "1") throw new Error("kyono_fdが完了値1になっていない (" + afterDone.fd + ")");
 
+      // ---- 確認5x(2026-07-20監査Top1「お願い渋滞」対応): お願いカードは1日1枚 ----
+      // デスクトップUAではa2hs候補が出せない環境として同日中に消費・繰り上げされ、1日目=カレンダーだけが出る。
+      // ツアーカードは翌日(2日目)のきょうやった！まで出ないこと(旧仕様は3枚同時)をここで実測する。
+      const day1Asks = await page.evaluate(() => ({
+        a2hsAsk: (document.getElementById("a2hsAsk").innerHTML || "").trim(),
+        tourAsk: (document.getElementById("tourAsk").innerHTML || "").trim(),
+        a2hs2: localStorage.getItem("kyono_a2hs2"),
+        calseen: localStorage.getItem("kyono_calseen"),
+        tourseen: localStorage.getItem("kyono_tourseen"),
+      }));
+      if (day1Asks.tourAsk !== "") throw new Error("1日目なのに#tourAskにカードが出ている（1日1枚キューが効いていない）");
+      if (day1Asks.a2hsAsk !== "") throw new Error("デスクトップUAなのに#a2hsAskにカードが出ている");
+      if (day1Asks.a2hs2 !== "1") throw new Error("出せない環境のa2hs候補がフラグ消費されていない (kyono_a2hs2=" + day1Asks.a2hs2 + ")");
+      if (day1Asks.calseen !== "1") throw new Error("カレンダーカード表示後にkyono_calseenが立っていない");
+      if (day1Asks.tourseen) throw new Error("1日目なのにkyono_tourseenまで消費されている（あしたの1枚が消えてしまう）");
+
       // ---- 確認5a(2026-07-17追加): DOM順序（cheer→#memoRow→記録カードボタン→#calAsk→#tourAsk）と、
       // 「使い方ツアーを見る」ボタンが#tourAsk側にあり#cheer側には無いことを確認 ----
       const domOrder = await page.evaluate(() => {
@@ -1556,14 +1572,28 @@ async function main() {
         };
       });
       if (!domOrder.orderOk) throw new Error("#streakCard内の並び順が想定どおりでない (memoRow→makeCardBtn→cardHint→calAsk→tourAsk) positions=" + JSON.stringify(domOrder.positions));
-      if (!domOrder.tourAskHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#tourAskの中に無い");
-      if (domOrder.cheerHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#cheerの中に残っている（移設漏れ）");
 
       // ---- 確認5b(2026-07-17追加): 記録完了で持続的な案内(#fdDoneStaticNudge)が消えること ----
       const staticNudgeGone = await page.evaluate(() => document.getElementById("fdDoneStaticNudge").classList.contains("hidden"));
       if (!staticNudgeGone) throw new Error("記録後も#fdDoneStaticNudgeが表示されたまま（fdActive()false/今日記録済みで消えるはず）");
 
-      // ---- 確認5c(2026-07-17追加): cheer後に「使い方ツアーを見る」ボタンが出て、タップで実際にツアーが始まること ----
+      // ---- 確認5c(2026-07-20キュー化で改修): 2日目のきょうやった！でツアーカードが出て、タップで実際にツアーが始まること ----
+      // 日送り: きょうの記録日をdatesから外してmarkDone()をもう一度呼べる状態にする(7bbのseedと同じ直接操作の流儀)。
+      // 2日目のキュー先頭は消費済みのa2hs2/calseenを飛ばしてtourseen=使い方ツアーになる。
+      await page.evaluate(() => {
+        const s = JSON.parse(localStorage.getItem("kyono_streak2"));
+        s.dates = [];
+        localStorage.setItem("kyono_streak2", JSON.stringify(s));
+        markDone();
+      });
+      const day2Asks = await page.evaluate(() => ({
+        tourAskHasBtn: document.getElementById("tourAsk").contains(document.getElementById("cheerTourBtn")),
+        cheerHasBtn: document.getElementById("cheer").contains(document.getElementById("cheerTourBtn")),
+        tourseen: localStorage.getItem("kyono_tourseen"),
+      }));
+      if (!day2Asks.tourAskHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#tourAskの中に無い");
+      if (day2Asks.cheerHasBtn) throw new Error("「使い方ツアーを見る」ボタンが#cheerの中に残っている（移設漏れ）");
+      if (day2Asks.tourseen !== "1") throw new Error("ツアーカード表示後にkyono_tourseenが立っていない");
       await visible("#cheerTourBtn");
       const tourBtnText = await $text("#cheerTourBtn");
       if (tourBtnText.indexOf("使い方ツアーを見る") === -1) throw new Error("#cheerTourBtnの文言が設計どおりでない (" + tourBtnText + ")");
