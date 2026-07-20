@@ -21,8 +21,9 @@ const QUESTIONS = [
     ["山みたいに浮く","すき間 こぶし3個以上",2],
     ["そもそもあぐらがつらい","骨盤が立たず 体が後ろに倒れてしまう",3]]},
   {k:"kenko",title:"胸の前で両ひじをつけて上げると どこまで上がる？", note:"手のひらを合わせて 胸の前でひじをくっつけたまま ゆっくり上げてみて",
+   // 2026-07-21 本人指摘: 最上位の基準は「頭より上」ではなく「鼻より上」が正
    opts:[
-    ["頭より上まで上がる","ひじをつけたまま頭の上まで上がる",0],
+    ["鼻より上まで上がる","ひじをつけたまま鼻の高さをこえる",0],
     ["あごより上まで上がる","ひじをつけたままあごの高さをこえる",1],
     ["ひじはつくけど あまり上がらない","ひじはくっつくが胸〜肩の高さまでしか上がらない",2],
     ["そもそもひじがつかない","胸の前でひじをくっつけることができない",3]]},
@@ -93,10 +94,10 @@ const QUIZ_ART=[
  `<svg viewBox="0 0 300 170" fill="none" stroke-linecap="round" stroke-linejoin="round">
    <path d="M30 150h240" stroke="#E0D8C4" stroke-width="5"/>
    <g stroke="#CFC9B8" stroke-width="2.5" stroke-dasharray="2 6">
-     <path d="M136 45h74M136 68h74"/>
+     <path d="M136 57h74M136 69h74"/>
    </g>
    <g fill="#6E6B5F" stroke="none" font-weight="800" font-size="11">
-     <text x="215" y="49">あたま</text><text x="215" y="72">あご</text>
+     <text x="215" y="60">はな</text><text x="215" y="73">あご</text>
    </g>
    <path d="M112 118L106 150M132 118L138 150" stroke="#55524A" stroke-width="9"/>
    <path d="M122 118L122 80" stroke="#3A3A35" stroke-width="15"/>
