@@ -1059,6 +1059,156 @@ function checkA2hsPopup(html, mainScript) {
   );
 }
 
+// 2026-07-20 A2HS導線再設計(YouTubeコミュニティ投稿配布前提・PO指示・Fable設計)の機械チェック。
+// html=index.html全文、mainScript=最後から2番目のインラインscript、envScript=app-env.js、
+// recordScript=app-record.jsを渡す。
+function checkA2hsYoutubeRedesign(html, mainScript, envScript, recordScript) {
+  // 1. YouTube経由の検出と脱出バナー
+  const ytFn = extractFunction(envScript, "ytInAppDetect");
+  assert("ytInAppDetect: found", ytFn.length > 0, `${ytFn.length} chars`);
+  assert(
+    "ytInAppDetect: document.referrerのURLパースをtry/catchで守っている",
+    /try\s*\{\s*host\s*=\s*new URL\(ref\)\.hostname/.test(ytFn) && /catch/.test(ytFn),
+    "URL parse must be wrapped in try/catch"
+  );
+  assert(
+    "ytInAppDetect: youtube.com/youtu.beのoriginをsessionStorage(kyono_ytInApp)に保持する(localStorageは使わない)",
+    /sessionStorage\.setItem\(\s*"kyono_ytInApp"\s*,\s*"1"\s*\)/.test(ytFn),
+    "sessionStorage flag missing"
+  );
+  assert(
+    "ytInAppDetect: localStorageのkyono_ytInAppは使っていない(次回Safari起動時の誤爆防止)",
+    !/localStorage[\s\S]{0,20}kyono_ytInApp/.test(envScript),
+    "must not persist ytInApp flag in localStorage"
+  );
+  assert(
+    "ytInAppBannerHTML: iOS系/Android系で脱出手順の文言を出し分ける(コンパスマーク/⋮→Chromeで開く)",
+    /右下のコンパスのマーク/.test(envScript) && /右上の「⋮」→「Chromeで開く」/.test(envScript),
+    "iOS/Android escape instructions missing"
+  );
+
+  const bootIifeStart = html.indexOf("const inApp=envIsInApp();");
+  const bootIife = html.slice(bootIifeStart, html.indexOf("renderSoudanEntry()", bootIifeStart));
+  assert("起動時IIFE: 見つかる(envBanner分岐)", bootIife.length > 0, `${bootIife.length} chars`);
+  assert(
+    "起動時IIFE: ytInAppをinApp/homehintより優先して最初に判定する",
+    /if\(ytInApp\)\{[\s\S]{0,200}?\}\s*else if\(inApp\)/.test(bootIife),
+    "ytInApp branch must come before the inApp branch"
+  );
+  assert(
+    "起動時IIFE: LINE等アプリ内警告に「やり方を見る」リンク(gd-mamoriへ)を追加",
+    /記録がきえて見えることがあるよ[\s\S]{0,300}?gJump\(\\?'gd-mamori\\?'\)/.test(bootIife),
+    "inApp banner must link to gd-mamori"
+  );
+
+  const obBootIife = mainScript.slice(mainScript.indexOf("初回起動のみ"), mainScript.indexOf("window.__kyonoBoot=true"));
+  assert(
+    "はじめてガイド起動IIFE: ytInAppDetect()でもa2hsBoot/オンボを抑止する(既存inApp抑止と同列)",
+    /ytInAppDetect\(\)\)\s*return;/.test(obBootIife),
+    "onboarding trigger must also bail out on ytInAppDetect()"
+  );
+
+  // 2. iOS Safari分岐: 実4ステップ+絵入り化+iPad出し分け
+  const showFn = extractFunction(envScript, "a2hsShow");
+  assert(
+    "a2hsShow(ios-safari): 「下にスクロール」「右上の「追加」」を含む実4ステップ文言",
+    /下にスクロール/.test(showFn) && /右上の<b>「追加」<\/b>/.test(showFn),
+    "4-step ios-safari copy missing scroll/追加 steps"
+  );
+  assert(
+    "a2hsShow(ios-safari): iPad判定で①の文言を出し分ける(画面の上のほう)",
+    /isIpad[\s\S]{0,120}?画面の<b>上のほう<\/b>/.test(showFn),
+    "iPad step1 variant missing"
+  );
+  assert(
+    "a2hsShow: SHARE_SVG(共有アイコン)を文中に埋め込んでいる",
+    /SHARE_SVG/.test(showFn),
+    "share icon SVG not referenced in a2hsShow"
+  );
+
+  // 3. ios-other分岐: 実行不能な「Safariで開いてね」誤案内を修正
+  assert(
+    "a2hsShow(ios-other): 実行不能な「Safariで開いてね」文言が消えている",
+    !/ホーム画面に追加するために、<b>Safari<\/b>で開いてね/.test(showFn),
+    "old unexecutable ios-other copy still present"
+  );
+  assert(
+    "a2hsShow(ios-other): 「Chromeでもだいじょうぶ」+共有→ホーム画面に追加の新文言",
+    /Chromeでもだいじょうぶ/.test(showFn) && /このページのアドレスをSafariでひらいてみてね/.test(showFn),
+    "new ios-other copy missing"
+  );
+
+  // 4. 二度目のチャンス(1日目クリア直後の再提案カード)
+  const fns = ["a2hsKindFor", "a2hsShowForce"];
+  const missing = fns.filter((n) => extractFunction(envScript, n).length === 0);
+  assert("a2hsKindFor/a2hsShowForce: found", missing.length === 0, missing.join(", ") || fns.join(", "));
+  assert("index.html: #a2hsAsk markup exists(streakCard内・#cheer直下)", /id="cheer"[\s\S]{0,150}<div id="a2hsAsk">/.test(html), "#a2hsAsk missing or not right after #cheer");
+  const markDoneFn = extractFunction(recordScript, "markDone");
+  assert("markDone: found", markDoneFn.length > 0, `${markDoneFn.length} chars`);
+  assert(
+    "markDone: 通算1日目クリア直後に一度だけ(kyono_a2hs2)再提案カードを出す",
+    /st\.total===1[\s\S]{0,40}!store\.get\("a2hs2"\)/.test(markDoneFn) && /store\.set\("a2hs2",1\)/.test(markDoneFn),
+    "day-1 second-chance gate (kyono_a2hs2) missing"
+  );
+  assert(
+    "markDone: 再提案カードはa2hsKindFor()がkindを返す(=standalone/デスクトップ/アプリ内ブラウザ以外)ときだけ出す",
+    /kind\s*&&\s*!inApp\s*&&\s*!ytInApp/.test(markDoneFn),
+    "second-chance card must gate on kind && !inApp && !ytInApp"
+  );
+  assert(
+    "markDone: 再提案カードの「やり方を見る」はa2hsShowForce()(一生に一度ガードを迂回)を呼ぶ",
+    /onclick="a2hsShowForce\(\)"/.test(markDoneFn),
+    "second-chance card button must call a2hsShowForce()"
+  );
+  assert(
+    "markDone: 「あとで」で#a2hsAskを空にするだけ(進行不能にならない)",
+    /a2hsAskSkipBtn[\s\S]{0,150}getElementById\([\s\S]{0,3}a2hsAsk[\s\S]{0,3}\)\.innerHTML=/.test(markDoneFn),
+    "second-chance card dismiss handler missing/changed"
+  );
+
+  // 5. 再発見性: gd-mamori(Android並記+もういちどボタン)・FAQ
+  const mamoriIdx = html.indexOf('id="gd-mamori"');
+  const mamoriEnd = html.indexOf('id="gd-tsuzuku"');
+  const mamori = mamoriIdx !== -1 && mamoriEnd !== -1 ? html.slice(mamoriIdx, mamoriEnd) : "";
+  assert("gd-mamori: found", mamori.length > 0, `${mamori.length} chars`);
+  assert(
+    "gd-mamori: iPhone/Android手順を並記(0番のYouTube脱出手順込み)",
+    /📱 iPhoneの人/.test(mamori) && /🤖 Androidの人/.test(mamori) && /YouTubeの中で開いた人はまず/.test(mamori),
+    "gd-mamori must list both iPhone/Android steps with the YouTube-escape step 0"
+  );
+  assert(
+    "gd-mamori: 「📲 もういちど かんたん案内を見る」ボタンがa2hsShowForce()を呼ぶ",
+    /もういちど かんたん案内を見る[\s\S]{0,40}onclick="a2hsShowForce\(\)"/.test(mamori) || /onclick="a2hsShowForce\(\)">📲 もういちど/.test(mamori),
+    "gd-mamori retry button missing"
+  );
+
+  const faqBasicsIdx = html.indexOf("📱 きほんのき");
+  const faqBasicsEnd = html.indexOf("📅 記録・続けるについて");
+  const faqBasics = faqBasicsIdx !== -1 && faqBasicsEnd !== -1 ? html.slice(faqBasicsIdx, faqBasicsEnd) : "";
+  assert(
+    "FAQ「きほんのき」: 「ホーム画面に追加ってどうやるの？」新設・検索語「ホーム画面」「ついか」の両方を含む",
+    /ホーム画面に追加/.test(faqBasics) && /ついか/.test(faqBasics),
+    "new FAQ entry missing search terms ホーム画面/ついか"
+  );
+  assert(
+    "FAQ新設項目: gd-mamoriへのgJumpリンクを含む",
+    /gJump\('gd-mamori'\)/.test(faqBasics),
+    "FAQ entry must link to gd-mamori via gJump"
+  );
+
+  // 6. LINE/インスタ警告の強化
+  const envbnMatch = /\.envbn\{[^}]*font-size:(\d+)px/.exec(html);
+  assert(".envbn: CSS定義が見つかる", !!envbnMatch, "index.html");
+  if (envbnMatch) {
+    assert(".envbn: フォントサイズ15px以上(旧13pxから拡大)", Number(envbnMatch[1]) >= 15, `実測${envbnMatch[1]}px`);
+  }
+  assert(
+    "envIsInApp: LINE/Instagram/汎用WebView検出を一本化(既存2箇所+新設1箇所で共有)",
+    extractFunction(envScript, "envIsInApp").length > 0,
+    "envIsInApp helper missing"
+  );
+}
+
 function checkSearchScript(code) {
   parseJs("app-search.js", code);
   let tags = [];
@@ -1829,6 +1979,7 @@ function main() {
   checkOnboardingUX(html, quizScript);
   checkTourSlides(mainScript, html);
   checkA2hsPopup(html, `${mainScript}\n${envScript}`);
+  checkA2hsYoutubeRedesign(html, mainScript, envScript, recordScript);
   const catalogIds = checkCatalog(read("videos.js"), allowedTags);
   checkSoudanKb(catalogIds);
   checkObuFeed(read("obu-feed.js"));

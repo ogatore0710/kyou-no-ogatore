@@ -1841,6 +1841,154 @@ async function main() {
       return "タップ復帰→おかえり表示／別タブ往復でも維持／記録で解除／日付ずれ非発火／rDoneNudgeボタン文言をガイド中とそれ以外で出し分け、を確認";
     });
 
+    // 7h. YouTube経由の検出と脱出バナー（2026-07-20新規・A2HS導線再設計・PO指示「YouTubeコミュニティ投稿で
+    //     配る前提で再設計」）: document.referrerをyoutube.com/youtu.be偽装で実測する。UA/standalone等と同じく
+    //     evaluateOnNewDocumentでdocument.referrerのgetterを差し替える（本物のReferer送出はhttp.serverが絡み
+    //     決定的にできないため、7cと同じ流儀の偽装が最も確実）。
+    await step("7h-YouTube経由の検出と脱出バナー(document.referrer偽装・iOS/Android文言・youtu.be・非YouTube回帰)", async () => {
+      const UA_IOS_SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+      const UA_ANDROID = "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36";
+      async function freshPageRef(opts) {
+        const p = await browser.newPage();
+        await wirePage(p);
+        await p.setUserAgent(opts.ua);
+        if (opts.referrer) {
+          await p.evaluateOnNewDocument((ref) => {
+            try { Object.defineProperty(document, "referrer", { get: () => ref, configurable: true }); } catch (e) { /* ignore */ }
+          }, opts.referrer);
+        }
+        await p.goto(url, { waitUntil: "load" });
+        await p.evaluate(() => localStorage.clear());
+        await p.reload({ waitUntil: "load" });
+        await p.waitForFunction(() => window.__kyonoBoot === true, { timeout: 8000 });
+        return p;
+      }
+      const notes = [];
+
+      // (a) iOS Safari + youtube referrer → コンパスマーク文言・welcome/a2hsModalとも非表示・sessionStorageフラグ
+      {
+        const p = await freshPageRef({ ua: UA_IOS_SAFARI, referrer: "https://m.youtube.com/watch?v=abc12345678" });
+        await new Promise((r) => setTimeout(r, 2200)); // 通常のオンボ起動タイマー(600ms)を確実に越えて待つ
+        const state = await p.evaluate(() => ({
+          bannerText: (document.getElementById("envBanner") || {}).textContent || "",
+          bannerHidden: (document.getElementById("envBanner") || {}).classList.contains("hidden"),
+          welcomeHidden: document.getElementById("welcome").classList.contains("hidden"),
+          modalHidden: document.getElementById("a2hsModal").classList.contains("hidden"),
+          ytFlag: sessionStorage.getItem("kyono_ytInApp"),
+        }));
+        if (state.bannerHidden || state.bannerText.indexOf("右下のコンパスのマーク") === -1) throw new Error("iOS+YouTube referrerでコンパスマーク文言のバナーが出ていない: " + state.bannerText);
+        if (!state.welcomeHidden) throw new Error("YouTube referrer偽装(iOS)なのにはじめてガイドが表示された");
+        if (!state.modalHidden) throw new Error("YouTube referrer偽装(iOS)なのにa2hsModalが表示された");
+        if (state.ytFlag !== "1") throw new Error("kyono_ytInAppフラグ(sessionStorage)が立っていない");
+        await p.close();
+        notes.push("iOS+m.youtube.com referrer→コンパスマーク案内・オンボ/a2hs抑止・フラグ確認");
+      }
+
+      // (b) Android + youtube.com referrer → ⋮→Chromeで開く文言
+      {
+        const p = await freshPageRef({ ua: UA_ANDROID, referrer: "https://www.youtube.com/watch?v=abc12345678" });
+        const bannerText = await p.evaluate(() => (document.getElementById("envBanner") || {}).textContent || "");
+        if (bannerText.indexOf("「⋮」→「Chromeで開く」") === -1) throw new Error("Android+YouTube referrerで⋮→Chromeで開く文言が出ていない: " + bannerText);
+        await p.close();
+        notes.push("Android+www.youtube.com referrer→⋮メニュー案内");
+      }
+
+      // (c) youtu.be短縮URL経由でも検出される(ドメイン違いの回帰確認)
+      {
+        const p = await freshPageRef({ ua: UA_IOS_SAFARI, referrer: "https://youtu.be/abc12345678" });
+        const state = await p.evaluate(() => ({
+          bannerHidden: (document.getElementById("envBanner") || {}).classList.contains("hidden"),
+          ytFlag: sessionStorage.getItem("kyono_ytInApp"),
+        }));
+        if (state.bannerHidden) throw new Error("youtu.be referrerで脱出バナーが出ていない");
+        if (state.ytFlag !== "1") throw new Error("youtu.be referrerでkyono_ytInAppフラグが立っていない");
+        await p.close();
+        notes.push("youtu.be短縮URL referrer→同じく検出");
+      }
+
+      // (d) 非YouTube referrer(検索結果等)では発火しない・従来どおり初回起動フローが動く(回帰なし)。
+      //     iOS Safari UAではまずa2hsポップアップ(ios-safari)が出るのが正しい初回フロー
+      //     （welcomeはその「あとで」の後）なので、a2hsModalの出現を初回フロー再開の証拠として待つ。
+      {
+        const p = await freshPageRef({ ua: UA_IOS_SAFARI, referrer: "https://www.google.com/search?q=x" });
+        await p.waitForFunction(() => {
+          const w = document.getElementById("welcome"), m = document.getElementById("a2hsModal");
+          return (w && !w.classList.contains("hidden")) || (m && !m.classList.contains("hidden"));
+        }, { timeout: 6000 });
+        const state = await p.evaluate(() => ({
+          ytFlag: sessionStorage.getItem("kyono_ytInApp"),
+          kind: document.getElementById("a2hsModal").getAttribute("data-a2hs-kind"),
+        }));
+        if (state.ytFlag) throw new Error("YouTube以外のreferrerなのにkyono_ytInAppが立っている");
+        if (state.kind !== "ios-safari") throw new Error("非YouTube referrerの初回起動でa2hsポップアップ(ios-safari)が出ていない (実測=" + state.kind + ")");
+        // 「あとで」→welcomeまで進むこと(初回フロー全体の回帰なし)も見届ける
+        await p.click("#a2hsBtns button");
+        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.close();
+        notes.push("非YouTube referrer→誤検出なし・a2hsポップアップ→はじめてガイドの初回フローは従来どおり(回帰なし)");
+      }
+
+      return notes.join(" / ");
+    });
+
+    // 7i. ホーム画面追加「二度目のチャンス」（2026-07-20新規・A2HS導線再設計・監査Top2対応）:
+    //     通算1日目の「きょうやった！」直後に一度だけ#a2hsAskへ再提案カードを出す（kyono_a2hs2ガード・
+    //     リロード後は再表示されない・「あとで」で進行不能にならない）。あわせてgd-mamoriカードの
+    //     「もういちど かんたん案内を見る」ボタンがa2hsShowForce()経由でa2hsModalを再表示することも確認する。
+    await step("7i-ホーム画面追加「二度目のチャンス」(1日目markDone直後の再提案カード・一度きり・gd-mamoriの再案内ボタン)", async () => {
+      const UA_ANDROID = "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36";
+      const p = await browser.newPage();
+      await wirePage(p);
+      await p.setUserAgent(UA_ANDROID);
+      await p.goto(url, { waitUntil: "load" });
+      // はじめてガイド/a2hsポップアップは今回のテスト対象ではないため、既オンボ済み体で開き直して片付ける
+      await p.evaluate(() => { localStorage.clear(); localStorage.setItem("kyono_onboarded", "1"); });
+      await p.reload({ waitUntil: "load" });
+      await p.waitForFunction(() => window.__kyonoBoot === true, { timeout: 8000 });
+
+      const r1 = await p.evaluate(() => {
+        store.set("streak2", { dates: [], count: 0, total: 0 });
+        store.set("a2hs2", null);
+        markDone();
+        return {
+          askHtml: document.getElementById("a2hsAsk").innerHTML,
+          a2hs2Flag: localStorage.getItem("kyono_a2hs2"),
+        };
+      });
+      if (r1.askHtml.indexOf("やり方を見る") === -1) throw new Error("1日目markDone直後に再提案カードが出ていない: " + r1.askHtml);
+      if (r1.a2hs2Flag !== "1") throw new Error("kyono_a2hs2が一度きりフラグとして立っていない (実測=" + r1.a2hs2Flag + ")");
+
+      // リロードしても再表示されない(一度きりガード)
+      await p.reload({ waitUntil: "load" });
+      await p.waitForFunction(() => window.__kyonoBoot === true, { timeout: 8000 });
+      const askAfterReload = await p.evaluate(() => (document.getElementById("a2hsAsk").innerHTML || "").trim());
+      if (askAfterReload !== "") throw new Error("リロード後に再提案カードが再表示されている(一度きりガードが効いていない): " + askAfterReload);
+
+      // 「あとで」で閉じられ、進行不能にならないこと(改めてtotal=0→markDone()でカードを再現してから確認)
+      await p.evaluate(() => { store.set("streak2", { dates: [], count: 0, total: 0 }); store.set("a2hs2", null); markDone(); });
+      await p.waitForSelector("#a2hsAskSkipBtn", { visible: true });
+      await p.click("#a2hsAskSkipBtn");
+      const askAfterDismiss = await p.evaluate(() => (document.getElementById("a2hsAsk").innerHTML || "").trim());
+      if (askAfterDismiss !== "") throw new Error("「あとで」タップ後も#a2hsAskが空になっていない");
+
+      // gd-mamoriの「もういちど かんたん案内を見る」ボタン→a2hsShowForce()経由でa2hsModalが出る
+      await p.evaluate(() => { switchTab("guide"); gJump("gd-mamori"); });
+      await p.waitForFunction(() => {
+        const btns = document.querySelectorAll("#gd-mamori button");
+        for (const b of btns) { if (b.textContent.indexOf("もういちど") !== -1) return true; }
+        return false;
+      }, { timeout: 6000 });
+      await p.evaluate(() => {
+        const btns = document.querySelectorAll("#gd-mamori button");
+        for (const b of btns) { if (b.textContent.indexOf("もういちど") !== -1) { b.click(); return; } }
+      });
+      await p.waitForFunction(() => !document.getElementById("a2hsModal").classList.contains("hidden"), { timeout: 6000 });
+      const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+      if (kind !== "android-menu" && kind !== "android-prompt") throw new Error("gd-mamoriの再案内ボタンでa2hsModalのkindがandroid系でない (実測=" + kind + ")");
+      await p.close();
+      return "1日目markDone直後に再提案カード表示→kyono_a2hs2一度きり(リロード後も再表示なし)→「あとで」で進行不能なく閉じる→gd-mamoriの「もういちど」ボタンでa2hsModal再表示(kind=" + kind + ")";
+    });
+
     // 8. 最終確認: コンソールエラー総数0
     currentStep = "8-最終確認";
     if (consoleErrors.length === 0) {
