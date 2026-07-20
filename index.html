@@ -177,6 +177,12 @@
   .faq-group:first-child .faq-g{margin-top:4px}
   .faq-g-arrow{transition:transform .15s;color:var(--sub);font-weight:700}
   .faq-g.open .faq-g-arrow{transform:rotate(180deg)}
+  /* 使い方タブのセクション折りたたみ(2026-07-20監査: 全高約10画面→見出しカード一覧に圧縮)。
+     gJump()が対象/先祖のdetailsを自動で開くため、目次チップ・困ったときはボタン経由では常に開いて表示される */
+  details.gd-fold>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  details.gd-fold>summary::-webkit-details-marker{display:none}
+  details.gd-fold:not([open])>summary .sec-head{margin-bottom:0}
+  details.gd-fold[open]>summary .faq-g-arrow{transform:rotate(180deg)}
   .faq details{border:1.5px solid var(--line);border-radius:14px;background:var(--bg);margin-bottom:8px;overflow:hidden}
   .faq summary{padding:11px 13px;font-weight:800;font-size:14px;line-height:1.6;cursor:pointer;list-style:none;display:flex;gap:9px;align-items:flex-start}
   .faq summary::-webkit-details-marker{display:none}
@@ -909,7 +915,7 @@
 <section id="guide" class="hidden">
 
   <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;font-size:14px"><a href="#" class="tapx daychip" id="obReenterLink" onclick="obOpen();return false" style="margin-top:0">🌱 はじめてガイド</a><a href="#" class="tapx daychip daychip-alt" id="obTourLink" onclick="obOpenTour();return false" style="margin-top:0">📖 使い方ツアー</a></div>
-  <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:18px">🌱は最初の質問からやり直したい方／📖はこのページの内容をスライドでサクッと見たい方向けです</div>
+  <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:18px">「はじめてガイド」＝さいしょの質問からやりなおす／「使い方ツアー」＝つかいかたをスライドで見る</div>
 
   <div class="card grad-warm" style="text-align:center">
     <img src="assets/chara.png" alt="" style="width:84px;height:84px;object-fit:contain">
@@ -928,6 +934,7 @@
     <button class="chip" onclick="gJump('gd-myrec')">📅 マイ記録</button>
     <button class="chip" onclick="gJump('gd-faq')">❓ よくあるしつもん</button>
   </div>
+  <div style="text-align:center;font-size:13px;color:var(--sub);margin:-4px 0 14px">下の見出しカードは タップするとひらきます</div>
 
   <div class="card" id="gd-help">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFEDF3"/><path d="M9 10q0-3 3-3t3 3q0 2-3 3v1M12 17v.5"/></svg>困ったときは</div>
@@ -939,8 +946,8 @@
     </div>
   </div>
 
-  <div class="card" id="gd-start">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 16v.5M12 13c0-2 2.5-2 2.5-4a2.5 2.5 0 1 0-5 0"/></svg>はじめての日にやること</div>
+  <details class="card gd-fold" id="gd-start" open>
+    <summary><div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFF3C4"/><path d="M12 16v.5M12 13c0-2 2.5-2 2.5-4a2.5 2.5 0 1 0-5 0"/></svg>はじめての日にやること<span class="faq-g-arrow" style="margin-left:auto">▾</span></div></summary>
     <div class="gstep"><span class="stepn">1</span><div><b>かたさチェック（30秒）</b><br>5問タップするだけ 写真とイラストのお手本つき<br><img src="assets/check/q1.jpg" alt="" style="width:110px;border-radius:12px;border:1.5px solid var(--line);margin-top:6px"></div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>あなたの「かたさタイプ」が出ます</b><br>タイプに合わせた おすすめ3本つき</div></div>
     <div class="gstep"><span class="stepn">3</span><div><b>まず1本 動画をやってみる</b><br>おわったらホームの「きょうやった！」を押す</div></div>
@@ -948,10 +955,10 @@
     <div class="gstep"><span class="stepn">🎯</span><div><b>2週間プラン</b>…相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります</div></div>
     <button class="btn btn-primary" onclick="startQuiz()">チェックをはじめる</button>
     <div style="text-align:center;margin-top:12px"><a href="#" class="tapx" onclick="gJump('gtoc');return false" style="font-size:13px;color:var(--sub);text-decoration:none">↑ 目次へ戻る</a></div>
-  </div>
+  </details>
 
-  <div class="card" id="gd-daily">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="4" fill="#DFF5F2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>2日目からの毎日</div>
+  <details class="card gd-fold" id="gd-daily">
+    <summary><div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="4" fill="#DFF5F2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#2BB3A3" stroke="#2BB3A3"/></svg>2日目からの毎日<span class="faq-g-arrow" style="margin-left:auto">▾</span></div></summary>
     <div class="gflow">
       <div class="gf">アプリを<br>ひらく</div><div class="ga">→</div>
       <div class="gf">きょうの1本を<br>▶ 再生</div><div class="ga">→</div>
@@ -964,28 +971,28 @@
     <div style="font-size:14px;margin-top:10px;line-height:1.9">おわったら✍️ <b>ひとことメモ</b>も残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです</div>
     <div class="gstep" style="margin-top:14px"><span class="stepn">💬</span><div><b>オガトレ通信</b>…右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます</div></div>
     <div style="text-align:center;margin-top:12px"><a href="#" class="tapx" onclick="gJump('gtoc');return false" style="font-size:13px;color:var(--sub);text-decoration:none">↑ 目次へ戻る</a></div>
-  </div>
+  </details>
 
-  <div class="card" id="gd-mamori">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9c-4-1.5-7-4.5-7-9V6z" fill="#DFF5F2"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>記録が消えない3つの守り</div>
+  <details class="card gd-fold" id="gd-mamori">
+    <summary><div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9c-4-1.5-7-4.5-7-9V6z" fill="#DFF5F2"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>記録が消えない3つの守り<span class="faq-g-arrow" style="margin-left:auto">▾</span></div></summary>
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><img src="assets/chara-good.png" alt="" style="width:64px;height:60px;object-fit:contain;flex-shrink:0"><div style="font-size:14px;color:var(--sub)">3つおさえれば安心です</div></div>
     <div class="gstep"><span class="stepn">1</span><div><b>このアプリをスマホのホーム画面に置く</b> これがいちばん大事！ブラウザだけで使っていると記録が消えることがありますが、ホーム画面に置いた「アプリ版」なら記録がずっと残ります
       <div style="margin-top:10px;padding:10px 12px;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;font-size:14px;line-height:1.9">
         <div style="font-weight:800;margin-bottom:4px">📱 iPhoneの人</div>
         <div>YouTubeの中で開いた人はまず<b>右下のコンパスのマーク</b>を押してSafariへ→画面のいちばん下 まん中の共有ボタン<svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M8 7l4-4 4 4"/><path d="M6 10.5v7.5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7.5"/></svg>をタップ→<b>下にスクロール</b>→「ホーム画面に追加」→右上の<b>「追加」</b></div>
+        <div style="margin-top:6px"><b>だいじ！置いたあと</b> いままでの記録があるときは お引っこしします: いまの画面で マイ記録→続ける設定→<b>「記録をコピー」</b>→ホーム画面の新しいアイコンから開いて 同じ場所で<b>「よみこむ」</b>（iPhoneは置く前と後で記録が別々になるため）</div>
         <div style="font-weight:800;margin:10px 0 4px">🤖 Androidの人</div>
-        <div>YouTubeの中で開いた人はまず<b>右上の「⋮」→「Chromeで開く」</b>→右上の「⋮」→「ホーム画面に追加」（機種により「アプリをインストール」）→「追加」</div>
+        <div>YouTubeの中で開いた人はまず<b>右上の「⋮」→「Chromeで開く」</b>→右上の「⋮」→「ホーム画面に追加」（機種により「アプリをインストール」）→「追加」 記録はそのまま引きつがれます</div>
       </div>
       <div style="text-align:center;margin-top:10px"><button class="btn btn-ghost" style="font-size:14px" onclick="a2hsShowForce()">📲 もういちど かんたん案内を見る</button></div>
-      <span style="font-size:13px;color:var(--sub)">※置いたあとは「記録をコピー」→アプリ版で「よみこむ」も忘れずに（下の3.と同じやり方です）</span>
     </div></div>
     <div class="gstep"><span class="stepn">2</span><div><b>記録カードを画像で保存</b>…写真フォルダが自動でバックアップになります<br><span style="font-size:13px;color:var(--sub)">つくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます👀</span><div style="text-align:center;margin-top:8px"><img src="assets/card-sample.png" alt="" style="width:140px;height:140px;border-radius:16px;display:inline-block"></div></div></div>
     <div class="gstep"><span class="stepn">3</span><div><b>機種変更のとき</b>…マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」</div></div>
     <div style="text-align:center;margin-top:12px"><a href="#" class="tapx" onclick="gJump('gtoc');return false" style="font-size:13px;color:var(--sub);text-decoration:none">↑ 目次へ戻る</a></div>
-  </div>
+  </details>
 
-  <div class="card" id="gd-tsuzuku">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>続けるしくみ（ここがやさしい）</div>
+  <details class="card gd-fold" id="gd-tsuzuku">
+    <summary><div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4l1 6l-5-3l-5 3l1-6l-4-4l5.5-.5z" fill="#FFF3C4"/></svg>続けるしくみ（ここがやさしい）<span class="faq-g-arrow" style="margin-left:auto">▾</span></div></summary>
     <div class="gstep"><span class="stepn">🎫</span><div><b>おやすみ券が毎月3枚</b><br>休んでも 自動でつかわれて連続がつながる<br>使い切っても<b>通算日数はぜったい消えません</b></div></div>
     <div class="gstep"><span class="stepn">👑</span><div><b>節目はゴールドカード</b><br>3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓</div></div>
     <div style="text-align:center;margin-bottom:6px">
@@ -996,10 +1003,10 @@
     <div class="gstep"><span class="stepn">🌱</span><div><b>サボっても だいじょうぶ</b><br>ひさしぶりに開くと「おかえりなさい」から始まります 責められません</div></div>
     <div class="gstep"><span class="stepn">⏱</span><div><b>時間がない日は30秒の1本でもOK</b><br>「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です</div></div>
     <div style="text-align:center;margin-top:12px"><a href="#" class="tapx" onclick="gJump('gtoc');return false" style="font-size:13px;color:var(--sub);text-decoration:none">↑ 目次へ戻る</a></div>
-  </div>
+  </details>
 
-  <div class="card" id="gd-myrec">
-    <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「マイ記録」タブでできること</div>
+  <details class="card gd-fold" id="gd-myrec">
+    <summary><div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="#DFF5F2"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M8.5 14.5l2.5 2.5 4.5-5" stroke="#2BB3A3"/></svg>「マイ記録」タブでできること<span class="faq-g-arrow" style="margin-left:auto">▾</span></div></summary>
     <div class="gstep"><span class="stepn">📅</span><div><b>カレンダー</b>…やった日に印がつく（×はつきません）</div></div>
     <div class="gstep"><span class="stepn">📏</span><div><b>とどくメーター</b>…前屈がどこまで届くか週1で記録 のびていく証拠が見えます</div></div>
     <div class="gstep"><span class="stepn">🎉</span><div><b>お楽しみ機能</b>…じまんカード・せんぱいの声・ひとことにっきがまとまっています</div></div>
@@ -1007,7 +1014,7 @@
     <div class="gstep"><span class="stepn">🎬</span><div>（こちらは下のタブ）<b>「再生リスト」タブ</b>…連続再生できるまとめ 流しっぱなしでOK</div></div>
     <button class="btn btn-ghost" style="font-size:15px" onclick="switchTab('history')">マイ記録タブをひらく</button>
     <div style="text-align:center;margin-top:12px"><a href="#" class="tapx" onclick="gJump('gtoc');return false" style="font-size:13px;color:var(--sub);text-decoration:none">↑ 目次へ戻る</a></div>
-  </div>
+  </details>
 
   <div class="card" id="gd-faq">
     <div class="sec-head"><svg viewBox="0 0 24 24" fill="none" stroke="#3A3A35" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" fill="#FFEDF3"/><path d="M9 10q0-3 3-3t3 3q0 2-3 3v1M12 17v.5"/></svg>よくあるしつもん</div>
@@ -1361,9 +1368,13 @@ function updateFabs(){
   document.body.classList.toggle("fabs-hide",hide);
   // ホームタブには相談室カードが常設されているため、FABまで縦積みで重複表示すると誤タップの元になる
   // (2026-07-19 Fableレビュー「FAB縦積みで誤タップしやすい・ホームでは相談室カードと重複」対応)。
-  // ホーム以外のタブでは引き続きFABから相談室を開ける。
+  // 使い方タブ(guide)はFABがFAQグループ見出しの▾を物理的に覆う実測があり、結果画面(result)は
+  // 「相談室で聞いてみる」リンクとの二重導線になるため、どちらも相談室FABを出さない(2026-07-20監査④⑤)。
   const sf=document.getElementById("soudanFab");
-  if(sf) sf.classList.toggle("hidden",!sdKb()||currentSection==="home");
+  if(sf) sf.classList.toggle("hidden",!sdKb()||currentSection==="home"||currentSection==="guide"||currentSection==="result");
+  // オガトレ通信FABも使い方タブでは隠す(本文・FAQ見出しへの被り対策。他タブでは従来どおり表示)
+  const of=document.getElementById("obuFab");
+  if(of) of.classList.toggle("hidden",currentSection==="guide");
 }
 // ================= 自作アイコン（タイプ別イラスト・SVG） =================
 const TYPE_IMG = { momo:"assets/type-momo.png", kenko:"assets/type-kenko.png", yawara:"assets/type-yawara.png" };
@@ -4132,7 +4143,7 @@ function obPick(q,c){
     obSay([ONBOARDING_SCRIPT.anchorAck[c.v]||"OK！おぼえたよ📝"],obAskQ);
   }else if(q.key==="bigtext"){
     try{ setBigtext(c.v==="big"); }catch(e){} // その場で反映=効果が見える（本物の設定として保存）
-    obSay(["OK！今後変えたくなったら「続ける設定」でいつでも変更できるよ！"],obAskQ);
+    obSay(["OK！今後変えたくなったら「マイ記録」タブの「続ける設定」でいつでも変更できるよ！"],obAskQ);
   }else{
     obAskQ();
   }

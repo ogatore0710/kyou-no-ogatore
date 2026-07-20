@@ -29,9 +29,10 @@ function renderStreak(){
   if(!did && st.total===0) contTxt="きょう1本やると「1日目」がはじまります🌱";
   if(!did){
     const ce=document.getElementById("cheer"); if(ce) ce.innerHTML="";
-    // 前回記録日の#calAsk/#tourAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
+    // 前回記録日の#calAsk/#tourAsk/#a2hsAsk残骸を残さない（再訪日にきょう分がまだのときは必ず空にする）
     const ca=document.getElementById("calAsk"); if(ca) ca.innerHTML="";
     const ta=document.getElementById("tourAsk"); if(ta) ta.innerHTML="";
+    const aa=document.getElementById("a2hsAsk"); if(aa) aa.innerHTML="";
   }
   // はじめの1本ガイド中、まだきょうの記録がついていない間は「きょうやった！」ボタンの直上に
   // 常時表示の案内を出す（動画タップ→復帰のタイミング検知に依存するcheckDoneNudge()と違い、
@@ -144,54 +145,60 @@ function markDone(){
     const cheers=["ナイスご自愛🎉","がんばったね！おつかれさまでした✨","その数分が体を変えます💪","イタ気持ちいい できました？😊","体は正直！ちゃんと応えてくれますよ✨","昨日の自分より1ミリ前へ🌱"];
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")+cheers[Math.floor(Math.random()*cheers.length)]+tomorrowMsPreview;
   }
-  // カレンダー登録カード（唯一の再来訪装置）: 通算1日目クリアの直後に一度だけ#calAskへ出す
-  if(st.total===1 && !store.get("calseen")){
-    try{
-      const ca=document.getElementById("calAsk");
-      if(ca && typeof calendarAskEl==="function"){
-        ca.innerHTML="";
-        ca.appendChild(calendarAskEl("明日も同じ時間に会いましょう。\nカレンダーに毎日の合図を入れておく？"));
-      }
-    }catch(e){}
-    store.set("calseen",1);
-  }
-  // ホーム画面追加「二度目のチャンス」（2026-07-20新規・A2HS導線再設計・監査Top2対応）:
-  // 初回オンボの一発勝負ポップアップ（「あとで」1タップで実質終了）を逃した人に、通算1日目クリアという
-  // いちばんモチベーションが高い瞬間にもう一度だけ提案する。一度きり制御はkyono_calseenと同じ流儀
-  // （kyono_a2hs2・"1"で済ませる）。表示自体はstandalone/デスクトップ/アプリ内ブラウザ/YouTube内ブラウザ
-  // では意味がないため、a2hsKindFor()がkindを返すときだけ出す（それ以外でもフラグは一度きり消費する＝
-  // kyono_calseenと同じ「再訪のたび判定し直さない」単純な流儀に合わせる）。
-  if(st.total===1 && !store.get("a2hs2")){
-    try{
-      const box=document.getElementById("a2hsAsk");
+  // ===== お願いカードの「1日1枚」キュー（2026-07-20監査Top1「お願い渋滞」対応・PO承認） =====
+  // 旧実装は通算1日目クリアの瞬間に カレンダー・ホーム画面追加・使い方ツアーの3枚が同時に縦積みされ、
+  // 成功体験の頂点が最も混雑した画面になっていた。きょうやった！直後の提案はキューにして、
+  // 優先順=①ホーム画面追加（記録の安全に直結・最重要）→②カレンダー→③使い方ツアー の
+  // 「その日の1枚」だけを出す（典型: 1日目=追加・2日目=カレンダー・3日目=ツアー）。
+  // 一度きりフラグは従来のstoreキー（a2hs2/calseen/新設tourseen）。出せない環境の候補
+  // （a2hs不適合環境・要素なし等）はフラグだけ消費して同日中に次候補を繰り上げる
+  // （従来の「再訪のたび判定し直さない」流儀）。カードの見た目・ボタン・「あとで」の挙動は全て従来どおり。
+  const askQueue=[
+    {key:"a2hs2", can:function(){
+      // ホーム画面追加「二度目のチャンス」: standalone/デスクトップ/アプリ内ブラウザ/YouTube内ブラウザでは意味がない
       const kind=(typeof a2hsKindFor==="function")?a2hsKindFor():null;
       const inApp=(typeof envIsInApp==="function")&&envIsInApp();
       const ytInApp=(typeof ytInAppDetect==="function")&&ytInAppDetect();
-      if(box && kind && !inApp && !ytInApp){
-        box.innerHTML="";
-        const wrap=document.createElement("div");
-        wrap.style.cssText="margin-top:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
-        wrap.innerHTML='<div style="font-size:14px;font-weight:800">📲 毎日つかうなら ホーム画面に追加が便利！記録もいちばん安全にのこるよ</div>'
-          +'<button class="btn btn-primary" id="a2hsAskBtn" style="margin-top:8px;font-size:15px" onclick="a2hsShowForce()">やり方を見る</button>'
-          +'<button class="btn btn-line" id="a2hsAskSkipBtn" style="margin-top:8px;font-size:14px" onclick="document.getElementById(\'a2hsAsk\').innerHTML=\'\'">あとで</button>';
-        box.appendChild(wrap);
-      }
-    }catch(e){}
-    store.set("a2hs2",1);
-  }
-  // 使い方ツアーの案内（はじめの1本ガイド完了の直後に一度だけ#tourAskへ出す。カレンダー案内と同じ見た目のカードで統一感を持たせる）
-  if(guide){
-    try{
+      return !!(document.getElementById("a2hsAsk") && kind && !inApp && !ytInApp);
+    }, render:function(){
+      const box=document.getElementById("a2hsAsk");
+      box.innerHTML="";
+      const wrap=document.createElement("div");
+      wrap.style.cssText="margin-top:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
+      wrap.innerHTML='<div style="font-size:14px;font-weight:800">📲 毎日つかうなら ホーム画面に追加が便利！記録もいちばん安全にのこるよ</div>'
+        +'<button class="btn btn-primary" id="a2hsAskBtn" style="margin-top:8px;font-size:15px" onclick="a2hsShowForce()">やり方を見る</button>'
+        +'<button class="btn btn-line" id="a2hsAskSkipBtn" style="margin-top:8px;font-size:14px" onclick="document.getElementById(\'a2hsAsk\').innerHTML=\'\'">あとで</button>';
+      box.appendChild(wrap);
+    }},
+    {key:"calseen", can:function(){
+      // カレンダー登録カード（唯一の再来訪装置）
+      return !!(document.getElementById("calAsk") && typeof calendarAskEl==="function");
+    }, render:function(){
+      const ca=document.getElementById("calAsk");
+      ca.innerHTML="";
+      ca.appendChild(calendarAskEl("明日も同じ時間に会いましょう。\nカレンダーに毎日の合図を入れておく？"));
+    }},
+    {key:"tourseen", can:function(){
+      // 使い方ツアーの案内（カレンダー案内と同じ見た目のカードで統一感を持たせる）
+      return !!document.getElementById("tourAsk");
+    }, render:function(){
       const ta=document.getElementById("tourAsk");
-      if(ta){
-        ta.innerHTML="";
-        const wrap=document.createElement("div");
-        wrap.style.cssText="margin-top:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
-        wrap.innerHTML='<button class="btn btn-primary" id="cheerTourBtn" style="font-size:15px" onclick="obOpenTour()">📖 使い方ツアーを見る</button>'
-          +'<button class="btn btn-line" id="cheerTourSkipBtn" style="margin-top:8px;font-size:14px" onclick="document.getElementById(\'tourAsk\').innerHTML=\'\'">あとで</button>';
-        ta.appendChild(wrap);
-      }
-    }catch(e){}
+      ta.innerHTML="";
+      const wrap=document.createElement("div");
+      wrap.style.cssText="margin-top:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px";
+      wrap.innerHTML='<button class="btn btn-primary" id="cheerTourBtn" style="font-size:15px" onclick="obOpenTour()">📖 使い方ツアーを見る</button>'
+        +'<button class="btn btn-line" id="cheerTourSkipBtn" style="margin-top:8px;font-size:14px" onclick="document.getElementById(\'tourAsk\').innerHTML=\'\'">あとで</button>';
+      ta.appendChild(wrap);
+    }},
+  ];
+  for(const a of askQueue){
+    if(store.get(a.key)) continue;
+    if(a.can()){
+      try{ a.render(); }catch(e){}
+      store.set(a.key,1);
+      break; // 1日1枚まで。次の候補はあしたのきょうやった！のあとに出る
+    }
+    store.set(a.key,1); // 出せない環境: フラグだけ消費して同日中に次候補へ繰り上げ
   }
 }
 function saveMemo(){

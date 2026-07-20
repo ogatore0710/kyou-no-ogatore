@@ -760,14 +760,31 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     })(),
     "cheer text itself stays to the 2-line copy; the tour ask lives in its own #tourAsk block below"
   );
+  // 2026-07-20監査Top1「お願い渋滞」対応: 3枚同時表示を廃止し「1日1枚」キューに変更(PO承認)。
+  // 優先順=a2hs2(ホーム画面追加)→calseen(カレンダー)→tourseen(使い方ツアー)。文言・ボタンは従来どおり。
   assert(
-    "markDone: calendar card renders into #calAsk exactly once, gated on total===1 && !calseen, then sets calseen (2026-07-17改行入り文言)",
-    /st\.total===1\s*&&\s*!store\.get\(["']calseen["']\)[\s\S]{0,300}calendarAskEl\(["']明日も同じ時間に会いましょう。\\nカレンダーに毎日の合図を入れておく？["']\)[\s\S]{0,80}store\.set\(["']calseen["'],\s*1\)/.test(markDoneFn),
-    "matches the exact 2-line lead copy (\\n) from the approved design and the one-time guard"
+    "markDone: お願いキューの優先順が a2hs2 → calseen → tourseen (1日1枚・2026-07-20監査Top1)",
+    (function () {
+      const i1 = markDoneFn.indexOf('key:"a2hs2"');
+      const i2 = markDoneFn.indexOf('key:"calseen"');
+      const i3 = markDoneFn.indexOf('key:"tourseen"');
+      return i1 !== -1 && i2 !== -1 && i3 !== -1 && i1 < i2 && i2 < i3;
+    })(),
+    "askQueue must list a2hs2, calseen, tourseen in this priority order"
   );
   assert(
-    "markDone: tour-ask card renders into #tourAsk exactly when guide is true (使い方ツアー案内・カレンダー案内カードの直後)",
-    /if\s*\(\s*guide\s*\)\s*\{[\s\S]{0,80}getElementById\(["']tourAsk["'][\s\S]{0,400}cheerTourBtn[\s\S]{0,200}obOpenTour\(\)[\s\S]{0,300}cheerTourSkipBtn/.test(markDoneFn),
+    "markDone: お願いキューは1枚出したらbreak・出せない候補はフラグ消費して繰り上げ",
+    /for\s*\(\s*const\s+a\s+of\s+askQueue\s*\)\s*\{[\s\S]{0,80}if\s*\(\s*store\.get\(a\.key\)\s*\)\s*continue;[\s\S]{0,200}store\.set\(a\.key,\s*1\);[\s\S]{0,60}break;[\s\S]{0,120}store\.set\(a\.key,\s*1\);/.test(markDoneFn),
+    "queue loop must show at most one ask per markDone and always consume the flag"
+  );
+  assert(
+    "markDone: calendar card keeps the approved 2-line lead copy (\\n) and renders into #calAsk",
+    /calendarAskEl\(["']明日も同じ時間に会いましょう。\\nカレンダーに毎日の合図を入れておく？["']\)/.test(markDoneFn),
+    "matches the exact 2-line lead copy (\\n) from the approved design"
+  );
+  assert(
+    "markDone: tour-ask card renders into #tourAsk (キュー経由・カレンダー案内と同じ見た目)",
+    /getElementById\(["']tourAsk["'][\s\S]{0,400}cheerTourBtn[\s\S]{0,200}obOpenTour\(\)[\s\S]{0,300}cheerTourSkipBtn/.test(markDoneFn),
     "renders the tour button + skip button into #tourAsk, styled like the calendar ask card"
   );
   assert(
@@ -1146,9 +1163,9 @@ function checkA2hsYoutubeRedesign(html, mainScript, envScript, recordScript) {
   const markDoneFn = extractFunction(recordScript, "markDone");
   assert("markDone: found", markDoneFn.length > 0, `${markDoneFn.length} chars`);
   assert(
-    "markDone: 通算1日目クリア直後に一度だけ(kyono_a2hs2)再提案カードを出す",
-    /st\.total===1[\s\S]{0,40}!store\.get\("a2hs2"\)/.test(markDoneFn) && /store\.set\("a2hs2",1\)/.test(markDoneFn),
-    "day-1 second-chance gate (kyono_a2hs2) missing"
+    "markDone: 再提案カードは一度きり(kyono_a2hs2)で、お願いキューの先頭候補として出す(2026-07-20キュー化)",
+    /key:"a2hs2"/.test(markDoneFn) && /store\.set\(a\.key,\s*1\)/.test(markDoneFn),
+    "second-chance ask (kyono_a2hs2) must be the queued ask with a consumed-once flag"
   );
   assert(
     "markDone: 再提案カードはa2hsKindFor()がkindを返す(=standalone/デスクトップ/アプリ内ブラウザ以外)ときだけ出す",
@@ -1850,6 +1867,45 @@ function checkRxRotation(mainScript, quizScript) {
   assert("処方ローテーション: 14日間でプール由来の登場動画がmin(L,10)種以上", !coverageFail, coverageFail || "ok");
 }
 
+// 2026-07-20 初回動線+使い方タブのデジタル弱者監査(第2弾)の一括対応をまとめて機械チェックで固定する。
+// Top1(お願いキュー)はcheckFirstDayGuide/checkA2hsYoutubeRedesign側で更新済み。ここではそれ以外:
+// Top2(チェック後のモード粘着リセット)・Top3(記録引っ越しのiPhone枠内明記)・④⑤(FAB非表示拡大)・
+// ⑥(ダチョウcopy)・⑦(Q0返答の場所案内)・⑧(使い方タブのdetails折りたたみ)・⑨(ガイド上部説明文)。
+function checkGuideDwAudit20260720(html, mainScript, quizScript) {
+  // ⑧ 5セクションがdetails.gd-fold化され、gd-startだけ既定で開いている
+  for (const id of ["gd-start", "gd-daily", "gd-mamori", "gd-tsuzuku", "gd-myrec"]) {
+    const re = new RegExp('<details class="card gd-fold" id="' + id + '"( open)?>');
+    const m = re.exec(html);
+    assert(`使い方タブ: #${id}がdetails.gd-fold`, !!m, "details化されていない");
+    if (m) assert(`使い方タブ: #${id}の既定開閉が設計どおり(${id === "gd-start" ? "開" : "閉"})`, (id === "gd-start") === !!m[1], m[0]);
+  }
+  assert("使い方タブ: gd-help/gd-faqはdetails化しない(常時表示のまま)", /<div class="card" id="gd-help">/.test(html) && /<div class="card" id="gd-faq">/.test(html), "");
+  assert("使い方タブ: 目次下に「タップするとひらきます」ヒントがある", html.indexOf("見出しカードは タップするとひらきます") !== -1, "");
+  const gJumpFn = extractFunction(mainScript, "gJump");
+  assert("gJump: 対象/先祖のdetailsを自動で開く(折りたたみと目次チップの整合)", /tagName==="DETAILS"&&!p\.open/.test(gJumpFn), "");
+  // ④⑤ FAB非表示の拡大
+  const fabsFn = extractFunction(mainScript, "updateFabs");
+  assert("updateFabs: 相談室FABはhome/guide/resultで非表示", /currentSection==="home"\|\|currentSection==="guide"\|\|currentSection==="result"/.test(fabsFn), "");
+  assert("updateFabs: オガトレ通信FABはguideで非表示", /obuFab[\s\S]{0,120}currentSection==="guide"/.test(fabsFn), "");
+  // Top3 記録引っ越し: iPhone枠内に手順明記・Android枠は「引きつがれます」・旧※脚注は撤去
+  const mamoriIdx = html.indexOf('id="gd-mamori"');
+  const mamori = mamoriIdx !== -1 ? html.slice(mamoriIdx, html.indexOf('id="gd-tsuzuku"')) : "";
+  assert("gd-mamori: iPhone枠内に記録のお引っこし手順(コピー→よみこむ)が明記", /iPhoneの人[\s\S]{0,900}記録をコピー[\s\S]{0,120}よみこむ/.test(mamori), "");
+  assert("gd-mamori: Android枠は「記録はそのまま引きつがれます」", mamori.indexOf("記録はそのまま引きつがれます") !== -1, "");
+  assert("gd-mamori: 旧※脚注(下の3.と同じやり方です)は撤去済み", mamori.indexOf("下の3.と同じやり方です") === -1, "");
+  // Top2 チェック完了後のモード粘着リセット
+  const finishFn = extractFunction(quizScript, "finishQuiz");
+  assert("finishQuiz: タイプ保存後にstate.mode=null(ホームを「あなた用」既定に戻す)", /store\.set\("type"[\s\S]{0,400}state\.mode=null/.test(finishFn), "");
+  assert("finishQuiz: mode_manualもリセット", /store\.set\("mode_manual",null\)/.test(finishFn), "");
+  // ⑥ ダチョウcopyが新Q3(両ひじ)と整合
+  assert("TYPES.kenko.copy: 新Q3(ひじをつけたまま)基準の文になっている", quizScript.indexOf("ひじをつけたまま上がらない") !== -1, "");
+  assert("TYPES.kenko.copy: 旧チェックの表現(背中で手がつながらない)は撤去", !/copy:"背中で手がつながらない/.test(quizScript), "");
+  // ⑦ Q0返答に「続ける設定」の場所案内
+  assert("オンボQ0返答: 「マイ記録」タブの「続ける設定」と場所つきで案内", html.indexOf("「マイ記録」タブの「続ける設定」でいつでも変更できるよ") !== -1, "");
+  // ⑨ ガイド上部の説明がボタン名ベース(絵文字参照をやめた)
+  assert("使い方タブ上部: 説明文がボタン名ベース(🌱は/📖はの絵文字参照をやめた)", html.indexOf("🌱は最初の質問") === -1 && html.indexOf("「はじめてガイド」＝") !== -1, "");
+}
+
 // 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)
 // 走査で同点が常に先頭側の勝ちになり、全回答等確率の理論分布がモモンガ27.3%・ペンギン12.9%と2倍超に
 // 偏っていた。新実装: 同点はQ5「いちばんの悩み」(katakori→kenko / yotsu→momo,koka)→日付ローテーション
@@ -2057,6 +2113,7 @@ function main() {
   checkDexCopyCoverage(mainScript);
   checkRxRotation(mainScript, quizScript);
   checkQuizTypeTiebreak(quizScript);
+  checkGuideDwAudit20260720(html, mainScript, quizScript);
   checkReachAutoTranscribe(quizScript, recordScript);
   checkVerification20260720Fixes(html, mainScript);
   checkQuotesCoverage(mainScript);
