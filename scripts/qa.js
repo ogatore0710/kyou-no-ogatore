@@ -691,9 +691,9 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     "guide shows hero only, with the deferred-details note"
   );
   assert(
-    "showResult: guide中はrHope/rPT/rPaceを隠す(hiddenトグル・通常時は復帰)",
-    /\["rHope","rPT","rPace"\][\s\S]{0,120}classList\.toggle\(["']hidden["'],\s*guide\)/.test(showResultFn),
-    "long-form explanations deferred to non-guide views"
+    "showResult: guide中はrHope/rPT/rPace+下部ボタン2つ(rGoHomeBtn/rRecheckBtn)を隠す(hiddenトグル・通常時は復帰)",
+    /\["rHope","rPT","rPace","rGoHomeBtn","rRecheckBtn"\][\s\S]{0,120}classList\.toggle\(["']hidden["'],\s*guide\)/.test(showResultFn),
+    "long-form explanations + bottom nav buttons deferred to non-guide views (2026-07-21本人指摘)"
   );
   assert(
     "showResult: guide branch has fd-point(指差しアニメ)とOS別のもどりかた1行(backHint)",
@@ -1975,6 +1975,14 @@ function checkTutorialV2(html, mainScript, quizScript, recordScript) {
     ""
   );
   assert("fdFocusHome: doneBtnにfd-breathe(呼吸アニメ)をトグルする(5視点D)", /fd-breathe/.test(focusFn), "");
+
+  // ---- 2026-07-21 本人実機レビュー第2弾の追補 ----
+  // オンボCTA直前の案内2枚(ホーム画面追加・相談室)は削除(情報詰め込み解消)。復活させない
+  assert("オンボ: 旧close(CTA直前の案内2枚)は削除済み", html.indexOf("記録がずっとのこるよ📌 やり方は使い方タブへ") === -1 && html.indexOf("困ったら、ホームの相談室からいつでも聞いてね") === -1, "");
+  assert("obGo: obSayはrt.sayのみ(closeのconcatなし)", /obSay\(rt\.say,function/.test(mainScript), "");
+  // もじの大きさ: ふつう=1.05・大きめ=1.18(本人調整)
+  assert("CSS: もじの大きさ ふつう=zoom1.05", /body\{zoom:1\.05\}/.test(html), "");
+  assert("CSS: もじの大きさ 大きめ=zoom1.18", /body\.bigtext\{zoom:1\.18\}/.test(html), "");
 }
 
 // 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)

@@ -286,10 +286,12 @@ function showResult(saved){
     quizAutoReachLv=null;
   }
   const fixed=T.rx.length>0;
-  // 2026-07-21 5視点検証C(PO承認): ガイド中の結果画面は「タイプ+①+ボタン」に削ぎ落とす。
-  // 長文解説(rHope/rPT)・ペース目安(rPace)・②③・悩みの+1本・相談室リンクは翌日以降(通常表示)に回す
+  // 2026-07-21 5視点検証C(PO承認): ガイド中の結果画面は「タイプ+①」に削ぎ落とす。
+  // 長文解説(rHope/rPT)・ペース目安(rPace)・②③・悩みの+1本・相談室リンクは翌日以降(通常表示)に回す。
+  // 下部の「きょうの1本へ」「もう一回チェックする」も本人指摘(2026-07-21)でガイド中は隠す
+  // （一本道=①をタップ→もどる→記録、以外の分岐を見せない。タブバーからの脱出は常に可能）
   try{
-    for(const id of ["rHope","rPT","rPace"]){
+    for(const id of ["rHope","rPT","rPace","rGoHomeBtn","rRecheckBtn"]){
       const el=document.getElementById(id); if(el) el.classList.toggle("hidden", guide);
     }
   }catch(e){}

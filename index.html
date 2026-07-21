@@ -80,8 +80,11 @@
   body{font-family:"M PLUS 1p","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-weight:700;
     background:var(--bg);color:var(--ink);font-size:18px;line-height:1.75;
     max-width:480px;margin:0 auto;padding:20px 18px 180px;min-height:100vh}
-  /* もじの大きさ「大きめ」: zoomは中身ごと12%拡大し 幅480px制約の中で自然に再折返しする（つづける設定で切替） */
-  body.bigtext{zoom:1.12}
+  /* もじの大きさ: zoomは中身ごと拡大し 幅480px制約の中で自然に再折返しする（つづける設定で切替）。
+     2026-07-21本人調整: ふつう=従来比+5%(1.05)・大きめ=1.12→1.18。zoom依存の座標計算は
+     getComputedStyle(body).zoomを動的に読む実装(相談室シート等)のため定数変更だけで追従する */
+  body{zoom:1.05}
+  body.bigtext{zoom:1.18}
   h1{font-size:22px;letter-spacing:.01em;font-weight:900;line-height:1.3}
   h1 .hash{color:var(--pink);margin-right:1px}
   .logo{display:flex;align-items:center;gap:10px;margin-bottom:14px}
@@ -703,8 +706,8 @@
   </div>
   <div id="rDoneNudge" class="hidden card" style="margin-bottom:10px"></div>
   <button class="btn btn-ghost hidden" id="rTourBtn" onclick="rTourGo()" style="margin-bottom:10px">📖 つづき：使い方ツアーへ</button>
-  <button class="btn btn-primary" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
-  <button class="btn btn-ghost" onclick="startQuiz()">もう一回チェックする</button>
+  <button class="btn btn-primary" id="rGoHomeBtn" onclick="goHome()" style="margin-bottom:10px">きょうの1本へ</button>
+  <button class="btn btn-ghost" id="rRecheckBtn" onclick="startQuiz()">もう一回チェックする</button>
 </section>
 
 <!-- ===== マイ記録 ===== -->
@@ -4063,11 +4066,9 @@ const ONBOARDING_SCRIPT={
   routes:{
     quiz:{say:["そしたら30秒で硬さチェックをしよう！下のボタンタップしてね！"],btn:"かたさチェックをはじめる"},
     today:{say:["じゃあ今日の1本から！むずかしいことはなしだよ👍"],btn:"きょうの1本を見る"}
-  },
-  close:[
-    "ホーム画面についかすると記録がずっとのこるよ📌 やり方は使い方タブへ",
-    "困ったら、ホームの相談室からいつでも聞いてね😊"
-  ]
+  }
+  // 旧close(ホーム画面追加・相談室の案内2枚)は2026-07-21本人指摘で削除:
+  // CTA直前の情報詰め込みは混乱のもと。ホーム画面追加は1日目クリア後カード、相談室はツアーで案内する
 };
 // 使い方ツアー（スライド形式・実際の画面を再現したモックつき。gmockでタップ不可）
 const OB_TOUR_SLIDES=[
@@ -4198,7 +4199,7 @@ function obDecideRoute(){
 function obRoute(){
   obRouteKey=obDecideRoute();
   const rt=ONBOARDING_SCRIPT.routes[obRouteKey];
-  obSay(rt.say.concat(ONBOARDING_SCRIPT.close),function(){
+  obSay(rt.say,function(){
     const box=document.getElementById("obChips");
     box.innerHTML="";
     const b=document.createElement("button");
