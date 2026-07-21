@@ -648,9 +648,9 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
 
   const obGoFn = extractFunction(mainScript, "obGo");
   assert(
-    "obGo: sets kyono_fd=\"go\" only for quiz/today routes on a fresh (total===0) user, before obClose(true)",
-    /\(r===["']quiz["']\|\|r===["']today["']\)\s*&&\s*getStreakData\(\)\.total===0\s*&&\s*!store\.get\(["']fd["']\)\)\s*store\.set\(["']fd["'],\s*["']go["']\)[\s\S]{0,20}obClose\(true\)/.test(obGoFn),
-    "soudan route is excluded (not in the r===quiz||r===today condition); does not double-set once fd exists"
+    "obGo: sets kyono_fd=\"go\"+fdday(開始日) only for quiz/today routes on a fresh (total===0) user, before obClose(true)",
+    /\(r===["']quiz["']\|\|r===["']today["']\)\s*&&\s*getStreakData\(\)\.total===0\s*&&\s*!store\.get\(["']fd["']\)\)\{\s*store\.set\(["']fd["'],\s*["']go["']\);[\s\S]{0,500}store\.set\(["']fdday["'],todayStr\(\)\);\s*\}\s*obClose\(true\)/.test(obGoFn),
+    "soudan route is excluded; fdday(2026-07-21 5視点E)もfdと同時にセットされること"
   );
   assert(
     "obGo: does not start the guide for the soudan route",
@@ -674,8 +674,8 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     "guide users never see the tour continuation button"
   );
   assert(
-    "showResult: rxHead text differs in guide (まずはこの1本から) vs normal (fixed?)",
-    /まずはこの1本から！②③はあしたからでOKだよ/.test(showResultFn) && /おすすめの3本: まずは/.test(showResultFn),
+    "showResult: rxHead text differs in guide (きょうはこの1本だけでOK・2026-07-21削ぎ落とし版) vs normal (fixed?)",
+    /きょうはこの1本だけでOK！/.test(showResultFn) && /おすすめの3本: まずは/.test(showResultFn),
     "both branches present"
   );
   assert(
@@ -683,10 +683,27 @@ function checkFirstDayGuide(html, mainScript, quizScript, recordScript) {
     /class="fd-hero"[\s\S]{0,40}videoCard\(rx\[0\],\s*["']きょうはこれ1本でOK！["']\)/.test(showResultFn),
     "hero card uses the ① video and the replacement label"
   );
+  // 2026-07-21 5視点検証C(PO承認): ガイド中は②③を出さない(v1の「②③はそのまま表示」設計を上書き)。
+  // あわせて長文解説(rHope/rPT/rPace)もガイド中だけ隠し、翌日以降の通常表示で復帰する
   assert(
-    "showResult: guide branch still renders ②③ (rx.slice(1), not hidden/grayed)",
-    /rx\.slice\(1\)\.map/.test(showResultFn),
-    "②③ remain visible per design (do not hide/gray them out)"
+    "showResult: guide branch renders ① only (②③のrx.slice(1)描画は廃止・2026-07-21)",
+    !/rx\.slice\(1\)/.test(showResultFn) && /あと2本とくわしい解説は あしたから見られるよ/.test(showResultFn),
+    "guide shows hero only, with the deferred-details note"
+  );
+  assert(
+    "showResult: guide中はrHope/rPT/rPaceを隠す(hiddenトグル・通常時は復帰)",
+    /\["rHope","rPT","rPace"\][\s\S]{0,120}classList\.toggle\(["']hidden["'],\s*guide\)/.test(showResultFn),
+    "long-form explanations deferred to non-guide views"
+  );
+  assert(
+    "showResult: guide branch has fd-point(指差しアニメ)とOS別のもどりかた1行(backHint)",
+    /fd-point/.test(showResultFn) && /backHint/.test(showResultFn) && /もどれるよ/.test(showResultFn),
+    "motion pointer + back-navigation hint (5視点検証D/F)"
+  );
+  assert(
+    "showResult: guide中はworryExtra(+1本)とrSoudanLinkを出さない",
+    /!guide&&w&&w\.v/.test(showResultFn) && /!guide&&sdKb\(\)/.test(showResultFn),
+    "extra rails deferred to non-guide views"
   );
   assert(
     "showResult: guide branch omits the '3本続けて再生する' continuous-playback button",
@@ -1006,36 +1023,40 @@ function checkA2hsPopup(html, mainScript) {
   const missingIds = ids.filter((id) => !new RegExp(`id=["']${id}["']`).test(html));
   assert("index.html: #a2hsModal markup exists", missingIds.length === 0, missingIds.join(", ") || ids.join(", "));
 
-  const fns = ["a2hsBoot", "a2hsShow", "a2hsClose", "a2hsIsStandalone"];
+  // 2026-07-21 5視点検証A(PO承認): 初回起動時ポップアップ(旧a2hsBoot)は廃止。環境分岐の単一の正は
+  // a2hsKindFor(app-env.js)で、表示はa2hsShowForce/1日目クリア後カード経由のみ。旧a2hsBootのピンは
+  // a2hsKindForの同等分岐へ移した。
+  const fns = ["a2hsShow", "a2hsClose", "a2hsIsStandalone", "a2hsKindFor", "a2hsShowForce"];
   const missingFns = fns.filter((name) => extractFunction(mainScript, name).length === 0);
-  assert("a2hsBoot/a2hsShow/a2hsClose/a2hsIsStandalone: found", missingFns.length === 0, missingFns.join(", ") || fns.join(", "));
+  assert("a2hsShow/a2hsClose/a2hsIsStandalone/a2hsKindFor/a2hsShowForce: found", missingFns.length === 0, missingFns.join(", ") || fns.join(", "));
+  assert("a2hsBoot: 関数ごと廃止済み(2026-07-21・復活させない)", extractFunction(mainScript, "a2hsBoot").length === 0, "a2hsBoot must stay deleted");
 
-  const bootFn = extractFunction(mainScript, "a2hsBoot");
+  const kindFn = extractFunction(mainScript, "a2hsKindFor");
   assert(
-    "a2hsBoot: standalone起動中は即座に次へ進む(ポップアップ不要)",
-    /a2hsIsStandalone\(\)\)\{\s*cont\(\)/.test(bootFn),
+    "a2hsKindFor: standalone起動中はnull(案内不要)",
+    /a2hsIsStandalone\(\)\)\s*return null/.test(kindFn),
     "standalone short-circuit missing"
   );
   assert(
-    "a2hsBoot: デスクトップ(iPhone/iPad/iPod/Android以外、かつiPadOSのMacintosh偽装UAでもない)も即座に次へ進む",
-    /!\/iPhone\|iPad\|iPod\|Android\/\.test\(ua\)[\s\S]{0,40}\)\{\s*cont\(\)/.test(bootFn),
+    "a2hsKindFor: デスクトップ(iPhone/iPad/iPod/Android以外、かつiPadOSのMacintosh偽装UAでもない)もnull",
+    /!\/iPhone\|iPad\|iPod\|Android\/\.test\(ua\)[\s\S]{0,40}return null/.test(kindFn),
     "desktop short-circuit missing"
   );
   assert(
-    "a2hsBoot: iOSはSafari本体とそれ以外(CriOS/FxiOS/EdgiOS/OPiOS)を区別する",
-    /CriOS\|FxiOS\|EdgiOS\|OPiOS/.test(bootFn) && /iPhone\|iPad\|iPod/.test(bootFn),
+    "a2hsKindFor: iOSはSafari本体とそれ以外(CriOS/FxiOS/EdgiOS/OPiOS)を区別する",
+    /CriOS\|FxiOS\|EdgiOS\|OPiOS/.test(kindFn) && /iPhone\|iPad\|iPod/.test(kindFn),
     "iOS Safari vs other-browser branch missing"
   );
   assert(
-    "a2hsBoot: Androidはwindow.__a2hsEventの有無でprompt分岐する",
-    /window\.__a2hsEvent\)\s*a2hsShow\(\s*["']android-prompt["']/.test(bootFn) && /a2hsShow\(\s*["']android-menu["']/.test(bootFn),
+    "a2hsKindFor: Androidはwindow.__a2hsEventの有無でprompt分岐する",
+    /window\.__a2hsEvent\s*\?\s*["']android-prompt["']\s*:\s*["']android-menu["']/.test(kindFn),
     "android-prompt/android-menu branch missing"
   );
 
   assert(
-    "はじめてガイド起動: 初回起動フローがobOpen()の前に必ずa2hsBoot()を通す(ポップアップをスキップして直接開始しない)",
-    /setTimeout\(function\(\)\{\s*a2hsBoot\(obOpen\);\s*\}/.test(mainScript),
-    "boot IIFE must call a2hsBoot(obOpen), not obOpen directly"
+    "はじめてガイド起動: 初回起動フローはobOpen()を直接呼ぶ(初回ポップアップ廃止・2026-07-21 5視点A)",
+    /setTimeout\(function\(\)\{\s*obOpen\(\);\s*\}/.test(mainScript) && !/a2hsBoot\(obOpen\)/.test(mainScript),
+    "boot IIFE must call obOpen() directly; the boot popup is gone"
   );
 
   const closeFn = extractFunction(mainScript, "a2hsClose");
@@ -1937,6 +1958,23 @@ function checkTutorialV2(html, mainScript, quizScript, recordScript) {
   assert("obTourSteps: 自動起動(obTourAutoClose)のときだけOB_TOUR_CLOSINGを足す", /obTourAutoClose\s*\?\s*OB_TOUR_SLIDES\.concat\(\[OB_TOUR_CLOSING\]\)\s*:\s*OB_TOUR_SLIDES/.test(mainScript), "");
   assert("obTourStep: 枚数計算がobTourSteps()経由(締めスライドがドット/枚数表示にも反映される)", /const steps=obTourSteps\(\)/.test(extractFunction(mainScript, "obTourStep")), "");
   assert("obTourEnd: obTourAutoCloseをリセットしfdFocusHome()でホーム絞り込みを解除", /obTourAutoClose=false/.test(extractFunction(mainScript, "obTourEnd")) && /fdFocusHome\(\)/.test(extractFunction(mainScript, "obTourEnd")), "");
+
+  // ---- 2026-07-21 5視点検証A〜F(PO承認)の追補 ----
+  // B: 最初の30秒でお金の不安を消す(「無料」が初回導線に存在するのはここだけ)
+  assert("オンボ挨拶: 「ぜんぶ無料・とうろく不要」を冒頭で明示(5視点B)", html.indexOf("ぜんぶ無料・とうろく不要") !== -1, "");
+  // D: 動き3点はすべてprefers-reduced-motion: no-preferenceの中に定義(酔い・前庭障害への配慮)
+  const rmBlock = (/@media \(prefers-reduced-motion: no-preference\)\{([\s\S]*?)\n  \}/.exec(html) || [])[1] || "";
+  for (const kf of ["fdBob", "fdPop", "fdBreathe"]) {
+    assert(`CSS: @keyframes ${kf}がreduced-motionガード内にある(5視点D)`, rmBlock.indexOf("@keyframes " + kf) !== -1, "");
+  }
+  assert("markDone: guideお祝いに記録カードの出現演出(fd-cardpop)がある(5視点D)", /fd-cardpop/.test(recordScript), "");
+  // E: ホーム絞り込みはfdday(ガイド開始日)の当日限定(記録せず離脱した人の翌日ホームを壊さない)
+  assert(
+    "fdFocusHome: fdday===todayStr()の当日限定(複数日1カード貼りつきバグの再発防止・5視点E)",
+    /fdActive\(\)&&store\.get\("fdday",null\)===todayStr\(\)/.test(focusFn),
+    ""
+  );
+  assert("fdFocusHome: doneBtnにfd-breathe(呼吸アニメ)をトグルする(5視点D)", /fd-breathe/.test(focusFn), "");
 }
 
 // 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)

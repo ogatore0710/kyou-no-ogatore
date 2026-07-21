@@ -520,9 +520,17 @@ async function main() {
         await page.click("#opts .opt");
       }
       await visible("#result");
+      // 2026-07-21 5視点C: ガイド中の結果画面は削ぎ落とし版のためworryExtra(+1本)は出ない。
+      // 悩みの保存自体(この検証の本題=Q5スキップでも悩みが引き継がれる)はデータ層で確認し、
+      // 非ガイド表示での反映(従来の検証意図)はfdを剥がした再描画で確認する
+      const worry1 = await page.evaluate(() => (JSON.parse(localStorage.getItem("kyono_type") || "{}").worry) || "");
+      if (worry1 !== "katakori") throw new Error("①オンボの悩み(肩こり)がtype.worryに保存されていない (" + worry1 + ")");
+      const worryExtraGuide = await page.$eval("#worryExtra", (el) => el.innerHTML.trim());
+      if (worryExtraGuide !== "") throw new Error("①ガイド中なのにworryExtra(+1本)が出ている (" + worryExtraGuide.slice(0, 80) + ")");
+      await page.evaluate(() => { localStorage.removeItem("kyono_fd"); showResult(state.type); });
       const worryExtraHtml1 = await page.$eval("#worryExtra", (el) => el.innerHTML);
       if (worryExtraHtml1.indexOf("肩こりさんへ") === -1) {
-        throw new Error("①結果画面のworryExtraにオンボの悩み(肩こり)が反映されていない (" + worryExtraHtml1.slice(0, 120) + ")");
+        throw new Error("①非ガイド表示のworryExtraにオンボの悩み(肩こり)が反映されていない (" + worryExtraHtml1.slice(0, 120) + ")");
       }
 
       // ② とくにない → Q5スキップ対象外。従来どおり5問（Q5=悩み質問あり）で完走できること
