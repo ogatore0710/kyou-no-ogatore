@@ -534,8 +534,11 @@ function checkContrast(html) {
       assert(`オンボチップ ${label}: 文字コントラストAA(>=4.5:1)`, r >= 4.5, `${fg} on ${bg} = ${r.toFixed(2)}:1`);
     }
   }
-  // オンボ回答チップのサイズ: 16px+ゆとりpadding(#obChipsスコープ・2026-07-21視認性対応)
-  assert("オンボチップ: #obChips .chipが16px/12px 18px padding", /#obChips \.chip\{font-size:16px;padding:12px 18px\}/.test(html), "");
+  // オンボ回答チップ: 1列縦積み+16px+立体影(2026-07-21本人指摘の視認性・タップ可能性対応)
+  assert("オンボチップ: #obChipsが1列縦積み(flex-direction:column)", /#obChips\{display:flex;flex-direction:column/.test(html), "");
+  assert("オンボチップ: 16px+全幅+立体影(box-shadow)", /#obChips \.chip\{font-size:16px;padding:14px 18px;width:100%[^}]*box-shadow/.test(html), "");
+  // 「タップできる」明示のCSS(関数側の検査はmainScriptを持つcheckTutorialV2にある)
+  assert("tap-hint: CSS定義がある", /\.tap-hint\{/.test(html), "");
 
   // 白文字(color:#fff)が乗る背景として--tealが再度使われていないことを固定する
   // （装飾用途のvar(--teal)自体は維持してよいが、background:var(--teal); ... color:#fffの
@@ -2002,6 +2005,10 @@ function checkTutorialV2(html, mainScript, quizScript, recordScript) {
   // もじの大きさ: ふつう=1.05・大きめ=1.18(本人調整)
   assert("CSS: もじの大きさ ふつう=zoom1.05", /body\{zoom:1\.05\}/.test(html), "");
   assert("CSS: もじの大きさ 大きめ=zoom1.18", /body\.bigtext\{zoom:1\.18\}/.test(html), "");
+  // 「タップできる」明示(2026-07-21本人指摘): オンボ(毎問)・相談室シート(チップありのときだけ)・ホーム相談カード
+  assert("tap-hint: オンボ(obAskQ)が毎問チップ直上に出す", /tap-hint[\s\S]{0,120}タップしてえらんでね/.test(extractFunction(mainScript, "obAskQ")), "");
+  assert("tap-hint: 相談室シート(#sdTapHint)がありチップ空なら隠す", /id="sdTapHint"/.test(html) && /sdTapHint[\s\S]{0,120}classList\.toggle\(["']hidden["'],\s*html===""\)/.test(extractFunction(mainScript, "sdRenderChips")), "");
+  assert("tap-hint: ホーム相談カードのチップ直上にもある", /タップでそのまま聞けるよ/.test(extractFunction(mainScript, "renderSoudanEntry")), "");
 }
 
 // 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)

@@ -505,11 +505,15 @@
   .ob-skip{border:none;background:var(--line);color:var(--sub);border-radius:99px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
   .ob-skip:active{opacity:.7}
   #obLog{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:180px;max-height:52vh;padding:4px 2px}
-  #obChips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:44px}
+  /* オンボの回答チップ(2026-07-21本人指摘×2): 主役UIなのに14px横並びで小さい→1列縦積み+16px+ゆとりpadding。
+     ボタンらしさ(タップできる感)を出す立体影+押し込みも追加。.chipは検索タグ等と共用のため全体は変えない */
+  #obChips{display:flex;flex-direction:column;gap:10px;margin-top:10px;min-height:44px}
   #obChips .btn{width:100%}
-  /* オンボの回答チップは主役UIなのに14pxで小さい(2026-07-21本人「視認しにくい」指摘)→ここだけ16px+ゆとりpadding。
-     .chipは検索タグ等と共用のため全体は変えない */
-  #obChips .chip{font-size:16px;padding:12px 18px}
+  #obChips .chip{font-size:16px;padding:14px 18px;width:100%;box-sizing:border-box;text-align:center;white-space:normal;box-shadow:0 3px 0 rgba(0,0,0,.13)}
+  #obChips .chip:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.13)}
+  body.dark #obChips .chip{box-shadow:0 3px 0 rgba(0,0,0,.45)}
+  /* 回答チップ群の「タップできるよ」明示(オンボ・相談室共通) */
+  .tap-hint{font-size:13px;font-weight:800;color:var(--sub);text-align:center;margin:2px 0 2px}
   /* ホーム画面に追加ポップアップ（初回起動・はじめてガイドの直前に出す独立オーバーレイ #a2hsModal） */
   #a2hsModal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:70;display:flex;align-items:flex-end;justify-content:center}
   #a2hsModal .ob-sheet{max-height:none}
@@ -1191,6 +1195,7 @@
     <div id="sdLog" aria-live="polite" aria-atomic="false"></div>
     <div class="sd-foot">
       <div class="chips sd-catrow" id="sdCatRow"></div>
+      <div class="tap-hint hidden" id="sdTapHint" style="text-align:left;margin:0 0 4px">👇 タップでえらべるよ</div>
       <div style="position:relative"><div class="chips" id="sdChips"></div><div class="sd-swipehint" id="sdSwipeHint">›</div></div>
       <div class="searchbox">
         <input id="sdInput" placeholder="例: 肩がこる／前屈できない" enterkeyhint="send" onkeydown="if(event.key==='Enter'){sdSend()}">
@@ -3148,6 +3153,8 @@ function sdRenderChips(){
     }
   }
   box.innerHTML=html;
+  // 「タップでえらべるよ」ヒント(2026-07-21本人指摘): チップが1個以上あるときだけ出す(crisis後のnone等では出さない)
+  try{ const th=document.getElementById("sdTapHint"); if(th) th.classList.toggle("hidden", html===""); }catch(e){}
   try{ sdChipsFadeUpdate(); }catch(e){}
 }
 // 横スクロールのチップ列: 右に続きがあるときだけ右端をフェードさせ「まだある」を示す（画面外チップの発見性）
@@ -3367,7 +3374,9 @@ function renderSoudanEntry(){
   const picks=kb.intents.slice(0,3).slice();
   const extraIntent=kb.intents.find(x=>x.id==="jikan");
   if(extraIntent&&picks.indexOf(extraIntent)<0) picks.push(extraIntent);
-  document.getElementById("soudanCardChips").innerHTML=picks.map(it=>
+  document.getElementById("soudanCardChips").innerHTML=
+    '<div class="tap-hint" style="width:100%;text-align:left;margin:0">👇 タップでそのまま聞けるよ</div>'
+    +picks.map(it=>
     `<button class="chip chip-b" onclick="event.stopPropagation();openSoudan('${sdEsc(it.id)}')">${sdEsc(it.chip)}</button>`).join("");
   card.classList.remove("hidden");
 }
@@ -4164,6 +4173,11 @@ function obAskQ(){
   obSay([q.q],function(){
     const box=document.getElementById("obChips");
     box.innerHTML="";
+    // 「タップできる」ことの明示(2026-07-21本人指摘)。チップ群の直上に毎問出す
+    const th=document.createElement("div");
+    th.className="tap-hint";
+    th.textContent="👇 タップしてえらんでね";
+    box.appendChild(th);
     q.chips.forEach(c=>{
       const b=document.createElement("button");
       b.className="chip "+variant;
