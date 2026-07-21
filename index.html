@@ -85,7 +85,8 @@
      getComputedStyle(body).zoomを動的に読む実装(相談室シート等)のため定数変更だけで追従する */
   body{zoom:1.05}
   body.bigtext{zoom:1.18}
-  h1{font-size:22px;letter-spacing:.01em;font-weight:900;line-height:1.3}
+  /* 2026-07-21 もじの大きさ調整(zoom1.05/1.18)に伴い、タイトルが2行に折り返さないよう22px→20px+nowrap */
+  h1{font-size:20px;letter-spacing:.01em;font-weight:900;line-height:1.3;white-space:nowrap}
   h1 .hash{color:var(--pink);margin-right:1px}
   .logo{display:flex;align-items:center;gap:10px;margin-bottom:14px}
   .logo img{width:52px;height:52px;object-fit:contain}
