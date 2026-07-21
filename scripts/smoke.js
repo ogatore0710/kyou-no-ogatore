@@ -438,6 +438,12 @@ async function main() {
       await visible("#result");
       const name = await $text("#rName");
       if (!name) throw new Error("結果画面にタイプ名が出ていない");
+      // タイプ画像は非同期ロードのため、判定前に読み込み完了を待つ(タイミング起因のimg-broken誤検知防止)
+      await page.waitForFunction(() => {
+        const img = document.querySelector("#rIllust img");
+        const svg = document.querySelector("#rIllust svg");
+        return (img && img.complete && img.naturalWidth > 0) || (svg && svg.childElementCount > 0);
+      }, { timeout: 6000 }).catch(() => {});
       const icon = await page.evaluate(() => {
         const box = document.getElementById("rIllust");
         if (!box) return "none";
@@ -1074,7 +1080,8 @@ async function main() {
       if (sdLocked.top !== "-" + sdScrollBefore + "px") throw new Error("body.style.topがscrollYと不一致 (" + sdLocked.top + " / scrollY=" + sdScrollBefore + ")");
       if (sdLocked.width !== "100%") throw new Error("body.style.widthが100%でない (" + sdLocked.width + ")");
       if (!sdLocked.hasClass) throw new Error("sd-lockクラスが付いていない");
-      await page.click(".sd-close");
+      // シートのスライドイン(0.25s)中はp.clickが空振りしうる→座標ヒットテスト非依存のevaluateクリックで閉じる
+      await page.evaluate(() => { document.querySelector(".sd-close").click(); });
       await page.waitForFunction(() => document.getElementById("soudanSheet").classList.contains("hidden"));
       const sdAfter = await page.evaluate(() => ({ position: document.body.style.position, top: document.body.style.top, scrollY: window.scrollY }));
       if (sdAfter.position !== "" || sdAfter.top !== "") throw new Error("相談室クローズ後もインラインstyleが残っている (position=" + sdAfter.position + " top=" + sdAfter.top + ")");
@@ -1313,9 +1320,10 @@ async function main() {
         finally { await p.close().catch(() => {}); }
       }
       async function dismiss(p) {
+        // 閉じるボタンの文言はkindで違う(ios系/android-prompt=「あとで」・android-menu=「わかった」)
         await p.evaluate(() => {
           const btns = document.querySelectorAll("#a2hsBtns button");
-          for (const b of btns) { if (b.textContent.indexOf("あとで") !== -1) { b.click(); return; } }
+          for (const b of btns) { if (b.textContent.indexOf("あとで") !== -1 || b.textContent.indexOf("わかった") !== -1) { b.click(); return; } }
         });
         await p.waitForFunction(() => document.getElementById("a2hsModal").classList.contains("hidden"), { timeout: 5000 });
       }
@@ -1518,7 +1526,8 @@ async function main() {
       if (!cheerUntouched) throw new Error("結果画面表示中なのにホームの#cheerが書き換わっている（分岐が相互排他になっていない）");
 
       // ---- 確認4: #rDoneNudgeのボタン→ホームへ→doneBtnが強調される ----
-      await page.click("#rDoneNudgeBtn");
+      // 結果画面はfd-point等のアニメ描画中でp.clickが座標ズレしうる→evaluateクリック(2026-07-21実測ハマり)
+      await page.evaluate(() => document.getElementById("rDoneNudgeBtn").click());
       await page.waitForFunction(() => !document.getElementById("home").classList.contains("hidden"), { timeout: 5000 });
       await page.waitForFunction(() => document.getElementById("doneBtn").classList.contains("nudge-pulse"), { timeout: 5000 });
 
@@ -1543,8 +1552,11 @@ async function main() {
       if (!streakVisible) throw new Error("ガイド中に続けた日数カードまで隠れている（絞り込みすぎ）");
 
       // ---- 確認5: 「きょうやった！」→固定cheer文言・メモplaceholder変更・#calAsk表示 ----
+      // doneBtnはnudge-pulse(0.7s×2)+fd-breathe(呼吸)のtransformアニメ中でp.clickが空振りしうる
+      // →座標ヒットテスト非依存のevaluateクリックで押す(2026-07-21実測ハマり)
       await page.$eval("#doneBtn", (el) => el.scrollIntoView({ block: "center" }));
-      await page.click("#doneBtn");
+      await page.waitForFunction(() => !document.getElementById("doneBtn").disabled, { timeout: 5000 });
+      await page.evaluate(() => document.getElementById("doneBtn").click());
       await page.waitForFunction(() => (document.getElementById("cheer") || {}).innerHTML !== "", { timeout: 5000 });
       const afterDone = await page.evaluate(() => ({
         cheer: document.getElementById("cheer").innerHTML,
