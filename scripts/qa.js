@@ -518,6 +518,25 @@ function checkContrast(html) {
     );
   }
 
+  // オンボ回答チップ4色(chip-a〜d)の文字/背景コントラスト: ライト/ダーク全8組がAA(4.5:1)以上であること
+  // (2026-07-21本人「腰とか肩の文字が視認しにくい」指摘→実測でlight chip-cが4.15と未達だった再発防止)
+  {
+    const chipPairs = [];
+    for (const v of ["a", "b", "c", "d"]) {
+      const light = new RegExp(`\\.chip-${v}\\{background:(#[0-9A-Fa-f]{6});[^}]*color:(#[0-9A-Fa-f]{6}|var\\(--tealink\\))\\}`).exec(html);
+      const dark = new RegExp(`body\\.dark \\.chip-${v}\\{background:(#[0-9A-Fa-f]{6});[^}]*color:(#[0-9A-Fa-f]{6})\\}`).exec(html);
+      assert(`chip-${v}: ライト/ダークのCSS定義が見つかる`, !!light && !!dark, "");
+      if (light) chipPairs.push([`light chip-${v}`, light[2] === "var(--tealink)" ? "#177065" : light[2], light[1]]);
+      if (dark) chipPairs.push([`dark chip-${v}`, dark[2], dark[1]]);
+    }
+    for (const [label, fg, bg] of chipPairs) {
+      const r = contrastRatio(fg, bg);
+      assert(`オンボチップ ${label}: 文字コントラストAA(>=4.5:1)`, r >= 4.5, `${fg} on ${bg} = ${r.toFixed(2)}:1`);
+    }
+  }
+  // オンボ回答チップのサイズ: 16px+ゆとりpadding(#obChipsスコープ・2026-07-21視認性対応)
+  assert("オンボチップ: #obChips .chipが16px/12px 18px padding", /#obChips \.chip\{font-size:16px;padding:12px 18px\}/.test(html), "");
+
   // 白文字(color:#fff)が乗る背景として--tealが再度使われていないことを固定する
   // （装飾用途のvar(--teal)自体は維持してよいが、background:var(--teal); ... color:#fffの
   // 組み合わせだけは禁止パターンとして機械チェックする）。
