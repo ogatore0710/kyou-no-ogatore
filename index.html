@@ -295,6 +295,19 @@
   .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}
   .opt.on{border-color:var(--teal)}
   .opt .crit{display:block;font-size:14px;color:var(--sub);font-weight:700;margin-top:2px;line-height:1.5}
+  /* かたさチェック選択肢の段階色(2026-07-21本人要望): 柔らかい=明るい→硬い=暗い のグラデーションで
+     「どっち寄りの答えか」を色でも伝える。数値スコア(0-3)を持つ設問だけ・Q5(悩み)は対象外。
+     全組み合わせでタイトル/crit文字のAA(4.5:1)実測済み(g2/g3ライトのcritのみ濃色に上書き) */
+  .opt.g0{background:#EAF8F1;border-color:#BFE8DC}
+  .opt.g1{background:#FFF3CB;border-color:#F2DE8A}
+  .opt.g2{background:#FBE3C6;border-color:#E5BC85}
+  .opt.g3{background:#F2D7CD;border-color:#DCA894}
+  .opt.g2 .crit,.opt.g3 .crit{color:#5C594E}
+  body.dark .opt.g0{background:#2A423B;border-color:#2E5A52}
+  body.dark .opt.g1{background:#3B3524;border-color:#5C4F1E}
+  body.dark .opt.g2{background:#403322;border-color:#6A4A26}
+  body.dark .opt.g3{background:#402A28;border-color:#5E3A38}
+  body.dark .opt.g2 .crit,body.dark .opt.g3 .crit{color:var(--sub)}
   @keyframes cpop{from{transform:scale(.85);opacity:.4}to{transform:scale(1);opacity:1}}
   #cheer>div{animation:cpop .3s ease-out}
   .dots{display:flex;gap:6px;justify-content:center;margin:14px 0 2px}
@@ -504,10 +517,13 @@
   .ob-title{font-size:15px;font-weight:900}
   .ob-skip{border:none;background:var(--line);color:var(--sub);border-radius:99px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
   .ob-skip:active{opacity:.7}
-  #obLog{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:180px;max-height:52vh;padding:4px 2px}
+  /* min-height 180→90(2026-07-21): チップ1列化で縦に伸びたぶんログ側が譲らないと、86vhのシート内で
+     チップ最下段が見切れる(本人実機で発生・zoom1.18だとさらに悪化)。ログはスクロールできるので譲ってよい */
+  #obLog{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:90px;max-height:52vh;padding:4px 2px}
   /* オンボの回答チップ(2026-07-21本人指摘×2): 主役UIなのに14px横並びで小さい→1列縦積み+16px+ゆとりpadding。
      ボタンらしさ(タップできる感)を出す立体影+押し込みも追加。.chipは検索タグ等と共用のため全体は変えない */
-  #obChips{display:flex;flex-direction:column;gap:10px;margin-top:10px;min-height:44px}
+  /* overflow-y:auto=超小型画面での最後の保険(ログが最小まで縮んでも収まらない場合のみスクロール) */
+  #obChips{display:flex;flex-direction:column;gap:10px;margin-top:10px;min-height:44px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
   #obChips .btn{width:100%}
   #obChips .chip{font-size:16px;padding:14px 18px;width:100%;box-sizing:border-box;text-align:center;white-space:normal;box-shadow:0 3px 0 rgba(0,0,0,.13)}
   #obChips .chip:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.13)}
@@ -686,6 +702,7 @@
     <div class="q-art" id="qArt"></div>
     <div class="qtitle" id="qtitle"></div>
     <div class="qnote" id="qnote"></div>
+    <div class="tap-hint" style="text-align:left;margin:8px 0 6px">👇 タップしてえらんでね</div>
     <div id="opts"></div>
     <div class="dots" id="dots"></div>
     <button class="btn btn-line hidden" id="qBackBtn" style="margin-top:10px" onclick="prevQ()">← まえの質問へ</button>

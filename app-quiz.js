@@ -164,7 +164,9 @@ function renderQ(){
   document.getElementById("qnote").textContent = q.note;
   const box = document.getElementById("opts"); box.innerHTML="";
   q.opts.forEach(o=>{
-    const b=document.createElement("button"); b.className="opt";
+    const b=document.createElement("button");
+    // 段階色(2026-07-21本人要望): 数値スコアの設問(Q1-Q4)だけ柔らかい=明るい→硬い=暗いのg0〜g3を付ける
+    b.className="opt"+(typeof o[2]==="number"?" g"+o[2]:"");
     // 「まえの質問へ」で戻ってきたとき、前に選んだ答えがわかるように枠色を付ける
     if(state.picked&&(q.k in state.picked)&&state.picked[q.k]===o[2]) b.classList.add("on");
     b.innerHTML=`${o[0]}<span class="crit">${o[1]}</span>`;

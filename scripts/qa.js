@@ -2009,6 +2009,26 @@ function checkTutorialV2(html, mainScript, quizScript, recordScript) {
   assert("tap-hint: オンボ(obAskQ)が毎問チップ直上に出す", /tap-hint[\s\S]{0,120}タップしてえらんでね/.test(extractFunction(mainScript, "obAskQ")), "");
   assert("tap-hint: 相談室シート(#sdTapHint)がありチップ空なら隠す", /id="sdTapHint"/.test(html) && /sdTapHint[\s\S]{0,120}classList\.toggle\(["']hidden["'],\s*html===""\)/.test(extractFunction(mainScript, "sdRenderChips")), "");
   assert("tap-hint: ホーム相談カードのチップ直上にもある", /タップでそのまま聞けるよ/.test(extractFunction(mainScript, "renderSoudanEntry")), "");
+  // かたさチェックにも展開(2026-07-21本人要望): タップ明示+段階色g0〜g3(柔らかい=明るい→硬い=暗い)
+  assert("tap-hint: かたさチェックの選択肢直上にもある", /id="qnote"[\s\S]{0,200}tap-hint[\s\S]{0,80}タップしてえらんでね[\s\S]{0,120}id="opts"/.test(html), "");
+  assert("かたさチェック: renderQが数値スコア設問だけg0〜g3クラスを付ける", /"opt"\+\(typeof o\[2\]==="number"\?" g"\+o\[2\]:""\)/.test(quizScript), "");
+  for (const g of ["g0", "g1", "g2", "g3"]) {
+    assert(`かたさチェック: .opt.${g}のライト/ダーク段階色CSSがある`, new RegExp(`\\.opt\\.${g}\\{background:#`).test(html) && new RegExp(`body\\.dark \\.opt\\.${g}\\{background:#`).test(html), "");
+  }
+  // 段階の明→暗が実際に単調(ライトモード背景の輝度がg0>g1>g2>g3)であることを機械検証
+  {
+    const lumOf = (hex) => {
+      const c = hex.replace("#", "");
+      const [r, g2, b] = [0, 2, 4].map((i) => parseInt(c.substr(i, 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+      return 0.2126 * r + 0.7152 * g2 + 0.0722 * b;
+    };
+    const bgs = ["g0", "g1", "g2", "g3"].map((g) => (new RegExp(`\\.opt\\.${g}\\{background:(#[0-9A-Fa-f]{6})`).exec(html) || [])[1]);
+    const ok = bgs.every(Boolean) && bgs.every((b, i) => i === 0 || lumOf(b) < lumOf(bgs[i - 1]));
+    assert("かたさチェック: 段階色が明→暗の単調グラデーション(ライト背景輝度g0>g1>g2>g3)", ok, bgs.join(","));
+  }
+  // チップ見切れ対策: obLogが譲れる(min-height:90px)+obChipsに保険スクロール
+  assert("オンボシート: #obLogのmin-heightが90px(チップ1列化にともなう見切れ対策)", /#obLog\{[^}]*min-height:90px/.test(html), "");
+  assert("オンボシート: #obChipsにoverflow-y:auto(超小型画面の保険)", /#obChips\{[^}]*overflow-y:auto/.test(html), "");
 }
 
 // 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)
