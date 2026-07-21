@@ -497,6 +497,14 @@ async function main() {
         await visible("#quiz");
       }
 
+      // 選択肢タップの共通ヘルパー: ページのスクロール位置によっては選択肢の中心が固定タブバーの
+      // 真裏に落ちてp.clickが空振りする（step3のdoneBtnと同じ既知ハマり）→中央へ寄せてから押す
+      async function clickOpt() {
+        await page.waitForSelector("#opts .opt:not([disabled])", { visible: true });
+        await page.$eval("#opts .opt", (el) => el.scrollIntoView({ block: "center" }));
+        await page.click("#opts .opt");
+      }
+
       // ① 肩こり・首 → 4問構成（Q5=悩み質問が出ない）
       await runOnboardingToQuiz("肩こり・首");
       let qn = await $text("#qnum");
@@ -506,18 +514,18 @@ async function main() {
       // Q1「まえの質問へ」は非表示、回答して次に進んだらQ2で表示される（既存挙動の回帰確認）
       const backHiddenAtQ1 = await page.$eval("#qBackBtn", (b) => b.classList.contains("hidden"));
       if (!backHiddenAtQ1) throw new Error("①Q1で「まえの質問へ」が表示されている（既存仕様に反する）");
-      await page.click("#opts .opt");
+      await clickOpt();
       await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q2 / 4");
       // 「まえの質問へ」でQ1に戻れること（回帰）→ Q1へ戻ったら再度Q1の回答をやり直して進める
+      await page.$eval("#qBackBtn", (el) => el.scrollIntoView({ block: "center" }));
       await page.click("#qBackBtn");
       await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q1 / 4");
-      await page.click("#opts .opt");
+      await clickOpt();
       await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q2 / 4");
       // 残り3問（Q2〜Q4=momo以降/ashiまで）を進めて完走。Q5(悩み)は一度も出現しないまま結果画面へ到達するはず
       for (let i = 2; i <= 4; i++) {
         await page.waitForFunction((n) => document.getElementById("qnum").textContent === "Q" + n + " / 4", {}, i);
-        await page.waitForSelector("#opts .opt:not([disabled])", { visible: true });
-        await page.click("#opts .opt");
+        await clickOpt();
       }
       await visible("#result");
       // 2026-07-21 5視点C: ガイド中の結果画面は削ぎ落とし版のためworryExtra(+1本)は出ない。
@@ -539,14 +547,15 @@ async function main() {
       if (qn !== "Q1 / 5") throw new Error("②「とくにない」なのに5問構成になっていない (実測 " + qn + ")");
       for (let i = 1; i <= 4; i++) {
         await page.waitForFunction((n) => document.getElementById("qnum").textContent === "Q" + n + " / 5", {}, i);
-        await page.waitForSelector("#opts .opt:not([disabled])", { visible: true });
-        await page.click("#opts .opt");
+        await clickOpt();
       }
       await page.waitForFunction(() => document.getElementById("qnum").textContent === "Q5 / 5");
       const q5Title = await $text("#qtitle");
       if (q5Title.indexOf("いちばんの悩み") === -1) throw new Error("②Q5(悩み質問)が出ていない (" + q5Title + ")");
-      await page.click("#opts .opt"); // Q5に自分で回答
+      await clickOpt(); // Q5に自分で回答
       await visible("#result");
+      // ②もガイド起点のためfdが残る。後続ステップに自動ツアー(fdTourMaybeStart)を波及させないよう剥がす
+      await page.evaluate(() => localStorage.removeItem("kyono_fd"));
 
       // ③ オンボを経由しない単独起動（ホームの「チェックをはじめる」#ckBtn）は従来どおり5問のまま（回帰）
       await page.evaluate(() => localStorage.clear());
@@ -1297,9 +1306,11 @@ async function main() {
         await p.waitForFunction(() => !document.getElementById("a2hsModal").classList.contains("hidden"), { timeout: 5000 });
         return p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
       }
-      async function scenario(opts, fn) {
+      async function scenario(label, opts, fn) {
         const p = await freshPage(opts);
-        try { return await fn(p); } finally { await p.close().catch(() => {}); }
+        try { return await fn(p); }
+        catch (e) { throw new Error("[" + label + "] " + (e && e.message ? e.message : e)); }
+        finally { await p.close().catch(() => {}); }
       }
       async function dismiss(p) {
         await p.evaluate(() => {
@@ -1310,38 +1321,31 @@ async function main() {
       }
 
       // 1) iOS Safari → 起動はwelcome直行、force表示でios-safari案内
-      {
-        const p = await freshPage({ ua: UA_IOS_SAFARI });
+      await scenario("iOS Safari", { ua: UA_IOS_SAFARI }, async (p) => {
         const kind = await bootThenForce(p);
         if (kind !== "ios-safari") throw new Error("iOS Safariでkindがios-safariでない (実測=" + kind + ")");
         await dismiss(p);
-        await p.close();
         notes.push("iOS Safari→起動はwelcome直行・force表示でios-safari案内→あとでで閉じる");
-      }
+      });
 
       // 1b) iPadOS(Macintosh偽装UA+タッチあり) → デスクトップ扱いされずiOS Safariと同じ案内(2026-07-18修正の回帰防止)
-      {
-        const p = await freshPage({ ua: UA_IPAD_DESKTOP, maxTouchPoints: 5 });
+      await scenario("iPadOS偽装UA", { ua: UA_IPAD_DESKTOP, maxTouchPoints: 5 }, async (p) => {
         const kind = await bootThenForce(p);
         if (kind !== "ios-safari") throw new Error("iPadOS(Macintosh偽装UA)でkindがios-safariでない (実測=" + kind + ")");
         await dismiss(p);
-        await p.close();
         notes.push("iPadOS(Macintosh偽装UA+タッチ)→デスクトップ誤判定せずios-safari案内");
-      }
+      });
 
       // 2) iOS Chrome(CriOS) → ios-other案内
-      {
-        const p = await freshPage({ ua: UA_IOS_CHROME });
+      await scenario("iOS Chrome", { ua: UA_IOS_CHROME }, async (p) => {
         const kind = await bootThenForce(p);
         if (kind !== "ios-other") throw new Error("iOS Chromeでkindがios-otherでない (実測=" + kind + ")");
         await dismiss(p);
-        await p.close();
         notes.push("iOS Chrome(CriOS)→ios-other案内");
-      }
+      });
 
       // 3) Android + beforeinstallprompt発火保持あり → 「ホーム画面に追加する」タップでprompt()実行
-      {
-        const p = await freshPage({ ua: UA_ANDROID, bip: true });
+      await scenario("Android+bip", { ua: UA_ANDROID, bip: true }, async (p) => {
         const kind = await bootThenForce(p);
         if (kind !== "android-prompt") throw new Error("Android+bip保持でkindがandroid-promptでない (実測=" + kind + ")");
         const btnCount = await p.$$eval("#a2hsBtns button", (a) => a.length);
@@ -1351,52 +1355,40 @@ async function main() {
           for (const b of btns) { if (b.textContent.indexOf("ホーム画面に追加する") !== -1) { b.click(); return; } }
         });
         await p.waitForFunction(() => window.__a2hsPromptCalled === true, { timeout: 5000 });
-        await p.close();
         notes.push("Android(beforeinstallprompt保持)→「ホーム画面に追加する」→prompt()実行確認");
-      }
+      });
 
       // 4) Android（beforeinstallprompt未発火）→ 「⋮」メニュー案内
-      {
-        const p = await freshPage({ ua: UA_ANDROID });
+      await scenario("Android未発火", { ua: UA_ANDROID }, async (p) => {
         const kind = await bootThenForce(p);
         if (kind !== "android-menu") throw new Error("Android未発火でkindがandroid-menuでない (実測=" + kind + ")");
         await dismiss(p);
-        await p.close();
         notes.push("Android(未発火)→メニュー案内");
-      }
+      });
 
       // 5) すでにstandalone起動中 → welcome直行+force表示でも何も出ない(kindFor=null)
-      {
-        const p = await freshPage({ ua: UA_ANDROID, standalone: true });
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 6000 });
-        await p.click("#obSkipBtn");
-        await p.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+      await scenario("standalone", { ua: UA_ANDROID, standalone: true }, async (p) => {
+        await skipWelcome(p);
         await p.evaluate(() => a2hsShowForce());
         await new Promise((r) => setTimeout(r, 600));
         const modalTouched = await p.$eval("#a2hsModal", (el) => !el.classList.contains("hidden") || el.hasAttribute("data-a2hs-kind"));
         if (modalTouched) throw new Error("standalone起動中なのにa2hsModalが出た");
-        await p.close();
         notes.push("standalone起動中→welcome直行・force表示でも案内なし");
-      }
+      });
 
       // 6) デスクトップUA → welcome直行+force表示でも何も出ない（「ホーム画面」の概念がスマホ前提のため）
-      {
-        const p = await freshPage({ ua: UA_DESKTOP });
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 6000 });
-        await p.click("#obSkipBtn");
-        await p.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+      await scenario("desktop", { ua: UA_DESKTOP }, async (p) => {
+        await skipWelcome(p);
         await p.evaluate(() => a2hsShowForce());
         await new Promise((r) => setTimeout(r, 600));
         const modalTouched = await p.$eval("#a2hsModal", (el) => !el.classList.contains("hidden") || el.hasAttribute("data-a2hs-kind"));
         if (modalTouched) throw new Error("デスクトップUAなのにa2hsModalが出た");
-        await p.close();
         notes.push("デスクトップUA→welcome直行・force表示でも案内なし");
-      }
+      });
 
       // 7) アプリ内ブラウザ(LINE) → 従来どおりポップアップ・はじめてガイドとも出さない（既存仕様の回帰確認）
-      {
-        const p = await freshPage({ ua: UA_ANDROID_LINE });
-        await new Promise((r) => setTimeout(r, 2200)); // スプラッシュ無し(0.6秒)+ポップアップ判定の猶予を待っても出ないことを確認
+      await scenario("LINE", { ua: UA_ANDROID_LINE }, async (p) => {
+        await new Promise((r) => setTimeout(r, 2200)); // スプラッシュ無し(0.6秒)+判定の猶予を待っても出ないことを確認
         const state = await p.evaluate(() => ({
           welcomeHidden: document.getElementById("welcome").classList.contains("hidden"),
           modalHidden: document.getElementById("a2hsModal").classList.contains("hidden"),
@@ -1405,9 +1397,8 @@ async function main() {
         if (!state.boot) throw new Error("LINEアプリ内UAで起動マーカーが立っていない");
         if (!state.welcomeHidden) throw new Error("LINEアプリ内UAなのにwelcomeが表示された（既存仕様の回帰）");
         if (!state.modalHidden) throw new Error("LINEアプリ内UAなのにa2hsModalが表示された");
-        await p.close();
         notes.push("アプリ内ブラウザ(LINE)→従来どおりポップアップ/はじめてガイドとも非表示(回帰なし)");
-      }
+      });
 
       return notes.join(" / ");
     });
@@ -1466,11 +1457,15 @@ async function main() {
         rotateHidden: (document.getElementById("rRotateNote") || {}).classList.contains("hidden"),
         tourBtnHidden: (document.getElementById("rTourBtn") || {}).classList.contains("hidden"),
       }));
-      if (r1.rxHead.indexOf("まずはこの1本から") === -1 || r1.rxHead.indexOf("②③はあしたからでOKだよ") === -1) {
+      // 2026-07-21 5視点C: ガイド中は①のみ表示(②③は翌日以降)・rxHeadも削ぎ落とし版文言
+      if (r1.rxHead.indexOf("きょうはこの1本だけでOK！") === -1) {
         throw new Error("rxHeadがガイド用文言になっていない (" + r1.rxHead + ")");
       }
       if (r1.heroVideoCount !== 1) throw new Error(".fd-hero内の動画が1本でない (実測" + r1.heroVideoCount + "本)");
-      if (r1.totalVideoCount !== 3) throw new Error("結果画面の動画総数が3本でない=②③が消えている懸念 (実測" + r1.totalVideoCount + "本)");
+      if (r1.totalVideoCount !== 1) throw new Error("ガイド中の結果画面の動画総数が1本でない=②③が出ている懸念 (実測" + r1.totalVideoCount + "本)");
+      if (r1.rxListHtml.indexOf("あと2本とくわしい解説は あしたから見られるよ") === -1) throw new Error("②③の後送り注記が出ていない");
+      if (r1.rxListHtml.indexOf("fd-point") === -1) throw new Error("指差しアニメ(fd-point)が出ていない");
+      if (r1.rxListHtml.indexOf("もどれるよ") === -1) throw new Error("もどりかた1行(backHint)が出ていない");
       if (r1.rxListHtml.indexOf("きょうはこれ1本でOK！") === -1) throw new Error("①のラベルが「きょうはこれ1本でOK！」になっていない");
       // 2026-07-21チュートリアルv2: 吹き出しは練習宣言（試し押し+すぐ戻る）に変更
       if (r1.rxListHtml.indexOf("ここからは練習だよ") === -1) throw new Error("オガトレの一言吹き出し(練習宣言)が出ていない");
