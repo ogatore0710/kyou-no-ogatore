@@ -149,33 +149,15 @@ function a2hsClose(){
   if(cont) cont();
 }
 // 発火判定: 既にstandalone起動中/デスクトップは案内不要で即cont()。iOS/Androidだけ文言を出し分ける。
-function a2hsBoot(cont){
-  try{
-    if(a2hsIsStandalone()){ cont(); return; }
-    const ua=navigator.userAgent||"";
-    // iPadOS 13以降のSafariは既定でMacintosh系UAを名乗り、実機iPadでもタッチ操作を持つ点だけが
-    // 本物のMacと違う（maxTouchPoints>1）。この判定がないとiPadユーザーに「ホーム画面に追加」の
-    // 案内が一切出ない（2026-07-18発見）。
-    const isIpadDesktopUA = /Macintosh/.test(ua) && navigator.maxTouchPoints>1;
-    if(!/iPhone|iPad|iPod|Android/.test(ua) && !isIpadDesktopUA){ cont(); return; } // デスクトップ（ホーム画面という概念が前提と合わないため）
-    if(/iPhone|iPad|iPod/.test(ua) || isIpadDesktopUA){
-      // iOS上のChrome/Firefox/Edge等はUAにCriOS/FxiOS/EdgiOS/OPiOSが入りSafari本体と区別できる
-      if(/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) a2hsShow("ios-other",cont);
-      else a2hsShow("ios-safari",cont);
-      return;
-    }
-    // Android: beforeinstallpromptを保持できていればネイティブインストールダイアログを、
-    // できていなければ（発火前/未対応ブラウザ）メニュー案内を出す
-    if(window.__a2hsEvent) a2hsShow("android-prompt",cont);
-    else a2hsShow("android-menu",cont);
-  }catch(e){ cont(); }
-}
-
-// a2hsBoot()と同じ「案内する意味がある環境か」の判定だけを独立させたもの（表示の副作用は起こさない）。
-// 2026-07-20新設のホーム画面追加「二度目のチャンス」（1日目クリア直後の再提案カード・gd-mamoriの
-// 再案内ボタン）で、カードを出す前に「タップしても意味のある案内が出せるか」を判定するために使う。
-// a2hsBoot自体はここに実装を委譲していない（qa.jsの機械チェックがa2hsBoot本体の分岐文字列を
-// そのまま検査しているため、既存の分岐を壊さないようにあえて重複させてある）。
+// 環境判定の単一の正: 「ホーム画面に追加」の案内が意味を持つ環境か（表示の副作用は起こさない）。
+// 2026-07-21 5視点検証(提案A・PO承認)で初回起動時ポップアップ(旧a2hsBoot)を廃止したため、
+// 旧a2hsBootにあった分岐はこの関数に一本化された。呼び出し元は1日目クリア直後の再提案カード
+// (markDoneのaskQueue)とa2hsShowForce()（gd-mamoriの再案内ボタン等）。
+// - iPadOS 13以降のSafariは既定でMacintosh系UAを名乗り、実機iPadでもタッチ操作を持つ点だけが
+//   本物のMacと違う（maxTouchPoints>1）。この判定がないとiPadユーザーに案内が一切出ない（2026-07-18発見）。
+// - iOS上のChrome/Firefox/Edge等はUAにCriOS/FxiOS/EdgiOS/OPiOSが入りSafari本体と区別できる。
+// - Android: beforeinstallpromptを保持できていればネイティブインストールダイアログ(android-prompt)、
+//   できていなければ（発火前/未対応ブラウザ）メニュー案内(android-menu)。
 function a2hsKindFor(){
   try{
     if(a2hsIsStandalone()) return null;

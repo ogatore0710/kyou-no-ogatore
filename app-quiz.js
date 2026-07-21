@@ -286,30 +286,46 @@ function showResult(saved){
     quizAutoReachLv=null;
   }
   const fixed=T.rx.length>0;
+  // 2026-07-21 5視点検証C(PO承認): ガイド中の結果画面は「タイプ+①+ボタン」に削ぎ落とす。
+  // 長文解説(rHope/rPT)・ペース目安(rPace)・②③・悩みの+1本・相談室リンクは翌日以降(通常表示)に回す
+  try{
+    for(const id of ["rHope","rPT","rPace"]){
+      const el=document.getElementById(id); if(el) el.classList.toggle("hidden", guide);
+    }
+  }catch(e){}
   document.getElementById("rxHead").innerHTML = guide
-    ? `${ICON_RX}まずはこの1本から！②③はあしたからでOKだよ`
+    ? `${ICON_RX}きょうはこの1本だけでOK！`
     : `${ICON_RX}`+(fixed?`おすすめの3本: まずは「${T.area}」から！2週間続けてみて`:`おすすめの3本: 柔らかさを守る毎日の1本をどうぞ`);
   const rx=currentRx(saved.key);
   if(guide){
-    // ①だけを主役化(fd-hero)し、オガトレの一言吹き出しを添える。②③はそのまま表示（隠さない）
+    // ①だけを表示(fd-hero)+指差しアニメ(fd-point)+練習宣言の吹き出し+もどりかた1行(5視点検証D/F)。
+    // もどりかたはOS別: タスクスイッチできない層がYouTubeから戻れないのが最初の脱落点のため
+    const ua=navigator.userAgent||"";
+    const isIOSBack=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+    const backHint=isIOSBack
+      ? "見おわったら 画面ひだり上に出る「◀」か YouTubeをとじると この画面にもどれるよ"
+      : (/Android/.test(ua)
+        ? "見おわったら スマホの「もどる」ボタン（◀）で この画面にもどれるよ"
+        : "見おわったら ブラウザの「もどる」で この画面にもどれるよ");
     document.getElementById("rxList").innerHTML =
       '<div class="sd-row oga" style="display:flex;gap:8px;margin-bottom:8px">'
         +'<img class="sd-ava" src="assets/chara-hitokoto.png" alt="">'
-        +'<div class="sd-b">ここからは練習だよ🏫 ①を試しにタップ→YouTubeがひらいたら すぐ戻ってきてね（ぜんぶ見るのは あとでゆっくりでOK）</div>'
+        +'<div class="sd-b">ここからは練習だよ🏫 ①を試しにタップ→YouTubeがひらいたら すぐ戻ってきてね（ぜんぶ見るのは あとでゆっくりでOK）<br><span style="font-size:13px">🔙 '+backHint+'</span></div>'
       +'</div>'
+      +'<div class="fd-point">👇 ここを押してみて</div>'
       +'<div class="fd-hero">'+videoCard(rx[0], "きょうはこれ1本でOK！")+'</div>'
-      +rx.slice(1).map((vk,i)=>videoCard(vk, fixed?["②メインの1本","③しあげ"][i]:null)).join("");
+      +'<div style="font-size:13px;color:var(--sub);text-align:center;margin-top:6px;font-weight:800">あと2本とくわしい解説は あしたから見られるよ🌱</div>';
   }else{
     document.getElementById("rxList").innerHTML = rx.map((vk,i)=>videoCard(vk, fixed?["①まずほぐす","②メインの1本","③しあげ"][i]:null)).join("")
       +`<a class="btn btn-ghost" style="font-size:15px;margin-top:4px" href="https://www.youtube.com/watch_videos?video_ids=${rx.map(k=>V[k].id).join(",")}" target="_blank" rel="noopener">▶ 3本続けて再生する</a>`;
   }
   try{ const rn=document.getElementById("rRotateNote"); if(rn) rn.classList.toggle("hidden", guide); }catch(e){}
   const w=WORRY[saved.worry];
-  document.getElementById("worryExtra").innerHTML = (w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
-  // 逆導線: タイプのareaに対応するインテントで相談室を開く（KB未読込なら出さない）
+  document.getElementById("worryExtra").innerHTML = (!guide&&w&&w.v&&!rx.includes(w.v)) ? videoCard(w.v, "＋ "+w.label) : "";
+  // 逆導線: タイプのareaに対応するインテントで相談室を開く（KB未読込なら出さない・ガイド中は出さない）
   const sl=document.getElementById("rSoudanLink");
   if(sl){
-    if(sdKb()){
+    if(!guide&&sdKb()){
       const tid=(SOUDAN_TYPE_INTENT[saved.key]||[])[0];
       const arg=tid?"'"+tid+"'":"";
       sl.innerHTML='<a href="#" class="tapx" onclick="openSoudan('+arg+');return false" style="color:var(--tealink);font-weight:800">💬 この悩み、相談室で聞いてみる</a>';

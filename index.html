@@ -204,6 +204,17 @@
   .hidden{display:none !important}
   /* 1日目チュートリアル中のホーム絞り込み用(各カード自身のhidden管理と独立に重ねて隠す) */
   .fd-hide{display:none !important}
+  /* チュートリアルの「動きで導く」3点(2026-07-21 5視点検証D・PO承認)。すべてreduced-motionでは静止 */
+  .fd-point{text-align:center;font-size:15px;font-weight:900;color:var(--pink);margin-bottom:4px}
+  .fd-cardpop{width:110px;height:110px;border-radius:14px;display:block;margin:10px auto 2px}
+  @media (prefers-reduced-motion: no-preference){
+    .fd-point{animation:fdBob 1.4s ease-in-out infinite}
+    @keyframes fdBob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+    .fd-cardpop{animation:fdPop .5s cubic-bezier(.34,1.56,.64,1) both}
+    @keyframes fdPop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+    .fd-breathe{animation:fdBreathe 1.8s ease-in-out infinite}
+    @keyframes fdBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+  }
   #cardModal{-webkit-user-select:none;user-select:none;position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
   /* カード図鑑 */
   #dexModal{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;background:rgba(40,35,20,.55);z-index:55;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -686,7 +697,7 @@
     <div id="rxList"></div>
     <div id="worryExtra"></div>
     <div class="rotate-note" id="rRotateNote">おすすめは3日ごとに自動で入れ替わります</div>
-    <div style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想！週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
+    <div id="rPace" style="font-size:14px;color:var(--sub);margin-top:6px;line-height:1.8">🩺 <b>ペースの目安</b><br>・毎日が理想！週3でも効きます<br>・1日1回で十分<br>・痛い日は休むのが正解<br>・痛みは「イタ気持ちいい」まで</div>
     <div class="hint" style="margin-top:8px">※効果には個人差があります 痛みが強いときは中止して医療機関へ</div>
     <div id="rSoudanLink" class="hidden" style="font-size:14px;margin-top:10px;text-align:center"></div>
   </div>
@@ -1602,11 +1613,16 @@ function fdActive(){ return store.get("fd",null)==="go" && getStreakData().total
 // ようにする(「下にスクロールして」の誘導自体を不要にする)。各カード自身のhidden管理と衝突しないよう
 // 専用クラスfd-hideで重ねて隠す。記録後(fd=1)はrenderHome/ツアー閉幕時のこの関数の再実行で自動復帰。
 function fdFocusHome(){
-  const on=(typeof fdActive==="function")&&fdActive();
+  // 当日限定(2026-07-21 5視点検証E): fdActiveは記録するまで真のままなので、fdday(ガイド開始日)が
+  // きょうのときだけ絞り込む。翌日以降に記録せず戻ってきた人には通常ホームを見せる
+  const on=(typeof fdActive==="function")&&fdActive()&&store.get("fdday",null)===todayStr();
   for(const id of ["todayCard","ckCard","soudanCard","anchorCard"]){
     const el=document.getElementById(id);
     if(el) el.classList.toggle("fd-hide",on);
   }
+  // 「きょうやった！」の呼吸アニメ(動きで次の1手を示す・reduced-motionではCSS側で静止)
+  const db=document.getElementById("doneBtn");
+  if(db) db.classList.toggle("fd-breathe",on);
 }
 
 // ---- 処方のローテーション（毎日1進む・朝6時切り替え） ----
@@ -4022,7 +4038,7 @@ window.addEventListener("online",()=>{
 const ONBOARDING_SCRIPT={
   greet:[
     "いつもありがとうございます！理学療法士のオガトレです！",
-    "ここは毎日のストレッチを応援する場所だよ！",
+    "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要🆓 あんしんしてね",
     "最初に4つだけ教えてね！あなた用にこのアプリをととのえます☺️"
   ],
   questions:[
@@ -4302,7 +4318,14 @@ function obGo(){
   if(r==="quiz"&&!obTourDone) obTourAfterQuiz=true;
   // はじめの1本ガイド開始条件: オンボを完走した初回ユーザー（通算0日）だけを対象にする。
   // 二重セットしないよう既にfdが立っていたら触らない（ルートはquiz/todayの2択のみ・soudanは2026-07-19廃止）
-  if((r==="quiz"||r==="today") && getStreakData().total===0 && !store.get("fd")) store.set("fd","go");
+  if((r==="quiz"||r==="today") && getStreakData().total===0 && !store.get("fd")){
+    store.set("fd","go");
+    // ホーム絞り込み(fdFocusHome)の当日限定化に使う開始日(2026-07-21 5視点検証E)。
+    // fd="go"自体は記録するまで残る(翌日以降もガイドのcheer/ツアー予約は有効)が、
+    // 「カードを全部隠す」だけは初日限りにしないと、記録せず離脱した人のホームが
+    // 翌日以降ずっと1カードのまま=壊れた見えになるため
+    store.set("fdday",todayStr());
+  }
   obClose(true); // 直後にstartQuiz等が履歴を積むため、ここではback()しない（レース防止）
   if(r==="quiz"){
     // Q2で実質的な悩みに回答済みなら、直後のかたさチェックQ5で同じ質問を繰り返さない（本人承認済み仕様 2026-07-17）
@@ -4353,9 +4376,11 @@ function obIsFresh(){
     return true;
   }catch(e){ return false; }
 }
-// ================= ホーム画面に追加ポップアップ（初回起動・はじめてガイドの直前だけ） =================
-// 端末・ブラウザで文言/ボタンを出し分ける。閉じたら（何を選んでも）必ず次の処理(obOpen)へ進む設計
-// ＝ユーザーが先に進めなくなることを避ける（本人指定の必須要件）。
+// ================= ホーム画面に追加ポップアップ =================
+// 2026-07-21 5視点検証(提案A・PO承認): 初回起動時のポップアップ(旧a2hsBoot)は廃止。
+// 初対面のインストール要求は「広告」反射を誘発するため、提案は価値を体験した後=1日目クリア直後の
+// 再提案カード(markDoneのaskQueue)+7/14日目のhomehint再提案+使い方タブ(gd-mamori)に一本化した。
+// ポップアップ本体(a2hsShow)はa2hsShowForce()経由でこれらの導線から呼ばれる。
 window.addEventListener("popstate",function(){
   const m=document.getElementById("a2hsModal");
   if(m&&!m.classList.contains("hidden")) a2hsClose();
@@ -4365,14 +4390,12 @@ window.addEventListener("popstate",function(){
   try{
     if(!obIsFresh()) return;
     // アプリ内ブラウザ(LINE等)ではオンボを出さない：記録がWebView側に残って後日消えるため。
-    // envBanner の「Safariで開いてね」案内を隠さず見せる（#welcomeで覆わない）。ホーム画面追加
-    // ポップアップも同じ理由でアプリ内ブラウザでは出さない（a2hsBoot自体を呼ばない）。
+    // envBanner の「Safariで開いてね」案内を隠さず見せる（#welcomeで覆わない）。
     if(envIsInApp()) return;
-    // YouTubeアプリ内ブラウザも同じ扱い（2026-07-20新規）：脱出バナーを隠さず見せ、a2hsBoot/オンボとも
-    // 抑止する（既存inApp時の扱いと一貫させる）。
+    // YouTubeアプリ内ブラウザも同じ扱い（2026-07-20新規）：脱出バナーを隠さず見せ、オンボを抑止する。
     if(typeof ytInAppDetect==="function" && ytInAppDetect()) return;
     const sp=document.getElementById("appSplash");
-    setTimeout(function(){ a2hsBoot(obOpen); }, sp?1500:600);
+    setTimeout(function(){ obOpen(); }, sp?1500:600);
   }catch(e){}
 })();
 

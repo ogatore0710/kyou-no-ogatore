@@ -142,6 +142,7 @@ function markDone(){
     // 念のため節目表示(if(ms))を優先する構造にしてある（このelse ifは節目でないときだけ通る）
     cheerEl.innerHTML=(note?`<div style="font-weight:800;color:var(--teal);margin-bottom:4px">${note}</div>`:"")
       +`<div style="font-size:16px;font-weight:900;color:var(--pink)">🎉 1日目クリア！ナイスご自愛！</div>`
+      +`<img src="assets/card-sample.png" alt="" class="fd-cardpop">`
       +`<div style="margin-top:6px;font-size:14px">きょうの記録が1まい目のカードになったよ ためると<b>図鑑</b>がうまっていく📖</div>`
       +`<div style="margin-top:6px;font-size:14px">よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）</div>`
       +tomorrowMsPreview;
