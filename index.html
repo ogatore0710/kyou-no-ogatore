@@ -1384,9 +1384,12 @@ function updateFabs(){
   // 「相談室で聞いてみる」リンクとの二重導線になるため、どちらも相談室FABを出さない(2026-07-20監査④⑤)。
   const sf=document.getElementById("soudanFab");
   if(sf) sf.classList.toggle("hidden",!sdKb()||currentSection==="home"||currentSection==="guide"||currentSection==="result");
-  // オガトレ通信FABも使い方タブでは隠す(本文・FAQ見出しへの被り対策。他タブでは従来どおり表示)
+  // オガトレ通信FABも使い方タブでは隠す(本文・FAQ見出しへの被り対策。他タブでは従来どおり表示)。
+  // さらに1日目チュートリアル当日(fdFocusHomeと同じ当日限定条件)は一本道の邪魔をしないよう全面非表示
+  // (2026-07-21実走で練習宣言の吹き出しに被るのを確認して追加)
+  const tut=(typeof fdActive==="function")&&fdActive()&&store.get("fdday",null)===todayStr();
   const of=document.getElementById("obuFab");
-  if(of) of.classList.toggle("hidden",currentSection==="guide");
+  if(of) of.classList.toggle("hidden",currentSection==="guide"||tut);
 }
 // ================= 自作アイコン（タイプ別イラスト・SVG） =================
 const TYPE_IMG = { momo:"assets/type-momo.png", kenko:"assets/type-kenko.png", yawara:"assets/type-yawara.png" };
