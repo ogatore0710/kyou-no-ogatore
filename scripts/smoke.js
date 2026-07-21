@@ -1276,49 +1276,73 @@ async function main() {
       }
       const notes = [];
 
-      // 1) iOS Safari → 共有ボタンからの案内、ボタンは「あとで」のみ
+      // 2026-07-21 5視点検証A(PO承認): 初回起動時のポップアップは廃止。全環境で「起動→welcome直行・
+      // a2hsModalは出ない」を確認したうえで、オンデマンド表示(a2hsShowForce=1日目カード/gd-mamoriと同じ経路)の
+      // 環境分岐(a2hsKindFor)が従来どおり正しいことを検証する。
+      // ハマりどころ: welcomeシートはスライドイン(0.25s)中で、p.click()は座標ズレで空振りしうる
+      // →待ってからevaluateクリック(ヒットテスト非依存)で押す。シナリオ失敗時のページリークは
+      // 後続ステップのprotocolタイムアウトを連鎖させるため、必ずfinallyでclose()する。
+      async function skipWelcome(p) {
+        await p.waitForFunction(() => { const w = document.getElementById("welcome"); return w && !w.classList.contains("hidden"); }, { timeout: 6000 });
+        await new Promise((r) => setTimeout(r, 450)); // シートのスライドイン待ち
+        await p.evaluate(() => document.getElementById("obSkipBtn").click());
+        await p.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+      }
+      async function bootThenForce(p) {
+        await p.waitForFunction(() => { const w = document.getElementById("welcome"); return w && !w.classList.contains("hidden"); }, { timeout: 6000 });
+        const modalAtBoot = await p.$eval("#a2hsModal", (el) => !el.classList.contains("hidden") || el.hasAttribute("data-a2hs-kind"));
+        if (modalAtBoot) throw new Error("初回起動でa2hsポップアップが出ている（2026-07-21廃止済みのはず）");
+        await skipWelcome(p);
+        await p.evaluate(() => a2hsShowForce());
+        await p.waitForFunction(() => !document.getElementById("a2hsModal").classList.contains("hidden"), { timeout: 5000 });
+        return p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+      }
+      async function scenario(opts, fn) {
+        const p = await freshPage(opts);
+        try { return await fn(p); } finally { await p.close().catch(() => {}); }
+      }
+      async function dismiss(p) {
+        await p.evaluate(() => {
+          const btns = document.querySelectorAll("#a2hsBtns button");
+          for (const b of btns) { if (b.textContent.indexOf("あとで") !== -1) { b.click(); return; } }
+        });
+        await p.waitForFunction(() => document.getElementById("a2hsModal").classList.contains("hidden"), { timeout: 5000 });
+      }
+
+      // 1) iOS Safari → 起動はwelcome直行、force表示でios-safari案内
       {
         const p = await freshPage({ ua: UA_IOS_SAFARI });
-        await waitPopupOrGuide(p);
-        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        const kind = await bootThenForce(p);
         if (kind !== "ios-safari") throw new Error("iOS Safariでkindがios-safariでない (実測=" + kind + ")");
-        const welcomeHidden = await p.$eval("#welcome", (el) => el.classList.contains("hidden"));
-        if (!welcomeHidden) throw new Error("iOS Safari: a2hsModal表示中にwelcomeも同時に見えている");
-        await p.click("#a2hsBtns button"); // 「あとで」
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await dismiss(p);
         await p.close();
-        notes.push("iOS Safari→共有ボタン案内→あとで→はじめてガイド");
+        notes.push("iOS Safari→起動はwelcome直行・force表示でios-safari案内→あとでで閉じる");
       }
 
-      // 1b) iPadOS(Macintosh偽装UA+タッチあり) → デスクトップ扱いされず、iOS Safariと同じ案内が出る(2026-07-18修正の回帰防止)
+      // 1b) iPadOS(Macintosh偽装UA+タッチあり) → デスクトップ扱いされずiOS Safariと同じ案内(2026-07-18修正の回帰防止)
       {
         const p = await freshPage({ ua: UA_IPAD_DESKTOP, maxTouchPoints: 5 });
-        await waitPopupOrGuide(p);
-        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        const kind = await bootThenForce(p);
         if (kind !== "ios-safari") throw new Error("iPadOS(Macintosh偽装UA)でkindがios-safariでない (実測=" + kind + ")");
-        await p.click("#a2hsBtns button"); // 「あとで」
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await dismiss(p);
         await p.close();
-        notes.push("iPadOS(Macintosh偽装UA+タッチ)→デスクトップ誤判定せずiOS Safari案内→あとで→はじめてガイド");
+        notes.push("iPadOS(Macintosh偽装UA+タッチ)→デスクトップ誤判定せずios-safari案内");
       }
 
-      // 2) iOS Chrome(CriOS) → 「Safariで開く必要がある」案内
+      // 2) iOS Chrome(CriOS) → ios-other案内
       {
         const p = await freshPage({ ua: UA_IOS_CHROME });
-        await waitPopupOrGuide(p);
-        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        const kind = await bootThenForce(p);
         if (kind !== "ios-other") throw new Error("iOS Chromeでkindがios-otherでない (実測=" + kind + ")");
-        await p.click("#a2hsBtns button"); // 「あとで」
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await dismiss(p);
         await p.close();
-        notes.push("iOS Chrome(CriOS)→Safariで開く案内→あとで→はじめてガイド");
+        notes.push("iOS Chrome(CriOS)→ios-other案内");
       }
 
       // 3) Android + beforeinstallprompt発火保持あり → 「ホーム画面に追加する」タップでprompt()実行
       {
         const p = await freshPage({ ua: UA_ANDROID, bip: true });
-        await waitPopupOrGuide(p);
-        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        const kind = await bootThenForce(p);
         if (kind !== "android-prompt") throw new Error("Android+bip保持でkindがandroid-promptでない (実測=" + kind + ")");
         const btnCount = await p.$$eval("#a2hsBtns button", (a) => a.length);
         if (btnCount !== 2) throw new Error("Android+bip保持でボタンが2個(インストール/あとで)でない (実測=" + btnCount + ")");
@@ -1327,42 +1351,46 @@ async function main() {
           for (const b of btns) { if (b.textContent.indexOf("ホーム画面に追加する") !== -1) { b.click(); return; } }
         });
         await p.waitForFunction(() => window.__a2hsPromptCalled === true, { timeout: 5000 });
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
         await p.close();
-        notes.push("Android(beforeinstallprompt保持)→「ホーム画面に追加する」→prompt()実行確認→はじめてガイド");
+        notes.push("Android(beforeinstallprompt保持)→「ホーム画面に追加する」→prompt()実行確認");
       }
 
-      // 4) Android（beforeinstallprompt未発火）→ 「⋮」メニュー案内。戻る操作でも進行不能にならないことも確認
+      // 4) Android（beforeinstallprompt未発火）→ 「⋮」メニュー案内
       {
         const p = await freshPage({ ua: UA_ANDROID });
-        await waitPopupOrGuide(p);
-        const kind = await p.$eval("#a2hsModal", (el) => el.getAttribute("data-a2hs-kind"));
+        const kind = await bootThenForce(p);
         if (kind !== "android-menu") throw new Error("Android未発火でkindがandroid-menuでない (実測=" + kind + ")");
-        await p.goBack(); // ボタンを押さず戻る操作で閉じても、必ずはじめてガイドへ進む（進行不能防止の必須要件）
-        await p.waitForFunction(() => document.getElementById("a2hsModal").classList.contains("hidden"), { timeout: 5000 });
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await dismiss(p);
         await p.close();
-        notes.push("Android(未発火)→メニュー案内→戻る操作で閉じても必ずはじめてガイドへ進行(スタック防止)");
+        notes.push("Android(未発火)→メニュー案内");
       }
 
-      // 5) すでにstandalone起動中 → ポップアップなしで直接はじめてガイド
+      // 5) すでにstandalone起動中 → welcome直行+force表示でも何も出ない(kindFor=null)
       {
         const p = await freshPage({ ua: UA_ANDROID, standalone: true });
         await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 6000 });
+        await p.click("#obSkipBtn");
+        await p.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.evaluate(() => a2hsShowForce());
+        await new Promise((r) => setTimeout(r, 600));
         const modalTouched = await p.$eval("#a2hsModal", (el) => !el.classList.contains("hidden") || el.hasAttribute("data-a2hs-kind"));
         if (modalTouched) throw new Error("standalone起動中なのにa2hsModalが出た");
         await p.close();
-        notes.push("standalone起動中→a2hsModalなしで直接はじめてガイド");
+        notes.push("standalone起動中→welcome直行・force表示でも案内なし");
       }
 
-      // 6) デスクトップUA → ポップアップなしで直接はじめてガイド（「ホーム画面」の概念がスマホ前提のため）
+      // 6) デスクトップUA → welcome直行+force表示でも何も出ない（「ホーム画面」の概念がスマホ前提のため）
       {
         const p = await freshPage({ ua: UA_DESKTOP });
         await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 6000 });
+        await p.click("#obSkipBtn");
+        await p.waitForFunction(() => document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        await p.evaluate(() => a2hsShowForce());
+        await new Promise((r) => setTimeout(r, 600));
         const modalTouched = await p.$eval("#a2hsModal", (el) => !el.classList.contains("hidden") || el.hasAttribute("data-a2hs-kind"));
         if (modalTouched) throw new Error("デスクトップUAなのにa2hsModalが出た");
         await p.close();
-        notes.push("デスクトップUA→a2hsModalなしで直接はじめてガイド");
+        notes.push("デスクトップUA→welcome直行・force表示でも案内なし");
       }
 
       // 7) アプリ内ブラウザ(LINE) → 従来どおりポップアップ・はじめてガイドとも出さない（既存仕様の回帰確認）
@@ -1939,25 +1967,19 @@ async function main() {
       }
 
       // (d) 非YouTube referrer(検索結果等)では発火しない・従来どおり初回起動フローが動く(回帰なし)。
-      //     iOS Safari UAではまずa2hsポップアップ(ios-safari)が出るのが正しい初回フロー
-      //     （welcomeはその「あとで」の後）なので、a2hsModalの出現を初回フロー再開の証拠として待つ。
+      //     2026-07-21 5視点A: 初回起動ポップアップは廃止済みのため、正しい初回フローは
+      //     「welcome(はじめてガイド)が直接ひらく・a2hsModalは出ない」
       {
         const p = await freshPageRef({ ua: UA_IOS_SAFARI, referrer: "https://www.google.com/search?q=x" });
-        await p.waitForFunction(() => {
-          const w = document.getElementById("welcome"), m = document.getElementById("a2hsModal");
-          return (w && !w.classList.contains("hidden")) || (m && !m.classList.contains("hidden"));
-        }, { timeout: 6000 });
+        await p.waitForFunction(() => { const w = document.getElementById("welcome"); return w && !w.classList.contains("hidden"); }, { timeout: 6000 });
         const state = await p.evaluate(() => ({
           ytFlag: sessionStorage.getItem("kyono_ytInApp"),
-          kind: document.getElementById("a2hsModal").getAttribute("data-a2hs-kind"),
+          modalTouched: !document.getElementById("a2hsModal").classList.contains("hidden") || document.getElementById("a2hsModal").hasAttribute("data-a2hs-kind"),
         }));
         if (state.ytFlag) throw new Error("YouTube以外のreferrerなのにkyono_ytInAppが立っている");
-        if (state.kind !== "ios-safari") throw new Error("非YouTube referrerの初回起動でa2hsポップアップ(ios-safari)が出ていない (実測=" + state.kind + ")");
-        // 「あとで」→welcomeまで進むこと(初回フロー全体の回帰なし)も見届ける
-        await p.click("#a2hsBtns button");
-        await p.waitForFunction(() => !document.getElementById("welcome").classList.contains("hidden"), { timeout: 5000 });
+        if (state.modalTouched) throw new Error("非YouTube referrerの初回起動でa2hsポップアップが出ている（2026-07-21廃止済みのはず）");
         await p.close();
-        notes.push("非YouTube referrer→誤検出なし・a2hsポップアップ→はじめてガイドの初回フローは従来どおり(回帰なし)");
+        notes.push("非YouTube referrer→誤検出なし・welcome直行の初回フロー(ポップアップ廃止後の正)");
       }
 
       return notes.join(" / ");
