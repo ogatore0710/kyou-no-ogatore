@@ -508,18 +508,20 @@
   .rbar{width:16px;height:100%;display:flex;align-items:flex-end}
   .rbar>div{width:100%;background:linear-gradient(180deg,#7BD0C4,var(--teal));border-radius:4px}
   .anchor-row .anchor-opt{margin-bottom:8px}
-  /* はじめてガイド（初回オンボーディング・独立オーバーレイ #welcome） */
-  #welcome{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:70;display:flex;align-items:flex-end;justify-content:center}
-  .ob-sheet{width:100%;max-width:520px;background:var(--bg);border:1.5px solid var(--line);border-bottom:none;border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));max-height:86vh;display:flex;flex-direction:column;box-sizing:border-box;animation:obup .32s ease-out}
-  @keyframes obup{from{transform:translateY(48px);opacity:0}to{transform:none;opacity:1}}
+  /* はじめてガイド（初回オンボーディング・独立オーバーレイ #welcome）
+     2026-07-22本人指摘: 下からのボトムシート→画面中央の「どんと出る」ポップアップに変更。
+     せり上がり(obup)もふわっと拡大(obpop)に。a2hsModalも同じ.ob-sheetを共有=同時に中央化される */
+  #welcome{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:70;display:flex;align-items:center;justify-content:center;padding:14px}
+  .ob-sheet{width:100%;max-width:520px;background:var(--bg);border:1.5px solid var(--line);border-radius:22px;padding:14px 16px;max-height:92vh;display:flex;flex-direction:column;box-sizing:border-box;animation:obpop .28s ease-out}
+  @keyframes obpop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
   @media (prefers-reduced-motion: reduce){ .ob-sheet{animation:none} }
   .ob-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .ob-title{font-size:15px;font-weight:900}
   .ob-skip{border:none;background:var(--line);color:var(--sub);border-radius:99px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
   .ob-skip:active{opacity:.7}
-  /* min-height 180→90(2026-07-21): チップ1列化で縦に伸びたぶんログ側が譲らないと、86vhのシート内で
-     チップ最下段が見切れる(本人実機で発生・zoom1.18だとさらに悪化)。ログはスクロールできるので譲ってよい */
-  #obLog{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:90px;max-height:52vh;padding:4px 2px}
+  /* min-height 180→90→60(2026-07-22): 回答チップは「スクロールさせず全部見せる」が本人要件のため、
+     スペースの取り合いでは常にログ側が譲る(ログはスクロールできる)。チップ側のoverflowは超小型画面の最終保険 */
+  #obLog{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:60px;max-height:52vh;padding:4px 2px}
   /* オンボの回答チップ(2026-07-21本人指摘×2): 主役UIなのに14px横並びで小さい→1列縦積み+16px+ゆとりpadding。
      ボタンらしさ(タップできる感)を出す立体影+押し込みも追加。.chipは検索タグ等と共用のため全体は変えない */
   /* overflow-y:auto=超小型画面での最後の保険(ログが最小まで縮んでも収まらない場合のみスクロール) */
@@ -530,8 +532,18 @@
   body.dark #obChips .chip{box-shadow:0 3px 0 rgba(0,0,0,.45)}
   /* 回答チップ群の「タップできるよ」明示(オンボ・相談室共通) */
   .tap-hint{font-size:13px;font-weight:800;color:var(--sub);text-align:center;margin:2px 0 2px}
+  /* オンボ回答チップの段階色(2026-07-22本人要望「4問の回答チップもグラデーションに」)。
+     かたさチェックの.opt.g0〜g3と同じパレットをチップ順(上=明るい→下=暗い)に適用。文字は--inkでAA実測済み */
+  #obChips .chip.obg0{background:#EAF8F1;border-color:#BFE8DC;color:var(--ink)}
+  #obChips .chip.obg1{background:#FFF3CB;border-color:#F2DE8A;color:var(--ink)}
+  #obChips .chip.obg2{background:#FBE3C6;border-color:#E5BC85;color:var(--ink)}
+  #obChips .chip.obg3{background:#F2D7CD;border-color:#DCA894;color:var(--ink)}
+  body.dark #obChips .chip.obg0{background:#2A423B;border-color:#2E5A52;color:var(--ink)}
+  body.dark #obChips .chip.obg1{background:#3B3524;border-color:#5C4F1E;color:var(--ink)}
+  body.dark #obChips .chip.obg2{background:#403322;border-color:#6A4A26;color:var(--ink)}
+  body.dark #obChips .chip.obg3{background:#402A28;border-color:#5E3A38;color:var(--ink)}
   /* ホーム画面に追加ポップアップ（初回起動・はじめてガイドの直前に出す独立オーバーレイ #a2hsModal） */
-  #a2hsModal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:70;display:flex;align-items:flex-end;justify-content:center}
+  #a2hsModal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:70;display:flex;align-items:center;justify-content:center;padding:14px}
   #a2hsModal .ob-sheet{max-height:none}
   .a2hs-body{font-size:15px;line-height:1.85;text-align:left;padding:2px 2px 4px}
   #a2hsBtns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
@@ -4182,11 +4194,9 @@ function obSay(lines,then){
 }
 // 質問ごとに色を変える（chip-a〜dを質問の順番で巡回）。全部teal(chip-b)固定だと、会話ログを
 // あとから見返したときにどの行がどの設問への回答か見分けにくいという本人指摘（2026-07-18）に対応。
-const OB_CHIP_VARIANTS=["chip-a","chip-b","chip-c","chip-d"];
 function obAskQ(){
   const q=ONBOARDING_SCRIPT.questions[obQi];
   if(!q){ obRoute(); return; }
-  const variant=OB_CHIP_VARIANTS[obQi%OB_CHIP_VARIANTS.length];
   obSay([q.q],function(){
     const box=document.getElementById("obChips");
     box.innerHTML="";
@@ -4195,9 +4205,10 @@ function obAskQ(){
     th.className="tap-hint";
     th.textContent="👇 タップしてえらんでね";
     box.appendChild(th);
-    q.chips.forEach(c=>{
+    // 段階色(2026-07-22本人要望): 旧・質問ごとの単色ローテーション→チップ順のグラデーション(obg0〜obg3)
+    q.chips.forEach((c,i)=>{
       const b=document.createElement("button");
-      b.className="chip "+variant;
+      b.className="chip obg"+(i%4);
       b.textContent=c.label;
       b.onclick=function(){ obPick(q,c); };
       box.appendChild(b);
@@ -4273,6 +4284,11 @@ function fdTourMaybeStart(){
   try{
     if(!store.get("tourpend")||store.get("tourseen")) return false;
     store.set("tourpend",0); store.set("tourseen",1);
+    // 記録カード保存への誘導(fdCardNudge・markDone側で挿入)は役目を終えたので片付ける
+    try{
+      const n=document.getElementById("fdCardNudge"); if(n&&n.parentNode) n.parentNode.removeChild(n);
+      const mb=document.getElementById("makeCardBtn"); if(mb) mb.classList.remove("fd-breathe");
+    }catch(e2){}
     obTourAutoClose=true;
     setTimeout(function(){ obOpenTour(); },350);
     return true;

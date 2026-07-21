@@ -956,10 +956,9 @@ function checkOnboardingUX(html, quizScript) {
     "greet[1] must use the updated wording"
   );
   assert(
-    "obAskQ: 4問の設問チップがOB_CHIP_VARIANTSで質問ごとに異なる色になる(全問teal固定の再発防止)",
-    /const OB_CHIP_VARIANTS=\[["']chip-a["'],["']chip-b["'],["']chip-c["'],["']chip-d["']\]/.test(html) &&
-      /b\.className="chip "\+variant/.test(html),
-    "each of the 4 onboarding questions must get a distinct chip color"
+    "obAskQ: 回答チップがチップ順の段階色(obg0〜obg3)になる(2026-07-22本人要望・旧OB_CHIP_VARIANTSは廃止)",
+    /b\.className="chip obg"\+\(i%4\)/.test(html) && html.indexOf("OB_CHIP_VARIANTS") === -1,
+    "each chip within a question must get the gradient class by index"
   );
   assert(
     "TYPES.yawara(しなやかネコ): rxが空でない(タイプ固有のピック無し状態の再発防止)",
@@ -2026,9 +2025,34 @@ function checkTutorialV2(html, mainScript, quizScript, recordScript) {
     const ok = bgs.every(Boolean) && bgs.every((b, i) => i === 0 || lumOf(b) < lumOf(bgs[i - 1]));
     assert("かたさチェック: 段階色が明→暗の単調グラデーション(ライト背景輝度g0>g1>g2>g3)", ok, bgs.join(","));
   }
-  // チップ見切れ対策: obLogが譲れる(min-height:90px)+obChipsに保険スクロール
-  assert("オンボシート: #obLogのmin-heightが90px(チップ1列化にともなう見切れ対策)", /#obLog\{[^}]*min-height:90px/.test(html), "");
+  // チップ見切れ対策: obLogが譲れる(min-height:60px)+obChipsに保険スクロール
+  assert("オンボシート: #obLogのmin-heightが60px(チップは全部見せる・ログが譲る)", /#obLog\{[^}]*min-height:60px/.test(html), "");
   assert("オンボシート: #obChipsにoverflow-y:auto(超小型画面の保険)", /#obChips\{[^}]*overflow-y:auto/.test(html), "");
+
+  // ---- 2026-07-22 本人実機レビュー第3弾 ----
+  // 1) はじめてガイド/a2hsポップアップは画面中央の「どんと出る」ポップアップ(ボトムシート廃止)
+  assert("welcome: 中央ポップアップ(align-items:center)", /#welcome\{[^}]*align-items:center/.test(html), "");
+  assert("a2hsModal: 中央ポップアップ(align-items:center)", /#a2hsModal\{[^}]*align-items:center/.test(html), "");
+  assert("ob-sheet: 全角丸+obpop(ふわっと拡大)アニメ", /\.ob-sheet\{[^}]*border-radius:22px;[^}]*animation:obpop/.test(html) && /@keyframes obpop/.test(html), "");
+  // 2) オンボチップの段階色obg0〜3(ライト/ダーク+明→暗の単調性)
+  {
+    const lumOf = (hex) => {
+      const c = hex.replace("#", "");
+      const [r, g2, b] = [0, 2, 4].map((i) => parseInt(c.substr(i, 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+      return 0.2126 * r + 0.7152 * g2 + 0.0722 * b;
+    };
+    const bgs = [];
+    for (const g of ["obg0", "obg1", "obg2", "obg3"]) {
+      const light = new RegExp(`#obChips \\.chip\\.${g}\\{background:(#[0-9A-Fa-f]{6})`).exec(html);
+      const dark = new RegExp(`body\\.dark #obChips \\.chip\\.${g}\\{background:#`).test(html);
+      assert(`オンボチップ: .${g}のライト/ダーク段階色CSSがある`, !!light && dark, "");
+      if (light) bgs.push(light[1]);
+    }
+    assert("オンボチップ: 段階色が明→暗の単調グラデーション", bgs.length === 4 && bgs.every((b, i) => i === 0 || lumOf(b) < lumOf(bgs[i - 1])), bgs.join(","));
+  }
+  // 3) 記録カード保存への誘導: markDone(guide)がfdCardNudge+呼吸アニメを付け、ツアー起動時に片付ける
+  assert("markDone: guideでfdCardNudge(👇つぎはここ)をmakeCardBtn直上に挿入", /fdCardNudge[\s\S]{0,300}つぎは ここを押してみて[\s\S]{0,200}insertBefore/.test(recordScript) && /mb\.classList\.add\("fd-breathe"\)/.test(recordScript), "");
+  assert("fdTourMaybeStart: fdCardNudgeとmakeCardBtnの呼吸アニメを片付ける", /fdCardNudge[\s\S]{0,120}removeChild/.test(extractFunction(mainScript, "fdTourMaybeStart")) && /makeCardBtn[\s\S]{0,80}classList\.remove\("fd-breathe"\)/.test(extractFunction(mainScript, "fdTourMaybeStart")), "");
 }
 
 // 2026-07-20 PO承認「かたさタイプ同点タイブレーク」の機械チェック。旧実装は固定順(momo→koka→kenko→ashi)

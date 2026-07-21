@@ -193,6 +193,22 @@ function markDone(){
     }
     store.set(a.key,1); // 出せない環境: フラグだけ消費して同日中に次候補へ繰り上げ
   }
+  // チュートリアル: 次の1手を「記録カードを画像でのこす」へ誘導(2026-07-22本人指摘)。
+  // このボタン→保存モーダル→閉じる(closeCard)が使い方ツアー自動起動の主経路のため、
+  // タップ明示+呼吸アニメで導く。ツアー起動時にfdTourMaybeStart側が両方を片付ける
+  if(guide){
+    try{
+      const mb=document.getElementById("makeCardBtn");
+      if(mb&&!document.getElementById("fdCardNudge")){
+        const d=document.createElement("div");
+        d.className="tap-hint";
+        d.id="fdCardNudge";
+        d.textContent="👇 つぎは ここを押してみて";
+        mb.parentNode.insertBefore(d,mb);
+        mb.classList.add("fd-breathe");
+      }
+    }catch(e){}
+  }
 }
 function saveMemo(){
   const t=document.getElementById("memoInput").value.trim().slice(0,30);
