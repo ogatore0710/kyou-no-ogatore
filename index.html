@@ -427,7 +427,8 @@
   .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:10px 16px;font-size:14px;font-weight:800;font-family:inherit;color:var(--sub);cursor:pointer}
   .chip-a{background:#FFF6D8;border-color:#F2DE8A;color:#8A6D00}
   .chip-b{background:#E7F8F1;border-color:#BFE8DC;color:var(--tealink)}
-  .chip-c{background:#FFEDF3;border-color:#F5C6D8;color:#C2477E}
+  /* chip-c文字色: 旧#C2477Eは#FFEDF3上で4.15:1とAA未達(2026-07-21本人「視認しにくい」指摘で実測)→#B0366E(5.18:1)へ */
+  .chip-c{background:#FFEDF3;border-color:#F5C6D8;color:#B0366E}
   .chip-d{background:#F1EDFF;border-color:#D6CCF5;color:#6A58B5}
   .chip-a.on{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
   .chip-b.on{background:var(--teal-strong);border-color:var(--teal-strong);color:#fff}
@@ -506,6 +507,9 @@
   #obLog{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:180px;max-height:52vh;padding:4px 2px}
   #obChips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:44px}
   #obChips .btn{width:100%}
+  /* オンボの回答チップは主役UIなのに14pxで小さい(2026-07-21本人「視認しにくい」指摘)→ここだけ16px+ゆとりpadding。
+     .chipは検索タグ等と共用のため全体は変えない */
+  #obChips .chip{font-size:16px;padding:12px 18px}
   /* ホーム画面に追加ポップアップ（初回起動・はじめてガイドの直前に出す独立オーバーレイ #a2hsModal） */
   #a2hsModal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(40,35,20,.55);z-index:70;display:flex;align-items:flex-end;justify-content:center}
   #a2hsModal .ob-sheet{max-height:none}
