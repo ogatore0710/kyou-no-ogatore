@@ -18,6 +18,7 @@ let package = Package(
             resources: [
                 .copy("Resources/card-golden.json"),
                 .copy("Resources/card-rand-golden.json"),
+                .copy("Resources/dex-golden.json"),
             ]
         ),
     ]

@@ -105,12 +105,24 @@ class MainActivity : ComponentActivity() {
                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                             onClose = { screen = Screen.Home },
                         )
+                        is Screen.Search -> SearchScreen(
+                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                            onBack = { screen = Screen.Home },
+                        )
+                        is Screen.Catalog -> CatalogListScreen(
+                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                            onBack = { screen = Screen.Home },
+                        )
+                        is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.Home })
                         is Screen.Home -> HomeScreen(
                             store = store,
                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                             onOpenMyRecord = { screen = Screen.MyRecord },
                             onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
                             onOpenSoudan = { screen = Screen.Soudan },
+                            onOpenSearch = { screen = Screen.Search },
+                            onOpenCatalog = { screen = Screen.Catalog },
+                            onOpenDex = { screen = Screen.Dex },
                         )
                     }
                 }
@@ -126,6 +138,9 @@ sealed class Screen {
     object MyRecord : Screen()
     object Onboarding : Screen()
     object Soudan : Screen()
+    object Search : Screen()
+    object Catalog : Screen()
+    object Dex : Screen()
     data class Quiz(val presetWorry: String?) : Screen()
     data class Result(val typeKey: String) : Screen()
     data class Tour(val showClosing: Boolean) : Screen()
@@ -143,6 +158,9 @@ fun HomeScreen(
     onOpenMyRecord: () -> Unit,
     onStartTour: (Boolean) -> Unit,
     onOpenSoudan: () -> Unit,
+    onOpenSearch: () -> Unit,
+    onOpenCatalog: () -> Unit,
+    onOpenDex: () -> Unit,
 ) {
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
@@ -271,6 +289,15 @@ fun HomeScreen(
 
         Spacer(Modifier.height(12.dp))
         Button(onClick = onOpenSoudan, modifier = Modifier.testTag("soudanFab")) { Text("💬 オガトレ相談室") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenSearch, modifier = Modifier.testTag("searchBtn")) { Text("🔍 動画を探す") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenCatalog, modifier = Modifier.testTag("catalogBtn")) { Text("📺 再生リスト") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenDex, modifier = Modifier.testTag("dexBtn")) { Text("📖 図鑑") }
     }
 
     cardBitmap?.let { bmp ->
