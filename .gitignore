@@ -15,3 +15,4 @@ android-native/*/build/
 android-native/*/app/build/
 ios-native/*/SafetyCore/.build/
 ios-native/*/RecordCore/.build/
+ios-native/*/CardCore/.build/

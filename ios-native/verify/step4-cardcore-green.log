@@ -1,0 +1,50 @@
+[0/1] Planning build
+Building for debugging...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.17s)
+Test Suite 'All tests' started at 2026-07-25 20:12:38.494.
+Test Suite 'CardCorePackageTests.xctest' started at 2026-07-25 20:12:38.495.
+Test Suite 'CardLotteryTests' started at 2026-07-25 20:12:38.495.
+Test Case '-[CardCoreTests.CardLotteryTests testCardGolden55CasesMatchJSOutput]' started.
+Test Case '-[CardCoreTests.CardLotteryTests testCardGolden55CasesMatchJSOutput]' passed (0.003 seconds).
+Test Suite 'CardLotteryTests' passed at 2026-07-25 20:12:38.499.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'CardRandGoldenTests' started at 2026-07-25 20:12:38.499.
+Test Case '-[CardCoreTests.CardRandGoldenTests testCardRandMatchesJSOutput]' started.
+Test Case '-[CardCoreTests.CardRandGoldenTests testCardRandMatchesJSOutput]' passed (0.001 seconds).
+Test Suite 'CardRandGoldenTests' passed at 2026-07-25 20:12:38.499.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'CardRendererTests' started at 2026-07-25 20:12:38.499.
+Test Case '-[CardCoreTests.CardRendererTests testDifferentDatesProduceDifferentBitmaps]' started.
+Test Case '-[CardCoreTests.CardRendererTests testDifferentDatesProduceDifferentBitmaps]' passed (0.094 seconds).
+Test Case '-[CardCoreTests.CardRendererTests testSameInputProducesIdenticalBitmapTwice]' started.
+Test Case '-[CardCoreTests.CardRendererTests testSameInputProducesIdenticalBitmapTwice]' passed (0.083 seconds).
+Test Suite 'CardRendererTests' passed at 2026-07-25 20:12:38.677.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.177 (0.177) seconds
+Test Suite 'ForbiddenAPIRegressionTests' started at 2026-07-25 20:12:38.677.
+Test Case '-[CardCoreTests.ForbiddenAPIRegressionTests testNoForbiddenTimeOrRandomAPIs]' started.
+Test Case '-[CardCoreTests.ForbiddenAPIRegressionTests testNoForbiddenTimeOrRandomAPIs]' passed (0.005 seconds).
+Test Suite 'ForbiddenAPIRegressionTests' passed at 2026-07-25 20:12:38.682.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'QuizEngineTests' started at 2026-07-25 20:12:38.682.
+Test Case '-[CardCoreTests.QuizEngineTests testDistributionOver256CombosTimes12Rotations]' started.
+Test Case '-[CardCoreTests.QuizEngineTests testDistributionOver256CombosTimes12Rotations]' passed (0.005 seconds).
+Test Case '-[CardCoreTests.QuizEngineTests testRobotYawaraGatesTakePriorityOverTiebreak]' started.
+Test Case '-[CardCoreTests.QuizEngineTests testRobotYawaraGatesTakePriorityOverTiebreak]' passed (0.000 seconds).
+Test Case '-[CardCoreTests.QuizEngineTests testRotationTiebreakIsDeterministicAndVariesByDate]' started.
+Test Case '-[CardCoreTests.QuizEngineTests testRotationTiebreakIsDeterministicAndVariesByDate]' passed (0.000 seconds).
+Test Case '-[CardCoreTests.QuizEngineTests testSingleMaxHolderWinsRegardlessOfWorryOrDate]' started.
+Test Case '-[CardCoreTests.QuizEngineTests testSingleMaxHolderWinsRegardlessOfWorryOrDate]' passed (0.000 seconds).
+Test Case '-[CardCoreTests.QuizEngineTests testWorryTiebreakPicksMatchingHolder]' started.
+Test Case '-[CardCoreTests.QuizEngineTests testWorryTiebreakPicksMatchingHolder]' passed (0.000 seconds).
+Test Suite 'QuizEngineTests' passed at 2026-07-25 20:12:38.688.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'CardCorePackageTests.xctest' passed at 2026-07-25 20:12:38.688.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.192 (0.193) seconds
+Test Suite 'All tests' passed at 2026-07-25 20:12:38.688.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.192 (0.194) seconds
+card-golden: 55/55 match
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
