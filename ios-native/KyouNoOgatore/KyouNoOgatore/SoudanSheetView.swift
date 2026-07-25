@@ -171,127 +171,243 @@ struct SoudanSheetView: View {
         messages.append(.bot(text: "OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil))
     }
 
+    private var themeSetting: String { store.get("theme", default: "auto") }
+
+    // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+    // Phase 3: index.html:459-489 .sd-sheet/.sd-head/.sd-b/.chip/.catbtnの1:1移植。見た目の変更のみで、
+    // 上の判定・状態管理ロジック(applyResponse/chipTap/sendText等)には一切手を入れていない。
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        KyonoTheme(themeSetting: themeSetting) {
+            content
+        }
+    }
+
+    private var content: some View {
+        SoudanContentView(
+            messages: messages, chipsMode: chipsMode, input: $input, plan: plan,
+            kb: kb, onClose: onClose, openUrl: openUrl,
+            onSend: sendText, onChip: chipTap, onFollowup: followupTap,
+            onPlanChip: planChipTap, onPlanStart: planStart, onPlanDecline: planDecline,
+            onCatSelect: { key in chipsMode = .intents(activeCat: key) }
+        )
+    }
+}
+
+// KyonoColors解決の都合上(HomeView.swift冒頭コメント参照: @Environmentは自分を包むKyonoThemeの
+// 子孫でなければ既定値のまま)、実際の描画は別のView構造体に切り出す。ロジックは一切持たず、
+// 親から渡された状態・コールバックをそのまま描画するだけ。
+private struct SoudanContentView: View {
+    @Environment(\.kyonoColors) private var colors
+    let messages: [SdBubble]
+    let chipsMode: SdChipsMode
+    @Binding var input: String
+    let plan: SdPlanData?
+    let kb: SafetyKB
+    let onClose: () -> Void
+    let openUrl: (String) -> Void
+    let onSend: () -> Void
+    let onChip: (String) -> Void
+    let onFollowup: (String) -> Void
+    let onPlanChip: (String) -> Void
+    let onPlanStart: (String) -> Void
+    let onPlanDecline: () -> Void
+    let onCatSelect: (String) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // index.html:461-465 .sd-head(ヘッダー・円形×クローズボタン)
             HStack {
-                Text("オガトレ相談室").font(.title2.bold())
+                KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
                 Spacer()
-                Button("✕", action: onClose)
+                Button(action: onClose) {
+                    Text("✕").foregroundColor(colors.ink).fontWeight(.black)
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(colors.line))
+                }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            .background(colors.card)
+            // index.html:466-467 .sd-disc
             Text("※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ")
-                .font(.caption)
+                .font(.system(size: 13)).foregroundColor(colors.sub).multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16).padding(.vertical, 6)
+                .background(colors.card)
+            Divider()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊")
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊").foregroundColor(colors.sub)
                     ForEach(messages) { m in bubbleView(m) }
                 }
+                .padding(16)
             }
 
             chipsView
-
-            HStack {
-                TextField("気になることを入力", text: $input)
-                    .textFieldStyle(.roundedBorder)
-                Button("送信", action: sendText)
-            }
         }
-        .padding(16)
+        .background(colors.bg)
     }
 
     @ViewBuilder
     private func bubbleView(_ m: SdBubble) -> some View {
         switch m {
+        // index.html:482-483 .sd-row.user .sd-b(黄色系吹き出し・右寄せ)
         case let .user(text):
-            Text(text).frame(maxWidth: .infinity, alignment: .trailing)
+            HStack {
+                Spacer()
+                Text(text).foregroundColor(colors.ink)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomLeft]).fill(colors.yellowSoft))
+            }
+        // index.html:481,488 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)
         case let .bot(text, red, videoId):
-            VStack(alignment: .leading, spacing: 4) {
-                if !text.isEmpty { Text(text) }
-                if let videoId {
-                    Button("▶ 動画を見る") { openUrl("https://www.youtube.com/watch?v=\(videoId)") }
+            let bg = red ? colors.coralSoft : colors.card
+            let border = red ? colors.coral : colors.line
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    if !text.isEmpty { Text(text).foregroundColor(colors.ink) }
+                    if let videoId {
+                        KyonoGhostButton("▶ 動画を見る") { openUrl("https://www.youtube.com/watch?v=\(videoId)") }
+                    }
                 }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(
+                    RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).fill(bg)
+                        .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(border, lineWidth: 1.5))
+                )
+                .frame(maxWidth: 320, alignment: .leading)
+                Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(10)
-            .background(red ? Color(red: 0.96, green: 0.84, blue: 0.84) : Color(red: 0.95, green: 0.95, blue: 0.93))
-            .cornerRadius(12)
         case let .planConfirm(intentId, label, replacing):
-            VStack(alignment: .leading, spacing: 6) {
-                Text(replacing
-                    ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"
-                    : "きょうの1本が、あなたの\(label)プランになるよ！2週間いっしょにやってみる？")
-                HStack {
-                    Button(replacing ? "入れ替えてはじめる！" : "はじめる！") { planStart(intentId) }
-                    Button("まずは1本だけ") { planDecline() }
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(replacing
+                        ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"
+                        : "きょうの1本が、あなたの\(label)プランになるよ！2週間いっしょにやってみる？")
+                        .foregroundColor(colors.ink)
+                    KyonoPrimaryButton(replacing ? "入れ替えてはじめる！" : "はじめる！") { onPlanStart(intentId) }
+                    KyonoGhostButton("まずは1本だけ") { onPlanDecline() }
                 }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(
+                    RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).fill(colors.card)
+                        .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.line, lineWidth: 1.5))
+                )
+                .frame(maxWidth: 320, alignment: .leading)
+                Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(10)
-            .background(Color(red: 0.95, green: 0.95, blue: 0.93))
-            .cornerRadius(12)
         }
     }
 
-    // ---- チップ列(index.html:3139 sdRenderChips相当) ----
+    // ---- チップ列(index.html:3139 sdRenderChips相当・.chip/.catbtnの1:1移植) ----
     @ViewBuilder
     private var chipsView: some View {
-        switch chipsMode {
-        case .none:
-            EmptyView() // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
-        case let .intents(activeCat):
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    ForEach(sdChipCats, id: \.key) { cat in
-                        Button(cat.label) { chipsMode = .intents(activeCat: cat.key) }
-                            .buttonStyle(.borderedProminent)
-                            .tint(cat.key == activeCat ? Color(red: 0.42, green: 0.31, blue: 0.65) : Color(red: 0.91, green: 0.89, blue: 0.96))
-                    }
-                }
-            }
-            let cat = sdChipCats.first { $0.key == activeCat } ?? sdChipCats[0]
-            let ids = Set(sdCatIntentIds(cat, kb.intents))
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    ForEach(kb.intents.filter { ids.contains($0.id) }, id: \.id) { intent in
-                        Button(intent.chip) { chipTap(intent.id) }.buttonStyle(.borderedProminent)
-                    }
-                }
-            }
-        case let .followups(intentId, nextBestId):
-            let intent = kb.intents.first { $0.id == intentId }
-            // index.html:1828 planInjectChip相当: 動画2本以上・除外intentでない・実行中プランと同一でないときだけ出す
-            let showPlanChip = intent != nil && (intent?.videos?.count ?? 0) >= 2 &&
-                intent?.id != planExcludeIntent && plan?.intentId != intent?.id
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    if showPlanChip, let intent {
-                        Button("📅 この悩みを2週間プランにする") { planChipTap(intent.id) }.buttonStyle(.borderedProminent)
-                    }
-                    ForEach(intent?.followups ?? [], id: \.self) { fid in
-                        if let f = kb.commonFollowups.first(where: { $0.id == fid }) {
-                            Button(f.chip) { followupTap(fid) }.buttonStyle(.borderedProminent)
-                        } else if let li = kb.intents.first(where: { $0.id == fid }) {
-                            Button(li.chip) { chipTap(fid) }.buttonStyle(.borderedProminent)
+        VStack(alignment: .leading, spacing: 6) {
+            switch chipsMode {
+            case .none:
+                EmptyView() // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
+            case let .intents(activeCat):
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(sdChipCats, id: \.key) { cat in
+                            KyonoCatButton(label: cat.label, selected: cat.key == activeCat) { onCatSelect(cat.key) }
                         }
                     }
-                    if let nextBestId, let nb = kb.intents.first(where: { $0.id == nextBestId }) {
-                        Button("\(nb.chip)の話も") { chipTap(nb.id) }.buttonStyle(.borderedProminent)
-                    }
-                    Button("べつの悩みをそうだん") { chipsMode = .intents(activeCat: "body") }.buttonStyle(.borderedProminent)
                 }
-            }
-        case let .nearmiss(ids):
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    ForEach(ids, id: \.self) { id in
-                        if let intent = kb.intents.first(where: { $0.id == id }) {
-                            Button(intent.chip) { chipTap(id) }.buttonStyle(.borderedProminent)
+                let cat = sdChipCats.first { $0.key == activeCat } ?? sdChipCats[0]
+                let ids = Set(sdCatIntentIds(cat, kb.intents))
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(kb.intents.filter { ids.contains($0.id) }, id: \.id) { intent in
+                            KyonoChip(label: intent.chip) { onChip(intent.id) }
                         }
                     }
-                    Button("べつの悩みをそうだん") { chipsMode = .intents(activeCat: "body") }.buttonStyle(.borderedProminent)
                 }
+            case let .followups(intentId, nextBestId):
+                let intent = kb.intents.first { $0.id == intentId }
+                // index.html:1828 planInjectChip相当: 動画2本以上・除外intentでない・実行中プランと同一でないときだけ出す
+                let showPlanChip = intent != nil && (intent?.videos?.count ?? 0) >= 2 &&
+                    intent?.id != planExcludeIntent && plan?.intentId != intent?.id
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        if showPlanChip, let intent {
+                            KyonoChip(label: "📅 この悩みを2週間プランにする") { onPlanChip(intent.id) }
+                        }
+                        ForEach(intent?.followups ?? [], id: \.self) { fid in
+                            if let f = kb.commonFollowups.first(where: { $0.id == fid }) {
+                                KyonoChip(label: f.chip) { onFollowup(fid) }
+                            } else if let li = kb.intents.first(where: { $0.id == fid }) {
+                                KyonoChip(label: li.chip) { onChip(fid) }
+                            }
+                        }
+                        if let nextBestId, let nb = kb.intents.first(where: { $0.id == nextBestId }) {
+                            KyonoChip(label: "\(nb.chip)の話も") { onChip(nb.id) }
+                        }
+                        KyonoChip(label: "べつの悩みをそうだん") { onCatSelect("body") }
+                    }
+                }
+            case let .nearmiss(ids):
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(ids, id: \.self) { id in
+                            if let intent = kb.intents.first(where: { $0.id == id }) {
+                                KyonoChip(label: intent.chip) { onChip(id) }
+                            }
+                        }
+                        KyonoChip(label: "べつの悩みをそうだん") { onCatSelect("body") }
+                    }
+                }
+            }
+
+            HStack {
+                TextField("気になることを入力", text: $input).textFieldStyle(.roundedBorder)
+                KyonoPrimaryButton("送信", action: onSend).frame(width: 90)
             }
         }
+        .padding(.horizontal, 14).padding(.vertical, 8)
+        .background(colors.card)
+    }
+}
+
+// index.html:440 .chip(丸ピル・line枠・card背景)の1:1移植。
+private struct KyonoChip: View {
+    @Environment(\.kyonoColors) private var colors
+    let label: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(label).font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                .padding(.horizontal, 16).padding(.vertical, 10)
+                .overlay(Capsule().stroke(colors.line, lineWidth: 2))
+                .background(Capsule().fill(colors.card))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// index.html:436-437 .catbtn/.catbtn.on(カテゴリタブ・選択時=yellow背景)の1:1移植。
+private struct KyonoCatButton: View {
+    @Environment(\.kyonoColors) private var colors
+    let label: String
+    let selected: Bool
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(label).font(.kyono(.black900, size: 14)).foregroundColor(selected ? Color(hex: 0x3A3A35) : colors.sub)
+                .padding(.horizontal, 13).padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 12).fill(selected ? colors.yellow : colors.line))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// 吹き出しの「しっぽ」角(左上/右上/片方の下角だけ丸める)用の汎用Shape。
+private struct RoundedCorner: Shape {
+    var radius: CGFloat = 16
+    var corners: UIRectCorner = .allCorners
+    func path(in rect: CGRect) -> Path {
+        Path(UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius)).cgPath)
     }
 }
 
