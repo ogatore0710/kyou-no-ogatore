@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -516,17 +518,26 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
                 val latest = reachList.lastOrNull()
                 Text(if (latest != null) "いまの記録: 段位${latest.lv}" else "まだ記録なし", color = colors.sub, modifier = Modifier.testTag("reachNowText"))
                 Spacer(Modifier.height(8.dp))
-                Row {
+                // index.html:504-506 .reach-row(5列グリッド)/.reach-btn/.reach-btn.on(teal-strong塗り)の1:1移植。
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                    val reachLabels = listOf("ひざ", "すね", "足首", "つま先", "ゆか")
                     for (lv in 1..5) {
-                        KyonoGhostButton(
-                            "$lv",
-                            {
-                                RecordLogic.setReach(store, lv, now)
-                                reachList = RecordLogic.getReach(store)
-                                reachMsg = "記録しました！"
-                            },
-                            Modifier.padding(end = 6.dp).testTag("reachBtn_$lv"),
-                        )
+                        val on = latest?.lv == lv
+                        Box(
+                            modifier = Modifier.weight(1f)
+                                .background(if (on) colors.tealStrong else colors.card, RoundedCornerShape(12.dp))
+                                .border(2.dp, if (on) colors.tealStrong else colors.line, RoundedCornerShape(12.dp))
+                                .clickable {
+                                    RecordLogic.setReach(store, lv, now)
+                                    reachList = RecordLogic.getReach(store)
+                                    reachMsg = "記録しました！"
+                                }
+                                .padding(vertical = 13.dp)
+                                .testTag("reachBtn_$lv"),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(reachLabels[lv - 1], color = if (on) Color.White else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                        }
                     }
                 }
                 reachMsg?.let {
@@ -550,7 +561,9 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
     }
 }
 
-private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shape.RoundedCornerShape(percentage = percent)
+private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shape.RoundedCornerShape(
+    topStartPercent = percent, topEndPercent = percent, bottomStartPercent = percent, bottomEndPercent = percent,
+)
 
 // index.html:2001 renderIcs/saveIcsTime相当。Web版はICSファイルダウンロード/Googleカレンダーリンクだが、
 // ネイティブはOS標準のカレンダーAppへIntent委譲する(マスタープラン§2-1「icstimeはEventKit/
