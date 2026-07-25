@@ -4,6 +4,19 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 5a 完了（alan5発注・appdev実行・ホーム・記録フロー・チュートリアルフラグ機械=最初のUI層）
+
+`TASK-C2-2026-07-25-native-migration-step5a.md`（マスタープラン§6 Step 5a）を実施。**Step2-4で作ったロジック層(SafetyGate/RecordLogic/CardLottery/CardRenderer)を初めて実UIに配線した最初のステップ。Web版(PWA)配信ファイルは無変更**。
+
+- **HomeLogic新設**（RecordCore/record packageに追加）: `fdActive`/`fdFocusHomeActive`（index.html:1655/1660。**ガイド開始日=fdday当日限定**の仕様をユニットテストで明示的に固定。HANDOVER第7項・過去に複数日貼りつきバグが発生した既知の壊れやすい箇所）・`refreshDay`（app-env.js:60の日付またぎ検知部分のみ抽出。テーマ適用等のUI副作用は分離）・`shouldShowDoneNudge`（index.html:3970 checkDoneNudge）。iOS 29/29・Android 188/188（回帰なし+新規10件）。
+- **Android実HomeScreen**: MainActivity.ktをStep1のHello WorldからCompose実装へ書き換え、RecordStore/RecordLogic/HomeLogic/CardLottery/CardRendererを実配線（kyono-store.jsonをfilesDir配下へ実永続化）。kyono_testエミュレータで実タップ検証を実施し`android-native/verify/step5a/`にスクショ列(01〜08)を保存: ①「きょうやった!」実タップ→streak更新+cheer文言+記録カード自動ポップ ②「きょうの1本を見る」実タップで外部ブラウザへ遷移→アプリに復帰→「おかえりなさい!ストレッチできた?」ナッジが実際に表示（pendingNudge復帰導線の実機動作確認）③記録後にadb force-stopでプロセス強制終了→再起動→通算日数が消えずに残る（ファイル永続化の実機確認）。タップ座標変換ミス（displayed座標への1.2倍し忘れ）からの復旧記録も透明性のため削除せず残した。
+- **iOS HomeView**: マスタープラン§4-2の非対称運用どおりビルド確認・実行確認はせず、Android版と同一ロジックのSwiftUIコードをKyouNoOgatoreアプリターゲットに追加（コードレビュー対象）。**RecordCore/CardCoreを`xcodebuild -destination 'generic/platform=iOS Simulator'`で実際にiOSシミュレータ向けビルドし、生成された実.swiftmoduleに対してHomeView.swiftを`swiftc -typecheck`で型検査→エラーなしを確認**（単なる目視レビューより強い保証。ただしSafetyCore/RecordCore/CardCoreをアプリターゲットの依存関係として追加するXcode GUI操作(File > Add Package Dependencies > Add Local...)はまだ人間の手番として残っている——project.pbxprojの手編集リスクを避けるためあえて触らなかった）。
+- **検収基準4項目**: ①Android実タップスクショ列(記録→cheer→カードポップ)取得=PASS ②fdFocusHome当日限定のユニットテスト緑(翌日は通常ホーム)=PASS ③深夜3時境界をまたいだ更新のユニットテスト緑+pendingNudge復帰導線のAndroid実タップ動作確認=PASS ④記録→強制終了→再起動での永続化をAndroid実機で確認=PASS。
+- **Step5aのスコープ外として意図的に持ち越した項目**（§6検収基準4件のいずれにも含まれないため）: 動画カタログ本体(videos.js/catalog.json)・2週間プラン・カレンダーUI・オンボ/ツアーUI。Step5b/5c/7aの範囲。
+- **gitlink/file-count確認**: iOS 49=49一致。Android 59 vs 60の差分1件は継続の既知の意図的gitignore(`local.properties`)。`npm test`442 checks引き続き全緑（exit 0）・PWA配信ファイル無変更確認済み。Step0-4回帰: iOS(SafetyCore6+RecordCore29+CardCore10=45)・Android188、いずれも緑のまま。
+- push済み。検証スクショは`android-native/verify/step5a/`にコミット済み。
+- 次: alan5への完了報告をドア配達。Step 5b（カレンダー・マイ記録）以降はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 4 完了（alan5発注・appdev実行・決定的ロジック=カード抽選・かたさ診断）
 
 `TASK-C2-2026-07-25-native-migration-step4.md`（マスタープラン§2-4+§6 Step 4）を実施。**cardRand(mulberry32)/dateIdx(+9h)/rotationIndex(+6h)/legacyRotPos/ensureRotAssign/cardPatternFor(記録カード抽選)とdecideType(かたさ診断2段タイブレーク)を1:1移植。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
