@@ -1,19 +1,30 @@
 package jp.ogatore.kyouno
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -27,10 +38,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.lifecycle.Lifecycle
@@ -39,11 +54,13 @@ import jp.ogatore.kyouno.card.CardDataLoader
 import jp.ogatore.kyouno.card.CardLottery
 import jp.ogatore.kyouno.card.CardRenderer
 import jp.ogatore.kyouno.card.ResolvedTheme
+import jp.ogatore.kyouno.record.CalendarLogic
 import jp.ogatore.kyouno.record.HomeLogic
 import jp.ogatore.kyouno.record.RecordLogic
 import jp.ogatore.kyouno.record.RecordStore
 import java.io.File
 import java.time.Instant
+import java.util.Calendar as JCalendar
 import kotlin.random.Random
 
 // ネイティブ移植 Step 5a(マスタープラン§6 Step 5a): ホーム・記録フロー・チュートリアルフラグ機械の
@@ -62,9 +79,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         store = RecordStore.forFile(File(filesDir, "kyono-store.json"))
         setContent {
+            var showMyRecord by remember { mutableStateOf(false) }
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    HomeScreen(store = store, openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) })
+                    if (showMyRecord) {
+                        MyRecordScreen(store = store, onBack = { showMyRecord = false })
+                    } else {
+                        HomeScreen(
+                            store = store,
+                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                            onOpenMyRecord = { showMyRecord = true },
+                        )
+                    }
                 }
             }
         }
@@ -77,7 +103,7 @@ private val CHEERS = listOf(
 )
 
 @Composable
-fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit) {
+fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: () -> Unit) {
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
     var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
@@ -189,6 +215,9 @@ fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit) {
             enabled = did,
             modifier = Modifier.testTag("makeCardBtn"),
         ) { Text("記録カードを見る") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenMyRecord, modifier = Modifier.testTag("myRecordBtn")) { Text("マイ記録を見る") }
     }
 
     cardBitmap?.let { bmp ->
@@ -204,6 +233,135 @@ fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit) {
             },
         )
     }
+}
+
+// ネイティブ移植 Step 5b(マスタープラン§6 Step 5b): マイ記録(カレンダー・おやすみ券・とどくメーター・
+// カレンダー登録)。判定・集計ロジックはCalendarLogic/RecordLogic(Step3/5b)の純粋関数を呼ぶだけ。
+//
+// カレンダーはColumn+Row(最大6週間ぶん)で組む。LazyVerticalGridをverticalScroll内に入れると
+// 無限高さ制約でクラッシュするため(masterplan §1-4禁じ手)、あえて素朴なColumn+Rowを使う。
+@Composable
+fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val now = Instant.now()
+    val streak = remember { RecordLogic.loadStreak(store) }
+    val doneDates = remember { streak.dates.toSet() }
+    val today = remember { RecordLogic.todayStr(now) }
+
+    val nowCal = JCalendar.getInstance()
+    var year by remember { mutableStateOf(nowCal.get(JCalendar.YEAR)) }
+    var month by remember { mutableStateOf(nowCal.get(JCalendar.MONTH) + 1) } // JCalendar.MONTHは0始まり→1-12へ
+
+    var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
+    var reachMsg by remember { mutableStateOf<String?>(null) }
+    val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, now) }
+
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
+        Button(onClick = onBack, modifier = Modifier.testTag("myRecordBackBtn")) { Text("◀ もどる") }
+        Spacer(Modifier.height(12.dp))
+        Text("マイ記録", style = MaterialTheme.typography.headlineSmall)
+
+        Spacer(Modifier.height(16.dp))
+        // ---- カレンダー(index.html:renderCal相当。§6 Step5b検収基準1) ----
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = { if (month == 1) { month = 12; year -= 1 } else { month -= 1 } },
+                modifier = Modifier.testTag("calPrevBtn"),
+            ) { Text("◀") }
+            Text(
+                "${year}年${month}月",
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Button(
+                onClick = { if (month == 12) { month = 1; year += 1 } else { month += 1 } },
+                modifier = Modifier.testTag("calNextBtn"),
+            ) { Text("▶") }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            for (w in listOf("日", "月", "火", "水", "木", "金", "土")) {
+                Text(w, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+            }
+        }
+        val leading = CalendarLogic.firstWeekday(year, month)
+        val days = CalendarLogic.daysInMonth(year, month)
+        val rows = (leading + days + 6) / 7
+        Column(modifier = Modifier.testTag("calGrid")) {
+            for (r in 0 until rows) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (c in 0 until 7) {
+                        val day = r * 7 + c - leading + 1
+                        Box(modifier = Modifier.weight(1f).aspectRatio(1f).padding(2.dp), contentAlignment = Alignment.Center) {
+                            if (day in 1..days) {
+                                val ds = CalendarLogic.dateString(year, month, day)
+                                val isDone = doneDates.contains(ds)
+                                val isToday = ds == today
+                                val isFuture = ds > today
+                                var cellMod: Modifier = Modifier.fillMaxSize().padding(2.dp)
+                                if (isDone) cellMod = cellMod.background(Color(0xFF9BDFC9), CircleShape)
+                                if (isToday) cellMod = cellMod.border(2.dp, Color(0xFFE56A9A), CircleShape)
+                                Box(modifier = cellMod, contentAlignment = Alignment.Center) {
+                                    Text(
+                                        "$day",
+                                        color = if (isFuture) Color.Gray else Color.Black,
+                                        modifier = Modifier.testTag("calCell_$ds"),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+        Text("おやすみ券 のこり${freezeLeft}枚", modifier = Modifier.testTag("freezeLeftText"))
+
+        Spacer(Modifier.height(24.dp))
+        Text("とどくメーター", style = MaterialTheme.typography.titleMedium)
+        val latest = reachList.lastOrNull()
+        Text(if (latest != null) "いまの記録: 段位${latest.lv}" else "まだ記録なし", modifier = Modifier.testTag("reachNowText"))
+        Row {
+            for (lv in 1..5) {
+                Button(
+                    onClick = {
+                        RecordLogic.setReach(store, lv, now)
+                        reachList = RecordLogic.getReach(store)
+                        reachMsg = "記録しました！"
+                    },
+                    modifier = Modifier.testTag("reachBtn_$lv"),
+                ) { Text("$lv") }
+            }
+        }
+        reachMsg?.let { Text(it, modifier = Modifier.testTag("reachMsgText")) }
+
+        Spacer(Modifier.height(24.dp))
+        Button(onClick = { openCalendarIntent(context) }, modifier = Modifier.testTag("calendarConnectBtn")) {
+            Text("カレンダーに登録する")
+        }
+    }
+}
+
+// index.html:2001 renderIcs/saveIcsTime相当。Web版はICSファイルダウンロード/Googleカレンダーリンクだが、
+// ネイティブはOS標準のカレンダーAppへIntent委譲する(マスタープラン§2-1「icstimeはEventKit/
+// カレンダーIntentに接続」)。書き込み権限を要求せず確認operationはカレンダーApp側のUIに委ねる設計
+// (権限ダイアログの摩擦を避ける。Step5aのYouTube外部遷移と同じ設計判断)。
+private fun openCalendarIntent(context: Context) {
+    val cal = JCalendar.getInstance()
+    cal.set(JCalendar.HOUR_OF_DAY, 20)
+    cal.set(JCalendar.MINUTE, 0)
+    cal.set(JCalendar.SECOND, 0)
+    val intent = Intent(Intent.ACTION_INSERT).apply {
+        data = CalendarContract.Events.CONTENT_URI
+        putExtra(CalendarContract.Events.TITLE, "きょうのオガトレ（1本だけ）")
+        putExtra(CalendarContract.Events.DESCRIPTION, "ストレッチの時間です")
+        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, cal.timeInMillis)
+        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, cal.timeInMillis + 10 * 60 * 1000)
+        putExtra(CalendarContract.Events.RRULE, "FREQ=DAILY")
+    }
+    context.startActivity(intent)
 }
 
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果 pat から実際に描画するテーマへの
