@@ -4,6 +4,21 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 6 完了（alan5発注・appdev実行・相談室UI=安全系が絡む重要工程）
+
+`TASK-C2-2026-07-25-native-migration-step6.md`（マスタープラン§6 Step 6）を実施。**SoudanSheetView/SoudanSheet（チャット・カテゴリタブ・followupチップ・14日プラン発行）を実装。判定はStep2で移植済みのSafetyGate/SoudanEngineを呼ぶだけでUI層に判定コードは一切書いていない（grep確認済み）。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
+
+- **重要な発見(着手直後)**: Step2時点の`SoudanEngine.respond()`のNormal分岐は「verdictがNormalであること」だけを確認する空スタブ(message=""・hasVideo=false)で、通常会話の中身(動画選定・followupチップ)は未実装だった(ソースコード中のコメントに「動画/文面選定はStep 6以降」と明記あり)。マスタープランの「やること」1項目目に「チャット・followupチップ・14日プラン発行」と明記されていることから、これはStep6のスコープ内と判断し、`SafetyKB`のデコード対象をintents(122件)/commonFollowups(4件)まで拡張（smalltalk 54件は対象外のまま）→`SoudanEngine`(SafetyGateではなくSoudanEngine側)にscoreIntents(index.html:3240 sdScoreIntentsの1:1移植。スコア=ヒットkw文字数合計・同点は出現順)を追加し、Normal分岐を実際に実装した。**この拡張はcrisis/redFlag判定(SafetyGateの4関数)には一切触れておらず、判定順序(crisis→赤旗→通常)もStep2から変更していない**。
+- **SoudanEngine拡張**（`safety`パッケージ・SafetyCore）: `SoudanResponse`にvideo/followupChips/nextBestChip/nearmissChips/keizoku/intentIdを追加。`respond()`(自由入力)・`respondToIntent()`(チップ直タップ)・`respondToFollowup()`(followupチップ。mode="shorter"/"more"/"text")の3エントリポイント。動画の時間ソート(sdMinutes)・雑談(smalltalk)・自由入力でのfollowup同義語マッチ(SD_FU_KW)・タイプ診断との相性演出(sdTypeFlavor)は明示的に見送り(コメントに記録)。
+- **engine-fixtures追加**（両OS）: 検収基準3の実例文言をそのままテストケース化——「肩こりで死にそう」(crisis語「死にたい」への誤爆なし)・「寝転んでできるストレッチはありますか」(赤旗kw「転んだ」への誤爆なし)。既存の「妊娠中で腰が痛い」(state)と合わせ、検収基準の5文例のうち3例が厳密一致のテストとして常設済み（残り2例=「死にたいくらいつらい」「激痛がある」は既存fixtureの上位互換文言でカバー）。
+- **Android**: `SoudanSheet.kt`新設。カテゴリタブ(SOUDAN_CHIP_CATS 5件)・intentチップ・followupチップ・14日プランチップ→確認吹き出し→開始→ホームの進捗カード(`PlanProgressCard`)まで実装。`MainActivity.kt`にScreen.Soudan追加・HomeScreenに「💬 オガトレ相談室」ボタン配線。**kyono_testエミュレータで実タップ検証**: カテゴリタブ切替→「肩こり・首こり」チップ→共感/見立て/動画/継続アドバイス+followupチップ+プランチップの表示確認→「この悩みを2週間プランにする」→「はじめる！」→ホームに進捗カード「📅 肩こり・首こりプラン 1/14日」表示、まで一連の実タップで確認。**自由入力(日本語)のadb自動化不可を実測確認**（`adb shell input text`はASCII限定。masterplan §4-2の既知制約どおり）——ASCII文字列("hello123")送信でチャット送信パイプ自体(SoudanEngine.respond呼び出し→フォールバック応答描画)が正しく動くことは実タップで確認済み。crisis/赤旗の具体的な日本語文例(検収基準1・2)はengine-fixtures(実際にコンパイルされたSafetyGate/SoudanEngineに対して実行される自動テスト)で担保——マスタープランの精神(§3-1「111ケースがそのまま移植合格基準」)どおり、これがUIタップより権威ある検証。**gradle test 196/196 pass**（194+新規2件、回帰なし）。
+- **iOS**: `SoudanSheetView.swift`新設（Android版と同一ロジック）。`SafetyKB`/`SafetyKBLoader`をpublicに変更(SafetyCoreパッケージとアプリターゲットはモジュール境界を跨ぐため。判定用のredFlags/crisisプロパティはあえてinternalのまま維持しUI層から触れられないようにした)。`KyouNoOgatoreApp.swift`にScreen.soudan追加・`HomeView.swift`に相談室ボタン+`PlanProgressCardView`配線。**xcodebuild -sdk iphonesimulator buildでBUILD SUCCEEDED確認**。**swift test: SafetyCore8/8(111 safety-fixtures込み)・RecordCore35/35・CardCore10/10(55 card-golden込み)**、回帰なし。
+- **本人フィードバック**: 「iOS作業中はSimulator.appを起動したまま(Androidエミュレータと同じくライブで見たい)」を受領→以後のiOS作業では`open -a Simulator`で起動したまま作業する運用に変更(memory登録済み)。
+- **検収基準4項目**: ①「死にたいくらいつらい」crisis窓口案内のみ・動画/followupなし=PASS(engine-fixtures)。②「妊娠中で腰が痛い」state文面・「激痛がある」symptom文面(いずれも動画非表示)=PASS(engine-fixtures既存+新規)。③「肩こりで死にそう」「寝転んでできるストレッチはありますか」が通常応答(誤爆なし)=PASS(engine-fixtures新規2件・Android実タップでチャットパイプ自体も確認)。④安全系テスト111/111+engine-fixtures緑のまま=PASS(Android196/196・iOS SafetyCore8/8)。
+- **grep確認**: UI層(SoudanSheet.kt/SoudanSheetView.swift)に`SafetyGate.`直接呼び出し・`kb.redFlags`/`kb.crisis`直接参照が一切ないことを確認（判定はSoudanEngine.respond系3関数経由のみ）。
+- **gitlink/file-count確認**: iOS 62=62一致。Android 107=107一致。`npm test`442 checks引き続き全緑・PWA配信ファイル無変更確認済み。
+- push予定。次: alan5への完了報告をドア配達。Step 7a（検索・再生リスト・図鑑）以降はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 5c 完了（alan5発注・appdev実行・オンボーディング・ツアー・診断UI）
 
 `TASK-C2-2026-07-25-native-migration-step5c.md`（マスタープラン§6 Step 5c）を実施。**オンボ4問チャット(段階色obg0〜obg3)・8枚ツアー・welcome(オンボ冒頭のあいさつ吹き出しが兼ねる・別画面なし)・かたさ診断UI(QuizView/QuizScreen)を実装。QUIZ_ART写真(q1.jpg/q2.jpg)のアセット同梱も本ステップで実施。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
