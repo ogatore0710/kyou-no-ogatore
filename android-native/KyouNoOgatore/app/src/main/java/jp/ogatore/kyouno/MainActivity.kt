@@ -100,11 +100,17 @@ class MainActivity : ComponentActivity() {
                         is Screen.Result -> ResultScreen(typeKey = s.typeKey, onDone = { screen = Screen.Home })
                         is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })
                         is Screen.MyRecord -> MyRecordScreen(store = store, onBack = { screen = Screen.Home })
+                        is Screen.Soudan -> SoudanSheet(
+                            store = store,
+                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                            onClose = { screen = Screen.Home },
+                        )
                         is Screen.Home -> HomeScreen(
                             store = store,
                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                             onOpenMyRecord = { screen = Screen.MyRecord },
                             onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
+                            onOpenSoudan = { screen = Screen.Soudan },
                         )
                     }
                 }
@@ -119,6 +125,7 @@ sealed class Screen {
     object Home : Screen()
     object MyRecord : Screen()
     object Onboarding : Screen()
+    object Soudan : Screen()
     data class Quiz(val presetWorry: String?) : Screen()
     data class Result(val typeKey: String) : Screen()
     data class Tour(val showClosing: Boolean) : Screen()
@@ -130,7 +137,13 @@ private val CHEERS = listOf(
 )
 
 @Composable
-fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: () -> Unit, onStartTour: (Boolean) -> Unit) {
+fun HomeScreen(
+    store: RecordStore,
+    openUrl: (String) -> Unit,
+    onOpenMyRecord: () -> Unit,
+    onStartTour: (Boolean) -> Unit,
+    onOpenSoudan: () -> Unit,
+) {
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
     var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
@@ -168,6 +181,7 @@ fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: ()
     }
 
     val fdFocusOn = HomeLogic.fdFocusHomeActive(fd, streak.total, fdday, today)
+    var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
 
     Column(
         modifier = Modifier
@@ -195,6 +209,12 @@ fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: ()
                     }
                 }
             }
+        }
+
+        // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)
+        plan?.let { p ->
+            Spacer(Modifier.height(12.dp))
+            PlanProgressCard(store = store, plan = p, onCleared = { plan = null })
         }
 
         // ---- きょうの1本(プレースホルダ: 動画カタログ本体はStep7aの範囲。ここではpendingNudge
@@ -248,6 +268,9 @@ fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: ()
 
         Spacer(Modifier.height(12.dp))
         Button(onClick = onOpenMyRecord, modifier = Modifier.testTag("myRecordBtn")) { Text("マイ記録を見る") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenSoudan, modifier = Modifier.testTag("soudanFab")) { Text("💬 オガトレ相談室") }
     }
 
     cardBitmap?.let { bmp ->

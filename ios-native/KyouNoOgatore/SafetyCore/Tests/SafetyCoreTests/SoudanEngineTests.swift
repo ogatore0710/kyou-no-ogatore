@@ -33,6 +33,21 @@ final class SoudanEngineTests: XCTestCase {
         XCTAssertEqual(r.verdict, .normal)
     }
 
+    /// 誤爆回避も安全要件(マスタープラン§3-1第4項・§6 Step6検収基準3)。「肩こりで死にそう」は
+    /// crisis語「死にたい」等と誤って一致してはいけない(通常応答=verdict.normal)。
+    func testKatakoriDeathMetaphorDoesNotMisfireAsCrisis() {
+        let r = SoudanEngine.respond(to: "肩こりで死にそう")
+        XCTAssertEqual(r.verdict, .normal)
+    }
+
+    /// 「寝転」除去の意図的な差(SafetyGate.swift冒頭コメント)を相談室応答レベルでも縛る:
+    /// 「寝転んで」が赤旗kw「転んだ」に誤爆して受診案内(needsReferral)になってはいけない。
+    func testNekorogariStretchQuestionDoesNotMisfireAsRedFlag() {
+        let r = SoudanEngine.respond(to: "寝転んでできるストレッチはありますか")
+        XCTAssertEqual(r.verdict, .normal)
+        XCTAssertFalse(r.needsReferral)
+    }
+
     /// state系赤旗(妊娠中/術後/産後)→ kind="state"・文面はanswerState(symptom用answerとは別)を使うことを縛る。
     /// safety-fixtures.jsonのexpect="state"実例(§3-4手順1)。
     func testRedFlagStateUsesAnswerStateMessage() {

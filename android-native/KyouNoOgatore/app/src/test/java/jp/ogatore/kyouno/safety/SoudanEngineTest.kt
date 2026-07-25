@@ -42,6 +42,23 @@ class SoudanEngineTest {
         assertEquals(SoudanVerdict.Normal, r.verdict)
     }
 
+    // 誤爆回避も安全要件(マスタープラン§3-1第4項・§6 Step6検収基準3)。「肩こりで死にそう」は
+    // crisis語「死にたい」等と誤って一致してはいけない(通常応答=verdict.Normal)。
+    @Test
+    fun katakoriDeathMetaphorDoesNotMisfireAsCrisis() {
+        val r = SoudanEngine.respond("肩こりで死にそう")
+        assertEquals(SoudanVerdict.Normal, r.verdict)
+    }
+
+    // 「寝転」除去の意図的な差(SafetyGate.kt冒頭コメント)を相談室応答レベルでも縛る:
+    // 「寝転んで」が赤旗kw「転んだ」に誤爆して受診案内(needsReferral)になってはいけない。
+    @Test
+    fun nekorogariStretchQuestionDoesNotMisfireAsRedFlag() {
+        val r = SoudanEngine.respond("寝転んでできるストレッチはありますか")
+        assertEquals(SoudanVerdict.Normal, r.verdict)
+        assertFalse(r.needsReferral)
+    }
+
     // state系赤旗(妊娠中/術後/産後)→ kind="state"・文面はanswerState(symptom用answerとは別)を使うことを縛る。
     // safety-fixtures.jsonのexpect="state"実例(§3-4手順1)。
     @Test
