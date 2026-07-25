@@ -4,6 +4,17 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 1 完了（alan5発注・appdev実行・両OS空アプリのビルド確認）
+
+`TASK-C2-2026-07-25-native-migration-step1.md`（マスタープラン§6 Step 1）を実施。**Swift/Kotlinの実コード実装はStep 2以降。Web版(PWA)配信ファイルは無変更**。
+
+- **iOS**: alan5が本人操作ゲート①（Xcode 26でのプロジェクト作成）を完了済み（`ios-native/KyouNoOgatore/`・Bundle ID `jp.ogatore.KyouNoOgatore`）。Xcode作成時に`.git`が自動生成されるgitlink化事故が起きたがalan5が事前検知・修正済み（commit `06b26bd`）。appdev側は`xcodebuild -sdk iphonesimulator`でシミュレータビルド成功、`project.pbxproj`でPBXFileSystemSynchronizedRootGroup形式（Xcode 26.6・objectVersion=77）を確認、iPhone 17シミュレータにインストール→起動→スクショ取得（`ios-native/verify/step1-ios-boot3.png`。デフォルトSwiftUIテンプレート「Hello, world!」表示を確認）。
+- **Android**: `android-native/KyouNoOgatore/`を新規作成（本人操作ゲートなし・全てエージェントで完結）。gojiai-app（`android-native/GojiaiJournal/`）の実績構成（AGP 8.4.1・Kotlin 1.9.24・compileSdk 34・minSdk 26・Compose BOM 2024.06.00）をそのまま踏襲し、パッケージ名のみ`jp.ogatore.kyouno`に差し替え。最小限のMainActivity.kt（Compose「Hello, world!」・iOSデフォルトテンプレートと視覚的に対応）。`~/android-toolchain/gradle/bin/gradle assembleDebug`（gradlew経由ではなく実体直呼び・マスタープラン§1-4の指示どおり）でビルド成功。AVD `kyono_test`（pixel_7・android-34 google_apis arm64-v8a）を新規作成、エミュレータ起動→APKインストール→起動→スクショ取得（`android-native/verify/step1-android-boot.png`。背景色`#FFFAF3`・「Hello, world!」表示を確認）。gradlew一式（jar/properties/gradlew/gradlew.bat）もgojiai-appから複製して同梱コミット（将来の人間の開発者向け・マスタープラン§1-4「gradlewは同梱コミット」）。
+- **gitlink化チェック**: `git ls-files`と実ファイル数が一致（ios-native 11=11／android-native 14 vs 実ファイル15の差分1件は`local.properties`——SDKパスがローカル環境依存のため意図的にgitignore対象。gojiai-appと同じ流儀。gitlink化ではない）。
+- `.gitignore`にネイティブ移植のビルド生成物パターンを追加（`*/build/`・`*/.gradle/`・`android-native/*/local.properties`）。検証スクショ（`ios-native/verify/`・`android-native/verify/`）はあえて追跡対象にした（alan5への報告用証跡として repo 越しに見られるように）。
+- push済み（`92adb9c`）。even-syncが作業途中(17:58/18:09)で大半を自動コミット済みだったため、最後の1ファイル(Android起動スクショ)のみ手動commit&push。
+- 次: alan5への完了報告をドア配達。Step 2（安全系テスト移植・実装本体）はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 0 完了（alan5発注・appdev実行・スクリプト/データ抽出のみ）
 
 `TASK-C2-2026-07-25-native-migration-step0.md`（`NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md`§6 Step 0）を実施。**Swift/Kotlinコード・本人GUI操作は無し。Web版(PWA)配信ファイルは無変更**（`git status`・`npm test`442 checksで確認）。
