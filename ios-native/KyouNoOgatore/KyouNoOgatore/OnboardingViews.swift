@@ -338,6 +338,8 @@ struct QuizView: View {
     }
 }
 
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+// Phase 3: index.html:726-735 #result .card.grad-soft/.type-name/.type-copy/.type-hopeの1:1移植。
 struct ResultView: View {
     let typeKey: String
     let onDone: () -> Void
@@ -345,16 +347,46 @@ struct ResultView: View {
     private var info: TypeInfo { quizTypes[typeKey] ?? TypeInfo(name: typeKey, copy: "", hope: "") }
 
     var body: some View {
+        // ResultViewはRecordStoreを受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
+        KyonoTheme(themeSetting: "auto") {
+            content
+        }
+    }
+
+    private var content: some View {
+        ResultContentView(info: info, onDone: onDone)
+    }
+}
+
+private struct ResultContentView: View {
+    @Environment(\.kyonoColors) private var colors
+    let info: TypeInfo
+    let onDone: () -> Void
+
+    var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("診断結果").font(.title2.bold())
-                Text(info.name).font(.title)
-                Text(info.copy)
-                Text("🌱 " + info.hope)
-                Button("ホームへ", action: onDone).buttonStyle(.borderedProminent)
+            VStack(alignment: .leading, spacing: 16) {
+                KyonoGradientCard(gradient: .soft) {
+                    Text("あなたのかたさタイプは…").font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    Spacer().frame(height: 8)
+                    Text(info.name).font(.kyono(.black900, size: 29)).foregroundColor(colors.ink)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    Spacer().frame(height: 8)
+                    Text(info.copy).font(.system(size: 15)).foregroundColor(colors.sub)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    Spacer().frame(height: 12)
+                    Text("🌱 " + info.hope).font(.system(size: 15)).foregroundColor(colors.ink)
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(colors.yellowSoft)
+                        .cornerRadius(14)
+                }
+                KyonoPrimaryButton("ホームへ", action: onDone)
             }
             .padding(20)
         }
+        .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
 

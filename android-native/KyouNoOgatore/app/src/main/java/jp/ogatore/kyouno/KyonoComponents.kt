@@ -42,6 +42,28 @@ fun KyonoCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.()
     )
 }
 
+// index.html:107-110,115-118 .grad-warm/.grad-mint/.grad-pink/.grad-softの1:1移植。診断結果・
+// ホームの一部カードなど「白一色ではない」目立たせカードに使う斜めグラデーション背景。
+enum class KyonoGradient { Warm, Mint, Pink, Soft }
+
+@Composable
+fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    val dark = LocalKyonoColors.current.bg.let { it == KyonoDarkColors.bg }
+    val (from, to) = when (gradient) {
+        KyonoGradient.Warm -> if (dark) Color(0xFF37301C) to Color(0xFF33232B) else Color(0xFFFFF3C4) to Color(0xFFFFEDF3)
+        KyonoGradient.Mint -> if (dark) Color(0xFF22403B) to Color(0xFF33301C) else Color(0xFFE7F8F1) to Color(0xFFFFF9DC)
+        KyonoGradient.Pink -> if (dark) Color(0xFF33232B) to Color(0xFF33301C) else Color(0xFFFFEDF3) to Color(0xFFFFF9DC)
+        KyonoGradient.Soft -> if (dark) Color(0xFF2C2822) to Color(0xFF33232B) else Color(0xFFFFFDF5) to Color(0xFFFFEDF3)
+    }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(from, to)), KyonoCardShape)
+            .padding(20.dp),
+        content = content,
+    )
+}
+
 // index.html:99-102 .btn/.btn-primary(黄色背景+太字20px+下方向の立体シャドウ)の1:1移植。
 // box-shadow:0 4px 0 #E8BE1E(ぼかし無しのオフセット矩形)をCompose上でBox二重描画により再現。
 // :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、pressed状態をMutableInteractionSource経由で検知する。

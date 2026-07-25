@@ -1,7 +1,9 @@
 package jp.ogatore.kyouno
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -306,17 +310,44 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
 }
 
 @Composable
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+// Phase 3: index.html:726-735 #result .card.grad-soft/.type-name/.type-copy/.type-hopeの1:1移植。
 fun ResultScreen(typeKey: String, onDone: () -> Unit) {
     val info = QUIZ_TYPES[typeKey] ?: TypeInfo(typeKey, "", "")
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
-        Text("診断結果", style = MaterialTheme.typography.headlineSmall)
-        Text(info.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.testTag("resultTypeName"))
-        Spacer(Modifier.height(12.dp))
-        Text(info.copy)
-        Spacer(Modifier.height(8.dp))
-        Text("🌱 " + info.hope)
-        Spacer(Modifier.height(24.dp))
-        Button(onClick = onDone, modifier = Modifier.testTag("resultDoneBtn")) { Text("ホームへ") }
+    // ResultScreenはRecordStoreを受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
+    KyonoTheme("auto") {
+        val colors = LocalKyonoColors.current
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(colors.bg)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+        ) {
+            KyonoGradientCard(KyonoGradient.Soft, Modifier.testTag("resultCard")) {
+                Text(
+                    "あなたのかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    info.name, color = colors.ink, fontSize = 29.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.fillMaxWidth().testTag("resultTypeName"),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    info.copy, color = colors.sub, fontSize = 15.sp,
+                    modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+                Spacer(Modifier.height(12.dp))
+                Box(Modifier.fillMaxWidth().background(colors.yellowSoft, RoundedCornerShape(14.dp)).padding(14.dp)) {
+                    Text("🌱 " + info.hope, color = colors.ink, fontSize = 15.sp)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            KyonoPrimaryButton("ホームへ", onDone, Modifier.testTag("resultDoneBtn"))
+        }
     }
 }
 

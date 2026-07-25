@@ -22,6 +22,34 @@ struct KyonoCard<Content: View>: View {
     }
 }
 
+// index.html:107-110,115-118 .grad-warm/.grad-mint/.grad-pink/.grad-softの1:1移植。診断結果・
+// ホームの一部カードなど「白一色ではない」目立たせカードに使う斜めグラデーション背景。
+enum KyonoGradient { case warm, mint, pink, soft }
+
+struct KyonoGradientCard<Content: View>: View {
+    @Environment(\.kyonoColors) private var colors
+    @Environment(\.colorScheme) private var systemColorScheme
+    let gradient: KyonoGradient
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        let dark = colors.bg == kyonoDarkColors.bg
+        let (from, to): (Color, Color) = {
+            switch gradient {
+            case .warm: return dark ? (Color(hex: 0x37301C), Color(hex: 0x33232B)) : (Color(hex: 0xFFF3C4), Color(hex: 0xFFEDF3))
+            case .mint: return dark ? (Color(hex: 0x22403B), Color(hex: 0x33301C)) : (Color(hex: 0xE7F8F1), Color(hex: 0xFFF9DC))
+            case .pink: return dark ? (Color(hex: 0x33232B), Color(hex: 0x33301C)) : (Color(hex: 0xFFEDF3), Color(hex: 0xFFF9DC))
+            case .soft: return dark ? (Color(hex: 0x2C2822), Color(hex: 0x33232B)) : (Color(hex: 0xFFFDF5), Color(hex: 0xFFEDF3))
+            }
+        }()
+        VStack(alignment: .leading, spacing: 0) { content() }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(20)
+            .background(LinearGradient(colors: [from, to], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .cornerRadius(kyonoRadius)
+    }
+}
+
 // 見出し・本文テキスト・背景色: いずれも@Environment(\.kyonoColors)を自分で読む独立View構造体として
 // 定義する(HomeView等の呼び出し側でcolorsをプロパティとして持たせると、KyonoThemeが設定する
 // environmentの「子孫」にならず常定義時点の既定値=ライトになってしまうため。SwiftUIのenvironment
