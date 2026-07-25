@@ -54,6 +54,7 @@ import jp.ogatore.kyouno.card.CardDataLoader
 import jp.ogatore.kyouno.card.CardLottery
 import jp.ogatore.kyouno.card.CardRenderer
 import jp.ogatore.kyouno.card.ResolvedTheme
+import jp.ogatore.kyouno.card.TYPE_IMG
 import jp.ogatore.kyouno.record.CalendarLogic
 import jp.ogatore.kyouno.record.HomeLogic
 import jp.ogatore.kyouno.record.RecordLogic
@@ -185,6 +186,8 @@ fun HomeScreen(
     onOpenGuide: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    val context = LocalContext.current
+
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
     var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
@@ -287,7 +290,7 @@ fun HomeScreen(
                         // モーダルを閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
                         store.set("tourpend", true)
                     }
-                    cardBitmap = renderTodayCard(store, streak, today)
+                    cardBitmap = renderTodayCard(store, streak, today, context)
                 }
             },
             enabled = !did,
@@ -303,7 +306,7 @@ fun HomeScreen(
 
         Spacer(Modifier.height(12.dp))
         Button(
-            onClick = { cardBitmap = renderTodayCard(store, streak, today) },
+            onClick = { cardBitmap = renderTodayCard(store, streak, today, context) },
             enabled = did,
             modifier = Modifier.testTag("makeCardBtn"),
         ) { Text("記録カードを見る") }
@@ -527,7 +530,7 @@ private fun openCalendarIntent(context: Context): Boolean {
 
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果 pat から実際に描画するテーマへの
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
-private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String): android.graphics.Bitmap {
+private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, context: Context): android.graphics.Bitmap {
     val data = CardDataLoader.shared
     val effTotal = streak.total
     val dateIdx = CardLottery.dateIdx(ds)
@@ -547,5 +550,16 @@ private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, 
         else -> ResolvedTheme(fallback.name, fallback.bg, fallback.main, fallback.deco)
     }
     val milestoneTitle = data.MS.find { it.d == effTotal }?.t
-    return CardRenderer.render(ds, effTotal, theme, milestone, milestoneTitle, dateIdx, data.CARD_THEMES_V2_FROM)
+
+    // かたさタイプ/メモ(index.html:133,225の1:1移植。§7bパリティ突合タスクで追加)
+    val typeResult = store.get<QuizTypeResult?>("type", null)
+    val typeName = typeResult?.let { QUIZ_TYPES[it.key]?.name }
+    val typeIconKey = typeResult?.key?.takeIf { TYPE_IMG.containsKey(it) }
+    val memoText = RecordLogic.loadMemos(store)[ds]
+
+    return CardRenderer.render(
+        ds, effTotal, theme, milestone, milestoneTitle, dateIdx, data.CARD_THEMES_V2_FROM,
+        context = context, pat = pat, typeName = typeName, typeIconKey = typeIconKey,
+        memoText = memoText, streakCount = streak.count,
+    )
 }

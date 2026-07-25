@@ -95,7 +95,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                 val data = CardDataLoader.shared
                 val theme = data.CARD_THEMES[dateIdx % data.CARD_THEMES.size]
                 val resolved = ResolvedTheme(theme.name, theme.bg, theme.main, theme.deco)
-                cardBitmap = BragCardRenderer.render(ds, days, resolved, picked?.t)
+                cardBitmap = BragCardRenderer.render(ds, days, resolved, picked?.t, context)
             },
             modifier = Modifier.fillMaxWidth().testTag("bragMakeBtn"),
         ) { Text("カードをつくる✨") }
