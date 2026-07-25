@@ -1,0 +1,58 @@
+[0/1] Planning build
+Building for debugging...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.20s)
+Test Suite 'All tests' started at 2026-07-25 19:44:55.366.
+Test Suite 'RecordCorePackageTests.xctest' started at 2026-07-25 19:44:55.366.
+Test Suite 'KyonoTransferTests' started at 2026-07-25 19:44:55.366.
+Test Case '-[RecordCoreTests.KyonoTransferTests testImportExportFixtureMatchesExpectedValues]' started.
+Test Case '-[RecordCoreTests.KyonoTransferTests testImportExportFixtureMatchesExpectedValues]' passed (0.002 seconds).
+Test Case '-[RecordCoreTests.KyonoTransferTests testImportExportRoundTripDoesNotShrinkKeySet]' started.
+Test Case '-[RecordCoreTests.KyonoTransferTests testImportExportRoundTripDoesNotShrinkKeySet]' passed (0.001 seconds).
+Test Case '-[RecordCoreTests.KyonoTransferTests testRejectsInvalidPrefix]' started.
+Test Case '-[RecordCoreTests.KyonoTransferTests testRejectsInvalidPrefix]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.KyonoTransferTests testRejectsMissingKyonoPrefixKeysOnly]' started.
+Test Case '-[RecordCoreTests.KyonoTransferTests testRejectsMissingKyonoPrefixKeysOnly]' passed (0.000 seconds).
+Test Suite 'KyonoTransferTests' passed at 2026-07-25 19:44:55.370.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'RecordLogicTests' started at 2026-07-25 19:44:55.370.
+Test Case '-[RecordCoreTests.RecordLogicTests testCanBridgeFreezesRespectsPerMonthCap]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testCanBridgeFreezesRespectsPerMonthCap]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testDaylogTrimsTo400]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testDaylogTrimsTo400]' passed (0.007 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testDaysBetweenIsTimezoneIndependentCalendarDays]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testDaysBetweenIsTimezoneIndependentCalendarDays]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testFreezeLeftReflectsUsedBudget]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testFreezeLeftReflectsUsedBudget]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testFreezeMapMigratesFromOldSingularFreeze]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testFreezeMapMigratesFromOldSingularFreeze]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneAlreadyDoneTodayIsNoop]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneAlreadyDoneTodayIsNoop]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneConsecutiveDayIncrementsCount]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneConsecutiveDayIncrementsCount]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneFirstEver]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneFirstEver]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneGapBridgedByFreezeKeepsCount]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneGapBridgedByFreezeKeepsCount]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneGapTooLargeStartsNewChapter]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testMarkDoneGapTooLargeStartsNewChapter]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testSaveMemoStoresAndClearsOnEmpty]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testSaveMemoStoresAndClearsOnEmpty]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testSetReachProtectsBestOnTrim]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testSetReachProtectsBestOnTrim]' passed (0.002 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testStreakDefensiveCoercionKeepsGoodFieldsOnPartialCorruption]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testStreakDefensiveCoercionKeepsGoodFieldsOnPartialCorruption]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testStreakMigratesFromOldFormat]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testStreakMigratesFromOldFormat]' passed (0.000 seconds).
+Test Case '-[RecordCoreTests.RecordLogicTests testTodayStrMidnightThreeBoundary]' started.
+Test Case '-[RecordCoreTests.RecordLogicTests testTodayStrMidnightThreeBoundary]' passed (0.000 seconds).
+Test Suite 'RecordLogicTests' passed at 2026-07-25 19:44:55.382.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.012 (0.012) seconds
+Test Suite 'RecordCorePackageTests.xctest' passed at 2026-07-25 19:44:55.382.
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.015 (0.016) seconds
+Test Suite 'All tests' passed at 2026-07-25 19:44:55.382.
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.015 (0.017) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
