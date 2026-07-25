@@ -30,11 +30,13 @@ private let CHEERS = [
 struct HomeView: View {
     private let store: RecordStore
     let onStartTour: (Bool) -> Void
+    let onOpenSoudan: () -> Void
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     @State private var streak: RecordLogic.StreakData
     @State private var fd: String?
     @State private var fdday: String?
+    @State private var plan: SdPlanData?
 
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     @State private var lastDay: String
@@ -45,14 +47,16 @@ struct HomeView: View {
 
     @Environment(\.scenePhase) private var scenePhase
 
-    init(store: RecordStore, onStartTour: @escaping (Bool) -> Void) {
+    init(store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenSoudan: @escaping () -> Void) {
         self.store = store
         self.onStartTour = onStartTour
+        self.onOpenSoudan = onOpenSoudan
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
         _fdday = State(initialValue: store.get("fdday", default: nil))
         _lastDay = State(initialValue: RecordLogic.todayStr(now: Date()))
+        _plan = State(initialValue: store.get("plan", default: nil))
     }
 
     private var today: String { RecordLogic.todayStr(now: Date()) }
@@ -77,6 +81,11 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.gray.opacity(0.15))
                 .cornerRadius(12)
+            }
+
+            // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)
+            if let plan {
+                PlanProgressCardView(store: store, plan: plan, onCleared: { self.plan = nil })
             }
 
             // きょうの1本(プレースホルダ: 動画カタログ本体はStep7aの範囲。ここではpendingNudge
@@ -117,6 +126,8 @@ struct HomeView: View {
             .disabled(!did)
 
             NavigationLink("マイ記録を見る") { MyRecordView(store: store) }
+
+            Button("💬 オガトレ相談室", action: onOpenSoudan)
 
             Spacer()
         }
@@ -194,5 +205,5 @@ private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData,
 }
 
 #Preview {
-    HomeView(store: RecordStore(inMemory: [:]), onStartTour: { _ in })
+    HomeView(store: RecordStore(inMemory: [:]), onStartTour: { _ in }, onOpenSoudan: {})
 }
