@@ -416,114 +416,141 @@ fun HomeScreen(
 //
 // カレンダーはColumn+Row(最大6週間ぶん)で組む。LazyVerticalGridをverticalScroll内に入れると
 // 無限高さ制約でクラッシュするため(masterplan §1-4禁じ手)、あえて素朴なColumn+Rowを使う。
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+// Phase 3: index.html:403-415 .cal/.cal .d.done/.cal .d.today/.bar(おやすみ券進捗)の1:1移植。
 @Composable
 fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
     val context = LocalContext.current
-    val now = Instant.now()
-    val streak = remember { RecordLogic.loadStreak(store) }
-    val doneDates = remember { streak.dates.toSet() }
-    val today = remember { RecordLogic.todayStr(now) }
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        val now = Instant.now()
+        val streak = remember { RecordLogic.loadStreak(store) }
+        val doneDates = remember { streak.dates.toSet() }
+        val today = remember { RecordLogic.todayStr(now) }
 
-    val nowCal = JCalendar.getInstance()
-    var year by remember { mutableStateOf(nowCal.get(JCalendar.YEAR)) }
-    var month by remember { mutableStateOf(nowCal.get(JCalendar.MONTH) + 1) } // JCalendar.MONTHは0始まり→1-12へ
+        val nowCal = JCalendar.getInstance()
+        var year by remember { mutableStateOf(nowCal.get(JCalendar.YEAR)) }
+        var month by remember { mutableStateOf(nowCal.get(JCalendar.MONTH) + 1) } // JCalendar.MONTHは0始まり→1-12へ
 
-    var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
-    var reachMsg by remember { mutableStateOf<String?>(null) }
-    val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, now) }
+        var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
+        var reachMsg by remember { mutableStateOf<String?>(null) }
+        val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, now) }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
-        Button(onClick = onBack, modifier = Modifier.testTag("myRecordBackBtn")) { Text("◀ もどる") }
-        Spacer(Modifier.height(12.dp))
-        Text("マイ記録", style = MaterialTheme.typography.headlineSmall)
+        Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("myRecordBackBtn"))
+            Spacer(Modifier.height(16.dp))
 
-        Spacer(Modifier.height(16.dp))
-        // ---- カレンダー(index.html:renderCal相当。§6 Step5b検収基準1) ----
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Button(
-                onClick = { if (month == 1) { month = 12; year -= 1 } else { month -= 1 } },
-                modifier = Modifier.testTag("calPrevBtn"),
-            ) { Text("◀") }
-            Text(
-                "${year}年${month}月",
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Button(
-                onClick = { if (month == 12) { month = 1; year += 1 } else { month += 1 } },
-                modifier = Modifier.testTag("calNextBtn"),
-            ) { Text("▶") }
-        }
-        Spacer(Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth()) {
-            for (w in listOf("日", "月", "火", "水", "木", "金", "土")) {
-                Text(w, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-            }
-        }
-        val leading = CalendarLogic.firstWeekday(year, month)
-        val days = CalendarLogic.daysInMonth(year, month)
-        val rows = (leading + days + 6) / 7
-        Column(modifier = Modifier.testTag("calGrid")) {
-            for (r in 0 until rows) {
+            KyonoCard(Modifier.testTag("calCard")) {
+                KyonoSectionHeader(KyonoIcon.CalendarCheck, "マイ記録", fill = colors.pinkSoft, accent = colors.pink)
+                Spacer(Modifier.height(12.dp))
+                // ---- カレンダー(index.html:renderCal相当。§6 Step5b検収基準1) ----
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    KyonoGhostButton("◀", { if (month == 1) { month = 12; year -= 1 } else { month -= 1 } }, Modifier.testTag("calPrevBtn").weight(0.5f))
+                    Text(
+                        "${year}年${month}月", color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
+                        modifier = Modifier.weight(1.5f), textAlign = TextAlign.Center,
+                    )
+                    KyonoGhostButton("▶", { if (month == 12) { month = 1; year += 1 } else { month += 1 } }, Modifier.testTag("calNextBtn").weight(0.5f))
+                }
+                Spacer(Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    for (c in 0 until 7) {
-                        val day = r * 7 + c - leading + 1
-                        Box(modifier = Modifier.weight(1f).aspectRatio(1f).padding(2.dp), contentAlignment = Alignment.Center) {
-                            if (day in 1..days) {
-                                val ds = CalendarLogic.dateString(year, month, day)
-                                val isDone = doneDates.contains(ds)
-                                val isToday = ds == today
-                                val isFuture = ds > today
-                                var cellMod: Modifier = Modifier.fillMaxSize().padding(2.dp)
-                                if (isDone) cellMod = cellMod.background(Color(0xFF9BDFC9), CircleShape)
-                                if (isToday) cellMod = cellMod.border(2.dp, Color(0xFFE56A9A), CircleShape)
-                                Box(modifier = cellMod, contentAlignment = Alignment.Center) {
-                                    Text(
-                                        "$day",
-                                        color = if (isFuture) Color.Gray else Color.Black,
-                                        modifier = Modifier.testTag("calCell_$ds"),
-                                    )
+                    for (w in listOf("日", "月", "火", "水", "木", "金", "土")) {
+                        Text(w, color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                    }
+                }
+                val leading = CalendarLogic.firstWeekday(year, month)
+                val days = CalendarLogic.daysInMonth(year, month)
+                val rows = (leading + days + 6) / 7
+                Column(modifier = Modifier.testTag("calGrid")) {
+                    for (r in 0 until rows) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            for (c in 0 until 7) {
+                                val day = r * 7 + c - leading + 1
+                                Box(modifier = Modifier.weight(1f).aspectRatio(1f).padding(2.dp), contentAlignment = Alignment.Center) {
+                                    if (day in 1..days) {
+                                        val ds = CalendarLogic.dateString(year, month, day)
+                                        val isDone = doneDates.contains(ds)
+                                        val isToday = ds == today
+                                        val isFuture = ds > today
+                                        // index.html:406-409,413 .cal .d/.d.done(teal-strong塗り)/.d.today(pink枠)/.d.mute
+                                        var cellMod: Modifier = Modifier.fillMaxSize().padding(2.dp)
+                                        if (isDone) cellMod = cellMod.background(colors.tealStrong, CircleShape)
+                                        if (isToday) cellMod = cellMod.border(2.5.dp, colors.pink, CircleShape)
+                                        Box(modifier = cellMod, contentAlignment = Alignment.Center) {
+                                            Text(
+                                                "$day",
+                                                color = when {
+                                                    isDone -> Color.White
+                                                    isFuture -> Color(0xFFD5CFBE)
+                                                    else -> colors.ink
+                                                },
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.testTag("calCell_$ds"),
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
 
-        Spacer(Modifier.height(24.dp))
-        Text("おやすみ券 のこり${freezeLeft}枚", modifier = Modifier.testTag("freezeLeftText"))
+            Spacer(Modifier.height(16.dp))
+            KyonoCard(Modifier.testTag("freezeCard")) {
+                Text("🎫 おやすみ券", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(6.dp))
+                Text("おやすみ券 のこり${freezeLeft}枚", color = colors.sub, modifier = Modifier.testTag("freezeLeftText"))
+                Spacer(Modifier.height(8.dp))
+                // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
+                Box(Modifier.fillMaxWidth().height(14.dp).background(colors.line, RoundedCornerShape2(99))) {
+                    Box(Modifier.fillMaxWidth(freezeLeft / 3f).fillMaxHeight().background(colors.teal, RoundedCornerShape2(99)))
+                }
+            }
 
-        Spacer(Modifier.height(24.dp))
-        Text("とどくメーター", style = MaterialTheme.typography.titleMedium)
-        val latest = reachList.lastOrNull()
-        Text(if (latest != null) "いまの記録: 段位${latest.lv}" else "まだ記録なし", modifier = Modifier.testTag("reachNowText"))
-        Row {
-            for (lv in 1..5) {
-                Button(
-                    onClick = {
-                        RecordLogic.setReach(store, lv, now)
-                        reachList = RecordLogic.getReach(store)
-                        reachMsg = "記録しました！"
-                    },
-                    modifier = Modifier.testTag("reachBtn_$lv"),
-                ) { Text("$lv") }
+            Spacer(Modifier.height(16.dp))
+            KyonoCard(Modifier.testTag("reachCard")) {
+                KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター", fill = colors.yellowSoft)
+                Spacer(Modifier.height(8.dp))
+                val latest = reachList.lastOrNull()
+                Text(if (latest != null) "いまの記録: 段位${latest.lv}" else "まだ記録なし", color = colors.sub, modifier = Modifier.testTag("reachNowText"))
+                Spacer(Modifier.height(8.dp))
+                Row {
+                    for (lv in 1..5) {
+                        KyonoGhostButton(
+                            "$lv",
+                            {
+                                RecordLogic.setReach(store, lv, now)
+                                reachList = RecordLogic.getReach(store)
+                                reachMsg = "記録しました！"
+                            },
+                            Modifier.padding(end = 6.dp).testTag("reachBtn_$lv"),
+                        )
+                    }
+                }
+                reachMsg?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(it, color = colors.teal, modifier = Modifier.testTag("reachMsgText"))
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+            var calendarMsg by remember { mutableStateOf<String?>(null) }
+            KyonoLineButton(
+                "📅 カレンダーに登録する",
+                { calendarMsg = if (openCalendarIntent(context)) null else "カレンダーアプリが見つかりませんでした" },
+                Modifier.testTag("calendarConnectBtn"),
+            )
+            calendarMsg?.let {
+                Spacer(Modifier.height(6.dp))
+                Text(it, color = colors.pink, modifier = Modifier.testTag("calendarMsgText"))
             }
         }
-        reachMsg?.let { Text(it, modifier = Modifier.testTag("reachMsgText")) }
-
-        Spacer(Modifier.height(24.dp))
-        var calendarMsg by remember { mutableStateOf<String?>(null) }
-        Button(
-            onClick = { calendarMsg = if (openCalendarIntent(context)) null else "カレンダーアプリが見つかりませんでした" },
-            modifier = Modifier.testTag("calendarConnectBtn"),
-        ) {
-            Text("カレンダーに登録する")
-        }
-        calendarMsg?.let { Text(it, modifier = Modifier.testTag("calendarMsgText")) }
     }
 }
+
+private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shape.RoundedCornerShape(percentage = percent)
 
 // index.html:2001 renderIcs/saveIcsTime相当。Web版はICSファイルダウンロード/Googleカレンダーリンクだが、
 // ネイティブはOS標準のカレンダーAppへIntent委譲する(マスタープラン§2-1「icstimeはEventKit/
