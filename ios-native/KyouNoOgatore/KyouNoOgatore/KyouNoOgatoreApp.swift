@@ -160,6 +160,7 @@ struct RootView: View {
             DexView(store: store, onBack: { screen = .home })
         case .voices:
             VoicesView(
+                store: store,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onBack: { screen = .home }
             )

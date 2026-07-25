@@ -140,6 +140,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                         is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Voices -> VoicesScreen(
+                                            store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onBack = { screen = Screen.Home },
                                         )
