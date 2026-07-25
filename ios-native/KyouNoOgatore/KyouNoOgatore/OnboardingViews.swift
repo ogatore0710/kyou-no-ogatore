@@ -496,34 +496,55 @@ struct TourView: View {
 
     private var totalSlides: Int { obTourSlides.count + (showClosing ? 1 : 0) }
 
+    // TourViewはRecordStoreを受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い。
+    // ResultViewと同じ判断)。
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                ForEach(0..<totalSlides, id: \.self) { i in
-                    Text(i == si ? "●" : "○")
-                }
-            }
+        KyonoTheme(themeSetting: "auto") {
+            TourContentView(si: $si, totalSlides: totalSlides, showClosing: showClosing, onDone: onDone)
+        }
+    }
+}
+
+private struct TourContentView: View {
+    @Environment(\.kyonoColors) private var colors
+    @Binding var si: Int
+    let totalSlides: Int
+    let showClosing: Bool
+    let onDone: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
             if si < obTourSlides.count {
                 let slide = obTourSlides[si]
-                Text(slide.title).font(.title2.bold())
-                Text(slide.desc)
+                Text(slide.title).font(.system(size: 17, weight: .black)).foregroundColor(colors.ink)
+                Text(slide.desc).font(.system(size: 14)).foregroundColor(colors.ink).lineSpacing(11)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
             } else {
-                Text(obTourClosingTitle).font(.title2.bold())
+                Text(obTourClosingTitle).font(.system(size: 17, weight: .black)).foregroundColor(colors.ink)
             }
-            HStack {
-                if si > 0 {
-                    Button("◀ もどる") { si -= 1 }
+            // index.html:313-315 .dots/.dot/.dot.on
+            HStack(spacing: 6) {
+                ForEach(0..<totalSlides, id: \.self) { i in
+                    Circle().fill(i <= si ? colors.pink : colors.line).frame(width: 9, height: 9)
                 }
-                Button(si < totalSlides - 1 ? "つぎへ" : "とじる") {
-                    if si < totalSlides - 1 { si += 1 } else { onDone() }
-                }
-                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 4)
+            Spacer().frame(height: 10)
+            if si > 0 {
+                KyonoLineButton("◀ もどる") { si -= 1 }
+            }
+            KyonoPrimaryButton(si < totalSlides - 1 ? "つぎへ ➡️（\(si + 1)/\(totalSlides)）" : "おわる") {
+                if si < totalSlides - 1 { si += 1 } else { onDone() }
             }
             if si < totalSlides - 1 {
-                Button("ツアーをとばす", action: onDone).font(.footnote)
+                KyonoGhostButton("ツアーをとばす", action: onDone)
             }
             Spacer()
         }
         .padding(20)
+        .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
