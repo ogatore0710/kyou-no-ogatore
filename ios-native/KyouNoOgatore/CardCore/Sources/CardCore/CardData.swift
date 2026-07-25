@@ -62,6 +62,11 @@ public struct CardData: Decodable {
     public let NORMAL_CARDS: [NormalCard]
     public let TOKU_CARDS: [String: TokuCard] // キーはeffTotalの文字列("4".."1900")
     public let CARD_ROT_ORDER: [Int]
+    // Step 7a(図鑑UI): index.html getDexStatus()が参照するヒント/フレーバー文言。
+    public let DEX_TEASE: [String: String] // rareのkey→ロック中ヒント
+    public let DEX_FLAVOR: [String: String] // toku/season/rareのkey→アンロック後フレーバー
+    public let DEX_FLAVOR_NORMAL: [String: String] // normalのname→アンロック後フレーバー
+    public let DEX_NORMAL_TEASE: String
 }
 
 public enum CardDataLoader {

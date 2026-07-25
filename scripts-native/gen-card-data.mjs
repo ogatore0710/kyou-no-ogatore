@@ -50,12 +50,19 @@ const indexConsts = [
   "NORMAL_CARDS",
   "TOKU_CARDS",
   "CARD_ROT_ORDER",
+  // Step 7a(マスタープラン§6 Step 7a・図鑑UI): getDexStatus()が参照するヒント/フレーバー文言。
+  // 手写し禁止(§1-2)のため他の定数と同じくJSエンジンに実評価させて回収する。
+  "DEX_TEASE",
+  "DEX_FLAVOR",
+  "DEX_FLAVOR_NORMAL",
+  "DEX_NORMAL_TEASE",
 ].map((n) => extractConstStatement(indexSrc, n));
 
 const NAMES = [
   "CARD_THEMES", "GOLD", "MS", "CHARA_FILES",
   "CARD_THEMES_V1_COUNT", "CARD_THEMES_V2_FROM", "MILESTONES", "CARD_IMG_FROM",
   "SEASON_CARDS", "RARE_CARDS", "NORMAL_CARDS", "TOKU_CARDS", "CARD_ROT_ORDER",
+  "DEX_TEASE", "DEX_FLAVOR", "DEX_FLAVOR_NORMAL", "DEX_NORMAL_TEASE",
 ];
 const body = appCardConsts.join("\n") + "\n" + indexConsts.join("\n") + "\nreturn {" + NAMES.join(",") + "};\n";
 const fn = new Function(body);
@@ -96,11 +103,17 @@ const out = {
   NORMAL_CARDS: data.NORMAL_CARDS,
   TOKU_CARDS: data.TOKU_CARDS,
   CARD_ROT_ORDER: data.CARD_ROT_ORDER,
+  DEX_TEASE: data.DEX_TEASE,
+  DEX_FLAVOR: data.DEX_FLAVOR,
+  DEX_FLAVOR_NORMAL: data.DEX_FLAVOR_NORMAL,
+  DEX_NORMAL_TEASE: data.DEX_NORMAL_TEASE,
 };
 writeFileSync(new URL("./out/card-data.json", import.meta.url), JSON.stringify(out, null, 2));
 console.log(
   `card-data.json 生成: CARD_THEMES=${data.CARD_THEMES.length} MS=${data.MS.length} ` +
   `SEASON_CARDS=${data.SEASON_CARDS.length} RARE_CARDS=${data.RARE_CARDS.length} NORMAL_CARDS=${data.NORMAL_CARDS.length} ` +
   `TOKU_CARDS=${Object.keys(data.TOKU_CARDS).length} CARD_ROT_ORDER=${data.CARD_ROT_ORDER.length} ` +
-  `CARD_IMG_FROM=${data.CARD_IMG_FROM} CARD_THEMES_V2_FROM=${data.CARD_THEMES_V2_FROM}`
+  `CARD_IMG_FROM=${data.CARD_IMG_FROM} CARD_THEMES_V2_FROM=${data.CARD_THEMES_V2_FROM} ` +
+  `DEX_TEASE=${Object.keys(data.DEX_TEASE).length} DEX_FLAVOR=${Object.keys(data.DEX_FLAVOR).length} ` +
+  `DEX_FLAVOR_NORMAL=${Object.keys(data.DEX_FLAVOR_NORMAL).length}`
 );

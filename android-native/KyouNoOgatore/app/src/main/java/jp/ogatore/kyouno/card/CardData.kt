@@ -44,6 +44,11 @@ data class CardData(
     val NORMAL_CARDS: List<NormalCard>,
     val TOKU_CARDS: Map<String, TokuCard>, // キーはeffTotalの文字列("4".."1900")
     val CARD_ROT_ORDER: List<Int>,
+    // Step 7a(図鑑UI): index.html getDexStatus()が参照するヒント/フレーバー文言。
+    val DEX_TEASE: Map<String, String> = emptyMap(), // rareのkey→ロック中ヒント
+    val DEX_FLAVOR: Map<String, String> = emptyMap(), // toku/season/rareのkey→アンロック後フレーバー
+    val DEX_FLAVOR_NORMAL: Map<String, String> = emptyMap(), // normalのname→アンロック後フレーバー
+    val DEX_NORMAL_TEASE: String = "",
 )
 
 object CardDataLoader {

@@ -1,0 +1,649 @@
+{
+  "note": "rotAssign初期状態=空localStorage(legacyRotPosバックフィル経路)。streak2.datesは2026-06-01〜2026-07-25の連続55日をseed(gen-card-golden.mjsと同一断面)。",
+  "seedDateRangeStart": "2026-06-01",
+  "seedDateRangeEnd": "2026-07-25",
+  "toku": [
+    {
+      "tier": "toku",
+      "key": "toku_datsusan",
+      "name": "三日坊主脱出記念",
+      "got": true
+    },
+    {
+      "tier": "toku",
+      "key": "toku_7days",
+      "name": "1週間記念",
+      "got": true
+    },
+    {
+      "tier": "toku",
+      "key": "toku_14days",
+      "name": "2週間記念",
+      "got": true
+    },
+    {
+      "tier": "toku",
+      "key": "toku_21days",
+      "name": "3週間記念",
+      "got": true
+    },
+    {
+      "tier": "toku",
+      "key": "toku_30days",
+      "name": "30日記念",
+      "got": true
+    },
+    {
+      "tier": "toku",
+      "key": "toku_50days",
+      "name": "50日記念",
+      "got": true
+    },
+    {
+      "tier": "toku",
+      "key": "toku_66days",
+      "name": "66日記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_100days",
+      "name": "100日記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_150days",
+      "name": "150日記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_200days",
+      "name": "200日記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_300days",
+      "name": "300日記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_365days",
+      "name": "1年記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_500days",
+      "name": "500日記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_730days",
+      "name": "2年記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_1000days",
+      "name": "1000日記念",
+      "got": false
+    },
+    {
+      "tier": "toku",
+      "key": "toku_1900days",
+      "name": "1900日記念",
+      "got": false
+    }
+  ],
+  "season": [
+    {
+      "tier": "season",
+      "key": "season_oshogatsu",
+      "name": "お正月",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_suisen",
+      "name": "水仙",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_yuki",
+      "name": "ゆき",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_setsubun",
+      "name": "節分",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_tsubaki",
+      "name": "椿",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_valentine",
+      "name": "バレンタイン",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_ume",
+      "name": "梅",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_hinamatsuri",
+      "name": "ひな祭り",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_nanohana",
+      "name": "菜の花",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_hanami",
+      "name": "はなみ",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_shingakki",
+      "name": "新学期",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_easter",
+      "name": "イースター",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_tulip",
+      "name": "チューリップ",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_kodomonohi",
+      "name": "こどもの日",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_hahanohi",
+      "name": "母の日",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_hotaru",
+      "name": "ほたる",
+      "got": true
+    },
+    {
+      "tier": "season",
+      "key": "season_chichinohi",
+      "name": "父の日",
+      "got": true
+    },
+    {
+      "tier": "season",
+      "key": "season_ajisai",
+      "name": "あじさい・梅雨",
+      "got": true
+    },
+    {
+      "tier": "season",
+      "key": "season_tanabata",
+      "name": "たなばた",
+      "got": true
+    },
+    {
+      "tier": "season",
+      "key": "season_uminohi",
+      "name": "海の日",
+      "got": true
+    },
+    {
+      "tier": "season",
+      "key": "season_asagao",
+      "name": "朝顔",
+      "got": true
+    },
+    {
+      "tier": "season",
+      "key": "season_natsumatsuri",
+      "name": "なつまつり",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_kingyo",
+      "name": "金魚すくい",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_yamanohi",
+      "name": "山の日",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_obon",
+      "name": "おぼん",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_himawari",
+      "name": "ひまわり",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_jugoya",
+      "name": "十五夜",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_keirounohi",
+      "name": "敬老の日",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_ohigan",
+      "name": "お彼岸",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_cosmos",
+      "name": "コスモス",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_jusanya",
+      "name": "十三夜",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_halloween",
+      "name": "ハロウィン",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_momiji",
+      "name": "もみじ",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_shichigosan",
+      "name": "七五三",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_icho",
+      "name": "いちょう",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_kotatsu",
+      "name": "こたつ",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_yuzuyu",
+      "name": "ゆず湯・冬至",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_christmas",
+      "name": "クリスマス",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_osoji",
+      "name": "大掃除",
+      "got": false
+    },
+    {
+      "tier": "season",
+      "key": "season_oomisoka",
+      "name": "おおみそか",
+      "got": false
+    }
+  ],
+  "rare": [
+    {
+      "tier": "rare",
+      "key": "rare_neko",
+      "name": "ねこ",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_wanko",
+      "name": "わんこ",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_usagi",
+      "name": "うさぎ",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_kitsune",
+      "name": "きつね",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_kuma",
+      "name": "くま",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_kotori",
+      "name": "ことり",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_ginga",
+      "name": "銀河",
+      "got": true
+    },
+    {
+      "tier": "rare",
+      "key": "rare_nagareboshi",
+      "name": "流れ星",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_wakusei",
+      "name": "惑星",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_uchufuku",
+      "name": "宇宙服",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_ufo",
+      "name": "UFO",
+      "got": true
+    },
+    {
+      "tier": "rare",
+      "key": "rare_niji",
+      "name": "虹",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_shabondama",
+      "name": "しゃぼん玉",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_hitsujigumo",
+      "name": "ひつじ雲",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_hoshizora",
+      "name": "星空",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_nami",
+      "name": "波",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_komorebi",
+      "name": "木漏れ日",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_hanabatake",
+      "name": "花畑",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_chocho",
+      "name": "ちょうちょ",
+      "got": true
+    },
+    {
+      "tier": "rare",
+      "key": "rare_aurora",
+      "name": "オーロラ",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_panda",
+      "name": "ぱんだ",
+      "got": true
+    },
+    {
+      "tier": "rare",
+      "key": "rare_penguin",
+      "name": "ぺんぎん",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_iruka",
+      "name": "いるか",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_risu",
+      "name": "りす",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_fukurou",
+      "name": "ふくろう",
+      "got": true
+    },
+    {
+      "tier": "rare",
+      "key": "rare_kame",
+      "name": "かめ",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_harinezumi",
+      "name": "はりねずみ",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_kujira",
+      "name": "くじら",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_ahiru",
+      "name": "あひる",
+      "got": false
+    },
+    {
+      "tier": "rare",
+      "key": "rare_hamster",
+      "name": "ハムスター",
+      "got": false
+    }
+  ],
+  "normal": [
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "さくら",
+      "got": true
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "そら",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "ラベンダー",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "ミント",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "ピーチ",
+      "got": true
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "レモン",
+      "got": true
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "いちごみるく",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "ミルクティー",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "わかくさ",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "あさぎ",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "すみれ",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "あんず",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "しろくま",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "こむぎ",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "もえぎ",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "ぶどう",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "さんご",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "るりいろ",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "ばらいろ",
+      "got": false
+    },
+    {
+      "tier": "normal",
+      "key": null,
+      "name": "きなこ",
+      "got": false
+    }
+  ]
+}
