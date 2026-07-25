@@ -4,3 +4,12 @@ _site/
 node_modules/
 .smoke/
 .smoke-webkit/
+
+# ネイティブ移植(ios-native/android-native)のビルド生成物・ローカル環境依存ファイル
+# (マスタープラン2026-07-25。NATIVE-BUILD-GUIDEのgojiai-app実績と同じパターンを踏襲)
+# ios-native/verify/ 及び android-native/*/verify/ の検証スクショはあえて追跡対象(alan5への報告用証跡)
+ios-native/*/build/
+android-native/*/local.properties
+android-native/*/.gradle/
+android-native/*/build/
+android-native/*/app/build/
