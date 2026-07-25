@@ -32,4 +32,21 @@ final class SoudanEngineTests: XCTestCase {
         let r = SoudanEngine.respond(to: "肩こりがつらい")
         XCTAssertEqual(r.verdict, .normal)
     }
+
+    /// state系赤旗(妊娠中/術後/産後)→ kind="state"・文面はanswerState(symptom用answerとは別)を使うことを縛る。
+    /// safety-fixtures.jsonのexpect="state"実例(§3-4手順1)。
+    func testRedFlagStateUsesAnswerStateMessage() {
+        let kb = SafetyKBLoader.shared
+        let r = SoudanEngine.respond(to: "妊娠中で腰が痛い")
+        if case .redFlag(let kind) = r.verdict {
+            XCTAssertEqual(kind, "state")
+        } else {
+            XCTFail("赤旗応答になるべきなのに verdict=\(r.verdict)")
+        }
+        XCTAssertEqual(r.message, kb.redFlags.answerState)
+        XCTAssertNotEqual(r.message, kb.redFlags.answer)
+        XCTAssertTrue(r.needsReferral)
+        XCTAssertFalse(r.hasVideo)
+        XCTAssertFalse(r.hasFollowup)
+    }
 }

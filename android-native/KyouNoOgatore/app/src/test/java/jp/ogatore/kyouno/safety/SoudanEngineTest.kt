@@ -41,4 +41,23 @@ class SoudanEngineTest {
         val r = SoudanEngine.respond("肩こりがつらい")
         assertEquals(SoudanVerdict.Normal, r.verdict)
     }
+
+    // state系赤旗(妊娠中/術後/産後)→ kind="state"・文面はanswerState(symptom用answerとは別)を使うことを縛る。
+    // safety-fixtures.jsonのexpect="state"実例(§3-4手順1)。
+    @Test
+    fun redFlagStateUsesAnswerStateMessage() {
+        val kb = SafetyKBLoader.shared
+        val r = SoudanEngine.respond("妊娠中で腰が痛い")
+        val verdict = r.verdict
+        if (verdict is SoudanVerdict.RedFlag) {
+            assertEquals("state", verdict.kind)
+        } else {
+            fail("赤旗応答になるべきなのに verdict=$verdict")
+        }
+        assertEquals(kb.redFlags.answerState, r.message)
+        assertTrue(r.message != kb.redFlags.answer)
+        assertTrue(r.needsReferral)
+        assertFalse(r.hasVideo)
+        assertFalse(r.hasFollowup)
+    }
 }
