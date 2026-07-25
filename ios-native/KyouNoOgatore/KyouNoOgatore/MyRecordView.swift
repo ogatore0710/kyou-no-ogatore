@@ -55,7 +55,10 @@ struct MyRecordView: View {
                 HStack {
                     Button("◀") { if month == 1 { month = 12; year -= 1 } else { month -= 1 } }
                     Spacer()
-                    Text("\(year)年\(month)月").font(.headline)
+                    // Text(verbatim:)必須: 素朴なText("\(year)年...")はLocalizedStringKeyの
+                    // 数値補間経由でロケール依存の桁区切り(2,026年のような表記)が入ってしまうため
+                    // (実機検証で発見)。
+                    Text(verbatim: "\(year)年\(month)月").font(.headline)
                     Spacer()
                     Button("▶") { if month == 12 { month = 1; year += 1 } else { month += 1 } }
                 }
@@ -66,7 +69,7 @@ struct MyRecordView: View {
                 }
                 calendarGrid
 
-                Text("おやすみ券 のこり\(freezeLeft)枚")
+                Text(verbatim: "おやすみ券 のこり\(freezeLeft)枚")
 
                 Text("とどくメーター").font(.headline)
                 Text(reachList.last.map { "いまの記録: 段位\($0.lv)" } ?? "まだ記録なし")
@@ -109,7 +112,7 @@ struct MyRecordView: View {
                                 let isDone = doneDates.contains(ds)
                                 let isToday = ds == today
                                 let isFuture = ds > today
-                                Text("\(day)")
+                                Text(verbatim: "\(day)")
                                     .frame(maxWidth: .infinity, minHeight: 32)
                                     .foregroundStyle(isFuture ? .gray : .primary)
                                     .background(isDone ? Color(red: 0.61, green: 0.87, blue: 0.79) : Color.clear)
