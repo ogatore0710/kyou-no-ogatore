@@ -2,7 +2,84 @@
 
 > **これは何**: README.md が「何ができるか」なら、これは「どう作られていて・どこでハマるか」。
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
-> 最終更新: 2026-07-25
+> 最終更新: 2026-07-26
+
+## 2026-07-26 ネイティブ移植 Step 7b 完了（alan5発注・appdev実行・じまん・声・オガトレ部・使い方・設定=§2-1対応表を全行埋め切る最後のUI工程）
+
+`TASK-C2-2026-07-25-native-migration-step7b.md`（マスタープラン§6 Step 7b）を実施。**じまんカード
+(drawBragCard→BragCardRenderer)・せんぱいの声/オガトレ通信(obu-feed.json同梱)・使い方タブ(FAQ・
+A2HS関連は非表示化)・設定(テーマ/文字サイズ/エクスポート・インポート)を実装し、§2-1対応表の全16行を
+「実装済み/削除済み」に塗り切った。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
+
+- **BragCardRenderer**: index.html:2805 drawBragCard()は実際にはdrawCard()(記録カード)と同一の
+  Canvas座標系・固定演出配列・描画ヘルパーを共有しており、マスタープラン注記の「CardRendererとは独立の
+  描画器」を素直に別クラスにすると~150行の重複が発生する。CardRendererの描画ヘルパー(drawHeartShape等・
+  textPaint/drawCenteredText等・color系)をprivateからinternal(Kotlin)/moduleレベル(Swift)へ可視性緩和
+  し、新規BragCardRenderer.kt/.swiftから再利用する形で「独立ファイル」と「DRY」を両立。
+- **カード共有機能(新規)**: 両OSともこれまで記録カード/じまんカードの保存・共有導線が皆無だった
+  (grep確認・Intent.ACTION_SEND/UIActivityViewController無し)。Android=FileProvider新設
+  (`jp.ogatore.kyouno.fileprovider`・`cacheDir/images/`限定)+`Intent.ACTION_SEND`、iOS=
+  `UIActivityViewController`で実装し、既存の記録カードダイアログ・新設じまんカードダイアログ双方に配線。
+  Android実機でOSシェアシート(`ChooserActivity`)への遷移・サムネイル/文言("#きょうのオガトレ N日目！")
+  を実タップ確認。
+- **せんぱいの声(VoicesLogic)**: index.html:3880 pickDailyVoices()はCardLottery.cardRandと**同一の
+  mulberry32乱数**を日付文字列ハッシュで別シードして使うだけと判明。新規実装せず`CardLottery.cardRand`
+  を再利用しFisher-Yatesシャッフルのみ1:1移植。JS実値をnode -e直接実行で採取("2026-07-26"→
+  fh(seed)=1161844543・先頭8件[66,68,106,12,97,49,91,39])しKotlinゴールデンテストで突合、一発成功。
+- **オガトレ通信(ObuData)**: obu-feed.json(1件)を両OSへ新規同梱。写真アセットはAndroidリソース名
+  規約に合わせリネーム(`obu_post_2026_07_09_01.jpg`)。FAB経由の集計ポップアップはスコープ外として
+  見送り(検収基準に含まれないアーカイブ一覧のみ実装)。
+- **使い方タブ(GuideData・FAQ)**: index.html:1079-1132の29件FAQを両OSへ手写し(§1-2の「手写し禁止」は
+  kwリスト等の監査対象データテーブルが対象でUI文言は対象外・Step5c/6と同じ解釈)。§2-2「A2HS関連FAQは
+  非表示化して移植（削除しない）」どおり`hidden: Boolean`フラグで3件を非表示化(`FaqItem(hidden: true)`)。
+  検索はStep2移植済みの`SafetyGate.norm()`を正規化のみに再利用(§3-2の隔離対象4関数=crisisHit/
+  redFlagHit/redFlagKind/normのうちnorm単体利用は判定ロジックの再実装にあたらない)。
+  **判定要確認(alan5への報告事項)**: 3件のうち2件は明確にA2HS文言だが、「通算が0日にもどってる！」
+  はLINEアプリ内ブラウザ/ホーム画面のstorage分離という前提自体がネイティブアプリでは物理的に成立しない
+  ため誤解を招くと判断し非表示化した。文言上は「A2HS」と明記されておらず判断が分かれうるため要確認。
+- **設定(SettingsScreen/SettingsView)**: index.html:798-846の1:1移植。テーマ/文字サイズはStep3移植済み
+  の`kyono_theme`/`kyono_bigtext`キーへ書き込むのみ、エクスポート・インポートはStep3の`KyonoTransfer`
+  (buildExportString/importString)を呼ぶだけで判定ロジックは再実装せず。MaterialTheme全体への即時反映
+  (ダークモードの実見た目)はデータ契約と無関係な表示上の作り込みとして意図的に見送り(コメントに明記)。
+- **検収基準②の実ファイル確認**: Android実機でテーマを「ダーク」に変更→エクスポート実行→
+  `KYONO1:...`文字列を取得→puppeteer-core+headless Chromeで**実際のindex.htmlを起動し実際の
+  `#importText`+「よみこむ」ボタン(index.html:2082 importData())を操作**→confirm/alertダイアログの
+  実発火まで含めてWeb版へ逆インポートに成功、`localStorage`に`kyono_theme:"dark"`含め7キー全件正しく
+  反映されることを確認(PASS)。**副産物の発見**: 検証スクリプトへbase64文字列を手動転記した際に文字が
+  一部欠落し日本語ラベルが文字化けする事故が発生→調査の結果、Web版のimportData()自体のバグではなく
+  自分の転記ミスと判明(uiautomator dump XMLからスクリプトで直接抽出する方式に切替えて解決)。Web版の
+  atob+escape+decodeURIComponentデコードは正しいUTF-8文字列に対しては問題なく動作することを確認済み。
+- **iOS配線漏れの発見・修正**: 作業の途中経過をまとめた要約に「KyouNoOgatoreApp.swift/HomeView.swiftへ
+  Voices/Brag/Obu/Guide/Settingsの導線を追加済み」との記載があったが、実ファイルを読み直すと**実際には
+  未配線**(Screen enumに5ケースなし・HomeViewに5ボタンなし)だったことが判明。要約を鵜呑みにせず実物を
+  確認する原則どおり、この場で実装(Screen enum拡張・RootView switch拡張・HomeView5ボタン追加)して解消。
+  あわせてAndroid版で見つかったのと同じ「新規ボタン5件追加でHomeViewが画面高を超える」問題を
+  ScrollView追加で予防措置(Android版Column.verticalScrollと同じ理由)。`xcodebuild -sdk iphonesimulator
+  build` BUILD SUCCEEDED確認済み。
+- **Android**: `HomeScreen`のColumnに`.verticalScroll(rememberScrollState())`が元々無く、新規ボタン
+  5件追加後は下部3ボタン(オガトレ通信/使い方/設定)が完全に到達不能になっていた回帰バグを実タップ検証で
+  発見・修正(全新規画面を個別スポットチェックでなく毎回実タップした結果の発見)。VoicesScreen.kt・
+  ObuScreen.kt・BragScreen.kt・GuideScreen.kt・SettingsScreen.kt新設、`uiautomator dump`+python正規表現
+  でbounds座標を厳密抽出する方式で実タップ検証(せんぱいの声フリップ・じまんカード生成→共有シート・
+  オガトレ通信アーカイブ・使い方検索(ASCII"kishu"は日本語FAQに一致せず0件=想定どおり)・設定の全項目)。
+  **gradle testDebugUnitTest 396/396 pass(重複カウント込み実質198、111 safety-fixtures含む)**、回帰なし。
+- **iOS**: swift test各パッケージ緑（SafetyCore 8/8+111 safety-fixtures・RecordCore 35/35・
+  CardCore 11/11+55 card-golden）、回帰なし。
+- **§2-1対応表(全16行)最終ステータス**: 全行「実装済み」または「削除済み」で埋まり未実装行ゼロ。
+  詳細行ごとの状態はdoor-alan5.txt側の報告に記載。要点: ①ファイル名がマスタープラン提案と異なる箇所が
+  複数ある(RootScreen.kt/ui/HomeScreen.kt/QuizData.kt/QuizScreen.kt/ReachView.swiftは独立ファイルとして
+  存在せず、MainActivity.kt・OnboardingScreens.kt・MyRecordView.swift等の既存ファイルに機能として統合
+  済み。ロジック・UIとも欠落なし、ファイル分割方針の違いのみ) ②CardRenderer(記録カード側。じまんカード
+  側は別)のキャラ立ち絵・カード柄画像(assets/cards/*.webp一部)・実フォント(M PLUS 1p/BananaNum)・タグ
+  ピル・フッター吹き出し文言はStep4のコード内コメントで「Step7bのパリティ突合で扱う想定」と書かれていた
+  が、実際に発注されたStep7bタスク文の「やること」5項目には含まれておらず、今回もクローズしていない
+  (検収基準未対象のため意図的に見送り。要alan5確認) ③とどくメーター・おやすみ券は独立UIファイルは
+  無いが機能自体はStep3/5bで実装済み(MyRecordView.swift/MainActivity.kt内に埋め込み)であることを再確認
+  し実装済みと判定。
+- **gitlink/file-count確認**: `git ls-files`とgitlink(mode 160000)エントリ両方を確認、両OSともgitlink
+  化なし・auto-syncによる実体喪失なし。`npm test`引き続き全緑・PWA配信ファイル無変更確認済み。
+- push予定。次: alan5への完了報告をドア配達(§2-1対応表全行の最終ステータス・判断要確認事項・
+  Step0〜7b通算トークン概算を含む)。Step 8（9月頭の差分同期）はalan5の指示待ち。
 
 ## 2026-07-25 ネイティブ移植 Step 7a 完了（alan5発注・appdev実行・検索・再生リスト・図鑑）
 
