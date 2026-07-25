@@ -4,6 +4,58 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 見た目のWeb版パリティ移植(アプリ全体・最優先) Phase 1: デザイントークン+共通コンポーネント+ホーム画面
+
+`TASK-C2-2026-07-26-native-visual-design-parity.md`(実機で見た瞬間「PWA版と全然違う」と気づかれ、
+カード視覚アセットタスクを吸収・上書きして発注された、アプリ全体のデザインシステム移植タスク)に着手。
+規模が非常に大きい(全画面+下部タブバー+手描き風SVGアイコン移植)ため、alan5の「進め方の注意」どおり
+画面ごとに区切って進める方針。今回はPhase 1として基盤(デザイントークン・共通コンポーネント)とホーム画面
+を完了・実機/シミュレータで検証。残りは次エントリ以降で継続。
+
+- **Theme.kt/Theme.swift新設**: index.htmlのCSS変数(:root ライト・body.dark ダーク)から抽出した
+  配色トークン(yellow/ink/sub/teal/coral/pink/bg/card/line等、ライト・ダーク各19値)をそのまま定義。
+  独自解釈でのアレンジはしない(タスク文の明示的な指示どおり)。kyono_theme("auto"/"light"/"dark")と
+  システムのダークモード設定を合成して実際の配色を決定するresolveKyonoColors()。
+- **KyonoComponents.kt/.swift新設**: index.html .card(白背景・角丸22px・padding20px)・
+  .btn-primary(黄色背景+box-shadow:0 4px 0 #E8BE1Eの立体シャドウ・押下時にtranslateY(3px)+shadow
+  1pxへ縮む)・.btn-ghost(teal-soft背景)・.btn-line(枠線のみ)を両OSの再利用可能なコンポーネントとして
+  実装。
+- **ホーム画面をカード型レイアウトへ作り替え**(Android MainActivity.kt HomeScreen・iOS
+  HomeView.swift): 「きょうの1本」「続けた日数（通算）」「メニュー」の3カードへ再構成、
+  KyonoPrimaryButton/KyonoGhostButtonへ差し替え、背景をKyonoTheme経由のbg色へ。
+- **実機/シミュレータ検証で2件の実バグを発見・修正**(コードレビューだけでは気づけなかった類の
+  不具合。実際に動かして確認する重要性を再確認):
+  1. Android `KyonoCard`が内部で`Box`を使っていたため、複数の子要素(見出しTextとボタン等)が
+     縦に積まれず同一座標に重なって描画される表示崩れが実機スクショで発覚。`Column`に修正。
+  2. iOS「マイ記録を見る」のNavigationLinkだけ配色をハードコード(`Color(hex: 0xDFF5F2)`固定)
+     していたため、ダークモードで他のメニュー項目だけ浮いて見える不整合が発覚。
+     `KyonoGhostNavigationLink`を新設し`@Environment(\.kyonoColors)`経由に統一。
+  3. **SwiftUIのenvironment伝播に関する設計原則を得た**: `@Environment`プロパティは、それを
+     読むView構造体自身がビュー階層上のどこに位置するかで解決される。`HomeView`のような親View自身に
+     `@Environment(\.kyonoColors)`を持たせて、その値を子孫(`KyonoTheme{...}`の中身)の構築に使っても、
+     期待どおりの値は手に入らない(HomeView自身はKyonoThemeの**親**であって子孫ではないため常に既定値)。
+     色を使う小さな独立View構造体(`KyonoSectionTitle`/`KyonoBodyText`/`KyonoStreakText`/
+     `KyonoBackgroundColor`等)を用意し、それぞれが自分で`@Environment`を読む設計にする必要がある。
+- **実機/シミュレータでライト・ダーク双方を確認**: Android実機(kyono_testエミュレータ)・
+  iOSシミュレータ(iPhone 17)とも、背景色(#FFFAF3系)・カード角丸・黄色ボタンの立体シャドウ・
+  teal-softのゴーストボタンがWeb版と同じ配色体系で表示されることをスクショで確認
+  (`android-native/verify/design-parity/`・`ios-native/verify/design-parity-*.png`)。
+- **回帰確認**: Android `gradle testDebugUnitTest` 204/204・iOS `swift test`各パッケージ緑
+  (SafetyCore 8/8+111 fixtures・RecordCore 35/35・CardCore 16/16+55 card-golden)・`npm test`
+  442 checks green・Web版配信ファイル無変更。
+- **今回のスコープに含まれない(要continuation・次のセッションで着手)**:
+  - 下部タブバー(5項目・使い方/マイ記録/ホーム/再生リスト/動画を探す)本体。現状はホーム画面内に
+    メニューカードとして暫定表示(検収基準1の「下部タブバーの有無」は未達成)。既存のScreen sealed
+    class/switchベースのナビゲーション構造(§1-4「NavHost不使用」)とどう共存させるか設計が必要。
+  - sec-head手描き風SVGアイコン(いつやる派？・かたさチェック等、index.html全編に大量に埋め込み)の
+    両OSベクター形式への移植。件数が多く別途まとまった作業時間が必要。
+  - ホーム以外の画面(かたさチェック・診断結果・相談室・カレンダー/マイ記録・カード図鑑・
+    じまんカード・せんぱいの声・オガトレ通信・使い方・設定)は旧デザインのまま未着手。
+  - `PlanProgressCardView`/Android版PlanProgressCard(「肩こり・首こりプラン」進捗表示)がKyonoCard
+    未適用のまま旧MaterialTheme/UIKit標準スタイルで残っており、ホーム画面スクショで唯一浮いて見える
+    (次に手をつけるべき最小の残作業として認識)。
+- 途中経過をalan5へドア配達で報告予定(検収基準5項目のうち達成できたもの・継続項目を明記)。
+
 ## 2026-07-26 記録カード/じまんカードの視覚アセット完成（Step4/7bの積み残し・alan5発注）→直後に見た目全体パリティタスクへ吸収
 
 `TASK-C2-2026-07-26-native-migration-card-visual-assets.md`（Step4完了時のコード内コメントに
