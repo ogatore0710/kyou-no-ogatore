@@ -168,7 +168,7 @@ struct RootView: View {
         case .obu:
             ObuView(onBack: { screen = .home })
         case .guide:
-            GuideView(onBack: { screen = .home })
+            GuideView(store: store, onBack: { screen = .home })
         case .settings:
             SettingsView(store: store, onBack: { screen = .home })
         case .myRecord:
