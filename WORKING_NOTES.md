@@ -4,6 +4,43 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 見た目のWeb版パリティ移植 Phase 2: 下部タブバー+FAB(相談室・オガトレ通信)を両OSに実装
+
+Phase 1完了直後、本人からタスクの再確認(「カード限定タスクは吸収して破棄・アプリ全体のパリティに着手」)
+が届いたため、検収基準1で唯一未達成だった**下部タブバー本体**に着手・完了した。
+
+- **KyonoTabBar.kt/.swift新設**: index.html:1158-1164 `<nav class="tabbar">`の5項目(使い方/
+  マイ記録/ホーム/再生リスト/動画を探す)を1:1移植。アイコンはSF Symbols/Material Iconsへの置き換えが
+  タスク文で明示的に禁止されているため、index.htmlのインラインSVG(d属性)をCompose Canvas/Path・
+  SwiftUI Canvas/Pathで直接再現(house/calendar+check/open-book/playlist/magnifierの5アイコン)。
+  選択中タブのアイコンが黄色に塗りつぶされる挙動も含めて実装。
+- **KyonoFab新設**: index.html:1166-1175 obuFab/soudanFab(円形・カラーボーダー3px・影付き・
+  縦積み)を1:1移植。相談室(teal枠)・オガトレ通信(coral枠)を最前面に配置。
+- **ナビゲーション構造の変更**: マスタープラン§1-4「NavHost不使用」の方針は維持しつつ、タブバー/FABの
+  表示条件だけを「現在のScreenが5つのタブ画面のどれかに対応するか」で判定する薄い層(Android:
+  `currentTab`計算・iOS: `Screen.kyonoTab`計算プロパティ)を追加。既存のScreen sealed class/switch
+  構造そのものは変更していない。
+  - iOS側は「マイ記録」がこれまでNavigationLink経由のプッシュ遷移(NavigationStack)だったが、
+    他の4タブと同じ「Screenケース+タブバーからの直接遷移」に統一するため`Screen.myRecord`を新設。
+  - Android/iOSともHomeScreen/HomeView内の「メニュー」カードから、今回タブ/FABに移った項目
+    (マイ記録・相談室・動画を探す・再生リスト・使い方・オガトレ通信)を削除し重複導線を解消。
+    未使用になったコールバックパラメータも削除(iOS側はKyonoTheme解決をRootView1箇所に集約し
+    HomeView内の二重ラップも解消)。
+- **実機/シミュレータで動作確認**: Android実機(kyono_testエミュレータ)でタブ切替(ホーム→使い方)が
+  正しく機能し、選択中タブが黄色ハイライトされることを実タップで確認。iOSはシミュレータのスクショで
+  同等の見た目を確認(タップの実機検証はSystem Eventsのアクセシビリティ権限がない実行環境のため
+  未実施。ロジックはAndroidと同型の単純なボタンタップでリスクは低いと判断)。
+- **回帰確認**: Android `gradle testDebugUnitTest` 204/204・iOS `swift test`各パッケージ緑
+  (SafetyCore 8/8+111 fixtures・RecordCore 35/35・CardCore 16/16+55 card-golden)・`npm test`
+  442 checks green・Web版配信ファイル無変更・gitlink化なし。
+- **今回のスコープに含まれない(要continuation)**:
+  - sec-head手描き風SVGアイコン(いつやる派？・かたさチェック等)の両OSベクター形式への移植。
+  - ホーム以外の画面(かたさチェック・診断結果・相談室・カレンダー/マイ記録・カード図鑑・
+    じまんカード・せんぱいの声・オガトレ通信・使い方・設定)は旧デザインのまま未着手
+    (GuideScreen/GuideViewは今回タブとして表示されるようになったが中身はカード型に未対応)。
+  - Guide/MyRecord/Catalog/Search各画面内に残る「◀ もどる」ボタンが、タブバー導入後は意味が薄れ
+    冗長になっている(Web版はタブ切替のみで「戻る」概念が無い)。削除するかは要検討。
+
 ## 2026-07-26 見た目のWeb版パリティ移植(アプリ全体・最優先) Phase 1: デザイントークン+共通コンポーネント+ホーム画面
 
 `TASK-C2-2026-07-26-native-visual-design-parity.md`(実機で見た瞬間「PWA版と全然違う」と気づかれ、
