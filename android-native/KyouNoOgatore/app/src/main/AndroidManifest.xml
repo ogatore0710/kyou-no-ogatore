@@ -16,6 +16,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Step 7b(マスタープラン§6 Step 7b): 記録カード/じまんカードの保存・共有(index.html
+             shareCard()相当)で初めて必要になった。Intent.ACTION_SENDで渡すファイルURIは
+             file://でなくcontent://である必要がある(Android 7+のFileUriExposedException回避)ため
+             FileProviderを使う。共有対象はcacheDir配下のPNGのみに絞る(files-path等は公開しない)。 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="jp.ogatore.kyouno.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

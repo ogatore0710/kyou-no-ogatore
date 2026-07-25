@@ -164,16 +164,22 @@ struct HomeView: View {
             if let cardImage {
                 VStack {
                     Image(uiImage: cardImage).resizable().scaledToFit()
-                    Button("とじる") {
-                        self.cardImage = nil
-                        // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
-                        // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
-                        let tourpend: Bool = store.get("tourpend", default: false)
-                        let tourseen: Bool = store.get("tourseen", default: false)
-                        if tourpend && !tourseen {
-                            store.set("tourpend", false)
-                            store.set("tourseen", true)
-                            onStartTour(true)
+                    HStack {
+                        Button("とじる") {
+                            self.cardImage = nil
+                            // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
+                            // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
+                            let tourpend: Bool = store.get("tourpend", default: false)
+                            let tourseen: Bool = store.get("tourseen", default: false)
+                            if tourpend && !tourseen {
+                                store.set("tourpend", false)
+                                store.set("tourseen", true)
+                                onStartTour(true)
+                            }
+                        }
+                        // index.html shareCard()相当(Step7bで新規実装)。
+                        Button("保存・シェアする") {
+                            ShareImage.share(uiImage: cardImage, text: "#きょうのオガトレ \(streak.total)日目！")
                         }
                     }
                 }

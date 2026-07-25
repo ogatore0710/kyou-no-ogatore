@@ -166,7 +166,10 @@ object CardRenderer {
 
     // MARK: - 図形ヘルパー(index.html:2624-2690 roundRect/drawHeart/drawStar/drawSparkle/drawFlower/drawMoon/drawCrownの移植)
 
-    private fun drawHeartShape(canvas: Canvas, x: Float, y: Float, s: Float, color: Int) {
+    // internal(privateでない)にしているのはBragCardRenderer(Step7b)が同じ図形/テキスト/色ヘルパーを
+    // 再利用するため(記録カードとじまんカードは1000x1000の同じ舞台演出を共有する。index.html:2814
+    // 「背景・飾り・白カード（記録カードと同じ舞台）」というコメントどおり)。
+    internal fun drawHeartShape(canvas: Canvas, x: Float, y: Float, s: Float, color: Int) {
         canvas.save()
         canvas.translate(x, y)
         canvas.scale(s / 24f, s / 24f)
@@ -182,7 +185,7 @@ object CardRenderer {
         canvas.restore()
     }
 
-    private fun drawStarShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
+    internal fun drawStarShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
         val path = Path()
         for (i in 0 until 10) {
             val a = (Math.PI / 5 * i - Math.PI / 2).toFloat()
@@ -195,7 +198,7 @@ object CardRenderer {
         canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color })
     }
 
-    private fun drawSparkleShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
+    internal fun drawSparkleShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
         val path = Path().apply {
             moveTo(x, y - r)
             quadTo(x + r * 0.15f, y - r * 0.15f, x + r, y)
@@ -207,7 +210,7 @@ object CardRenderer {
         canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color })
     }
 
-    private fun drawFlowerShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
+    internal fun drawFlowerShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
         for (i in 0 until 5) {
             val a = (Math.PI * 2 / 5 * i - Math.PI / 2).toFloat()
             val cx = x + r * 0.6f * cos(a)
@@ -217,7 +220,7 @@ object CardRenderer {
         canvas.drawCircle(x, y, r * 0.3f, Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = Color.argb(230, 255, 255, 255) })
     }
 
-    private fun drawMoonShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
+    internal fun drawMoonShape(canvas: Canvas, x: Float, y: Float, r: Float, color: Int) {
         val path = Path().apply {
             addArc(RectF(x - r, y - r, x + r, y + r), -90f, 180f)
             quadTo(x - r * 0.7f, y, x, y - r)
@@ -226,7 +229,7 @@ object CardRenderer {
         canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color })
     }
 
-    private fun drawCrownShape(canvas: Canvas, x: Float, y: Float, w: Float, color: Int) {
+    internal fun drawCrownShape(canvas: Canvas, x: Float, y: Float, w: Float, color: Int) {
         val h = w * 0.62f
         val path = Path().apply {
             moveTo(x - w / 2, y + h / 2)
@@ -252,33 +255,33 @@ object CardRenderer {
 
     // MARK: - テキスト
 
-    private fun textPaint(fontSize: Float, textColor: Int): Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    internal fun textPaint(fontSize: Float, textColor: Int): Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = Typeface.DEFAULT_BOLD
         textSize = fontSize
         color = textColor
     }
 
-    private fun textWidth(text: String, fontSize: Float): Float = textPaint(fontSize, Color.BLACK).measureText(text)
+    internal fun textWidth(text: String, fontSize: Float): Float = textPaint(fontSize, Color.BLACK).measureText(text)
 
-    private fun drawCenteredText(canvas: Canvas, text: String, centerX: Float, baselineY: Float, fontSize: Float, textColor: Int) {
+    internal fun drawCenteredText(canvas: Canvas, text: String, centerX: Float, baselineY: Float, fontSize: Float, textColor: Int) {
         val w = textWidth(text, fontSize)
         drawLeftText(canvas, text, centerX - w / 2, baselineY, fontSize, textColor)
     }
 
-    private fun drawLeftText(canvas: Canvas, text: String, x: Float, baselineY: Float, fontSize: Float, textColor: Int) {
+    internal fun drawLeftText(canvas: Canvas, text: String, x: Float, baselineY: Float, fontSize: Float, textColor: Int) {
         canvas.drawText(text, x, baselineY, textPaint(fontSize, textColor))
     }
 
     // MARK: - 色
 
-    private fun color(hex: String): Int {
+    internal fun color(hex: String): Int {
         val s = hex.removePrefix("#")
         if (s.length != 6) return Color.BLACK
         val v = s.toLongOrNull(16) ?: return Color.BLACK
         return Color.rgb(((v shr 16) and 0xFF).toInt(), ((v shr 8) and 0xFF).toInt(), (v and 0xFF).toInt())
     }
 
-    private fun colorWithAlpha(hex: String, alpha: Float): Int {
+    internal fun colorWithAlpha(hex: String, alpha: Float): Int {
         val base = color(hex)
         return Color.argb((alpha * 255).toInt(), Color.red(base), Color.green(base), Color.blue(base))
     }

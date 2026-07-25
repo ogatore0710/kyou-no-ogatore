@@ -62,7 +62,7 @@ public enum CardRenderer {
         return pngData(from: image)
     }
 
-    private static func pngData(from image: CGImage) -> Data {
+    static func pngData(from image: CGImage) -> Data {
         let data = NSMutableData()
         guard let dest = CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil) else { return Data() }
         CGImageDestinationAddImage(dest, image, nil)
@@ -188,7 +188,7 @@ public enum CardRenderer {
 
     // MARK: - 図形ヘルパー(index.html:2624-2690 roundRect/drawHeart/drawStar/drawSparkle/drawFlower/drawMoon/drawCrownの移植)
 
-    private static func roundRectPath(_ ctx: CGContext, x: CGFloat, y: CGFloat, w: CGFloat, h: CGFloat, r: CGFloat) {
+    static func roundRectPath(_ ctx: CGContext, x: CGFloat, y: CGFloat, w: CGFloat, h: CGFloat, r: CGFloat) {
         let path = CGMutablePath()
         path.move(to: CGPoint(x: x + r, y: y))
         path.addArc(tangent1End: CGPoint(x: x + w, y: y), tangent2End: CGPoint(x: x + w, y: y + h), radius: r)
@@ -199,7 +199,7 @@ public enum CardRenderer {
         ctx.addPath(path)
     }
 
-    private static func drawHeartShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, s: CGFloat, color: CGColor) {
+    static func drawHeartShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, s: CGFloat, color: CGColor) {
         ctx.saveGState()
         ctx.translateBy(x: x, y: y)
         ctx.scaleBy(x: s / 24, y: s / 24)
@@ -216,7 +216,7 @@ public enum CardRenderer {
         ctx.restoreGState()
     }
 
-    private static func drawStarShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
+    static func drawStarShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
         let path = CGMutablePath()
         for i in 0..<10 {
             let a = CGFloat.pi / 5 * CGFloat(i) - CGFloat.pi / 2
@@ -230,7 +230,7 @@ public enum CardRenderer {
         ctx.fillPath()
     }
 
-    private static func drawSparkleShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
+    static func drawSparkleShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
         let path = CGMutablePath()
         path.move(to: CGPoint(x: x, y: y - r))
         path.addQuadCurve(to: CGPoint(x: x + r, y: y), control: CGPoint(x: x + r * 0.15, y: y - r * 0.15))
@@ -243,7 +243,7 @@ public enum CardRenderer {
         ctx.fillPath()
     }
 
-    private static func drawFlowerShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
+    static func drawFlowerShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
         for i in 0..<5 {
             let a = CGFloat.pi * 2 / 5 * CGFloat(i) - CGFloat.pi / 2
             let cx = x + r * 0.6 * cos(a), cy = y + r * 0.6 * sin(a)
@@ -254,7 +254,7 @@ public enum CardRenderer {
         ctx.fillEllipse(in: CGRect(x: x - r * 0.3, y: y - r * 0.3, width: r * 0.6, height: r * 0.6))
     }
 
-    private static func drawMoonShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
+    static func drawMoonShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, r: CGFloat, color: CGColor) {
         let path = CGMutablePath()
         path.addArc(center: CGPoint(x: x, y: y), radius: r, startAngle: -.pi / 2, endAngle: .pi / 2, clockwise: false)
         path.addQuadCurve(to: CGPoint(x: x, y: y - r), control: CGPoint(x: x - r * 0.7, y: y))
@@ -264,7 +264,7 @@ public enum CardRenderer {
         ctx.fillPath()
     }
 
-    private static func drawCrownShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, w: CGFloat, color: CGColor) {
+    static func drawCrownShape(_ ctx: CGContext, x: CGFloat, y: CGFloat, w: CGFloat, color: CGColor) {
         let h = w * 0.62
         let path = CGMutablePath()
         path.move(to: CGPoint(x: x - w / 2, y: y + h / 2))
@@ -295,17 +295,17 @@ public enum CardRenderer {
         return CTLineCreateWithAttributedString(attrStr)
     }
 
-    private static func textWidth(_ text: String, fontSize: CGFloat) -> CGFloat {
+    static func textWidth(_ text: String, fontSize: CGFloat) -> CGFloat {
         let line = attributedLine(text, fontSize: fontSize, color: color("#000000"))
         return CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
     }
 
-    private static func drawCenteredText(_ text: String, in ctx: CGContext, centerX: CGFloat, baselineY: CGFloat, fontSize: CGFloat, color: CGColor) {
+    static func drawCenteredText(_ text: String, in ctx: CGContext, centerX: CGFloat, baselineY: CGFloat, fontSize: CGFloat, color: CGColor) {
         let w = textWidth(text, fontSize: fontSize)
         drawLeftText(text, in: ctx, x: centerX - w / 2, baselineY: baselineY, fontSize: fontSize, color: color)
     }
 
-    private static func drawLeftText(_ text: String, in ctx: CGContext, x: CGFloat, baselineY: CGFloat, fontSize: CGFloat, color: CGColor) {
+    static func drawLeftText(_ text: String, in ctx: CGContext, x: CGFloat, baselineY: CGFloat, fontSize: CGFloat, color: CGColor) {
         let line = attributedLine(text, fontSize: fontSize, color: color)
         ctx.saveGState()
         ctx.translateBy(x: x, y: baselineY)
@@ -317,7 +317,7 @@ public enum CardRenderer {
 
     // MARK: - 色
 
-    private static func color(_ hex: String, alpha: CGFloat = 1) -> CGColor {
+    static func color(_ hex: String, alpha: CGFloat = 1) -> CGColor {
         var s = hex
         if s.hasPrefix("#") { s.removeFirst() }
         guard s.count == 6, let v = UInt32(s, radix: 16) else { return CGColor(red: 0, green: 0, blue: 0, alpha: alpha) }

@@ -301,6 +301,7 @@ fun HomeScreen(
     }
 
     cardBitmap?.let { bmp ->
+        val context = LocalContext.current
         AlertDialog(
             onDismissRequest = { cardBitmap = null },
             confirmButton = {
@@ -319,6 +320,13 @@ fun HomeScreen(
                     },
                     modifier = Modifier.testTag("cardCloseBtn"),
                 ) { Text("とじる") }
+            },
+            dismissButton = {
+                // index.html shareCard()相当(Step7bで新規実装)。
+                Button(
+                    onClick = { ShareImage.shareBitmap(context, bmp, "kyono-ogatore-$today.png", "#きょうのオガトレ ${streak.total}日目！") },
+                    modifier = Modifier.testTag("cardShareBtn"),
+                ) { Text("保存・シェアする") }
             },
             text = {
                 Image(

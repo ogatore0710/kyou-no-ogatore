@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Step 7b: 記録カード/じまんカードの共有(FileProvider)で公開する範囲をcacheDir配下の
+     images/ サブフォルダのみに絞る。 -->
+<paths>
+    <cache-path name="images" path="images/" />
+</paths>
