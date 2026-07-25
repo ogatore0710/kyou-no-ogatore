@@ -40,10 +40,14 @@ private enum Screen: Equatable {
     case result(typeKey: String)
     case tour(showClosing: Bool)
     case soudan
+    case search
+    case catalog
+    case dex
 
     static func == (lhs: Screen, rhs: Screen) -> Bool {
         switch (lhs, rhs) {
-        case (.home, .home), (.onboarding, .onboarding), (.soudan, .soudan): return true
+        case (.home, .home), (.onboarding, .onboarding), (.soudan, .soudan),
+             (.search, .search), (.catalog, .catalog), (.dex, .dex): return true
         case let (.quiz(a), .quiz(b)): return a == b
         case let (.result(a), .result(b)): return a == b
         case let (.tour(a), .tour(b)): return a == b
@@ -82,11 +86,26 @@ struct RootView: View {
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onClose: { screen = .home }
             )
+        case .search:
+            SearchView(
+                openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
+                onBack: { screen = .home }
+            )
+        case .catalog:
+            CatalogListView(
+                openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
+                onBack: { screen = .home }
+            )
+        case .dex:
+            DexView(store: store, onBack: { screen = .home })
         case .home:
             HomeView(
                 store: store,
                 onStartTour: { showClosing in screen = .tour(showClosing: showClosing) },
-                onOpenSoudan: { screen = .soudan }
+                onOpenSoudan: { screen = .soudan },
+                onOpenSearch: { screen = .search },
+                onOpenCatalog: { screen = .catalog },
+                onOpenDex: { screen = .dex }
             )
         }
     }

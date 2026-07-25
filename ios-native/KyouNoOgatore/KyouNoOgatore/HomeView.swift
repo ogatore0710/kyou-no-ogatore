@@ -31,6 +31,9 @@ struct HomeView: View {
     private let store: RecordStore
     let onStartTour: (Bool) -> Void
     let onOpenSoudan: () -> Void
+    let onOpenSearch: () -> Void
+    let onOpenCatalog: () -> Void
+    let onOpenDex: () -> Void
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     @State private var streak: RecordLogic.StreakData
@@ -47,10 +50,16 @@ struct HomeView: View {
 
     @Environment(\.scenePhase) private var scenePhase
 
-    init(store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenSoudan: @escaping () -> Void) {
+    init(
+        store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenSoudan: @escaping () -> Void,
+        onOpenSearch: @escaping () -> Void, onOpenCatalog: @escaping () -> Void, onOpenDex: @escaping () -> Void
+    ) {
         self.store = store
         self.onStartTour = onStartTour
         self.onOpenSoudan = onOpenSoudan
+        self.onOpenSearch = onOpenSearch
+        self.onOpenCatalog = onOpenCatalog
+        self.onOpenDex = onOpenDex
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
@@ -128,6 +137,9 @@ struct HomeView: View {
             NavigationLink("マイ記録を見る") { MyRecordView(store: store) }
 
             Button("💬 オガトレ相談室", action: onOpenSoudan)
+            Button("🔍 動画を探す", action: onOpenSearch)
+            Button("📺 再生リスト", action: onOpenCatalog)
+            Button("📖 図鑑", action: onOpenDex)
 
             Spacer()
         }
@@ -205,5 +217,8 @@ private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData,
 }
 
 #Preview {
-    HomeView(store: RecordStore(inMemory: [:]), onStartTour: { _ in }, onOpenSoudan: {})
+    HomeView(
+        store: RecordStore(inMemory: [:]), onStartTour: { _ in }, onOpenSoudan: {},
+        onOpenSearch: {}, onOpenCatalog: {}, onOpenDex: {}
+    )
 }
