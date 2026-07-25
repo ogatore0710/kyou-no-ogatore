@@ -169,3 +169,32 @@ struct KyonoLineButton: View {
         .buttonStyle(.plain)
     }
 }
+
+// index.html:372-376 .seg/.seg button/.seg button.on(セグメントコントロール)の1:1移植。
+// 例: 設定画面の「画面のみため」「もじの大きさ」トグル。
+struct KyonoSegmentedControl<T: Equatable>: View {
+    @Environment(\.kyonoColors) private var colors
+    let options: [(T, String)]
+    let selected: T
+    let onSelect: (T) -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(options.indices, id: \.self) { i in
+                let (value, label) = options[i]
+                let on = value == selected
+                Button(action: { onSelect(value) }) {
+                    Text(label).font(.kyono(.black900, size: 15)).foregroundColor(on ? colors.ink : colors.sub)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                        .background(on ? colors.card : Color.clear)
+                        .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(colors.line)
+        .cornerRadius(16)
+    }
+}

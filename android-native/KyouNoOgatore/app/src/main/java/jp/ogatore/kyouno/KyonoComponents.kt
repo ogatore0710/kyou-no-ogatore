@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -106,5 +107,32 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
         contentAlignment = Alignment.Center,
     ) {
         Text(text, color = colors.sub2, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+    }
+}
+
+// index.html:372-376 .seg/.seg button/.seg button.on(セグメントコントロール)の1:1移植。
+// 例: 設定画面の「画面のみため」「もじの大きさ」トグル。
+@Composable
+fun <T> KyonoSegmentedControl(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colors.line, RoundedCornerShape(16.dp))
+            .padding(4.dp),
+    ) {
+        options.forEach { (value, label) ->
+            val on = value == selected
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(if (on) colors.card else Color.Transparent, RoundedCornerShape(12.dp))
+                    .clickable { onSelect(value) }
+                    .padding(vertical = 13.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(label, color = if (on) colors.ink else colors.sub, fontSize = 15.sp, fontWeight = FontWeight.Black)
+            }
+        }
     }
 }
