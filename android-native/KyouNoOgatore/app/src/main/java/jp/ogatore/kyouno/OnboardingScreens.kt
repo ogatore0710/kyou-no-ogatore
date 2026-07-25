@@ -1,5 +1,6 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -268,6 +270,14 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
             Spacer(Modifier.height(8.dp))
             Text(q.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.testTag("quizTitle"))
             Text(q.note, style = MaterialTheme.typography.bodySmall)
+            q.artRes?.let { res ->
+                Spacer(Modifier.height(8.dp))
+                Image(
+                    painter = painterResource(id = res),
+                    contentDescription = "${q.title}のお手本",
+                    modifier = Modifier.fillMaxWidth().testTag("quizArt_${q.key}"),
+                )
+            }
             Spacer(Modifier.height(8.dp))
             q.opts.forEachIndexed { i, opt ->
                 Button(
