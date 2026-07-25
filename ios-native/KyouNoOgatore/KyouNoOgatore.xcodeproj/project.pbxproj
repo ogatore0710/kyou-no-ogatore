@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */ = {isa = PBXBuildFile; productRef = DCABFED709CFEEF540C7D4CE /* SafetyCore */; };
+		8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 470554BE76139B65EDACBBF6 /* RecordCore */; };
+		4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5818E1CC197288CC2CC64AF6 /* CardCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		5187B9F13014B06500013565 /* KyouNoOgatore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KyouNoOgatore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +29,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */,
+				8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */,
+				4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +74,9 @@
 			);
 			name = KyouNoOgatore;
 			packageProductDependencies = (
+				DCABFED709CFEEF540C7D4CE /* SafetyCore */,
+				470554BE76139B65EDACBBF6 /* RecordCore */,
+				5818E1CC197288CC2CC64AF6 /* CardCore */,
 			);
 			productName = KyouNoOgatore;
 			productReference = 5187B9F13014B06500013565 /* KyouNoOgatore.app */;
@@ -94,6 +106,11 @@
 			);
 			mainGroup = 5187B9E83014B06500013565;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */,
+				AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */,
+				099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5187B9F23014B06500013565 /* Products */;
 			projectDirPath = "";
@@ -328,6 +345,39 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = SafetyCore;
+		};
+		AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = RecordCore;
+		};
+		099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = CardCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DCABFED709CFEEF540C7D4CE /* SafetyCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */;
+			productName = SafetyCore;
+		};
+		470554BE76139B65EDACBBF6 /* RecordCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */;
+			productName = RecordCore;
+		};
+		5818E1CC197288CC2CC64AF6 /* CardCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */;
+			productName = CardCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5187B9E93014B06500013565 /* Project object */;
 }
