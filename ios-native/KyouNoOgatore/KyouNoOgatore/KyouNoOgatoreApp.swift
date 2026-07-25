@@ -48,16 +48,32 @@ private enum Screen: Equatable {
     case obu
     case guide
     case settings
+    case myRecord
 
     static func == (lhs: Screen, rhs: Screen) -> Bool {
         switch (lhs, rhs) {
         case (.home, .home), (.onboarding, .onboarding), (.soudan, .soudan),
              (.search, .search), (.catalog, .catalog), (.dex, .dex),
-             (.voices, .voices), (.brag, .brag), (.obu, .obu), (.guide, .guide), (.settings, .settings): return true
+             (.voices, .voices), (.brag, .brag), (.obu, .obu), (.guide, .guide),
+             (.settings, .settings), (.myRecord, .myRecord): return true
         case let (.quiz(a), .quiz(b)): return a == b
         case let (.result(a), .result(b)): return a == b
         case let (.tour(a), .tour(b)): return a == b
         default: return false
+        }
+    }
+
+    // ネイティブ移植「見た目のWeb版パリティ移植」タスク(下部タブバー): index.html:1158-1164
+    // <nav class="tabbar">の5項目だけがタブとして永続表示される。それ以外の画面はWeb版でもタブに
+    // 属さない別画面(モーダル/サブ画面)のため、タブバーを隠す。
+    var kyonoTab: KyonoTab? {
+        switch self {
+        case .guide: return .guide
+        case .myRecord: return .myRecord
+        case .home: return .home
+        case .catalog: return .catalog
+        case .search: return .search
+        default: return nil
         }
     }
 }
@@ -72,7 +88,45 @@ struct RootView: View {
         _screen = State(initialValue: onboarded ? .home : .onboarding)
     }
 
+    private var themeSetting: String { store.get("theme", default: "auto") }
+
     var body: some View {
+        KyonoTheme(themeSetting: themeSetting) {
+            content
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 0) {
+                screenContent
+                if let tab = screen.kyonoTab {
+                    KyonoTabBar(current: tab) { newTab in
+                        switch newTab {
+                        case .guide: screen = .guide
+                        case .myRecord: screen = .myRecord
+                        case .home: screen = .home
+                        case .catalog: screen = .catalog
+                        case .search: screen = .search
+                        }
+                    }
+                }
+            }
+            // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
+            if screen.kyonoTab != nil {
+                VStack(spacing: 10) {
+                    KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3)) { screen = .soudan }
+                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFF8A70)) { screen = .obu }
+                }
+                .padding(.trailing, 16)
+                .padding(.bottom, 84)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var screenContent: some View {
         switch screen {
         case .onboarding:
             OnboardingView(store: store) { route, presetWorry in
@@ -117,18 +171,15 @@ struct RootView: View {
             GuideView(onBack: { screen = .home })
         case .settings:
             SettingsView(store: store, onBack: { screen = .home })
+        case .myRecord:
+            MyRecordView(store: store)
         case .home:
             HomeView(
                 store: store,
                 onStartTour: { showClosing in screen = .tour(showClosing: showClosing) },
-                onOpenSoudan: { screen = .soudan },
-                onOpenSearch: { screen = .search },
-                onOpenCatalog: { screen = .catalog },
                 onOpenDex: { screen = .dex },
                 onOpenVoices: { screen = .voices },
                 onOpenBrag: { screen = .brag },
-                onOpenObu: { screen = .obu },
-                onOpenGuide: { screen = .guide },
                 onOpenSettings: { screen = .settings }
             )
         }

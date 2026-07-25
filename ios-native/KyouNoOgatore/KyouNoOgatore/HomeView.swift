@@ -30,14 +30,9 @@ private let CHEERS = [
 struct HomeView: View {
     private let store: RecordStore
     let onStartTour: (Bool) -> Void
-    let onOpenSoudan: () -> Void
-    let onOpenSearch: () -> Void
-    let onOpenCatalog: () -> Void
     let onOpenDex: () -> Void
     let onOpenVoices: () -> Void
     let onOpenBrag: () -> Void
-    let onOpenObu: () -> Void
-    let onOpenGuide: () -> Void
     let onOpenSettings: () -> Void
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
@@ -56,21 +51,14 @@ struct HomeView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     init(
-        store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenSoudan: @escaping () -> Void,
-        onOpenSearch: @escaping () -> Void, onOpenCatalog: @escaping () -> Void, onOpenDex: @escaping () -> Void,
-        onOpenVoices: @escaping () -> Void, onOpenBrag: @escaping () -> Void, onOpenObu: @escaping () -> Void,
-        onOpenGuide: @escaping () -> Void, onOpenSettings: @escaping () -> Void
+        store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenDex: @escaping () -> Void,
+        onOpenVoices: @escaping () -> Void, onOpenBrag: @escaping () -> Void, onOpenSettings: @escaping () -> Void
     ) {
         self.store = store
         self.onStartTour = onStartTour
-        self.onOpenSoudan = onOpenSoudan
-        self.onOpenSearch = onOpenSearch
-        self.onOpenCatalog = onOpenCatalog
         self.onOpenDex = onOpenDex
         self.onOpenVoices = onOpenVoices
         self.onOpenBrag = onOpenBrag
-        self.onOpenObu = onOpenObu
-        self.onOpenGuide = onOpenGuide
         self.onOpenSettings = onOpenSettings
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
@@ -84,12 +72,10 @@ struct HomeView: View {
     private var did: Bool { streak.dates.contains(today) }
     private var fdFocusOn: Bool { HomeLogic.fdFocusHomeActive(fd: fd, streakTotal: streak.total, fdday: fdday, today: today) }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
-
+    // KyonoThemeでの配色解決はRootView(KyouNoOgatoreApp.swift)側で行う(タブバー・FABとも共通の
+    // 配色を1箇所で解決するため。二重ラップを避ける)。
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
-            homeContent
-        }
+        homeContent
     }
 
     // Step7bで導線ボタンを5件追加し画面高さを超えるようになったため、Android版HomeScreenの
@@ -159,20 +145,14 @@ struct HomeView: View {
                 .disabled(!did)
             }
 
-            // その他の導線(Web版は使い方/マイ記録/再生リスト/動画を探すを下部タブバーへ収容するが、
-            // タブバー本体は本パスでは未着手。§2-1備考どおり暫定でカード内リンク一覧として維持する
-            // (要continuation: 下部タブバー構造への作り替え)。
+            // その他の導線: マイ記録/動画を探す/再生リスト/使い方は下部タブバーへ、相談室/オガトレ通信は
+            // FABへ移設済み(RootView側・KyouNoOgatoreApp.swift参照)。ここにはWeb版側でもタブ/FABに
+            // 属さない残り(図鑑・せんぱいの声・じまんカード・設定)だけを置く。
             KyonoCard {
                 KyonoSectionTitle("メニュー")
-                KyonoGhostNavigationLink("マイ記録を見る") { MyRecordView(store: store) }
-                KyonoGhostButton("💬 オガトレ相談室", action: onOpenSoudan)
-                KyonoGhostButton("🔍 動画を探す", action: onOpenSearch)
-                KyonoGhostButton("📺 再生リスト", action: onOpenCatalog)
                 KyonoGhostButton("📖 図鑑", action: onOpenDex)
                 KyonoGhostButton("💬 せんぱいの声", action: onOpenVoices)
                 KyonoGhostButton("🎉 じまんカード", action: onOpenBrag)
-                KyonoGhostButton("📣 オガトレ通信", action: onOpenObu)
-                KyonoGhostButton("📖 使い方", action: onOpenGuide)
                 KyonoGhostButton("⚙️ 設定", action: onOpenSettings)
             }
         }
@@ -270,8 +250,7 @@ private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData,
 
 #Preview {
     HomeView(
-        store: RecordStore(inMemory: [:]), onStartTour: { _ in }, onOpenSoudan: {},
-        onOpenSearch: {}, onOpenCatalog: {}, onOpenDex: {},
-        onOpenVoices: {}, onOpenBrag: {}, onOpenObu: {}, onOpenGuide: {}, onOpenSettings: {}
+        store: RecordStore(inMemory: [:]), onStartTour: { _ in },
+        onOpenDex: {}, onOpenVoices: {}, onOpenBrag: {}, onOpenSettings: {}
     )
 }
