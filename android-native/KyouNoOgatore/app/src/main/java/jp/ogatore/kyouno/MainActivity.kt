@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
                                             onBack = { screen = Screen.Home },
                                         )
                                         is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
-                                        is Screen.Obu -> ObuScreen(onBack = { screen = Screen.Home })
+                                        is Screen.Obu -> ObuScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Guide -> GuideScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Home -> HomeScreen(

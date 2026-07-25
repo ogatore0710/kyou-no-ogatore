@@ -2,6 +2,7 @@ package jp.ogatore.kyouno
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,52 +12,79 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import jp.ogatore.kyouno.obu.ObuLoader
 import jp.ogatore.kyouno.obu.ObuPost
+import jp.ogatore.kyouno.record.RecordStore
 
 // ネイティブ移植 Step 7b(マスタープラン§6 Step 7b・§2-1「obu-feed.js OBU_FEED」行): オガトレ通信
 // (オガトレ部)の全件アーカイブUI。index.html renderObuArchive()の1:1移植(新着順ソート+type別描画)。
 // FABの新着ポップアップ(obuHasNew()・renderObuPopup())は本ステップでは簡略化し、
 // アーカイブ一覧のみを実装する(投稿1件のみの現状ではポップアップの実質的な価値が薄いため)。
+//
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+// Phase 3: index.html:266-278 .obu-post/.obu-post.obu-text(yellow-soft)/.obu-date/.obu-title/
+// .obu-capの1:1移植。obuIsStaleDate/obuFmtDateの日付整形ロジックは新規追加であり「見た目のみ」の
+// スコープを超えるため、このステップでは移植しない(既存の生日付表示を維持)。
 @Composable
-fun ObuScreen(onBack: () -> Unit) {
-    val posts = remember {
-        ObuLoader.shared.sortedWith(
-            compareByDescending<ObuPost> { it.date }.thenByDescending { it.time ?: "" },
-        )
-    }
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Button(onClick = onBack, modifier = Modifier.testTag("obuBackBtn")) { Text("◀ もどる") }
-        Spacer(Modifier.height(8.dp))
-        Text("オガトレ通信", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(8.dp))
-        LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("obuArchiveList")) {
-            items(posts) { post -> ObuPostCard(post) }
+fun ObuScreen(store: RecordStore, onBack: () -> Unit) {
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        val posts = remember {
+            ObuLoader.shared.sortedWith(
+                compareByDescending<ObuPost> { it.date }.thenByDescending { it.time ?: "" },
+            )
+        }
+        Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
+            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("obuBackBtn"))
+            Spacer(Modifier.height(12.dp))
+            KyonoSectionHeader(KyonoIcon.ObuBubble, "オガトレ通信", fill = colors.pinkSoft)
+            Spacer(Modifier.height(12.dp))
+            if (posts.isEmpty()) {
+                KyonoCard {
+                    Text(
+                        "まだ投稿がありません また今度のぞいてみてね🌱",
+                        color = colors.sub, fontSize = 14.sp, textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            } else {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("obuArchiveList")) {
+                    items(posts) { post -> ObuPostCard(post) }
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun ObuPostCard(post: ObuPost) {
+    val colors = LocalKyonoColors.current
     val context = LocalContext.current
+    // index.html:271 .obu-post.obu-text(yellow-softの角丸ボックス)。photo/radioはボックスなしで並べる。
+    val isText = post.type != "photo" && post.type != "radio"
     Column(
-        Modifier.fillMaxWidth().padding(vertical = 4.dp)
-            .background(Color(0xFFF3F1EC), RoundedCornerShape(12.dp)).padding(12.dp)
+        Modifier.fillMaxWidth().padding(bottom = 14.dp)
+            .let { if (isText) it.background(colors.yellowSoft, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 12.dp) else it }
             .testTag("obuPost_${post.id}"),
     ) {
-        Text(post.date + (post.time?.let { " $it" } ?: ""), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+        Text(
+            post.date + (post.time?.let { " $it" } ?: ""),
+            color = if (isText) colors.sub2 else colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black,
+        )
         when (post.type) {
             "photo" -> {
                 post.image?.let { imagePath ->
@@ -67,17 +95,21 @@ private fun ObuPostCard(post: ObuPost) {
                             painter = painterResource(id = resId),
                             contentDescription = post.text,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxWidth().height(180.dp).padding(top = 4.dp),
+                            modifier = Modifier.fillMaxWidth().height(180.dp).padding(top = 6.dp)
+                                .background(colors.card, RoundedCornerShape(14.dp))
+                                .border(1.5.dp, colors.line, RoundedCornerShape(14.dp)),
                         )
                     }
                 }
-                post.text?.let { Text(it, modifier = Modifier.padding(top = 4.dp)) }
+                post.text?.let { Text(it, color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(top = 6.dp)) }
             }
             "radio" -> {
-                post.title?.let { Text(it, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 4.dp)) }
-                Text("🎧 音声つき投稿(ネイティブでは再生UI未実装)", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                post.title?.let {
+                    Text("📻 $it", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 6.dp))
+                }
+                Text("🎧 音声つき投稿(ネイティブでは再生UI未実装)", color = colors.sub, fontSize = 12.sp)
             }
-            else -> post.text?.let { Text(it, modifier = Modifier.padding(top = 4.dp)) }
+            else -> post.text?.let { Text(it, color = colors.ink, fontSize = 15.sp, lineHeight = 24.sp) }
         }
     }
 }

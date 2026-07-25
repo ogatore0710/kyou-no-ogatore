@@ -167,7 +167,7 @@ struct RootView: View {
         case .brag:
             BragView(store: store, onBack: { screen = .home })
         case .obu:
-            ObuView(onBack: { screen = .home })
+            ObuView(store: store, onBack: { screen = .home })
         case .guide:
             GuideView(store: store, onBack: { screen = .home })
         case .settings:
