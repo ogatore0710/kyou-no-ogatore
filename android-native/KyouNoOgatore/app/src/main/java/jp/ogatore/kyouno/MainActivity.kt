@@ -148,16 +148,10 @@ class MainActivity : ComponentActivity() {
                                         is Screen.Home -> HomeScreen(
                                             store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                                            onOpenMyRecord = { screen = Screen.MyRecord },
                                             onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
-                                            onOpenSoudan = { screen = Screen.Soudan },
-                                            onOpenSearch = { screen = Screen.Search },
-                                            onOpenCatalog = { screen = Screen.Catalog },
                                             onOpenDex = { screen = Screen.Dex },
                                             onOpenVoices = { screen = Screen.Voices },
                                             onOpenBrag = { screen = Screen.Brag },
-                                            onOpenObu = { screen = Screen.Obu },
-                                            onOpenGuide = { screen = Screen.Guide },
                                             onOpenSettings = { screen = Screen.Settings },
                                         )
                                     }
@@ -223,16 +217,10 @@ private val CHEERS = listOf(
 fun HomeScreen(
     store: RecordStore,
     openUrl: (String) -> Unit,
-    onOpenMyRecord: () -> Unit,
     onStartTour: (Boolean) -> Unit,
-    onOpenSoudan: () -> Unit,
-    onOpenSearch: () -> Unit,
-    onOpenCatalog: () -> Unit,
     onOpenDex: () -> Unit,
     onOpenVoices: () -> Unit,
     onOpenBrag: () -> Unit,
-    onOpenObu: () -> Unit,
-    onOpenGuide: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -368,29 +356,17 @@ fun HomeScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            // その他の導線(Web版は使い方/マイ記録/再生リスト/動画を探すを下部タブバーへ収容するが、
-            // タブバー本体は本パスでは未着手。§2-1備考どおり暫定でカード内リンク一覧として維持する
-            // (要continuation: 下部タブバー構造への作り替え)。
+            // その他の導線: マイ記録/動画を探す/再生リスト/使い方は下部タブバーへ、相談室/オガトレ通信は
+            // FABへ移設済み(このHomeScreen自体の外側・MainActivity.kt setContent参照)。ここには
+            // Web版側でもタブ/FABに属さない残り(図鑑・せんぱいの声・じまんカード・設定)だけを置く。
             KyonoCard(Modifier.testTag("otherLinksCard")) {
                 Text("メニュー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("マイ記録を見る", onOpenMyRecord, Modifier.testTag("myRecordBtn"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("💬 オガトレ相談室", onOpenSoudan, Modifier.testTag("soudanFab"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("🔍 動画を探す", onOpenSearch, Modifier.testTag("searchBtn"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("📺 再生リスト", onOpenCatalog, Modifier.testTag("catalogBtn"))
-                Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("📖 図鑑", onOpenDex, Modifier.testTag("dexBtn"))
                 Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("💬 せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"))
                 Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("🎉 じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("📣 オガトレ通信", onOpenObu, Modifier.testTag("obuBtn"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("📖 使い方", onOpenGuide, Modifier.testTag("guideBtn"))
                 Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("⚙️ 設定", onOpenSettings, Modifier.testTag("settingsBtn"))
             }
