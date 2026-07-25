@@ -1266,10 +1266,7 @@
 <script src="app-quiz.js"></script>
 <script src="app-record.js"></script>
 <script src="app-card.js"></script>
-<<<<<<< Updated upstream
 <script src="app-env.js"></script>
-=======
->>>>>>> Stashed changes
 <!-- obu-feed.js読み込み失敗時の保険。varでの再宣言はconst OBU_FEEDと衝突しSyntaxErrorになるためwindowプロパティで補う -->
 <script>if(typeof OBU_FEED==="undefined")window.OBU_FEED=[];</script>
 <script>
@@ -2718,13 +2715,9 @@ function markCardSaved(){
   if(cardDate===todayStr() && getStreakData().dates.includes(todayStr())) store.set("card_saved", todayStr());
 }
 // downloadCard/shareCardはapp-card.jsへ移動済み（2026-07-17）
-<<<<<<< Updated upstream
 function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); modalFocusClose(); fdTourMaybeStart(); }
 // 節目カードの「記録のひかえを取る」導線: モーダルを閉じてから記録のひっこし(エクスポート)欄へ
 function goToExportFromCard(){ closeCard(); navTo("history"); gJump("exportSection"); }
-=======
-function closeCard(){ document.getElementById("cardModal").classList.add("hidden"); applyMiniStreak(); updateFabs(); }
->>>>>>> Stashed changes
 
 // ================= じまんカード（つづけてる日数＋すきな1本を1枚に） =================
 let bragPick=null;
