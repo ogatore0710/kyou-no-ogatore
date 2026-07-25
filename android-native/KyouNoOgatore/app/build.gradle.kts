@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -43,4 +44,11 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.material3:material3")
+
+    // 安全系判定(SafetyGate/SafetyKB)のJSONデコード用。Android SDK同梱のorg.json(実機/インストゥルメンテッド
+    // テスト専用のスタブでJVM単体テストでは動かない)と衝突するため使わず、kotlinx.serializationを使う。
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // ネイティブ移植 Step 2(マスタープラン§6 Step 2): エミュレータ不要のプレーンJVM JUnitユニットテスト。
+    testImplementation("junit:junit:4.13.2")
 }

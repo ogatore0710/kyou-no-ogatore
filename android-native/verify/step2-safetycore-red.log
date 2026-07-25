@@ -1,0 +1,295 @@
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:compileDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:bundleDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleDebugClassesToCompileJar UP-TO-DATE
+> Task :app:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testDebugUnitTest FAILED
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[1: [NormGoldenCase(system=composed-dakuten, input=が, normOutput=か, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[3: [NormGoldenCase(system=composed-dakuten, input=ぱ, normOutput=は, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[5: [NormGoldenCase(system=composed-dakuten, input=ご, normOutput=こ, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[6: [NormGoldenCase(system=halfwidth-kana, input=ｶﾀｺﾘ, normOutput=, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[7: [NormGoldenCase(system=halfwidth-kana, input=ﾗｳﾂﾂ, normOutput=, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[8: [NormGoldenCase(system=halfwidth-kana, input=肩こりｶﾀｺﾘ, normOutput=肩こり, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[9: [NormGoldenCase(system=emoji-mixed, input=肩こり😢つらい, normOutput=肩こりつらい, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[10: [NormGoldenCase(system=emoji-mixed, input=腰が痛い🥲助けて, normOutput=腰が痛い助けて, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[11: [NormGoldenCase(system=emoji-mixed, input=🙏ストレッチ教えて🙏, normOutput=すとれっち教えて, redFlagHit=null)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > redFlagHitMatchesGoldenWhenSpecified[12: [NormGoldenCase(system=negation-concat-adversarial, input=寝ねころ転んだ, normOutput=寝ねころ転んだ, redFlagHit=true)]] FAILED
+    java.lang.AssertionError at NormGoldenFixtureTest.kt:53
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > redFlagHitMatchesGoldenWhenSpecified[13: [NormGoldenCase(system=negation-concat-adversarial, input=寝ころねっころ転んだ, normOutput=寝ころねっころ転んだ, redFlagHit=true)]] FAILED
+    java.lang.AssertionError at NormGoldenFixtureTest.kt:53
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > redFlagHitMatchesGoldenWhenSpecified[14: [NormGoldenCase(system=negation-concat-adversarial, input=寝ねっころ転んだ, normOutput=寝ねっころ転んだ, redFlagHit=true)]] FAILED
+    java.lang.AssertionError at NormGoldenFixtureTest.kt:53
+
+jp.ogatore.kyouno.safety.NormGoldenFixtureTest > normMatchesGoldenOutput[15: [NormGoldenCase(system=negation-concat-adversarial, input=寝転んでできるストレッチはありますか, normOutput=寝転んでできるすとれっちはありますか, redFlagHit=false)]] FAILED
+    org.junit.ComparisonFailure at NormGoldenFixtureTest.kt:46
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[2: [SafetyFixture(input=寝転がろうとして転んだ, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[3: [SafetyFixture(input=昨日転んで腰を打った, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[4: [SafetyFixture(input=胸が痛いときのストレッチある?, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[5: [SafetyFixture(input=最近動悸がして不安, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[6: [SafetyFixture(input=階段で胸が苦しくなる, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[7: [SafetyFixture(input=脈が飛ぶ感じがする, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[12: [SafetyFixture(input=死にたいくらいつらい, expect=crisis)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[13: [SafetyFixture(input=もう消えたいです, expect=crisis)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[14: [SafetyFixture(input=自殺を考えてしまう, expect=crisis)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[15: [SafetyFixture(input=生きるのがつらいです, expect=crisis)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[20: [SafetyFixture(input=胸が締め付けられる感じで冷や汗が出る, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[21: [SafetyFixture(input=急に力が抜けて歩けなくなった, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[22: [SafetyFixture(input=わきの下にしこりがある, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[26: [SafetyFixture(input=胸の締め付け感がある, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[27: [SafetyFixture(input=胸が締め付けられる感じで冷や汗が出る, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[28: [SafetyFixture(input=腰が痛くて夜中に目が覚める, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[29: [SafetyFixture(input=夜中に腰が痛くて目が覚める, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[30: [SafetyFixture(input=過呼吸になりそうで不安, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[32: [SafetyFixture(input=昨日から急に足がジンジンして眠れない, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[33: [SafetyFixture(input=産んだばかりですが骨盤矯正やりたい, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[34: [SafetyFixture(input=胸のあたりがぎゅーっと苦しくなるときがある, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[35: [SafetyFixture(input=背中がいたくて夜中に何度も目がさめる, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[36: [SafetyFixture(input=急に腰が抜けたみたいに立てなくなった, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[37: [SafetyFixture(input=せきが止まらなくて肋骨のへんが痛い, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[38: [SafetyFixture(input=力がはいらなくてコップも持てない, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[39: [SafetyFixture(input=年のせいか最近手に力が入らなくてお箸を落としちゃう, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[40: [SafetyFixture(input=おしっこが出にくくて腰も痛い, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[41: [SafetyFixture(input=尻から足にかけて電気が走るみたいに痛い, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[42: [SafetyFixture(input=頭を打ってから頭痛がつづいてる, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[43: [SafetyFixture(input=息をすうと胸がズキッとする, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[52: [SafetyFixture(input=妊娠中で腰が痛い, expect=state)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[53: [SafetyFixture(input=術後でまだ痛い, expect=state)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[54: [SafetyFixture(input=産後1ヶ月です, expect=state)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[55: [SafetyFixture(input=産んだばかりですが骨盤矯正やりたい, expect=state)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[56: [SafetyFixture(input=激痛がある, expect=symptom)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[57: [SafetyFixture(input=胸が痛くて冷や汗が出る, expect=symptom)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[58: [SafetyFixture(input=しびれがある, expect=symptom)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[59: [SafetyFixture(input=妊娠中で急に激痛が走った, expect=symptom)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[60: [SafetyFixture(input=腰が痛くて眠れない日が続いています, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[61: [SafetyFixture(input=肩が眠れないほど痛いです。いいストレッチありますか, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[62: [SafetyFixture(input=夜中に痛みで目が覚めてしまいます, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[63: [SafetyFixture(input=股関節がいたくてねむれないんです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[64: [SafetyFixture(input=背中が痛みで眠れないくらいつらいです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[65: [SafetyFixture(input=夜中に痛くなって起きてしまいます。どうしたらいい?, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[66: [SafetyFixture(input=ひざの夜間痛がつらいです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[72: [SafetyFixture(input=熱があるんだけど肩こりのストレッチしていい?, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[73: [SafetyFixture(input=昨日から微熱が続いてて体がだるいです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[74: [SafetyFixture(input=熱っぽくて節々が痛い。伸ばしたら楽になる?, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[75: [SafetyFixture(input=子どもの風邪がうつって熱が出たあと腰が痛いです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[76: [SafetyFixture(input=高熱が下がったばかりで体がバキバキなんですが動いていい?, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[77: [SafetyFixture(input=37.5度くらい熱があって首も痛いです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[78: [SafetyFixture(input=ねつがでてきたかも。ストレッチで治りますか, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[79: [SafetyFixture(input=熱があって寒気もするけど運動したほうがいい?, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[85: [SafetyFixture(input=昨日、階段で転んで腰を強く打ちました。ストレッチしていいですか?, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[86: [SafetyFixture(input=さっきころんだあとから手首がずきずき痛みます, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[87: [SafetyFixture(input=スケートでしりもちをついてから尾てい骨のあたりが痛いです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[88: [SafetyFixture(input=凍った道で転倒して膝を打ちました。曲げると痛いです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[89: [SafetyFixture(input=70代の母が庭で転んだらしく、腰を痛がっています, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[90: [SafetyFixture(input=尻もちをついてから、座ると腰の下のほうが痛みます, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[91: [SafetyFixture(input=自転車でこけてから足首が痛いです。伸ばせば治りますか, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[92: [SafetyFixture(input=先週転倒した後からずっと背中が痛いです, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[98: [SafetyFixture(input=頭が痛くて吐き気がする, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[99: [SafetyFixture(input=突然の頭痛で吐き気もあります, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[100: [SafetyFixture(input=急に頭が痛くなって嘔吐しました, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[101: [SafetyFixture(input=今までにない頭痛がして怖い, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[102: [SafetyFixture(input=頭が割れそうに痛くて気分が悪い, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[103: [SafetyFixture(input=激しい頭痛と吐き気で寝込んでいます, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[104: [SafetyFixture(input=朝から吐き気が止まりません, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SafetyGateFixtureTest > evaluatesExpectedVerdict[105: [SafetyFixture(input=経験したことのない痛みが頭にきた, expect=refer)]] FAILED
+    java.lang.AssertionError at SafetyGateFixtureTest.kt:65
+
+jp.ogatore.kyouno.safety.SoudanEngineTest > redFlagTakesPriorityOverNormal FAILED
+    java.lang.AssertionError at SoudanEngineTest.kt:31
+
+jp.ogatore.kyouno.safety.SoudanEngineTest > crisisTakesPriorityOverRedFlag FAILED
+    java.lang.AssertionError at SoudanEngineTest.kt:18
+
+148 tests completed, 84 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///Users/ryunosuke/Claude/kyou-no-ogatore/android-native/KyouNoOgatore/app/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 956ms
+23 actionable tasks: 2 executed, 21 up-to-date
