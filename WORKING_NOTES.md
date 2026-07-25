@@ -4,6 +4,50 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 記録カード/じまんカードの視覚アセット完成（Step4/7bの積み残し・alan5発注）→直後に見た目全体パリティタスクへ吸収
+
+`TASK-C2-2026-07-26-native-migration-card-visual-assets.md`（Step4完了時のコード内コメントに
+「未実装・Step7bのパリティ突合で扱う想定」と書かれていたが実際のStep7bタスク文に含め忘れられていた
+5項目）を実施・完了。作業完了直後、alan5がこのタスクをより広いスコープの
+`TASK-C2-2026-07-26-native-visual-design-parity.md`（アプリ全体の見た目Web版パリティ・後述）で
+吸収・上書きしたため、カード視覚アセット単体の完了報告は行わず、以下のとおり実装記録のみ残す。
+
+- **5項目実装**: ①キャラクター立ち絵(chara-*.png・5種の日替わりローテ) ②CARD_IMG_FROM以降の
+  カード柄モチーフ画像(assets/cards/*.webp・Step7a同梱分を再利用) ③かたさタイプ/メモのタグピル行
+  (連続記録N日表示・点線区切り・タイプアイコン込み) ④フッター吹き出し文言(日付ハッシュ駆動の
+  季節別プール) ⑤実フォント(M PLUS 1p 700/800/900・BananaNum)を両OSのCardRenderer/BragCardRendererへ
+  追加実装。
+- **キャラ選定のWeb版との意図的な差異**: index.htmlのdayIndex()(現在時刻依存)をそのまま移植すると
+  Step4検収基準4「同一日付での再描画が同一出力」が壊れるため、dateIdx(カード日付から決まる決定的値)
+  駆動に変更(タスク文の明示的な指示どおり)。
+- **フォントアセット**: 元のWeb版はwoff2のみ同梱だが、ネイティブはOS標準API
+  (Typeface.createFromAsset/CTFontManagerCreateFontDescriptorsFromURL)がttf/otfを要求するため、
+  本人のフォントフォルダ(~/Library/Fonts・~/Downloads)にあった変換前の原本(MPLUS1p-{Bold,ExtraBold,
+  Black}.ttf・bananaslip.otf)をそのまま同梱(サブセット化なし・フルグリフ収録なのでWeb版の「柔・坊・超
+  未収録→フォールバック」問題が発生しない)。
+- **Androidでの重要な発見(既存テストの穴)**: 新規追加したタグピル差分テストが「差分ゼロ」で失敗し
+  調査したところ、Robolectric実行時に明示的に`@GraphicsMode(NATIVE)`を指定しないと
+  `getPixels()`が実際の描画内容を反映しない空データを返す(LEGACYシャドウでは`drawRect`の単純な
+  塗りつぶしすら読み戻せないことを実測確認)。Step4由来の既存2テストは「たまたま」milestone時の
+  紙吹雪ループ(Path系操作)が一部反映されて通っていただけと判明。両CardRendererTest/
+  BragCardRendererTestに`@GraphicsMode(NATIVE)`を追加し、実ラスタライズでの検証に強化。
+  iOS側はPNGバイト列比較(ImageIO実描画)のため元からこの問題はなかった。
+- **iOS実装の画像描画反転**: CardRenderer.render()は全体にy軸反転をかけた座標系(JS互換)で描画するため、
+  テキスト(既存)と同様に画像描画にも局所的なカウンター反転(`drawImageJS`)が必要だった。実機/
+  シミュレータで確認せず数式だけで実装したが、Android実機スクショ(後述)でキャラ画像が正しく
+  上下逆さまにならず表示されることを別途確認したロジックと同一のため、iOS側も同型で機能する想定
+  (iOS実機での直接確認はしていない。次の見た目パリティタスクのビルド確認時に合わせて確認する)。
+- **Android実機確認**: kyono_testエミュレータで記録カード生成→カード柄モチーフ画像(季節柄)・
+  キャラクター立ち絵・実フォントの大数字・フッター吹き出しがすべて正しく表示されることを確認
+  (`android-native/verify/step7b/18-card-parity-render.png`)。保存・シェアボタンからOSシェアシートへの
+  遷移も引き続き正常動作。
+- **回帰確認**: Android `gradle testDebugUnitTest` 204/204 pass(新規5件含む)。iOS `swift test`
+  各パッケージ緑(SafetyCore 8/8+111 fixtures・RecordCore 35/35・CardCore 16/16+55 card-golden、
+  新規5件含む)。`npm test` 442 checks green・Web版配信ファイル無変更。
+- 完了直後、alan5が実機で見た目全体(テーマ・配色・フォント・カード型コンポーネント・下部タブバー)が
+  Web版と大きく異なることに気づき、`TASK-C2-2026-07-26-native-visual-design-parity.md`
+  (アプリ全体のデザインシステム移植・最優先)を発注。以降の作業は次エントリへ続く。
+
 ## 2026-07-26 ネイティブ移植 Step 7b 完了（alan5発注・appdev実行・じまん・声・オガトレ部・使い方・設定=§2-1対応表を全行埋め切る最後のUI工程）
 
 `TASK-C2-2026-07-25-native-migration-step7b.md`（マスタープラン§6 Step 7b）を実施。**じまんカード
