@@ -19,6 +19,7 @@
 - 動画カタログ棚卸し: [CATALOG-AUDIT.md](CATALOG-AUDIT.md)
 - リクエストメール導線: [REQUEST-INBOX-HANDOFF.md](REQUEST-INBOX-HANDOFF.md)
 - 開発者/AIがいなくなっても存続させる手引き: [SURVIVAL.md](SURVIVAL.md)
+- **iOS/Androidストア版（ネイティブ化）着工時の参考資料**: journaldev（ジャーナル工場）から2026-07-25受領。`/Users/ryunosuke/Claude/gojiai-app/docs/NATIVE-BUILD-GUIDE-2026-07-25.md`（別リポジトリ）に、ご自愛ジャーナルでiOS/Android両方をシミュレータ/エミュレータビルド成功・全機能検収まで持っていった知見がまとまっている。採用方式(PWAロジック1:1移植)・プロジェクト雛形作成・gradlew不使用の理由・Compose/Xcodeの落とし穴・確認手順の非対称性(iOSは自動化不可/Androidはadbで自動化可)・ストア提出前の残作業一覧を収録。署名まわりは未着手のため「回避策」ではなく未知数の論点として書かれている。**現時点ではきょうのオガトレのネイティブ化着手予定なし**（このアプリはPWA運用継続中）。着工判断が出たら真っ先に読む。
 - **すべての変更は`WORKING_NOTES.md`の日付エントリに詳細記録済み。着手前に直近のエントリを必ず読むこと**
 
 ## 壊れやすい箇所（絶対に壊さない）
