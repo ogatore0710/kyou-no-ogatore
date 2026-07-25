@@ -2,6 +2,7 @@ package jp.ogatore.kyouno
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +25,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,39 +46,52 @@ import jp.ogatore.kyouno.record.RecordStore
 //
 // カード画像(assets/cards/*.webp)はAndroid res/drawable-nodpiへそのまま同梱(ファイル名=カードkey)。
 // ロック中はCSSアルファマスクのシルエット効果の代わりに、同じ画像を暗くティントして表示する簡略版。
+//
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+// Phase 3: index.html:225-241 .dex-box/.dex-sec/.dex-seccount/.dex-thumb/.dex-name/.dex-hintの1:1移植。
 @Composable
 fun DexScreen(store: RecordStore, onBack: () -> Unit) {
-    val streak = remember { RecordLogic.loadStreak(store) }
-    val existing = remember { store.get("rotAssign", emptyMap<String, Int>()) }
-    val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existing) }
-    LaunchedEffect(Unit) { if (existing.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
-    val status = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
-    val all = status.toku + status.season + status.rare + status.normal
-    val gotCount = all.count { it.got }
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        val streak = remember { RecordLogic.loadStreak(store) }
+        val existing = remember { store.get("rotAssign", emptyMap<String, Int>()) }
+        val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existing) }
+        LaunchedEffect(Unit) { if (existing.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
+        val status = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
+        val all = status.toku + status.season + status.rare + status.normal
+        val gotCount = all.count { it.got }
 
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp).testTag("dexBody")) {
-        item {
-            Button(onClick = onBack, modifier = Modifier.testTag("dexBackBtn")) { Text("◀ もどる") }
-            Spacer(Modifier.height(8.dp))
-            Text("図鑑", style = MaterialTheme.typography.headlineSmall)
-            Text("${gotCount}/${all.size}個 あつめました", modifier = Modifier.testTag("dexSummary"))
+        LazyColumn(Modifier.fillMaxSize().background(colors.bg).padding(16.dp).testTag("dexBody")) {
+            item {
+                KyonoLineButton("◀ もどる", onBack, Modifier.testTag("dexBackBtn"))
+                Spacer(Modifier.height(12.dp))
+                KyonoSectionHeader(KyonoIcon.DexBook, "図鑑", fill = colors.tealSoft)
+                Spacer(Modifier.height(4.dp))
+                Text("${gotCount}/${all.size}個 あつめました", color = colors.sub, fontSize = 13.sp, modifier = Modifier.testTag("dexSummary"))
+                Spacer(Modifier.height(4.dp))
+            }
+            item { DexSection("記念日カード", status.toku) }
+            item { DexSection("季節のカード", status.season) }
+            item { DexSection("レアカード", status.rare) }
+            item { DexSection("ノーマルカード", status.normal) }
         }
-        item { DexSection("記念日カード", status.toku) }
-        item { DexSection("季節のカード", status.season) }
-        item { DexSection("レアカード", status.rare) }
-        item { DexSection("ノーマルカード", status.normal) }
     }
 }
 
 @Composable
 private fun DexSection(title: String, items: List<DexItem>) {
+    val colors = LocalKyonoColors.current
     val got = items.count { it.got }
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Row(Modifier.fillMaxWidth()) {
-            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-            Text("$got/${items.size}", modifier = Modifier.testTag("dexSecCount_$title"))
+    KyonoCard(Modifier.padding(vertical = 6.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
+            // index.html:233 .dex-seccount(bg丸ピル)
+            Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
+                Text("$got/${items.size}", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexSecCount_$title"))
+            }
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
         val cols = 4
         items.chunked(cols).forEach { rowItems ->
             Row(Modifier.fillMaxWidth()) {
@@ -93,18 +106,23 @@ private fun DexSection(title: String, items: List<DexItem>) {
 
 @Composable
 private fun DexCell(item: DexItem, modifier: Modifier) {
+    val colors = LocalKyonoColors.current
     val context = LocalContext.current
     Column(modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        // index.html:236 .dex-thumb(bg/border/radius12)の1:1移植。
         Box(
-            Modifier.fillMaxWidth().aspectRatio(1f).background(Color(0xFFEDEAE2), RoundedCornerShape(10.dp)).testTag("dexThumb_${item.tier}_${item.name}"),
+            Modifier.fillMaxWidth().aspectRatio(1f)
+                .background(colors.bg, RoundedCornerShape(12.dp))
+                .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+                .testTag("dexThumb_${item.tier}_${item.name}"),
             contentAlignment = Alignment.Center,
         ) {
             if (item.tier == "normal") {
                 val nc = CardDataLoader.shared.NORMAL_CARDS.find { n -> n.name == item.name }
                 if (item.got && nc != null) {
-                    Box(Modifier.fillMaxSize(0.5f).background(Color(android.graphics.Color.parseColor(nc.main)), RoundedCornerShape(50)))
+                    Box(Modifier.fillMaxSize(0.34f).background(Color(android.graphics.Color.parseColor(nc.main)), RoundedCornerShape(50)))
                 } else {
-                    Text("？", style = MaterialTheme.typography.titleLarge)
+                    Text("？", color = colors.sub, fontSize = 22.sp, fontWeight = FontWeight.Black)
                 }
             } else if (item.key != null) {
                 val resId = remember(item.key) { context.resources.getIdentifier(item.key, "drawable", context.packageName) }
@@ -118,15 +136,19 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
                 }
             }
         }
+        Spacer(Modifier.height(5.dp))
+        // index.html:241 .dex-name
         Text(
             if (item.got) item.name else "？？？",
+            color = colors.ink,
             fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
         val sub = if (item.got) item.flavor else item.hint
         if (sub.isNotEmpty()) {
-            Text(sub, fontSize = 10.sp, color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            Text(sub, fontSize = 10.sp, color = colors.sub, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
         }
     }
 }

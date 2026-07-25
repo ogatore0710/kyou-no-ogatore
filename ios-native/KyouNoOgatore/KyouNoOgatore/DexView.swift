@@ -16,6 +16,9 @@
 //  フラット化するため(実測確認済み)、loadCardArt()はsubdirectory指定なしで探す。
 //  ロック中はCSSアルファマスクのシルエット効果の代わりに、同じ画像を暗くティントして表示する簡略版
 //  (Android版と同じ判断)。
+//
+//  ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+//  Phase 3: index.html:225-241 .dex-box/.dex-sec/.dex-seccount/.dex-thumb/.dex-name/.dex-hintの1:1移植。
 
 import SwiftUI
 import RecordCore
@@ -40,13 +43,27 @@ struct DexView: View {
     }
 
     private var all: [DexItem] { status.toku + status.season + status.rare + status.normal }
+    private var themeSetting: String { store.get("theme", default: "auto") }
+
+    var body: some View {
+        KyonoTheme(themeSetting: themeSetting) {
+            DexContentView(status: status, all: all, onBack: onBack)
+        }
+    }
+}
+
+private struct DexContentView: View {
+    @Environment(\.kyonoColors) private var colors
+    let status: DexStatus
+    let all: [DexItem]
+    let onBack: () -> Void
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                Button("◀ もどる", action: onBack)
-                Text("図鑑").font(.title2.bold())
-                Text("\(all.filter { $0.got }.count)/\(all.count)個 あつめました")
+            VStack(alignment: .leading, spacing: 4) {
+                KyonoLineButton("◀ もどる", action: onBack)
+                KyonoSectionHeader(icon: .dexBook, title: "図鑑", fill: colors.tealSoft)
+                Text("\(all.filter { $0.got }.count)/\(all.count)個 あつめました").font(.system(size: 13)).foregroundColor(colors.sub)
                 DexSectionView(title: "記念日カード", items: status.toku)
                 DexSectionView(title: "季節のカード", items: status.season)
                 DexSectionView(title: "レアカード", items: status.rare)
@@ -54,54 +71,65 @@ struct DexView: View {
             }
             .padding(16)
         }
+        .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
 
 private struct DexSectionView: View {
+    @Environment(\.kyonoColors) private var colors
     let title: String
     let items: [DexItem]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        KyonoCard {
             HStack {
-                Text(title).font(.headline)
+                Text(title).font(.kyono(.black900, size: 14)).foregroundColor(colors.ink)
                 Spacer()
+                // index.html:233 .dex-seccount(bg丸ピル)
                 Text("\(items.filter { $0.got }.count)/\(items.count)")
+                    .font(.system(size: 11, weight: .bold)).foregroundColor(colors.sub)
+                    .padding(.horizontal, 10).padding(.vertical, 2)
+                    .background(Capsule().fill(colors.bg))
             }
+            Spacer().frame(height: 8)
             LazyVGrid(columns: dexColumns, spacing: 8) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in DexCellView(item: item) }
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
     }
 }
 
 private struct DexCellView: View {
+    @Environment(\.kyonoColors) private var colors
     let item: DexItem
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 5) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10).fill(Color(red: 0.93, green: 0.92, blue: 0.89))
+                // index.html:236 .dex-thumb(bg/border/radius12)の1:1移植。
+                RoundedRectangle(cornerRadius: 12).fill(colors.bg)
+                RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5)
                 if item.tier == "normal" {
                     if item.got, let nc = CardDataLoader.shared.NORMAL_CARDS.first(where: { $0.name == item.name }) {
                         Circle().fill(Color(hex: nc.main)).frame(width: 24, height: 24)
                     } else {
-                        Text("？").font(.title)
+                        Text("？").font(.system(size: 22, weight: .black)).foregroundColor(colors.sub)
                     }
                 } else if let key = item.key, let uiImage = loadCardArt(key) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .colorMultiply(item.got ? .white : Color.black.opacity(0.55))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
             .aspectRatio(1, contentMode: .fit)
-            Text(item.got ? item.name : "？？？").font(.system(size: 11)).multilineTextAlignment(.center)
+            // index.html:241 .dex-name
+            Text(item.got ? item.name : "？？？").font(.system(size: 11, weight: .black)).foregroundColor(colors.ink).multilineTextAlignment(.center)
             let sub = item.got ? item.flavor : item.hint
             if !sub.isEmpty {
-                Text(sub).font(.system(size: 10)).foregroundColor(.gray).multilineTextAlignment(.center)
+                Text(sub).font(.system(size: 10)).foregroundColor(colors.sub).multilineTextAlignment(.center)
             }
         }
     }
