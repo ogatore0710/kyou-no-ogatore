@@ -43,11 +43,17 @@ private enum Screen: Equatable {
     case search
     case catalog
     case dex
+    case voices
+    case brag
+    case obu
+    case guide
+    case settings
 
     static func == (lhs: Screen, rhs: Screen) -> Bool {
         switch (lhs, rhs) {
         case (.home, .home), (.onboarding, .onboarding), (.soudan, .soudan),
-             (.search, .search), (.catalog, .catalog), (.dex, .dex): return true
+             (.search, .search), (.catalog, .catalog), (.dex, .dex),
+             (.voices, .voices), (.brag, .brag), (.obu, .obu), (.guide, .guide), (.settings, .settings): return true
         case let (.quiz(a), .quiz(b)): return a == b
         case let (.result(a), .result(b)): return a == b
         case let (.tour(a), .tour(b)): return a == b
@@ -98,6 +104,19 @@ struct RootView: View {
             )
         case .dex:
             DexView(store: store, onBack: { screen = .home })
+        case .voices:
+            VoicesView(
+                openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
+                onBack: { screen = .home }
+            )
+        case .brag:
+            BragView(store: store, onBack: { screen = .home })
+        case .obu:
+            ObuView(onBack: { screen = .home })
+        case .guide:
+            GuideView(onBack: { screen = .home })
+        case .settings:
+            SettingsView(store: store, onBack: { screen = .home })
         case .home:
             HomeView(
                 store: store,
@@ -105,7 +124,12 @@ struct RootView: View {
                 onOpenSoudan: { screen = .soudan },
                 onOpenSearch: { screen = .search },
                 onOpenCatalog: { screen = .catalog },
-                onOpenDex: { screen = .dex }
+                onOpenDex: { screen = .dex },
+                onOpenVoices: { screen = .voices },
+                onOpenBrag: { screen = .brag },
+                onOpenObu: { screen = .obu },
+                onOpenGuide: { screen = .guide },
+                onOpenSettings: { screen = .settings }
             )
         }
     }

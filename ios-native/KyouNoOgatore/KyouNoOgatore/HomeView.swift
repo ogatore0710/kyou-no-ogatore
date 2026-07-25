@@ -34,6 +34,11 @@ struct HomeView: View {
     let onOpenSearch: () -> Void
     let onOpenCatalog: () -> Void
     let onOpenDex: () -> Void
+    let onOpenVoices: () -> Void
+    let onOpenBrag: () -> Void
+    let onOpenObu: () -> Void
+    let onOpenGuide: () -> Void
+    let onOpenSettings: () -> Void
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     @State private var streak: RecordLogic.StreakData
@@ -52,7 +57,9 @@ struct HomeView: View {
 
     init(
         store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenSoudan: @escaping () -> Void,
-        onOpenSearch: @escaping () -> Void, onOpenCatalog: @escaping () -> Void, onOpenDex: @escaping () -> Void
+        onOpenSearch: @escaping () -> Void, onOpenCatalog: @escaping () -> Void, onOpenDex: @escaping () -> Void,
+        onOpenVoices: @escaping () -> Void, onOpenBrag: @escaping () -> Void, onOpenObu: @escaping () -> Void,
+        onOpenGuide: @escaping () -> Void, onOpenSettings: @escaping () -> Void
     ) {
         self.store = store
         self.onStartTour = onStartTour
@@ -60,6 +67,11 @@ struct HomeView: View {
         self.onOpenSearch = onOpenSearch
         self.onOpenCatalog = onOpenCatalog
         self.onOpenDex = onOpenDex
+        self.onOpenVoices = onOpenVoices
+        self.onOpenBrag = onOpenBrag
+        self.onOpenObu = onOpenObu
+        self.onOpenGuide = onOpenGuide
+        self.onOpenSettings = onOpenSettings
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
@@ -73,6 +85,9 @@ struct HomeView: View {
     private var fdFocusOn: Bool { HomeLogic.fdFocusHomeActive(fd: fd, streakTotal: streak.total, fdday: fdday, today: today) }
 
     var body: some View {
+        // Step7bで導線ボタンを5件追加し画面高さを超えるようになったため、Android版HomeScreenの
+        // .verticalScroll追加と同じ理由でScrollViewへ変更(スクロールが無いと下部ボタンに到達できない)。
+        ScrollView {
         VStack(spacing: 16) {
             Text("#きょうのオガトレ").font(.title2.bold())
             Text("通算 \(streak.total) 日" + (streak.count >= 2 ? "・いま\(streak.count)日連続" : ""))
@@ -140,10 +155,16 @@ struct HomeView: View {
             Button("🔍 動画を探す", action: onOpenSearch)
             Button("📺 再生リスト", action: onOpenCatalog)
             Button("📖 図鑑", action: onOpenDex)
+            Button("💬 せんぱいの声", action: onOpenVoices)
+            Button("🎉 じまんカード", action: onOpenBrag)
+            Button("📣 オガトレ通信", action: onOpenObu)
+            Button("📖 使い方", action: onOpenGuide)
+            Button("⚙️ 設定", action: onOpenSettings)
 
             Spacer()
         }
         .padding(20)
+        }
         // app-env.js:60 refreshDay相当。visibilitychangeの代わりにscenePhaseの.active復帰で
         // 日付またぎ・pendingNudgeを確認する(Android版のON_RESUMEと同じ役割)。
         .onChange(of: scenePhase) { _, newPhase in
@@ -225,6 +246,7 @@ private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData,
 #Preview {
     HomeView(
         store: RecordStore(inMemory: [:]), onStartTour: { _ in }, onOpenSoudan: {},
-        onOpenSearch: {}, onOpenCatalog: {}, onOpenDex: {}
+        onOpenSearch: {}, onOpenCatalog: {}, onOpenDex: {},
+        onOpenVoices: {}, onOpenBrag: {}, onOpenObu: {}, onOpenGuide: {}, onOpenSettings: {}
     )
 }
