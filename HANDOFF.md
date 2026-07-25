@@ -5,8 +5,8 @@
 ## 体制（2026-07-24〜）
 alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微実装・検収）、appdev（C2）が実行工場。大きい実装タスクはalan5からタスクファイルで届き、appdevが実行して完了報告をドア配達で返す。詳細は[docs/HANDOVER-to-alan5-2026-07-24.md](docs/HANDOVER-to-alan5-2026-07-24.md)。
 
-## 🚀 進行中: ネイティブ移植（2026-07-25・Step2完了→alan5検収待ち）
-本人承認済みのストア版方針（iOS/Android・10月リリース枠。フルネイティブ移植を前倒しで即着手）を受け、[NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md](NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md)をappdevがWorkflowで作成→alan5検収OK→**Step0（断面固定・safety111フィクスチャ・norm/card/exportゴールデン採取）完了**→alan5が本人操作ゲート①（Xcodeプロジェクト作成）実施→**Step1（iOS/Android両OSの空アプリビルド・起動・スクショ確認）完了**→**Step2（安全系4関数norm/crisisHit/redFlagHit/redFlagKindのテスト先行移植=最重要工程）完了**（appdev・Web版無変更・安全キーワード無変更）。iOS(SPM XCTest)6/6全緑(safety-fixtures111/111+normゴールデン+engine-fixtures4件)、Android(プレーンJVM JUnit)149/149全緑。判定ロジックは`SafetyGate.swift`/`SafetyGate.kt`1箇所にのみ存在することをgrepで確認済み。詳細はWORKING_NOTES.md 2026-07-25エントリ。次はStep3（データ層）でalan5の指示待ち。
+## 🚀 進行中: ネイティブ移植（2026-07-25・Step3完了→alan5検収待ち）
+本人承認済みのストア版方針（iOS/Android・10月リリース枠。フルネイティブ移植を前倒しで即着手）を受け、[NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md](NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md)をappdevがWorkflowで作成→alan5検収OK→**Step0（断面固定・safety111フィクスチャ・norm/card/exportゴールデン採取）完了**→alan5が本人操作ゲート①（Xcodeプロジェクト作成）実施→**Step1（iOS/Android両OSの空アプリビルド・起動・スクショ確認）完了**→**Step2（安全系4関数norm/crisisHit/redFlagHit/redFlagKindのテスト先行移植=最重要工程）完了**→**Step3（kyono-store.json単一ファイル方式のデータ層+引っ越しインポート）完了**（appdev・Web版無変更・安全キーワード無変更）。iOS(SPM XCTest): SafetyCore 6/6+RecordCore 19/19。Android(プレーンJVM JUnit): 168/168（安全系149+RecordCore19）。export-fixtureインポート→期待値JSON機械照合・往復でキー集合が減らないこと・todayStr深夜3時境界(2:59/3:00/3:01)を両OSで確認済み。詳細はWORKING_NOTES.md 2026-07-25エントリ。次はStep4（決定的ロジック・カード/診断）でalan5の指示待ち。
 **β配布は本人方針（7/24）で延期中**（「iOSアプリにしてから」）。時期未定。8月上旬に予定していたPWA版配布は見送り済み——ネイティブ移植そのものが「iOSアプリ化」の条件を満たしにいく作業。
 
 ## ✅ 完了: C1→C2検証依頼3件（2026-07-20・C2 Fable艦隊で実施済み）

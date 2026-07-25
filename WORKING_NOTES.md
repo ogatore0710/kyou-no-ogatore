@@ -4,6 +4,19 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 3 完了（alan5発注・appdev実行・データ層+引っ越しインポート）
+
+`TASK-C2-2026-07-25-native-migration-step3.md`（マスタープラン§2-3+§6 Step 3）を実施。**kyono-store.json単一ファイル方式でapp-record.js(store/todayStr/markDone/freeze2/streak2移行/daylog・memosトリム/reach自己ベスト保護)+エクスポート/インポート(buildExportString契約一致)を1:1移植。Web版(PWA)配信ファイルは無変更**。
+
+- **共通設計**: RecordStoreは「フルキー("kyono_"つき)→生JSON文字列」のままメモリ保持するKVストア(localStorageと同じ形)。これにより①型を知らない未知キー(a2hs2/homehint_next等)もそのままパススルー保全 ②`buildExportString`のdata部分がRecordStoreの内部表現とほぼ1:1になり実装が単純化、の2つを同時に満たす。RecordLogicは**現在時刻を内部で読まない設計**（`now`を必ず呼び出し側から注入）——マスタープラン§2-4の禁止API(乱数・現在時刻がRecordLogic等に存在しないこと)を前倒しで守りつつ、todayStr深夜3時境界(2:59/3:00/3:01)をシステム時計非依存で決定的にテストできるようにするため。`daysBetween`はCalendar/TimeZone APIに頼らずHoward Hinnantのdays_from_civil式(プロレプティック・グレゴリオ暦の日数計算)を両OS同一実装で使い、JSの「日付onlyISO文字列はUTC真夜中パース」というタイムゾーン非依存の挙動を再現。streak2の読み込みは自動デコードでなく手動JSON解析にして、Web版の「壊れた個別フィールドだけ既定値に落とす」防御(形の防御。例:datesだけ壊れていてもcount/totalは維持)を再現。
+- **iOS**: `ios-native/KyouNoOgatore/RecordCore/`をSafetyCore(Step2)と同じ方式のローカルSPMパッケージとして新設（RecordStore.swift+RecordLogic.swift+KyonoTransfer.swift）。export-fixture.json/export-fixture-expected.json(Step0採取)をテストリソースに同梱。**swift test 19/19 pass**（todayStr境界2件+streak2/freeze2/daylog/memos/reachの単体テスト11件+KyonoTransfer往復照合4件）。SafetyCoreも6/6 pass のまま(回帰なし)。
+- **Android**: `jp.ogatore.kyouno.record`パッケージとしてKotlin移植（プレーンJVM JUnit・エミュレータ不使用）。`RecordStore.get/set`がKotlinの「publicなinline関数はprivateメンバに触れられない」制約に当たったため`internal inline`に変更(同一モジュール内利用のみで実害なし)。**gradle testDebugUnitTest 168/168 pass**（安全系149件は回帰なしで維持+RecordCore関連19件が新規緑）。
+- **検収基準4項目**: ①export-fixtureインポート→streak2 count/total・daylog件数・キー集合が期待値JSONと機械照合で一致=PASS ②インポート→エクスポート往復でキー集合が減らない(a2hs2等含む)=PASS ③todayStr深夜3時境界(2:59/3:00/3:01)の単体テスト緑=PASS ④安全系テスト(111+engine-fixtures4件)緑のまま=PASS。
+- **freeze2の期待値シード形についての気づき(要フォロー無し・報告のみ)**: `export-fixture-expected.json`のseed.freeze2は`{"used":[],"month":"2026-07"}`という形だが、現在のindex.htmlの実装(`freezeMap()`)が実際に読み書きするfreeze2の形は`{"YYYY-MM":使用数}`という月→数値のマップ。Step0のフィクスチャ生成スクリプトが旧仕様ベースの値をseedした可能性がある。Step3の検収はraw文字列レベルの往復保全のみを要求しており意味的な解釈は不要なため今回は影響なし(往復テストは緑)。将来freeze2の実データ移行を扱う場面(実機引っ越し等)があれば留意。
+- **gitlink/file-count確認**: iOS 31=31一致。Android 33 vs 34の差分1件は継続の既知の意図的gitignore(`local.properties`)。`npm test`442 checks引き続き全緑（exit 0）・PWA配信ファイル無変更確認済み。
+- push済み（iOS: `822e601`・Android: `ffcda75`）。検証ログは`ios-native/verify/step3-recordcore-green.log`・`android-native/verify/step3-recordcore-green.log`にコミット済み。
+- 次: alan5への完了報告をドア配達。Step 4（決定的ロジック・カード/診断）以降はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 2 完了（alan5発注・appdev実行・安全系テスト先行移植=最重要工程）
 
 `TASK-C2-2026-07-25-native-migration-step2.md`（マスタープラン§3+§6 Step 2）を実施。**テストを実装より先に書く→スタブ(誤値)で全赤確認→norm→crisisHit→redFlagHit→redFlagKindの順に実装して緑化、をiOS/Android両方で実施。Web版(PWA)配信ファイルは無変更・安全キーワードリストも無変更**。
