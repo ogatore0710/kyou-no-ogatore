@@ -298,7 +298,12 @@ struct SoudanSheetView: View {
 // index.html:1781 renderPlanCard相当の簡略版(進捗バー・完走時の卒業表示・解除ボタン)。
 // 紙吹雪演出(launchConfetti)・章システムとの連携(mode_manual)等の見た目演出は移植対象外(Step6の
 // 検収基準に含まれないため。安全性に無関係)。
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md):
+// index.html:667-676 #planCard(.bar進捗バー・「やめる」は下線付きテキストリンクでボタンではない)の
+// 1:1移植。KyonoCard化(Android版PlanProgressCardと同一ロジック。ホーム画面スクショで唯一浮いて
+// 見えていた箇所)。
 struct PlanProgressCardView: View {
+    @Environment(\.kyonoColors) private var colors
     let store: RecordStore
     let plan: SdPlanData
     let onCleared: () -> Void
@@ -308,22 +313,36 @@ struct PlanProgressCardView: View {
         let dayNum = max(1, RecordLogic.daysBetween(plan.start, today) + 1)
         let finished = dayNum > plan.days
 
-        VStack(alignment: .leading, spacing: 6) {
+        KyonoCard {
             if finished {
-                Text("🎉 \(plan.label)プラン完走！すごい！")
-                Text("\(plan.days)日間続けたの、ほんとにえらい👏")
+                Text("🎉 \(plan.label)プラン完走！すごい！").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                Text("\(plan.days)日間続けたの、ほんとにえらい👏").foregroundColor(colors.sub)
             } else {
-                Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")
-                Button("プランをやめる") {
-                    store.set("plan", nil as SdPlanData?)
-                    onCleared()
+                HStack(alignment: .firstTextBaseline) {
+                    Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")
+                        .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    Spacer()
+                    Text("やめる")
+                        .font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
+                        .underline()
+                        .onTapGesture {
+                            store.set("plan", nil as SdPlanData?)
+                            onCleared()
+                        }
                 }
+                // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
+                let progress = min(1, max(0, Double(dayNum) / Double(plan.days)))
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 99).fill(colors.line)
+                        RoundedRectangle(cornerRadius: 99).fill(colors.teal)
+                            .frame(width: geo.size.width * progress)
+                    }
+                }
+                .frame(height: 14)
+                .padding(.top, 8)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color(red: 0.95, green: 0.95, blue: 0.93))
-        .cornerRadius(12)
         .onAppear {
             // index.html:1798 planFinished時のstore.set("plan",null)相当。
             if finished {

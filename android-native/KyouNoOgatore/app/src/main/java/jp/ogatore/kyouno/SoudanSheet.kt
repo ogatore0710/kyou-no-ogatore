@@ -3,9 +3,11 @@ package jp.ogatore.kyouno
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,11 +28,14 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import jp.ogatore.kyouno.record.RecordStore
 import jp.ogatore.kyouno.safety.SafetyKBLoader
 import jp.ogatore.kyouno.safety.SoudanEngine
@@ -332,8 +337,13 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
 // index.html:1781 renderPlanCard相当の簡略版(進捗バー・完走時の卒業表示・解除ボタン)。
 // 紙吹雪演出(launchConfetti)・章システムとの連携(mode_manual)等の見た目演出は移植対象外(Step6の
 // 検収基準に含まれないため。安全性に無関係)。
+//
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md):
+// index.html:667-676 #planCard(.bar進捗バー・「やめる」は下線付きテキストリンクでボタンではない)の
+// 1:1移植。KyonoCard化(ホーム画面スクショで唯一浮いて見えていた箇所)。
 @Composable
 fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit) {
+    val colors = LocalKyonoColors.current
     val today = jp.ogatore.kyouno.record.RecordLogic.todayStr(java.time.Instant.now())
     val dayNum = (jp.ogatore.kyouno.record.RecordLogic.daysBetween(plan.start, today) + 1).coerceAtLeast(1)
     val finished = dayNum > plan.days
@@ -345,20 +355,40 @@ fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit
             onCleared()
         }
     }
-    Column(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp)
-            .background(Color(0xFFF3F1EC), RoundedCornerShape(12.dp)).padding(12.dp)
-            .testTag("planCard"),
-    ) {
+    KyonoCard(Modifier.testTag("planCard")) {
         if (finished) {
-            Text("🎉 ${plan.label}プラン完走！すごい！", modifier = Modifier.testTag("planDoneText"))
-            Text("${plan.days}日間続けたの、ほんとにえらい👏")
+            Text("🎉 ${plan.label}プラン完走！すごい！", color = colors.ink, fontWeight = FontWeight.Black, modifier = Modifier.testTag("planDoneText"))
+            Text("${plan.days}日間続けたの、ほんとにえらい👏", color = colors.sub)
         } else {
-            Text("📅 ${plan.label}プラン $dayNum/${plan.days}日", modifier = Modifier.testTag("planTitle"))
-            Button(
-                onClick = { store.set("plan", null as SdPlanData?); onCleared() },
-                modifier = Modifier.padding(top = 4.dp).testTag("planQuitBtn"),
-            ) { Text("プランをやめる") }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "📅 ${plan.label}プラン $dayNum/${plan.days}日", color = colors.ink, fontWeight = FontWeight.Black,
+                    modifier = Modifier.weight(1f).testTag("planTitle"),
+                )
+                Text(
+                    "やめる", color = colors.sub, fontWeight = FontWeight.Black, fontSize = 13.sp,
+                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                    modifier = Modifier
+                        .clickable { store.set("plan", null as SdPlanData?); onCleared() }
+                        .testTag("planQuitBtn"),
+                )
+            }
+            // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
+            val progress = (dayNum.toFloat() / plan.days.toFloat()).coerceIn(0f, 1f)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .height(14.dp)
+                    .background(colors.line, RoundedCornerShape(99.dp)),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(progress)
+                        .fillMaxHeight()
+                        .background(colors.teal, RoundedCornerShape(99.dp)),
+                )
+            }
         }
     }
 }
