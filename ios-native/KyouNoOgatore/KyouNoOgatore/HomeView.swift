@@ -164,15 +164,7 @@ struct HomeView: View {
             // (要continuation: 下部タブバー構造への作り替え)。
             KyonoCard {
                 KyonoSectionTitle("メニュー")
-                NavigationLink { MyRecordView(store: store) } label: {
-                    Text("マイ記録を見る").font(.kyono(.black900, size: 15))
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 18).padding(.vertical, 16)
-                .frame(maxWidth: .infinity)
-                .background(Color(hex: 0xDFF5F2))
-                .foregroundColor(Color(hex: 0x177065))
-                .cornerRadius(kyonoButtonRadius)
+                KyonoGhostNavigationLink("マイ記録を見る") { MyRecordView(store: store) }
                 KyonoGhostButton("💬 オガトレ相談室", action: onOpenSoudan)
                 KyonoGhostButton("🔍 動画を探す", action: onOpenSearch)
                 KyonoGhostButton("📺 再生リスト", action: onOpenCatalog)

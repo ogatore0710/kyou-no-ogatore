@@ -127,6 +127,28 @@ struct KyonoGhostButton: View {
     }
 }
 
+// KyonoGhostButtonと同じ見た目でNavigationLinkを包む版(遷移先画面があるメニュー項目用)。
+struct KyonoGhostNavigationLink<Destination: View>: View {
+    @Environment(\.kyonoColors) private var colors
+    let text: String
+    @ViewBuilder let destination: () -> Destination
+
+    init(_ text: String, @ViewBuilder destination: @escaping () -> Destination) {
+        self.text = text; self.destination = destination
+    }
+
+    var body: some View {
+        NavigationLink { destination() } label: {
+            Text(text).font(.kyono(.black900, size: 15)).foregroundColor(colors.tealInk)
+                .padding(.horizontal, 18).padding(.vertical, 16)
+                .frame(maxWidth: .infinity)
+                .background(colors.tealSoft)
+                .cornerRadius(kyonoButtonRadius)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // index.html:104 .btn-line{background:none;border:2px solid #E0D5BE;color:var(--sub2);font-weight:800;font-size:15px}
 struct KyonoLineButton: View {
     @Environment(\.kyonoColors) private var colors
