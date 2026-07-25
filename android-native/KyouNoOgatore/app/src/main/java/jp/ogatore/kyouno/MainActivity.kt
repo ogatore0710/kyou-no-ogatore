@@ -86,60 +86,107 @@ class MainActivity : ComponentActivity() {
             var screen by remember {
                 mutableStateOf<Screen>(if (store.get("onboarded", false)) Screen.Home else Screen.Onboarding)
             }
+            val themeSetting = store.get("theme", "auto")
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    when (val s = screen) {
-                        is Screen.Onboarding -> OnboardingScreen(
-                            store = store,
-                            onComplete = { route, presetWorry ->
-                                screen = if (route == "quiz") Screen.Quiz(presetWorry) else Screen.Home
-                            },
-                        )
-                        is Screen.Quiz -> QuizScreen(
-                            store = store,
-                            presetWorry = s.presetWorry,
-                            onComplete = { typeKey -> screen = Screen.Result(typeKey) },
-                        )
-                        is Screen.Result -> ResultScreen(typeKey = s.typeKey, onDone = { screen = Screen.Home })
-                        is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })
-                        is Screen.MyRecord -> MyRecordScreen(store = store, onBack = { screen = Screen.Home })
-                        is Screen.Soudan -> SoudanSheet(
-                            store = store,
-                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                            onClose = { screen = Screen.Home },
-                        )
-                        is Screen.Search -> SearchScreen(
-                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                            onBack = { screen = Screen.Home },
-                        )
-                        is Screen.Catalog -> CatalogListScreen(
-                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                            onBack = { screen = Screen.Home },
-                        )
-                        is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.Home })
-                        is Screen.Voices -> VoicesScreen(
-                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                            onBack = { screen = Screen.Home },
-                        )
-                        is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
-                        is Screen.Obu -> ObuScreen(onBack = { screen = Screen.Home })
-                        is Screen.Guide -> GuideScreen(onBack = { screen = Screen.Home })
-                        is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
-                        is Screen.Home -> HomeScreen(
-                            store = store,
-                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                            onOpenMyRecord = { screen = Screen.MyRecord },
-                            onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
-                            onOpenSoudan = { screen = Screen.Soudan },
-                            onOpenSearch = { screen = Screen.Search },
-                            onOpenCatalog = { screen = Screen.Catalog },
-                            onOpenDex = { screen = Screen.Dex },
-                            onOpenVoices = { screen = Screen.Voices },
-                            onOpenBrag = { screen = Screen.Brag },
-                            onOpenObu = { screen = Screen.Obu },
-                            onOpenGuide = { screen = Screen.Guide },
-                            onOpenSettings = { screen = Screen.Settings },
-                        )
+                KyonoTheme(themeSetting) {
+                    val colors = LocalKyonoColors.current
+                    Surface(modifier = Modifier.fillMaxSize(), color = colors.bg) {
+                        // ネイティブ移植「見た目のWeb版パリティ移植」タスク(下部タブバー): index.html:1158-1164
+                        // <nav class="tabbar">の5項目(使い方/マイ記録/ホーム/再生リスト/動画を探す)だけが
+                        // タブとして永続表示される。それ以外の画面(オンボ/診断/ツアー/相談室/オガトレ通信/
+                        // せんぱいの声/じまんカード/図鑑/設定)はWeb版でもタブに属さない別画面(モーダル/
+                        // サブ画面)のため、タブバーを隠す(§1-4「NavHost不使用」のScreen sealed class
+                        // 構造はそのまま・タブバーの表示条件だけをこのcurrentTabで判定する)。
+                        val currentTab = when (screen) {
+                            Screen.Guide -> KyonoTab.Guide
+                            Screen.MyRecord -> KyonoTab.MyRecord
+                            Screen.Home -> KyonoTab.Home
+                            Screen.Catalog -> KyonoTab.Catalog
+                            Screen.Search -> KyonoTab.Search
+                            else -> null
+                        }
+                        Box(Modifier.fillMaxSize()) {
+                            Column(Modifier.fillMaxSize()) {
+                                Box(Modifier.weight(1f)) {
+                                    when (val s = screen) {
+                                        is Screen.Onboarding -> OnboardingScreen(
+                                            store = store,
+                                            onComplete = { route, presetWorry ->
+                                                screen = if (route == "quiz") Screen.Quiz(presetWorry) else Screen.Home
+                                            },
+                                        )
+                                        is Screen.Quiz -> QuizScreen(
+                                            store = store,
+                                            presetWorry = s.presetWorry,
+                                            onComplete = { typeKey -> screen = Screen.Result(typeKey) },
+                                        )
+                                        is Screen.Result -> ResultScreen(typeKey = s.typeKey, onDone = { screen = Screen.Home })
+                                        is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })
+                                        is Screen.MyRecord -> MyRecordScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Soudan -> SoudanSheet(
+                                            store = store,
+                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                                            onClose = { screen = Screen.Home },
+                                        )
+                                        is Screen.Search -> SearchScreen(
+                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                                            onBack = { screen = Screen.Home },
+                                        )
+                                        is Screen.Catalog -> CatalogListScreen(
+                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                                            onBack = { screen = Screen.Home },
+                                        )
+                                        is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Voices -> VoicesScreen(
+                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                                            onBack = { screen = Screen.Home },
+                                        )
+                                        is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Obu -> ObuScreen(onBack = { screen = Screen.Home })
+                                        is Screen.Guide -> GuideScreen(onBack = { screen = Screen.Home })
+                                        is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Home -> HomeScreen(
+                                            store = store,
+                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                                            onOpenMyRecord = { screen = Screen.MyRecord },
+                                            onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
+                                            onOpenSoudan = { screen = Screen.Soudan },
+                                            onOpenSearch = { screen = Screen.Search },
+                                            onOpenCatalog = { screen = Screen.Catalog },
+                                            onOpenDex = { screen = Screen.Dex },
+                                            onOpenVoices = { screen = Screen.Voices },
+                                            onOpenBrag = { screen = Screen.Brag },
+                                            onOpenObu = { screen = Screen.Obu },
+                                            onOpenGuide = { screen = Screen.Guide },
+                                            onOpenSettings = { screen = Screen.Settings },
+                                        )
+                                    }
+                                }
+                                if (currentTab != null) {
+                                    KyonoTabBar(current = currentTab) { tab ->
+                                        screen = when (tab) {
+                                            KyonoTab.Guide -> Screen.Guide
+                                            KyonoTab.MyRecord -> Screen.MyRecord
+                                            KyonoTab.Home -> Screen.Home
+                                            KyonoTab.Catalog -> Screen.Catalog
+                                            KyonoTab.Search -> Screen.Search
+                                        }
+                                    }
+                                }
+                            }
+                            // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
+                            if (currentTab != null) {
+                                Column(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(end = 16.dp, bottom = 84.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                ) {
+                                    KyonoFab("💬", colors.teal, onClick = { screen = Screen.Soudan })
+                                    KyonoFab("📣", colors.coral, onClick = { screen = Screen.Obu })
+                                }
+                            }
+                        }
                     }
                 }
             }
