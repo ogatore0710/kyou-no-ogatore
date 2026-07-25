@@ -114,6 +114,14 @@ class MainActivity : ComponentActivity() {
                             onBack = { screen = Screen.Home },
                         )
                         is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.Home })
+                        is Screen.Voices -> VoicesScreen(
+                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                            onBack = { screen = Screen.Home },
+                        )
+                        is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
+                        is Screen.Obu -> ObuScreen(onBack = { screen = Screen.Home })
+                        is Screen.Guide -> GuideScreen(onBack = { screen = Screen.Home })
+                        is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
                         is Screen.Home -> HomeScreen(
                             store = store,
                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
@@ -123,6 +131,11 @@ class MainActivity : ComponentActivity() {
                             onOpenSearch = { screen = Screen.Search },
                             onOpenCatalog = { screen = Screen.Catalog },
                             onOpenDex = { screen = Screen.Dex },
+                            onOpenVoices = { screen = Screen.Voices },
+                            onOpenBrag = { screen = Screen.Brag },
+                            onOpenObu = { screen = Screen.Obu },
+                            onOpenGuide = { screen = Screen.Guide },
+                            onOpenSettings = { screen = Screen.Settings },
                         )
                     }
                 }
@@ -141,6 +154,11 @@ sealed class Screen {
     object Search : Screen()
     object Catalog : Screen()
     object Dex : Screen()
+    object Voices : Screen()
+    object Brag : Screen()
+    object Obu : Screen()
+    object Guide : Screen()
+    object Settings : Screen()
     data class Quiz(val presetWorry: String?) : Screen()
     data class Result(val typeKey: String) : Screen()
     data class Tour(val showClosing: Boolean) : Screen()
@@ -161,6 +179,11 @@ fun HomeScreen(
     onOpenSearch: () -> Unit,
     onOpenCatalog: () -> Unit,
     onOpenDex: () -> Unit,
+    onOpenVoices: () -> Unit,
+    onOpenBrag: () -> Unit,
+    onOpenObu: () -> Unit,
+    onOpenGuide: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
@@ -298,6 +321,21 @@ fun HomeScreen(
 
         Spacer(Modifier.height(12.dp))
         Button(onClick = onOpenDex, modifier = Modifier.testTag("dexBtn")) { Text("📖 図鑑") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenVoices, modifier = Modifier.testTag("voicesBtn")) { Text("💬 せんぱいの声") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenBrag, modifier = Modifier.testTag("bragBtn")) { Text("🎉 じまんカード") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenObu, modifier = Modifier.testTag("obuBtn")) { Text("📣 オガトレ通信") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenGuide, modifier = Modifier.testTag("guideBtn")) { Text("📖 使い方") }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onOpenSettings, modifier = Modifier.testTag("settingsBtn")) { Text("⚙️ 設定") }
     }
 
     cardBitmap?.let { bmp ->
