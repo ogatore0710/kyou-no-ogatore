@@ -22,6 +22,46 @@ struct KyonoCard<Content: View>: View {
     }
 }
 
+// 見出し・本文テキスト・背景色: いずれも@Environment(\.kyonoColors)を自分で読む独立View構造体として
+// 定義する(HomeView等の呼び出し側でcolorsをプロパティとして持たせると、KyonoThemeが設定する
+// environmentの「子孫」にならず常定義時点の既定値=ライトになってしまうため。SwiftUIのenvironment
+// 伝播はビュー階層上の位置で決まり、Swiftのクロージャのレキシカルスコープでは決まらない)。
+struct KyonoSectionTitle: View {
+    @Environment(\.kyonoColors) private var colors
+    let text: String
+    let size: CGFloat
+    init(_ text: String, size: CGFloat = 16) { self.text = text; self.size = size }
+    var body: some View {
+        Text(text).font(.kyono(.black900, size: size)).foregroundColor(colors.ink)
+    }
+}
+
+struct KyonoBodyText: View {
+    @Environment(\.kyonoColors) private var colors
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        Text(text).foregroundColor(colors.sub)
+    }
+}
+
+struct KyonoStreakText: View {
+    @Environment(\.kyonoColors) private var colors
+    let total: Int
+    let streakCount: Int
+    init(_ total: Int, streakCount: Int) { self.total = total; self.streakCount = streakCount }
+    var body: some View {
+        Text("通算 \(total) 日" + (streakCount >= 2 ? "・いま\(streakCount)日連続" : ""))
+            .font(.kyono(.black900, size: 20))
+            .foregroundColor(colors.pink)
+    }
+}
+
+struct KyonoBackgroundColor: View {
+    @Environment(\.kyonoColors) private var colors
+    var body: some View { colors.bg }
+}
+
 // index.html:99-102 .btn/.btn-primary(黄色背景+太字20px+下方向の立体シャドウ)の1:1移植。
 // box-shadow:0 4px 0 #E8BE1E(ぼかし無しのオフセット矩形)をSwiftUI上でZStack二重描画により再現。
 // :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、DragGesture(minimumDistance:0)で押下検知する。
@@ -31,6 +71,10 @@ struct KyonoPrimaryButton: View {
     let action: () -> Void
     var enabled: Bool = true
     @State private var pressed = false
+
+    init(_ text: String, enabled: Bool = true, action: @escaping () -> Void) {
+        self.text = text; self.enabled = enabled; self.action = action
+    }
 
     var body: some View {
         let shadowOffset: CGFloat = pressed ? 1 : 4
@@ -67,6 +111,10 @@ struct KyonoGhostButton: View {
     let text: String
     let action: () -> Void
 
+    init(_ text: String, action: @escaping () -> Void) {
+        self.text = text; self.action = action
+    }
+
     var body: some View {
         Button(action: action) {
             Text(text).font(.kyono(.black900, size: 15)).foregroundColor(colors.tealInk)
@@ -84,6 +132,10 @@ struct KyonoLineButton: View {
     @Environment(\.kyonoColors) private var colors
     let text: String
     let action: () -> Void
+
+    init(_ text: String, action: @escaping () -> Void) {
+        self.text = text; self.action = action
+    }
 
     var body: some View {
         Button(action: action) {

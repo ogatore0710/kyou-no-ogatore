@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,15 +27,18 @@ import androidx.compose.ui.unit.sp
 // アプリ全体がこのカード型ボックス+ボタンの積み重ねで構成される(タスク文どおり最優先で直す箇所)。
 
 // index.html:95 .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+// 内部はColumn(縦積み)。中身が複数要素のとき単純にBoxへ渡すと重なって描画されてしまうため注意
+// (実機検証で発見・修正: KyonoCard内の複数Text/Buttonが同一座標に重なって表示されるバグがあった)。
 @Composable
-fun KyonoCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun KyonoCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
-    Box(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .background(colors.card, KyonoCardShape)
             .padding(20.dp),
-    ) { content() }
+        content = content,
+    )
 }
 
 // index.html:99-102 .btn/.btn-primary(黄色背景+太字20px+下方向の立体シャドウ)の1:1移植。

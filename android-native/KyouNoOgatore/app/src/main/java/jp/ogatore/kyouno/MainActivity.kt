@@ -45,8 +45,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -226,158 +228,163 @@ fun HomeScreen(
 
     val fdFocusOn = HomeLogic.fdFocusHomeActive(fd, streak.total, fdday, today)
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
+    val themeSetting = store.get("theme", "auto")
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
-    ) {
-        Text("#きょうのオガトレ", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(12.dp))
-        Text("通算 ${streak.total} 日" + if (streak.count >= 2) "・いま${streak.count}日連続" else "", modifier = Modifier.testTag("streakText"))
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.bg)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            Text("#きょうのオガトレ", color = colors.ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(16.dp))
 
-        if (fdFocusOn) {
-            Spacer(Modifier.height(8.dp))
-            Text("🌱 はじめの1本ガイド中", modifier = Modifier.testTag("fdBanner"))
-        }
-
-        if (showDoneNudge) {
-            Spacer(Modifier.height(12.dp))
-            Card(modifier = Modifier.fillMaxWidth().testTag("doneNudgeCard")) {
-                Column(Modifier.padding(12.dp)) {
-                    Text("おかえりなさい！✨ ストレッチできた？")
-                    Button(onClick = { showDoneNudge = false }, modifier = Modifier.testTag("doneNudgeCloseBtn")) {
-                        Text("わかった")
+            if (showDoneNudge) {
+                KyonoCard(Modifier.testTag("doneNudgeCard")) {
+                    Column {
+                        Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink)
+                        Spacer(Modifier.height(8.dp))
+                        KyonoGhostButton("わかった", { showDoneNudge = false }, Modifier.testTag("doneNudgeCloseBtn"))
                     }
                 }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)
+            plan?.let { p ->
+                PlanProgressCard(store = store, plan = p, onCleared = { plan = null })
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // index.html:654 #todayCard(きょうの1本)相当。動画カタログ本体はStep7aの範囲のためここでは
+            // pendingNudge復帰導線の実タップ確認用に、実際に外部へ遷移するリンクだけを用意する。
+            if (!fdFocusOn) {
+                KyonoCard(Modifier.testTag("todayCard")) {
+                    Text("▶️ きょうの1本", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(10.dp))
+                    KyonoPrimaryButton(
+                        "きょうの1本を見る",
+                        {
+                            pendingNudgeDate = RecordLogic.todayStr(Instant.now())
+                            openUrl("https://www.youtube.com/")
+                        },
+                        Modifier.testTag("todayVideoBtn"),
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+            } else {
+                Text("🌱 はじめの1本ガイド中", color = colors.ink, modifier = Modifier.testTag("fdBanner"))
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // index.html:686 #streakCard(続けた日数・通算)相当。
+            KyonoCard(Modifier.testTag("streakCard")) {
+                Text("📅 続けた日数（通算）", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "通算 ${streak.total} 日" + if (streak.count >= 2) "・いま${streak.count}日連続" else "",
+                    color = colors.pink, fontSize = 20.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.testTag("streakText"),
+                )
+                Spacer(Modifier.height(12.dp))
+                KyonoPrimaryButton(
+                    if (did) "きょうの分は完了！おつかれさまでした😊" else "きょうやった！",
+                    {
+                        if (!did) {
+                            RecordLogic.markDone(store, Instant.now())
+                            streak = RecordLogic.loadStreak(store)
+                            cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
+                            if (fd == "go") {
+                                store.set("fd", "1")
+                                fd = "1"
+                                // app-record.js:107 markDone内でtourpend=1相当。実際の起動はカード
+                                // モーダルを閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
+                                store.set("tourpend", true)
+                            }
+                            cardBitmap = renderTodayCard(store, streak, today, context)
+                        }
+                    },
+                    Modifier.testTag("doneBtn"),
+                    enabled = !did,
+                )
+                cheerText?.let {
+                    Spacer(Modifier.height(10.dp))
+                    Text(it, color = colors.sub, modifier = Modifier.testTag("cheerText"))
+                }
+                Spacer(Modifier.height(10.dp))
+                KyonoGhostButton("記録カードを見る", { cardBitmap = renderTodayCard(store, streak, today, context) }, Modifier.testTag("makeCardBtn"))
+            }
+            Spacer(Modifier.height(16.dp))
+
+            // その他の導線(Web版は使い方/マイ記録/再生リスト/動画を探すを下部タブバーへ収容するが、
+            // タブバー本体は本パスでは未着手。§2-1備考どおり暫定でカード内リンク一覧として維持する
+            // (要continuation: 下部タブバー構造への作り替え)。
+            KyonoCard(Modifier.testTag("otherLinksCard")) {
+                Text("メニュー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(10.dp))
+                KyonoGhostButton("マイ記録を見る", onOpenMyRecord, Modifier.testTag("myRecordBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("💬 オガトレ相談室", onOpenSoudan, Modifier.testTag("soudanFab"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("🔍 動画を探す", onOpenSearch, Modifier.testTag("searchBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("📺 再生リスト", onOpenCatalog, Modifier.testTag("catalogBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("📖 図鑑", onOpenDex, Modifier.testTag("dexBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("💬 せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("🎉 じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("📣 オガトレ通信", onOpenObu, Modifier.testTag("obuBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("📖 使い方", onOpenGuide, Modifier.testTag("guideBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("⚙️ 設定", onOpenSettings, Modifier.testTag("settingsBtn"))
             }
         }
 
-        // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)
-        plan?.let { p ->
-            Spacer(Modifier.height(12.dp))
-            PlanProgressCard(store = store, plan = p, onCleared = { plan = null })
-        }
-
-        // ---- きょうの1本(プレースホルダ: 動画カタログ本体はStep7aの範囲。ここではpendingNudge
-        // 復帰導線の実タップ確認用に、実際に外部へ遷移するリンクだけを用意する) ----
-        if (!fdFocusOn) {
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    pendingNudgeDate = RecordLogic.todayStr(Instant.now())
-                    openUrl("https://www.youtube.com/")
+        cardBitmap?.let { bmp ->
+            AlertDialog(
+                onDismissRequest = { cardBitmap = null },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            cardBitmap = null
+                            // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
+                            // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
+                            val tourpend = store.get("tourpend", false)
+                            val tourseen = store.get("tourseen", false)
+                            if (tourpend && !tourseen) {
+                                store.set("tourpend", false)
+                                store.set("tourseen", true)
+                                onStartTour(true)
+                            }
+                        },
+                        modifier = Modifier.testTag("cardCloseBtn"),
+                    ) { Text("とじる") }
                 },
-                modifier = Modifier.testTag("todayVideoBtn"),
-            ) { Text("きょうの1本を見る") }
+                dismissButton = {
+                    // index.html shareCard()相当(Step7bで新規実装)。
+                    Button(
+                        onClick = { ShareImage.shareBitmap(context, bmp, "kyono-ogatore-$today.png", "#きょうのオガトレ ${streak.total}日目！") },
+                        modifier = Modifier.testTag("cardShareBtn"),
+                    ) { Text("保存・シェアする") }
+                },
+                text = {
+                    Image(
+                        bitmap = bmp.asImageBitmap(),
+                        contentDescription = "記録カード",
+                        modifier = Modifier.fillMaxWidth().testTag("cardImage"),
+                    )
+                },
+            )
         }
-
-        Spacer(Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                if (!did) {
-                    RecordLogic.markDone(store, Instant.now())
-                    streak = RecordLogic.loadStreak(store)
-                    cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
-                    if (fd == "go") {
-                        store.set("fd", "1")
-                        fd = "1"
-                        // app-record.js:107 markDone内でtourpend=1相当。実際の起動はカード
-                        // モーダルを閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
-                        store.set("tourpend", true)
-                    }
-                    cardBitmap = renderTodayCard(store, streak, today, context)
-                }
-            },
-            enabled = !did,
-            modifier = Modifier.fillMaxWidth().testTag("doneBtn"),
-        ) {
-            Text(if (did) "きょうの分は完了！おつかれさまでした😊" else "きょうやった！")
-        }
-
-        cheerText?.let {
-            Spacer(Modifier.height(12.dp))
-            Text(it, modifier = Modifier.testTag("cheerText"))
-        }
-
-        Spacer(Modifier.height(12.dp))
-        Button(
-            onClick = { cardBitmap = renderTodayCard(store, streak, today, context) },
-            enabled = did,
-            modifier = Modifier.testTag("makeCardBtn"),
-        ) { Text("記録カードを見る") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenMyRecord, modifier = Modifier.testTag("myRecordBtn")) { Text("マイ記録を見る") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenSoudan, modifier = Modifier.testTag("soudanFab")) { Text("💬 オガトレ相談室") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenSearch, modifier = Modifier.testTag("searchBtn")) { Text("🔍 動画を探す") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenCatalog, modifier = Modifier.testTag("catalogBtn")) { Text("📺 再生リスト") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenDex, modifier = Modifier.testTag("dexBtn")) { Text("📖 図鑑") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenVoices, modifier = Modifier.testTag("voicesBtn")) { Text("💬 せんぱいの声") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenBrag, modifier = Modifier.testTag("bragBtn")) { Text("🎉 じまんカード") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenObu, modifier = Modifier.testTag("obuBtn")) { Text("📣 オガトレ通信") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenGuide, modifier = Modifier.testTag("guideBtn")) { Text("📖 使い方") }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenSettings, modifier = Modifier.testTag("settingsBtn")) { Text("⚙️ 設定") }
-    }
-
-    cardBitmap?.let { bmp ->
-        val context = LocalContext.current
-        AlertDialog(
-            onDismissRequest = { cardBitmap = null },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        cardBitmap = null
-                        // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
-                        // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
-                        val tourpend = store.get("tourpend", false)
-                        val tourseen = store.get("tourseen", false)
-                        if (tourpend && !tourseen) {
-                            store.set("tourpend", false)
-                            store.set("tourseen", true)
-                            onStartTour(true)
-                        }
-                    },
-                    modifier = Modifier.testTag("cardCloseBtn"),
-                ) { Text("とじる") }
-            },
-            dismissButton = {
-                // index.html shareCard()相当(Step7bで新規実装)。
-                Button(
-                    onClick = { ShareImage.shareBitmap(context, bmp, "kyono-ogatore-$today.png", "#きょうのオガトレ ${streak.total}日目！") },
-                    modifier = Modifier.testTag("cardShareBtn"),
-                ) { Text("保存・シェアする") }
-            },
-            text = {
-                Image(
-                    bitmap = bmp.asImageBitmap(),
-                    contentDescription = "記録カード",
-                    modifier = Modifier.fillMaxWidth().testTag("cardImage"),
-                )
-            },
-        )
     }
 }
 

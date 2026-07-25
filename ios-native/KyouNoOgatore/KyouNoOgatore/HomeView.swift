@@ -84,27 +84,30 @@ struct HomeView: View {
     private var did: Bool { streak.dates.contains(today) }
     private var fdFocusOn: Bool { HomeLogic.fdFocusHomeActive(fd: fd, streakTotal: streak.total, fdday: fdday, today: today) }
 
+    private var themeSetting: String { store.get("theme", default: "auto") }
+
     var body: some View {
-        // Step7bで導線ボタンを5件追加し画面高さを超えるようになったため、Android版HomeScreenの
-        // .verticalScroll追加と同じ理由でScrollViewへ変更(スクロールが無いと下部ボタンに到達できない)。
+        KyonoTheme(themeSetting: themeSetting) {
+            homeContent
+        }
+    }
+
+    // Step7bで導線ボタンを5件追加し画面高さを超えるようになったため、Android版HomeScreenの
+    // .verticalScroll追加と同じ理由でScrollViewを使う(スクロールが無いと下部ボタンに到達できない)。
+    // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md):
+    // index.html #home(602行〜)のカード積み重ね構成の1:1移植(Android版HomeScreenと同一ロジック)。
+    private var homeContent: some View {
         ScrollView {
         VStack(spacing: 16) {
-            Text("#きょうのオガトレ").font(.title2.bold())
-            Text("通算 \(streak.total) 日" + (streak.count >= 2 ? "・いま\(streak.count)日連続" : ""))
-
-            if fdFocusOn {
-                Text("🌱 はじめの1本ガイド中")
-            }
+            KyonoSectionTitle("#きょうのオガトレ", size: 22)
 
             if showDoneNudge {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("おかえりなさい！✨ ストレッチできた？")
-                    Button("わかった") { showDoneNudge = false }
+                KyonoCard {
+                    VStack(alignment: .leading, spacing: 8) {
+                        KyonoBodyText("おかえりなさい！✨ ストレッチできた？")
+                        KyonoGhostButton("わかった") { showDoneNudge = false }
+                    }
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.gray.opacity(0.15))
-                .cornerRadius(12)
             }
 
             // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)
@@ -112,59 +115,78 @@ struct HomeView: View {
                 PlanProgressCardView(store: store, plan: plan, onCleared: { self.plan = nil })
             }
 
-            // きょうの1本(プレースホルダ: 動画カタログ本体はStep7aの範囲。ここではpendingNudge
-            // 復帰導線の実タップ確認用に、実際に外部へ遷移するリンクだけを用意する)
+            // index.html:654 #todayCard(きょうの1本)相当。動画カタログ本体はStep7aの範囲のためここでは
+            // pendingNudge復帰導線の実タップ確認用に、実際に外部へ遷移するリンクだけを用意する。
             if !fdFocusOn {
-                Button("きょうの1本を見る") {
-                    pendingNudgeDate = RecordLogic.todayStr(now: Date())
-                    if let url = URL(string: "https://www.youtube.com/") {
-                        UIApplication.shared.open(url)
+                KyonoCard {
+                    KyonoSectionTitle("▶️ きょうの1本")
+                    KyonoPrimaryButton("きょうの1本を見る") {
+                        pendingNudgeDate = RecordLogic.todayStr(now: Date())
+                        if let url = URL(string: "https://www.youtube.com/") {
+                            UIApplication.shared.open(url)
+                        }
                     }
                 }
+            } else {
+                KyonoBodyText("🌱 はじめの1本ガイド中")
             }
 
-            Button(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！") {
-                guard !did else { return }
-                RecordLogic.markDone(store, now: Date())
-                streak = RecordLogic.loadStreak(store)
-                cheerText = CHEERS.randomElement() // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
-                if fd == "go" {
-                    store.set("fd", "1")
-                    fd = "1"
-                    // app-record.js:107 markDone内でtourpend=1相当。実際の起動はカードモーダルを
-                    // 閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
-                    store.set("tourpend", true)
+            // index.html:686 #streakCard(続けた日数・通算)相当。
+            KyonoCard {
+                KyonoSectionTitle("📅 続けた日数（通算）")
+                KyonoStreakText(streak.total, streakCount: streak.count)
+                KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did) {
+                    guard !did else { return }
+                    RecordLogic.markDone(store, now: Date())
+                    streak = RecordLogic.loadStreak(store)
+                    cheerText = CHEERS.randomElement() // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
+                    if fd == "go" {
+                        store.set("fd", "1")
+                        fd = "1"
+                        // app-record.js:107 markDone内でtourpend=1相当。実際の起動はカードモーダルを
+                        // 閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
+                        store.set("tourpend", true)
+                    }
+                    cardImage = renderTodayCard(store: store, streak: streak, ds: today)
                 }
-                cardImage = renderTodayCard(store: store, streak: streak, ds: today)
+                if let cheerText {
+                    KyonoBodyText(cheerText)
+                }
+                KyonoGhostButton("記録カードを見る") {
+                    cardImage = renderTodayCard(store: store, streak: streak, ds: today)
+                }
+                .opacity(did ? 1 : 0.5)
+                .disabled(!did)
             }
-            .disabled(did)
-            .buttonStyle(.borderedProminent)
 
-            if let cheerText {
-                Text(cheerText)
+            // その他の導線(Web版は使い方/マイ記録/再生リスト/動画を探すを下部タブバーへ収容するが、
+            // タブバー本体は本パスでは未着手。§2-1備考どおり暫定でカード内リンク一覧として維持する
+            // (要continuation: 下部タブバー構造への作り替え)。
+            KyonoCard {
+                KyonoSectionTitle("メニュー")
+                NavigationLink { MyRecordView(store: store) } label: {
+                    Text("マイ記録を見る").font(.kyono(.black900, size: 15))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 18).padding(.vertical, 16)
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: 0xDFF5F2))
+                .foregroundColor(Color(hex: 0x177065))
+                .cornerRadius(kyonoButtonRadius)
+                KyonoGhostButton("💬 オガトレ相談室", action: onOpenSoudan)
+                KyonoGhostButton("🔍 動画を探す", action: onOpenSearch)
+                KyonoGhostButton("📺 再生リスト", action: onOpenCatalog)
+                KyonoGhostButton("📖 図鑑", action: onOpenDex)
+                KyonoGhostButton("💬 せんぱいの声", action: onOpenVoices)
+                KyonoGhostButton("🎉 じまんカード", action: onOpenBrag)
+                KyonoGhostButton("📣 オガトレ通信", action: onOpenObu)
+                KyonoGhostButton("📖 使い方", action: onOpenGuide)
+                KyonoGhostButton("⚙️ 設定", action: onOpenSettings)
             }
-
-            Button("記録カードを見る") {
-                cardImage = renderTodayCard(store: store, streak: streak, ds: today)
-            }
-            .disabled(!did)
-
-            NavigationLink("マイ記録を見る") { MyRecordView(store: store) }
-
-            Button("💬 オガトレ相談室", action: onOpenSoudan)
-            Button("🔍 動画を探す", action: onOpenSearch)
-            Button("📺 再生リスト", action: onOpenCatalog)
-            Button("📖 図鑑", action: onOpenDex)
-            Button("💬 せんぱいの声", action: onOpenVoices)
-            Button("🎉 じまんカード", action: onOpenBrag)
-            Button("📣 オガトレ通信", action: onOpenObu)
-            Button("📖 使い方", action: onOpenGuide)
-            Button("⚙️ 設定", action: onOpenSettings)
-
-            Spacer()
         }
         .padding(20)
         }
+        .background(KyonoBackgroundColor().ignoresSafeArea())
         // app-env.js:60 refreshDay相当。visibilitychangeの代わりにscenePhaseの.active復帰で
         // 日付またぎ・pendingNudgeを確認する(Android版のON_RESUMEと同じ役割)。
         .onChange(of: scenePhase) { _, newPhase in
