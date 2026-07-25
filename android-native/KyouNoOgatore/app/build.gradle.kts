@@ -32,6 +32,11 @@ android {
     packaging {
         resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -51,4 +56,11 @@ dependencies {
 
     // ネイティブ移植 Step 2(マスタープラン§6 Step 2): エミュレータ不要のプレーンJVM JUnitユニットテスト。
     testImplementation("junit:junit:4.13.2")
+
+    // ネイティブ移植 Step 4: CardRendererはandroid.graphics.Canvas/Bitmap(実機で実際にそのまま動く本物のAPI)
+    // で実装する。プレーンJVM単体テストではandroid.jarのCanvas/Bitmapは中身の無いスタブで動かないため、
+    // Robolectric(JVM上でAndroidフレームワークをシャドウ実装する定番テストライブラリ)でエミュレータ無しに
+    // 実行する。Java2D/AWT代替実装で済ませてしまうと実機コードと別物になり後で丸ごと書き直しになるため、
+    // 最初から実機と同じandroid.graphics APIをテストする方針にした。
+    testImplementation("org.robolectric:robolectric:4.13")
 }

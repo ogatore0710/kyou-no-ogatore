@@ -1,0 +1,626 @@
+{
+  "note": "rotAssign初期状態=空localStorage(legacyRotPosバックフィル経路)。streak2.datesは2026-06-01〜2026-07-25の連続55日をseed。",
+  "seedDateRangeStart": "2026-06-01",
+  "seedDateRangeEnd": "2026-07-25",
+  "CARD_IMG_FROM": 20648,
+  "CARD_THEMES_V2_FROM": 20647,
+  "MILESTONES": [
+    3,
+    4,
+    7,
+    14,
+    21,
+    30,
+    50,
+    66,
+    100,
+    150,
+    200,
+    300,
+    365,
+    500,
+    730,
+    1000,
+    1900
+  ],
+  "cases": [
+    {
+      "ds": "2026-06-01",
+      "dateIdx": 20605,
+      "effTotal": 1,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-02",
+      "dateIdx": 20606,
+      "effTotal": 2,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-03",
+      "dateIdx": 20607,
+      "effTotal": 3,
+      "milestone": true,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-04",
+      "dateIdx": 20608,
+      "effTotal": 4,
+      "milestone": true,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-05",
+      "dateIdx": 20609,
+      "effTotal": 5,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-06",
+      "dateIdx": 20610,
+      "effTotal": 6,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-07",
+      "dateIdx": 20611,
+      "effTotal": 7,
+      "milestone": true,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-08",
+      "dateIdx": 20612,
+      "effTotal": 8,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-09",
+      "dateIdx": 20613,
+      "effTotal": 9,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-10",
+      "dateIdx": 20614,
+      "effTotal": 10,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-11",
+      "dateIdx": 20615,
+      "effTotal": 11,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-12",
+      "dateIdx": 20616,
+      "effTotal": 12,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-13",
+      "dateIdx": 20617,
+      "effTotal": 13,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-14",
+      "dateIdx": 20618,
+      "effTotal": 14,
+      "milestone": true,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-15",
+      "dateIdx": 20619,
+      "effTotal": 15,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-16",
+      "dateIdx": 20620,
+      "effTotal": 16,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-17",
+      "dateIdx": 20621,
+      "effTotal": 17,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-18",
+      "dateIdx": 20622,
+      "effTotal": 18,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-19",
+      "dateIdx": 20623,
+      "effTotal": 19,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-20",
+      "dateIdx": 20624,
+      "effTotal": 20,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-21",
+      "dateIdx": 20625,
+      "effTotal": 21,
+      "milestone": true,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-22",
+      "dateIdx": 20626,
+      "effTotal": 22,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-23",
+      "dateIdx": 20627,
+      "effTotal": 23,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-24",
+      "dateIdx": 20628,
+      "effTotal": 24,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-25",
+      "dateIdx": 20629,
+      "effTotal": 25,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-26",
+      "dateIdx": 20630,
+      "effTotal": 26,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-27",
+      "dateIdx": 20631,
+      "effTotal": 27,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-28",
+      "dateIdx": 20632,
+      "effTotal": 28,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-29",
+      "dateIdx": 20633,
+      "effTotal": 29,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-06-30",
+      "dateIdx": 20634,
+      "effTotal": 30,
+      "milestone": true,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-01",
+      "dateIdx": 20635,
+      "effTotal": 31,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-02",
+      "dateIdx": 20636,
+      "effTotal": 32,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-03",
+      "dateIdx": 20637,
+      "effTotal": 33,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-04",
+      "dateIdx": 20638,
+      "effTotal": 34,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-05",
+      "dateIdx": 20639,
+      "effTotal": 35,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-06",
+      "dateIdx": 20640,
+      "effTotal": 36,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-07",
+      "dateIdx": 20641,
+      "effTotal": 37,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-08",
+      "dateIdx": 20642,
+      "effTotal": 38,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-09",
+      "dateIdx": 20643,
+      "effTotal": 39,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-10",
+      "dateIdx": 20644,
+      "effTotal": 40,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-11",
+      "dateIdx": 20645,
+      "effTotal": 41,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-12",
+      "dateIdx": 20646,
+      "effTotal": 42,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": false,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-13",
+      "dateIdx": 20647,
+      "effTotal": 43,
+      "milestone": false,
+      "isImgEra": false,
+      "isThemeV2Era": true,
+      "pat": null,
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-14",
+      "dateIdx": 20648,
+      "effTotal": 44,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "normal",
+        "name": "レモン",
+        "key": null
+      },
+      "rotAssignPos": 5
+    },
+    {
+      "ds": "2026-07-15",
+      "dateIdx": 20649,
+      "effTotal": 45,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "normal",
+        "name": "ピーチ",
+        "key": null
+      },
+      "rotAssignPos": 4
+    },
+    {
+      "ds": "2026-07-16",
+      "dateIdx": 20650,
+      "effTotal": 46,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "rare",
+        "name": "ぱんだ",
+        "key": "rare_panda"
+      },
+      "rotAssignPos": 40
+    },
+    {
+      "ds": "2026-07-17",
+      "dateIdx": 20651,
+      "effTotal": 47,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "rare",
+        "name": "ちょうちょ",
+        "key": "rare_chocho"
+      },
+      "rotAssignPos": 38
+    },
+    {
+      "ds": "2026-07-18",
+      "dateIdx": 20652,
+      "effTotal": 48,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "rare",
+        "name": "銀河",
+        "key": "rare_ginga"
+      },
+      "rotAssignPos": 26
+    },
+    {
+      "ds": "2026-07-19",
+      "dateIdx": 20653,
+      "effTotal": 49,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "season",
+        "name": "海の日",
+        "key": "season_uminohi"
+      },
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-20",
+      "dateIdx": 20654,
+      "effTotal": 50,
+      "milestone": true,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "toku",
+        "name": "50日記念",
+        "key": "toku_50days"
+      },
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-21",
+      "dateIdx": 20655,
+      "effTotal": 51,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "season",
+        "name": "海の日",
+        "key": "season_uminohi"
+      },
+      "rotAssignPos": null
+    },
+    {
+      "ds": "2026-07-22",
+      "dateIdx": 20656,
+      "effTotal": 52,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "rare",
+        "name": "ふくろう",
+        "key": "rare_fukurou"
+      },
+      "rotAssignPos": 44
+    },
+    {
+      "ds": "2026-07-23",
+      "dateIdx": 20657,
+      "effTotal": 53,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "normal",
+        "name": "さくら",
+        "key": null
+      },
+      "rotAssignPos": 0
+    },
+    {
+      "ds": "2026-07-24",
+      "dateIdx": 20658,
+      "effTotal": 54,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "rare",
+        "name": "UFO",
+        "key": "rare_ufo"
+      },
+      "rotAssignPos": 30
+    },
+    {
+      "ds": "2026-07-25",
+      "dateIdx": 20659,
+      "effTotal": 55,
+      "milestone": false,
+      "isImgEra": true,
+      "isThemeV2Era": true,
+      "pat": {
+        "tier": "season",
+        "name": "朝顔",
+        "key": "season_asagao"
+      },
+      "rotAssignPos": null
+    }
+  ]
+}
