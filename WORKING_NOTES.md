@@ -4,6 +4,17 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 5c 完了（alan5発注・appdev実行・オンボーディング・ツアー・診断UI）
+
+`TASK-C2-2026-07-25-native-migration-step5c.md`（マスタープラン§6 Step 5c）を実施。**オンボ4問チャット(段階色obg0〜obg3)・8枚ツアー・welcome(オンボ冒頭のあいさつ吹き出しが兼ねる・別画面なし)・かたさ診断UI(QuizView/QuizScreen)を実装。QUIZ_ART写真(q1.jpg/q2.jpg)のアセット同梱も本ステップで実施。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
+
+- **アーキテクチャの事前調査**: オンボの4問(bigtext/stiff/worry/anchor)はメイン診断の5問(momo/koka/kenko/ashi/worry)とは別物で、`presetWorry`(index.html:4370 OB_WORRY_TO_QUIZ経由)を介してのみ連携する——オンボのworry回答が診断のQ5を「代入・スキップ」させる設計であり、オンボ自体が身体部位を採点することはない。この非自明な構造をindex.html/app-quiz.jsの直接読解で確認してから実装に着手。オンボ完了時の`fd`/`fdday`設定条件(`obGo()`)・`markDone`内`tourpend=1`付与条件・`fdTourMaybeStart()`のtourpend/tourseen消費条件も原文どおりに移植。
+- **Android**: `OnboardingScreens.kt`新設(`OnboardingScreen`/`QuizScreen`/`ResultScreen`/`TourScreen`)。`MainActivity.kt`にトップレベル`Screen` sealed classによるナビゲーション状態機械を追加(初回起動判定=`onboarded`未設定→オンボから開始)。`HomeScreen`の記録ボタンで`tourpend=true`付与、カードモーダルの「とじる」タップで`tourpend&&!tourseen`を消費してツアー自動起動(index.html:2718 closeCard→fdTourMaybeStart の1:1移植)。判定ロジックはUI層で再実装せず`QuizEngine.decideType`を呼ぶだけ(grep確認: 呼び出し1箇所のみ)。QUIZ_ART(`assets/check/q1.jpg`/`q2.jpg`)を`res/drawable/quiz_q1.jpg`/`quiz_q2.jpg`としてそのまま同梱、Q1(momo)/Q2(koka)で実写表示。**kyono_testエミュレータで実タップ検証**: オンボ4問完走(bigtext=big/stiff=hard/worry=katakori/anchor=asa)→自動でquizルートへ遷移(presetWorry=katakoriによりQ5スキップ・4問のみ出題を確認)→診断完了(しなやかネコ)→ホームへ→「きょうやった！」で記録→カードポップ(1日目!)→「とじる」タップでツアー自動起動(9枚目=closing条件付きスライドの出現も確認)→とじてホーム復帰、を実写真つきで確認(`android-native/verify/step5c/01〜16`)。**gradle test 194/194 pass**（安全系111+その他、回帰なし。UI層はコンテンツ表示のみでロジック追加が無いため新規テストは追加していない=CHEERS等と同じ判断）。
+- **iOS**: `OnboardingViews.swift`新設(Android版と同一ロジックのSwiftUI実装: `OnboardingView`/`QuizView`/`ResultView`/`TourView`)。`KyouNoOgatoreApp.swift`に`RootView`(private `Screen` enum)を追加し`HomeView`に`onStartTour`コールバックを配線。QUIZ_ARTは`Assets.xcassets/quiz_q1.imageset`・`quiz_q2.imageset`として同梱(このプロジェクトは`PBXFileSystemSynchronizedRootGroup`方式のためproject.pbxproj手編集は不要=過去のgitlink事故のリスクなし)。Step5cの検収基準どおりiOS実行確認は必須ではないが、**`xcodebuild -sdk iphonesimulator build`でBUILD SUCCEEDEDを確認**(Step5aの`swiftc -typecheck`より強い保証。simctlにタップ操作が無い制約のためシミュレータスクショは今回も対象外)。**swift test: SafetyCore6/6(111 safety-fixtures込み)・RecordCore35/35・CardCore10/10(55 card-golden込み)**、回帰なし。
+- **検収基準4項目**: ①Android実タップスクショ列(オンボ完走→記録→カードポップ→ツアー自動起動)取得=PASS(`android-native/verify/step5c/`)。iOSはコードレビュー+ビルド確認=PASS ②同一回答入力での診断結果一致=PASS(QuizEngine.decideType呼び出しがUI層で唯一の判定箇所であることをgrep確認。実タップでも「しなやかネコ」判定を確認) ③A2HS系UI皆無=PASS(a2hsModal/a2hsShowForce/a2hsKindFor/#a2hsAsk/ytInAppDetect/envBanner/envIsInAppをgrepし、コード内コメント以外に一致なし) ④安全系テスト(111+engine-fixtures)緑のまま=PASS(Android/iOS両方で確認)。
+- **gitlink/file-count確認**: iOS 61=61一致。Android 85=85一致(git status clean・even-syncが本セッションの変更を`auto-sync 2026-07-25 22:07`で既に取り込み済み)。
+- 次: alan5への完了報告をドア配達。Step 6（相談室UI）以降はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 5b 完了（alan5発注・appdev実行・カレンダー・マイ記録。iOSアプリが初めて実ビルド可能に）
 
 `TASK-C2-2026-07-25-native-migration-step5b.md`（マスタープラン§6 Step 5b）を実施。**カレンダー42マス・おやすみ券・とどくメーター・カレンダー連携(EventKit/カレンダーIntent)を実装。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
