@@ -2,7 +2,9 @@ package jp.ogatore.kyouno
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,13 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -95,10 +95,19 @@ val OB_WORRY_TO_QUIZ = mapOf("katakori" to "katakori", "youtsuu" to "yotsu", "ze
 fun obDecideRoute(stiff: String, worry: String): String =
     if (stiff == "hard" || stiff == "unknown" || worry != "none") "quiz" else "today"
 
-// かたさチェックの.opt.g0〜g3(index.html:301-309)と同じ「明→暗」段階色パレット。オンボの回答チップ
-// (obg0-3)・診断の選択肢とも、実際の難易度でなくチップの並び順で明→暗を巡回させる(index.html:4211と
-// 同じ「obg"+(i%4)」方式)。
-private val OBG_COLORS = listOf(Color(0xFFEAF8F1), Color(0xFFFFF3CB), Color(0xFFFBE3C6), Color(0xFFF2D7CD))
+// かたさチェックの.opt.g0〜g3(index.html:301-309)・オンボの#obChips .chip.obg0-3(index.html:537-544)と
+// 同じ「明→暗」段階色パレット(bg,border)。実際の難易度でなくチップの並び順で明→暗を巡回させる
+// (index.html:4211と同じ「obg"+(i%4)」方式)。ライト/ダークで別パレット。
+private data class ObgColor(val bg: Color, val border: Color)
+private val OBG_LIGHT = listOf(
+    ObgColor(Color(0xFFEAF8F1), Color(0xFFBFE8DC)), ObgColor(Color(0xFFFFF3CB), Color(0xFFF2DE8A)),
+    ObgColor(Color(0xFFFBE3C6), Color(0xFFE5BC85)), ObgColor(Color(0xFFF2D7CD), Color(0xFFDCA894)),
+)
+private val OBG_DARK = listOf(
+    ObgColor(Color(0xFF2A423B), Color(0xFF2E5A52)), ObgColor(Color(0xFF3B3524), Color(0xFF5C4F1E)),
+    ObgColor(Color(0xFF403322), Color(0xFF6A4A26)), ObgColor(Color(0xFF402A28), Color(0xFF5E3A38)),
+)
+private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
 
 data class ChatBubble(val text: String, val fromUser: Boolean)
 
@@ -127,33 +136,53 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         onComplete(route, presetWorry)
     }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
-        Text("🌱 はじめてガイド", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.testTag("obTitle"))
-        Spacer(Modifier.height(12.dp))
-        for (b in bubbles) {
-            Text(
-                b.text,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                textAlign = if (b.fromUser) TextAlign.End else TextAlign.Start,
-            )
-        }
-        val q = OB_QUESTIONS.getOrNull(qi)
-        if (q != null) {
-            Spacer(Modifier.height(8.dp))
-            Text("👇 タップしてえらんでね", style = MaterialTheme.typography.labelSmall)
-            q.chips.forEachIndexed { i, chip ->
-                Button(
-                    onClick = {
-                        answers[q.key] = chip.v
-                        bubbles = bubbles + ChatBubble(chip.label, true)
-                        OB_ANCHOR_ACK[chip.v]?.let { if (q.key == "anchor") bubbles = bubbles + ChatBubble(it, false) }
-                        qi++
-                        val nextQ = OB_QUESTIONS.getOrNull(qi)
-                        if (nextQ == null) finish() else bubbles = bubbles + ChatBubble(nextQ.q, false)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = OBG_COLORS[i % 4], contentColor = Color.Black),
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp).testTag("obChip_${q.key}_${chip.v}"),
-                ) { Text(chip.label) }
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        val dark = colors.bg == KyonoDarkColors.bg
+        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+            Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
+            Spacer(Modifier.height(12.dp))
+            for (b in bubbles) {
+                // index.html:478-483 .sd-row/.sd-b(相談室と共用の吹き出しCSSをオンボでも流用)の1:1移植。
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = if (b.fromUser) Arrangement.End else Arrangement.Start) {
+                    Box(
+                        Modifier.fillMaxWidth(0.82f)
+                            .let {
+                                if (b.fromUser) it.background(colors.yellowSoft, RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp))
+                                else it.background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp)).border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                            }
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                    ) {
+                        Text(b.text, color = colors.ink, fontSize = 15.sp, lineHeight = 26.sp)
+                    }
+                }
+            }
+            val q = OB_QUESTIONS.getOrNull(qi)
+            if (q != null) {
+                Spacer(Modifier.height(8.dp))
+                Text("👇 タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
+                Spacer(Modifier.height(6.dp))
+                val palette = obgColors(dark)
+                q.chips.forEachIndexed { i, chip ->
+                    val c = palette[i % 4]
+                    Text(
+                        chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
+                            .background(c.bg, RoundedCornerShape(16.dp))
+                            .border(2.dp, c.border, RoundedCornerShape(16.dp))
+                            .clickable {
+                                answers[q.key] = chip.v
+                                bubbles = bubbles + ChatBubble(chip.label, true)
+                                OB_ANCHOR_ACK[chip.v]?.let { if (q.key == "anchor") bubbles = bubbles + ChatBubble(it, false) }
+                                qi++
+                                val nextQ = OB_QUESTIONS.getOrNull(qi)
+                                if (nextQ == null) finish() else bubbles = bubbles + ChatBubble(nextQ.q, false)
+                            }
+                            .padding(horizontal = 18.dp, vertical = 14.dp)
+                            .testTag("obChip_${q.key}_${chip.v}"),
+                    )
+                }
             }
         }
     }
@@ -266,42 +295,53 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     val scores = remember { mutableStateMapOf<String, Int>() }
     var worry by remember { mutableStateOf(presetWorry) }
 
-    val q = activeQuestions.getOrNull(qi)
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
-        Text("かたさチェック", style = MaterialTheme.typography.headlineSmall)
-        Text("Q${qi + 1} / ${activeQuestions.size}", modifier = Modifier.testTag("quizProgress"))
-        if (q != null) {
-            Spacer(Modifier.height(8.dp))
-            Text(q.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.testTag("quizTitle"))
-            Text(q.note, style = MaterialTheme.typography.bodySmall)
-            q.artRes?.let { res ->
-                Spacer(Modifier.height(8.dp))
-                Image(
-                    painter = painterResource(id = res),
-                    contentDescription = "${q.title}のお手本",
-                    modifier = Modifier.fillMaxWidth().testTag("quizArt_${q.key}"),
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            q.opts.forEachIndexed { i, opt ->
-                Button(
-                    onClick = {
-                        opt.score?.let { scores[q.key] = it }
-                        opt.worryKey?.let { worry = it }
-                        qi++
-                        if (qi >= activeQuestions.size) {
-                            val s = QuizScores(scores["momo"] ?: 0, scores["koka"] ?: 0, scores["kenko"] ?: 0, scores["ashi"] ?: 0)
-                            val typeKey = QuizEngine.decideType(s, worry, Instant.now())
-                            store.set("type", QuizTypeResult(typeKey, worry, RecordLogic.todayStr(Instant.now())))
-                            onComplete(typeKey)
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = OBG_COLORS[i % 4], contentColor = Color.Black),
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("quizOpt_${q.key}_$i"),
-                ) {
-                    Column {
-                        Text(opt.label, fontWeight = FontWeight.Bold)
-                        Text(opt.note, style = MaterialTheme.typography.labelSmall)
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        val dark = colors.bg == KyonoDarkColors.bg
+        val q = activeQuestions.getOrNull(qi)
+        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+            Text("かたさチェック", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(4.dp))
+            Text("Q${qi + 1} / ${activeQuestions.size}", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizProgress"))
+            if (q != null) {
+                Spacer(Modifier.height(10.dp))
+                Text(q.title, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizTitle"))
+                Spacer(Modifier.height(4.dp))
+                Text(q.note, color = colors.sub, fontSize = 13.sp)
+                q.artRes?.let { res ->
+                    Spacer(Modifier.height(10.dp))
+                    Image(
+                        painter = painterResource(id = res),
+                        contentDescription = "${q.title}のお手本",
+                        modifier = Modifier.fillMaxWidth().background(colors.bg, RoundedCornerShape(16.dp)).testTag("quizArt_${q.key}"),
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+                // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
+                val palette = obgColors(dark)
+                q.opts.forEachIndexed { i, opt ->
+                    val c = palette[i % 4]
+                    Column(
+                        Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            .background(c.bg, RoundedCornerShape(16.dp))
+                            .border(2.dp, c.border, RoundedCornerShape(16.dp))
+                            .clickable {
+                                opt.score?.let { scores[q.key] = it }
+                                opt.worryKey?.let { worry = it }
+                                qi++
+                                if (qi >= activeQuestions.size) {
+                                    val s = QuizScores(scores["momo"] ?: 0, scores["koka"] ?: 0, scores["kenko"] ?: 0, scores["ashi"] ?: 0)
+                                    val typeKey = QuizEngine.decideType(s, worry, Instant.now())
+                                    store.set("type", QuizTypeResult(typeKey, worry, RecordLogic.todayStr(Instant.now())))
+                                    onComplete(typeKey)
+                                }
+                            }
+                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                            .testTag("quizOpt_${q.key}_$i"),
+                    ) {
+                        Text(opt.label, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                        Text(opt.note, color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
                     }
                 }
             }
@@ -371,39 +411,54 @@ const val OB_TOUR_CLOSING_TITLE = "🌱 これで準備ばっちり！"
 // index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。8枚+条件付き9枚目(closing・
 // 自動起動時のみ)。スワイプカルーセルでなく「つぎへ」ボタン+ドット進捗のリニアなステップ形式
 // (index.html:4297-4324と同じ構造)。
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+// Phase 3: index.html:172-176,313-315 .obt-t/.obt-d/.dots/.dot/.dot.onの1:1移植。TourScreenはRecordStoreを
+// 受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い。ResultScreenと同じ判断)。
 @Composable
 fun TourScreen(showClosing: Boolean, onDone: () -> Unit) {
     var si by remember { mutableStateOf(0) }
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
-        Row(modifier = Modifier.testTag("tourDots")) {
-            for (i in 0 until totalSlides) {
-                Text(if (i == si) "●" else "○", modifier = Modifier.padding(2.dp))
+    KyonoTheme("auto") {
+        val colors = LocalKyonoColors.current
+        Column(Modifier.fillMaxSize().background(colors.bg).padding(20.dp)) {
+            if (si < OB_TOUR_SLIDES.size) {
+                val slide = OB_TOUR_SLIDES[si]
+                Text(slide.title, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
+                Spacer(Modifier.height(10.dp))
+                Box(
+                    Modifier.fillMaxWidth()
+                        .background(colors.card, RoundedCornerShape(14.dp))
+                        .border(1.5.dp, colors.line, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                ) {
+                    Text(slide.desc, color = colors.ink, fontSize = 14.sp, lineHeight = 27.sp, modifier = Modifier.testTag("tourDesc"))
+                }
+            } else {
+                Text(OB_TOUR_CLOSING_TITLE, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
             }
-        }
-        Spacer(Modifier.height(16.dp))
-        if (si < OB_TOUR_SLIDES.size) {
-            val slide = OB_TOUR_SLIDES[si]
-            Text(slide.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.testTag("tourTitle"))
-            Spacer(Modifier.height(12.dp))
-            Text(slide.desc, modifier = Modifier.testTag("tourDesc"))
-        } else {
-            Text(OB_TOUR_CLOSING_TITLE, style = MaterialTheme.typography.titleLarge, modifier = Modifier.testTag("tourTitle"))
-        }
-        Spacer(Modifier.height(24.dp))
-        Row {
+            // index.html:313-315 .dots/.dot/.dot.on
+            Row(modifier = Modifier.padding(top = 14.dp).testTag("tourDots"), horizontalArrangement = Arrangement.Center) {
+                for (i in 0 until totalSlides) {
+                    Box(
+                        Modifier.padding(horizontal = 3.dp).size(9.dp)
+                            .background(if (i <= si) colors.pink else colors.line, RoundedCornerShape(50)),
+                    )
+                }
+            }
+            Spacer(Modifier.height(20.dp))
             if (si > 0) {
-                Button(onClick = { si-- }, modifier = Modifier.testTag("tourPrevBtn")) { Text("◀ もどる") }
-                Spacer(Modifier.width(12.dp))
+                KyonoLineButton("◀ もどる", { si-- }, Modifier.testTag("tourPrevBtn"))
+                Spacer(Modifier.height(8.dp))
             }
-            Button(
-                onClick = { if (si < totalSlides - 1) si++ else onDone() },
-                modifier = Modifier.testTag("tourNextBtn"),
-            ) { Text(if (si < totalSlides - 1) "つぎへ" else "とじる") }
-        }
-        if (si < totalSlides - 1) {
-            Spacer(Modifier.height(12.dp))
-            Text("ツアーをとばす", modifier = Modifier.clickable { onDone() }.testTag("tourSkipBtn"))
+            KyonoPrimaryButton(
+                if (si < totalSlides - 1) "つぎへ ➡️（${si + 1}/${totalSlides}）" else "おわる",
+                { if (si < totalSlides - 1) si++ else onDone() },
+                Modifier.testTag("tourNextBtn"),
+            )
+            if (si < totalSlides - 1) {
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("ツアーをとばす", onDone, Modifier.testTag("tourSkipBtn"))
+            }
         }
     }
 }

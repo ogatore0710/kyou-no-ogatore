@@ -75,9 +75,22 @@ func obDecideRoute(stiff: String, worry: String) -> String {
     (stiff == "hard" || stiff == "unknown" || worry != "none") ? "quiz" : "today"
 }
 
-// かたさチェックの.opt.g0〜g3(index.html:301-309)と同じ「明→暗」段階色パレット。並び順で
-// 明→暗を巡回させる(index.html:4211と同じ「obg"+(i%4)」方式)。
-let obgColors: [Color] = [Color(red: 0xEA/255, green: 0xF8/255, blue: 0xF1/255), Color(red: 0xFF/255, green: 0xF3/255, blue: 0xCB/255), Color(red: 0xFB/255, green: 0xE3/255, blue: 0xC6/255), Color(red: 0xF2/255, green: 0xD7/255, blue: 0xCD/255)]
+// かたさチェックの.opt.g0〜g3(index.html:301-309)・オンボの#obChips .chip.obg0-3(index.html:537-544)と
+// 同じ「明→暗」段階色パレット(bg,border)。並び順で明→暗を巡回させる(index.html:4211と同じ
+// 「obg"+(i%4)」方式)。ライト/ダークで別パレット。
+struct ObgColor {
+    let bg: Color
+    let border: Color
+}
+private let obgLight: [ObgColor] = [
+    ObgColor(bg: Color(hex: 0xEAF8F1), border: Color(hex: 0xBFE8DC)), ObgColor(bg: Color(hex: 0xFFF3CB), border: Color(hex: 0xF2DE8A)),
+    ObgColor(bg: Color(hex: 0xFBE3C6), border: Color(hex: 0xE5BC85)), ObgColor(bg: Color(hex: 0xF2D7CD), border: Color(hex: 0xDCA894)),
+]
+private let obgDark: [ObgColor] = [
+    ObgColor(bg: Color(hex: 0x2A423B), border: Color(hex: 0x2E5A52)), ObgColor(bg: Color(hex: 0x3B3524), border: Color(hex: 0x5C4F1E)),
+    ObgColor(bg: Color(hex: 0x403322), border: Color(hex: 0x6A4A26)), ObgColor(bg: Color(hex: 0x402A28), border: Color(hex: 0x5E3A38)),
+]
+func obgColors(dark: Bool) -> [ObgColor] { dark ? obgDark : obgLight }
 
 struct ChatBubble: Identifiable {
     let id = UUID()
@@ -119,40 +132,77 @@ struct OnboardingView: View {
         onComplete(route, presetWorry)
     }
 
+    private var themeSetting: String { store.get("theme", default: "auto") }
+
+    var body: some View {
+        KyonoTheme(themeSetting: themeSetting) {
+            OnboardingContentView(
+                bubbles: $bubbles, qi: $qi, answers: $answers,
+                onChipTap: { q, i, chip in
+                    answers[q.key] = chip.v
+                    bubbles.append(ChatBubble(text: chip.label, fromUser: true))
+                    if q.key == "anchor", let ack = obAnchorAck[chip.v] {
+                        bubbles.append(ChatBubble(text: ack, fromUser: false))
+                    }
+                    qi += 1
+                    if qi >= obQuestions.count {
+                        finish()
+                    } else {
+                        bubbles.append(ChatBubble(text: obQuestions[qi].q, fromUser: false))
+                    }
+                }
+            )
+        }
+    }
+}
+
+private struct OnboardingContentView: View {
+    @Environment(\.kyonoColors) private var colors
+    @Binding var bubbles: [ChatBubble]
+    @Binding var qi: Int
+    @Binding var answers: [String: String]
+    let onChipTap: (ObQuestionDef, Int, ObChip) -> Void
+
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("🌱 はじめてガイド").font(.title2.bold())
+                Text("🌱 はじめてガイド").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+                // index.html:478-483 .sd-row/.sd-b(相談室と共用の吹き出しCSSをオンボでも流用)の1:1移植。
+                // border-bottom-right-radius:6px(user)/border-bottom-left-radius:6px(bot)をUnevenRoundedRectangleで再現。
                 ForEach(bubbles) { b in
-                    Text(b.text).frame(maxWidth: .infinity, alignment: b.fromUser ? .trailing : .leading)
+                    HStack {
+                        if b.fromUser { Spacer(minLength: 40) }
+                        let shape = UnevenRoundedRectangle(
+                            topLeadingRadius: 16, bottomLeadingRadius: b.fromUser ? 16 : 6,
+                            bottomTrailingRadius: b.fromUser ? 6 : 16, topTrailingRadius: 16
+                        )
+                        Text(b.text).font(.system(size: 15)).foregroundColor(colors.ink).lineSpacing(11)
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(shape.fill(b.fromUser ? colors.yellowSoft : colors.card))
+                            .overlay(shape.stroke(b.fromUser ? Color.clear : colors.line, lineWidth: 1.5))
+                        if !b.fromUser { Spacer(minLength: 40) }
+                    }
                 }
                 if qi < obQuestions.count {
                     let q = obQuestions[qi]
-                    Text("👇 タップしてえらんでね").font(.caption)
+                    Text("👇 タップしてえらんでね").font(.system(size: 12)).foregroundColor(colors.sub)
+                    let palette = obgColors(dark: dark)
                     ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
-                        Button(chip.label) {
-                            answers[q.key] = chip.v
-                            bubbles.append(ChatBubble(text: chip.label, fromUser: true))
-                            if q.key == "anchor", let ack = obAnchorAck[chip.v] {
-                                bubbles.append(ChatBubble(text: ack, fromUser: false))
-                            }
-                            qi += 1
-                            if qi >= obQuestions.count {
-                                finish()
-                            } else {
-                                bubbles.append(ChatBubble(text: obQuestions[qi].q, fromUser: false))
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(obgColors[i % 4])
-                        .foregroundColor(.black)
-                        .cornerRadius(24)
+                        let c = palette[i % 4]
+                        Text(chip.label).font(.system(size: 16, weight: .bold)).foregroundColor(colors.ink)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 18).padding(.vertical, 14)
+                            .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
+                            .onTapGesture { onChipTap(q, i, chip) }
                     }
                 }
             }
             .padding(20)
         }
+        .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
 
@@ -296,45 +346,70 @@ struct QuizView: View {
         _worry = State(initialValue: presetWorry)
     }
 
+    private var themeSetting: String { store.get("theme", default: "auto") }
+
+    var body: some View {
+        KyonoTheme(themeSetting: themeSetting) {
+            QuizContentView(
+                activeQuestions: activeQuestions, qi: qi, onOptTap: { q, opt in
+                    if let score = opt.score { scores[q.key] = score }
+                    if let worryKey = opt.worryKey { worry = worryKey }
+                    qi += 1
+                    if qi >= activeQuestions.count {
+                        let s = QuizEngine.Scores(momo: scores["momo"] ?? 0, koka: scores["koka"] ?? 0, kenko: scores["kenko"] ?? 0, ashi: scores["ashi"] ?? 0)
+                        let typeKey = QuizEngine.decideType(s, worry: worry, now: Date())
+                        store.set("type", QuizTypeResult(key: typeKey, worry: worry, at: RecordLogic.todayStr(now: Date())))
+                        onComplete(typeKey)
+                    }
+                }
+            )
+        }
+    }
+}
+
+private struct QuizContentView: View {
+    @Environment(\.kyonoColors) private var colors
+    let activeQuestions: [QuizQuestionDef]
+    let qi: Int
+    let onOptTap: (QuizQuestionDef, QuizOptDef) -> Void
+
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("かたさチェック").font(.title2.bold())
-                Text("Q\(qi + 1) / \(activeQuestions.count)")
+            VStack(alignment: .leading, spacing: 8) {
+                Text("かたさチェック").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+                Text("Q\(qi + 1) / \(activeQuestions.count)").font(.system(size: 12, weight: .black)).foregroundColor(colors.sub)
                 if qi < activeQuestions.count {
                     let q = activeQuestions[qi]
-                    Text(q.title).font(.headline)
-                    Text(q.note).font(.caption)
+                    Spacer().frame(height: 4)
+                    Text(q.title).font(.system(size: 18, weight: .black)).foregroundColor(colors.ink)
+                    Text(q.note).font(.system(size: 13)).foregroundColor(colors.sub)
                     if let artResName = q.artResName {
                         Image(artResName).resizable().scaledToFit()
+                            .background(colors.bg).cornerRadius(16)
                     }
+                    Spacer().frame(height: 4)
+                    // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
+                    let palette = obgColors(dark: dark)
                     ForEach(Array(q.opts.enumerated()), id: \.offset) { i, opt in
-                        Button {
-                            if let score = opt.score { scores[q.key] = score }
-                            if let worryKey = opt.worryKey { worry = worryKey }
-                            qi += 1
-                            if qi >= activeQuestions.count {
-                                let s = QuizEngine.Scores(momo: scores["momo"] ?? 0, koka: scores["koka"] ?? 0, kenko: scores["kenko"] ?? 0, ashi: scores["ashi"] ?? 0)
-                                let typeKey = QuizEngine.decideType(s, worry: worry, now: Date())
-                                store.set("type", QuizTypeResult(key: typeKey, worry: worry, at: RecordLogic.todayStr(now: Date())))
-                                onComplete(typeKey)
-                            }
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(opt.label).bold()
-                                Text(opt.note).font(.caption)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        let c = palette[i % 4]
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(opt.label).font(.system(size: 15, weight: .black)).foregroundColor(colors.ink)
+                            Text(opt.note).font(.system(size: 13, weight: .bold)).foregroundColor(colors.sub)
                         }
-                        .padding()
-                        .background(obgColors[i % 4])
-                        .foregroundColor(.black)
-                        .cornerRadius(24)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16).padding(.vertical, 14)
+                        .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
+                        .contentShape(Rectangle())
+                        .onTapGesture { onOptTap(q, opt) }
                     }
                 }
             }
             .padding(20)
         }
+        .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
 
