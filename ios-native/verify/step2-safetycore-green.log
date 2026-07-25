@@ -1,0 +1,31 @@
+[0/1] Planning build
+Building for debugging...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.24s)
+Test Suite 'All tests' started at 2026-07-25 19:13:42.893.
+Test Suite 'SafetyCorePackageTests.xctest' started at 2026-07-25 19:13:42.894.
+Test Suite 'SafetyGateTests' started at 2026-07-25 19:13:42.894.
+Test Case '-[SafetyCoreTests.SafetyGateTests testNormGolden]' started.
+Test Case '-[SafetyCoreTests.SafetyGateTests testNormGolden]' passed (0.007 seconds).
+Test Case '-[SafetyCoreTests.SafetyGateTests testSafetyFixtures111]' started.
+Test Case '-[SafetyCoreTests.SafetyGateTests testSafetyFixtures111]' passed (0.145 seconds).
+Test Suite 'SafetyGateTests' passed at 2026-07-25 19:13:43.046.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.152 (0.152) seconds
+Test Suite 'SoudanEngineTests' started at 2026-07-25 19:13:43.046.
+Test Case '-[SafetyCoreTests.SoudanEngineTests testCrisisTakesPriorityOverRedFlag]' started.
+Test Case '-[SafetyCoreTests.SoudanEngineTests testCrisisTakesPriorityOverRedFlag]' passed (0.000 seconds).
+Test Case '-[SafetyCoreTests.SoudanEngineTests testNormalWhenNeitherCrisisNorRedFlag]' started.
+Test Case '-[SafetyCoreTests.SoudanEngineTests testNormalWhenNeitherCrisisNorRedFlag]' passed (0.001 seconds).
+Test Case '-[SafetyCoreTests.SoudanEngineTests testRedFlagTakesPriorityOverNormal]' started.
+Test Case '-[SafetyCoreTests.SoudanEngineTests testRedFlagTakesPriorityOverNormal]' passed (0.004 seconds).
+Test Suite 'SoudanEngineTests' passed at 2026-07-25 19:13:43.052.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'SafetyCorePackageTests.xctest' passed at 2026-07-25 19:13:43.052.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.157 (0.158) seconds
+Test Suite 'All tests' passed at 2026-07-25 19:13:43.052.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.157 (0.159) seconds
+safety-fixtures: 111/111 pass
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
