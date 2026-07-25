@@ -39,4 +39,55 @@ final class CardRendererTests: XCTestCase {
         )
         XCTAssertNotEqual(png1, png2, "異なる日付なのに同じ出力になっている(装飾/数字が反映されていない疑い)")
     }
+
+    // ---- ここからパリティ突合タスク(TASK-C2-2026-07-26-native-migration-card-visual-assets.md)追加分 ----
+
+    func testSameInputWithTagsProducesIdenticalBitmapTwice() {
+        let data = CardDataLoader.shared
+        let ds = "2026-07-25"
+        let di = CardLottery.dateIdx(ds)
+        let png1 = CardRenderer.render(
+            ds: ds, effTotal: 55, theme: sampleTheme(), milestone: false, milestoneTitle: nil,
+            dateIdx: di, cardThemesV2From: data.CARD_THEMES_V2_FROM,
+            typeName: "もちもちタイプ", typeIconKey: "momo", memoText: "きょうもいい調子", streakCount: 3
+        )
+        let png2 = CardRenderer.render(
+            ds: ds, effTotal: 55, theme: sampleTheme(), milestone: false, milestoneTitle: nil,
+            dateIdx: di, cardThemesV2From: data.CARD_THEMES_V2_FROM,
+            typeName: "もちもちタイプ", typeIconKey: "momo", memoText: "きょうもいい調子", streakCount: 3
+        )
+        XCTAssertEqual(png1, png2, "タグピル込みの再描画がビット単位で一致しない")
+    }
+
+    func testTagPillRowChangesBitmapComparedToNoTagRow() {
+        let data = CardDataLoader.shared
+        let ds = "2026-07-25"
+        let di = CardLottery.dateIdx(ds)
+        let withoutTags = CardRenderer.render(
+            ds: ds, effTotal: 55, theme: sampleTheme(), milestone: false, milestoneTitle: nil,
+            dateIdx: di, cardThemesV2From: data.CARD_THEMES_V2_FROM
+        )
+        let withTags = CardRenderer.render(
+            ds: ds, effTotal: 55, theme: sampleTheme(), milestone: false, milestoneTitle: nil,
+            dateIdx: di, cardThemesV2From: data.CARD_THEMES_V2_FROM,
+            typeName: "もちもちタイプ", memoText: "メモです"
+        )
+        XCTAssertNotEqual(withoutTags, withTags, "タグピル行(かたさタイプ/メモ)の有無で出力が変わっていない")
+    }
+
+    func testSameDateIdxAlwaysPicksSameCharacter() {
+        // dateIdx駆動のキャラ選定(Web版のdayIndex()=現在時刻依存とは意図的に差をつけている・
+        // CardRenderer.swift冒頭コメント参照)が本当に決定的か、同じdsで3回描画してすべて一致するかで確認する。
+        let data = CardDataLoader.shared
+        let ds = "2026-06-10"
+        let di = CardLottery.dateIdx(ds)
+        let pngs = (1...3).map { _ in
+            CardRenderer.render(
+                ds: ds, effTotal: 10, theme: sampleTheme(), milestone: false, milestoneTitle: nil,
+                dateIdx: di, cardThemesV2From: data.CARD_THEMES_V2_FROM
+            )
+        }
+        XCTAssertEqual(pngs[0], pngs[1], "同じ日付なのにキャラクター選定(dateIdx駆動)が再現しない")
+        XCTAssertEqual(pngs[1], pngs[2], "同じ日付なのにキャラクター選定(dateIdx駆動)が再現しない")
+    }
 }

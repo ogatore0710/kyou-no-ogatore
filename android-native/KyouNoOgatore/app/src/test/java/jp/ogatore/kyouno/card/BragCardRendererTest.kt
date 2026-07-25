@@ -7,12 +7,15 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 // Step4/7bパリティ突合タスク(TASK-C2-2026-07-26-native-migration-card-visual-assets.md)で追加:
 // BragCardRendererにもCardRendererと同じキャラクター立ち絵・実フォントを組み込んだため、
 // 現在時刻・乱数を読まない設計(§1-1第3項)が実アセット込みでも保たれているかを確認する。
+// @GraphicsMode(NATIVE)必須の理由はCardRendererTest.kt冒頭コメント参照。
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class BragCardRendererTest {
     private fun sampleTheme(): ResolvedTheme {
         val t = CardDataLoader.shared.CARD_THEMES[1]

@@ -1,8 +1,6 @@
 package jp.ogatore.kyouno.card
 
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.Paint
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,16 +8,22 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 // ネイティブ移植 Step 4(マスタープラン§6 Step4検収基準4)→Step4/7bパリティ突合タスク
 // (TASK-C2-2026-07-26-native-migration-card-visual-assets.md): 「同一日付での再描画が同一出力」を
 // ピクセル配列(ARGB IntArray)比較で確認する。CardRendererは現在時刻・乱数を一切読まない設計
 // (ForbiddenAPIRegressionTest参照)なので、同じ入力を2回描画すればピクセル単位で一致するはず。
 // android.graphics.Canvas/BitmapはプレーンJVMでは動かないためRobolectricでシャドウ実行する。
-// context有り(実フォント・実画像アセットを実際にロードする経路)でも同じ保証が成り立つことを、
-// パリティ突合タスクで追加したテストで確認する(下の各テストのcontext引数参照)。
+//
+// @GraphicsMode(NATIVE)必須(パリティ突合タスクで判明): 明示しないとRobolectric既定のLEGACYシャドウ
+// (実ラスタライズなし)で動き、getPixels()が実際の描画内容を反映しない空データを返すことがある
+// (drawRoundRect/LinearGradient/Bitmap描画はLEGACYでは追跡されず、Path系の一部操作だけ偶然反映される
+// ため、旧2テストは「たまたま」通っていた。実測: debugRawCanvasDrawで単純なdrawRectの赤塗りすら
+// LEGACYでは読み戻せないことを確認した上でNATIVEへ変更・全テスト green化を確認済み)。
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class CardRendererTest {
     private fun sampleTheme(): ResolvedTheme {
         val t = CardDataLoader.shared.CARD_THEMES[0]
@@ -43,23 +47,6 @@ class CardRendererTest {
         val p2 = pixels(bmp2)
         assertTrue(p1.isNotEmpty())
         assertTrue("同一日付・同一入力の再描画がピクセル単位で一致しない", p1.contentEquals(p2))
-    }
-
-    @Test
-    fun debugNoContextPixel() {
-        val data = CardDataLoader.shared
-        val ds = "2026-07-25"
-        val di = CardLottery.dateIdx(ds)
-        val bmp1 = CardRenderer.render(ds, 55, sampleTheme(), false, null, di, data.CARD_THEMES_V2_FROM)
-        val p1 = pixels(bmp1)
-        println("DEBUG noctx p1[0]=" + p1[0] + " p1[500500]=" + p1[500500])
-        val context = RuntimeEnvironment.getApplication()
-        val bmp2 = CardRenderer.render(ds, 55, sampleTheme(), false, null, di, data.CARD_THEMES_V2_FROM, context = context)
-        val p2 = pixels(bmp2)
-        println("DEBUG ctx p2[0]=" + p2[0] + " p2[500500]=" + p2[500500])
-        var diffCount = 0
-        for (i in p1.indices) if (p1[i] != p2[i]) diffCount++
-        println("DEBUG noctx-vs-ctx diffCount=" + diffCount)
     }
 
     @Test
@@ -90,36 +77,6 @@ class CardRendererTest {
             context = context, typeName = "もちもちタイプ", typeIconKey = "momo", memoText = "きょうもいい調子", streakCount = 3,
         )
         assertTrue("実フォント・実画像込みの再描画がピクセル単位で一致しない", pixels(bmp1).contentEquals(pixels(bmp2)))
-    }
-
-    @Test
-    fun debugRawCanvasDraw() {
-        val bmp = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-        val canvas = android.graphics.Canvas(bmp)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.RED }
-        canvas.drawRect(0f, 0f, 100f, 100f, paint)
-        val out = IntArray(100 * 100)
-        bmp.getPixels(out, 0, 100, 0, 0, 100, 100)
-        println("DEBUG rawRedFill center=" + out[5050] + " expectedRed=" + Color.RED)
-    }
-
-    @Test
-    fun debugTagPillDiff() {
-        val data = CardDataLoader.shared
-        val ds = "2026-07-25"
-        val di = CardLottery.dateIdx(ds)
-        val context = RuntimeEnvironment.getApplication()
-        val withoutTags = CardRenderer.render(ds, 55, sampleTheme(), false, null, di, data.CARD_THEMES_V2_FROM, context = context)
-        val withTags = CardRenderer.render(
-            ds, 55, sampleTheme(), false, null, di, data.CARD_THEMES_V2_FROM,
-            context = context, typeName = "もちもちタイプ", memoText = "メモです",
-        )
-        val p1 = pixels(withoutTags)
-        val p2 = pixels(withTags)
-        var diff = 0
-        for (i in p1.indices) if (p1[i] != p2[i]) diff++
-        println("DEBUG diff pixel count=" + diff + " total=" + p1.size)
-        println("DEBUG p1[0]=" + p1[0] + " p2[0]=" + p2[0])
     }
 
     @Test

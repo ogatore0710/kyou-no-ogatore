@@ -236,9 +236,20 @@ private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData,
         theme = ResolvedTheme(name: fallback.name, bg: fallback.bg, main: fallback.main, deco: fallback.deco)
     }
     let milestoneTitle = data.MS.first { $0.d == effTotal }?.t
+
+    // かたさタイプ/メモ(index.html:133,225の1:1移植。§7bパリティ突合タスクで追加)
+    let typeResult: QuizTypeResult? = store.get("type", default: nil)
+    let typeName = typeResult.flatMap { quizTypes[$0.key]?.name }
+    let typeIconKey: String? = {
+        guard let key = typeResult?.key, TYPE_IMG_NAMES[key] != nil else { return nil }
+        return key
+    }()
+    let memos: [String: String] = store.get("memos", default: [:])
+
     let png = CardRenderer.render(
         ds: ds, effTotal: effTotal, theme: theme, milestone: milestone, milestoneTitle: milestoneTitle,
-        dateIdx: dateIdx, cardThemesV2From: data.CARD_THEMES_V2_FROM
+        dateIdx: dateIdx, cardThemesV2From: data.CARD_THEMES_V2_FROM,
+        pat: pat, typeName: typeName, typeIconKey: typeIconKey, memoText: memos[ds], streakCount: streak.count
     )
     return UIImage(data: png)
 }

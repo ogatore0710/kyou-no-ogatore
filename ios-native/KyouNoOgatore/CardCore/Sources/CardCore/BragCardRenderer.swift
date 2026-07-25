@@ -3,16 +3,18 @@ import CoreText
 import Foundation
 import ImageIO
 
-// ネイティブ移植 Step 7b(マスタープラン§2-1「index.html drawBragCard」行・§6 Step 7b): じまんカード
-// 描画(index.html:2805-2919 drawBragCard)の1:1移植(Android版BragCardRenderer.ktと同一ロジック)。
+// ネイティブ移植 Step 7b(マスタープラン§2-1「index.html drawBragCard」行・§6 Step 7b)→Step4/7b
+// パリティ突合タスク(TASK-C2-2026-07-26-native-migration-card-visual-assets.md): じまんカード描画
+// (index.html:2805-2919 drawBragCard)の1:1移植(Android版BragCardRenderer.ktと同一ロジック)。
 // CardRendererとは独立の描画器として作業量を見積もる、という§2-1備考どおりファイル自体は分けているが、
 // 実際の背景・飾り・白カード・タイトルピル・日付バッジの舞台演出はdrawCard()と全く同じ数値
 // (index.html:2814のコメント「記録カードと同じ舞台」)なので、その部分の図形/テキスト/色ヘルパーは
-// CardRenderer(internal公開済み・同一パッケージ)を呼んで再利用する。
+// CardRenderer(internal公開済み・同一パッケージ)を呼んで再利用する。キャラクター立ち絵・
+// M PLUS 1p/BananaNumフォントもCardRenderer側の実装(CHARA_FILES/CardFonts)をそのまま再利用する
+// (§2-1備考「じまん・声…」行の「同じアセット・フォント」)。
 //
-// Step4のCardRendererと同じ簡略化方針を踏襲: キャラクター立ち絵・M PLUS 1p/BananaNumフォント
-// (Helvetica-Boldで代替)は未実装。動画サムネイルはネットワーク取得を要するため、常にWeb版の
-// 「オフラインでサムネイルが出せないとき」の代替パス(動画タイトルを2行まで折り返し表示)を採用する。
+// 動画サムネイルはネットワーク取得を要するため、常にWeb版の「オフラインでサムネイルが出せないとき」の
+// 代替パス(動画タイトルを2行まで折り返し表示)を採用する。
 public enum BragCardRenderer {
     private static let footerPool = [
         "続けてるじぶん、どんどんじまんしてね✨",
@@ -82,29 +84,29 @@ public enum BragCardRenderer {
         ctx.setFillColor(CardRenderer.color(theme.main))
         CardRenderer.roundRectPath(ctx, x: 300, y: 145, w: 400, h: 64, r: 32)
         ctx.fillPath()
-        CardRenderer.drawCenteredText("#きょうのオガトレ", in: ctx, centerX: 500, baselineY: 190, fontSize: 34, color: CardRenderer.color("#FFFFFF"))
+        CardRenderer.drawCenteredText("#きょうのオガトレ", in: ctx, centerX: 500, baselineY: 190, fontSize: 34, weight: .w900, color: CardRenderer.color("#FFFFFF"))
 
         // 日付バッジ(index.html:2836-2841。drawCardと同じ数値)
         let parts = ds.split(separator: "-").map { Int($0) ?? 0 }
         let dtxt = parts.count == 3 ? "\(parts[0])/\(parts[1])/\(parts[2])" : ds
-        let dw = CardRenderer.textWidth(dtxt, fontSize: 26)
+        let dw = CardRenderer.textWidth(dtxt, fontSize: 26, weight: .w800)
         ctx.saveGState()
         ctx.setAlpha(0.85)
         ctx.setFillColor(CardRenderer.color(theme.main))
         CardRenderer.roundRectPath(ctx, x: 868 - dw - 44, y: 212, w: dw + 44, h: 52, r: 26)
         ctx.fillPath()
         ctx.restoreGState()
-        CardRenderer.drawCenteredText(dtxt, in: ctx, centerX: 868 - (dw + 44) / 2, baselineY: 247, fontSize: 26, color: CardRenderer.color("#FFFFFF"))
+        CardRenderer.drawCenteredText(dtxt, in: ctx, centerX: 868 - (dw + 44) / 2, baselineY: 247, fontSize: 26, weight: .w800, color: CardRenderer.color("#FFFFFF"))
 
-        // つづけてる日数(index.html:2843-2856。桁数でフォントサイズを変える。BananaNum未同梱のためBoldで代替)
+        // つづけてる日数(index.html:2843-2856。桁数でフォントサイズを変える。数字はBananaNum)
         let numTxt = String(days)
         let numSize: CGFloat = numTxt.count <= 2 ? 200 : (numTxt.count == 3 ? 170 : 140)
-        let numW = CardRenderer.textWidth(numTxt, fontSize: numSize)
-        let sw = CardRenderer.textWidth("日つづいてる！", fontSize: 52)
+        let numW = CardRenderer.textWidth(numTxt, fontSize: numSize, weight: .banana)
+        let sw = CardRenderer.textWidth("日つづいてる！", fontSize: 52, weight: .w900)
         let totalW = numW + 18 + sw
         let startX = 500 - totalW / 2
-        CardRenderer.drawLeftText(numTxt, in: ctx, x: startX, baselineY: 438, fontSize: numSize, color: CardRenderer.color(theme.main))
-        CardRenderer.drawLeftText("日つづいてる！", in: ctx, x: startX + numW + 18, baselineY: 428, fontSize: 52, color: CardRenderer.color("#3A3A35"))
+        CardRenderer.drawLeftText(numTxt, in: ctx, x: startX, baselineY: 438, fontSize: numSize, weight: .banana, color: CardRenderer.color(theme.main))
+        CardRenderer.drawLeftText("日つづいてる！", in: ctx, x: startX + numW + 18, baselineY: 428, fontSize: 52, weight: .w900, color: CardRenderer.color("#3A3A35"))
 
         // 区切り線(index.html:2859-2860)
         ctx.saveGState()
@@ -119,34 +121,47 @@ public enum BragCardRenderer {
         // 「すきな1本」タグピル(index.html:2862-2875)
         do {
             let label = "すきな1本"
-            let lw = CardRenderer.textWidth(label, fontSize: 28)
+            let lw = CardRenderer.textWidth(label, fontSize: 28, weight: .banana)
             let pw = lw + 48
             let yc: CGFloat = 525
             ctx.setFillColor(CardRenderer.color(theme.main))
             CardRenderer.roundRectPath(ctx, x: 500 - pw / 2, y: yc - 30, w: pw, h: 60, r: 30)
             ctx.fillPath()
-            CardRenderer.drawLeftText(label, in: ctx, x: 500 - pw / 2 + 24, baselineY: yc + 10, fontSize: 28, color: CardRenderer.color("#FFFFFF"))
+            CardRenderer.drawLeftText(label, in: ctx, x: 500 - pw / 2 + 24, baselineY: yc + 10, fontSize: 28, weight: .banana, color: CardRenderer.color("#FFFFFF"))
         }
 
         // サムネイル代替=動画タイトルの折り返し表示(index.html:2883-2889。ネットワーク非依存のため常にこの経路)
         let favT = favoriteTitle ?? "まだえらんでません（これから見つけます！）"
         let lines = wrapLines(favT, maxW: 540, maxLines: 2)
         for (i, ln) in lines.enumerated() {
-            CardRenderer.drawCenteredText(ln, in: ctx, centerX: 500, baselineY: 645 + CGFloat(i) * 52, fontSize: 34, color: CardRenderer.color("#3A3A35"))
+            CardRenderer.drawCenteredText(ln, in: ctx, centerX: 500, baselineY: 645 + CGFloat(i) * 52, fontSize: 34, weight: .w800, color: CardRenderer.color("#3A3A35"))
         }
 
-        // フッター=キャラの吹き出し(index.html:2896-2914。キャラ本体は未実装のため吹き出しのみ)
+        // キャラ(index.html:2891-2894。日替わりローテ・CardRenderer.CHARA_FILESを共用。§2-1備考どおり
+        // 「同じアセット・フォント」を使う。dateIdx駆動の選定理由はCardRenderer.swift冒頭コメント参照)。
+        let dateIdx = CardLottery.dateIdx(ds)
+        let charaFiles = CardDataLoader.shared.CHARA_FILES
+        if !charaFiles.isEmpty {
+            let pick = charaFiles[((dateIdx % charaFiles.count) + charaFiles.count) % charaFiles.count]
+            if let charaImage = CardRenderer.loadBundleImage(CardRenderer.charaDrawableName(pick.file)) {
+                let w: CGFloat = 255
+                let h = w * CGFloat(charaImage.height) / CGFloat(charaImage.width)
+                CardRenderer.drawImageJS(charaImage, x: 965 - w, y: 985 - h, w: w, h: h, in: ctx)
+            }
+        }
+
+        // フッター=キャラの吹き出し(index.html:2896-2914)
         var fh: UInt32 = 0
         for u in ds.utf16 { fh = fh &* 31 &+ UInt32(u) }
         let fmsg = footerPool[Int(fh % UInt32(footerPool.count))]
         var ffs: CGFloat = 27
-        while CardRenderer.textWidth(fmsg, fontSize: ffs) > 560 && ffs > 21 { ffs -= 1 }
-        let bw = CardRenderer.textWidth(fmsg, fontSize: ffs) + 56
+        while CardRenderer.textWidth(fmsg, fontSize: ffs, weight: .w800) > 560 && ffs > 21 { ffs -= 1 }
+        let bw = CardRenderer.textWidth(fmsg, fontSize: ffs, weight: .w800) + 56
         let bx1 = max(70, 690 - bw)
         ctx.setFillColor(gray: 1, alpha: 0.95)
         CardRenderer.roundRectPath(ctx, x: bx1, y: 900, w: bw, h: 74, r: 37)
         ctx.fillPath()
-        CardRenderer.drawLeftText(fmsg, in: ctx, x: bx1 + 28, baselineY: 900 + 37 + (ffs * 0.36), fontSize: ffs, color: CardRenderer.color(theme.main))
+        CardRenderer.drawLeftText(fmsg, in: ctx, x: bx1 + 28, baselineY: 900 + 37 + (ffs * 0.36), fontSize: ffs, weight: .w800, color: CardRenderer.color(theme.main))
     }
 
     // index.html:2792-2804(drawBragCard直前の後勝ち定義)の1:1移植。1文字ずつ幅を測って折り返し、
@@ -156,7 +171,7 @@ public enum BragCardRenderer {
         var cur = ""
         for ch in text {
             let test = cur + String(ch)
-            if CardRenderer.textWidth(test, fontSize: 34) > maxW && !cur.isEmpty {
+            if CardRenderer.textWidth(test, fontSize: 34, weight: .w800) > maxW && !cur.isEmpty {
                 lines.append(cur)
                 cur = String(ch)
                 if lines.count == maxLines { break }
