@@ -79,16 +79,32 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         store = RecordStore.forFile(File(filesDir, "kyono-store.json"))
         setContent {
-            var showMyRecord by remember { mutableStateOf(false) }
+            // index.html:4402 obIsFresh()相当。onboarded未設定=初回起動なのでオンボから開始する。
+            var screen by remember {
+                mutableStateOf<Screen>(if (store.get("onboarded", false)) Screen.Home else Screen.Onboarding)
+            }
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    if (showMyRecord) {
-                        MyRecordScreen(store = store, onBack = { showMyRecord = false })
-                    } else {
-                        HomeScreen(
+                    when (val s = screen) {
+                        is Screen.Onboarding -> OnboardingScreen(
+                            store = store,
+                            onComplete = { route, presetWorry ->
+                                screen = if (route == "quiz") Screen.Quiz(presetWorry) else Screen.Home
+                            },
+                        )
+                        is Screen.Quiz -> QuizScreen(
+                            store = store,
+                            presetWorry = s.presetWorry,
+                            onComplete = { typeKey -> screen = Screen.Result(typeKey) },
+                        )
+                        is Screen.Result -> ResultScreen(typeKey = s.typeKey, onDone = { screen = Screen.Home })
+                        is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })
+                        is Screen.MyRecord -> MyRecordScreen(store = store, onBack = { screen = Screen.Home })
+                        is Screen.Home -> HomeScreen(
                             store = store,
                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                            onOpenMyRecord = { showMyRecord = true },
+                            onOpenMyRecord = { screen = Screen.MyRecord },
+                            onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
                         )
                     }
                 }
@@ -97,13 +113,24 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// トップレベル画面状態機械。index.html側は単一DOM内のモーダル重ね合わせだが、ネイティブは
+// Composeの画面切替として1:1移植する(オンボ/かたさチェック/結果/ツアー/ホーム/マイ記録)。
+sealed class Screen {
+    object Home : Screen()
+    object MyRecord : Screen()
+    object Onboarding : Screen()
+    data class Quiz(val presetWorry: String?) : Screen()
+    data class Result(val typeKey: String) : Screen()
+    data class Tour(val showClosing: Boolean) : Screen()
+}
+
 private val CHEERS = listOf(
     "ナイスご自愛🎉", "がんばったね！おつかれさまでした✨", "その数分が体を変えます💪",
     "イタ気持ちいい できました？😊", "体は正直！ちゃんと応えてくれますよ✨", "昨日の自分より1ミリ前へ🌱",
 )
 
 @Composable
-fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: () -> Unit) {
+fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: () -> Unit, onStartTour: (Boolean) -> Unit) {
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
     var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
@@ -194,6 +221,9 @@ fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: ()
                     if (fd == "go") {
                         store.set("fd", "1")
                         fd = "1"
+                        // app-record.js:107 markDone内でtourpend=1相当。実際の起動はカード
+                        // モーダルを閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
+                        store.set("tourpend", true)
                     }
                     cardBitmap = renderTodayCard(store, streak, today)
                 }
@@ -223,7 +253,23 @@ fun HomeScreen(store: RecordStore, openUrl: (String) -> Unit, onOpenMyRecord: ()
     cardBitmap?.let { bmp ->
         AlertDialog(
             onDismissRequest = { cardBitmap = null },
-            confirmButton = { Button(onClick = { cardBitmap = null }, modifier = Modifier.testTag("cardCloseBtn")) { Text("とじる") } },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        cardBitmap = null
+                        // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
+                        // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
+                        val tourpend = store.get("tourpend", false)
+                        val tourseen = store.get("tourseen", false)
+                        if (tourpend && !tourseen) {
+                            store.set("tourpend", false)
+                            store.set("tourseen", true)
+                            onStartTour(true)
+                        }
+                    },
+                    modifier = Modifier.testTag("cardCloseBtn"),
+                ) { Text("とじる") }
+            },
             text = {
                 Image(
                     bitmap = bmp.asImageBitmap(),
