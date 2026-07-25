@@ -131,10 +131,12 @@ class MainActivity : ComponentActivity() {
                                             onClose = { screen = Screen.Home },
                                         )
                                         is Screen.Search -> SearchScreen(
+                                            store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onBack = { screen = Screen.Home },
                                         )
                                         is Screen.Catalog -> CatalogListScreen(
+                                            store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onBack = { screen = Screen.Home },
                                         )

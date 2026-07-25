@@ -148,11 +148,13 @@ struct RootView: View {
             )
         case .search:
             SearchView(
+                store: store,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onBack: { screen = .home }
             )
         case .catalog:
             CatalogListView(
+                store: store,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onBack: { screen = .home }
             )

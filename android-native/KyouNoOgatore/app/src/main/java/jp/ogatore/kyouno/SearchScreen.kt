@@ -1,6 +1,7 @@
 package jp.ogatore.kyouno
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,15 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,9 +26,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import jp.ogatore.kyouno.catalog.CatalogLoader
 import jp.ogatore.kyouno.catalog.CatalogVideo
+import jp.ogatore.kyouno.record.RecordStore
 
 // ネイティブ移植 Step 7a(マスタープラン§6 Step 7a・§2-1「app-search.js TAG_CATS」行): 検索(TAG_CATS)・
 // 再生リストUI(SearchView.swift/SearchScreen.ktの1:1対応)。判定ロジックは存在しない画面(単純な
@@ -41,6 +44,10 @@ import jp.ogatore.kyouno.catalog.CatalogVideo
 // ため、本実装では「再生リスト」を「catalog.jsonの動画をカテゴリ絞り込みなしで一覧できる画面」として
 // 実装した(検索画面の絞り込みUIを持たない単純版)。PLAYLISTS配列の移植(要:抽出スクリプト新設)が
 // 別途必要な場合はalan5への報告で選択を仰ぐ(手写し禁止=§1-2のためこの場では実施しない)。
+//
+// ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+// Phase 3: index.html:433-449 .searchbox/.catbtn/.catbtn.on/.chip-a〜d(カテゴリごとの配色)/.chip.onの1:1移植。
+// タブバー配下の画面のため「◀ もどる」自体は既存の導線を維持しつつ見た目だけKyonoLineButton化する。
 
 data class TagCatDef(val key: String, val name: String, val tags: List<String>)
 
@@ -51,6 +58,20 @@ val TAG_CATS = listOf(
     TagCatDef("c", "目的", listOf("むくみ", "引き締め", "筋膜・マッサージ", "自律神経", "スポーツ・運動前後", "生活・セルフケア")),
     TagCatDef("d", "その他", listOf("解説", "水族館ロケ", "古民家ロケ", "その他")),
 )
+
+// index.html:441-449 .chip-a〜d(カテゴリ色)の1:1移植(ライト/ダーク)。
+private data class ChipColors(val bg: Color, val border: Color, val text: Color, val onBg: Color, val onBorder: Color, val onText: Color)
+
+private fun chipColorsFor(key: String, dark: Boolean): ChipColors = when (key) {
+    "a" -> if (dark) ChipColors(Color(0xFF37301C), Color(0xFF5C4F1E), Color(0xFFE8C74C), Color(0xFFFFD93B), Color(0xFFFFD93B), Color(0xFF211E19))
+    else ChipColors(Color(0xFFFFF6D8), Color(0xFFF2DE8A), Color(0xFF8A6D00), Color(0xFFFFD93B), Color(0xFFFFD93B), Color(0xFF3A3A35))
+    "b" -> if (dark) ChipColors(Color(0xFF1F3532), Color(0xFF2E5A52), Color(0xFF7BD0C4), Color(0xFF1E7B70), Color(0xFF1E7B70), Color.White)
+    else ChipColors(Color(0xFFE7F8F1), Color(0xFFBFE8DC), Color(0xFF177065), Color(0xFF1E7B70), Color(0xFF1E7B70), Color.White)
+    "c" -> if (dark) ChipColors(Color(0xFF3A2730), Color(0xFF5E3A4C), Color(0xFFF09BC0), Color(0xFFE56A9A), Color(0xFFE56A9A), Color.White)
+    else ChipColors(Color(0xFFFFEDF3), Color(0xFFF5C6D8), Color(0xFFB0366E), Color(0xFFE56A9A), Color(0xFFE56A9A), Color.White)
+    else -> if (dark) ChipColors(Color(0xFF2C2740), Color(0xFF4A4070), Color(0xFFB8A9F0), Color(0xFF8B7BD8), Color(0xFF8B7BD8), Color.White)
+    else ChipColors(Color(0xFFF1EDFF), Color(0xFFD6CCF5), Color(0xFF6A58B5), Color(0xFF8B7BD8), Color(0xFF8B7BD8), Color.White)
+}
 
 // app-search.js:40-50 currentHits() の1:1移植。
 fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?, year: Int?): List<CatalogVideo> {
@@ -66,82 +87,101 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
 
 @Composable
 private fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit) {
+    val colors = LocalKyonoColors.current
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp)
+            .padding(vertical = 4.dp)
             .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
-            .background(Color(0xFFF3F1EC), RoundedCornerShape(10.dp))
-            .padding(10.dp)
+            .background(colors.bg, RoundedCornerShape(12.dp))
+            .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+            .padding(12.dp)
             .testTag("video_${v.id}"),
     ) {
         v.tags.firstOrNull()?.let { tag ->
-            Text(tag, style = MaterialTheme.typography.labelSmall, color = Color(0xFF6B4EA6))
+            Text(tag, color = colors.tealInk, fontSize = 11.sp, fontWeight = FontWeight.Black)
         }
-        Text(v.t, style = MaterialTheme.typography.bodyMedium)
-        Text(v.s, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+        Text(v.t, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
+        Text(v.s, color = colors.sub, fontSize = 12.sp)
     }
 }
 
 // index.html #search / app-search.js の1:1移植。カテゴリタブ→タグチップ→自由入力の3段絞り込み。
 @Composable
-fun SearchScreen(openUrl: (String) -> Unit, onBack: () -> Unit) {
-    val catalog = remember { CatalogLoader.shared }
-    var activeCat by remember { mutableStateOf(TAG_CATS[0].key) }
-    var activeTag by remember { mutableStateOf<String?>(null) }
-    var query by remember { mutableStateOf("") }
-    var searchLimit by remember { mutableStateOf(24) }
+fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        val dark = colors.bg == KyonoDarkColors.bg
+        val catalog = remember { CatalogLoader.shared }
+        var activeCat by remember { mutableStateOf(TAG_CATS[0].key) }
+        var activeTag by remember { mutableStateOf<String?>(null) }
+        var query by remember { mutableStateOf("") }
+        var searchLimit by remember { mutableStateOf(24) }
 
-    val hits = remember(query, activeTag) { searchCatalog(catalog, query, activeTag, null) }
+        val hits = remember(query, activeTag) { searchCatalog(catalog, query, activeTag, null) }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Row {
-            Text("動画を探す", style = MaterialTheme.typography.headlineSmall)
-        }
-        Button(onClick = onBack, modifier = Modifier.testTag("searchBackBtn")) { Text("◀ もどる") }
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it; searchLimit = 24 },
-            modifier = Modifier.fillMaxWidth().testTag("searchInput"),
-            placeholder = { Text("肩こり、腰痛など") },
-        )
-        Spacer(Modifier.height(8.dp))
-        LazyRow(modifier = Modifier.fillMaxWidth().testTag("searchCatRow")) {
-            items(TAG_CATS) { cat ->
-                Button(
-                    onClick = { activeCat = cat.key; activeTag = null },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (cat.key == activeCat) Color(0xFF6B4EA6) else Color(0xFFE8E3F5),
-                        contentColor = if (cat.key == activeCat) Color.White else Color.Black,
-                    ),
-                    modifier = Modifier.padding(end = 4.dp).testTag("searchCat_${cat.key}"),
-                ) { Text(cat.name) }
+        Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
+            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("searchBackBtn"))
+            Spacer(Modifier.height(12.dp))
+            Text("動画を探す", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(8.dp))
+            // index.html:945-949 .searchbox
+            TextField(
+                value = query,
+                onValueChange = { query = it; searchLimit = 24 },
+                modifier = Modifier.fillMaxWidth().testTag("searchInput"),
+                placeholder = { Text("🔍 例: 肩こり／朝／むくみ", color = colors.subFaint) },
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
+                    focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                ),
+            )
+            Spacer(Modifier.height(10.dp))
+            // index.html:436-437 .catbtn/.catbtn.on
+            LazyRow(modifier = Modifier.fillMaxWidth().testTag("searchCatRow")) {
+                items(TAG_CATS) { cat ->
+                    val on = cat.key == activeCat
+                    Text(
+                        cat.name, color = if (on) colors.ink else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier
+                            .background(if (on) colors.yellow else colors.line, RoundedCornerShape(12.dp))
+                            .clickable { activeCat = cat.key; activeTag = null }
+                            .padding(horizontal = 13.dp, vertical = 10.dp)
+                            .testTag("searchCat_${cat.key}"),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                }
             }
-        }
-        Spacer(Modifier.height(4.dp))
-        val activeCatTags = TAG_CATS.first { it.key == activeCat }.tags
-        LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("searchTagRow")) {
-            items(activeCatTags) { tag ->
-                Button(
-                    onClick = { activeTag = if (activeTag == tag) null else tag; searchLimit = 24 },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (tag == activeTag) Color(0xFF6B4EA6) else Color(0xFFF3F1EC),
-                        contentColor = if (tag == activeTag) Color.White else Color.Black,
-                    ),
-                    modifier = Modifier.padding(end = 4.dp).testTag("searchTag_$tag"),
-                ) { Text(tag) }
+            Spacer(Modifier.height(6.dp))
+            // index.html:440-449 .chip/.chip-a〜d/.chip.on
+            val activeCatTags = TAG_CATS.first { it.key == activeCat }.tags
+            val cc = chipColorsFor(activeCat, dark)
+            LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("searchTagRow")) {
+                items(activeCatTags) { tag ->
+                    val on = tag == activeTag
+                    Text(
+                        tag, color = if (on) cc.onText else cc.text, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(if (on) cc.onBg else cc.bg, RoundedCornerShape(50))
+                            .border(2.dp, if (on) cc.onBorder else cc.border, RoundedCornerShape(50))
+                            .clickable { activeTag = if (activeTag == tag) null else tag; searchLimit = 24 }
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .testTag("searchTag_$tag"),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                }
             }
-        }
-        Spacer(Modifier.height(8.dp))
-        Text("${hits.size}件見つかりました", style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag("searchHitCount"))
-        Spacer(Modifier.height(4.dp))
-        LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("searchResults")) {
-            items(hits.take(searchLimit)) { v -> VideoRow(v, openUrl) }
-            if (hits.size > searchLimit) {
-                item {
-                    Button(onClick = { searchLimit += 48 }, modifier = Modifier.fillMaxWidth().testTag("searchMoreBtn")) {
-                        Text("もっと見る")
+            Spacer(Modifier.height(8.dp))
+            Text("${hits.size}件見つかりました", color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("searchHitCount"))
+            Spacer(Modifier.height(6.dp))
+            LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("searchResults")) {
+                items(hits.take(searchLimit)) { v -> VideoRow(v, openUrl) }
+                if (hits.size > searchLimit) {
+                    item {
+                        Spacer(Modifier.height(6.dp))
+                        KyonoGhostButton("もっと見る", { searchLimit += 48 }, Modifier.testTag("searchMoreBtn"))
                     }
                 }
             }
@@ -153,16 +193,31 @@ fun SearchScreen(openUrl: (String) -> Unit, onBack: () -> Unit) {
 // (スコープ解釈はファイル冒頭コメント参照)。LazyColumnがそのまま454件を仮想化するため
 // 検索画面のようなsearchLimit方式のページングは不要。
 @Composable
-fun CatalogListScreen(openUrl: (String) -> Unit, onBack: () -> Unit) {
-    val catalog = remember { CatalogLoader.shared.sortedWith(compareByDescending<CatalogVideo> { it.y }.thenBy { it.t }) }
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("再生リスト", style = MaterialTheme.typography.headlineSmall)
-        Button(onClick = onBack, modifier = Modifier.testTag("catalogBackBtn")) { Text("◀ もどる") }
-        Spacer(Modifier.height(8.dp))
-        Text("${catalog.size}本の動画", style = MaterialTheme.typography.labelSmall)
-        Spacer(Modifier.height(4.dp))
-        LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("catalogList")) {
-            items(catalog) { v -> VideoRow(v, openUrl) }
+fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        val catalog = remember { CatalogLoader.shared.sortedWith(compareByDescending<CatalogVideo> { it.y }.thenBy { it.t }) }
+        Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
+            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("catalogBackBtn"))
+            Spacer(Modifier.height(12.dp))
+            Text("再生リスト", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(4.dp))
+            Text("${catalog.size}本の動画", color = colors.sub, fontSize = 12.sp)
+            Spacer(Modifier.height(8.dp))
+            LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("catalogList")) {
+                items(catalog) { v -> VideoRow(v, openUrl) }
+                // index.html:941 .hint(リストの一番下に流れる注記のため、固定表示ではなくリスト末尾項目にする。
+                // 固定表示にするとFAB2段(右下)と重なるバグの再発になる=とどくメーターの5番目ボタンで
+                // 既発見済みの教訓と同種)
+                item {
+                    Text(
+                        "タップするとYouTubeで開きます！テレビで流すのもおすすめ📺",
+                        color = colors.sub, fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 90.dp),
+                    )
+                }
+            }
         }
     }
 }
