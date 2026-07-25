@@ -1,0 +1,119 @@
+[
+  {
+    "system": "composed-dakuten",
+    "form": "NFC(精準結合・1コードポイント)",
+    "label": "ka-ga",
+    "input": "が",
+    "inputCodepoints": [
+      "U+304C"
+    ],
+    "normOutput": "が"
+  },
+  {
+    "system": "composed-dakuten",
+    "form": "NFD(分解形・基底+結合濁点2コードポイント)",
+    "label": "ka-ga",
+    "input": "が",
+    "inputCodepoints": [
+      "U+304B",
+      "U+3099"
+    ],
+    "normOutput": "か"
+  },
+  {
+    "system": "composed-dakuten",
+    "form": "NFC(精準結合・1コードポイント)",
+    "label": "ha-pa",
+    "input": "ぱ",
+    "inputCodepoints": [
+      "U+3071"
+    ],
+    "normOutput": "ぱ"
+  },
+  {
+    "system": "composed-dakuten",
+    "form": "NFD(分解形・基底+結合濁点2コードポイント)",
+    "label": "ha-pa",
+    "input": "ぱ",
+    "inputCodepoints": [
+      "U+306F",
+      "U+309A"
+    ],
+    "normOutput": "は"
+  },
+  {
+    "system": "composed-dakuten",
+    "form": "NFC(精準結合・1コードポイント)",
+    "label": "ko-go",
+    "input": "ご",
+    "inputCodepoints": [
+      "U+3054"
+    ],
+    "normOutput": "ご"
+  },
+  {
+    "system": "composed-dakuten",
+    "form": "NFD(分解形・基底+結合濁点2コードポイント)",
+    "label": "ko-go",
+    "input": "ご",
+    "inputCodepoints": [
+      "U+3053",
+      "U+3099"
+    ],
+    "normOutput": "こ"
+  },
+  {
+    "system": "halfwidth-kana",
+    "input": "ｶﾀｺﾘ",
+    "normOutput": ""
+  },
+  {
+    "system": "halfwidth-kana",
+    "input": "ﾗｳﾂﾂ",
+    "normOutput": ""
+  },
+  {
+    "system": "halfwidth-kana",
+    "input": "肩こりｶﾀｺﾘ",
+    "normOutput": "肩こり"
+  },
+  {
+    "system": "emoji-mixed",
+    "input": "肩こり😢つらい",
+    "normOutput": "肩こりつらい"
+  },
+  {
+    "system": "emoji-mixed",
+    "input": "腰が痛い🥲助けて",
+    "normOutput": "腰が痛い助けて"
+  },
+  {
+    "system": "emoji-mixed",
+    "input": "🙏ストレッチ教えて🙏",
+    "normOutput": "すとれっち教えて"
+  },
+  {
+    "system": "negation-concat-adversarial",
+    "input": "寝ねころ転んだ",
+    "normOutput": "寝ねころ転んだ",
+    "redFlagHit": true
+  },
+  {
+    "system": "negation-concat-adversarial",
+    "input": "寝ころねっころ転んだ",
+    "normOutput": "寝ころねっころ転んだ",
+    "redFlagHit": true
+  },
+  {
+    "system": "negation-concat-adversarial",
+    "input": "寝ねっころ転んだ",
+    "normOutput": "寝ねっころ転んだ",
+    "redFlagHit": true
+  },
+  {
+    "system": "negation-concat-adversarial",
+    "input": "寝転んでできるストレッチはありますか",
+    "normOutput": "寝転んでできるすとれっちはありますか",
+    "redFlagHit": false
+  }
+]

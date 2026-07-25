@@ -1,0 +1,116 @@
+[0/1] Planning build
+Building for debugging...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.15s)
+Test Suite 'All tests' started at 2026-07-25 19:06:52.330.
+Test Suite 'SafetyCorePackageTests.xctest' started at 2026-07-25 19:06:52.331.
+Test Suite 'SafetyGateTests' started at 2026-07-25 19:06:52.331.
+Test Case '-[SafetyCoreTests.SafetyGateTests testNormGolden]' started.
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("が") is not equal to ("か") - [composed-dakuten] が
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("ぱ") is not equal to ("は") - [composed-dakuten] ぱ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("ご") is not equal to ("こ") - [composed-dakuten] ご
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("ｶﾀｺﾘ") is not equal to ("") - [halfwidth-kana] ｶﾀｺﾘ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("ﾗｳﾂﾂ") is not equal to ("") - [halfwidth-kana] ﾗｳﾂﾂ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("肩こりｶﾀｺﾘ") is not equal to ("肩こり") - [halfwidth-kana] 肩こりｶﾀｺﾘ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("肩こり😢つらい") is not equal to ("肩こりつらい") - [emoji-mixed] 肩こり😢つらい
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("腰が痛い🥲助けて") is not equal to ("腰が痛い助けて") - [emoji-mixed] 腰が痛い🥲助けて
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("🙏ストレッチ教えて🙏") is not equal to ("すとれっち教えて") - [emoji-mixed] 🙏ストレッチ教えて🙏
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:76: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("false") is not equal to ("true") - [negation-concat-adversarial/redFlagHit] 寝ねころ転んだ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:76: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("false") is not equal to ("true") - [negation-concat-adversarial/redFlagHit] 寝ころねっころ転んだ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:76: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("false") is not equal to ("true") - [negation-concat-adversarial/redFlagHit] 寝ねっころ転んだ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:73: error: -[SafetyCoreTests.SafetyGateTests testNormGolden] : XCTAssertEqual failed: ("寝転んでできるストレッチはありますか") is not equal to ("寝転んでできるすとれっちはありますか") - [negation-concat-adversarial] 寝転んでできるストレッチはありますか
+Test Case '-[SafetyCoreTests.SafetyGateTests testNormGolden]' failed (0.014 seconds).
+Test Case '-[SafetyCoreTests.SafetyGateTests testSafetyFixtures111]' started.
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 寝転がろうとして転んだ
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 昨日転んで腰を打った
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 胸が痛いときのストレッチある?
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 最近動悸がして不安
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 階段で胸が苦しくなる
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 脈が飛ぶ感じがする
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [crisis] 死にたいくらいつらい
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [crisis] もう消えたいです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [crisis] 自殺を考えてしまう
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [crisis] 生きるのがつらいです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 胸が締め付けられる感じで冷や汗が出る
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 急に力が抜けて歩けなくなった
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] わきの下にしこりがある
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 胸の締め付け感がある
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 胸が締め付けられる感じで冷や汗が出る
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 腰が痛くて夜中に目が覚める
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 夜中に腰が痛くて目が覚める
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 過呼吸になりそうで不安
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 昨日から急に足がジンジンして眠れない
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 産んだばかりですが骨盤矯正やりたい
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 胸のあたりがぎゅーっと苦しくなるときがある
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 背中がいたくて夜中に何度も目がさめる
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 急に腰が抜けたみたいに立てなくなった
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] せきが止まらなくて肋骨のへんが痛い
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 力がはいらなくてコップも持てない
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 年のせいか最近手に力が入らなくてお箸を落としちゃう
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] おしっこが出にくくて腰も痛い
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 尻から足にかけて電気が走るみたいに痛い
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 頭を打ってから頭痛がつづいてる
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 息をすうと胸がズキッとする
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [state] 妊娠中で腰が痛い
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [state] 術後でまだ痛い
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [state] 産後1ヶ月です
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [state] 産んだばかりですが骨盤矯正やりたい
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [symptom] 激痛がある
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [symptom] 胸が痛くて冷や汗が出る
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [symptom] しびれがある
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [symptom] 妊娠中で急に激痛が走った
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 腰が痛くて眠れない日が続いています
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 肩が眠れないほど痛いです。いいストレッチありますか
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 夜中に痛みで目が覚めてしまいます
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 股関節がいたくてねむれないんです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 背中が痛みで眠れないくらいつらいです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 夜中に痛くなって起きてしまいます。どうしたらいい?
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] ひざの夜間痛がつらいです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 熱があるんだけど肩こりのストレッチしていい?
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 昨日から微熱が続いてて体がだるいです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 熱っぽくて節々が痛い。伸ばしたら楽になる?
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 子どもの風邪がうつって熱が出たあと腰が痛いです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 高熱が下がったばかりで体がバキバキなんですが動いていい?
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 37.5度くらい熱があって首も痛いです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] ねつがでてきたかも。ストレッチで治りますか
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 熱があって寒気もするけど運動したほうがいい?
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 昨日、階段で転んで腰を強く打ちました。ストレッチしていいですか?
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] さっきころんだあとから手首がずきずき痛みます
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] スケートでしりもちをついてから尾てい骨のあたりが痛いです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 凍った道で転倒して膝を打ちました。曲げると痛いです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 70代の母が庭で転んだらしく、腰を痛がっています
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 尻もちをついてから、座ると腰の下のほうが痛みます
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 自転車でこけてから足首が痛いです。伸ばせば治りますか
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 先週転倒した後からずっと背中が痛いです
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 頭が痛くて吐き気がする
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 突然の頭痛で吐き気もあります
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 急に頭が痛くなって嘔吐しました
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 今までにない頭痛がして怖い
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 頭が割れそうに痛くて気分が悪い
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 激しい頭痛と吐き気で寝込んでいます
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 朝から吐き気が止まりません
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SafetyGateTests.swift:64: error: -[SafetyCoreTests.SafetyGateTests testSafetyFixtures111] : XCTAssertTrue failed - [refer] 経験したことのない痛みが頭にきた
+Test Case '-[SafetyCoreTests.SafetyGateTests testSafetyFixtures111]' failed (0.014 seconds).
+Test Suite 'SafetyGateTests' failed at 2026-07-25 19:06:52.359.
+	 Executed 2 tests, with 82 failures (0 unexpected) in 0.028 (0.028) seconds
+Test Suite 'SoudanEngineTests' started at 2026-07-25 19:06:52.359.
+Test Case '-[SafetyCoreTests.SoudanEngineTests testCrisisTakesPriorityOverRedFlag]' started.
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SoudanEngineTests.swift:12: error: -[SafetyCoreTests.SoudanEngineTests testCrisisTakesPriorityOverRedFlag] : XCTAssertEqual failed: ("normal") is not equal to ("crisis")
+Test Case '-[SafetyCoreTests.SoudanEngineTests testCrisisTakesPriorityOverRedFlag]' failed (0.001 seconds).
+Test Case '-[SafetyCoreTests.SoudanEngineTests testNormalWhenNeitherCrisisNorRedFlag]' started.
+Test Case '-[SafetyCoreTests.SoudanEngineTests testNormalWhenNeitherCrisisNorRedFlag]' passed (0.000 seconds).
+Test Case '-[SafetyCoreTests.SoudanEngineTests testRedFlagTakesPriorityOverNormal]' started.
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SoudanEngineTests.swift:23: error: -[SafetyCoreTests.SoudanEngineTests testRedFlagTakesPriorityOverNormal] : failed - 赤旗応答になるべきなのに verdict=normal
+/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/SafetyCore/Tests/SafetyCoreTests/SoudanEngineTests.swift:25: error: -[SafetyCoreTests.SoudanEngineTests testRedFlagTakesPriorityOverNormal] : XCTAssertTrue failed
+Test Case '-[SafetyCoreTests.SoudanEngineTests testRedFlagTakesPriorityOverNormal]' failed (0.001 seconds).
+Test Suite 'SoudanEngineTests' failed at 2026-07-25 19:06:52.361.
+	 Executed 3 tests, with 3 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'SafetyCorePackageTests.xctest' failed at 2026-07-25 19:06:52.361.
+	 Executed 5 tests, with 85 failures (0 unexpected) in 0.030 (0.030) seconds
+Test Suite 'All tests' failed at 2026-07-25 19:06:52.361.
+	 Executed 5 tests, with 85 failures (0 unexpected) in 0.030 (0.031) seconds
+safety-fixtures: 42/111 pass
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

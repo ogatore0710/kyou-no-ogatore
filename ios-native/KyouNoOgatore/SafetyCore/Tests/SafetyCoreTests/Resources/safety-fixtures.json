@@ -1,0 +1,446 @@
+[
+  {
+    "input": "寝転んでできるストレッチはありますか",
+    "expect": "normal"
+  },
+  {
+    "input": "ねころんでやりたい",
+    "expect": "normal"
+  },
+  {
+    "input": "寝転がろうとして転んだ",
+    "expect": "refer"
+  },
+  {
+    "input": "昨日転んで腰を打った",
+    "expect": "refer"
+  },
+  {
+    "input": "胸が痛いときのストレッチある?",
+    "expect": "refer"
+  },
+  {
+    "input": "最近動悸がして不安",
+    "expect": "refer"
+  },
+  {
+    "input": "階段で胸が苦しくなる",
+    "expect": "refer"
+  },
+  {
+    "input": "脈が飛ぶ感じがする",
+    "expect": "refer"
+  },
+  {
+    "input": "胸を張る姿勢が苦手",
+    "expect": "normal"
+  },
+  {
+    "input": "大胸筋のストレッチ教えて",
+    "expect": "normal"
+  },
+  {
+    "input": "猫背で胸が開かない",
+    "expect": "normal"
+  },
+  {
+    "input": "緊張でドキドキする",
+    "expect": "normal"
+  },
+  {
+    "input": "死にたいくらいつらい",
+    "expect": "crisis"
+  },
+  {
+    "input": "もう消えたいです",
+    "expect": "crisis"
+  },
+  {
+    "input": "自殺を考えてしまう",
+    "expect": "crisis"
+  },
+  {
+    "input": "生きるのがつらいです",
+    "expect": "crisis"
+  },
+  {
+    "input": "肩こりで死にそう",
+    "expect": "crisis-negative"
+  },
+  {
+    "input": "疲れが消えない",
+    "expect": "crisis-negative"
+  },
+  {
+    "input": "痛みが消えてほしい",
+    "expect": "crisis-negative"
+  },
+  {
+    "input": "毎日つらいです",
+    "expect": "crisis-negative"
+  },
+  {
+    "input": "胸が締め付けられる感じで冷や汗が出る",
+    "expect": "refer"
+  },
+  {
+    "input": "急に力が抜けて歩けなくなった",
+    "expect": "refer"
+  },
+  {
+    "input": "わきの下にしこりがある",
+    "expect": "refer"
+  },
+  {
+    "input": "肩を締め付けるような服がきつい",
+    "expect": "normal"
+  },
+  {
+    "input": "筋トレで追い込んで力が抜けた",
+    "expect": "normal"
+  },
+  {
+    "input": "頭が締め付けられるように痛い",
+    "expect": "normal"
+  },
+  {
+    "input": "胸の締め付け感がある",
+    "expect": "refer"
+  },
+  {
+    "input": "胸が締め付けられる感じで冷や汗が出る",
+    "expect": "refer"
+  },
+  {
+    "input": "腰が痛くて夜中に目が覚める",
+    "expect": "refer"
+  },
+  {
+    "input": "夜中に腰が痛くて目が覚める",
+    "expect": "refer"
+  },
+  {
+    "input": "過呼吸になりそうで不安",
+    "expect": "refer"
+  },
+  {
+    "input": "呼吸が浅い気がする",
+    "expect": "normal"
+  },
+  {
+    "input": "昨日から急に足がジンジンして眠れない",
+    "expect": "refer"
+  },
+  {
+    "input": "産んだばかりですが骨盤矯正やりたい",
+    "expect": "refer"
+  },
+  {
+    "input": "胸のあたりがぎゅーっと苦しくなるときがある",
+    "expect": "refer"
+  },
+  {
+    "input": "背中がいたくて夜中に何度も目がさめる",
+    "expect": "refer"
+  },
+  {
+    "input": "急に腰が抜けたみたいに立てなくなった",
+    "expect": "refer"
+  },
+  {
+    "input": "せきが止まらなくて肋骨のへんが痛い",
+    "expect": "refer"
+  },
+  {
+    "input": "力がはいらなくてコップも持てない",
+    "expect": "refer"
+  },
+  {
+    "input": "年のせいか最近手に力が入らなくてお箸を落としちゃう",
+    "expect": "refer"
+  },
+  {
+    "input": "おしっこが出にくくて腰も痛い",
+    "expect": "refer"
+  },
+  {
+    "input": "尻から足にかけて電気が走るみたいに痛い",
+    "expect": "refer"
+  },
+  {
+    "input": "頭を打ってから頭痛がつづいてる",
+    "expect": "refer"
+  },
+  {
+    "input": "息をすうと胸がズキッとする",
+    "expect": "refer"
+  },
+  {
+    "input": "子どもが生まれたばかりで抱っこで肩がつらい",
+    "expect": "normal"
+  },
+  {
+    "input": "予定が立てられなくなった",
+    "expect": "normal"
+  },
+  {
+    "input": "夜中までスマホを見てて首が痛い",
+    "expect": "normal"
+  },
+  {
+    "input": "尿もれが気になる",
+    "expect": "normal"
+  },
+  {
+    "input": "お風呂で体がじんじん温まる",
+    "expect": "normal"
+  },
+  {
+    "input": "切なくて胸がぎゅっとなる",
+    "expect": "normal"
+  },
+  {
+    "input": "電気をつけたまま寝てしまう",
+    "expect": "normal"
+  },
+  {
+    "input": "頭を使う仕事で疲れる",
+    "expect": "normal"
+  },
+  {
+    "input": "妊娠中で腰が痛い",
+    "expect": "state"
+  },
+  {
+    "input": "術後でまだ痛い",
+    "expect": "state"
+  },
+  {
+    "input": "産後1ヶ月です",
+    "expect": "state"
+  },
+  {
+    "input": "産んだばかりですが骨盤矯正やりたい",
+    "expect": "state"
+  },
+  {
+    "input": "激痛がある",
+    "expect": "symptom"
+  },
+  {
+    "input": "胸が痛くて冷や汗が出る",
+    "expect": "symptom"
+  },
+  {
+    "input": "しびれがある",
+    "expect": "symptom"
+  },
+  {
+    "input": "妊娠中で急に激痛が走った",
+    "expect": "symptom"
+  },
+  {
+    "input": "腰が痛くて眠れない日が続いています",
+    "expect": "refer"
+  },
+  {
+    "input": "肩が眠れないほど痛いです。いいストレッチありますか",
+    "expect": "refer"
+  },
+  {
+    "input": "夜中に痛みで目が覚めてしまいます",
+    "expect": "refer"
+  },
+  {
+    "input": "股関節がいたくてねむれないんです",
+    "expect": "refer"
+  },
+  {
+    "input": "背中が痛みで眠れないくらいつらいです",
+    "expect": "refer"
+  },
+  {
+    "input": "夜中に痛くなって起きてしまいます。どうしたらいい?",
+    "expect": "refer"
+  },
+  {
+    "input": "ひざの夜間痛がつらいです",
+    "expect": "refer"
+  },
+  {
+    "input": "最近寝つきが悪いです",
+    "expect": "normal"
+  },
+  {
+    "input": "夜中に目が覚めてしまいます",
+    "expect": "normal"
+  },
+  {
+    "input": "肩こりがひどくて眠りが浅い気がします",
+    "expect": "normal"
+  },
+  {
+    "input": "眠れない日が多くてつらいです",
+    "expect": "normal"
+  },
+  {
+    "input": "ぐっすり熟睡できるストレッチを教えて",
+    "expect": "normal"
+  },
+  {
+    "input": "熱があるんだけど肩こりのストレッチしていい?",
+    "expect": "refer"
+  },
+  {
+    "input": "昨日から微熱が続いてて体がだるいです",
+    "expect": "refer"
+  },
+  {
+    "input": "熱っぽくて節々が痛い。伸ばしたら楽になる?",
+    "expect": "refer"
+  },
+  {
+    "input": "子どもの風邪がうつって熱が出たあと腰が痛いです",
+    "expect": "refer"
+  },
+  {
+    "input": "高熱が下がったばかりで体がバキバキなんですが動いていい?",
+    "expect": "refer"
+  },
+  {
+    "input": "37.5度くらい熱があって首も痛いです",
+    "expect": "refer"
+  },
+  {
+    "input": "ねつがでてきたかも。ストレッチで治りますか",
+    "expect": "refer"
+  },
+  {
+    "input": "熱があって寒気もするけど運動したほうがいい?",
+    "expect": "refer"
+  },
+  {
+    "input": "熱中症予防に運動前のストレッチって効果ありますか?",
+    "expect": "normal"
+  },
+  {
+    "input": "お風呂上がりで体が熱いうちにストレッチするといい?",
+    "expect": "normal"
+  },
+  {
+    "input": "肩こりに熱いシャワーを当てると楽になるんだけど合ってる?",
+    "expect": "normal"
+  },
+  {
+    "input": "ストレッチに情熱が持てなくて三日坊主になります",
+    "expect": "normal"
+  },
+  {
+    "input": "解熱して1週間たったので運動を再開したいです",
+    "expect": "normal"
+  },
+  {
+    "input": "昨日、階段で転んで腰を強く打ちました。ストレッチしていいですか?",
+    "expect": "refer"
+  },
+  {
+    "input": "さっきころんだあとから手首がずきずき痛みます",
+    "expect": "refer"
+  },
+  {
+    "input": "スケートでしりもちをついてから尾てい骨のあたりが痛いです",
+    "expect": "refer"
+  },
+  {
+    "input": "凍った道で転倒して膝を打ちました。曲げると痛いです",
+    "expect": "refer"
+  },
+  {
+    "input": "70代の母が庭で転んだらしく、腰を痛がっています",
+    "expect": "refer"
+  },
+  {
+    "input": "尻もちをついてから、座ると腰の下のほうが痛みます",
+    "expect": "refer"
+  },
+  {
+    "input": "自転車でこけてから足首が痛いです。伸ばせば治りますか",
+    "expect": "refer"
+  },
+  {
+    "input": "先週転倒した後からずっと背中が痛いです",
+    "expect": "refer"
+  },
+  {
+    "input": "実家の父の転倒予防にいいストレッチはありますか?",
+    "expect": "normal"
+  },
+  {
+    "input": "70代の母が転ばないように足腰を鍛えたいです",
+    "expect": "normal"
+  },
+  {
+    "input": "祖母の転倒防止に一緒にできる簡単な体操を探しています",
+    "expect": "normal"
+  },
+  {
+    "input": "最近つまずきやすくなってきたので、転ぶ前に予防したいです",
+    "expect": "normal"
+  },
+  {
+    "input": "寝転んでできるストレッチはありますか?",
+    "expect": "normal"
+  },
+  {
+    "input": "頭が痛くて吐き気がする",
+    "expect": "refer"
+  },
+  {
+    "input": "突然の頭痛で吐き気もあります",
+    "expect": "refer"
+  },
+  {
+    "input": "急に頭が痛くなって嘔吐しました",
+    "expect": "refer"
+  },
+  {
+    "input": "今までにない頭痛がして怖い",
+    "expect": "refer"
+  },
+  {
+    "input": "頭が割れそうに痛くて気分が悪い",
+    "expect": "refer"
+  },
+  {
+    "input": "激しい頭痛と吐き気で寝込んでいます",
+    "expect": "refer"
+  },
+  {
+    "input": "朝から吐き気が止まりません",
+    "expect": "refer"
+  },
+  {
+    "input": "経験したことのない痛みが頭にきた",
+    "expect": "refer"
+  },
+  {
+    "input": "肩こりからくる頭痛がつらい",
+    "expect": "normal"
+  },
+  {
+    "input": "デスクワークで夕方になると頭が重い",
+    "expect": "normal"
+  },
+  {
+    "input": "こめかみのあたりが締めつけられる感じがする",
+    "expect": "normal"
+  },
+  {
+    "input": "首こりがひどくて頭痛になりやすい",
+    "expect": "normal"
+  },
+  {
+    "input": "スマホの見すぎで目の奥が重くて頭痛っぽい",
+    "expect": "normal"
+  }
+]
