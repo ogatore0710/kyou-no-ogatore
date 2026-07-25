@@ -1,0 +1,91 @@
+{
+  "note": "gen-export-fixture.mjsでseedした既知状態の期待値。Step 3検収(kyono-store.json往復インポート)で使う。",
+  "streak2_count": 6,
+  "streak2_total": 6,
+  "daylog_keyCount": 1,
+  "keys": [
+    "kyono_a2hs2",
+    "kyono_anchor",
+    "kyono_bigtext",
+    "kyono_calseen",
+    "kyono_chapters",
+    "kyono_daylog",
+    "kyono_fd",
+    "kyono_fdday",
+    "kyono_freeze2",
+    "kyono_homehint_next",
+    "kyono_memos",
+    "kyono_mode_manual",
+    "kyono_onboarded",
+    "kyono_reach",
+    "kyono_rotAssign",
+    "kyono_streak2",
+    "kyono_theme",
+    "kyono_tourpend",
+    "kyono_tourseen",
+    "kyono_type"
+  ],
+  "keyCount": 20,
+  "passThroughOnlyKeys": [
+    "kyono_a2hs2",
+    "kyono_homehint_next"
+  ],
+  "seed": {
+    "streak2": {
+      "dates": [
+        "2026-07-20",
+        "2026-07-21",
+        "2026-07-22",
+        "2026-07-23",
+        "2026-07-24",
+        "2026-07-25"
+      ],
+      "count": 6,
+      "total": 6
+    },
+    "daylog": {
+      "2026-07-25": {
+        "v": "CyWthETY73s",
+        "t": "テスト動画",
+        "c": 6
+      }
+    },
+    "memos": {
+      "2026-07-25": "エクスポートfixtureのテストメモ"
+    },
+    "reach": [
+      {
+        "d": "2026-07-25",
+        "lv": 4
+      }
+    ],
+    "type": {
+      "key": "momo",
+      "worry": "katakori",
+      "at": "2026-07-25"
+    },
+    "freeze2": {
+      "used": [],
+      "month": "2026-07"
+    },
+    "chapters": 1,
+    "rotAssign": {
+      "2026-07-20": 5
+    },
+    "fd": 1,
+    "fdday": "2026-07-25",
+    "tourpend": 0,
+    "tourseen": 1,
+    "calseen": 1,
+    "onboarded": 1,
+    "mode_manual": {
+      "m": "mine",
+      "d": "2026-07-25"
+    },
+    "anchor": "asa",
+    "theme": "auto",
+    "bigtext": true,
+    "a2hs2": 1,
+    "homehint_next": 7
+  }
+}
