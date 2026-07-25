@@ -20,7 +20,12 @@ struct KyouNoOgatoreApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView(store: Self.store)
+            // NavHost不使用の方針(masterplan §1-4)のとおり複雑なルーティングは組まないが、
+            // マイ記録(Step5b)への行き来だけはSwiftUI標準のNavigationStackに委ねる
+            // (「戻る」スワイプ等のOS標準操作を素朴に得られるため。ホーム自体の画面遷移は増やさない)。
+            NavigationStack {
+                HomeView(store: Self.store)
+            }
         }
     }
 }

@@ -111,6 +111,8 @@ struct HomeView: View {
             }
             .disabled(!did)
 
+            NavigationLink("マイ記録を見る") { MyRecordView(store: store) }
+
             Spacer()
         }
         .padding(20)

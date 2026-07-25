@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5818E1CC197288CC2CC64AF6 /* CardCore */; };
 		89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */ = {isa = PBXBuildFile; productRef = DCABFED709CFEEF540C7D4CE /* SafetyCore */; };
 		8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 470554BE76139B65EDACBBF6 /* RecordCore */; };
-		4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5818E1CC197288CC2CC64AF6 /* CardCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -270,6 +270,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -301,6 +302,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -347,26 +349,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */ = {
+		099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = SafetyCore;
+			relativePath = CardCore;
 		};
 		AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = RecordCore;
 		};
-		099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */ = {
+		F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = CardCore;
+			relativePath = SafetyCore;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		DCABFED709CFEEF540C7D4CE /* SafetyCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */;
-			productName = SafetyCore;
-		};
 		470554BE76139B65EDACBBF6 /* RecordCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */;
@@ -376,6 +373,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */;
 			productName = CardCore;
+		};
+		DCABFED709CFEEF540C7D4CE /* SafetyCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */;
+			productName = SafetyCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
