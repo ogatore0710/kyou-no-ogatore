@@ -4,6 +4,20 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 5b 完了（alan5発注・appdev実行・カレンダー・マイ記録。iOSアプリが初めて実ビルド可能に）
+
+`TASK-C2-2026-07-25-native-migration-step5b.md`（マスタープラン§6 Step 5b）を実施。**カレンダー42マス・おやすみ券・とどくメーター・カレンダー連携(EventKit/カレンダーIntent)を実装。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
+
+- **iOSアプリが初めて実ビルド可能に**: Step5bの検収基準がiOS側に「シミュレータスクショ」を明示的に要求しており、これにはStep5aから保留していたSafetyCore/RecordCore/CardCoreのXcodeプロジェクトへの依存追加(GUI操作相当)が必要になった。**本人に確認のうえ**、project.pbxprojを直接編集(XCLocalSwiftPackageReference/XCSwiftPackageProductDependency新設)。安全な手順（コミット退避→plutil -lint構文検証→xcodebuild -listでパッケージグラフ解決確認→xcodebuild buildでBUILD SUCCEEDED確認→git ls-files/実ファイル数一致でgitlink化していないこと確認）で実施し、**BUILD SUCCEEDEDを一発で達成**。以降iOSアプリは実際にシミュレータで起動・動作するようになった(過去のXcode自動生成.gitlink化事故を教訓に、この操作は都度必ずコミット退避+ビルド検証を行うこと)。
+- **CalendarLogic新設**（RecordCore/record packageに追加）: index.html:renderCalの日付計算部分(firstWeekday/daysInMonth)の1:1移植。両OSで6件の単体テスト(2028年閏年・月境界等)緑。LazyVerticalGridをverticalScroll内に入れない(masterplan §1-4禁じ手)ため、Column+Row(最大6週間)で実装。
+- **Android**: MainActivity.ktにマイ記録画面を追加。**実タップ検証で2件の実バグを発見・修正**——①カレンダーIntentがdata(content URI)のみだとMIME型自動解決に失敗(Googleアカウント未設定のエミュレータで発生)→setDataAndTypeで型明示に変更 ②Intent.resolveActivity()による事前チェックが偽陰性を返す→try/catch(ActivityNotFoundException)に変更。修正後はGoogle Calendarアプリが実際に起動することを確認。**gradle test 194/194 pass**（回帰なし+6件追加）。
+- **iOS**: MyRecordView.swiftを追加(Android版と同一ロジック)。カレンダー連携はEventKit(EKEventStore.requestWriteOnlyAccessToEvents)。**スクショ検証で実バグを発見・修正**——SwiftUIの`Text("\(year)年...")`が文字列補間内の数値をLocalizedStringKey経由でロケール依存の桁区切りに変換し「2,026年」と表示される不具合→`Text(verbatim:)`に切り替えて修正。simctlにタップ操作が無い制約(§4-2)のため、MyRecordViewを一時的にルートビューに差し替えてスクショ取得→取得後は実際のHomeViewルートへ復元。**swift test: SafetyCore6/6・RecordCore35/35・CardCore10/10**（回帰なし）。
+- **カレンダー42マスのWeb版突合**: 同一streak2データ(2026-07-01/03/08/12/18/22)をWeb版(puppeteer)・Android・iOSの3箇所に注入し、曜日配置・done/todayマーカー・6週間レイアウトが完全一致することを確認（`ios-native/verify/step5b/web-calendar-reference.png`と両OSのスクショを突合）。
+- **検収基準4項目**: ①同一記録データでカレンダー表示がWeb版と一致(スクショ突合)=PASS ②おやすみ券消費の単体テスト緑+実タップ確認=PASS ③EventKit/カレンダーIntentの動作確認(Android実タップ・iOSシミュレータスクショ)=PASS ④安全系テスト(111+engine-fixtures)緑のまま=PASS。
+- **gitlink/file-count確認**: iOS 56=56一致。Android 66 vs 67の差分1件は継続の既知の意図的gitignore(`local.properties`)。`npm test`442 checks引き続き全緑・PWA配信ファイル無変更確認済み。
+- push済み。検証ログ・スクショは`android-native/verify/step5b/`・`ios-native/verify/step5b/`にコミット済み。
+- 次: alan5への完了報告をドア配達。Step 5c（オンボーディング・ツアー・診断UI）以降はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 5a 完了（alan5発注・appdev実行・ホーム・記録フロー・チュートリアルフラグ機械=最初のUI層）
 
 `TASK-C2-2026-07-25-native-migration-step5a.md`（マスタープラン§6 Step 5a）を実施。**Step2-4で作ったロジック層(SafetyGate/RecordLogic/CardLottery/CardRenderer)を初めて実UIに配線した最初のステップ。Web版(PWA)配信ファイルは無変更**。
