@@ -4,6 +4,24 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 0 完了（alan5発注・appdev実行・スクリプト/データ抽出のみ）
+
+`TASK-C2-2026-07-25-native-migration-step0.md`（`NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md`§6 Step 0）を実施。**Swift/Kotlinコード・本人GUI操作は無し。Web版(PWA)配信ファイルは無変更**（`git status`・`npm test`442 checksで確認）。
+
+- **断面固定**: タグ`native-base-2026-07-25`（commit `2acb1d8`）を付与。`ios-native/BASELINE.md`（`android-native/`にも同内容を複製）に記録。
+- **新設**: `ios-native/` `android-native/`（各BASELINE.mdのみ）・`scripts-native/`（スクリプト10本+`out/`に生成物8本）
+- **安全系（最重要）**:
+  - `gen-safety-kb.mjs`: `soudan-kb.js`→`soudan-kb.json`（build-data.mjsと同じ`loadGlobal`手法・読むだけ）
+  - `gen-safety-fixtures.mjs`: `redflag-safety-test.mjs`の非exportローカル配列8本（60件）を**正規表現の手書きパーサではなく実際にJSエンジンで実行して回収**（`import`/フィクスチャ読み込み部分だけ無害化して`new Function`実行。パース誤りでの期待値反転を構造的に排除）+`safety-fixes.raw.json`（51件）で計111件の`safety-fixtures.json`を生成
+  - `verify-fixtures.mjs`: `soudan-kb.json`+`safety-fixtures.json`**だけ**を入力にnorm/crisisHit/redFlagHit/redFlagKindを再実装・実行し**111/111一致**（陰性テストで検知能力も確認済み: 1件反転させたら110/111で失敗することを確認→復元）
+  - `verify-kb-sync.mjs`: `soudan-ai-poc/data.mjs`と`soudan-kb.js`のredFlags/crisisをdeep-equalで照合→**完全一致**（陰性テストで検知能力も確認済み: 1語改ざんで不一致検出→復元）。マスタープラン査読で発覚した「111ケースが実際に検証しているのは本番soudan-kb.jsでなくdata.mjs」という依存の見落としを埋める役割
+- **normゴールデン**: `gen-norm-golden.mjs`。**作成中に実際に踏んだ罠**: 濁点/半濁点つき仮名を普通にソースへ打ち込むと保存経路でNFC(精準結合)とNFD(基底+結合文字)のどちらになるか安定せず、Edit照合が通らなくなる実害まで発生した。`String.fromCharCode(コードポイント数値)`で明示的に組み立てる方式に変更して解決。結果、NFC「が」はnorm()で無変化・NFD「か+結合濁点U+3099」はnorm()で濁点が消えて「か」になる、という**マスタープランが警告していた実際の挙動差を実測で確認**（§1-4の記述どおり）。半角カナ・絵文字混在・「寝転」除去の連結マッチ敵対ケースも収録（16件）。
+- **カードゴールデン**: `gen-card-golden.mjs`（puppeteer・scripts/smoke.js基盤流用）。localStorage空→`streak2`に2026-06-01〜07-25の連続55日をseed→**rotAssign初期状態=空localStorageのバックフィル経路を仕様として固定**した上で`cardPatternFor`/`ensureRotAssign`を実際に呼び出し中間値を回収。CARD_IMG_FROM(7/14)・CARD_THEMES_V2_FROM(7/13)の境界遷移、day50のTOKU_CARDS該当、rotAssignの実際のバックフィル値まで実測確認済み。
+- **エクスポートfixture**: `gen-export-fixture.mjs`（puppeteer）。20キー（使用キー18+未使用パススルー確認用2=a2hs2/homehint_next）をseedして`buildExportString()`実出力を取得、Node側で独立デコードしseed値と完全一致することも自己検証。
+- **検収6項目**: 全PASS（safety-fixtures.json 111件・リプレイ検証111/111・KB deep-equal一致・norm-golden 3系統+敵対ケース収録・card/exportゴールデン存在・npm test 442緑&Web版無変更）
+- push済み（`f8be973`）。even-syncが16:35/16:46に大半を自動コミット済みだったため、残り3ファイルのみ手動commit&push。
+- 次: alan5への完了報告をドア配達（検収基準PASS/FAIL・verify-kb-sync結果・消費トークン概算）。Step 1（Xcodeプロジェクト作成・本人操作ゲート①）はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植マスタープラン作成（alan5発注・appdev=C2工場としてWorkflow実行・実装は未着手）
 
 体制変更（alan5=このプロジェクトの頭・appdev=実行工場）後の最初の大型タスク。alan監督経由で本人承認済みのストア版方針（iOS/Android・10月リリース枠。βは8月上旬に現行PWAのまま実施、9月頭からフルネイティブ移植=前倒し承認）を受け、`TASK-C2-2026-07-25-native-migration-masterplan.md`の発注どおりWorkflow（model:fable明示・40〜60万トークン級承認済み）でマスタープランのみ作成した。**実装(Swift/Kotlin)はこのタスクの範囲外。Web版(PWA)側は一切変更していない**（`git status`で確認済み・`npm test`442 checks着手前と同一で緑）。

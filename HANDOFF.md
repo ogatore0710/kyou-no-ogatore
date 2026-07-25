@@ -5,8 +5,8 @@
 ## 体制（2026-07-24〜）
 alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微実装・検収）、appdev（C2）が実行工場。大きい実装タスクはalan5からタスクファイルで届き、appdevが実行して完了報告をドア配達で返す。詳細は[docs/HANDOVER-to-alan5-2026-07-24.md](docs/HANDOVER-to-alan5-2026-07-24.md)。
 
-## 🚀 進行中: ネイティブ移植（2026-07-25・alan5検収OK→量産移植着手）
-本人承認済みのストア版方針（iOS/Android・10月リリース枠。フルネイティブ移植を前倒しで即着手）を受け、[NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md](NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md)をappdevがWorkflowで作成（Fable・独立査読3レンズ・約55.4万トークン）→alan5が検収しOK。§6のStep0から量産移植(Sonnet)を開始。詳細はWORKING_NOTES.md 2026-07-25エントリ。
+## 🚀 進行中: ネイティブ移植（2026-07-25・Step0完了→alan5検収待ち）
+本人承認済みのストア版方針（iOS/Android・10月リリース枠。フルネイティブ移植を前倒しで即着手）を受け、[NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md](NATIVE-MIGRATION-MASTERPLAN-2026-07-25.md)をappdevがWorkflowで作成（Fable・独立査読3レンズ・約55.4万トークン）→alan5が検収しOK→**Step0（断面固定・safety111フィクスチャ・norm/card/exportゴールデン採取）完了**（appdev・スクリプトのみ・Web版無変更）。検収基準6項目全PASS。alan5への報告済み、Step1（Xcodeプロジェクト作成・本人操作ゲート①）はalan5の指示待ち。詳細はWORKING_NOTES.md 2026-07-25エントリ・`scripts-native/`。
 **β配布は本人方針（7/24）で延期中**（「iOSアプリにしてから」）。時期未定。8月上旬に予定していたPWA版配布は見送り済み——ネイティブ移植そのものが「iOSアプリ化」の条件を満たしにいく作業。
 
 ## ✅ 完了: C1→C2検証依頼3件（2026-07-20・C2 Fable艦隊で実施済み）
