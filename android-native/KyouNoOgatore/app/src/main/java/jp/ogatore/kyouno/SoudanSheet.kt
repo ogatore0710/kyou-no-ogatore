@@ -1,6 +1,7 @@
 package jp.ogatore.kyouno
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -172,166 +175,209 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
         messages = messages + SdBubble.Bot("OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね")
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text("オガトレ相談室", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-            Text("✕", modifier = Modifier.clickable { onClose() }.padding(8.dp).testTag("soudanCloseBtn"))
-        }
-        Text(
-            "※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ",
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(vertical = 4.dp),
-        )
-
-        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).testTag("sdLog")) {
+    // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
+    // Phase 3: index.html:459-489 .sd-sheet/.sd-head/.sd-b/.chip/.catbtnの1:1移植。見た目の変更のみで、
+    // 上の判定・状態管理ロジック(applyResponse/chipTap/sendText等)には一切手を入れていない。
+    val themeSetting = store.get("theme", "auto")
+    KyonoTheme(themeSetting) {
+        val colors = LocalKyonoColors.current
+        Column(Modifier.fillMaxSize().background(colors.bg)) {
+            // index.html:461-465 .sd-head(ヘッダー・円形×クローズボタン)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().background(colors.card).padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                KyonoSectionHeader(KyonoIcon.SoudanBubble, "オガトレ相談室", fill = colors.tealSoft, accent = colors.teal, modifier = Modifier.weight(1f))
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(colors.line, androidx.compose.foundation.shape.CircleShape)
+                        .clickable { onClose() }
+                        .testTag("soudanCloseBtn"),
+                    contentAlignment = Alignment.Center,
+                ) { Text("✕", color = colors.ink, fontWeight = FontWeight.Black) }
+            }
+            // index.html:466-467 .sd-disc
             Text(
-                "肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊",
-                modifier = Modifier.padding(vertical = 4.dp),
+                "※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ",
+                color = colors.sub,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().background(colors.card).padding(horizontal = 16.dp, vertical = 6.dp),
             )
-            for (m in messages) {
-                when (m) {
-                    is SdBubble.User -> Text(
-                        m.text,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp).testTag("sdUserBubble"),
-                        textAlign = TextAlign.End,
-                    )
-                    is SdBubble.Bot -> {
-                        val bg = if (m.red) Color(0xFFF6D6D6) else Color(0xFFF3F1EC)
-                        Column(
-                            Modifier.fillMaxWidth().padding(vertical = 3.dp)
-                                .background(bg, RoundedCornerShape(12.dp)).padding(10.dp)
-                                .testTag(if (m.red) "sdBotBubbleRed" else "sdBotBubble"),
-                        ) {
-                            if (m.text.isNotEmpty()) Text(m.text)
-                            if (m.videoId != null) {
-                                Button(
-                                    onClick = { openUrl("https://www.youtube.com/watch?v=${m.videoId}") },
-                                    modifier = Modifier.padding(top = 4.dp).testTag("sdVideoBtn_${m.videoId}"),
-                                ) { Text("▶ 動画を見る") }
-                            }
-                        }
-                    }
-                    is SdBubble.PlanConfirm -> Column(
-                        Modifier.fillMaxWidth().padding(vertical = 3.dp)
-                            .background(Color(0xFFF3F1EC), RoundedCornerShape(12.dp)).padding(10.dp),
-                    ) {
-                        Text(
-                            if (m.replacing) "いまのプランと入れ替える？きょうの1本が、あなたの${m.label}プランになるよ"
-                            else "きょうの1本が、あなたの${m.label}プランになるよ！2週間いっしょにやってみる？",
-                        )
-                        Row(Modifier.padding(top = 6.dp)) {
-                            Button(
-                                onClick = { planStart(m.intentId) },
-                                modifier = Modifier.testTag("planStartBtn"),
-                            ) { Text(if (m.replacing) "入れ替えてはじめる！" else "はじめる！") }
-                            Spacer(Modifier.padding(horizontal = 4.dp))
-                            Button(
-                                onClick = { planDecline() },
-                                modifier = Modifier.testTag("planDeclineBtn"),
-                            ) { Text("まずは1本だけ") }
-                        }
-                    }
-                }
-            }
-        }
+            androidx.compose.material3.HorizontalDivider(color = colors.line)
 
-        // ---- チップ列(index.html:3139 sdRenderChips相当) ----
-        when (val mode = chipsMode) {
-            is SdChipsMode.None -> {} // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
-            is SdChipsMode.Intents -> {
-                LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("sdCatRow")) {
-                    items(SD_CHIP_CATS) { cat ->
-                        Button(
-                            onClick = { chipsMode = SdChipsMode.Intents(cat.key) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (cat.key == mode.activeCat) Color(0xFF6B4EA6) else Color(0xFFE8E3F5),
-                                contentColor = if (cat.key == mode.activeCat) Color.White else Color.Black,
-                            ),
-                            modifier = Modifier.padding(end = 4.dp).testTag("sdCat_${cat.key}"),
-                        ) { Text(cat.label) }
-                    }
-                }
-                val activeCat = SD_CHIP_CATS.find { it.key == mode.activeCat } ?: SD_CHIP_CATS[0]
-                val ids = sdCatIntentIds(activeCat).toSet()
-                LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("sdChips")) {
-                    items(kb.intents.filter { ids.contains(it.id) }) { intent ->
-                        Button(onClick = { chipTap(intent.id) }, modifier = Modifier.padding(end = 4.dp).testTag("sdChip_${intent.id}")) {
-                            Text(intent.chip)
+            Column(
+                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
+                    .padding(16.dp).testTag("sdLog"),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text("肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊", color = colors.sub)
+                for (m in messages) {
+                    when (m) {
+                        // index.html:482-483 .sd-row.user .sd-b(黄色系吹き出し・右寄せ)
+                        is SdBubble.User -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                            Text(
+                                m.text, color = colors.ink,
+                                modifier = Modifier
+                                    .background(colors.yellowSoft, RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp))
+                                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                                    .testTag("sdUserBubble"),
+                            )
                         }
-                    }
-                }
-            }
-            is SdChipsMode.Followups -> {
-                val intent = kb.intents.find { it.id == mode.intentId }
-                // index.html:1828 planInjectChip相当: 動画2本以上・除外intentでない・実行中プランと同一でないときだけ出す
-                val showPlanChip = intent != null && intent.videos.size >= 2 &&
-                    intent.id != PLAN_EXCLUDE_INTENT && plan?.intentId != intent.id
-                LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("sdChips")) {
-                    if (showPlanChip && intent != null) {
-                        item {
-                            Button(onClick = { planChipTap(intent.id) }, modifier = Modifier.padding(end = 4.dp).testTag("sdPlanChip")) {
-                                Text("📅 この悩みを2週間プランにする")
-                            }
-                        }
-                    }
-                    items(intent?.followups.orEmpty()) { fid ->
-                        val label = kb.commonFollowups.find { it.id == fid }?.chip
-                            ?: kb.intents.find { it.id == fid }?.chip
-                        if (label != null) {
-                            Button(
-                                onClick = {
-                                    if (kb.commonFollowups.any { it.id == fid }) followupTap(fid) else chipTap(fid)
-                                },
-                                modifier = Modifier.padding(end = 4.dp).testTag("sdFollowup_$fid"),
-                            ) { Text(label) }
-                        }
-                    }
-                    mode.nextBestId?.let { nbId ->
-                        val nb = kb.intents.find { it.id == nbId }
-                        if (nb != null) {
-                            item {
-                                Button(onClick = { chipTap(nb.id) }, modifier = Modifier.padding(end = 4.dp).testTag("sdNextBestChip")) {
-                                    Text("${nb.chip}の話も")
+                        // index.html:481,488 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)
+                        is SdBubble.Bot -> {
+                            val bg = if (m.red) colors.coralSoft else colors.card
+                            val border = if (m.red) colors.coral else colors.line
+                            Column(
+                                Modifier.fillMaxWidth(0.86f)
+                                    .background(bg, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, border, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                                    .testTag(if (m.red) "sdBotBubbleRed" else "sdBotBubble"),
+                            ) {
+                                if (m.text.isNotEmpty()) Text(m.text, color = colors.ink)
+                                if (m.videoId != null) {
+                                    Spacer(Modifier.height(6.dp))
+                                    KyonoGhostButton(
+                                        "▶ 動画を見る",
+                                        { openUrl("https://www.youtube.com/watch?v=${m.videoId}") },
+                                        Modifier.testTag("sdVideoBtn_${m.videoId}"),
+                                    )
                                 }
                             }
                         }
-                    }
-                    item {
-                        Button(onClick = { chipsMode = SdChipsMode.Intents("body") }, modifier = Modifier.padding(end = 4.dp).testTag("sdBackToIntentsBtn")) {
-                            Text("べつの悩みをそうだん")
+                        is SdBubble.PlanConfirm -> Column(
+                            Modifier.fillMaxWidth(0.86f)
+                                .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                        ) {
+                            Text(
+                                if (m.replacing) "いまのプランと入れ替える？きょうの1本が、あなたの${m.label}プランになるよ"
+                                else "きょうの1本が、あなたの${m.label}プランになるよ！2週間いっしょにやってみる？",
+                                color = colors.ink,
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            KyonoPrimaryButton(
+                                if (m.replacing) "入れ替えてはじめる！" else "はじめる！",
+                                { planStart(m.intentId) },
+                                Modifier.testTag("planStartBtn"),
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            KyonoGhostButton("まずは1本だけ", { planDecline() }, Modifier.testTag("planDeclineBtn"))
                         }
                     }
                 }
             }
-            is SdChipsMode.Nearmiss -> {
-                LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("sdChips")) {
-                    items(mode.ids) { id ->
-                        val intent = kb.intents.find { it.id == id }
-                        if (intent != null) {
-                            Button(onClick = { chipTap(id) }, modifier = Modifier.padding(end = 4.dp).testTag("sdNearmiss_$id")) {
-                                Text(intent.chip)
+
+            // ---- チップ列(index.html:3139 sdRenderChips相当・.chip/.catbtnの1:1移植) ----
+            Column(Modifier.background(colors.card).padding(horizontal = 14.dp, vertical = 8.dp)) {
+                when (val mode = chipsMode) {
+                    is SdChipsMode.None -> {} // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
+                    is SdChipsMode.Intents -> {
+                        LazyRow(modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).testTag("sdCatRow")) {
+                            items(SD_CHIP_CATS) { cat ->
+                                KyonoCatButton(cat.label, cat.key == mode.activeCat, { chipsMode = SdChipsMode.Intents(cat.key) }, Modifier.padding(end = 8.dp).testTag("sdCat_${cat.key}"))
+                            }
+                        }
+                        val activeCat = SD_CHIP_CATS.find { it.key == mode.activeCat } ?: SD_CHIP_CATS[0]
+                        val ids = sdCatIntentIds(activeCat).toSet()
+                        LazyRow(modifier = Modifier.fillMaxWidth().testTag("sdChips")) {
+                            items(kb.intents.filter { ids.contains(it.id) }) { intent ->
+                                KyonoChip(intent.chip, { chipTap(intent.id) }, Modifier.padding(end = 8.dp).testTag("sdChip_${intent.id}"))
                             }
                         }
                     }
-                    item {
-                        Button(onClick = { chipsMode = SdChipsMode.Intents("body") }, modifier = Modifier.padding(end = 4.dp).testTag("sdBackToIntentsBtn2")) {
-                            Text("べつの悩みをそうだん")
+                    is SdChipsMode.Followups -> {
+                        val intent = kb.intents.find { it.id == mode.intentId }
+                        // index.html:1828 planInjectChip相当: 動画2本以上・除外intentでない・実行中プランと同一でないときだけ出す
+                        val showPlanChip = intent != null && intent.videos.size >= 2 &&
+                            intent.id != PLAN_EXCLUDE_INTENT && plan?.intentId != intent.id
+                        LazyRow(modifier = Modifier.fillMaxWidth().testTag("sdChips")) {
+                            if (showPlanChip && intent != null) {
+                                item {
+                                    KyonoChip("📅 この悩みを2週間プランにする", { planChipTap(intent.id) }, Modifier.padding(end = 8.dp).testTag("sdPlanChip"))
+                                }
+                            }
+                            items(intent?.followups.orEmpty()) { fid ->
+                                val label = kb.commonFollowups.find { it.id == fid }?.chip
+                                    ?: kb.intents.find { it.id == fid }?.chip
+                                if (label != null) {
+                                    KyonoChip(
+                                        label,
+                                        { if (kb.commonFollowups.any { it.id == fid }) followupTap(fid) else chipTap(fid) },
+                                        Modifier.padding(end = 8.dp).testTag("sdFollowup_$fid"),
+                                    )
+                                }
+                            }
+                            mode.nextBestId?.let { nbId ->
+                                val nb = kb.intents.find { it.id == nbId }
+                                if (nb != null) {
+                                    item {
+                                        KyonoChip("${nb.chip}の話も", { chipTap(nb.id) }, Modifier.padding(end = 8.dp).testTag("sdNextBestChip"))
+                                    }
+                                }
+                            }
+                            item {
+                                KyonoChip("べつの悩みをそうだん", { chipsMode = SdChipsMode.Intents("body") }, Modifier.padding(end = 8.dp).testTag("sdBackToIntentsBtn"))
+                            }
+                        }
+                    }
+                    is SdChipsMode.Nearmiss -> {
+                        LazyRow(modifier = Modifier.fillMaxWidth().testTag("sdChips")) {
+                            items(mode.ids) { id ->
+                                val intent = kb.intents.find { it.id == id }
+                                if (intent != null) {
+                                    KyonoChip(intent.chip, { chipTap(id) }, Modifier.padding(end = 8.dp).testTag("sdNearmiss_$id"))
+                                }
+                            }
+                            item {
+                                KyonoChip("べつの悩みをそうだん", { chipsMode = SdChipsMode.Intents("body") }, Modifier.padding(end = 8.dp).testTag("sdBackToIntentsBtn2"))
+                            }
                         }
                     }
                 }
+
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        modifier = Modifier.weight(1f).testTag("sdInput"),
+                        placeholder = { Text("気になることを入力") },
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"))
+                }
             }
         }
-
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
-            OutlinedTextField(
-                value = input,
-                onValueChange = { input = it },
-                modifier = Modifier.weight(1f).testTag("sdInput"),
-                placeholder = { Text("気になることを入力") },
-            )
-            Button(onClick = { sendText() }, modifier = Modifier.padding(start = 4.dp).testTag("sdSendBtn")) { Text("送信") }
-        }
     }
+}
+
+// index.html:440 .chip(丸ピル・line枠・card背景)の1:1移植。
+@Composable
+private fun KyonoChip(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    Box(
+        modifier = modifier
+            .background(colors.card, RoundedCornerShape(99.dp))
+            .border(2.dp, colors.line, RoundedCornerShape(99.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+    ) { Text(label, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }
+}
+
+// index.html:436-437 .catbtn/.catbtn.on(カテゴリタブ・選択時=yellow背景)の1:1移植。
+@Composable
+private fun KyonoCatButton(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    Box(
+        modifier = modifier
+            .background(if (selected) colors.yellow else colors.line, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 13.dp, vertical = 10.dp),
+    ) { Text(label, color = if (selected) Color(0xFF3A3A35) else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }
 }
 
 // index.html:1781 renderPlanCard相当の簡略版(進捗バー・完走時の卒業表示・解除ボタン)。
