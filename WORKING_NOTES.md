@@ -4,6 +4,55 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 7a 完了（alan5発注・appdev実行・検索・再生リスト・図鑑）
+
+`TASK-C2-2026-07-25-native-migration-step7a.md`（マスタープラン§6 Step 7a）を実施。**検索(TAG_CATS)・
+再生リスト・図鑑(renderDex相当)・動画再生導線(YouTubeアプリ/ブラウザ遷移)を実装。図鑑のロック/アンロック
+判定はStep4で移植済みのCardLottery呼び出しのみ(grep確認)。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
+
+- **スコープ解釈の注記(要alan5確認)**: タスク文面の「再生リスト（catalog.json）」表記を調査したところ、
+  Web版の「再生リスト」タブは実際にはcatalog.jsonでなくindex.html内の別配列PLAYLISTS(手動キュレーション
+  のYouTubeプレイリストID約20件・機械抽出スクリプト未整備)が情報源で、catalog.json(454件)を情報源と
+  するのは「検索」タブの方であることが判明(app-search.js/index.html確認済み)。タスク文面がcatalog.json
+  を再生リストの情報源として明記しているため、本実装では「再生リスト」を「catalog.jsonの動画をカテゴリ
+  絞り込みなしで一覧できる画面」として実装した(検索画面の絞り込みUIを持たない単純版)。Web版と同じ
+  PLAYLISTS配列を移植する場合は抽出スクリプト新設が別途必要(手写し禁止=§1-2のため実施していない)。
+- **card-data.mjs拡張**: getDexStatus()が参照するDEX_TEASE(30件)/DEX_FLAVOR(86件)/DEX_FLAVOR_NORMAL
+  (20件)/DEX_NORMAL_TEASEをgen-card-data.mjsに追加抽出(手写し禁止の原則どおりJSエンジンに実評価させて
+  回収)。card-data.jsonを両OSへ再配布。
+- **図鑑ロジック(DexLogic)**: index.html:2474 getDexStatus()の1:1移植。判定はCardLottery.ensureRotAssign/
+  cardSeasonPick(Step4)を呼ぶだけで一切再実装しない。**新規`gen-dex-golden.mjs`**(gen-card-golden.mjsと
+  同一断面=rotAssign空初期化+2026-06-01〜07-25の連続55日)でWeb版のgetDexStatus()実行結果をpuppeteer採取
+  し、両OSのDexLogic.getDexStatus出力(toku16/season40/rare30/normal20=106件、got20件)と1件ずつ突合する
+  ゴールデンテストを追加。
+- **アセット同梱**: catalog.json(454件)を両OSへ、カード実写(assets/cards/*.webp、86枚・7.5MB)を
+  Android res/drawable-nodpiへそのまま、iOSはPNG変換(PIL)のうえアプリターゲット直下CardArt/へ同梱
+  (ファイル名=カードkeyでファイル名衝突なし確認済み)。**iOS実測で判明**: PBXFileSystemSynchronizedRootGroup
+  (Xcode26形式)はビルド時にサブフォルダをバンドルルートへフラット化するため、`Bundle.main.url`の
+  `subdirectory`指定は効かず、指定なしで探す必要があった(実機ビルドで発見・修正)。
+- **Android**: SearchScreen.kt(検索・再生リスト)・DexScreen.kt新設。ロック中カードはCSSアルファマスクの
+  代わりに同一画像をColorFilter.tintで暗くする簡略シルエット。LazyVerticalGridはverticalScroll内に
+  入れない禁じ手(§1-4)を守り、図鑑画面はLazyColumn(全体)+Column/Row(セクション内4列固定)で構成。
+  **kyono_testエミュレータで実タップ検証**: 検索(カテゴリタブ→タグチップ絞り込み→454件→44件)・動画
+  カードタップ→Chromeへの実際の画面遷移(mCurrentFocusの変化で確認。YouTubeアプリ未インストール環境の
+  ため想定どおりブラウザへフォールバック)・図鑑4段(記念日/季節/レア/ノーマル)の表示(ヒント文言・
+  シルエット画像とも正しく表示)を確認。**gradle test 197/197 pass**（196+新規1件、回帰なし）。
+- **iOS**: CatalogData.swift・SearchView.swift・DexView.swift新設(Android版と同一ロジック)。SwiftUIの
+  LazyVGridはScrollView内に入れて問題ない(Jetpack Compose特有の制約であり§1-4の禁じ手はAndroid限定と
+  判断・Android版のColumn+Row手組みは踏襲せずLazyVGridで素直に実装)。**xcodebuild -sdk iphonesimulator
+  buildでBUILD SUCCEEDED確認**。**swift test: CardCore11/11(55 card-golden+新規dexゴールデン込み)・
+  RecordCore35/35・SafetyCore8/8(111 safety-fixtures込み)**、回帰なし。
+- **検収基準3項目**: ①動画再生導線がYouTubeアプリ/ブラウザへ正しく遷移=PASS(Android実タップ。
+  Intent.ACTION_VIEWでChromeへフォーカス遷移することを確認) ②図鑑表示が同一rotAssign状態でWeb版と
+  一致=PASS(gen-dex-golden.mjsで採取したWeb版実行結果と両OSのDexLogic.getDexStatus出力を106件全件
+  突合。CardLottery呼び出しのみで判定を再実装していないこともgrep確認) ③安全系テスト111/111+
+  engine-fixtures緑のまま=PASS(Android197/197・iOS SafetyCore8/8)。
+- **gitlink/file-count確認**: 作業直後は数件のコミット未反映差分があったが(even-syncの10分周期待ち。
+  スクリーンショット・新規Swiftファイル)、git logで実体はauto-syncに既に取り込み済みであることを確認
+  (実体喪失=gitlink化ではないことを確認)。`npm test`442 checks引き続き全緑・PWA配信ファイル無変更確認済み。
+- push予定。次: alan5への完了報告をドア配達(「再生リスト」のスコープ解釈について確認を仰ぐ)。
+  Step 7b（じまん・声・オガトレ部・設定+パリティ突合）以降はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 6 完了（alan5発注・appdev実行・相談室UI=安全系が絡む重要工程）
 
 `TASK-C2-2026-07-25-native-migration-step6.md`（マスタープラン§6 Step 6）を実施。**SoudanSheetView/SoudanSheet（チャット・カテゴリタブ・followupチップ・14日プラン発行）を実装。判定はStep2で移植済みのSafetyGate/SoudanEngineを呼ぶだけでUI層に判定コードは一切書いていない（grep確認済み）。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
