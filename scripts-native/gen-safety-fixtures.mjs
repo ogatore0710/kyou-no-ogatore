@@ -28,6 +28,9 @@ let src = testSrc;
 src = src.replace(/^import\s*\{\s*readFileSync\s*\}\s*from\s*["']node:fs["'];\s*$/m, "");
 src = src.replace(/^import\s*\{[^}]*\}\s*from\s*["']\.\/norm\.mjs["'];\s*$/m, "");
 src = src.replace(/^const fixes = JSON\.parse\(readFileSync\([^;]*;\s*$/m, "");
+// fixesを消費する`for (const f of fixes){...}`ブロックも(fixesが未定義になるため)無害化する。
+// safety-fixes.raw.json由来の51件は本スクリプトが別途JSON.parseで直接読むので、ここでの処理は不要。
+src = src.replace(/for \(const f of fixes\) \{[\s\S]*?\n\}\n/, "");
 const stub =
   'function norm(s){return String(s==null?"":s);}\n' +
   "function redFlagHit(){return false;}\n" +
