@@ -338,9 +338,14 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
         reachMsg?.let { Text(it, modifier = Modifier.testTag("reachMsgText")) }
 
         Spacer(Modifier.height(24.dp))
-        Button(onClick = { openCalendarIntent(context) }, modifier = Modifier.testTag("calendarConnectBtn")) {
+        var calendarMsg by remember { mutableStateOf<String?>(null) }
+        Button(
+            onClick = { calendarMsg = if (openCalendarIntent(context)) null else "カレンダーアプリが見つかりませんでした" },
+            modifier = Modifier.testTag("calendarConnectBtn"),
+        ) {
             Text("カレンダーに登録する")
         }
+        calendarMsg?.let { Text(it, modifier = Modifier.testTag("calendarMsgText")) }
     }
 }
 
@@ -348,20 +353,33 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
 // ネイティブはOS標準のカレンダーAppへIntent委譲する(マスタープラン§2-1「icstimeはEventKit/
 // カレンダーIntentに接続」)。書き込み権限を要求せず確認operationはカレンダーApp側のUIに委ねる設計
 // (権限ダイアログの摩擦を避ける。Step5aのYouTube外部遷移と同じ設計判断)。
-private fun openCalendarIntent(context: Context) {
+//
+// dataだけを設定するとAndroidはMIME型をContentResolver.getType()の問い合わせで自動解決しようとするが、
+// カレンダーaccountが1つも無い端末(Googleアカウント未設定のエミュレータ等)ではこの問い合わせが
+// 失敗し、Calendarアプリが実際にはINSERTを処理できるにもかかわらず型解決に失敗することがある
+// (実機/エミュレータ検証で発見)。setDataAndTypeで型を明示することで型解決をスキップする。
+// 解決可否の事前チェックはIntent.resolveActivity()でなくstartActivity()のtry/catchで行う
+// (実機検証でresolveActivity()がstartActivity()自体は成功するケースでもnullを返す=偽陰性になる
+// ことを確認したため。ActivityNotFoundExceptionを捕まえる方がAndroid公式推奨でもあり確実)。
+private fun openCalendarIntent(context: Context): Boolean {
     val cal = JCalendar.getInstance()
     cal.set(JCalendar.HOUR_OF_DAY, 20)
     cal.set(JCalendar.MINUTE, 0)
     cal.set(JCalendar.SECOND, 0)
     val intent = Intent(Intent.ACTION_INSERT).apply {
-        data = CalendarContract.Events.CONTENT_URI
+        setDataAndType(CalendarContract.Events.CONTENT_URI, "vnd.android.cursor.item/event")
         putExtra(CalendarContract.Events.TITLE, "きょうのオガトレ（1本だけ）")
         putExtra(CalendarContract.Events.DESCRIPTION, "ストレッチの時間です")
         putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, cal.timeInMillis)
         putExtra(CalendarContract.EXTRA_EVENT_END_TIME, cal.timeInMillis + 10 * 60 * 1000)
         putExtra(CalendarContract.Events.RRULE, "FREQ=DAILY")
     }
-    context.startActivity(intent)
+    return try {
+        context.startActivity(intent)
+        true
+    } catch (e: android.content.ActivityNotFoundException) {
+        false
+    }
 }
 
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果 pat から実際に描画するテーマへの
