@@ -4,6 +4,19 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-25
 
+## 2026-07-25 ネイティブ移植 Step 4 完了（alan5発注・appdev実行・決定的ロジック=カード抽選・かたさ診断）
+
+`TASK-C2-2026-07-25-native-migration-step4.md`（マスタープラン§2-4+§6 Step 4）を実施。**cardRand(mulberry32)/dateIdx(+9h)/rotationIndex(+6h)/legacyRotPos/ensureRotAssign/cardPatternFor(記録カード抽選)とdecideType(かたさ診断2段タイブレーク)を1:1移植。Web版(PWA)配信ファイルは無変更・安全キーワードも無変更**。
+
+- **card-data.json新設**（`scripts-native/gen-card-data.mjs`）: CARD_THEMES/GOLD/MS/CHARA_FILES/SEASON_CARDS/RARE_CARDS/NORMAL_CARDS/TOKU_CARDS/CARD_ROT_ORDER等100件超のデータテーブルを、Step0と同じ「JSエンジンに値を確定させる」方針（波かっこ/角かっこの深さ追跡で対象const文だけ切り出しnew Functionで評価）で抽出。件数はgrep独立集計とも突合（SEASON_CARDS40・RARE_CARDS30・NORMAL_CARDS20=ロータリープール50）。`verify-card-data.mjs`でcard-golden.json(Step0採取・55件)と55/55一致をNode側で先に確認してからネイティブ移植に着手（verify-fixtures.mjsと同型の二段構え）。cardRand自体はcard-golden.jsonが検証しない（画像方式カード導入後は未使用のため）ため、`gen-card-rand-golden.mjs`で専用ゴールデン（9シード×8値・UInt32境界含む）を別途採取。
+- **iOS**: `ios-native/KyouNoOgatore/CardCore/`をSafetyCore/RecordCoreと同じローカルSPMパッケージとして新設。CardLottery.swift(cardRand等の抽選ロジック)・QuizEngine.swift(decideType)・CardRenderer.swift(実描画)・CardData.swift(データローダ)。**CardRendererはUIKitでなくCoreGraphics/CoreText/ImageIOを直接使用**——`swift test`はmacOSホストでビルドされるためiOS専用のUIGraphicsImageRendererは使えない（Package.swiftのplatforms:はデプロイ対象宣言であり実行ホストは変えない）ことが判明し、CoreText(y-upのグリフ空間を仮定)+反転済みCGContextの組み合わせ特有の「テキストだけ局所的に反転を打ち消す」標準手法で解決。レンダリング結果は`/tmp`にPNG出力して目視確認済み（背景グラデ・散らし装飾・白カード・タイトルピル・日付バッジ・通算日数・節目王冠が正しく表示）。**swift test 10/10 pass**（card-golden 55/55一致・cardRand golden一致・decideType単体4件+256×12統計で4部位当選数各603・同一入力の再描画がPNGバイト単位で一致・禁止API不在のソース走査回帰）。SafetyCore 6/6・RecordCore 19/19も引き続き緑（回帰なし）。
+- **Android**: `jp.ogatore.kyouno.card`パッケージとしてKotlin移植。**CardRendererはandroid.graphics.Canvas/Bitmap(実機で実際に動く本物のAPI)で実装**——プレーンJVM単体テストではandroid.jarのCanvas/Bitmapがスタブで動かないため、Java2D代替の「後で書き直しが要る実装」ではなくRobolectric(AndroidフレームワークのJVM上シャドウ実装・エミュレータ不要)を新規導入して本物のAPIをそのままテストする方針にした。**gradle testDebugUnitTest 178/178 pass**（安全系149+RecordCore19=168はStep2/3のまま回帰なし、card関連10件が新規緑。同一入力の再描画はピクセル配列(ARGB IntArray)比較で一致確認）。禁止APIソース走査は"toLocalDate()"等への誤爆を単語境界ガードで防止。
+- **検収基準4項目**: ①中間値ゴールデン(過去30日分+CARD_IMG_FROM境界日・rotAssign初期状態=空)が両OSでJS実出力と全一致=PASS ②decideType全256通り×r=0..11で4部位当選数が各603=PASS ③禁止API(乱数・現在時刻)がCardRenderer/CardLottery/QuizEngine/RecordLogicに存在しない(grep回帰テスト常設)=PASS ④同一日付での再描画が同一出力(iOS=PNGバイト比較・Android=ピクセル配列比較)=PASS。
+- **Step4のスコープ外として意図的に持ち越した項目**（§6検収基準4件のいずれにも含まれないため今回未着手。Step7bのパリティ突合で扱う想定）: キャラクター立ち絵(chara-*.png)・CARD_IMG_FROM以降のカード柄モチーフ画像(assets/cards/*.webp)・かたさタイプ/メモのタグピル行・フッター吹き出し文言の合成、M PLUS 1p/BananaNumフォントの同梱(現状は代替フォントで描画)。
+- **gitlink/file-count確認**: iOS 45=45一致。Android 46 vs 47の差分1件は継続の既知の意図的gitignore(`local.properties`)。`npm test`442 checks引き続き全緑（exit 0）・PWA配信ファイル無変更確認済み。
+- push済み（scripts-native: `cddb662`・iOS: `65695b3`・Android: `b027eb8`）。検証ログは`ios-native/verify/step4-cardcore-green.log`・`android-native/verify/step4-cardcore-green.log`にコミット済み。
+- 次: alan5への完了報告をドア配達。Step 5a（ホーム・記録フロー・チュートリアルフラグ機械）以降はalan5の指示待ち。
+
 ## 2026-07-25 ネイティブ移植 Step 3 完了（alan5発注・appdev実行・データ層+引っ越しインポート）
 
 `TASK-C2-2026-07-25-native-migration-step3.md`（マスタープラン§2-3+§6 Step 3）を実施。**kyono-store.json単一ファイル方式でapp-record.js(store/todayStr/markDone/freeze2/streak2移行/daylog・memosトリム/reach自己ベスト保護)+エクスポート/インポート(buildExportString契約一致)を1:1移植。Web版(PWA)配信ファイルは無変更**。
