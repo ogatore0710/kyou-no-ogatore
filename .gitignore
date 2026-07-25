@@ -16,3 +16,6 @@ android-native/*/app/build/
 ios-native/*/SafetyCore/.build/
 ios-native/*/RecordCore/.build/
 ios-native/*/CardCore/.build/
+ios-native/*/SafetyCore/.swiftpm/
+ios-native/*/RecordCore/.swiftpm/
+ios-native/*/CardCore/.swiftpm/
