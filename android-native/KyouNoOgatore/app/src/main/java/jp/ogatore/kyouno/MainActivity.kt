@@ -52,8 +52,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
@@ -623,6 +626,56 @@ fun MyRecordScreen(
         val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, now) }
 
         Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+            // マイ記録タブ進捗カード欠落修正タスク(TASK-C2-2026-07-26-myrecord-progress-card.md):
+            // index.html:752-763 renderHistory()の「続けた記録」カードの1:1移植(msNote/msBar/
+            // 通算・いま連続ミニ表示/おやすみ券説明文)。MSはCardCoreから参照するだけで新規定義しない。
+            KyonoCard(Modifier.testTag("streakHistoryCard")) {
+                KyonoSectionHeader(KyonoIcon.CalendarCheck, "続けた記録", fill = colors.tealSoft, accent = colors.teal)
+                Spacer(Modifier.height(8.dp))
+                val cardData = CardDataLoader.shared
+                val next = cardData.MILESTONES.firstOrNull { it > streak.total }
+                val ms = next?.let { n -> cardData.MS.find { it.d == n } }
+                if (next != null && ms != null) {
+                    Text(
+                        buildAnnotatedString {
+                            append("次のお祝い「")
+                            withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) { append(ms.t) }
+                            append("」は通算${next}日目🌱 マイペースでどうぞ")
+                        },
+                        color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("msNote"),
+                    )
+                } else {
+                    Text("全部の節目をたっせい！すごすぎます", color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("msNote"))
+                }
+                Spacer(Modifier.height(8.dp))
+                val msProgress = if (next != null && next > 0) (streak.total.toFloat() / next).coerceIn(0f, 1f) else 1f
+                Box(Modifier.fillMaxWidth().height(14.dp).background(colors.line, RoundedCornerShape2(99)).testTag("msBar")) {
+                    Box(Modifier.fillMaxWidth(msProgress).fillMaxHeight().background(colors.teal, RoundedCornerShape2(99)))
+                }
+                Spacer(Modifier.height(14.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text("通算", color = colors.sub, fontSize = 13.sp)
+                        Spacer(Modifier.width(4.dp))
+                        Text("${streak.total}", color = colors.pink, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histTotal"))
+                        Text("日", fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, color = colors.ink)
+                    }
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text("いま連続", color = colors.sub, fontSize = 13.sp)
+                        Spacer(Modifier.width(4.dp))
+                        Text("${streak.count}", color = colors.teal, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histStreak"))
+                        Text("日", fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, color = colors.ink)
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "おやすみ券 のこり${freezeLeft}枚\n休んだ日に自動でつかわれて連続がつながります",
+                    color = colors.sub, fontSize = 14.sp, modifier = Modifier.testTag("histFreeze"),
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除
             // (onBackパラメータ自体はナビゲーション構造維持のため残す。呼び出し元で使われなくなるだけ)。

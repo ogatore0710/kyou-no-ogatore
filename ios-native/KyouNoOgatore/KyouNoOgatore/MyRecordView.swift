@@ -21,6 +21,7 @@
 import SwiftUI
 import EventKit
 import RecordCore
+import CardCore
 
 struct MyRecordView: View {
     let store: RecordStore
@@ -67,7 +68,7 @@ struct MyRecordView: View {
             MyRecordContentView(
                 year: $year, month: $month, reachList: $reachList, reachMsg: $reachMsg,
                 calendarMsg: $calendarMsg, doneDates: doneDates, today: today, freezeLeft: freezeLeft,
-                store: store, onConnectCalendar: connectCalendar,
+                streak: streak, store: store, onConnectCalendar: connectCalendar,
                 onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices, onOpenSettings: onOpenSettings
             )
         }
@@ -113,6 +114,7 @@ private struct MyRecordContentView: View {
     let doneDates: Set<String>
     let today: String
     let freezeLeft: Int
+    let streak: RecordLogic.StreakData
     let store: RecordStore
     let onConnectCalendar: (@escaping (Bool) -> Void) -> Void
     let onOpenDex: () -> Void
@@ -123,6 +125,50 @@ private struct MyRecordContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                // マイ記録タブ進捗カード欠落修正タスク(TASK-C2-2026-07-26-myrecord-progress-card.md):
+                // index.html:752-763 renderHistory()の「続けた記録」カードの1:1移植(msNote/msBar/
+                // 通算・いま連続ミニ表示/おやすみ券説明文)。MSはCardCoreから参照するだけで新規定義しない。
+                KyonoCard {
+                    KyonoSectionHeader(icon: .calendarCheck, title: "続けた記録", fill: colors.tealSoft, accent: colors.teal)
+                    Spacer().frame(height: 8)
+                    let data = CardDataLoader.shared
+                    let next = data.MILESTONES.first { $0 > streak.total }
+                    let ms = next.flatMap { n in data.MS.first { $0.d == n } }
+                    if let next, let ms {
+                        (Text("次のお祝い「")
+                            + Text(ms.t).foregroundColor(colors.pink).fontWeight(.black)
+                            + Text("」は通算\(next)日目🌱 マイペースでどうぞ"))
+                            .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                    } else {
+                        Text("全部の節目をたっせい！すごすぎます").font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                    }
+                    Spacer().frame(height: 8)
+                    let msProgress = (next != nil && next! > 0) ? min(1, max(0, CGFloat(streak.total) / CGFloat(next!))) : 1
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(colors.line)
+                            Capsule().fill(colors.teal).frame(width: geo.size.width * msProgress)
+                        }
+                    }
+                    .frame(height: 14)
+                    Spacer().frame(height: 14)
+                    HStack(alignment: .lastTextBaseline, spacing: 20) {
+                        HStack(alignment: .lastTextBaseline, spacing: 4) {
+                            Text("通算").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            Text("\(streak.total)").font(.kyono(.black900, size: 22)).foregroundColor(colors.pink)
+                            Text("日").font(.kyono(.extraBold800, size: 13)).foregroundColor(colors.ink)
+                        }
+                        HStack(alignment: .lastTextBaseline, spacing: 4) {
+                            Text("いま連続").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            Text("\(streak.count)").font(.kyono(.black900, size: 22)).foregroundColor(colors.teal)
+                            Text("日").font(.kyono(.extraBold800, size: 13)).foregroundColor(colors.ink)
+                        }
+                    }
+                    Spacer().frame(height: 10)
+                    Text("おやすみ券 のこり\(freezeLeft)枚\n休んだ日に自動でつかわれて連続がつながります")
+                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                }
+
                 KyonoCard {
                     KyonoSectionHeader(icon: .calendarCheck, title: "マイ記録", fill: colors.pinkSoft, accent: colors.pink)
                     Spacer().frame(height: 12)
