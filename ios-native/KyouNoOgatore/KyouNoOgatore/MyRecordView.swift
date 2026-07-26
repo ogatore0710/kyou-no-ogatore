@@ -285,8 +285,25 @@ private struct MyRecordContentView: View {
                 }
 
                 KyonoCard {
-                    KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター", fill: colors.yellowSoft)
+                    KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター（前屈チェック）", fill: colors.yellowSoft)
                     Spacer().frame(height: 8)
+                    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #reach):
+                    // index.html:898-899 常時表示の説明文・注意書きの1:1移植。
+                    Text("ひざを伸ばして前屈 手はどこまで届く？\n届いたところのボタンを押すと記録されます（週1回でOK）")
+                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    Spacer().frame(height: 10)
+                    Text("いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ🏥）")
+                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    // index.html:900-902 assets/check/meter.jpg(前屈のお手本写真)の1:1移植。
+                    Spacer().frame(height: 10)
+                    KyonoCharaImage(name: "meter")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(width: 220)
+                        .background(colors.card)
+                        .cornerRadius(16)
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    Spacer().frame(height: 10)
                     if reachList.isEmpty {
                         Text("まだ記録なし！まずは1回はかってみましょう").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
                         Spacer().frame(height: 8)

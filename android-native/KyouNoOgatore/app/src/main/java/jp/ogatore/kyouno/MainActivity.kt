@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -912,8 +913,32 @@ fun MyRecordScreen(
 
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("reachCard")) {
-                KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター", fill = colors.yellowSoft)
+                KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター（前屈チェック）", fill = colors.yellowSoft)
                 Spacer(Modifier.height(8.dp))
+                // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #reach):
+                // index.html:898-899 常時表示の説明文・注意書きの1:1移植。
+                Text(
+                    "ひざを伸ばして前屈 手はどこまで届く？\n届いたところのボタンを押すと記録されます（週1回でOK）",
+                    color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp,
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ🏥）",
+                    color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp,
+                )
+                // index.html:900-902 assets/check/meter.jpg(前屈のお手本写真)の1:1移植。
+                Spacer(Modifier.height(10.dp))
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    val resId = remember { context.resources.getIdentifier("meter", "drawable", context.packageName) }
+                    if (resId != 0) {
+                        Image(
+                            painter = painterResource(id = resId), contentDescription = "前屈のお手本",
+                            modifier = Modifier.fillMaxWidth(0.7f).background(colors.card, RoundedCornerShape(16.dp))
+                                .border(1.5.dp, colors.line, RoundedCornerShape(16.dp)).testTag("reachMeterImage"),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
                 val latest = reachList.lastOrNull()
                 if (latest == null) {
                     Text("まだ記録なし！まずは1回はかってみましょう", color = colors.sub, modifier = Modifier.testTag("reachNowText"))
