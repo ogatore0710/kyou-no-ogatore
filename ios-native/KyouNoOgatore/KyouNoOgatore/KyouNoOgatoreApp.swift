@@ -180,7 +180,10 @@ struct RootView: View {
                 store: store,
                 onBack: { screen = .home },
                 onReenterOnboarding: { screen = .onboarding },
-                onReenterTour: { screen = .tour(showClosing: false) }
+                onReenterTour: { screen = .tour(showClosing: false) },
+                onOpenQuiz: { screen = .quiz(presetWorry: nil) },
+                onOpenSettings: { screen = .settings },
+                onOpenMyRecord: { screen = .myRecord }
             )
         case .settings:
             SettingsView(store: store, onBack: { screen = .home })
