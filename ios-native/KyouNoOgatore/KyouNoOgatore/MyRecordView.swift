@@ -45,6 +45,10 @@ struct MyRecordView: View {
     @State private var reachMsg: String?
     @State private var calendarMsg: String?
     private let freezeLeft: Int
+    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #history):
+    // index.html:782 #dayInfo(カレンダーの日タップ→その日の記録詳細)の1:1移植。
+    @State private var selectedDay: String?
+    @State private var dayCardImage: UIImage?
 
     init(
         store: RecordStore, onOpenDex: @escaping () -> Void, onOpenBrag: @escaping () -> Void,
@@ -74,11 +78,26 @@ struct MyRecordView: View {
         KyonoTheme(themeSetting: themeSetting) {
             MyRecordContentView(
                 year: $year, month: $month, reachList: $reachList, reachMsg: $reachMsg,
-                calendarMsg: $calendarMsg, doneDates: doneDates, today: today, freezeLeft: freezeLeft,
+                calendarMsg: $calendarMsg, selectedDay: $selectedDay,
+                doneDates: doneDates, today: today, freezeLeft: freezeLeft,
                 streak: streak, store: store, onConnectCalendar: connectCalendar,
                 onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices,
-                onOpenDiary: onOpenDiary, onOpenSettings: onOpenSettings
+                onOpenDiary: onOpenDiary, onOpenSettings: onOpenSettings,
+                onShowDayCard: { ds in dayCardImage = renderTodayCard(store: store, streak: streak, ds: ds) }
             )
+        }
+        // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
+        .sheet(isPresented: Binding(get: { dayCardImage != nil }, set: { if !$0 { dayCardImage = nil } })) {
+            if let dayCardImage {
+                VStack {
+                    Image(uiImage: dayCardImage).resizable().scaledToFit()
+                    HStack {
+                        Button("とじる") { self.dayCardImage = nil }
+                        Button("保存・シェアする") { ShareImage.share(uiImage: dayCardImage, text: "#きょうのオガトレ") }
+                    }
+                }
+                .padding()
+            }
         }
     }
 
@@ -119,6 +138,7 @@ private struct MyRecordContentView: View {
     @Binding var reachList: [RecordLogic.ReachEntry]
     @Binding var reachMsg: String?
     @Binding var calendarMsg: String?
+    @Binding var selectedDay: String?
     let doneDates: Set<String>
     let today: String
     let freezeLeft: Int
@@ -130,6 +150,7 @@ private struct MyRecordContentView: View {
     let onOpenVoices: () -> Void
     let onOpenDiary: () -> Void
     let onOpenSettings: () -> Void
+    let onShowDayCard: (String) -> Void
 
     var body: some View {
         ScrollView {
@@ -202,6 +223,38 @@ private struct MyRecordContentView: View {
                         }
                     }
                     calendarGrid
+                    // 全画面完全性監査タスク #history: index.html:782,292-305 #dayInfo/showDay()の1:1移植。
+                    // その日に見た動画(あれば)・メモ(あれば)・記録カードを見る導線を表示する。
+                    if let ds = selectedDay {
+                        Spacer().frame(height: 10)
+                        VStack(alignment: .leading, spacing: 6) {
+                            let mm = Int(ds.dropFirst(5).prefix(2)) ?? 0
+                            let dd = Int(ds.dropFirst(8)) ?? 0
+                            Text(verbatim: "\(mm)/\(dd) にやった記録").font(.kyono(.black900, size: 14)).foregroundColor(colors.ink)
+                            let log = RecordLogic.loadDaylog(store)[ds]
+                            let memo = RecordLogic.loadMemos(store)[ds]
+                            if let log, !log.v.isEmpty {
+                                Text("▶ この日の動画をYouTubeでチェックする")
+                                    .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                                    .onTapGesture {
+                                        if let url = URL(string: "https://www.youtube.com/watch?v=\(log.v)") { UIApplication.shared.open(url) }
+                                    }
+                            }
+                            if let memo, !memo.isEmpty {
+                                Text("✍️ \(memo)").font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            }
+                            if log == nil && (memo?.isEmpty ?? true) {
+                                Text("この日は「やった！」の印だけ残っています").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                            }
+                            Text("🖼 この日の記録カードを見る")
+                                .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                                .onTapGesture { onShowDayCard(ds) }
+                        }
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(KyonoBackgroundColor())
+                        .cornerRadius(14)
+                    }
                 }
 
                 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
@@ -358,13 +411,16 @@ private struct MyRecordContentView: View {
                                 let isToday = ds == today
                                 let isFuture = ds > today
                                 // index.html:406-409,413 .cal .d/.d.done(teal-strong塗り)/.d.today(pink枠)/.d.mute
+                                // index.html:319 done日のみonclick="showDay(ds)"でタップ可能(未記録日はタップ不可)。
                                 Text(verbatim: "\(day)")
                                     .font(.kyono(.bold700, size: 15))
                                     .frame(maxWidth: .infinity, minHeight: 32)
                                     .foregroundStyle(isDone ? .white : (isFuture ? Color(hex: 0xD5CFBE) : colors.ink))
                                     .background(isDone ? colors.tealStrong : Color.clear)
                                     .clipShape(Circle())
-                                    .overlay(Circle().stroke(isToday ? colors.pink : .clear, lineWidth: 2.5))
+                                    .overlay(Circle().stroke(isToday ? colors.pink : (isDone && selectedDay == ds ? colors.ink : .clear), lineWidth: 2.5))
+                                    .contentShape(Circle())
+                                    .onTapGesture { if isDone { selectedDay = ds } }
                             } else {
                                 Color.clear.frame(maxWidth: .infinity, minHeight: 32)
                             }

@@ -446,7 +446,9 @@ private struct HomeSoudanChip: View {
 
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果patから実際に描画するテーマへの
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
-private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String) -> UIImage? {
+// MyRecordView(dayInfoの記録カード表示)からも参照するため非privateにする
+// (全画面完全性監査タスク #history)。
+func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String) -> UIImage? {
     let data = CardDataLoader.shared
     let effTotal = streak.total
     let dateIdx = CardLottery.dateIdx(ds)

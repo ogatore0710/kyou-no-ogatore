@@ -731,6 +731,10 @@ fun MyRecordScreen(
         val nowCal = JCalendar.getInstance()
         var year by remember { mutableStateOf(nowCal.get(JCalendar.YEAR)) }
         var month by remember { mutableStateOf(nowCal.get(JCalendar.MONTH) + 1) } // JCalendar.MONTHは0始まり→1-12へ
+        // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #history):
+        // index.html:782 #dayInfo(カレンダーの日タップ→その日の記録詳細)の1:1移植。
+        var selectedDay by remember { mutableStateOf<String?>(null) }
+        var dayCardBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
         var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
         var reachMsg by remember { mutableStateOf<String?>(null) }
@@ -823,9 +827,11 @@ fun MyRecordScreen(
                                         val isToday = ds == today
                                         val isFuture = ds > today
                                         // index.html:406-409,413 .cal .d/.d.done(teal-strong塗り)/.d.today(pink枠)/.d.mute
+                                        // index.html:319 done日のみonclick="showDay(ds)"でタップ可能(未記録日はタップ不可)。
                                         var cellMod: Modifier = Modifier.fillMaxSize().padding(2.dp)
-                                        if (isDone) cellMod = cellMod.background(colors.tealStrong, CircleShape)
+                                        if (isDone) cellMod = cellMod.background(colors.tealStrong, CircleShape).clickable { selectedDay = ds }
                                         if (isToday) cellMod = cellMod.border(2.5.dp, colors.pink, CircleShape)
+                                        if (isDone && selectedDay == ds) cellMod = cellMod.border(2.5.dp, colors.ink, CircleShape)
                                         Box(modifier = cellMod, contentAlignment = Alignment.Center) {
                                             Text(
                                                 "$day",
@@ -842,6 +848,41 @@ fun MyRecordScreen(
                                 }
                             }
                         }
+                    }
+                }
+                // 全画面完全性監査タスク #history: index.html:782,292-305 #dayInfo/showDay()の1:1移植。
+                // その日に見た動画(あれば)・メモ(あれば)・記録カードを見る導線を表示する。
+                selectedDay?.let { ds ->
+                    Spacer(Modifier.height(10.dp))
+                    Column(
+                        Modifier.fillMaxWidth().background(colors.bg, RoundedCornerShape(14.dp)).padding(14.dp).testTag("dayInfo"),
+                    ) {
+                        Text(
+                            "${ds.substring(5, 7).toInt()}/${ds.substring(8, 10).toInt()} にやった記録",
+                            color = colors.ink, fontWeight = FontWeight.Black, fontSize = 14.sp,
+                        )
+                        val log = RecordLogic.loadDaylog(store)[ds]
+                        val memo = RecordLogic.loadMemos(store)[ds]
+                        if (log != null && log.v.isNotEmpty()) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                "▶ この日の動画をYouTubeでチェックする", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                                modifier = Modifier.clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=${log.v}"))) }.testTag("dayVideoLink"),
+                            )
+                        }
+                        if (memo != null && memo.isNotEmpty()) {
+                            Spacer(Modifier.height(6.dp))
+                            Text("✍️ $memo", color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("dayMemoText"))
+                        }
+                        if (log == null && memo.isNullOrEmpty()) {
+                            Spacer(Modifier.height(6.dp))
+                            Text("この日は「やった！」の印だけ残っています", color = colors.sub, fontSize = 14.sp)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "🖼 この日の記録カードを見る", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                            modifier = Modifier.clickable { dayCardBitmap = renderTodayCard(store, streak, ds, context) }.testTag("dayCardLink"),
+                        )
                     }
                 }
             }
@@ -1011,6 +1052,25 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(6.dp))
                 Text(it, color = colors.pink, modifier = Modifier.testTag("calendarMsgText"))
             }
+        }
+
+        // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
+        dayCardBitmap?.let { bmp ->
+            AlertDialog(
+                onDismissRequest = { dayCardBitmap = null },
+                confirmButton = {
+                    Button(onClick = { dayCardBitmap = null }, modifier = Modifier.testTag("dayCardCloseBtn")) { Text("とじる") }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = { ShareImage.shareBitmap(context, bmp, "kyono-ogatore-day.png", "#きょうのオガトレ") },
+                        modifier = Modifier.testTag("dayCardShareBtn"),
+                    ) { Text("保存・シェアする") }
+                },
+                text = {
+                    Image(bitmap = bmp.asImageBitmap(), contentDescription = "記録カード", modifier = Modifier.fillMaxWidth().testTag("dayCardImage"))
+                },
+            )
         }
     }
 }
