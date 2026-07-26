@@ -4,6 +4,28 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 オガトレ通信FABが絵文字のままだったのを実写真へ修正(alan5独自調査9件目・小)
+
+`TASK-C2-2026-07-26-obu-fab-photo.md`。alan5独自調査9件目(小さめ)。Web版のオガトレ通信FAB
+(index.html:1166-1167)は`assets/obu-fab-photo.jpg`(尾形さんの実写真・円形・黄色ボーダー3px)だが、
+ネイティブ版は`KyonoFab("📣", ...)`で汎用の絵文字のままだった。ツアーのモック
+(KyonoTourMockups)では既に同じ画像を正しく使っており、実際のFABボタン本体だけが取り残されていた。
+
+- `KyonoFab`(両OS共通コンポーネント)に`photoResName`引数を追加。渡されたときだけ絵文字の代わりに
+  実写真を円形(`ContentScale.Crop`/`.scaledToFill()`)で表示する。相談室FAB(💬)は指示どおり
+  引数を渡さず絵文字のまま。
+- ボーダー色を`colors.coral`→`colors.yellow`(iOS: `Color(hex: 0xFFD93B)`)に修正。Web版CSS
+  `.obu-fab{border:3px solid var(--yellow)}`との食い違いも合わせて解消(タスクの検収基準
+  「黄色ボーダー」の明記どおり)。
+- 画像アセット(`obu_fab_photo`/`obu-fab-photo`)は既に両OSに同梱済みのものをそのまま再利用。
+- **実機確認(Android)**: ホーム画面右下のFABが尾形さんの実写真+黄色ボーダーで表示されることを
+  確認。相談室FAB(💬)は従来どおり絵文字のまま。
+- **iOS**: 同一ロジックで実装しビルド成功・3パッケージ`swift test`全緑・シミュレータで実際に
+  写真FABが表示されることを画面キャプチャで確認。
+- **回帰確認**: Android `gradle testDebugUnitTest`緑・iOS `swift test`3パッケージ緑
+  (SafetyCore 111/111 fixtures・RecordCore 35/35・CardCore 16/16+card-golden 55/55)・
+  `npm test` 442 checks green・Web版配信ファイル無変更。
+
 ## 2026-07-26 設定画面の「やるタイミング」「カレンダーのおしらせ時間」欠落を修正(alan5独自調査8件目)
 
 `TASK-C2-2026-07-26-settings-missing-items.md`。alan5独自調査の同種パターン8件目。設定画面
