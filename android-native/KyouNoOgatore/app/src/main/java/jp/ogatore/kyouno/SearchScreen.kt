@@ -15,15 +15,16 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import jp.ogatore.kyouno.catalog.CatalogLoader
 import jp.ogatore.kyouno.catalog.CatalogVideo
 import jp.ogatore.kyouno.record.RecordStore
@@ -237,10 +239,31 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                             .padding(horizontal = 10.dp, vertical = 6.dp)
                             .testTag("searchYearSelect"),
                     )
-                    DropdownMenu(expanded = yearMenuOpen, onDismissRequest = { yearMenuOpen = false }) {
-                        DropdownMenuItem(text = { Text("すべての年") }, onClick = { selectedYear = null; yearMenuOpen = false; searchLimit = 24 })
-                        years.forEach { y ->
-                            DropdownMenuItem(text = { Text("${y}年") }, onClick = { selectedYear = y; yearMenuOpen = false; searchLimit = 24 })
+                    // ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚:
+                    // 素のDropdownMenu/DropdownMenuItemはMaterialTheme既定の配色(ライト固定)で描画され、
+                    // アプリのダークモードと無関係にライト色のポップアップが出ていた。他の箇所(設定画面の
+                    // やるタイミング変更ピッカー等)と同じくPopup+自前スタイルのColumnに置き換える。
+                    if (yearMenuOpen) {
+                        Popup(alignment = Alignment.TopStart, offset = androidx.compose.ui.unit.IntOffset(0, 130), onDismissRequest = { yearMenuOpen = false }) {
+                            Column(
+                                Modifier
+                                    .background(colors.card, RoundedCornerShape(12.dp))
+                                    .border(2.dp, colors.line, RoundedCornerShape(12.dp))
+                                    .padding(vertical = 4.dp)
+                                    .heightIn(max = 320.dp)
+                                    .verticalScroll(rememberScrollState()),
+                            ) {
+                                Text(
+                                    "すべての年", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.fillMaxWidth().clickable { selectedYear = null; yearMenuOpen = false; searchLimit = 24 }.padding(horizontal = 16.dp, vertical = 12.dp),
+                                )
+                                years.forEach { y ->
+                                    Text(
+                                        "${y}年", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.fillMaxWidth().clickable { selectedYear = y; yearMenuOpen = false; searchLimit = 24 }.padding(horizontal = 16.dp, vertical = 12.dp),
+                                    )
+                                }
+                            }
                         }
                     }
                 }
