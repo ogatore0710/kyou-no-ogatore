@@ -4,6 +4,42 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 診断結果画面「おすすめ動画3本」(rxList)欠落を修正(#result follow-upタスク)
+
+`TASK-C2-2026-07-26-result-video-recommendations.md`。全画面完全性監査#resultで発見・報告した
+follow-upで、alan5が即タスク化。かたさタイプ診断→タイプ別おすすめ動画3本(このアプリの提案価値の
+中心)が、ネイティブの結果画面に1本も表示されていなかった。
+
+- `app-quiz.js:45-90` TYPES[].rx/pool(動画選出専用データ)を§1-2に基づき機械抽出し、
+  `TypeInfo.area`と併せて両OSへ追加(Android: `TYPE_RX_POOL`/OnboardingScreens.kt、
+  iOS: `typeRxPool`/OnboardingViews.swift)。
+- `currentRx()`（app-quiz.js:238-255・乱数不使用・`rotationIndex`のみで決定的）を両OSに1:1移植。
+  既存の`CardLottery.rotationIndex`（Step4で移植済み・decideTypeのタイブレークで使用中）を
+  そのまま再利用するだけで新規のランダム性は入れていない。
+- **朗報どおり配線作業で完結**: Web版専用の小規模動画カタログ`V`(index.html:1458〜・64件)の
+  各キーが指すYouTube動画IDを調べたところ、**全64件が既に移植済みの一般カタログ(catalog.json)に
+  含まれていた**ため、タイトル・サブタイトル等の実体データを新規に移植する必要は無かった。
+  キー→動画ID対応表のみを機械抽出し、既存カタログをID検索して表示に使う設計にした。
+- 結果画面に`rxHead`(タイプのarea込み見出し)・`rxList`(3本・①まずほぐす/②メインの1本/③しあげ
+  バッジ付き)・「▶ 3本続けて再生する」(YouTube `watch_videos`複数再生リンク)・`worryExtra`
+  (Q5「いちばんの悩み」対応の追加1本。3本と重複しない場合のみ表示)・`rRotateNote`を追加。
+  動画カード表示は検索/再生リスト画面の既存`VideoRow`を`badge`パラメータ付きで再利用(専用の
+  カード実装を新設せず)。
+- **検証**: `CurrentRxTest.kt`を新設し、Node.jsでWeb版と同じロジックを実行して得た実出力
+  (epoch=0/1753574400000等の複数タイムスタンプ×6タイプ)と1件ずつ一致することを確認する
+  ゴールデンテスト4件を追加(決定性・日付間での差異も含む)。Android実機(エミュレータ)で
+  実際にもう一回チェック→Q1〜Q5回答→結果画面まで遷移し、3本の動画(サムネイル・バッジ・
+  タイトル・年/再生数)・「＋ 肩こりさんへ もう1本」(worry=katakori選択時)・rRotateNote・
+  「▶ 3本続けて再生する」タップでYouTubeアプリが実際に起動すること(logcat確認)を目視確認。
+  iOSはシミュレータでビルド成功・クラッシュなしの起動確認+コードレビューでのロジック同一性
+  確認(この環境ではiOS実機相当のタップ自動操作ができないため、既存の検収方式を踏襲)。
+- `rDoneNudge`/`rTourBtn`(はじめの1本ガイド専用の復帰ナッジ・ツアー継続ボタン)はタスク文で
+  明示的に任意とされており、既存の類似機構(HomeLogic.fdActive等)との重複確認に時間を要する
+  ため今回は見送り(検収基準に含まれていない)。
+- 安全系テスト(SafetyCore 111/111 fixtures)・card-golden 55/55・RecordCore 35/35(新設含む)・
+  `npm test` 442・Web版配信ファイル無変更を確認。ロジック層(QuizEngine.decideType/
+  CardLottery.rotationIndex)は変更せず呼ぶだけ。
+
 ## 2026-07-27 全画面の要素レベル完全性監査(12セクション。本人指示「Web版に揃えて・抜けないように」)
 
 `TASK-C2-2026-07-26-full-completeness-audit.md`。alan5のこれまでの抜き打ち調査9件(上記エントリ群)に
