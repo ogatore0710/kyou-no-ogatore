@@ -267,7 +267,7 @@ private struct SoudanContentView: View {
             let bg = red ? colors.coralSoft : colors.card
             let border = red ? colors.coral : colors.line
             HStack(alignment: .bottom) {
-                SoudanAvatar()
+                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 6) {
                     if !text.isEmpty { Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink) }
                     if let videoId {
@@ -283,7 +283,8 @@ private struct SoudanContentView: View {
                 Spacer()
             }
         case let .planConfirm(intentId, label, replacing):
-            HStack {
+            HStack(alignment: .bottom) {
+                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 8) {
                     Text(replacing
                         ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"

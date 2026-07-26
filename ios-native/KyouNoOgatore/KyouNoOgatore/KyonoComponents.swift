@@ -8,6 +8,21 @@
 
 import SwiftUI
 
+// フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+// §2 キャラクター画像: assets/chara*.pngをCharaArt/へ同梱済みの前提で、複数画面(相談室・オンボ・
+// ホーム等)から共通で使えるオガトレくん画像コンポーネント。nameは拡張子なしのファイル名
+// (例: "chara-hitokoto")。PBXFileSystemSynchronizedRootGroupがCharaArt/をビルド時にバンドル
+// ルートへフラット化するため、subdirectory指定なしで探す(DexView.swift loadCardArtと同じ考え方)。
+struct KyonoCharaImage: View {
+    let name: String
+    var body: some View {
+        if let url = Bundle.main.url(forResource: name, withExtension: "png"),
+           let uiImage = UIImage(contentsOfFile: url.path) {
+            Image(uiImage: uiImage).resizable().scaledToFit()
+        }
+    }
+}
+
 // index.html:95 .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px}
 struct KyonoCard<Content: View>: View {
     @Environment(\.kyonoColors) private var colors

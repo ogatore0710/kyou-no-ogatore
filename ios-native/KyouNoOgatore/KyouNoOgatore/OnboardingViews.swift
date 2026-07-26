@@ -172,8 +172,11 @@ private struct OnboardingContentView: View {
                 // index.html:478-483 .sd-row/.sd-b(相談室と共用の吹き出しCSSをオンボでも流用)の1:1移植。
                 // border-bottom-right-radius:6px(user)/border-bottom-left-radius:6px(bot)をUnevenRoundedRectangleで再現。
                 ForEach(bubbles) { b in
-                    HStack {
+                    // index.html:478-483,4150 .sd-row/.sd-b/.sd-ava(相談室と共用の吹き出しCSS・
+                    // chara-hitokotoアバターをオンボでも流用)の1:1移植。
+                    HStack(alignment: .bottom) {
                         if b.fromUser { Spacer(minLength: 40) }
+                        if !b.fromUser { KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38) }
                         let shape = UnevenRoundedRectangle(
                             topLeadingRadius: 16, bottomLeadingRadius: b.fromUser ? 16 : 6,
                             bottomTrailingRadius: b.fromUser ? 6 : 16, topTrailingRadius: 16

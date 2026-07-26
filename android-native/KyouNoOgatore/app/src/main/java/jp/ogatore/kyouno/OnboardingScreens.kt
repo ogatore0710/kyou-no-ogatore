@@ -145,8 +145,17 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
             Spacer(Modifier.height(12.dp))
             for (b in bubbles) {
-                // index.html:478-483 .sd-row/.sd-b(相談室と共用の吹き出しCSSをオンボでも流用)の1:1移植。
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = if (b.fromUser) Arrangement.End else Arrangement.Start) {
+                // index.html:478-483,4150 .sd-row/.sd-b/.sd-ava(相談室と共用の吹き出しCSS・
+                // chara-hitokotoアバターをオンボでも流用)の1:1移植。
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    horizontalArrangement = if (b.fromUser) Arrangement.End else Arrangement.Start,
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    if (!b.fromUser) {
+                        KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                        Spacer(Modifier.width(8.dp))
+                    }
                     Box(
                         Modifier.fillMaxWidth(0.82f)
                             .let {

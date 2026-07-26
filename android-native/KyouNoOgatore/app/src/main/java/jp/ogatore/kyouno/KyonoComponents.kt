@@ -1,5 +1,6 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,6 +29,19 @@ import androidx.compose.ui.unit.sp
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md
 // §「やること」2「共通コンポーネント化」): index.html .card/.btn/.btn-primary/.btn-ghostの1:1移植。
 // アプリ全体がこのカード型ボックス+ボタンの積み重ねで構成される(タスク文どおり最優先で直す箇所)。
+
+// フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+// §2 キャラクター画像: assets/chara*.pngをdrawable-nodpiへ同梱済みの前提で、複数画面(相談室・
+// オンボ・ホーム等)から共通で使えるオガトレくん画像コンポーネント。resNameは拡張子なしのdrawable名
+// (例: "chara_hitokoto")。
+@Composable
+fun KyonoCharaImage(resName: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val resId = remember(resName) { context.resources.getIdentifier(resName, "drawable", context.packageName) }
+    if (resId != 0) {
+        Image(painter = painterResource(id = resId), contentDescription = null, modifier = modifier)
+    }
+}
 
 // index.html:95 .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px}
 // 内部はColumn(縦積み)。中身が複数要素のとき単純にBoxへ渡すと重なって描画されてしまうため注意

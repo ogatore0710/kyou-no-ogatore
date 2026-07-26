@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -305,15 +306,29 @@ fun HomeScreen(
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
-            Text("#きょうのオガトレ", color = colors.ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
+            // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+            // §2 キャラクター画像: index.html:91-94 .logo(chara.png 52x52+タイトル+サブタイトル)の1:1移植。
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                KyonoCharaImage("chara", Modifier.size(52.dp))
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text("#きょうのオガトレ", color = colors.ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                    Text("みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                }
+            }
             Spacer(Modifier.height(16.dp))
 
             if (showDoneNudge) {
                 KyonoCard(Modifier.testTag("doneNudgeCard")) {
-                    Column {
-                        Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink)
-                        Spacer(Modifier.height(8.dp))
-                        KyonoGhostButton("わかった", { showDoneNudge = false }, Modifier.testTag("doneNudgeCloseBtn"))
+                    // index.html:451-454 .qbubble(吹き出し+chara-hitokoto.png、img右側・高さ44)の1:1移植。
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
+                        Column(Modifier.weight(1f)) {
+                            Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink)
+                            Spacer(Modifier.height(8.dp))
+                            KyonoGhostButton("わかった", { showDoneNudge = false }, Modifier.testTag("doneNudgeCloseBtn"))
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        KyonoCharaImage("chara_hitokoto", Modifier.height(44.dp))
                     }
                 }
                 Spacer(Modifier.height(16.dp))

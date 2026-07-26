@@ -231,7 +231,7 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                         // index.html:481,488,3080 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)/
                         // .sd-ava(chara-hitokoto.pngアバター・botメッセージのみ)の1:1移植。
                         is SdBubble.Bot -> Row(verticalAlignment = Alignment.Bottom) {
-                            SoudanAvatar()
+                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
                             Spacer(Modifier.width(8.dp))
                             val bg = if (m.red) colors.coralSoft else colors.card
                             val border = if (m.red) colors.coral else colors.line
@@ -254,7 +254,7 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                             }
                         }
                         is SdBubble.PlanConfirm -> Row(verticalAlignment = Alignment.Bottom) {
-                            SoudanAvatar()
+                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
                             Spacer(Modifier.width(8.dp))
                             Column(
                                 Modifier.fillMaxWidth(0.86f)
@@ -365,21 +365,6 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
     }
 }
 
-// フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
-// §2 キャラクター画像: index.html:3080 .sd-ava(botメッセージのみ・chara-hitokoto.png)の1:1移植。
-@Composable
-private fun SoudanAvatar() {
-    val context = LocalContext.current
-    val resId = remember { context.resources.getIdentifier("chara_hitokoto", "drawable", context.packageName) }
-    if (resId != 0) {
-        Image(
-            painter = painterResource(id = resId),
-            contentDescription = null,
-            modifier = Modifier.size(38.dp),
-        )
-    }
-}
-
 // index.html:440 .chip(丸ピル・line枠・card背景)の1:1移植。
 @Composable
 private fun KyonoChip(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -428,8 +413,17 @@ fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit
     }
     KyonoCard(Modifier.testTag("planCard")) {
         if (finished) {
-            Text("🎉 ${plan.label}プラン完走！すごい！", color = colors.ink, fontWeight = FontWeight.Black, modifier = Modifier.testTag("planDoneText"))
-            Text("${plan.days}日間続けたの、ほんとにえらい👏", color = colors.sub)
+            // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+            // §2 キャラクター画像: index.html:679 #planDoneCard(chara-congrats.png 84x84・中央寄せ)の1:1移植。
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                KyonoCharaImage("chara_congrats", Modifier.size(84.dp))
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "🎉 ${plan.label}プラン完走！すごい！", color = colors.ink, fontWeight = FontWeight.Black,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().testTag("planDoneText"),
+            )
+            Text("${plan.days}日間続けたの、ほんとにえらい👏", color = colors.sub, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
