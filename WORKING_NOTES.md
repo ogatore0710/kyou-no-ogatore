@@ -4,6 +4,37 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 見た目パリティ第2弾(本人実機フィードバック第2弾): ツアー精密再現・動画サムネイル・ホーム/マイ記録UX強化
+
+`TASK-C2-2026-07-26-visual-parity-round2.md`。フォント/キャラ画像修正版を確認した本人から
+「だいぶ良くなってきている」との評価とともに3点の指摘+1件の要望。「一旦はWeb版をほぼ完全に
+再現することを目標に開発を進め、その上でよりネイティブ版ならではの仕様にしてください」との
+大方針(まず忠実な再現→その次に改善の順序)のもと、優先度順①→②→③で完了。
+
+- **① 使い方ツアー・オンボーディングの精密再現(最優先)**: 各スライドが「実際のアプリ画面の
+  ミニチュア再現」であるWeb版(index.html:4117-4143 OB_TOUR_SLIDESのv フィールド)を9枚全部
+  1:1移植(新設`KyonoTourMockup`)。オンボーディング4問チャットにindex.html:4182 obSay()の
+  「1.5秒間隔で吹き出しが1つずつ出る」演出を追加(Android: LaunchedEffect+Channel、
+  iOS: .task+CheckedContinuation)。副産物として、これまで欠落していたbigtext回答時の
+  相槌メッセージ(index.html:4211)も実装。
+- **② 動画サムネイル(再生リスト・動画を探す)**: 新設`KyonoAsyncImage`(Android=produceState+
+  HttpURLConnection・Coilはプロジェクト内に実績が無く新規依存を避けた/iOS=標準AsyncImage)を
+  ツアーSlide1・検索/カタログのVideoRow双方で再利用。index.html:328-336 .video(112x16:9
+  サムネイル+3行clampタイトル+カテゴリbadge)を1:1移植。読み込み失敗時は何も表示しない
+  (Web版onerror="this.style.visibility='hidden'"と同じ)。AndroidManifestにINTERNET権限を追加。
+- **③ ホーム・マイ記録のUX強化(Web版準拠を土台に、ネイティブならではの上乗せのみ)**:
+  「きょうやった！」に軽いハプティクス(Android: HapticFeedbackType.LongPress・
+  iOS: UIImpactFeedbackGenerator)・FAB(💬/📣)にTalkBack/VoiceOver用のcontentDescription/
+  accessibilityLabel・とどくメーターの5段階ボタンに44dp/pt下限(heightIn/minHeight。Web版の
+  padding値自体は変更せず下限だけ確保)を追加。情報構造・文言・並び順の独自再設計はしない
+  という指示どおり、見た目・配色・タップ挙動は一切変更していない。
+- **実機確認**: Android実機でオンボ完走→かたさチェック→診断結果→ホーム→「きょうやった！」→
+  ツアー自動起動→9枚を最後まで送り全スライドの見た目を確認。動画を探す・再生リストの両方で
+  サムネイルの実読み込み成功を確認。「きょうやった！」タップでハプティクス呼び出しがクラッシュ
+  しないことを確認。
+- **回帰確認**: Android unit test / iOS 3パッケージ swift test(safety-fixtures 111/111,
+  card-golden 55/55) / npm test 442 すべてグリーン。Web/PWA配布ファイルは無変更。
+
 ## 2026-07-26 フォント適用漏れ・キャラ/タイプ画像の欠落修正(本人実機指摘)
 
 `TASK-C2-2026-07-26-visual-parity-fonts-characters.md`。本人が実機で新デザインを確認し、
