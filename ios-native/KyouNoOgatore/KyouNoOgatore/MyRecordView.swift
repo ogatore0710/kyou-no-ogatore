@@ -233,8 +233,10 @@ private struct MyRecordContentView: View {
                 KyonoCard {
                     KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター", fill: colors.yellowSoft)
                     Spacer().frame(height: 8)
-                    Text(reachList.last.map { "いまの記録: 段位\($0.lv)" } ?? "まだ記録なし").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
-                    Spacer().frame(height: 8)
+                    if reachList.isEmpty {
+                        Text("まだ記録なし！まずは1回はかってみましょう").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                        Spacer().frame(height: 8)
+                    }
                     // index.html:504-506 .reach-row(5列グリッド)/.reach-btn/.reach-btn.on(teal-strong塗り)の1:1移植。
                     HStack(spacing: 6) {
                         ForEach(Array(zip(1...5, ["ひざ", "すね", "足首", "つま先", "ゆか"])), id: \.0) { lv, label in
@@ -259,6 +261,47 @@ private struct MyRecordContentView: View {
                         }
                     }
                     if let reachMsg { Spacer().frame(height: 6); Text(reachMsg).font(.kyono(.bold700, size: 15)).foregroundColor(colors.teal) }
+                    // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md):
+                    // app-record.js:245-264 renderReach()の1:1移植(いまの記録+自己ベスト/前回比コメント/
+                    // 直近14回トレンド棒グラフ)。段位の記録・判定ロジック自体は変更せず、表示の追加のみ。
+                    if let latest = reachList.last {
+                        let best = reachList.map { $0.lv }.max() ?? latest.lv
+                        Spacer().frame(height: 8)
+                        (Text("いまの記録: ")
+                            + Text(reachLv[latest.lv]).fontWeight(.black).foregroundColor(colors.ink)
+                            + Text(verbatim: "（\(latest.d.dropFirst(5).replacingOccurrences(of: "-", with: "/"))）"))
+                            .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                        Spacer().frame(height: 4)
+                        (Text("自己ベスト: ") + Text(reachLv[best]).fontWeight(.black).foregroundColor(colors.teal))
+                            .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                        // 前回比(2回以上の記録があるときだけ・数字プレッシャーをかけない「段」表現)。
+                        if reachList.count >= 2 {
+                            let prev = reachList[reachList.count - 2]
+                            let diff = latest.lv - prev.lv
+                            Spacer().frame(height: 6)
+                            if diff > 0 {
+                                (Text("前回（\(reachLv[prev.lv])）より")
+                                    + Text("\(diff)段とどくようになった！🎉").fontWeight(.black).foregroundColor(colors.pink))
+                                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            } else if diff == 0 {
+                                Text("前回とおなじ「\(reachLv[latest.lv])」 キープも立派です！")
+                                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            } else {
+                                Text("体は日によってちがうもの またコツコツいきましょう🌱")
+                                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            }
+                        }
+                        // index.html:508-509 .rbar(直近14回・各バーの高さ=段位×20%)の1:1移植。
+                        Spacer().frame(height: 10)
+                        HStack(alignment: .bottom, spacing: 4) {
+                            ForEach(Array(reachList.suffix(14).enumerated()), id: \.offset) { _, entry in
+                                LinearGradient(colors: [Color(hex: 0x7BD0C4), colors.teal], startPoint: .top, endPoint: .bottom)
+                                    .frame(width: 16, height: 56 * CGFloat(entry.lv) / 5)
+                                    .cornerRadius(4)
+                            }
+                        }
+                        .frame(height: 56, alignment: .bottom)
+                    }
                 }
 
                 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:772-790
