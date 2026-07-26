@@ -196,10 +196,11 @@ struct KyonoGhostNavigationLink<Destination: View>: View {
 struct KyonoLineButton: View {
     @Environment(\.kyonoColors) private var colors
     let text: String
+    var enabled: Bool = true
     let action: () -> Void
 
-    init(_ text: String, action: @escaping () -> Void) {
-        self.text = text; self.action = action
+    init(_ text: String, enabled: Bool = true, action: @escaping () -> Void) {
+        self.text = text; self.enabled = enabled; self.action = action
     }
 
     var body: some View {
@@ -210,6 +211,8 @@ struct KyonoLineButton: View {
                 .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius).stroke(Color(hex: 0xE0D5BE), lineWidth: 2))
         }
         .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.5)
     }
 }
 

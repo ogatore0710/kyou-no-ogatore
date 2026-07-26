@@ -61,6 +61,7 @@ struct HomeView: View {
     let onOpenQuiz: () -> Void
     let onShowResult: (String) -> Void
     let onOpenSoudan: (String?) -> Void
+    let onOpenMyRecord: () -> Void
 
     @Environment(\.kyonoColors) private var colors
 
@@ -82,13 +83,15 @@ struct HomeView: View {
 
     init(
         store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenQuiz: @escaping () -> Void,
-        onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void
+        onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void,
+        onOpenMyRecord: @escaping () -> Void
     ) {
         self.store = store
         self.onStartTour = onStartTour
         self.onOpenQuiz = onOpenQuiz
         self.onShowResult = onShowResult
         self.onOpenSoudan = onOpenSoudan
+        self.onOpenMyRecord = onOpenMyRecord
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
@@ -181,6 +184,14 @@ struct HomeView: View {
             KyonoCard {
                 KyonoSectionTitle("📅 続けた日数（通算）")
                 KyonoStreakText(streak.total, streakCount: streak.count)
+                // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home):
+                // index.html:693 #fdDoneStaticNudge(はじめの1本ガイド中・未記録のときだけ出す常時案内)の
+                // 1:1移植。HomeLogic.fdActive(fd/streakTotalのみ・fdday条件なし)をそのまま使う。
+                if HomeLogic.fdActive(fd: fd, streakTotal: streak.total) && !did {
+                    Text("動画を見おわったら、ここを押してね👇")
+                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.pink)
+                        .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                }
                 KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did) {
                     guard !did else { return }
                     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
@@ -202,11 +213,35 @@ struct HomeView: View {
                 if let cheerText {
                     KyonoBodyText(cheerText)
                 }
+                // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
+                // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する
+                // (判定・データ構造は変更しない)。
+                if did {
+                    HomeMemoRow(store: store, today: today)
+                }
+                // 全画面完全性監査タスク #home: index.html:702 #plateauNote(通算12-16日/28-34日の
+                // 停滞期はげまし文言)の1:1移植。app-record.js:58-62の閾値をそのまま使う。
+                if !did {
+                    if (12...16).contains(streak.total) {
+                        (Text("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
+                            + Text("とどくメーター").font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                            + Text("で確かめてみて"))
+                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                            .onTapGesture { onOpenMyRecord() }
+                    } else if (28...34).contains(streak.total) {
+                        Text("💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ")
+                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    }
+                }
                 KyonoGhostButton("記録カードを見る") {
                     cardImage = renderTodayCard(store: store, streak: streak, ds: today)
                 }
                 .opacity(did ? 1 : 0.5)
                 .disabled(!did)
+                // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
+                Text("カード画像を保存かシェアでのこしてね📤")
+                    .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                    .multilineTextAlignment(.center).frame(maxWidth: .infinity)
             }
 
             // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。
@@ -258,6 +293,43 @@ struct HomeView: View {
                     }
                 }
                 .padding()
+            }
+        }
+    }
+}
+
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home): index.html:697-701
+// #memoRow(ひとことメモ入力欄+「メモをのこす」ボタン)の1:1移植。RecordLogic.saveMemo/loadMemos
+// (既存の純粋関数)を呼ぶだけに徹する(判定・データ構造は変更しない)。
+private struct HomeMemoRow: View {
+    @Environment(\.kyonoColors) private var colors
+    let store: RecordStore
+    let today: String
+
+    @State private var text: String
+    @State private var saved = false
+    @State private var savedNote: String?
+
+    init(store: RecordStore, today: String) {
+        self.store = store
+        self.today = today
+        _text = State(initialValue: RecordLogic.loadMemos(store)[today] ?? "")
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            TextField("ひとことメモをどうぞ", text: Binding(
+                get: { text },
+                set: { text = String($0.prefix(30)); saved = false }
+            )).textFieldStyle(.roundedBorder)
+            KyonoLineButton(saved ? "のこしました ✓" : "メモをのこす", enabled: !saved) {
+                RecordLogic.saveMemo(store, today: today, text: text)
+                savedNote = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? "メモを消しました" : "メモをのこしました✍️ 記録カードにも入ります"
+                saved = true
+            }
+            if let savedNote {
+                Text(savedNote).font(.kyono(.bold700, size: 14)).foregroundColor(colors.tealInk)
             }
         }
     }
@@ -419,6 +491,6 @@ private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData,
 #Preview {
     HomeView(
         store: RecordStore(inMemory: [:]), onStartTour: { _ in },
-        onOpenQuiz: {}, onShowResult: { _ in }, onOpenSoudan: { _ in }
+        onOpenQuiz: {}, onShowResult: { _ in }, onOpenSoudan: { _ in }, onOpenMyRecord: {}
     )
 }

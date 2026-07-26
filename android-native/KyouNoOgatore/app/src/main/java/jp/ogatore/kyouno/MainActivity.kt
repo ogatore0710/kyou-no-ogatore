@@ -37,6 +37,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -207,6 +209,7 @@ class MainActivity : ComponentActivity() {
                                             onOpenQuiz = { screen = Screen.Quiz(null) },
                                             onShowResult = { typeKey -> screen = Screen.Result(typeKey) },
                                             onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
+                                            onOpenMyRecord = { screen = Screen.MyRecord },
                                         )
                                     }
                                 }
@@ -303,6 +306,7 @@ fun HomeScreen(
     onOpenQuiz: () -> Unit,
     onShowResult: (String) -> Unit,
     onOpenSoudan: (String?) -> Unit,
+    onOpenMyRecord: () -> Unit,
 ) {
     val context = LocalContext.current
     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
@@ -452,6 +456,17 @@ fun HomeScreen(
                     color = colors.pink, fontSize = 20.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.testTag("streakText"),
                 )
+                // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home):
+                // index.html:693 #fdDoneStaticNudge(はじめの1本ガイド中・未記録のときだけ出す常時案内)の
+                // 1:1移植。HomeLogic.fdActive(fd/streakTotalのみ・fdday条件なし)をそのまま使う。
+                if (HomeLogic.fdActive(fd, streak.total) && !did) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "動画を見おわったら、ここを押してね👇", color = colors.pink, fontSize = 14.sp,
+                        fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().testTag("fdDoneStaticNudge"),
+                    )
+                }
                 Spacer(Modifier.height(12.dp))
                 KyonoPrimaryButton(
                     if (did) "きょうの分は完了！おつかれさまでした😊" else "きょうやった！",
@@ -478,8 +493,79 @@ fun HomeScreen(
                     Spacer(Modifier.height(10.dp))
                     Text(it, color = colors.sub, modifier = Modifier.testTag("cheerText"))
                 }
+                // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
+                // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する
+                // (判定・データ構造は変更しない)。
+                if (did) {
+                    var memoText by remember(today) { mutableStateOf(RecordLogic.loadMemos(store)[today] ?: "") }
+                    var memoSaved by remember(today) { mutableStateOf(false) }
+                    var memoSavedNote by remember(today) { mutableStateOf<String?>(null) }
+                    Spacer(Modifier.height(10.dp))
+                    Column(Modifier.testTag("memoRow")) {
+                        TextField(
+                            value = memoText,
+                            onValueChange = { s ->
+                                memoText = s.take(30)
+                                memoSaved = false
+                            },
+                            placeholder = { Text("ひとことメモをどうぞ", color = colors.subFaint) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
+                                focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                            ),
+                            modifier = Modifier.fillMaxWidth().testTag("memoInput"),
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        KyonoLineButton(
+                            if (memoSaved) "のこしました ✓" else "メモをのこす",
+                            {
+                                RecordLogic.saveMemo(store, today, memoText)
+                                memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました✍️ 記録カードにも入ります"
+                                memoSaved = true
+                            },
+                            Modifier.testTag("memoBtn"),
+                            enabled = !memoSaved,
+                        )
+                        memoSavedNote?.let {
+                            Spacer(Modifier.height(6.dp))
+                            Text(it, color = colors.teal, fontSize = 14.sp, modifier = Modifier.testTag("memoSaved"))
+                        }
+                    }
+                }
+                // 全画面完全性監査タスク #home: index.html:702 #plateauNote(通算12-16日/28-34日の
+                // 停滞期はげまし文言)の1:1移植。app-record.js:58-62の閾値をそのまま使う。
+                if (!did) {
+                    val plateauText = when {
+                        streak.total in 12..16 -> "💡 いまは効果を感じにくい時期！体は変わり続けていますよ とどくメーターで確かめてみて"
+                        streak.total in 28..34 -> "💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ"
+                        else -> null
+                    }
+                    plateauText?.let {
+                        Spacer(Modifier.height(8.dp))
+                        if (streak.total in 12..16) {
+                            Text(
+                                buildAnnotatedString {
+                                    append("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
+                                    withStyle(SpanStyle(color = colors.teal, fontWeight = FontWeight.Black)) { append("とどくメーター") }
+                                    append("で確かめてみて")
+                                },
+                                color = colors.sub, fontSize = 14.sp, lineHeight = 22.sp,
+                                modifier = Modifier.testTag("plateauNote").clickable { onOpenMyRecord() },
+                            )
+                        } else {
+                            Text(it, color = colors.sub, fontSize = 14.sp, lineHeight = 22.sp, modifier = Modifier.testTag("plateauNote"))
+                        }
+                    }
+                }
                 Spacer(Modifier.height(10.dp))
                 KyonoGhostButton("記録カードを見る", { cardBitmap = renderTodayCard(store, streak, today, context) }, Modifier.testTag("makeCardBtn"))
+                // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "カード画像を保存かシェアでのこしてね📤", color = colors.sub, fontSize = 13.sp,
+                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().testTag("cardHint"),
+                )
             }
 
             // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。

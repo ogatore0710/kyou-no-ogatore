@@ -202,7 +202,8 @@ struct RootView: View {
                 onStartTour: { showClosing in screen = .tour(showClosing: showClosing) },
                 onOpenQuiz: { screen = .quiz(presetWorry: nil) },
                 onShowResult: { typeKey in screen = .result(typeKey: typeKey) },
-                onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) }
+                onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
+                onOpenMyRecord: { screen = .myRecord }
             )
         }
     }

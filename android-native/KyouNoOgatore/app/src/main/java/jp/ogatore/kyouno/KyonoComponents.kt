@@ -134,17 +134,17 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 
 // index.html:104 .btn-line{background:none;border:2px solid #E0D5BE;color:var(--sub2);font-weight:800;font-size:15px}
 @Composable
-fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val colors = LocalKyonoColors.current
     Box(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.Transparent, KyonoButtonShape)
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, color = colors.sub2, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+        Text(text, color = colors.sub2.copy(alpha = if (enabled) 1f else 0.5f), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
 
