@@ -220,7 +220,7 @@ private struct SoudanContentView: View {
                 KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
                 Spacer()
                 Button(action: onClose) {
-                    Text("✕").foregroundColor(colors.ink).fontWeight(.black)
+                    Text("✕").font(.kyono(.black900, size: 18)).foregroundColor(colors.ink)
                         .frame(width: 40, height: 40)
                         .background(Circle().fill(colors.line))
                 }
@@ -230,7 +230,7 @@ private struct SoudanContentView: View {
             .background(colors.card)
             // index.html:466-467 .sd-disc
             Text("※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ")
-                .font(.system(size: 13)).foregroundColor(colors.sub).multilineTextAlignment(.center)
+                .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub).multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16).padding(.vertical, 6)
                 .background(colors.card)
@@ -238,7 +238,8 @@ private struct SoudanContentView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊").foregroundColor(colors.sub)
+                    Text("肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊")
+                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
                     ForEach(messages) { m in bubbleView(m) }
                 }
                 .padding(16)
@@ -256,7 +257,7 @@ private struct SoudanContentView: View {
         case let .user(text):
             HStack {
                 Spacer()
-                Text(text).foregroundColor(colors.ink)
+                Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomLeft]).fill(colors.yellowSoft))
             }
@@ -266,7 +267,7 @@ private struct SoudanContentView: View {
             let border = red ? colors.coral : colors.line
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
-                    if !text.isEmpty { Text(text).foregroundColor(colors.ink) }
+                    if !text.isEmpty { Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink) }
                     if let videoId {
                         KyonoGhostButton("▶ 動画を見る") { openUrl("https://www.youtube.com/watch?v=\(videoId)") }
                     }
@@ -285,7 +286,7 @@ private struct SoudanContentView: View {
                     Text(replacing
                         ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"
                         : "きょうの1本が、あなたの\(label)プランになるよ！2週間いっしょにやってみる？")
-                        .foregroundColor(colors.ink)
+                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
                     KyonoPrimaryButton(replacing ? "入れ替えてはじめる！" : "はじめる！") { onPlanStart(intentId) }
                     KyonoGhostButton("まずは1本だけ") { onPlanDecline() }
                 }
@@ -432,7 +433,7 @@ struct PlanProgressCardView: View {
         KyonoCard {
             if finished {
                 Text("🎉 \(plan.label)プラン完走！すごい！").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
-                Text("\(plan.days)日間続けたの、ほんとにえらい👏").foregroundColor(colors.sub)
+                Text("\(plan.days)日間続けたの、ほんとにえらい👏").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
             } else {
                 HStack(alignment: .firstTextBaseline) {
                     Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")

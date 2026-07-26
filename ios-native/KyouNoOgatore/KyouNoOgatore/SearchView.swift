@@ -79,10 +79,10 @@ private struct VideoRow: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 if let tag = v.tags?.first {
-                    Text(tag).font(.system(size: 11, weight: .black)).foregroundColor(colors.tealInk)
+                    Text(tag).font(.kyono(.black900, size: 11)).foregroundColor(colors.tealInk)
                 }
-                Text(v.t).font(.system(size: 14, weight: .bold)).foregroundColor(colors.ink)
-                Text(v.s).font(.system(size: 12)).foregroundColor(colors.sub)
+                Text(v.t).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                Text(v.s).font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -147,7 +147,7 @@ private struct SearchContentView: View {
                 HStack(spacing: 6) {
                     ForEach(tagCats, id: \.key) { cat in
                         let on = cat.key == activeCat
-                        Text(cat.name).font(.system(size: 14, weight: .black)).foregroundColor(on ? colors.ink : colors.sub)
+                        Text(cat.name).font(.kyono(.black900, size: 14)).foregroundColor(on ? colors.ink : colors.sub)
                             .padding(.horizontal, 13).padding(.vertical, 10)
                             .background(RoundedRectangle(cornerRadius: 12).fill(on ? colors.yellow : colors.line))
                             .onTapGesture { activeCat = cat.key; activeTag = nil }
@@ -161,7 +161,7 @@ private struct SearchContentView: View {
                 HStack(spacing: 6) {
                     ForEach(activeCatTags, id: \.self) { tag in
                         let on = tag == activeTag
-                        Text(tag).font(.system(size: 14, weight: .bold)).foregroundColor(on ? cc.onText : cc.text)
+                        Text(tag).font(.kyono(.bold700, size: 14)).foregroundColor(on ? cc.onText : cc.text)
                             .padding(.horizontal, 16).padding(.vertical, 10)
                             .background(Capsule().fill(on ? cc.onBg : cc.bg))
                             .overlay(Capsule().stroke(on ? cc.onBorder : cc.border, lineWidth: 2))
@@ -169,7 +169,7 @@ private struct SearchContentView: View {
                     }
                 }
             }
-            Text("\(hits.count)件見つかりました").font(.system(size: 12)).foregroundColor(colors.sub)
+            Text("\(hits.count)件見つかりました").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
                     ForEach(Array(hits.prefix(searchLimit)), id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
@@ -210,14 +210,14 @@ private struct CatalogListContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("再生リスト").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
-            Text("\(catalog.count)本の動画").font(.system(size: 12)).foregroundColor(colors.sub)
+            Text("\(catalog.count)本の動画").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
                     ForEach(catalog, id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
                     // index.html:941 .hint(固定表示にするとFAB2段(右下)と重なるバグの再発になる=
                     // とどくメーターの5番目ボタンで既発見済みの教訓と同種のため、リスト末尾項目にする)
                     Text("タップするとYouTubeで開きます！テレビで流すのもおすすめ📺")
-                        .font(.system(size: 13)).foregroundColor(colors.sub)
+                        .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
                         .padding(.top, 8).padding(.bottom, 90)
                 }
             }

@@ -73,7 +73,7 @@ struct SettingsView: View {
                     }
                     if let exportText {
                         Spacer().frame(height: 8)
-                        Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:").font(.caption)
+                        Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:").font(.kyono(.bold700, size: 12))
                         TextEditor(text: .constant(exportText)).frame(height: 120).border(Color.gray.opacity(0.3))
                     }
 
@@ -85,7 +85,7 @@ struct SettingsView: View {
                     KyonoLineButton("📥 よみこむ") { confirmImport = true }
                     if let importMessage {
                         Spacer().frame(height: 8)
-                        Text(importMessage)
+                        Text(importMessage).font(.kyono(.bold700, size: 15))
                     }
                 }
             }

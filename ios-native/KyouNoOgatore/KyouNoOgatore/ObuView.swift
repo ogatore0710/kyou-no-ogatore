@@ -51,7 +51,7 @@ private struct ObuContentView: View {
             if posts.isEmpty {
                 KyonoCard {
                     Text("まだ投稿がありません また今度のぞいてみてね🌱")
-                        .font(.system(size: 14)).foregroundColor(colors.sub)
+                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
                 }
@@ -78,7 +78,7 @@ private struct ObuPostCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(post.date + (post.time.map { " " + $0 } ?? ""))
-                .font(.system(size: 12, weight: .black)).foregroundColor(isText ? colors.sub2 : colors.sub)
+                .font(.kyono(.black900, size: 12)).foregroundColor(isText ? colors.sub2 : colors.sub)
             switch post.type {
             case "photo":
                 if let imagePath = post.image, let base = ObuLoader.imageFileBaseName(imagePath),
@@ -89,12 +89,12 @@ private struct ObuPostCardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
                 }
-                if let text = post.text { Text(text).font(.system(size: 14)).foregroundColor(colors.ink).lineSpacing(6) }
+                if let text = post.text { Text(text).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(6) }
             case "radio":
-                if let title = post.title { Text("📻 \(title)").font(.system(size: 14, weight: .black)).foregroundColor(colors.tealInk) }
-                Text("🎧 音声つき投稿(ネイティブでは再生UI未実装)").font(.system(size: 12)).foregroundColor(colors.sub)
+                if let title = post.title { Text("📻 \(title)").font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk) }
+                Text("🎧 音声つき投稿(ネイティブでは再生UI未実装)").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
             default:
-                if let text = post.text { Text(text).font(.system(size: 15)).foregroundColor(colors.ink).lineSpacing(9) }
+                if let text = post.text { Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineSpacing(9) }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

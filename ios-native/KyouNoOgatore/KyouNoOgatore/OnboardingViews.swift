@@ -178,7 +178,7 @@ private struct OnboardingContentView: View {
                             topLeadingRadius: 16, bottomLeadingRadius: b.fromUser ? 16 : 6,
                             bottomTrailingRadius: b.fromUser ? 6 : 16, topTrailingRadius: 16
                         )
-                        Text(b.text).font(.system(size: 15)).foregroundColor(colors.ink).lineSpacing(11)
+                        Text(b.text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineSpacing(11)
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(shape.fill(b.fromUser ? colors.yellowSoft : colors.card))
                             .overlay(shape.stroke(b.fromUser ? Color.clear : colors.line, lineWidth: 1.5))
@@ -187,11 +187,11 @@ private struct OnboardingContentView: View {
                 }
                 if qi < obQuestions.count {
                     let q = obQuestions[qi]
-                    Text("👇 タップしてえらんでね").font(.system(size: 12)).foregroundColor(colors.sub)
+                    Text("👇 タップしてえらんでね").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
                     let palette = obgColors(dark: dark)
                     ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
                         let c = palette[i % 4]
-                        Text(chip.label).font(.system(size: 16, weight: .bold)).foregroundColor(colors.ink)
+                        Text(chip.label).font(.kyono(.bold700, size: 16)).foregroundColor(colors.ink)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 18).padding(.vertical, 14)
                             .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
@@ -379,12 +379,12 @@ private struct QuizContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 Text("かたさチェック").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
-                Text("Q\(qi + 1) / \(activeQuestions.count)").font(.system(size: 12, weight: .black)).foregroundColor(colors.sub)
+                Text("Q\(qi + 1) / \(activeQuestions.count)").font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
                 if qi < activeQuestions.count {
                     let q = activeQuestions[qi]
                     Spacer().frame(height: 4)
-                    Text(q.title).font(.system(size: 18, weight: .black)).foregroundColor(colors.ink)
-                    Text(q.note).font(.system(size: 13)).foregroundColor(colors.sub)
+                    Text(q.title).font(.kyono(.black900, size: 18)).foregroundColor(colors.ink)
+                    Text(q.note).font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
                     if let artResName = q.artResName {
                         Image(artResName).resizable().scaledToFit()
                             .background(colors.bg).cornerRadius(16)
@@ -395,8 +395,8 @@ private struct QuizContentView: View {
                     ForEach(Array(q.opts.enumerated()), id: \.offset) { i, opt in
                         let c = palette[i % 4]
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(opt.label).font(.system(size: 15, weight: .black)).foregroundColor(colors.ink)
-                            Text(opt.note).font(.system(size: 13, weight: .bold)).foregroundColor(colors.sub)
+                            Text(opt.label).font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                            Text(opt.note).font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16).padding(.vertical, 14)
@@ -448,10 +448,10 @@ private struct ResultContentView: View {
                     Text(info.name).font(.kyono(.black900, size: 29)).foregroundColor(colors.ink)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 8)
-                    Text(info.copy).font(.system(size: 15)).foregroundColor(colors.sub)
+                    Text(info.copy).font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 12)
-                    Text("🌱 " + info.hope).font(.system(size: 15)).foregroundColor(colors.ink)
+                    Text("🌱 " + info.hope).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
                         .padding(14)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(colors.yellowSoft)
@@ -516,13 +516,13 @@ private struct TourContentView: View {
         VStack(alignment: .leading, spacing: 10) {
             if si < obTourSlides.count {
                 let slide = obTourSlides[si]
-                Text(slide.title).font(.system(size: 17, weight: .black)).foregroundColor(colors.ink)
-                Text(slide.desc).font(.system(size: 14)).foregroundColor(colors.ink).lineSpacing(11)
+                Text(slide.title).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
+                Text(slide.desc).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(11)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
             } else {
-                Text(obTourClosingTitle).font(.system(size: 17, weight: .black)).foregroundColor(colors.ink)
+                Text(obTourClosingTitle).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
             }
             // index.html:313-315 .dots/.dot/.dot.on
             HStack(spacing: 6) {

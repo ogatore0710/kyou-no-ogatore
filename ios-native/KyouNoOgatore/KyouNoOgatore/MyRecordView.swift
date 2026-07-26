@@ -126,7 +126,7 @@ private struct MyRecordContentView: View {
                     Spacer().frame(height: 8)
                     HStack {
                         ForEach(["日", "月", "火", "水", "木", "金", "土"], id: \.self) { w in
-                            Text(w).font(.system(size: 12, weight: .black)).foregroundColor(colors.sub)
+                            Text(w).font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -136,7 +136,7 @@ private struct MyRecordContentView: View {
                 KyonoCard {
                     Text("🎫 おやすみ券").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
                     Spacer().frame(height: 6)
-                    Text(verbatim: "おやすみ券 のこり\(freezeLeft)枚").foregroundColor(colors.sub)
+                    Text(verbatim: "おやすみ券 のこり\(freezeLeft)枚").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
                     Spacer().frame(height: 8)
                     // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
                     GeometryReader { geo in
@@ -152,14 +152,14 @@ private struct MyRecordContentView: View {
                 KyonoCard {
                     KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター", fill: colors.yellowSoft)
                     Spacer().frame(height: 8)
-                    Text(reachList.last.map { "いまの記録: 段位\($0.lv)" } ?? "まだ記録なし").foregroundColor(colors.sub)
+                    Text(reachList.last.map { "いまの記録: 段位\($0.lv)" } ?? "まだ記録なし").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
                     Spacer().frame(height: 8)
                     // index.html:504-506 .reach-row(5列グリッド)/.reach-btn/.reach-btn.on(teal-strong塗り)の1:1移植。
                     HStack(spacing: 6) {
                         ForEach(Array(zip(1...5, ["ひざ", "すね", "足首", "つま先", "ゆか"])), id: \.0) { lv, label in
                             let on = reachList.last?.lv == lv
                             Text(label)
-                                .font(.system(size: 14, weight: .black))
+                                .font(.kyono(.black900, size: 14))
                                 .foregroundColor(on ? .white : colors.sub)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
@@ -174,7 +174,7 @@ private struct MyRecordContentView: View {
                                 }
                         }
                     }
-                    if let reachMsg { Spacer().frame(height: 6); Text(reachMsg).foregroundColor(colors.teal) }
+                    if let reachMsg { Spacer().frame(height: 6); Text(reachMsg).font(.kyono(.bold700, size: 15)).foregroundColor(colors.teal) }
                 }
 
                 KyonoLineButton("📅 カレンダーに登録する") {
@@ -182,7 +182,7 @@ private struct MyRecordContentView: View {
                         calendarMsg = ok ? "カレンダーに追加しました" : "カレンダーへの追加が許可されませんでした"
                     }
                 }
-                if let calendarMsg { Text(calendarMsg).foregroundColor(colors.pink) }
+                if let calendarMsg { Text(calendarMsg).font(.kyono(.bold700, size: 15)).foregroundColor(colors.pink) }
             }
             .padding(20)
         }
@@ -206,7 +206,7 @@ private struct MyRecordContentView: View {
                                 let isFuture = ds > today
                                 // index.html:406-409,413 .cal .d/.d.done(teal-strong塗り)/.d.today(pink枠)/.d.mute
                                 Text(verbatim: "\(day)")
-                                    .font(.system(size: 15, weight: .bold))
+                                    .font(.kyono(.bold700, size: 15))
                                     .frame(maxWidth: .infinity, minHeight: 32)
                                     .foregroundStyle(isDone ? .white : (isFuture ? Color(hex: 0xD5CFBE) : colors.ink))
                                     .background(isDone ? colors.tealStrong : Color.clear)

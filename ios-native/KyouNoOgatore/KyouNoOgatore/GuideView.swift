@@ -51,7 +51,7 @@ private struct GuideContentView: View {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             KyonoSectionHeader(icon: .question, title: "よくあるしつもん", fill: colors.coralSoft)
-            Text("しつもんをタップすると こたえがひらきます").font(.system(size: 13)).foregroundColor(colors.sub)
+            Text("しつもんをタップすると こたえがひらきます").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
             // index.html:426-429 .searchbox
             TextField("🔍 キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
                 .padding(.horizontal, 14).padding(.vertical, 10)
@@ -72,7 +72,7 @@ private struct GuideContentView: View {
                             HStack {
                                 Text(group.title).font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
                                 Spacer()
-                                Text(isOpen ? "▴" : "▾").foregroundColor(colors.sub)
+                                Text(isOpen ? "▴" : "▾").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
                             }
                             .padding(.top, 12)
                             .contentShape(Rectangle())
@@ -87,10 +87,10 @@ private struct GuideContentView: View {
                                             Text("Q").font(.kyono(.black900, size: 15)).foregroundColor(colors.pink)
                                             Text(item.q).font(.kyono(.extraBold800, size: 14)).foregroundColor(colors.ink)
                                             Spacer()
-                                            Text(open ? "▴" : "▾").foregroundColor(colors.sub)
+                                            Text(open ? "▴" : "▾").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
                                         }
                                         if open {
-                                            Text(item.a).font(.system(size: 14)).foregroundColor(colors.sub).padding(.leading, 18)
+                                            Text(item.a).font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub).padding(.leading, 18)
                                         }
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)

@@ -33,6 +33,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -89,7 +90,30 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf<Screen>(if (store.get("onboarded", false)) Screen.Home else Screen.Onboarding)
             }
             val themeSetting = store.get("theme", "auto")
-            MaterialTheme {
+            // フォント適用漏れ修正(TASK-C2-2026-07-26-visual-parity-fonts-characters.md):
+            // 本文用フォントをM PLUS 1p(Bold=700系)にするため、Typography全スタイルのfontFamilyを
+            // 一括で差し替え、アプリ全体の素朴なText()呼び出しにも反映させる(各画面のTextコンポーザブルを
+            // 1件ずつ書き換える代わりに、Typography層で共通適用する方針)。
+            val mplus1p = KyonoFonts.mplus1p()
+            val baseTypography = Typography()
+            val kyonoTypography = Typography(
+                displayLarge = baseTypography.displayLarge.copy(fontFamily = mplus1p),
+                displayMedium = baseTypography.displayMedium.copy(fontFamily = mplus1p),
+                displaySmall = baseTypography.displaySmall.copy(fontFamily = mplus1p),
+                headlineLarge = baseTypography.headlineLarge.copy(fontFamily = mplus1p),
+                headlineMedium = baseTypography.headlineMedium.copy(fontFamily = mplus1p),
+                headlineSmall = baseTypography.headlineSmall.copy(fontFamily = mplus1p),
+                titleLarge = baseTypography.titleLarge.copy(fontFamily = mplus1p),
+                titleMedium = baseTypography.titleMedium.copy(fontFamily = mplus1p),
+                titleSmall = baseTypography.titleSmall.copy(fontFamily = mplus1p),
+                bodyLarge = baseTypography.bodyLarge.copy(fontFamily = mplus1p),
+                bodyMedium = baseTypography.bodyMedium.copy(fontFamily = mplus1p),
+                bodySmall = baseTypography.bodySmall.copy(fontFamily = mplus1p),
+                labelLarge = baseTypography.labelLarge.copy(fontFamily = mplus1p),
+                labelMedium = baseTypography.labelMedium.copy(fontFamily = mplus1p),
+                labelSmall = baseTypography.labelSmall.copy(fontFamily = mplus1p),
+            )
+            MaterialTheme(typography = kyonoTypography) {
                 KyonoTheme(themeSetting) {
                     val colors = LocalKyonoColors.current
                     Surface(modifier = Modifier.fillMaxSize(), color = colors.bg) {

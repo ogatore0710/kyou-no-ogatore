@@ -166,7 +166,7 @@ struct KyonoFab: View {
 
     var body: some View {
         Button(action: action) {
-            Text(emoji).font(.system(size: 22))
+            Text(emoji).font(.kyono(.bold700, size: 22))
                 .frame(width: 56, height: 56)
                 .background(Circle().fill(colors.card))
                 .overlay(Circle().stroke(borderColor, lineWidth: 3))
