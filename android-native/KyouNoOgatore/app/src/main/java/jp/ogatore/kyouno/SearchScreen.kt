@@ -6,6 +6,8 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +22,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -29,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -150,8 +155,14 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
         var activeTag by remember { mutableStateOf<String?>(null) }
         var query by remember { mutableStateOf("") }
         var searchLimit by remember { mutableStateOf(24) }
+        // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #search):
+        // index.html:955 #ySel(年フィルタ)の1:1移植。searchCatalogのyearパラメータ自体は既存で
+        // あったが、選択UIが無く常にnullで呼ばれていた(=年フィルタが機能していなかった)欠落。
+        val years = remember { catalog.map { it.y }.toSortedSet(compareByDescending { it }).toList() }
+        var selectedYear by remember { mutableStateOf<Int?>(null) }
+        var yearMenuOpen by remember { mutableStateOf(false) }
 
-        val hits = remember(query, activeTag) { searchCatalog(catalog, query, activeTag, null) }
+        val hits = remember(query, activeTag, selectedYear) { searchCatalog(catalog, query, activeTag, selectedYear) }
 
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
@@ -206,7 +217,31 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text("${hits.size}件見つかりました", color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("searchHitCount"))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box {
+                    Text(
+                        (selectedYear?.let { "${it}年" } ?: "すべての年") + " ▾",
+                        color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier
+                            .background(colors.card, RoundedCornerShape(12.dp))
+                            .border(2.dp, colors.line, RoundedCornerShape(12.dp))
+                            .clickable { yearMenuOpen = true }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .testTag("searchYearSelect"),
+                    )
+                    DropdownMenu(expanded = yearMenuOpen, onDismissRequest = { yearMenuOpen = false }) {
+                        DropdownMenuItem(text = { Text("すべての年") }, onClick = { selectedYear = null; yearMenuOpen = false; searchLimit = 24 })
+                        years.forEach { y ->
+                            DropdownMenuItem(text = { Text("${y}年") }, onClick = { selectedYear = y; yearMenuOpen = false; searchLimit = 24 })
+                        }
+                    }
+                }
+                Text("${hits.size}件見つかりました", color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("searchHitCount"))
+            }
             Spacer(Modifier.height(6.dp))
             LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("searchResults")) {
                 items(hits.take(searchLimit)) { v -> VideoRow(v, openUrl) }

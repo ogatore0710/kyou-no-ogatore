@@ -118,14 +118,20 @@ struct SearchView: View {
     @State private var activeTag: String?
     @State private var query = ""
     @State private var searchLimit = 24
+    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #search):
+    // index.html:955 #ySel(年フィルタ)の1:1移植。searchCatalogのyearパラメータ自体は既存で
+    // あったが、選択UIが無く常にnilで呼ばれていた(=年フィルタが機能していなかった)欠落。
+    @State private var selectedYear: Int?
 
-    private var hits: [CatalogVideo] { searchCatalog(catalog, query: query, activeTag: activeTag, year: nil) }
+    private var years: [Int] { Array(Set(catalog.map { $0.y })).sorted(by: >) }
+    private var hits: [CatalogVideo] { searchCatalog(catalog, query: query, activeTag: activeTag, year: selectedYear) }
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting) {
             SearchContentView(
                 activeCat: $activeCat, activeTag: $activeTag, query: $query, searchLimit: $searchLimit,
+                selectedYear: $selectedYear, years: years,
                 hits: hits, onBack: onBack, openUrl: openUrl
             )
         }
@@ -139,6 +145,8 @@ private struct SearchContentView: View {
     @Binding var activeTag: String?
     @Binding var query: String
     @Binding var searchLimit: Int
+    @Binding var selectedYear: Int?
+    let years: [Int]
     let hits: [CatalogVideo]
     let onBack: () -> Void
     let openUrl: (String) -> Void
@@ -183,7 +191,22 @@ private struct SearchContentView: View {
                     }
                 }
             }
-            Text("\(hits.count)件見つかりました").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+            HStack {
+                Menu {
+                    Button("すべての年") { selectedYear = nil; searchLimit = 24 }
+                    ForEach(years, id: \.self) { y in
+                        Button("\(y)年") { selectedYear = y; searchLimit = 24 }
+                    }
+                } label: {
+                    Text((selectedYear.map { "\($0)年" } ?? "すべての年") + " ▾")
+                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
+                }
+                Spacer()
+                Text("\(hits.count)件見つかりました").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+            }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
                     ForEach(Array(hits.prefix(searchLimit)), id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
