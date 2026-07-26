@@ -18,7 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -327,13 +330,16 @@ data class QuizTypeResult(val key: String, val worry: String?, val at: String)
 // QuizEngine.decideType(Step4で移植済み)を呼ぶだけで、ここでは一切再実装しない
 // (マスタープラン§6 Step5c検収基準2)。presetWorryがあるときはQ5(worry)を出題しない。
 @Composable
-fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String) -> Unit) {
+fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String) -> Unit, onGoHome: () -> Unit) {
     val activeQuestions = remember(presetWorry) {
         if (presetWorry != null) QUIZ_QUESTIONS.filter { it.key != "worry" } else QUIZ_QUESTIONS
     }
     var qi by remember { mutableStateOf(0) }
     val scores = remember { mutableStateMapOf<String, Int>() }
     var worry by remember { mutableStateOf(presetWorry) }
+    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #quiz):
+    // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
+    var showGoHomeConfirm by remember { mutableStateOf(false) }
 
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting) {
@@ -349,6 +355,9 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                 Text(q.title, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizTitle"))
                 Spacer(Modifier.height(4.dp))
                 Text(q.note, color = colors.sub, fontSize = 13.sp)
+                // 全画面完全性監査タスク #quiz: index.html:717 .tap-hint(タップ誘導文言)の1:1移植。
+                Spacer(Modifier.height(6.dp))
+                Text("👇 タップしてえらんでね", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 q.artRes?.let { res ->
                     Spacer(Modifier.height(10.dp))
                     Image(
@@ -384,7 +393,28 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                         Text(opt.note, color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
                     }
                 }
+                // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示・まえの質問へ戻る)の1:1移植。
+                if (qi > 0) {
+                    Spacer(Modifier.height(10.dp))
+                    KyonoLineButton("← まえの質問へ", { qi-- }, Modifier.testTag("qBackBtn"))
+                }
+                // 全画面完全性監査タスク #quiz: index.html:721 「ホームにもどる」ボタンの1:1移植。
+                // index.html:1649 quizGoHome(): 回答済み(qi>0)のときだけ確認ダイアログを出す。
+                Spacer(Modifier.height(10.dp))
+                KyonoLineButton(
+                    "ホームにもどる",
+                    { if (qi > 0) showGoHomeConfirm = true else onGoHome() },
+                    Modifier.testTag("quizGoHomeBtn"),
+                )
             }
+        }
+        if (showGoHomeConfirm) {
+            AlertDialog(
+                onDismissRequest = { showGoHomeConfirm = false },
+                title = { Text("回答を消してホームにもどる？") },
+                confirmButton = { Button(onClick = { showGoHomeConfirm = false; onGoHome() }) { Text("もどる") } },
+                dismissButton = { TextButton(onClick = { showGoHomeConfirm = false }) { Text("キャンセル") } },
+            )
         }
     }
 }

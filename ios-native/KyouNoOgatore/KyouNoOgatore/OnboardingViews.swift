@@ -359,16 +359,21 @@ struct QuizView: View {
     let store: RecordStore
     let presetWorry: String?
     let onComplete: (_ typeKey: String) -> Void
+    let onGoHome: () -> Void
 
     private let activeQuestions: [QuizQuestionDef]
     @State private var qi = 0
     @State private var scores: [String: Int] = [:]
     @State private var worry: String?
+    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #quiz):
+    // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
+    @State private var showGoHomeConfirm = false
 
-    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String) -> Void) {
+    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String) -> Void, onGoHome: @escaping () -> Void) {
         self.store = store
         self.presetWorry = presetWorry
         self.onComplete = onComplete
+        self.onGoHome = onGoHome
         self.activeQuestions = presetWorry != nil ? quizQuestions.filter { $0.key != "worry" } : quizQuestions
         _worry = State(initialValue: presetWorry)
     }
@@ -378,7 +383,8 @@ struct QuizView: View {
     var body: some View {
         KyonoTheme(themeSetting: themeSetting) {
             QuizContentView(
-                activeQuestions: activeQuestions, qi: qi, onOptTap: { q, opt in
+                activeQuestions: activeQuestions, qi: qi,
+                onOptTap: { q, opt in
                     if let score = opt.score { scores[q.key] = score }
                     if let worryKey = opt.worryKey { worry = worryKey }
                     qi += 1
@@ -388,8 +394,14 @@ struct QuizView: View {
                         store.set("type", QuizTypeResult(key: typeKey, worry: worry, at: RecordLogic.todayStr(now: Date())))
                         onComplete(typeKey)
                     }
-                }
+                },
+                onBack: { if qi > 0 { qi -= 1 } },
+                onGoHomeTap: { if qi > 0 { showGoHomeConfirm = true } else { onGoHome() } }
             )
+        }
+        .alert("回答を消してホームにもどる？", isPresented: $showGoHomeConfirm) {
+            Button("もどる", role: .destructive) { onGoHome() }
+            Button("キャンセル", role: .cancel) {}
         }
     }
 }
@@ -399,6 +411,8 @@ private struct QuizContentView: View {
     let activeQuestions: [QuizQuestionDef]
     let qi: Int
     let onOptTap: (QuizQuestionDef, QuizOptDef) -> Void
+    let onBack: () -> Void
+    let onGoHomeTap: () -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
@@ -416,6 +430,9 @@ private struct QuizContentView: View {
                         Image(artResName).resizable().scaledToFit()
                             .background(colors.bg).cornerRadius(16)
                     }
+                    // 全画面完全性監査タスク #quiz: index.html:717 .tap-hint(タップ誘導文言)の1:1移植。
+                    Spacer().frame(height: 6)
+                    Text("👇 タップしてえらんでね").font(.kyono(.black900, size: 13)).foregroundColor(colors.ink)
                     Spacer().frame(height: 4)
                     // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
                     let palette = obgColors(dark: dark)
@@ -433,6 +450,14 @@ private struct QuizContentView: View {
                         .onTapGesture { onOptTap(q, opt) }
                     }
                 }
+                // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。
+                if qi > 0 {
+                    Spacer().frame(height: 2)
+                    KyonoLineButton("← まえの質問へ", action: onBack)
+                }
+                // 全画面完全性監査タスク #quiz: index.html:721 「ホームにもどる」ボタンの1:1移植。
+                Spacer().frame(height: 2)
+                KyonoLineButton("ホームにもどる", action: onGoHomeTap)
             }
             .padding(20)
         }

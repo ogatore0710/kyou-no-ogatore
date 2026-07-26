@@ -155,6 +155,7 @@ class MainActivity : ComponentActivity() {
                                             store = store,
                                             presetWorry = s.presetWorry,
                                             onComplete = { typeKey -> screen = Screen.Result(typeKey) },
+                                            onGoHome = { screen = Screen.Home },
                                         )
                                         is Screen.Result -> ResultScreen(typeKey = s.typeKey, onDone = { screen = Screen.Home })
                                         is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })

@@ -135,9 +135,11 @@ struct RootView: View {
                 screen = route == "quiz" ? .quiz(presetWorry: presetWorry) : .home
             }
         case let .quiz(presetWorry):
-            QuizView(store: store, presetWorry: presetWorry) { typeKey in
-                screen = .result(typeKey: typeKey)
-            }
+            QuizView(
+                store: store, presetWorry: presetWorry,
+                onComplete: { typeKey in screen = .result(typeKey: typeKey) },
+                onGoHome: { screen = .home }
+            )
         case let .result(typeKey):
             ResultView(typeKey: typeKey) { screen = .home }
         case let .tour(showClosing):
