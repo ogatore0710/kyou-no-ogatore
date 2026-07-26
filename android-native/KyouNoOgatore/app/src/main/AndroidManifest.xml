@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §2): 動画サムネイル
+         (https://i.ytimg.com/vi/...)・使い方ツアーのミニチュア内サムネイルの読み込みに必要。 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
