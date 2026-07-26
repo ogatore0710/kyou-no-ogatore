@@ -4,13 +4,17 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md
 // §「Web版の正本（デザイントークン」): index.htmlのCSS変数(:root/body.dark)から抽出した値をそのまま
@@ -143,5 +147,22 @@ fun resolveKyonoColors(themeSetting: String): KyonoColors {
 @Composable
 fun KyonoTheme(themeSetting: String, content: @Composable () -> Unit) {
     val colors = resolveKyonoColors(themeSetting)
+    // ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: themes.xmlの
+    // android:statusBarColor/navigationBarColorがライト固定(#FFFAF3)のままで、アプリ内のダーク
+    // モード時にステータスバー/ナビゲーションバーだけライト色が残留していた(コンテンツ自体は正しく
+    // ダーク配色されていた)。KyonoThemeが解決した配色に合わせてここで上書きする。
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        val dark = colors.bg == KyonoDarkColors.bg
+        val bgArgb = colors.bg.toArgb()
+        SideEffect {
+            val window = (view.context as? android.app.Activity)?.window ?: return@SideEffect
+            window.statusBarColor = bgArgb
+            window.navigationBarColor = bgArgb
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = !dark
+            controller.isAppearanceLightNavigationBars = !dark
+        }
+    }
     CompositionLocalProvider(LocalKyonoColors provides colors, content = content)
 }

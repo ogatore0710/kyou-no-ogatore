@@ -2,6 +2,7 @@ package jp.ogatore.kyouno
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -132,14 +133,20 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     }
 }
 
-// index.html:104 .btn-line{background:none;border:2px solid #E0D5BE;color:var(--sub2);font-weight:800;font-size:15px}
+// index.html:104,143 .btn-line{background:none;border:2px solid #E0D5BE;...}/body.dark .btn-line
+// {border-color:#4A443A}の1:1移植。ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-
+// and-nudges.md)で発覚: 従来この関数にborder自体が無く、ライト/ダーク両方で枠線が完全に欠落していた
+// (境界がテキストのみで判別できず、特にダークモードで視認性が低い)。
 @Composable
 fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
+    val borderColor = if (dark) Color(0xFF4A443A) else Color(0xFFE0D5BE)
     Box(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.Transparent, KyonoButtonShape)
+            .border(2.dp, borderColor, KyonoButtonShape)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,

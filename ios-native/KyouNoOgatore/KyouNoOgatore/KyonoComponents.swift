@@ -193,6 +193,10 @@ struct KyonoGhostNavigationLink<Destination: View>: View {
 }
 
 // index.html:104 .btn-line{background:none;border:2px solid #E0D5BE;color:var(--sub2);font-weight:800;font-size:15px}
+// index.html:104,143 .btn-line{border:2px solid #E0D5BE}/body.dark .btn-line{border-color:#4A443A}
+// の1:1移植。ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚:
+// 従来ボーダー色がライト固定(0xE0D5BE)のままで、ダークモードでも同じ薄いベージュ色が出ていた
+// (Web版はダークモード専用の暗い色に切り替わる)。
 struct KyonoLineButton: View {
     @Environment(\.kyonoColors) private var colors
     let text: String
@@ -203,12 +207,14 @@ struct KyonoLineButton: View {
         self.text = text; self.enabled = enabled; self.action = action
     }
 
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+
     var body: some View {
         Button(action: action) {
             Text(text).font(.kyono(.extraBold800, size: 15)).foregroundColor(colors.sub2)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
-                .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius).stroke(Color(hex: 0xE0D5BE), lineWidth: 2))
+                .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2))
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
