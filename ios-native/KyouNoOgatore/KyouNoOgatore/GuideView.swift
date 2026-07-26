@@ -55,8 +55,11 @@ struct GuideView: View {
     }
 }
 
-// index.html:1971 段位名相当ではなく、index.html:982-987 目次チップの1:1移植(よくあるしつもん
-// チップ自体=index.html:988は含まない)。
+// index.html:982-988 目次チップの1:1移植。
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #guide): index.html:988
+// 「❓ よくあるしつもん」チップが欠けていた(gd-help以外の6項目のみ)。id="gd-faq"はdetailsでは
+// ない(常時カード)ためjumpToSectionのsectionOpen設定は無害な未使用エントリになるだけで、
+// 実際のスクロール先はgd-faq-anchor(既存のFAQジャンプ用アンカー)へ差し替える。
 private let gtocChips: [(label: String, id: String)] = [
     ("🆘 困ったときは", "gd-help"),
     ("🌅 はじめての日", "gd-start"),
@@ -64,6 +67,7 @@ private let gtocChips: [(label: String, id: String)] = [
     ("🛡 記録を守る", "gd-mamori"),
     ("🎫 つづくしくみ", "gd-tsuzuku"),
     ("📅 マイ記録", "gd-myrec"),
+    ("❓ よくあるしつもん", "gd-faq"),
 ]
 
 private struct GuideContentView: View {
@@ -94,7 +98,7 @@ private struct GuideContentView: View {
 
     private func jumpToSection(_ proxy: ScrollViewProxy, id: String) {
         sectionOpen[id] = true
-        withAnimation { proxy.scrollTo(id, anchor: .top) }
+        withAnimation { proxy.scrollTo(id == "gd-faq" ? "gd-faq-anchor" : id, anchor: .top) }
     }
 
     var body: some View {
@@ -140,7 +144,7 @@ private struct GuideContentView: View {
                         .frame(maxWidth: .infinity)
                     }
 
-                    // ---- 目次チップ(index.html:980-989。よくあるしつもんチップ=index.html:988は含まない) ----
+                    // ---- 目次チップ(index.html:980-989) ----
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(gtocChips, id: \.id) { chip in

@@ -171,7 +171,11 @@ fun GuideScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            // ---- 目次チップ(index.html:980-989。よくあるしつもんチップ=index.html:988は含まない) ----
+            // ---- 目次チップ(index.html:980-989) ----
+            // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #guide): index.html:988
+            // 「❓ よくあるしつもん」チップが目次に欠けていた(gd-help以外の6項目のみ)。FAQ本体のコードには
+            // 触れず、既存のfaqAnchorRequesterへ大まかにスクロールするだけ(gJump('gd-faq')相当・
+            // 特定のグループを開かない=jumpToFaqとは違い openGroups/openItemsは変更しない)。
             Row(Modifier.fillMaxWidth().bringIntoViewRequester(tocRequester).testTag("gtoc")) {
                 LazyColumnFreeChipRow(
                     listOf(
@@ -181,7 +185,10 @@ fun GuideScreen(
                         Triple("🛡 記録を守る", "gd-mamori", gdMamoriRequester),
                         Triple("🎫 つづくしくみ", "gd-tsuzuku", gdTsuzukuRequester),
                         Triple("📅 マイ記録", "gd-myrec", gdMyrecRequester),
+                        Triple("❓ よくあるしつもん", "gd-faq", faqAnchorRequester),
                     ),
+                    // gd-faqはdetailsではない(常時カード)ため、sectionOpen["gd-faq"]=trueは無害な未使用
+                    // エントリになるだけ(他の6項目と同じjumpToSectionを使い回してよい)。
                     onTap = { id, requester -> jumpToSection(id, requester) },
                 )
             }
