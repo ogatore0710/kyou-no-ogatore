@@ -1,5 +1,8 @@
 package jp.ogatore.kyouno
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,16 +27,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jp.ogatore.kyouno.catalog.CatalogLoader
 import jp.ogatore.kyouno.catalog.CatalogVideo
 import jp.ogatore.kyouno.record.RecordStore
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // ネイティブ移植 Step 7a(マスタープラン§6 Step 7a・§2-1「app-search.js TAG_CATS」行): 検索(TAG_CATS)・
 // 再生リストUI(SearchView.swift/SearchScreen.ktの1:1対応)。判定ロジックは存在しない画面(単純な
@@ -134,6 +143,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting) {
         val colors = LocalKyonoColors.current
+        val context = LocalContext.current
         val dark = colors.bg == KyonoDarkColors.bg
         val catalog = remember { CatalogLoader.shared }
         var activeCat by remember { mutableStateOf(TAG_CATS[0].key) }
@@ -206,8 +216,79 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                         KyonoGhostButton("もっと見る", { searchLimit += 48 }, Modifier.testTag("searchMoreBtn"))
                     }
                 }
+                // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
+                // index.html:960-963 #reqBox(app-search.js drawResults()のreqMsg/reqBtn組み立て・
+                // index.html copyMailAddr()の1:1移植)。検索ロジック自体は変更していない。
+                item {
+                    Spacer(Modifier.height(10.dp))
+                    val kwText = listOfNotNull(query.trim().ifBlank { null }, activeTag).joinToString(" ")
+                    ReqBox(context = context, shown = hits.isNotEmpty(), kwText = kwText)
+                }
             }
         }
+    }
+}
+
+// index.html:961 reqMsg/reqBtnの表示切り替え。offlineCat分岐(Web版はCATALOG未ロード時の対応)は
+// ネイティブではcatalog.jsonを同梱リソースとして常に同期ロードするため該当せず、常時表示でよい。
+@Composable
+private fun ReqBox(context: Context, shown: Boolean, kwText: String) {
+    val colors = LocalKyonoColors.current
+    val clipboard = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
+    var copied by remember { mutableStateOf(false) }
+
+    KyonoGradientCard(KyonoGradient.Warm, Modifier.testTag("reqBox")) {
+        Text(
+            if (shown) "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます📮"
+            else "ごめんなさい まだなかったみたい💦\nリクエストを送ってもらえたら動画づくりの参考にします📮",
+            color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("reqMsg"),
+        )
+        Spacer(Modifier.height(12.dp))
+        KyonoGhostButton(
+            if (kwText.isNotBlank()) "「$kwText」をリクエストする" else "リクエストを送る",
+            {
+                val subject = "ストレッチのリクエスト（きょうのオガトレ）"
+                val body = "こんなストレッチの動画が欲しいです：\n${kwText.ifBlank { "（ここに書いてね）" }}\n\n--\nきょうのオガトレ「動画を探す」から送信"
+                openMailIntent(context, "kyou-no@ogatore.jp", subject, body)
+            },
+            Modifier.testTag("reqBtn"),
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "メールがひらかない方は kyou-no@ogatore.jp へ直接どうぞ",
+            color = colors.sub, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            if (copied) "コピーしました✅" else "📋 アドレスをコピー",
+            color = colors.tealInk, fontSize = 12.sp, fontWeight = FontWeight.Black,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+                .clickable {
+                    clipboard.setText(AnnotatedString("kyou-no@ogatore.jp"))
+                    copied = true
+                    scope.launch { delay(2000); copied = false }
+                }
+                .testTag("copyMailAddrBtn"),
+        )
+    }
+}
+
+// index.html:2001系のカレンダーIntentと同じ設計判断(§2-1準拠): ACTION_SENDTOでメールAppにだけ
+// 解決させる(mailto: URI+ACTION_VIEWだと非メールAppにも解決されうるため)。
+private fun openMailIntent(context: Context, to: String, subject: String, body: String): Boolean {
+    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, body)
+    }
+    return try {
+        context.startActivity(intent)
+        true
+    } catch (e: android.content.ActivityNotFoundException) {
+        false
     }
 }
 
