@@ -100,19 +100,21 @@ struct ChatBubble: Identifiable {
 
 // index.html:4395-4434 obOpen/obAskQ/obPick/obGoの1:1移植。「welcome」専用画面は無く、この会話UI
 // 自体があいさつ(greet)を最初の3吹き出しとして描画することでwelcome相当を兼ねる(index.html:4405)。
+// index.html:4211「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
+private let obBigtextAck = "OK！今後変えたくなったら「マイ記録」タブの「続ける設定」でいつでも変更できるよ！"
+
+// 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §1): index.html:4182 obSay()の
+// 「1.5秒間隔で吹き出しが1つずつ出る」演出を.task+Task.sleep(1.5秒)のコルーチンで1:1再現する。
+// reduced-motion対応(Web版は即時表示に切り替え)はこのタスクの検収基準に明記が無く、システム設定の
+// 読み取り経路を新設する判断が必要になるため今回は見送る(常に1.5秒間隔で表示。Android版と同じ判断)。
 struct OnboardingView: View {
     let store: RecordStore
     let onComplete: (_ route: String, _ presetWorry: String?) -> Void
 
-    @State private var bubbles: [ChatBubble]
-    @State private var qi = 0
+    @State private var bubbles: [ChatBubble] = []
+    @State private var activeQuestion: ObQuestionDef?
     @State private var answers: [String: String] = [:]
-
-    init(store: RecordStore, onComplete: @escaping (String, String?) -> Void) {
-        self.store = store
-        self.onComplete = onComplete
-        _bubbles = State(initialValue: (obGreet + [obQuestions[0].q]).map { ChatBubble(text: $0, fromUser: false) })
-    }
+    @State private var pendingPick: CheckedContinuation<ObChip, Never>?
 
     private func finish() {
         // bigtext/anchorは実際の設定として即時反映(index.html:4218-4235 obPick)
@@ -132,36 +134,59 @@ struct OnboardingView: View {
         onComplete(route, presetWorry)
     }
 
+    private func say(_ lines: [String]) async {
+        for line in lines {
+            bubbles.append(ChatBubble(text: line, fromUser: false))
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+        }
+    }
+
+    private func awaitPick() async -> ObChip {
+        await withCheckedContinuation { cont in
+            pendingPick = cont
+        }
+    }
+
+    private func runFlow() async {
+        await say(obGreet)
+        for q in obQuestions {
+            // index.html:4197 obAskQ(): 質問文もobSay経由(1行)なので表示後に1.5秒待ってからチップを出す。
+            await say([q.q])
+            activeQuestion = q
+            let picked = await awaitPick()
+            activeQuestion = nil
+            answers[q.key] = picked.v
+            bubbles.append(ChatBubble(text: picked.label, fromUser: true)) // index.html:4221 obPick内obBubble("user",...)は即時
+            if q.key == "anchor" {
+                await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ📝"])
+            } else if q.key == "bigtext" {
+                await say([obBigtextAck])
+            }
+        }
+        finish()
+    }
+
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting) {
             OnboardingContentView(
-                bubbles: $bubbles, qi: $qi, answers: $answers,
-                onChipTap: { q, i, chip in
-                    answers[q.key] = chip.v
-                    bubbles.append(ChatBubble(text: chip.label, fromUser: true))
-                    if q.key == "anchor", let ack = obAnchorAck[chip.v] {
-                        bubbles.append(ChatBubble(text: ack, fromUser: false))
-                    }
-                    qi += 1
-                    if qi >= obQuestions.count {
-                        finish()
-                    } else {
-                        bubbles.append(ChatBubble(text: obQuestions[qi].q, fromUser: false))
-                    }
+                bubbles: bubbles, activeQuestion: activeQuestion,
+                onChipTap: { chip in
+                    pendingPick?.resume(returning: chip)
+                    pendingPick = nil
                 }
             )
         }
+        .task { await runFlow() }
     }
 }
 
 private struct OnboardingContentView: View {
     @Environment(\.kyonoColors) private var colors
-    @Binding var bubbles: [ChatBubble]
-    @Binding var qi: Int
-    @Binding var answers: [String: String]
-    let onChipTap: (ObQuestionDef, Int, ObChip) -> Void
+    let bubbles: [ChatBubble]
+    let activeQuestion: ObQuestionDef?
+    let onChipTap: (ObChip) -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
@@ -188,8 +213,7 @@ private struct OnboardingContentView: View {
                         if !b.fromUser { Spacer(minLength: 40) }
                     }
                 }
-                if qi < obQuestions.count {
-                    let q = obQuestions[qi]
+                if let q = activeQuestion {
                     Text("👇 タップしてえらんでね").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
                     let palette = obgColors(dark: dark)
                     ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
@@ -199,7 +223,7 @@ private struct OnboardingContentView: View {
                             .padding(.horizontal, 18).padding(.vertical, 14)
                             .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
                             .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
-                            .onTapGesture { onChipTap(q, i, chip) }
+                            .onTapGesture { onChipTap(chip) }
                     }
                 }
             }
@@ -520,38 +544,46 @@ private struct TourContentView: View {
     let onDone: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if si < obTourSlides.count {
-                let slide = obTourSlides[si]
-                Text(slide.title).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
-                Text(slide.desc).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(11)
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
-            } else {
-                Text(obTourClosingTitle).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
-            }
-            // index.html:313-315 .dots/.dot/.dot.on
-            HStack(spacing: 6) {
-                ForEach(0..<totalSlides, id: \.self) { i in
-                    Circle().fill(i <= si ? colors.pink : colors.line).frame(width: 9, height: 9)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                if si < obTourSlides.count {
+                    let slide = obTourSlides[si]
+                    Text(slide.title).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
+                    // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
+                    KyonoTourMockup(slideIndex: si)
+                    Text(slide.desc).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(11)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
+                } else {
+                    // index.html:4276 OB_TOUR_CLOSING(chara-congrats.png 110x110・中央表示)の1:1移植。
+                    VStack(spacing: 8) {
+                        KyonoCharaImage(name: "chara-congrats").frame(width: 110, height: 110)
+                        Text(obTourClosingTitle).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                // index.html:313-315 .dots/.dot/.dot.on
+                HStack(spacing: 6) {
+                    ForEach(0..<totalSlides, id: \.self) { i in
+                        Circle().fill(i <= si ? colors.pink : colors.line).frame(width: 9, height: 9)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 4)
+                Spacer().frame(height: 10)
+                if si > 0 {
+                    KyonoLineButton("◀ もどる") { si -= 1 }
+                }
+                KyonoPrimaryButton(si < totalSlides - 1 ? "つぎへ ➡️（\(si + 1)/\(totalSlides)）" : "おわる") {
+                    if si < totalSlides - 1 { si += 1 } else { onDone() }
+                }
+                if si < totalSlides - 1 {
+                    KyonoGhostButton("ツアーをとばす", action: onDone)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.top, 4)
-            Spacer().frame(height: 10)
-            if si > 0 {
-                KyonoLineButton("◀ もどる") { si -= 1 }
-            }
-            KyonoPrimaryButton(si < totalSlides - 1 ? "つぎへ ➡️（\(si + 1)/\(totalSlides)）" : "おわる") {
-                if si < totalSlides - 1 { si += 1 } else { onDone() }
-            }
-            if si < totalSlides - 1 {
-                KyonoGhostButton("ツアーをとばす", action: onDone)
-            }
-            Spacer()
+            .padding(20)
         }
-        .padding(20)
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
