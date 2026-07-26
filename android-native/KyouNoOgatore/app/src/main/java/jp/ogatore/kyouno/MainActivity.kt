@@ -936,10 +936,13 @@ private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shap
 // 解決可否の事前チェックはIntent.resolveActivity()でなくstartActivity()のtry/catchで行う
 // (実機検証でresolveActivity()がstartActivity()自体は成功するケースでもnullを返す=偽陰性になる
 // ことを確認したため。ActivityNotFoundExceptionを捕まえる方がAndroid公式推奨でもあり確実)。
-private fun openCalendarIntent(context: Context): Boolean {
+// 設定画面「カレンダーのおしらせ時間」欠落修正タスク(TASK-C2-2026-07-26-settings-missing-items.md):
+// hour/minuteを外から指定できるように拡張(既定値20:00はMyRecordScreenの既存呼び出し元の挙動を
+// 変えないため据え置き)。
+fun openCalendarIntent(context: Context, hour: Int = 20, minute: Int = 0): Boolean {
     val cal = JCalendar.getInstance()
-    cal.set(JCalendar.HOUR_OF_DAY, 20)
-    cal.set(JCalendar.MINUTE, 0)
+    cal.set(JCalendar.HOUR_OF_DAY, hour)
+    cal.set(JCalendar.MINUTE, minute)
     cal.set(JCalendar.SECOND, 0)
     val intent = Intent(Intent.ACTION_INSERT).apply {
         setDataAndType(CalendarContract.Events.CONTENT_URI, "vnd.android.cursor.item/event")
