@@ -18,6 +18,7 @@
 //  Phase 3: index.html:433-449 .searchbox/.catbtn/.catbtn.on/.chip-a〜d(カテゴリごとの配色)/.chip.onの1:1移植。
 
 import SwiftUI
+import UIKit
 import RecordCore
 
 struct TagCatDef {
@@ -189,11 +190,69 @@ private struct SearchContentView: View {
                     if hits.count > searchLimit {
                         KyonoGhostButton("もっと見る") { searchLimit += 48 }
                     }
+                    // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
+                    // index.html:960-963 #reqBox(app-search.js drawResults()のreqMsg/reqBtn組み立て・
+                    // index.html copyMailAddr()の1:1移植)。検索ロジック自体は変更していない。
+                    let kwText = [query.trimmingCharacters(in: .whitespacesAndNewlines), activeTag].compactMap { $0?.isEmpty == false ? $0 : nil }.joined(separator: " ")
+                    ReqBox(shown: !hits.isEmpty, kwText: kwText)
                 }
             }
         }
         .padding(16)
         .background(KyonoBackgroundColor().ignoresSafeArea())
+    }
+}
+
+// index.html:961 reqMsg/reqBtnの表示切り替え。offlineCat分岐(Web版はCATALOG未ロード時の対応)は
+// ネイティブではcatalog.jsonをバンドルリソースとして常に同期ロードするため該当せず、常時表示でよい。
+private struct ReqBox: View {
+    @Environment(\.kyonoColors) private var colors
+    let shown: Bool
+    let kwText: String
+    @State private var copied = false
+
+    var body: some View {
+        KyonoGradientCard(gradient: .warm) {
+            Text(shown
+                ? "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます📮"
+                : "ごめんなさい まだなかったみたい💦\nリクエストを送ってもらえたら動画づくりの参考にします📮")
+                .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+            Spacer().frame(height: 12)
+            KyonoGhostButton(kwText.isEmpty ? "リクエストを送る" : "「\(kwText)」をリクエストする") {
+                openRequestMail(kwText: kwText)
+            }
+            Spacer().frame(height: 6)
+            Text("メールがひらかない方は kyou-no@ogatore.jp へ直接どうぞ")
+                .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
+            Spacer().frame(height: 4)
+            Text(copied ? "コピーしました✅" : "📋 アドレスをコピー")
+                .font(.kyono(.black900, size: 12)).foregroundColor(colors.tealInk)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .onTapGesture {
+                    UIPasteboard.general.string = "kyou-no@ogatore.jp"
+                    copied = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        copied = false
+                    }
+                }
+        }
+    }
+}
+
+// index.html copyMailAddr()と同じ宛先。mailto:はUIApplication.shared.openで既定のメールAppへ委譲
+// (Web版のreqBtn.hrefと同じ発想。他の外部リンク(YouTube等)と同じopenUrlパターンに揃える)。
+private func openRequestMail(kwText: String) {
+    let subject = "ストレッチのリクエスト（きょうのオガトレ）"
+    let body = "こんなストレッチの動画が欲しいです：\n\(kwText.isEmpty ? "（ここに書いてね）" : kwText)\n\n--\nきょうのオガトレ「動画を探す」から送信"
+    var comps = URLComponents()
+    comps.scheme = "mailto"
+    comps.path = "kyou-no@ogatore.jp"
+    comps.queryItems = [URLQueryItem(name: "subject", value: subject), URLQueryItem(name: "body", value: body)]
+    if let url = comps.url {
+        UIApplication.shared.open(url)
     }
 }
 
