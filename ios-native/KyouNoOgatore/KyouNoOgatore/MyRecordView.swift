@@ -24,6 +24,10 @@ import RecordCore
 
 struct MyRecordView: View {
     let store: RecordStore
+    let onOpenDex: () -> Void
+    let onOpenBrag: () -> Void
+    let onOpenVoices: () -> Void
+    let onOpenSettings: () -> Void
 
     @State private var streak: RecordLogic.StreakData
     @State private var doneDates: Set<String>
@@ -35,8 +39,15 @@ struct MyRecordView: View {
     @State private var calendarMsg: String?
     private let freezeLeft: Int
 
-    init(store: RecordStore) {
+    init(
+        store: RecordStore, onOpenDex: @escaping () -> Void, onOpenBrag: @escaping () -> Void,
+        onOpenVoices: @escaping () -> Void, onOpenSettings: @escaping () -> Void
+    ) {
         self.store = store
+        self.onOpenDex = onOpenDex
+        self.onOpenBrag = onOpenBrag
+        self.onOpenVoices = onOpenVoices
+        self.onOpenSettings = onOpenSettings
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _doneDates = State(initialValue: Set(s.dates))
@@ -56,7 +67,8 @@ struct MyRecordView: View {
             MyRecordContentView(
                 year: $year, month: $month, reachList: $reachList, reachMsg: $reachMsg,
                 calendarMsg: $calendarMsg, doneDates: doneDates, today: today, freezeLeft: freezeLeft,
-                store: store, onConnectCalendar: connectCalendar
+                store: store, onConnectCalendar: connectCalendar,
+                onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices, onOpenSettings: onOpenSettings
             )
         }
     }
@@ -103,6 +115,10 @@ private struct MyRecordContentView: View {
     let freezeLeft: Int
     let store: RecordStore
     let onConnectCalendar: (@escaping (Bool) -> Void) -> Void
+    let onOpenDex: () -> Void
+    let onOpenBrag: () -> Void
+    let onOpenVoices: () -> Void
+    let onOpenSettings: () -> Void
 
     var body: some View {
         ScrollView {
@@ -131,6 +147,17 @@ private struct MyRecordContentView: View {
                         }
                     }
                     calendarGrid
+                }
+
+                // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
+                // dexBannerCard(カード図鑑バナー)相当。図鑑の中身はPhase 3実装済みのため導線のみ追加
+                // (Android版MyRecordScreenと同一構成)。
+                KyonoCard {
+                    KyonoSectionHeader(icon: .dexBook, title: "カード図鑑", fill: colors.pinkSoft, accent: colors.pink)
+                    Spacer().frame(height: 8)
+                    Text("これまで手に入れたカードを見返せます").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                    Spacer().frame(height: 10)
+                    KyonoGhostButton("図鑑をひらく", action: onOpenDex)
                 }
 
                 KyonoCard {
@@ -178,6 +205,26 @@ private struct MyRecordContentView: View {
                         }
                     }
                     if let reachMsg { Spacer().frame(height: 6); Text(reachMsg).font(.kyono(.bold700, size: 15)).foregroundColor(colors.teal) }
+                }
+
+                // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:772-790
+                // お楽しみ機能バナー(じまんカード/せんぱいの声への入口)相当。画面の中身は作り直さず導線のみ追加。
+                KyonoCard {
+                    KyonoSectionHeader(icon: .star, title: "お楽しみ機能", fill: colors.yellowSoft)
+                    Spacer().frame(height: 8)
+                    Text("じまんカードやせんぱいの声をチェック").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                    Spacer().frame(height: 10)
+                    KyonoGhostButton("🎉 じまんカード", action: onOpenBrag)
+                    Spacer().frame(height: 8)
+                    KyonoGhostButton("💬 せんぱいの声", action: onOpenVoices)
+                }
+
+                // index.html:792-800 続ける設定カード相当。画面の中身(SettingsView)はPhase 3実装済みのため
+                // 導線のみ追加。
+                KyonoCard {
+                    KyonoSectionHeader(icon: .clock, title: "続ける設定", fill: colors.tealSoft)
+                    Spacer().frame(height: 10)
+                    KyonoGhostButton("⚙️ 設定をひらく", action: onOpenSettings)
                 }
 
                 KyonoLineButton("📅 カレンダーに登録する") {

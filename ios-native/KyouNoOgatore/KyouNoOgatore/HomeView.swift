@@ -22,6 +22,7 @@ import SwiftUI
 import UIKit
 import RecordCore
 import CardCore
+import SafetyCore
 
 private let CHEERS = [
     "ナイスご自愛🎉", "がんばったね！おつかれさまでした✨", "その数分が体を変えます💪",
@@ -262,6 +263,115 @@ struct HomeView: View {
     }
 }
 
+// ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:627-640 #ckCard
+// (かたさチェックカード)の1:1移植。full=falseはindex.html:198-202 #ckCard.mini(縮小・
+// 「もう一回チェックする」ghostボタン+前回結果リンク)分岐(Android版CkCardと同一ロジック)。
+private struct CkCard: View {
+    @Environment(\.kyonoColors) private var colors
+    let full: Bool
+    let typeResult: QuizTypeResult?
+    let onStartQuiz: () -> Void
+    let onShowResult: (String) -> Void
+
+    var body: some View {
+        KyonoCard {
+            KyonoSectionHeader(icon: .quizCheck, title: "かたさチェック", fill: colors.tealSoft, accent: colors.teal)
+            if full {
+                Spacer().frame(height: 10)
+                HStack(alignment: .center) {
+                    Text("タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります")
+                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub2)
+                    Spacer()
+                    KyonoCharaImage(name: "chara-3").frame(width: 74, height: 74)
+                }
+                Spacer().frame(height: 12)
+                KyonoPrimaryButton("チェックをはじめる", action: onStartQuiz)
+                Spacer().frame(height: 10)
+                Text("※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ")
+                    .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            } else {
+                Spacer().frame(height: 6)
+                if let tr = typeResult, let name = quizTypes[tr.key]?.name {
+                    Text("前回の結果: \(name)")
+                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                        .onTapGesture { onShowResult(tr.key) }
+                    Spacer().frame(height: 10)
+                }
+                KyonoGhostButton("もう一回チェックする", action: onStartQuiz)
+            }
+        }
+    }
+}
+
+// ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:643-651 #soudanCard
+// +index.html:3396 renderSoudanEntry()の1:1移植(Android版SoudanCardと同一ロジック)。soudan-kb
+// 未読込(intents空)のときは非表示。おすすめチップはintents先頭3件+"jikan"(index.html:3403-3405)。
+private struct SoudanCard: View {
+    @Environment(\.kyonoColors) private var colors
+    let onOpenSoudan: (String?) -> Void
+    private let kb = SafetyKBLoader.shared
+
+    private var picks: [SafetyKB.Intent] {
+        var base = Array(kb.intents.prefix(3))
+        if let extra = kb.intents.first(where: { $0.id == "jikan" }), !base.contains(where: { $0.id == extra.id }) {
+            base.append(extra)
+        }
+        return base
+    }
+
+    var body: some View {
+        if !kb.intents.isEmpty {
+            KyonoCard {
+                Button(action: { onOpenSoudan(nil) }) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
+                        Spacer().frame(height: 10)
+                        HStack(alignment: .center) {
+                            Text("からだの悩み\nオガトレに聞いてみて💬")
+                                .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub2)
+                            Spacer()
+                            KyonoCharaImage(name: "chara-hitokoto").frame(width: 64, height: 64)
+                        }
+                        Spacer().frame(height: 10)
+                        KyonoPrimaryButton("💬 相談する") { onOpenSoudan(nil) }
+                        Spacer().frame(height: 10)
+                        Text("👇 タップでそのまま聞けるよ").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                        Spacer().frame(height: 6)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(picks, id: \.id) { intent in
+                                    HomeSoudanChip(label: intent.chip) { onOpenSoudan(intent.id) }
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+// index.html:440 .chip(丸ピル・line枠・card背景)の1:1移植。SoudanSheetView.swiftのKyonoChipは
+// 同名衝突とfile-private境界を避けるためここに複製せず別名で用意する(見た目は同一)。
+private struct HomeSoudanChip: View {
+    @Environment(\.kyonoColors) private var colors
+    let label: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(label).font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                .padding(.horizontal, 16).padding(.vertical, 10)
+                .overlay(Capsule().stroke(colors.line, lineWidth: 2))
+                .background(Capsule().fill(colors.card))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果patから実際に描画するテーマへの
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
 private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String) -> UIImage? {
@@ -309,6 +419,6 @@ private func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData,
 #Preview {
     HomeView(
         store: RecordStore(inMemory: [:]), onStartTour: { _ in },
-        onOpenDex: {}, onOpenVoices: {}, onOpenBrag: {}, onOpenSettings: {}
+        onOpenQuiz: {}, onShowResult: { _ in }, onOpenSoudan: { _ in }
     )
 }

@@ -39,7 +39,7 @@ private enum Screen: Equatable {
     case quiz(presetWorry: String?)
     case result(typeKey: String)
     case tour(showClosing: Bool)
-    case soudan
+    case soudan(presetIntentId: String? = nil)
     case search
     case catalog
     case dex
@@ -52,13 +52,14 @@ private enum Screen: Equatable {
 
     static func == (lhs: Screen, rhs: Screen) -> Bool {
         switch (lhs, rhs) {
-        case (.home, .home), (.onboarding, .onboarding), (.soudan, .soudan),
+        case (.home, .home), (.onboarding, .onboarding),
              (.search, .search), (.catalog, .catalog), (.dex, .dex),
              (.voices, .voices), (.brag, .brag), (.obu, .obu), (.guide, .guide),
              (.settings, .settings), (.myRecord, .myRecord): return true
         case let (.quiz(a), .quiz(b)): return a == b
         case let (.result(a), .result(b)): return a == b
         case let (.tour(a), .tour(b)): return a == b
+        case let (.soudan(a), .soudan(b)): return a == b
         default: return false
         }
     }
@@ -116,7 +117,7 @@ struct RootView: View {
             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
             if screen.kyonoTab != nil {
                 VStack(spacing: 10) {
-                    KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan }
+                    KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan() }
                     KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFF8A70), accessibilityLabelText: "オガトレ通信") { screen = .obu }
                 }
                 .padding(.trailing, 16)
@@ -140,11 +141,12 @@ struct RootView: View {
             ResultView(typeKey: typeKey) { screen = .home }
         case let .tour(showClosing):
             TourView(showClosing: showClosing) { screen = .home }
-        case .soudan:
+        case let .soudan(presetIntentId):
             SoudanSheetView(
                 store: store,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
-                onClose: { screen = .home }
+                onClose: { screen = .home },
+                presetIntentId: presetIntentId
             )
         case .search:
             SearchView(
@@ -175,15 +177,20 @@ struct RootView: View {
         case .settings:
             SettingsView(store: store, onBack: { screen = .home })
         case .myRecord:
-            MyRecordView(store: store)
+            MyRecordView(
+                store: store,
+                onOpenDex: { screen = .dex },
+                onOpenBrag: { screen = .brag },
+                onOpenVoices: { screen = .voices },
+                onOpenSettings: { screen = .settings }
+            )
         case .home:
             HomeView(
                 store: store,
                 onStartTour: { showClosing in screen = .tour(showClosing: showClosing) },
-                onOpenDex: { screen = .dex },
-                onOpenVoices: { screen = .voices },
-                onOpenBrag: { screen = .brag },
-                onOpenSettings: { screen = .settings }
+                onOpenQuiz: { screen = .quiz(presetWorry: nil) },
+                onShowResult: { typeKey in screen = .result(typeKey: typeKey) },
+                onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) }
             )
         }
     }

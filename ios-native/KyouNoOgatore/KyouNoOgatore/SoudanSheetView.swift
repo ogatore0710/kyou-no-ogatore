@@ -78,6 +78,7 @@ struct SoudanSheetView: View {
     let store: RecordStore
     let openUrl: (String) -> Void
     let onClose: () -> Void
+    var presetIntentId: String?
 
     private let kb = SafetyKBLoader.shared
     @State private var messages: [SdBubble] = []
@@ -87,10 +88,11 @@ struct SoudanSheetView: View {
     @State private var input = ""
     @State private var plan: SdPlanData?
 
-    init(store: RecordStore, openUrl: @escaping (String) -> Void, onClose: @escaping () -> Void) {
+    init(store: RecordStore, openUrl: @escaping (String) -> Void, onClose: @escaping () -> Void, presetIntentId: String? = nil) {
         self.store = store
         self.openUrl = openUrl
         self.onClose = onClose
+        self.presetIntentId = presetIntentId
         _plan = State(initialValue: store.get("plan", default: nil))
     }
 
@@ -190,6 +192,12 @@ struct SoudanSheetView: View {
             onPlanChip: planChipTap, onPlanStart: planStart, onPlanDecline: planDecline,
             onCatSelect: { key in chipsMode = .intents(activeCat: key) }
         )
+        // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md): index.html:3409
+        // soudanCardChips「タップでそのまま聞けるよ」チップ→openSoudan(intentId)相当。ホームの
+        // オガトレ相談室カードのおすすめチップから開いたときだけ、開いた瞬間にそのintentへ自動応答する。
+        .onAppear {
+            if let presetIntentId { chipTap(presetIntentId) }
+        }
     }
 }
 
