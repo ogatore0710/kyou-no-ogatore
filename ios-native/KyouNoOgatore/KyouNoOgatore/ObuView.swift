@@ -48,6 +48,10 @@ private struct ObuContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             KyonoLineButton("◀ もどる", action: onBack)
             KyonoSectionHeader(icon: .obuBubble, title: "オガトレ通信", fill: colors.pinkSoft)
+            // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #obu):
+            // index.html:932 説明文の1:1移植。
+            Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱")
+                .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
             if posts.isEmpty {
                 KyonoCard {
                     Text("まだ投稿がありません また今度のぞいてみてね🌱")

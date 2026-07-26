@@ -200,7 +200,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                         is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Diary -> DiaryScreen(store = store, onBack = { screen = Screen.Home })
-                                        is Screen.Obu -> ObuScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Obu -> ObuScreen(store = store, onBack = { screen = s.returnTo })
                                         is Screen.Guide -> GuideScreen(
                                             store = store,
                                             onBack = { screen = Screen.Home },
@@ -243,7 +243,7 @@ class MainActivity : ComponentActivity() {
                                     verticalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
                                     KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan() })
-                                    KyonoFab("📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo", onClick = { screen = Screen.Obu })
+                                    KyonoFab("📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo", onClick = { screen = Screen.Obu(returnTo = screen) })
                                 }
                             }
                         }
@@ -267,7 +267,8 @@ sealed class Screen {
     object Voices : Screen()
     object Brag : Screen()
     object Diary : Screen()
-    object Obu : Screen()
+    // index.html:935 obuReturnTo(オガトレ通信をひらく前のタブへ戻る)の1:1移植。
+    data class Obu(val returnTo: Screen = Home) : Screen()
     object Guide : Screen()
     object Settings : Screen()
     data class Quiz(val presetWorry: String?) : Screen()

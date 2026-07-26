@@ -46,7 +46,8 @@ private enum Screen: Equatable {
     case voices
     case brag
     case diary
-    case obu
+    // index.html:935 obuReturnTo(オガトレ通信をひらく前のタブへ戻る)の1:1移植。
+    indirect case obu(returnTo: Screen = .home)
     case guide
     case settings
     case myRecord
@@ -55,12 +56,13 @@ private enum Screen: Equatable {
         switch (lhs, rhs) {
         case (.home, .home), (.onboarding, .onboarding),
              (.search, .search), (.catalog, .catalog), (.dex, .dex),
-             (.voices, .voices), (.brag, .brag), (.diary, .diary), (.obu, .obu), (.guide, .guide),
+             (.voices, .voices), (.brag, .brag), (.diary, .diary), (.guide, .guide),
              (.settings, .settings), (.myRecord, .myRecord): return true
         case let (.quiz(a), .quiz(b)): return a == b
         case let (.result(a, la), .result(b, lb)): return a == b && la == lb
         case let (.tour(a), .tour(b)): return a == b
         case let (.soudan(a), .soudan(b)): return a == b
+        case let (.obu(a), .obu(b)): return a == b
         default: return false
         }
     }
@@ -119,7 +121,7 @@ struct RootView: View {
             if screen.kyonoTab != nil {
                 VStack(spacing: 10) {
                     KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan() }
-                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo") { screen = .obu }
+                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo") { screen = .obu(returnTo: screen) }
                 }
                 .padding(.trailing, 16)
                 .padding(.bottom, 84)
@@ -180,8 +182,8 @@ struct RootView: View {
             BragView(store: store, onBack: { screen = .home })
         case .diary:
             DiaryView(store: store, onBack: { screen = .home })
-        case .obu:
-            ObuView(store: store, onBack: { screen = .home })
+        case let .obu(returnTo):
+            ObuView(store: store, onBack: { screen = returnTo })
         case .guide:
             GuideView(
                 store: store,

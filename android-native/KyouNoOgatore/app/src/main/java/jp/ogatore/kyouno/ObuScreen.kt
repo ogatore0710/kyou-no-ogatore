@@ -52,6 +52,10 @@ fun ObuScreen(store: RecordStore, onBack: () -> Unit) {
             KyonoLineButton("◀ もどる", onBack, Modifier.testTag("obuBackBtn"))
             Spacer(Modifier.height(12.dp))
             KyonoSectionHeader(KyonoIcon.ObuBubble, "オガトレ通信", fill = colors.pinkSoft)
+            // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #obu):
+            // index.html:932 説明文の1:1移植。
+            Spacer(Modifier.height(6.dp))
+            Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱", color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp)
             Spacer(Modifier.height(12.dp))
             if (posts.isEmpty()) {
                 KyonoCard {
