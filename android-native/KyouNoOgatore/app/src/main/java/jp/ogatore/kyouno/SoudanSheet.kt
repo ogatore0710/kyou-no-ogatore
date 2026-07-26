@@ -375,7 +375,7 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
 
 // index.html:440 .chip(丸ピル・line枠・card背景)の1:1移植。
 @Composable
-private fun KyonoChip(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun KyonoChip(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalKyonoColors.current
     Box(
         modifier = modifier

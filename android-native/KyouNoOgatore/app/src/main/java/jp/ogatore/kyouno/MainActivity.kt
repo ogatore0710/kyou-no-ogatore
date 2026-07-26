@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -66,6 +68,7 @@ import jp.ogatore.kyouno.record.CalendarLogic
 import jp.ogatore.kyouno.record.HomeLogic
 import jp.ogatore.kyouno.record.RecordLogic
 import jp.ogatore.kyouno.record.RecordStore
+import jp.ogatore.kyouno.safety.SafetyKBLoader
 import java.io.File
 import java.time.Instant
 import java.util.Calendar as JCalendar
@@ -181,10 +184,9 @@ class MainActivity : ComponentActivity() {
                                             store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
-                                            onOpenDex = { screen = Screen.Dex },
-                                            onOpenVoices = { screen = Screen.Voices },
-                                            onOpenBrag = { screen = Screen.Brag },
-                                            onOpenSettings = { screen = Screen.Settings },
+                                            onOpenQuiz = { screen = Screen.Quiz(null) },
+                                            onShowResult = { typeKey -> screen = Screen.Result(typeKey) },
+                                            onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
                                         )
                                     }
                                 }
@@ -245,15 +247,37 @@ private val CHEERS = listOf(
     "イタ気持ちいい できました？😊", "体は正直！ちゃんと応えてくれますよ✨", "昨日の自分より1ミリ前へ🌱",
 )
 
+// ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:2124 QUOTES
+// (45件)の1:1移植。手写し禁止(§1-2)のためindex.htmlから機械抽出した値をそのまま貼り付けている。
+private val QUOTES = listOf(
+    "体がガチガチでもだいじょうぶ", "頑張ろうね", "がんばったね おつかれさまでした",
+    "痛気持ちいいところで止めましょうね", "腹筋は無理に使わなくていいですよ", "きつい方は足首を触ってくださいね",
+    "呼吸 止めないでね", "昨日より1ミリ前に進んでたらOK", "休むのもストレッチのうちです",
+    "3・2・1 はい おつかれさまでした", "体は正直！ちゃんと応えてくれます", "『できない』は『のびしろ』の別名です",
+    "1日1本で十分です", "続けてるあなたがいちばんすごい", "お膝もいたわってあげてくださいね",
+    "反動はつけなくて だいじょうぶですよ", "息を吐くと ゆるみますよ〜", "伸びてる場所を 感じてみてくださいね",
+    "体がかたい日もあります そういう日もOK", "ゆっくりでだいじょうぶ 競争じゃないですから", "痛いのは がんばりすぎのサインです",
+    "お風呂あがりは ゴールデンタイムです", "肩の力 ふっと抜いてみましょう", "続けてる人から 変わっていきます",
+    "30秒が 体を変えていきます", "きのうのあなたより きょうのあなた", "深呼吸ひとつぶんの よゆうを",
+    "固まったら ほぐせばいいんです", "首はやさしく いたわってあげて", "のびるって 気持ちいいですね〜",
+    "サボっても再開したら それがいちばんえらい", "体があったまってる夜が ねらい目です", "「なんか調子いいかも」を見逃さないで",
+    "ストレッチに 遅すぎることはないです", "こわばりは すこしずつ返していきましょう", "手が届かなくても 気持ちは届いてます",
+    "姿勢がいいと 呼吸もふかくなりますよ", "がんばりやさんほど 休むのが仕事です", "伸ばした分だけ 楽になっていきます",
+    "あしたの体は きょうつくられます", "完璧じゃなくていい つづくのがいちばん", "気持ちいい〜って 声に出してOKです",
+    "体を大切にする時間 えらいです", "ひざは軽く曲げても いいですからね", "また明日も 待ってますね",
+)
+
+// index.html:1708 dayIndex()の1:1移植(現在時刻+6時間オフセットの日数カウンタ)。
+private fun dayIndex(now: Instant): Long = (now.toEpochMilli() + 6L * 3600 * 1000) / 86400000L
+
 @Composable
 fun HomeScreen(
     store: RecordStore,
     openUrl: (String) -> Unit,
     onStartTour: (Boolean) -> Unit,
-    onOpenDex: () -> Unit,
-    onOpenVoices: () -> Unit,
-    onOpenBrag: () -> Unit,
-    onOpenSettings: () -> Unit,
+    onOpenQuiz: () -> Unit,
+    onShowResult: (String) -> Unit,
+    onOpenSoudan: (String?) -> Unit,
 ) {
     val context = LocalContext.current
     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
@@ -324,25 +348,45 @@ fun HomeScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            if (showDoneNudge) {
-                KyonoCard(Modifier.testTag("doneNudgeCard")) {
-                    // index.html:451-454 .qbubble(吹き出し+chara-hitokoto.png、img右側・高さ44)の1:1移植。
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
-                        Column(Modifier.weight(1f)) {
-                            Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink)
-                            Spacer(Modifier.height(8.dp))
-                            KyonoGhostButton("わかった", { showDoneNudge = false }, Modifier.testTag("doneNudgeCloseBtn"))
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        KyonoCharaImage("chara_hitokoto", Modifier.height(44.dp))
+            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:602-603
+            // .qbubble(カードの外・chara-hitokoto.pngアバター+日替わりひとこと)の1:1移植。
+            // pendingVideoReturnActive()相当(showDoneNudge)のときだけ「おかえりなさい」に差し替える
+            // (旧来のdoneNudgeCardは廃止しqbubble1本に統合)。
+            Row(verticalAlignment = androidx.compose.ui.Alignment.Bottom, modifier = Modifier.testTag("qbubble")) {
+                Box(
+                    Modifier.weight(1f)
+                        .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                        .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                ) {
+                    Column {
+                        Text(
+                            if (showDoneNudge) "おかえりなさい" else "きょうのひとこと",
+                            color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Black,
+                        )
+                        Text(
+                            if (showDoneNudge) "おわったら下の「きょうやった！」を押してね✅"
+                            else "「${QUOTES[(dayIndex(Instant.now()) % QUOTES.size).toInt()]}」",
+                            color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
+                            modifier = Modifier.testTag("qbubbleText"),
+                        )
                     }
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.width(10.dp))
+                KyonoCharaImage("chara_hitokoto", Modifier.height(44.dp))
             }
+            Spacer(Modifier.height(14.dp))
 
-            // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)
-            plan?.let { p ->
-                PlanProgressCard(store = store, plan = p, onCleared = { plan = null })
+            val typeResult = remember(streak) { store.get<QuizTypeResult?>("type", null) }
+            val checked = typeResult != null && QUIZ_TYPES.containsKey(typeResult.key)
+
+            // index.html:2929-2937 renderHome()のckCard/soudanCard移動ロジックの1:1移植:
+            // 未チェックのときはckCard(フル)+soudanCardがtodayCardの直前、チェック済みのときは
+            // ckCard(ミニ)+soudanCardがstreakCardの直後に移動する(soudanCardは常にckCardの直後を追従)。
+            if (!checked) {
+                CkCard(full = true, typeResult = typeResult, onStartQuiz = onOpenQuiz, onShowResult = onShowResult)
+                Spacer(Modifier.height(16.dp))
+                SoudanCard(onOpenSoudan = onOpenSoudan)
                 Spacer(Modifier.height(16.dp))
             }
 
@@ -364,6 +408,13 @@ fun HomeScreen(
                 Spacer(Modifier.height(16.dp))
             } else {
                 Text("🌱 はじめの1本ガイド中", color = colors.ink, modifier = Modifier.testTag("fdBanner"))
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)。Web版DOM順
+            // (index.html:664 todayCardの直後・streakCardの直前)に合わせて位置を修正。
+            plan?.let { p ->
+                PlanProgressCard(store = store, plan = p, onCleared = { plan = null })
                 Spacer(Modifier.height(16.dp))
             }
 
@@ -405,21 +456,13 @@ fun HomeScreen(
                 Spacer(Modifier.height(10.dp))
                 KyonoGhostButton("記録カードを見る", { cardBitmap = renderTodayCard(store, streak, today, context) }, Modifier.testTag("makeCardBtn"))
             }
-            Spacer(Modifier.height(16.dp))
 
-            // その他の導線: マイ記録/動画を探す/再生リスト/使い方は下部タブバーへ、相談室/オガトレ通信は
-            // FABへ移設済み(このHomeScreen自体の外側・MainActivity.kt setContent参照)。ここには
-            // Web版側でもタブ/FABに属さない残り(図鑑・せんぱいの声・じまんカード・設定)だけを置く。
-            KyonoCard(Modifier.testTag("otherLinksCard")) {
-                Text("メニュー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("📖 図鑑", onOpenDex, Modifier.testTag("dexBtn"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("💬 せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("🎉 じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("⚙️ 設定", onOpenSettings, Modifier.testTag("settingsBtn"))
+            // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。
+            if (checked) {
+                Spacer(Modifier.height(16.dp))
+                CkCard(full = false, typeResult = typeResult, onStartQuiz = onOpenQuiz, onShowResult = onShowResult)
+                Spacer(Modifier.height(16.dp))
+                SoudanCard(onOpenSoudan = onOpenSoudan)
             }
         }
 
@@ -462,6 +505,83 @@ fun HomeScreen(
     }
 }
 
+// ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:627-640 #ckCard
+// (かたさチェックカード)の1:1移植。full=falseはindex.html:198-202 #ckCard.mini(縮小・
+// 「もう一回チェックする」ghostボタン+前回結果リンク)分岐。
+@Composable
+private fun CkCard(full: Boolean, typeResult: QuizTypeResult?, onStartQuiz: () -> Unit, onShowResult: (String) -> Unit) {
+    val colors = LocalKyonoColors.current
+    KyonoCard(Modifier.testTag("ckCard")) {
+        KyonoSectionHeader(KyonoIcon.QuizCheck, "かたさチェック", fill = colors.tealSoft)
+        if (full) {
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります",
+                    color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp, modifier = Modifier.weight(1f),
+                )
+                KyonoCharaImage("chara_3", Modifier.size(74.dp))
+            }
+            Spacer(Modifier.height(12.dp))
+            KyonoPrimaryButton("チェックをはじめる", onStartQuiz, Modifier.testTag("ckBtn"))
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ",
+                color = colors.sub, fontSize = 12.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().testTag("ckHint"),
+            )
+        } else {
+            Spacer(Modifier.height(6.dp))
+            typeResult?.let { tr ->
+                val name = QUIZ_TYPES[tr.key]?.name ?: tr.key
+                Text(
+                    "前回の結果: $name", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.clickable { onShowResult(tr.key) }.testTag("lastTypeName"),
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+            KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("ckBtn"))
+        }
+    }
+}
+
+// ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:643-651 #soudanCard
+// (オガトレ相談室カード)+index.html:3396 renderSoudanEntry()の1:1移植。soudan-kb未読込(intents空)の
+// ときは非表示(index.html:3400と同じ)。おすすめチップはintents先頭3件+"jikan"(index.html:3403-3405)。
+@Composable
+private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
+    val colors = LocalKyonoColors.current
+    val kb = remember { SafetyKBLoader.shared }
+    if (kb.intents.isEmpty()) return
+    val picks = remember(kb) {
+        val base = kb.intents.take(3).toMutableList()
+        val extra = kb.intents.find { it.id == "jikan" }
+        if (extra != null && base.none { it.id == extra.id }) base.add(extra)
+        base
+    }
+    KyonoCard(Modifier.testTag("soudanCard").clickable { onOpenSoudan(null) }) {
+        KyonoSectionHeader(KyonoIcon.SoudanBubble, "オガトレ相談室", fill = colors.tealSoft, accent = colors.teal)
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "からだの悩み\nオガトレに聞いてみて💬", color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp,
+                modifier = Modifier.weight(1f),
+            )
+            KyonoCharaImage("chara_hitokoto", Modifier.size(64.dp))
+        }
+        Spacer(Modifier.height(10.dp))
+        KyonoPrimaryButton("💬 相談する", { onOpenSoudan(null) }, Modifier.testTag("soudanBtn"))
+        Spacer(Modifier.height(10.dp))
+        Text("👇 タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
+        Spacer(Modifier.height(6.dp))
+        LazyRow(Modifier.fillMaxWidth().testTag("soudanCardChips")) {
+            items(picks) { intent ->
+                KyonoChip(intent.chip, { onOpenSoudan(intent.id) }, Modifier.padding(end = 8.dp).testTag("soudanCardChip_${intent.id}"))
+            }
+        }
+    }
+}
+
 // ネイティブ移植 Step 5b(マスタープラン§6 Step 5b): マイ記録(カレンダー・おやすみ券・とどくメーター・
 // カレンダー登録)。判定・集計ロジックはCalendarLogic/RecordLogic(Step3/5b)の純粋関数を呼ぶだけ。
 //
@@ -470,7 +590,14 @@ fun HomeScreen(
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 // Phase 3: index.html:403-415 .cal/.cal .d.done/.cal .d.today/.bar(おやすみ券進捗)の1:1移植。
 @Composable
-fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
+fun MyRecordScreen(
+    store: RecordStore,
+    onBack: () -> Unit,
+    onOpenDex: () -> Unit,
+    onOpenBrag: () -> Unit,
+    onOpenVoices: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
     val context = LocalContext.current
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting) {
@@ -548,6 +675,17 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
                 }
             }
 
+            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
+            // dexBannerCard(カード図鑑バナー)相当。図鑑の中身はPhase 3実装済みのため導線のみ追加。
+            Spacer(Modifier.height(16.dp))
+            KyonoCard(Modifier.testTag("dexBannerCard")) {
+                KyonoSectionHeader(KyonoIcon.CardStack, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
+                Spacer(Modifier.height(8.dp))
+                Text("これまで手に入れたカードを見返せます", color = colors.sub)
+                Spacer(Modifier.height(10.dp))
+                KyonoGhostButton("図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
+            }
+
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("freezeCard")) {
                 Text("🎫 おやすみ券", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
@@ -596,6 +734,28 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
                     Spacer(Modifier.height(6.dp))
                     Text(it, color = colors.teal, modifier = Modifier.testTag("reachMsgText"))
                 }
+            }
+
+            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:772-790
+            // お楽しみ機能バナー(じまんカード/せんぱいの声への入口)相当。画面の中身は作り直さず導線のみ追加。
+            Spacer(Modifier.height(16.dp))
+            KyonoCard(Modifier.testTag("funCard")) {
+                KyonoSectionHeader(KyonoIcon.SparkleGift, "お楽しみ機能", fill = colors.yellowSoft)
+                Spacer(Modifier.height(8.dp))
+                Text("じまんカードやせんぱいの声をチェック", color = colors.sub)
+                Spacer(Modifier.height(10.dp))
+                KyonoGhostButton("🎉 じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
+                Spacer(Modifier.height(8.dp))
+                KyonoGhostButton("💬 せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"))
+            }
+
+            // index.html:792-800 続ける設定カード相当。画面の中身(SettingsScreen)はPhase 3実装済みのため
+            // 導線のみ追加。
+            Spacer(Modifier.height(16.dp))
+            KyonoCard(Modifier.testTag("settingsBannerCard")) {
+                KyonoSectionHeader(KyonoIcon.Gear, "続ける設定", fill = colors.tealSoft)
+                Spacer(Modifier.height(10.dp))
+                KyonoGhostButton("⚙️ 設定をひらく", onOpenSettings, Modifier.testTag("settingsBtn"))
             }
 
             Spacer(Modifier.height(16.dp))
