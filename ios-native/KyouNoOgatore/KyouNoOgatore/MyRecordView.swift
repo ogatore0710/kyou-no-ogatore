@@ -28,6 +28,7 @@ struct MyRecordView: View {
     let onOpenDex: () -> Void
     let onOpenBrag: () -> Void
     let onOpenVoices: () -> Void
+    let onOpenDiary: () -> Void
     let onOpenSettings: () -> Void
 
     @State private var streak: RecordLogic.StreakData
@@ -42,12 +43,13 @@ struct MyRecordView: View {
 
     init(
         store: RecordStore, onOpenDex: @escaping () -> Void, onOpenBrag: @escaping () -> Void,
-        onOpenVoices: @escaping () -> Void, onOpenSettings: @escaping () -> Void
+        onOpenVoices: @escaping () -> Void, onOpenDiary: @escaping () -> Void, onOpenSettings: @escaping () -> Void
     ) {
         self.store = store
         self.onOpenDex = onOpenDex
         self.onOpenBrag = onOpenBrag
         self.onOpenVoices = onOpenVoices
+        self.onOpenDiary = onOpenDiary
         self.onOpenSettings = onOpenSettings
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
@@ -69,7 +71,8 @@ struct MyRecordView: View {
                 year: $year, month: $month, reachList: $reachList, reachMsg: $reachMsg,
                 calendarMsg: $calendarMsg, doneDates: doneDates, today: today, freezeLeft: freezeLeft,
                 streak: streak, store: store, onConnectCalendar: connectCalendar,
-                onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices, onOpenSettings: onOpenSettings
+                onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices,
+                onOpenDiary: onOpenDiary, onOpenSettings: onOpenSettings
             )
         }
     }
@@ -120,6 +123,7 @@ private struct MyRecordContentView: View {
     let onOpenDex: () -> Void
     let onOpenBrag: () -> Void
     let onOpenVoices: () -> Void
+    let onOpenDiary: () -> Void
     let onOpenSettings: () -> Void
 
     var body: some View {
@@ -263,6 +267,11 @@ private struct MyRecordContentView: View {
                     KyonoGhostButton("🎉 じまんカード", action: onOpenBrag)
                     Spacer().frame(height: 8)
                     KyonoGhostButton("💬 せんぱいの声", action: onOpenVoices)
+                    Spacer().frame(height: 8)
+                    // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
+                    // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
+                    // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
+                    KyonoGhostButton("📔 ひとことにっき", action: onOpenDiary)
                 }
 
                 // index.html:792-800 続ける設定カード相当。画面の中身(SettingsView)はPhase 3実装済みのため

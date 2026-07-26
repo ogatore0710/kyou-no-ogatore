@@ -45,6 +45,7 @@ private enum Screen: Equatable {
     case dex
     case voices
     case brag
+    case diary
     case obu
     case guide
     case settings
@@ -54,7 +55,7 @@ private enum Screen: Equatable {
         switch (lhs, rhs) {
         case (.home, .home), (.onboarding, .onboarding),
              (.search, .search), (.catalog, .catalog), (.dex, .dex),
-             (.voices, .voices), (.brag, .brag), (.obu, .obu), (.guide, .guide),
+             (.voices, .voices), (.brag, .brag), (.diary, .diary), (.obu, .obu), (.guide, .guide),
              (.settings, .settings), (.myRecord, .myRecord): return true
         case let (.quiz(a), .quiz(b)): return a == b
         case let (.result(a), .result(b)): return a == b
@@ -170,6 +171,8 @@ struct RootView: View {
             )
         case .brag:
             BragView(store: store, onBack: { screen = .home })
+        case .diary:
+            DiaryView(store: store, onBack: { screen = .home })
         case .obu:
             ObuView(store: store, onBack: { screen = .home })
         case .guide:
@@ -182,6 +185,7 @@ struct RootView: View {
                 onOpenDex: { screen = .dex },
                 onOpenBrag: { screen = .brag },
                 onOpenVoices: { screen = .voices },
+                onOpenDiary: { screen = .diary },
                 onOpenSettings: { screen = .settings }
             )
         case .home:

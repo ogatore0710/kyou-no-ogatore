@@ -162,6 +162,7 @@ class MainActivity : ComponentActivity() {
                                             onOpenDex = { screen = Screen.Dex },
                                             onOpenBrag = { screen = Screen.Brag },
                                             onOpenVoices = { screen = Screen.Voices },
+                                            onOpenDiary = { screen = Screen.Diary },
                                             onOpenSettings = { screen = Screen.Settings },
                                         )
                                         is Screen.Soudan -> SoudanSheet(
@@ -187,6 +188,7 @@ class MainActivity : ComponentActivity() {
                                             onBack = { screen = Screen.Home },
                                         )
                                         is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Diary -> DiaryScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Obu -> ObuScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Guide -> GuideScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
@@ -244,6 +246,7 @@ sealed class Screen {
     object Dex : Screen()
     object Voices : Screen()
     object Brag : Screen()
+    object Diary : Screen()
     object Obu : Screen()
     object Guide : Screen()
     object Settings : Screen()
@@ -606,6 +609,7 @@ fun MyRecordScreen(
     onOpenDex: () -> Unit,
     onOpenBrag: () -> Unit,
     onOpenVoices: () -> Unit,
+    onOpenDiary: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -807,6 +811,11 @@ fun MyRecordScreen(
                 KyonoGhostButton("🎉 じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
                 Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("💬 せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"))
+                Spacer(Modifier.height(8.dp))
+                // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
+                // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
+                // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
+                KyonoGhostButton("📔 ひとことにっき", onOpenDiary, Modifier.testTag("diaryBtn"))
             }
 
             // index.html:792-800 続ける設定カード相当。画面の中身(SettingsScreen)はPhase 3実装済みのため
