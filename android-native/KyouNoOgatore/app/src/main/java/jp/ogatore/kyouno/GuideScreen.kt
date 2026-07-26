@@ -328,7 +328,7 @@ fun GuideScreen(
 
             // 高さ0のアンカー。gd-help内のFAQジャンプボタンがここまでスクロールする(FAQ本体のコードは
             // 一切変更しない。上のコメント参照)。
-            Spacer(Modifier.height(0.dp).bringIntoViewRequester(faqAnchorRequester).testTag("gd-faq-anchor"))
+            Spacer(Modifier.height(1.dp).fillMaxWidth().bringIntoViewRequester(faqAnchorRequester).testTag("gd-faq-anchor"))
 
             // ==== ここから下(gd-faq)は既存のまま・1文字も変更していない ====
             KyonoSectionHeader(KyonoIcon.Question, "よくあるしつもん", fill = colors.coralSoft)
