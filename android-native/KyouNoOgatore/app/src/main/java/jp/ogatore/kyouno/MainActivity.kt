@@ -155,6 +155,7 @@ class MainActivity : ComponentActivity() {
                                             store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onClose = { screen = Screen.Home },
+                                            presetIntentId = s.presetIntentId,
                                         )
                                         is Screen.Search -> SearchScreen(
                                             store = store,
@@ -207,7 +208,7 @@ class MainActivity : ComponentActivity() {
                                         .padding(end = 16.dp, bottom = 84.dp),
                                     verticalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
-                                    KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan })
+                                    KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan() })
                                     KyonoFab("📣", colors.coral, contentDescription = "オガトレ通信", onClick = { screen = Screen.Obu })
                                 }
                             }
@@ -225,7 +226,7 @@ sealed class Screen {
     object Home : Screen()
     object MyRecord : Screen()
     object Onboarding : Screen()
-    object Soudan : Screen()
+    data class Soudan(val presetIntentId: String? = null) : Screen()
     object Search : Screen()
     object Catalog : Screen()
     object Dex : Screen()

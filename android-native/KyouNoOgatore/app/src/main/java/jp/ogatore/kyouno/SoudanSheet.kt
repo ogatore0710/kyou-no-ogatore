@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -103,7 +104,7 @@ sealed class SdChipsMode {
 }
 
 @Composable
-fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Unit) {
+fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Unit, presetIntentId: String? = null) {
     val kb = remember { SafetyKBLoader.shared }
     var messages by remember { mutableStateOf(listOf<SdBubble>()) }
     var chipsMode by remember { mutableStateOf<SdChipsMode>(SdChipsMode.Intents("body")) }
@@ -176,6 +177,13 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
 
     fun planDecline() {
         messages = messages + SdBubble.Bot("OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね")
+    }
+
+    // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md): index.html:3409
+    // soudanCardChips「タップでそのまま聞けるよ」チップ→openSoudan(intentId)相当。ホームの
+    // オガトレ相談室カードのおすすめチップから開いたときだけ、開いた瞬間にそのintentへ自動応答する。
+    LaunchedEffect(Unit) {
+        presetIntentId?.let { chipTap(it) }
     }
 
     // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
