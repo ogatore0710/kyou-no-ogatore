@@ -386,6 +386,10 @@ fun HomeScreen(
 
     val fdFocusOn = HomeLogic.fdFocusHomeActive(fd, streak.total, fdday, today)
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
+    // 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
+    // index.html:1757-1759 planFinishedCache/planCelebratedの1:1移植(プロセス内メモリのみ・§2-3)。
+    var planFinishedCache by remember { mutableStateOf<PlanFinishedCache?>(null) }
+    var planCelebrated by remember { mutableStateOf(false) }
     val themeSetting = store.get("theme", "auto")
 
     KyonoTheme(themeSetting) {
@@ -477,7 +481,32 @@ fun HomeScreen(
             // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)。Web版DOM順
             // (index.html:664 todayCardの直後・streakCardの直前)に合わせて位置を修正。
             plan?.let { p ->
-                PlanProgressCard(store = store, plan = p, onCleared = { plan = null })
+                PlanProgressCard(
+                    store = store, plan = p, onCleared = { plan = null },
+                    onFinished = { cache -> planFinishedCache = cache },
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+            // 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
+            // index.html:678-684 #planDoneCardの1:1移植。planと独立させる(finishedになった瞬間に
+            // plan=nullで消えてしまわないよう、専用のキャッシュ状態から描画する)。
+            planFinishedCache?.let { cache ->
+                PlanDoneCard(
+                    cache = cache,
+                    alreadyCelebrated = planCelebrated,
+                    onCelebrate = { planCelebrated = true },
+                    onPlanAgain = {
+                        // index.html:1817 planAgain()の1:1移植。state.mode/mode_manualはネイティブに
+                        // 「きょうの1本」モード切替の仕組み自体が無い(§2-2的な既存スコープ判断)ため
+                        // 対応するstore書き込みは行わない。
+                        val newPlan = SdPlanData(cache.intentId, cache.label, cache.videos, today, cache.days)
+                        store.set("plan", newPlan)
+                        plan = newPlan
+                        planFinishedCache = null
+                    },
+                    onStartQuiz = { planFinishedCache = null; onOpenQuiz() },
+                    onClose = { planFinishedCache = null },
+                )
                 Spacer(Modifier.height(16.dp))
             }
 

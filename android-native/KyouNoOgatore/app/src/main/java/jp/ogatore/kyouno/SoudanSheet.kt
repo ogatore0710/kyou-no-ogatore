@@ -1,5 +1,9 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,12 +39,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jp.ogatore.kyouno.record.RecordStore
@@ -48,6 +58,8 @@ import jp.ogatore.kyouno.safety.SafetyKBLoader
 import jp.ogatore.kyouno.safety.SoudanEngine
 import jp.ogatore.kyouno.safety.SoudanResponse
 import jp.ogatore.kyouno.safety.SoudanVerdict
+import kotlin.math.sin
+import kotlin.random.Random
 import kotlinx.serialization.Serializable
 
 // ネイティブ移植 Step 6(マスタープラン§6 Step 6・§2-1「相談室エンジン sd*一式」対応): 相談室チャットUI
@@ -398,15 +410,21 @@ private fun KyonoCatButton(label: String, selected: Boolean, onClick: () -> Unit
     ) { Text(label, color = if (selected) Color(0xFF3A3A35) else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }
 }
 
-// index.html:1781 renderPlanCard相当の簡略版(進捗バー・完走時の卒業表示・解除ボタン)。
-// 紙吹雪演出(launchConfetti)・章システムとの連携(mode_manual)等の見た目演出は移植対象外(Step6の
-// 検収基準に含まれないため。安全性に無関係)。
-//
+// 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
+// app-record.js/index.html:1795 planFinishedCache相当(完走直後の「もう2週間続ける」用に
+// intentId/label/videos/daysだけ退避する)。
+data class PlanFinishedCache(val intentId: String, val label: String, val videos: List<String>, val days: Int)
+
+// index.html:1781 renderPlanCard相当(進捗バー・「やめる」は下線付きテキストリンクでボタンではない)。
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md):
-// index.html:667-676 #planCard(.bar進捗バー・「やめる」は下線付きテキストリンクでボタンではない)の
-// 1:1移植。KyonoCard化(ホーム画面スクショで唯一浮いて見えていた箇所)。
+// index.html:667-676 #planCard の1:1移植。KyonoCard化(ホーム画面スクショで唯一浮いて見えていた箇所)。
+//
+// 完走(finished)時はこのカード自体を描画しない(呼び出し側がonFinishedを受けてPlanDoneCardを
+// 表示する設計に変更 — TASK-C2-2026-07-27-plan-completion-celebration.mdで発見: 従来はfinished時に
+// onClearedを即座に呼んでいたため、呼び出し側でplan=nullになり「finishedの表示」自体が
+// 次の再合成で消えてしまうバグがあった)。
 @Composable
-fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit) {
+fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit, onFinished: (PlanFinishedCache) -> Unit) {
     val colors = LocalKyonoColors.current
     val today = jp.ogatore.kyouno.record.RecordLogic.todayStr(java.time.Instant.now())
     val dayNum = (jp.ogatore.kyouno.record.RecordLogic.daysBetween(plan.start, today) + 1).coerceAtLeast(1)
@@ -414,53 +432,135 @@ fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit
     if (finished) {
         // index.html:1798 planFinished時のstore.set("plan",null)相当。合成中の副作用を避けるため
         // LaunchedEffectで1度だけ実行する。
-        androidx.compose.runtime.LaunchedEffect(plan) {
+        LaunchedEffect(plan) {
+            onFinished(PlanFinishedCache(plan.intentId, plan.label, plan.videos, plan.days))
             store.set("plan", null as SdPlanData?)
             onCleared()
         }
+        return
     }
     KyonoCard(Modifier.testTag("planCard")) {
-        if (finished) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "📅 ${plan.label}プラン $dayNum/${plan.days}日", color = colors.ink, fontWeight = FontWeight.Black,
+                modifier = Modifier.weight(1f).testTag("planTitle"),
+            )
+            Text(
+                "やめる", color = colors.sub, fontWeight = FontWeight.Black, fontSize = 13.sp,
+                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                modifier = Modifier
+                    .clickable { store.set("plan", null as SdPlanData?); onCleared() }
+                    .testTag("planQuitBtn"),
+            )
+        }
+        // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
+        val progress = (dayNum.toFloat() / plan.days.toFloat()).coerceIn(0f, 1f)
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .height(14.dp)
+                .background(colors.line, RoundedCornerShape(99.dp)),
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth(progress)
+                    .fillMaxHeight()
+                    .background(colors.teal, RoundedCornerShape(99.dp)),
+            )
+        }
+    }
+}
+
+// index.html:678-684 #planDoneCard(プラン完走のお祝い。chara-congrats+紙吹雪+3ボタン)の1:1移植
+// (TASK-C2-2026-07-27-plan-completion-celebration.md)。
+@Composable
+fun PlanDoneCard(
+    cache: PlanFinishedCache,
+    alreadyCelebrated: Boolean,
+    onCelebrate: () -> Unit,
+    onPlanAgain: () -> Unit,
+    onStartQuiz: () -> Unit,
+    onClose: () -> Unit,
+) {
+    val colors = LocalKyonoColors.current
+    // index.html:1759 planCelebrated(セッション内で紙吹雪を重ね撃ちしない)の1:1移植。
+    // remember(初回合成時のみ評価)でキャプチャし、onCelebrate()が呼ばれてalreadyCelebratedが
+    // trueに変わっても紙吹雪アニメーションの途中で消えないようにする。
+    val showConfettiOnce = remember { !alreadyCelebrated }
+    LaunchedEffect(Unit) { if (!alreadyCelebrated) onCelebrate() }
+    Box(Modifier.testTag("planDoneCard")) {
+        KyonoGradientCard(KyonoGradient.Mint) {
             // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
             // §2 キャラクター画像: index.html:679 #planDoneCard(chara-congrats.png 84x84・中央寄せ)の1:1移植。
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 KyonoCharaImage("chara_congrats", Modifier.size(84.dp))
             }
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
-                "🎉 ${plan.label}プラン完走！すごい！", color = colors.ink, fontWeight = FontWeight.Black,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().testTag("planDoneText"),
+                buildAnnotatedString {
+                    withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) { append("🎉 ${cache.label}プラン完走！すごい！") }
+                    append("\n${cache.days}日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ")
+                },
+                color = colors.ink, fontSize = 15.sp, lineHeight = 27.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().testTag("planDoneText"),
             )
-            Text("${plan.days}日間続けたの、ほんとにえらい👏", color = colors.sub, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "📅 ${plan.label}プラン $dayNum/${plan.days}日", color = colors.ink, fontWeight = FontWeight.Black,
-                    modifier = Modifier.weight(1f).testTag("planTitle"),
-                )
-                Text(
-                    "やめる", color = colors.sub, fontWeight = FontWeight.Black, fontSize = 13.sp,
-                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
-                    modifier = Modifier
-                        .clickable { store.set("plan", null as SdPlanData?); onCleared() }
-                        .testTag("planQuitBtn"),
-                )
-            }
-            // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
-            val progress = (dayNum.toFloat() / plan.days.toFloat()).coerceIn(0f, 1f)
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .height(14.dp)
-                    .background(colors.line, RoundedCornerShape(99.dp)),
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxWidth(progress)
-                        .fillMaxHeight()
-                        .background(colors.teal, RoundedCornerShape(99.dp)),
-                )
+            Spacer(Modifier.height(12.dp))
+            KyonoPrimaryButton("💪 もう2週間続ける", onPlanAgain, Modifier.testTag("planAgainBtn"))
+            Spacer(Modifier.height(8.dp))
+            KyonoGhostButton("📏 かたさチェックで変化をみる", onStartQuiz, Modifier.testTag("planQuizBtn"))
+            Spacer(Modifier.height(8.dp))
+            KyonoLineButton("とじる", onClose, Modifier.testTag("planDoneCloseBtn"))
+        }
+        if (showConfettiOnce) {
+            KyonoConfetti(count = 105, modifier = Modifier.matchParentSize())
+        }
+    }
+}
+
+private data class ConfettiParticle(
+    val x0: Float, val y0: Float, val vx: Float, val vy: Float,
+    val w: Float, val h: Float, val rot0: Float, val vr: Float,
+    val sway: Float, val phase: Float, val color: Color,
+)
+
+// index.html:1919 launchConfetti()の見た目の1:1移植(紙吹雪演出。DUR=1500ms・4色パレット・
+// 落下+左右のsway+回転)。§2-4許容箇所(markDoneのcheer選択と同じくUI装飾のみの乱数使用。
+// 判定/安全ロジックではない)。
+@Composable
+fun KyonoConfetti(count: Int, modifier: Modifier = Modifier) {
+    val palette = listOf(Color(0xFFFFD93B), Color(0xFF2BB3A3), Color(0xFFE56A9A), Color(0xFFFF8A70))
+    val particles = remember(count) {
+        List(count) { i ->
+            ConfettiParticle(
+                x0 = Random.nextFloat(),
+                y0 = -0.05f - Random.nextFloat() * 0.35f,
+                vx = (Random.nextFloat() - 0.5f) * 80f,
+                vy = 200f + Random.nextFloat() * 260f,
+                w = 6f + Random.nextFloat() * 5f,
+                h = 9f + Random.nextFloat() * 6f,
+                rot0 = Random.nextFloat() * 360f,
+                vr = (Random.nextFloat() - 0.5f) * 720f,
+                sway = 20f + Random.nextFloat() * 26f,
+                phase = Random.nextFloat() * 6.283f,
+                color = palette[i % palette.size],
+            )
+        }
+    }
+    val anim = remember(count) { Animatable(0f) }
+    LaunchedEffect(count) {
+        anim.snapTo(0f)
+        anim.animateTo(1f, animationSpec = tween(durationMillis = 1500, easing = LinearEasing))
+    }
+    Canvas(modifier = modifier) {
+        val t = anim.value * 1.5f
+        particles.forEach { p ->
+            val x = p.x0 * size.width + p.vx * t + p.sway * sin(t * 3f + p.phase)
+            val y = p.y0 * size.height + p.vy * t
+            if (y in -40f..(size.height + 40f)) {
+                rotate(degrees = p.rot0 + p.vr * t, pivot = Offset(x, y)) {
+                    drawRect(color = p.color, topLeft = Offset(x - p.w / 2, y - p.h / 2), size = Size(p.w, p.h))
+                }
             }
         }
     }
