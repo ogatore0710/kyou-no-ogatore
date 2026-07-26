@@ -82,6 +82,12 @@ struct VideoRow: View {
     let openUrl: (String) -> Void
     var badge: String? = nil
 
+    // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
+    // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと
+    // ダークモードのcoralSoft背景に対してコントラストが低すぎて読みにくかった。
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    private var badgeTextColor: Color { dark ? Color(hex: 0xF0A58E) : Color(hex: 0xB4462F) }
+
     var body: some View {
         Button {
             openUrl("https://www.youtube.com/watch?v=\(v.id)")
@@ -95,7 +101,7 @@ struct VideoRow: View {
                 .frame(width: 112, height: 112 * 9 / 16)
                 VStack(alignment: .leading, spacing: 2) {
                     if let label = badge ?? v.tags?.first {
-                        Text(label).font(.kyono(.black900, size: 12)).foregroundColor(Color(hex: 0xB4462F))
+                        Text(label).font(.kyono(.black900, size: 12)).foregroundColor(badgeTextColor)
                             .padding(.horizontal, 8).padding(.vertical, 1)
                             .background(Capsule().fill(colors.coralSoft))
                     }

@@ -113,6 +113,11 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
 @Composable
 fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null) {
     val colors = LocalKyonoColors.current
+    // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
+    // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと
+    // ダークモードのcoralSoft背景に対してコントラストが低すぎて読みにくかった。
+    val dark = colors.bg == KyonoDarkColors.bg
+    val badgeTextColor = if (dark) Color(0xFFF0A58E) else Color(0xFFB4462F)
     Row(
         Modifier
             .fillMaxWidth()
@@ -136,7 +141,7 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null) 
         Column(Modifier.weight(1f)) {
             (badge ?: v.tags.firstOrNull())?.let { label ->
                 Text(
-                    label, color = Color(0xFFB4462F), fontSize = 12.sp, fontWeight = FontWeight.Black,
+                    label, color = badgeTextColor, fontSize = 12.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
                 )
                 Spacer(Modifier.height(4.dp))

@@ -100,6 +100,12 @@ class MainActivity : ComponentActivity() {
             var screen by remember {
                 mutableStateOf<Screen>(if (store.get("onboarded", false)) Screen.Home else Screen.Onboarding)
             }
+            // ダークモード再確認+rDoneNudge/rTourBtn実装タスク(TASK-C2-2026-07-27-darkmode-recheck-
+            // and-nudges.md): index.html:4267 obTourI/obTourDone/obTourAfterQuizの1:1移植。Web版と
+            // 同じくプロセス内メモリのみ(§2-3・永続化しない)。obTourDoneは「このセッション内でツアーを
+            // 見終えたか」、obTourAfterQuizは「オンボ→クイズへ直行してツアー未見のまま来た」を表す。
+            var obTourDone by remember { mutableStateOf(false) }
+            var obTourAfterQuiz by remember { mutableStateOf(false) }
             val themeSetting = store.get("theme", "auto")
             // フォント適用漏れ修正(TASK-C2-2026-07-26-visual-parity-fonts-characters.md):
             // 本文用フォントをM PLUS 1p(Bold=700系)にするため、Typography全スタイルのfontFamilyを
@@ -149,6 +155,9 @@ class MainActivity : ComponentActivity() {
                                         is Screen.Onboarding -> OnboardingScreen(
                                             store = store,
                                             onComplete = { route, presetWorry ->
+                                                // index.html:4374 obGo()の1:1移植: quizへ行く人がまだ
+                                                // ツアーを見ていなければ、結果画面にrTourBtnを出す予約をする。
+                                                if (route == "quiz" && !obTourDone) obTourAfterQuiz = true
                                                 screen = if (route == "quiz") Screen.Quiz(presetWorry) else Screen.Home
                                             },
                                         )
@@ -158,16 +167,29 @@ class MainActivity : ComponentActivity() {
                                             onComplete = { typeKey, autoReachLv -> screen = Screen.Result(typeKey, autoReachLv) },
                                             onGoHome = { screen = Screen.Home },
                                         )
-                                        is Screen.Result -> ResultScreen(
-                                            store = store,
-                                            typeKey = s.typeKey,
-                                            autoReachLv = s.autoReachLv,
-                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                                            onDone = { screen = Screen.Home },
-                                            onStartQuiz = { screen = Screen.Quiz(null) },
-                                            onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
+                                        is Screen.Result -> {
+                                            // app-quiz.js:262-266 showResult()の1:1移植: はじめの1本
+                                            // ガイド中はrTourBtnを出さない(既存のHomeLogic.fdActiveを
+                                            // 呼ぶだけ・判定ロジックの再実装はしない)。
+                                            val fdNow = store.get("fd", null as String?)
+                                            val totalNow = RecordLogic.loadStreak(store).total
+                                            if (HomeLogic.fdActive(fdNow, totalNow) && obTourAfterQuiz) obTourAfterQuiz = false
+                                            ResultScreen(
+                                                store = store,
+                                                typeKey = s.typeKey,
+                                                autoReachLv = s.autoReachLv,
+                                                showTourBtn = obTourAfterQuiz,
+                                                openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                                                onDone = { screen = Screen.Home },
+                                                onStartQuiz = { screen = Screen.Quiz(null) },
+                                                onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
+                                                onStartTour = { obTourAfterQuiz = false; screen = Screen.Tour(false) },
+                                            )
+                                        }
+                                        is Screen.Tour -> TourScreen(
+                                            showClosing = s.showClosing,
+                                            onDone = { obTourDone = true; screen = Screen.Home },
                                         )
-                                        is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })
                                         is Screen.MyRecord -> MyRecordScreen(
                                             store = store,
                                             onBack = { screen = Screen.Home },
