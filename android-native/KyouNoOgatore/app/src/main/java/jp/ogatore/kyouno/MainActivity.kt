@@ -173,12 +173,12 @@ class MainActivity : ComponentActivity() {
                                             // 呼ぶだけ・判定ロジックの再実装はしない)。
                                             val fdNow = store.get("fd", null as String?)
                                             val totalNow = RecordLogic.loadStreak(store).total
-                                            if (HomeLogic.fdActive(fdNow, totalNow) && obTourAfterQuiz) obTourAfterQuiz = false
+                                            val fdGuideActive = HomeLogic.fdActive(fdNow, totalNow)
                                             ResultScreen(
                                                 store = store,
                                                 typeKey = s.typeKey,
                                                 autoReachLv = s.autoReachLv,
-                                                showTourBtn = obTourAfterQuiz,
+                                                showTourBtn = obTourAfterQuiz && !fdGuideActive,
                                                 openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                                 onDone = { screen = Screen.Home },
                                                 onStartQuiz = { screen = Screen.Quiz(null) },

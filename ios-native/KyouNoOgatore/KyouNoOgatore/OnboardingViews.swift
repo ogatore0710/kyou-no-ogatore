@@ -592,10 +592,21 @@ struct ResultView: View {
     let store: RecordStore
     let typeKey: String
     let autoReachLv: Int?
+    let showTourBtn: Bool
     let openUrl: (String) -> Void
     let onDone: () -> Void
     let onStartQuiz: () -> Void
     let onOpenSoudan: (String?) -> Void
+    let onStartTour: () -> Void
+
+    // ダークモード再確認+rDoneNudge/rTourBtn実装タスク(TASK-C2-2026-07-27-darkmode-recheck-and-
+    // nudges.md): index.html:3958-3969 rDoneNudge用タップ検知(#result内のa.videoクリックで
+    // pendingNudgeを立てる)+index.html:3970-4001 checkDoneNudge()の「結果画面表示中」分岐の1:1移植。
+    // HomeViewの既存の同種ロジック(pendingNudgeDate/showDoneNudge)とは独立させ、既存の
+    // 壊れやすい仕組みには一切触れない。
+    @State private var pendingNudgeDate: String?
+    @State private var showDoneNudge = false
+    @Environment(\.scenePhase) private var scenePhase
 
     private var info: TypeInfo { quizTypes[typeKey] ?? TypeInfo(name: typeKey, copy: "", hope: "", pt: "", area: "") }
     // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
@@ -605,6 +616,10 @@ struct ResultView: View {
         let result: QuizTypeResult? = store.get("type", default: nil)
         return result?.worry
     }
+    private var fdGuideActive: Bool {
+        let fd: String? = store.get("fd", default: nil)
+        return HomeLogic.fdActive(fd: fd, streakTotal: RecordLogic.loadStreak(store).total)
+    }
 
     var body: some View {
         // ResultViewはRecordStoreを従来受け取らなかったが、rSoudanLinkの遷移先(onOpenSoudan)や
@@ -612,12 +627,23 @@ struct ResultView: View {
         KyonoTheme(themeSetting: "auto") {
             content
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            let today = RecordLogic.todayStr(now: Date())
+            let dates = RecordLogic.loadStreak(store).dates
+            if HomeLogic.shouldShowDoneNudge(pendingNudgeDate: pendingNudgeDate, today: today, streakDates: dates) {
+                showDoneNudge = true
+            }
+            pendingNudgeDate = nil
+        }
     }
 
     private var content: some View {
         ResultContentView(
-            info: info, typeKey: typeKey, autoReachLv: autoReachLv, rx: rx, worry: worry, openUrl: openUrl,
-            onDone: onDone, onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan
+            info: info, typeKey: typeKey, autoReachLv: autoReachLv, rx: rx, worry: worry,
+            showDoneNudge: showDoneNudge, fdGuideActive: fdGuideActive, showTourBtn: showTourBtn,
+            onVideoTap: { url in pendingNudgeDate = RecordLogic.todayStr(now: Date()); openUrl(url) },
+            openUrl: openUrl, onDone: onDone, onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan, onStartTour: onStartTour
         )
     }
 }
@@ -629,10 +655,15 @@ private struct ResultContentView: View {
     let autoReachLv: Int?
     let rx: [String]
     let worry: String?
+    let showDoneNudge: Bool
+    let fdGuideActive: Bool
+    let showTourBtn: Bool
+    let onVideoTap: (String) -> Void
     let openUrl: (String) -> Void
     let onDone: () -> Void
     let onStartQuiz: () -> Void
     let onOpenSoudan: (String?) -> Void
+    let onStartTour: () -> Void
 
     private var catalogById: [String: CatalogVideo] {
         Dictionary(uniqueKeysWithValues: CatalogLoader.shared.map { ($0.id, $0) })
@@ -686,7 +717,7 @@ private struct ResultContentView: View {
                     let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
                     ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
                         if let v = lookupVideo(vk) {
-                            VideoRow(v: v, openUrl: openUrl, badge: badges.indices.contains(i) ? badges[i] : nil)
+                            VideoRow(v: v, openUrl: onVideoTap, badge: badges.indices.contains(i) ? badges[i] : nil)
                         }
                     }
                     if !rx.isEmpty {
@@ -699,7 +730,7 @@ private struct ResultContentView: View {
                     // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
                     if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
                         Spacer().frame(height: 4)
-                        VideoRow(v: v, openUrl: openUrl, badge: "＋ \(extra.label)")
+                        VideoRow(v: v, openUrl: onVideoTap, badge: "＋ \(extra.label)")
                     }
                     // index.html:740 #rRotateNoteの1:1移植。
                     Spacer().frame(height: 4)
@@ -723,6 +754,20 @@ private struct ResultContentView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                             .onTapGesture { onOpenSoudan(intentId) }
                     }
+                }
+                // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
+                // はじめの1本ガイド中、結果画面を表示したまま動画を見に行って戻ってきたときに、
+                // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
+                if showDoneNudge {
+                    KyonoCard {
+                        Text("おかえりなさい！✨ ストレッチできた？").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                        Spacer().frame(height: 10)
+                        KyonoPrimaryButton(fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく", action: onDone)
+                    }
+                }
+                // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。
+                if showTourBtn {
+                    KyonoGhostButton("📖 つづき：使い方ツアーへ", action: onStartTour)
                 }
                 KyonoPrimaryButton("きょうの1本へ", action: onDone)
                 // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。

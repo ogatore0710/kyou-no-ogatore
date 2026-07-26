@@ -85,6 +85,11 @@ private enum Screen: Equatable {
 struct RootView: View {
     let store: RecordStore
     @State private var screen: Screen
+    // ダークモード再確認+rDoneNudge/rTourBtn実装タスク(TASK-C2-2026-07-27-darkmode-recheck-and-
+    // nudges.md): index.html:4267 obTourI/obTourDone/obTourAfterQuizの1:1移植。Web版と同じく
+    // プロセス内メモリのみ(§2-3・永続化しない)。
+    @State private var obTourDone = false
+    @State private var obTourAfterQuiz = false
 
     init(store: RecordStore) {
         self.store = store
@@ -134,6 +139,9 @@ struct RootView: View {
         switch screen {
         case .onboarding:
             OnboardingView(store: store) { route, presetWorry in
+                // index.html:4374 obGo()の1:1移植: quizへ行く人がまだツアーを見ていなければ、
+                // 結果画面にrTourBtnを出す予約をする。
+                if route == "quiz" && !obTourDone { obTourAfterQuiz = true }
                 screen = route == "quiz" ? .quiz(presetWorry: presetWorry) : .home
             }
         case let .quiz(presetWorry):
@@ -143,15 +151,22 @@ struct RootView: View {
                 onGoHome: { screen = .home }
             )
         case let .result(typeKey, autoReachLv):
+            // app-quiz.js:262-266 showResult()の1:1移植: はじめの1本ガイド中はrTourBtnを出さない
+            // (既存のHomeLogic.fdActiveを呼ぶだけ・判定ロジックの再実装はしない)。
+            let fdNow: String? = store.get("fd", default: nil)
+            let totalNow = RecordLogic.loadStreak(store).total
+            let fdGuideActive = HomeLogic.fdActive(fd: fdNow, streakTotal: totalNow)
             ResultView(
                 store: store, typeKey: typeKey, autoReachLv: autoReachLv,
+                showTourBtn: obTourAfterQuiz && !fdGuideActive,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onDone: { screen = .home },
                 onStartQuiz: { screen = .quiz(presetWorry: nil) },
-                onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) }
+                onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
+                onStartTour: { obTourAfterQuiz = false; screen = .tour(showClosing: false) }
             )
         case let .tour(showClosing):
-            TourView(showClosing: showClosing) { screen = .home }
+            TourView(showClosing: showClosing) { obTourDone = true; screen = .home }
         case let .soudan(presetIntentId):
             SoudanSheetView(
                 store: store,

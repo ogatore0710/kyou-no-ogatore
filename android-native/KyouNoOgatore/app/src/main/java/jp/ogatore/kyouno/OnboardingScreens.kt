@@ -549,16 +549,19 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 // Phase 3: index.html:726-735 #result .card.grad-soft/.type-name/.type-copy/.type-hopeの1:1移植。
 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result)で
-// rPT/rReachNote/rPace/hint/rRecheckBtn/rSoudanLinkを追加。rxList/rDoneNudge/rTourBtn(動画レコメンド
-// 連動・オンボ→ツアー導線)は動画カタログ非依存ではないため別タスクの follow-up として切り出す。
+// rPT/rReachNote/rPace/hint/rRecheckBtn/rSoudanLinkを追加。rxListは
+// TASK-C2-2026-07-26-result-video-recommendations.mdで追加。rDoneNudge/rTourBtnは
+// TASK-C2-2026-07-27-darkmode-recheck-and-nudges.mdで追加。
 fun ResultScreen(
     store: RecordStore,
     typeKey: String,
     autoReachLv: Int?,
+    showTourBtn: Boolean,
     openUrl: (String) -> Unit,
     onDone: () -> Unit,
     onStartQuiz: () -> Unit,
     onOpenSoudan: (String?) -> Unit,
+    onStartTour: () -> Unit,
 ) {
     val info = QUIZ_TYPES[typeKey] ?: TypeInfo(typeKey, "", "", "", "")
     // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
@@ -567,6 +570,31 @@ fun ResultScreen(
     val worry = remember { store.get<QuizTypeResult?>("type", null)?.worry }
     val catalogById = remember { CatalogLoader.shared.associateBy { it.id } }
     fun lookupVideo(key: String): CatalogVideo? = QUIZ_VIDEO_KEY_TO_ID[key]?.let { catalogById[it] }
+    val today = remember { RecordLogic.todayStr(Instant.now()) }
+    // ダークモード再確認+rDoneNudge/rTourBtn実装タスク(TASK-C2-2026-07-27-darkmode-recheck-and-
+    // nudges.md): index.html:3958-3969 rDoneNudge用タップ検知(#result内のa.videoクリックで
+    // pendingNudgeを立てる)+index.html:3970-4001 checkDoneNudge()の「結果画面表示中」分岐の1:1移植。
+    // HomeScreenの既存の同種ロジック(pendingNudgeDate/showDoneNudge)とは独立させ、既存の
+    // 壊れやすい仕組み(HANDOFF.md「複数日貼りつきバグ」既知箇所)には一切触れない。
+    var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
+    var showDoneNudge by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val nowToday = RecordLogic.todayStr(Instant.now())
+                val dates = RecordLogic.loadStreak(store).dates
+                if (HomeLogic.shouldShowDoneNudge(pendingNudgeDate, nowToday, dates)) {
+                    showDoneNudge = true
+                }
+                pendingNudgeDate = null
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val onVideoTap: (String) -> Unit = { url -> pendingNudgeDate = today; openUrl(url) }
+    val fdGuideActive = remember { HomeLogic.fdActive(store.get("fd", null as String?), RecordLogic.loadStreak(store).total) }
     // ResultScreenはRecordStoreを従来受け取らなかったが、rSoudanLink表示条件(既存のSafetyKBLoader
     // 読み込み有無)には依存しない前提で常時表示にする(ネイティブはKBを起動時に同期読み込み済み)。
     KyonoTheme("auto") {
@@ -635,7 +663,7 @@ fun ResultScreen(
                 val badges = listOf("①まずほぐす", "②メインの1本", "③しあげ")
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
                     rx.forEachIndexed { i, vk ->
-                        lookupVideo(vk)?.let { v -> VideoRow(v, openUrl, badge = badges.getOrNull(i)) }
+                        lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = badges.getOrNull(i)) }
                     }
                 }
                 if (rx.isNotEmpty()) {
@@ -652,7 +680,7 @@ fun ResultScreen(
                         if (extra.v !in rx) {
                             lookupVideo(extra.v)?.let { v ->
                                 Spacer(Modifier.height(4.dp))
-                                VideoRow(v, openUrl, badge = "＋ ${extra.label}")
+                                VideoRow(v, onVideoTap, badge = "＋ ${extra.label}")
                             }
                         }
                     }
@@ -688,7 +716,27 @@ fun ResultScreen(
                     )
                 }
             }
+            // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
+            // はじめの1本ガイド中、結果画面を表示したまま動画を見に行って戻ってきたときに、
+            // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
+            if (showDoneNudge) {
+                Spacer(Modifier.height(16.dp))
+                KyonoCard(Modifier.testTag("rDoneNudge")) {
+                    Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(10.dp))
+                    KyonoPrimaryButton(
+                        if (fdGuideActive) "✅ 1日目の記録をつけにいく" else "✅ きょうの記録をつけにいく",
+                        onDone,
+                        Modifier.testTag("rDoneNudgeBtn"),
+                    )
+                }
+            }
             Spacer(Modifier.height(16.dp))
+            // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。
+            if (showTourBtn) {
+                KyonoGhostButton("📖 つづき：使い方ツアーへ", onStartTour, Modifier.testTag("rTourBtn"))
+                Spacer(Modifier.height(10.dp))
+            }
             KyonoPrimaryButton("きょうの1本へ", onDone, Modifier.testTag("resultDoneBtn"))
             Spacer(Modifier.height(10.dp))
             // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
