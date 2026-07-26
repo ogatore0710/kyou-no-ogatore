@@ -310,41 +310,72 @@ struct TypeInfo {
     let name: String
     let copy: String
     let hope: String
+    let pt: String
 }
 
-// app-quiz.js:45-79 TYPES の1:1移植(name/copy/hopeのみ。pt/rx/poolは動画カタログ連動でStep7aの範囲)。
+// app-quiz.js:45-79 TYPES の1:1移植(name/copy/hope/pt。rx/poolは動画カタログ連動でStep7aの範囲=
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result)で個別のfollow-up
+// タスクとして切り出す方針。ptは動画非依存の解説文なのでここで追加する)。
 let quizTypes: [String: TypeInfo] = [
     "momo": TypeInfo(
         name: "つっぱりモモンガ",
         copy: "前屈すると、つま先がとても遠い。それはあなたの脚が長い…わけではなく、もも裏がモモンガの滑空ポーズみたいにピンとつっぱっているサイン。",
-        hope: "でもモモンガも、着地すればちゃんと脚をゆるめます。もも裏は変化が出やすい場所。2週間後の前屈で、床がぐっと近くなってるはず。"
+        hope: "でもモモンガも、着地すればちゃんと脚をゆるめます。もも裏は変化が出やすい場所。2週間後の前屈で、床がぐっと近くなってるはず。",
+        pt: "硬いのは<b>ハムストリングス（もも裏の筋肉）</b>。ここが硬いと骨盤が後ろに倒れたまま固定され、前屈で腰だけが無理に曲がります。放っておくと<b>腰痛や座り姿勢の悪化</b>につながる場所。逆に言えば、もも裏をゆるめるだけで前屈も腰もラクになります。"
     ),
     "koka": TypeInfo(
         name: "開かずのトビラ",
         copy: "あぐらでひざが山になるのは、股関節のとびらが閉まっているから。股関節の封印は解きたいですよね。",
-        hope: "とびらは、毎日すこしずつ油をさせば開きます。股関節は9分の習慣がいちばん効く場所。あせらずコツコツ。"
+        hope: "とびらは、毎日すこしずつ油をさせば開きます。股関節は9分の習慣がいちばん効く場所。あせらずコツコツ。",
+        pt: "硬いのは<b>内もも（内転筋）とお尻（大臀筋・梨状筋）</b>。股関節を外に開く動きが制限されて、あぐら・開脚が苦手になります。股関節は体の土台なので、ここが動くと<b>歩く・座る・立つ全部がラクに</b>。腰への負担も減ります。"
     ),
     "kenko": TypeInfo(
         name: "飛べないダチョウ",
         copy: "ひじをつけたまま上がらないのは、肩甲骨まわりの羽根が飛べないダチョウみたいに、すっかり休眠しているから。デスクワークの勲章です。",
-        hope: "ダチョウの羽根だって、バサバサ動かせば血が巡ります。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。"
+        hope: "ダチョウの羽根だって、バサバサ動かせば血が巡ります。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。",
+        pt: "硬いのは<b>肩甲骨まわり（僧帽筋・広背筋・大胸筋など）</b>。肩甲骨の動きが小さくなると、首と肩の筋肉が代わりに働き続けて<b>肩こり・巻き肩・浅い呼吸</b>の原因に。肩甲骨を動かす習慣がつくと、背中が軽くなって姿勢も変わります。"
     ),
     "ashi": TypeInfo(
         name: "棒立ちペンギン",
         copy: "しゃがむとかかとがプカッ あるいは後ろにコロン。それは足首がカチッと固まっている証拠。ペンギンは可愛いけど、転ぶと痛い。",
-        hope: "足首がゆるむと、歩くのも立つのも軽くなります。つまむだけの簡単ストレッチから始めましょう。"
+        hope: "足首がゆるむと、歩くのも立つのも軽くなります。つまむだけの簡単ストレッチから始めましょう。",
+        pt: "硬いのは<b>足首の背屈（すねに向けて曲げる動き）＝ふくらはぎ・アキレス腱まわり</b>。ここが硬いと、しゃがむ動作でかかとが浮き、<b>つまずき・むくみ・ふくらはぎの張り</b>につながります。足首は毎日使う関節なので、ゆるめた効果を実感しやすい場所です。"
     ),
     "robot": TypeInfo(
         name: "ガチガチロボット",
         copy: "全体的に、ガチガチ。でも言いかえれば、どこを伸ばしても効く「伸びしろの宝庫」ということ。",
-        hope: "ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、ガチガチの体もちゃんと応えてくれます。"
+        hope: "ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、ガチガチの体もちゃんと応えてくれます。",
+        pt: "特定の場所というより<b>全身が複合的に硬い状態</b>。この場合は部位を絞るより、全身をまんべんなく動かすルーティンで底上げするのが近道です。<b>どこを伸ばしても効く＝変化を感じやすい</b>ので、実はいちばん楽しいスタート地点だったりします。"
     ),
     "yawara": TypeInfo(
         name: "しなやかネコ",
         copy: "おっと、けっこうしなやか！あなたはもう「しなやかネコ」。ここから先は、そのしなやかさを守るステージです。",
-        hope: "しなやかさは資産。猫が毎朝伸びをするみたいに、朝と夜の習慣で守っていきましょう。悩みに合わせた1本もどうぞ。"
+        hope: "しなやかさは資産。猫が毎朝伸びをするみたいに、朝と夜の習慣で守っていきましょう。悩みに合わせた1本もどうぞ。",
+        pt: "関節の可動域は良好です。次の課題は<b>「維持」と「使い方」</b>。柔らかくても、支える筋力や毎日の習慣が崩れると体は硬さに戻ります。朝晩の軽いルーティンで可動域を守りつつ、悩みのある部位を先回りでケアしましょう。"
     ),
 ]
+
+// 全画面完全性監査タスク #result: index.html:2976 SOUDAN_TYPE_INTENT(タイプ→相談室プリセット
+// intentId)の1:1移植。最初の1件のみ使う(Web版と同じ)。
+let soudanTypeIntent: [String: String] = [
+    "momo": "zenkutsu", "koka": "kokansetsu", "kenko": "katakori", "ashi": "ashikubi", "robot": "zenshin",
+]
+
+// index.html <b>タグの簡易リッチテキスト化(app-quiz.js TYPES[].ptの太字表現)。判定・データ構造では
+// なく表示専用の変換のためロジック層には置かない。
+private func boldHtmlText(_ raw: String, bold: Color) -> Text {
+    var result = Text("")
+    var rest = raw
+    while true {
+        guard let startRange = rest.range(of: "<b>") else { result = result + Text(rest); break }
+        result = result + Text(rest[rest.startIndex..<startRange.lowerBound])
+        let afterOpen = String(rest[startRange.upperBound...])
+        guard let endRange = afterOpen.range(of: "</b>") else { result = result + Text(afterOpen); break }
+        result = result + Text(afterOpen[afterOpen.startIndex..<endRange.lowerBound]).font(.kyono(.black900, size: 14)).foregroundColor(bold)
+        rest = String(afterOpen[endRange.upperBound...])
+    }
+    return result
+}
 
 struct QuizTypeResult: Codable {
     let key: String
@@ -355,10 +386,14 @@ struct QuizTypeResult: Codable {
 // app-quiz.js:145-153 activeQuestions()・194+ decideType呼び出し部分の1:1移植。判定そのものは
 // QuizEngine.decideType(Step4で移植済み)を呼ぶだけで、ここでは一切再実装しない
 // (マスタープラン§6 Step5c検収基準2)。presetWorryがあるときはQ5(worry)を出題しない。
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result): app-quiz.js:211
+// REACH_FROM_MOMO(Q1の回答index→とどくメーター段位への対応表)の1:1移植。
+private let reachFromMomo = [5, 4, 2, 1]
+
 struct QuizView: View {
     let store: RecordStore
     let presetWorry: String?
-    let onComplete: (_ typeKey: String) -> Void
+    let onComplete: (_ typeKey: String, _ autoReachLv: Int?) -> Void
     let onGoHome: () -> Void
 
     private let activeQuestions: [QuizQuestionDef]
@@ -369,7 +404,7 @@ struct QuizView: View {
     // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
     @State private var showGoHomeConfirm = false
 
-    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String) -> Void, onGoHome: @escaping () -> Void) {
+    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String, Int?) -> Void, onGoHome: @escaping () -> Void) {
         self.store = store
         self.presetWorry = presetWorry
         self.onComplete = onComplete
@@ -392,7 +427,17 @@ struct QuizView: View {
                         let s = QuizEngine.Scores(momo: scores["momo"] ?? 0, koka: scores["koka"] ?? 0, kenko: scores["kenko"] ?? 0, ashi: scores["ashi"] ?? 0)
                         let typeKey = QuizEngine.decideType(s, worry: worry, now: Date())
                         store.set("type", QuizTypeResult(key: typeKey, worry: worry, at: RecordLogic.todayStr(now: Date())))
-                        onComplete(typeKey)
+                        // app-quiz.js:223-234 finishQuiz()の自動転記(A案)の1:1移植: とどくメーターが
+                        // まだ1件も無ければ、Q1(momo)の回答を初回記録として自動で書きこむ
+                        // (ユーザーが自分で測った値があるときは上書きしない)。
+                        var autoReachLv: Int?
+                        if RecordLogic.getReach(store).isEmpty, let momoIdx = scores["momo"], reachFromMomo.indices.contains(momoIdx) {
+                            autoReachLv = reachFromMomo[momoIdx]
+                        }
+                        if let lv = autoReachLv {
+                            RecordLogic.setReach(store, lv: lv, now: Date())
+                        }
+                        onComplete(typeKey, autoReachLv)
                     }
                 },
                 onBack: { if qi > 0 { qi -= 1 } },
@@ -467,21 +512,32 @@ private struct QuizContentView: View {
 
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 // Phase 3: index.html:726-735 #result .card.grad-soft/.type-name/.type-copy/.type-hopeの1:1移植。
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result)で
+// rPT/rReachNote/rPace/hint/rRecheckBtn/rSoudanLinkを追加。rxList/rDoneNudge/rTourBtn(動画レコメンド
+// 連動・オンボ→ツアー導線)は動画カタログ非依存ではないため別タスクのfollow-upとして切り出す。
 struct ResultView: View {
+    let store: RecordStore
     let typeKey: String
+    let autoReachLv: Int?
     let onDone: () -> Void
+    let onStartQuiz: () -> Void
+    let onOpenSoudan: (String?) -> Void
 
-    private var info: TypeInfo { quizTypes[typeKey] ?? TypeInfo(name: typeKey, copy: "", hope: "") }
+    private var info: TypeInfo { quizTypes[typeKey] ?? TypeInfo(name: typeKey, copy: "", hope: "", pt: "") }
 
     var body: some View {
-        // ResultViewはRecordStoreを受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
+        // ResultViewはRecordStoreを従来受け取らなかったが、rSoudanLinkの遷移先(onOpenSoudan)を
+        // 通すために保持する。テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
         KyonoTheme(themeSetting: "auto") {
             content
         }
     }
 
     private var content: some View {
-        ResultContentView(info: info, typeKey: typeKey, onDone: onDone)
+        ResultContentView(
+            info: info, typeKey: typeKey, autoReachLv: autoReachLv, onDone: onDone,
+            onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan
+        )
     }
 }
 
@@ -489,7 +545,10 @@ private struct ResultContentView: View {
     @Environment(\.kyonoColors) private var colors
     let info: TypeInfo
     let typeKey: String
+    let autoReachLv: Int?
     let onDone: () -> Void
+    let onStartQuiz: () -> Void
+    let onOpenSoudan: (String?) -> Void
 
     var body: some View {
         ScrollView {
@@ -512,8 +571,42 @@ private struct ResultContentView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(colors.yellowSoft)
                         .cornerRadius(14)
+                    // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
+                    Spacer().frame(height: 12)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("🩺 理学療法士のひとくち解説").font(.kyono(.black900, size: 13)).foregroundColor(colors.ink)
+                        boldHtmlText(info.pt, bold: colors.ink)
+                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    }
+                    // 全画面完全性監査タスク #result: index.html:734 #rReachNote(Q1自動転記の一言)の1:1移植。
+                    if let lv = autoReachLv {
+                        Spacer().frame(height: 8)
+                        Text("📏 いまの前屈「\(reachLv[lv])」を とどくメーターにも記録したよ")
+                            .font(.kyono(.black900, size: 13)).foregroundColor(colors.tealInk)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
                 }
-                KyonoPrimaryButton("ホームへ", action: onDone)
+                // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
+                KyonoCard {
+                    Text("🩺 ペースの目安").font(.kyono(.black900, size: 14)).foregroundColor(colors.ink)
+                    Spacer().frame(height: 6)
+                    Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
+                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    Spacer().frame(height: 8)
+                    Text("※効果には個人差があります 痛みが強いときは中止して医療機関へ")
+                        .font(.kyono(.bold700, size: 12)).foregroundColor(colors.subFaint)
+                    // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
+                    if let intentId = soudanTypeIntent[typeKey] {
+                        Spacer().frame(height: 10)
+                        Text("💬 この悩み、相談室で聞いてみる")
+                            .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .onTapGesture { onOpenSoudan(intentId) }
+                    }
+                }
+                KyonoPrimaryButton("きょうの1本へ", action: onDone)
+                // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
+                KyonoGhostButton("もう一回チェックする", action: onStartQuiz)
             }
             .padding(20)
         }

@@ -35,8 +35,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import jp.ogatore.kyouno.card.QuizEngine
 import jp.ogatore.kyouno.card.QuizScores
@@ -334,11 +338,38 @@ val QUIZ_TYPES = mapOf(
 @Serializable
 data class QuizTypeResult(val key: String, val worry: String?, val at: String)
 
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result): index.html:2976
+// SOUDAN_TYPE_INTENT(タイプ→相談室プリセットintentId)の1:1移植。最初の1件のみ使う(Web版と同じ)。
+private val SOUDAN_TYPE_INTENT = mapOf(
+    "momo" to "zenkutsu", "koka" to "kokansetsu", "kenko" to "katakori",
+    "ashi" to "ashikubi", "robot" to "zenshin", "yawara" to null,
+)
+
+// index.html <b>タグの簡易リッチテキスト化(app-quiz.js TYPES[].ptの太字表現)。判定・データ構造では
+// なく表示専用の変換のためロジック層には置かない。
+private fun annotatedBoldHtml(raw: String, boldColor: Color): AnnotatedString = buildAnnotatedString {
+    var rest = raw
+    while (true) {
+        val start = rest.indexOf("<b>")
+        if (start < 0) { append(rest); break }
+        append(rest.substring(0, start))
+        val afterOpen = rest.substring(start + 3)
+        val end = afterOpen.indexOf("</b>")
+        if (end < 0) { append(afterOpen); break }
+        withStyle(SpanStyle(fontWeight = FontWeight.Black, color = boldColor)) { append(afterOpen.substring(0, end)) }
+        rest = afterOpen.substring(end + 4)
+    }
+}
+
 // app-quiz.js:145-153 activeQuestions()・194+ decideType呼び出し部分の1:1移植。判定そのものは
 // QuizEngine.decideType(Step4で移植済み)を呼ぶだけで、ここでは一切再実装しない
 // (マスタープラン§6 Step5c検収基準2)。presetWorryがあるときはQ5(worry)を出題しない。
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result): app-quiz.js:211
+// REACH_FROM_MOMO(Q1の回答index→とどくメーター段位への対応表)の1:1移植。
+private val REACH_FROM_MOMO = listOf(5, 4, 2, 1)
+
 @Composable
-fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String) -> Unit, onGoHome: () -> Unit) {
+fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit, onGoHome: () -> Unit) {
     val activeQuestions = remember(presetWorry) {
         if (presetWorry != null) QUIZ_QUESTIONS.filter { it.key != "worry" } else QUIZ_QUESTIONS
     }
@@ -391,7 +422,15 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                                     val s = QuizScores(scores["momo"] ?: 0, scores["koka"] ?: 0, scores["kenko"] ?: 0, scores["ashi"] ?: 0)
                                     val typeKey = QuizEngine.decideType(s, worry, Instant.now())
                                     store.set("type", QuizTypeResult(typeKey, worry, RecordLogic.todayStr(Instant.now())))
-                                    onComplete(typeKey)
+                                    // app-quiz.js:223-234 finishQuiz()の自動転記(A案)の1:1移植: とどくメーターが
+                                    // まだ1件も無ければ、Q1(momo)の回答を初回記録として自動で書きこむ
+                                    // (ユーザーが自分で測った値があるときは上書きしない)。
+                                    var autoReachLv: Int? = null
+                                    if (RecordLogic.getReach(store).isEmpty()) {
+                                        scores["momo"]?.let { idx -> REACH_FROM_MOMO.getOrNull(idx)?.let { autoReachLv = it } }
+                                    }
+                                    autoReachLv?.let { RecordLogic.setReach(store, it, Instant.now()) }
+                                    onComplete(typeKey, autoReachLv)
                                 }
                             }
                             .padding(horizontal = 16.dp, vertical = 14.dp)
@@ -430,9 +469,20 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
 @Composable
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 // Phase 3: index.html:726-735 #result .card.grad-soft/.type-name/.type-copy/.type-hopeの1:1移植。
-fun ResultScreen(typeKey: String, onDone: () -> Unit) {
-    val info = QUIZ_TYPES[typeKey] ?: TypeInfo(typeKey, "", "")
-    // ResultScreenはRecordStoreを受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
+// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result)で
+// rPT/rReachNote/rPace/hint/rRecheckBtn/rSoudanLinkを追加。rxList/rDoneNudge/rTourBtn(動画レコメンド
+// 連動・オンボ→ツアー導線)は動画カタログ非依存ではないため別タスクの follow-up として切り出す。
+fun ResultScreen(
+    store: RecordStore,
+    typeKey: String,
+    autoReachLv: Int?,
+    onDone: () -> Unit,
+    onStartQuiz: () -> Unit,
+    onOpenSoudan: (String?) -> Unit,
+) {
+    val info = QUIZ_TYPES[typeKey] ?: TypeInfo(typeKey, "", "", "")
+    // ResultScreenはRecordStoreを従来受け取らなかったが、rSoudanLink表示条件(既存のSafetyKBLoader
+    // 読み込み有無)には依存しない前提で常時表示にする(ネイティブはKBを起動時に同期読み込み済み)。
     KyonoTheme("auto") {
         val colors = LocalKyonoColors.current
         Column(
@@ -445,7 +495,7 @@ fun ResultScreen(typeKey: String, onDone: () -> Unit) {
             KyonoGradientCard(KyonoGradient.Soft, Modifier.testTag("resultCard")) {
                 Text(
                     "あなたのかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                    modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(10.dp))
                 // index.html:317-318,729 .type-illust(104x104・中央寄せ)の1:1移植。
@@ -456,20 +506,66 @@ fun ResultScreen(typeKey: String, onDone: () -> Unit) {
                 Text(
                     info.name, color = colors.ink, fontSize = 29.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.fillMaxWidth().testTag("resultTypeName"),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     info.copy, color = colors.sub, fontSize = 15.sp,
-                    modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(12.dp))
                 Box(Modifier.fillMaxWidth().background(colors.yellowSoft, RoundedCornerShape(14.dp)).padding(14.dp)) {
                     Text("🌱 " + info.hope, color = colors.ink, fontSize = 15.sp)
                 }
+                // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
+                Spacer(Modifier.height(12.dp))
+                Column {
+                    Text("🩺 理学療法士のひとくち解説", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        annotatedBoldHtml(info.pt, colors.ink), color = colors.sub, fontSize = 14.sp, lineHeight = 21.sp,
+                        modifier = Modifier.testTag("resultPT"),
+                    )
+                }
+                // 全画面完全性監査タスク #result: index.html:734 #rReachNote(Q1自動転記の一言)の1:1移植。
+                autoReachLv?.let { lv ->
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "📏 いまの前屈「${REACH_LV[lv]}」を とどくメーターにも記録したよ",
+                        color = colors.tealInk, fontSize = 13.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.fillMaxWidth().testTag("resultReachNote"), textAlign = TextAlign.Center,
+                    )
+                }
             }
             Spacer(Modifier.height(16.dp))
-            KyonoPrimaryButton("ホームへ", onDone, Modifier.testTag("resultDoneBtn"))
+            // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
+            KyonoCard {
+                Text("🩺 ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで",
+                    color = colors.sub, fontSize = 14.sp, lineHeight = 24.sp,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "※効果には個人差があります 痛みが強いときは中止して医療機関へ",
+                    color = colors.subFaint, fontSize = 12.sp,
+                )
+                // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
+                SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "💬 この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.testTag("resultSoudanLink"),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            KyonoPrimaryButton("きょうの1本へ", onDone, Modifier.testTag("resultDoneBtn"))
+            Spacer(Modifier.height(10.dp))
+            // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
+            KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("resultRecheckBtn"))
         }
     }
 }

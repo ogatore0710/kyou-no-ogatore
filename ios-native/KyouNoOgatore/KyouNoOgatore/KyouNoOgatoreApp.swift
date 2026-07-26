@@ -37,7 +37,7 @@ private enum Screen: Equatable {
     case home
     case onboarding
     case quiz(presetWorry: String?)
-    case result(typeKey: String)
+    case result(typeKey: String, autoReachLv: Int? = nil)
     case tour(showClosing: Bool)
     case soudan(presetIntentId: String? = nil)
     case search
@@ -58,7 +58,7 @@ private enum Screen: Equatable {
              (.voices, .voices), (.brag, .brag), (.diary, .diary), (.obu, .obu), (.guide, .guide),
              (.settings, .settings), (.myRecord, .myRecord): return true
         case let (.quiz(a), .quiz(b)): return a == b
-        case let (.result(a), .result(b)): return a == b
+        case let (.result(a, la), .result(b, lb)): return a == b && la == lb
         case let (.tour(a), .tour(b)): return a == b
         case let (.soudan(a), .soudan(b)): return a == b
         default: return false
@@ -137,11 +137,16 @@ struct RootView: View {
         case let .quiz(presetWorry):
             QuizView(
                 store: store, presetWorry: presetWorry,
-                onComplete: { typeKey in screen = .result(typeKey: typeKey) },
+                onComplete: { typeKey, autoReachLv in screen = .result(typeKey: typeKey, autoReachLv: autoReachLv) },
                 onGoHome: { screen = .home }
             )
-        case let .result(typeKey):
-            ResultView(typeKey: typeKey) { screen = .home }
+        case let .result(typeKey, autoReachLv):
+            ResultView(
+                store: store, typeKey: typeKey, autoReachLv: autoReachLv,
+                onDone: { screen = .home },
+                onStartQuiz: { screen = .quiz(presetWorry: nil) },
+                onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) }
+            )
         case let .tour(showClosing):
             TourView(showClosing: showClosing) { screen = .home }
         case let .soudan(presetIntentId):

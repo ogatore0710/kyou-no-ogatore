@@ -154,10 +154,17 @@ class MainActivity : ComponentActivity() {
                                         is Screen.Quiz -> QuizScreen(
                                             store = store,
                                             presetWorry = s.presetWorry,
-                                            onComplete = { typeKey -> screen = Screen.Result(typeKey) },
+                                            onComplete = { typeKey, autoReachLv -> screen = Screen.Result(typeKey, autoReachLv) },
                                             onGoHome = { screen = Screen.Home },
                                         )
-                                        is Screen.Result -> ResultScreen(typeKey = s.typeKey, onDone = { screen = Screen.Home })
+                                        is Screen.Result -> ResultScreen(
+                                            store = store,
+                                            typeKey = s.typeKey,
+                                            autoReachLv = s.autoReachLv,
+                                            onDone = { screen = Screen.Home },
+                                            onStartQuiz = { screen = Screen.Quiz(null) },
+                                            onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
+                                        )
                                         is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })
                                         is Screen.MyRecord -> MyRecordScreen(
                                             store = store,
@@ -263,7 +270,7 @@ sealed class Screen {
     object Guide : Screen()
     object Settings : Screen()
     data class Quiz(val presetWorry: String?) : Screen()
-    data class Result(val typeKey: String) : Screen()
+    data class Result(val typeKey: String, val autoReachLv: Int? = null) : Screen()
     data class Tour(val showClosing: Boolean) : Screen()
 }
 
@@ -296,8 +303,9 @@ private val QUOTES = listOf(
 private fun dayIndex(now: Instant): Long = (now.toEpochMilli() + 6L * 3600 * 1000) / 86400000L
 
 // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md): index.html:1971
-// REACH_LV(段位名。0番目は未使用)の1:1移植。
-private val REACH_LV = listOf("", "ひざまで", "すねまで", "足首まで", "つま先タッチ", "ゆかにベタッ")
+// REACH_LV(段位名。0番目は未使用)の1:1移植。OnboardingScreens.kt(ResultScreen)からも参照するため
+// module-internal(既定可視性)にする(全画面完全性監査タスク #result)。
+val REACH_LV = listOf("", "ひざまで", "すねまで", "足首まで", "つま先タッチ", "ゆかにベタッ")
 
 @Composable
 fun HomeScreen(
