@@ -283,6 +283,10 @@ private val QUOTES = listOf(
 // index.html:1708 dayIndex()の1:1移植(現在時刻+6時間オフセットの日数カウンタ)。
 private fun dayIndex(now: Instant): Long = (now.toEpochMilli() + 6L * 3600 * 1000) / 86400000L
 
+// とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md): index.html:1971
+// REACH_LV(段位名。0番目は未使用)の1:1移植。
+private val REACH_LV = listOf("", "ひざまで", "すねまで", "足首まで", "つま先タッチ", "ゆかにベタッ")
+
 @Composable
 fun HomeScreen(
     store: RecordStore,
@@ -767,7 +771,9 @@ fun MyRecordScreen(
                 KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター", fill = colors.yellowSoft)
                 Spacer(Modifier.height(8.dp))
                 val latest = reachList.lastOrNull()
-                Text(if (latest != null) "いまの記録: 段位${latest.lv}" else "まだ記録なし", color = colors.sub, modifier = Modifier.testTag("reachNowText"))
+                if (latest == null) {
+                    Text("まだ記録なし！まずは1回はかってみましょう", color = colors.sub, modifier = Modifier.testTag("reachNowText"))
+                }
                 Spacer(Modifier.height(8.dp))
                 // index.html:504-506 .reach-row(5列グリッド)/.reach-btn/.reach-btn.on(teal-strong塗り)の1:1移植。
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
@@ -797,6 +803,70 @@ fun MyRecordScreen(
                 reachMsg?.let {
                     Spacer(Modifier.height(6.dp))
                     Text(it, color = colors.teal, modifier = Modifier.testTag("reachMsgText"))
+                }
+                // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md):
+                // app-record.js:245-264 renderReach()の1:1移植(いまの記録+自己ベスト/前回比コメント/
+                // 直近14回トレンド棒グラフ)。段位の記録・判定ロジック自体は変更せず、表示の追加のみ。
+                if (latest != null) {
+                    val best = reachList.maxOf { it.lv }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        buildAnnotatedString {
+                            append("いまの記録: ")
+                            withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.ink)) { append(REACH_LV[latest.lv]) }
+                            append("（${latest.d.substring(5).replace("-", "/")}）")
+                        },
+                        color = colors.sub, fontSize = 15.sp, modifier = Modifier.testTag("reachNowText"),
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        buildAnnotatedString {
+                            append("自己ベスト: ")
+                            withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.teal)) { append(REACH_LV[best]) }
+                        },
+                        color = colors.sub, fontSize = 15.sp, modifier = Modifier.testTag("reachBestText"),
+                    )
+                    // 前回比(2回以上の記録があるときだけ・数字プレッシャーをかけない「段」表現)。
+                    if (reachList.size >= 2) {
+                        val prev = reachList[reachList.size - 2]
+                        val diff = latest.lv - prev.lv
+                        Spacer(Modifier.height(6.dp))
+                        when {
+                            diff > 0 -> Text(
+                                buildAnnotatedString {
+                                    append("前回（${REACH_LV[prev.lv]}）より")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.pink)) { append("${diff}段とどくようになった！🎉") }
+                                },
+                                color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("reachPrevText"),
+                            )
+                            diff == 0 -> Text(
+                                "前回とおなじ「${REACH_LV[latest.lv]}」 キープも立派です！",
+                                color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("reachPrevText"),
+                            )
+                            else -> Text(
+                                "体は日によってちがうもの またコツコツいきましょう🌱",
+                                color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("reachPrevText"),
+                            )
+                        }
+                    }
+                    // index.html:508-509 .rbar(直近14回・各バーの高さ=段位×20%)の1:1移植。
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.Bottom,
+                        modifier = Modifier.fillMaxWidth().height(56.dp).testTag("reachTrend"),
+                    ) {
+                        reachList.takeLast(14).forEach { entry ->
+                            Box(
+                                Modifier.width(16.dp).fillMaxHeight(entry.lv / 5f)
+                                    .background(
+                                        androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF7BD0C4), colors.teal)),
+                                        RoundedCornerShape(4.dp),
+                                    )
+                                    .testTag("reachTrendBar_${entry.d}"),
+                            )
+                        }
+                    }
                 }
             }
 

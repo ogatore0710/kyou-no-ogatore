@@ -23,6 +23,10 @@ import EventKit
 import RecordCore
 import CardCore
 
+// とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md): index.html:1971
+// REACH_LV(段位名。0番目は未使用)の1:1移植。
+private let reachLv = ["", "ひざまで", "すねまで", "足首まで", "つま先タッチ", "ゆかにベタッ"]
+
 struct MyRecordView: View {
     let store: RecordStore
     let onOpenDex: () -> Void
