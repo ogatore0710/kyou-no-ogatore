@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -38,6 +39,8 @@ import jp.ogatore.kyouno.card.QuizEngine
 import jp.ogatore.kyouno.card.QuizScores
 import jp.ogatore.kyouno.record.RecordLogic
 import jp.ogatore.kyouno.record.RecordStore
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
@@ -112,13 +115,22 @@ private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
 
 data class ChatBubble(val text: String, val fromUser: Boolean)
 
+// index.html:4211 「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
+private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ記録」タブの「続ける設定」でいつでも変更できるよ！"
+
 // index.html:4395-4434 obOpen/obAskQ/obPick/obGoの1:1移植。「welcome」専用画面は無く、この会話UI自体が
 // あいさつ(greet)を最初の3吹き出しとして描画することでwelcome相当を兼ねる(index.html:4405)。
+//
+// 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §1): index.html:4182 obSay()の
+// 「1.5秒間隔で吹き出しが1つずつ出る」演出をLaunchedEffect+delay(1500)のコルーチンで1:1再現する。
+// reduced-motion設定への対応(Web版は即時表示に切り替え)はこのタスクの検収基準に明記が無く、
+// システム設定の読み取り経路を新設する判断が必要になるため今回は見送る(常に1.5秒間隔で表示)。
 @Composable
 fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry: String?) -> Unit) {
-    var bubbles by remember { mutableStateOf(OB_GREET.map { ChatBubble(it, false) } + ChatBubble(OB_QUESTIONS[0].q, false)) }
-    var qi by remember { mutableStateOf(0) }
+    var bubbles by remember { mutableStateOf(listOf<ChatBubble>()) }
+    var activeQuestion by remember { mutableStateOf<ObQuestionDef?>(null) }
     val answers = remember { mutableStateMapOf<String, String>() }
+    val pickChannel = remember { Channel<ObChip>(Channel.CONFLATED) }
 
     fun finish() {
         // bigtext/anchorは実際の設定として即時反映(index.html:4218-4235 obPick)
@@ -135,6 +147,31 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             store.set("fdday", RecordLogic.todayStr(Instant.now()))
         }
         onComplete(route, presetWorry)
+    }
+
+    LaunchedEffect(Unit) {
+        // index.html:4182 obSay()の1:1移植: 1行ごとに表示→1.5秒待つ、を繰り返す。
+        suspend fun say(lines: List<String>) {
+            for (line in lines) {
+                bubbles = bubbles + ChatBubble(line, false)
+                delay(1500)
+            }
+        }
+        say(OB_GREET)
+        for (q in OB_QUESTIONS) {
+            // index.html:4197 obAskQ(): 質問文もobSay経由(1行)なので表示後に1.5秒待ってからチップを出す。
+            say(listOf(q.q))
+            activeQuestion = q
+            val picked = pickChannel.receive()
+            activeQuestion = null
+            answers[q.key] = picked.v
+            bubbles = bubbles + ChatBubble(picked.label, true) // index.html:4221 obPick内obBubble("user",...)は即時
+            when (q.key) {
+                "anchor" -> say(listOf(OB_ANCHOR_ACK[picked.v] ?: "OK！おぼえたよ📝"))
+                "bigtext" -> say(listOf(OB_BIGTEXT_ACK))
+            }
+        }
+        finish()
     }
 
     val themeSetting = store.get("theme", "auto")
@@ -168,7 +205,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                     }
                 }
             }
-            val q = OB_QUESTIONS.getOrNull(qi)
+            val q = activeQuestion
             if (q != null) {
                 Spacer(Modifier.height(8.dp))
                 Text("👇 タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
@@ -181,14 +218,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
                             .background(c.bg, RoundedCornerShape(16.dp))
                             .border(2.dp, c.border, RoundedCornerShape(16.dp))
-                            .clickable {
-                                answers[q.key] = chip.v
-                                bubbles = bubbles + ChatBubble(chip.label, true)
-                                OB_ANCHOR_ACK[chip.v]?.let { if (q.key == "anchor") bubbles = bubbles + ChatBubble(it, false) }
-                                qi++
-                                val nextQ = OB_QUESTIONS.getOrNull(qi)
-                                if (nextQ == null) finish() else bubbles = bubbles + ChatBubble(nextQ.q, false)
-                            }
+                            .clickable { pickChannel.trySend(chip) }
                             .padding(horizontal = 18.dp, vertical = 14.dp)
                             .testTag("obChip_${q.key}_${chip.v}"),
                     )
@@ -435,10 +465,13 @@ fun TourScreen(showClosing: Boolean, onDone: () -> Unit) {
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
     KyonoTheme("auto") {
         val colors = LocalKyonoColors.current
-        Column(Modifier.fillMaxSize().background(colors.bg).padding(20.dp)) {
+        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
             if (si < OB_TOUR_SLIDES.size) {
                 val slide = OB_TOUR_SLIDES[si]
                 Text(slide.title, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
+                Spacer(Modifier.height(10.dp))
+                // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
+                KyonoTourMockup(si)
                 Spacer(Modifier.height(10.dp))
                 Box(
                     Modifier.fillMaxWidth()
@@ -449,7 +482,12 @@ fun TourScreen(showClosing: Boolean, onDone: () -> Unit) {
                     Text(slide.desc, color = colors.ink, fontSize = 14.sp, lineHeight = 27.sp, modifier = Modifier.testTag("tourDesc"))
                 }
             } else {
-                Text(OB_TOUR_CLOSING_TITLE, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    // index.html:4276 OB_TOUR_CLOSING(chara-congrats.png 110x110・中央表示)の1:1移植。
+                    KyonoCharaImage("chara_congrats", Modifier.size(110.dp))
+                    Spacer(Modifier.height(8.dp))
+                    Text(OB_TOUR_CLOSING_TITLE, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
+                }
             }
             // index.html:313-315 .dots/.dot/.dot.on
             Row(modifier = Modifier.padding(top = 14.dp).testTag("tourDots"), horizontalArrangement = Arrangement.Center) {
