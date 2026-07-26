@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -169,8 +171,12 @@ private fun SearchIcon(fill: Color) {
 
 // index.html:1166-1175 obuFab/soudanFabの1:1移植。円形・カラーボーダー3px・影付き(タスク文の
 // 「コンポーネント様式」記載どおり)。縦積み(オガトレ通信が下・相談室が1段上)。
+//
+// 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): 絵文字だけではTalkBackに
+// 内容が伝わらないため、contentDescriptionを追加(Web版には無いネイティブならではの上乗せ。
+// 見た目・配色・タップ挙動は変更しない)。
 @Composable
-fun KyonoFab(emoji: String, borderColor: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val colors = LocalKyonoColors.current
     Box(
         modifier = modifier
@@ -178,7 +184,8 @@ fun KyonoFab(emoji: String, borderColor: Color, modifier: Modifier = Modifier, o
             .shadow(4.dp, CircleShape)
             .background(colors.card, CircleShape)
             .border(3.dp, borderColor, CircleShape)
-            .clickable(onClick = onClick),
+            .clickable(onClickLabel = contentDescription, onClick = onClick)
+            .semantics { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center,
     ) {
         Text(emoji, fontSize = 22.sp)

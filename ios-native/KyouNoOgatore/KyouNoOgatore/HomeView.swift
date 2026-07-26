@@ -19,6 +19,7 @@
 //  オンボ/ツアーUIはStep5b/5c/7aの範囲でありここには含めない(Android版と同じスコープ判断)。
 
 import SwiftUI
+import UIKit
 import RecordCore
 import CardCore
 
@@ -138,6 +139,10 @@ struct HomeView: View {
                 KyonoStreakText(streak.total, streakCount: streak.count)
                 KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did) {
                     guard !did else { return }
+                    // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
+                    // ネイティブならではの上乗せとして、主要アクションに軽いハプティクスを追加
+                    // (情報構造・文言・並び順はWeb版のまま変更しない「仕上げ方」のみの改善)。
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     RecordLogic.markDone(store, now: Date())
                     streak = RecordLogic.loadStreak(store)
                     cheerText = CHEERS.randomElement() // §2-4許容箇所: markDoneのcheer選択のみ乱数OK

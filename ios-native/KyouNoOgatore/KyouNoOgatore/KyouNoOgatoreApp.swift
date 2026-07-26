@@ -116,8 +116,8 @@ struct RootView: View {
             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
             if screen.kyonoTab != nil {
                 VStack(spacing: 10) {
-                    KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3)) { screen = .soudan }
-                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFF8A70)) { screen = .obu }
+                    KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan }
+                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFF8A70), accessibilityLabelText: "オガトレ通信") { screen = .obu }
                 }
                 .padding(.trailing, 16)
                 .padding(.bottom, 84)

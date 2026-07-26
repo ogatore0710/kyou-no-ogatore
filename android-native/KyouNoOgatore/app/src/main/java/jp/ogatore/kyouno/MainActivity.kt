@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -206,8 +207,8 @@ class MainActivity : ComponentActivity() {
                                         .padding(end = 16.dp, bottom = 84.dp),
                                     verticalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
-                                    KyonoFab("💬", colors.teal, onClick = { screen = Screen.Soudan })
-                                    KyonoFab("📣", colors.coral, onClick = { screen = Screen.Obu })
+                                    KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan })
+                                    KyonoFab("📣", colors.coral, contentDescription = "オガトレ通信", onClick = { screen = Screen.Obu })
                                 }
                             }
                         }
@@ -254,6 +255,10 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
 ) {
     val context = LocalContext.current
+    // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
+    // ネイティブならではの上乗せとして、主要アクション「きょうやった！」に軽いハプティクスを追加
+    // (情報構造・文言・並び順はWeb版のまま変更しない「仕上げ方」のみの改善)。
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
@@ -375,6 +380,7 @@ fun HomeScreen(
                     if (did) "きょうの分は完了！おつかれさまでした😊" else "きょうやった！",
                     {
                         if (!did) {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             RecordLogic.markDone(store, Instant.now())
                             streak = RecordLogic.loadStreak(store)
                             cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
@@ -566,7 +572,10 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
                     for (lv in 1..5) {
                         val on = latest?.lv == lv
                         Box(
-                            modifier = Modifier.weight(1f)
+                            // 見た目パリティ第2弾 §3: タップ領域44dp以上ルールの再確認(既存ルール=HANDOFF.md)。
+                            // Web版の13px paddingのままだと44dpをわずかに割り込むため、見た目(padding値)は
+                            // 変えずheightInで下限だけ確保する。
+                            modifier = Modifier.weight(1f).heightIn(min = 44.dp)
                                 .background(if (on) colors.tealStrong else colors.card, RoundedCornerShape(12.dp))
                                 .border(2.dp, if (on) colors.tealStrong else colors.line, RoundedCornerShape(12.dp))
                                 .clickable {

@@ -158,10 +158,13 @@ private struct MyRecordContentView: View {
                     HStack(spacing: 6) {
                         ForEach(Array(zip(1...5, ["ひざ", "すね", "足首", "つま先", "ゆか"])), id: \.0) { lv, label in
                             let on = reachList.last?.lv == lv
+                            // 見た目パリティ第2弾 §3: タップ領域44pt以上ルールの再確認(既存ルール=HANDOFF.md)。
+                            // Web版の13px paddingのままだと44ptをわずかに割り込むため、見た目(padding値)は
+                            // 変えずminHeightで下限だけ確保する。
                             Text(label)
                                 .font(.kyono(.black900, size: 14))
                                 .foregroundColor(on ? .white : colors.sub)
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: .infinity, minHeight: 44)
                                 .padding(.vertical, 13)
                                 .background(on ? colors.tealStrong : colors.card)
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(on ? colors.tealStrong : colors.line, lineWidth: 2))

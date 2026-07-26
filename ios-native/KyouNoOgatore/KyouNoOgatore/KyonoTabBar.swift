@@ -158,10 +158,14 @@ private struct SearchIcon: View {
 }
 
 // index.html:1166-1175 obuFab/soudanFabの1:1移植。円形・カラーボーダー3px・影付き。
+// 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): 絵文字だけではVoiceOverに
+// 内容が伝わらないため、accessibilityLabelを追加(Web版には無いネイティブならではの上乗せ。
+// 見た目・配色・タップ挙動は変更しない)。
 struct KyonoFab: View {
     @Environment(\.kyonoColors) private var colors
     let emoji: String
     let borderColor: Color
+    var accessibilityLabelText: String = ""
     let action: () -> Void
 
     var body: some View {
@@ -173,5 +177,6 @@ struct KyonoFab: View {
                 .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabelText)
     }
 }
