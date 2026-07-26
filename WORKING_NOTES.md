@@ -4,6 +4,49 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 フォント適用漏れ・キャラ/タイプ画像の欠落修正(本人実機指摘)
+
+`TASK-C2-2026-07-26-visual-parity-fonts-characters.md`。本人が実機で新デザインを確認し、
+「フォントがM PLUS 1pになっていない」「オガトレくん画像・かたさタイプ画像がアプリ全体で欠落」の
+2点を指摘。Phase 1のTheme.kt/.swiftは配色トークンのみ移植しフォント適用はCardRenderer限定に
+とどまっていた点、Phase 1〜3のカード型レイアウト移植が文言・配色・構造の1:1移植に集中し
+静的`<img>`アセットの移植漏れがあった点が原因。
+
+- **フォント(M PLUS 1p Bold=700系)をUI全体へ適用**:
+  - Android: `MainActivity.kt`の最上位`MaterialTheme`にTypography全15スタイル(display/headline/
+    title/body/label × large/medium/small)のfontFamilyを`KyonoFonts.mplus1p()`へ差し替えた
+    `kyonoTypography`を渡すことで、素朴な`Text()`呼び出しにも一括反映(画面ごとに1件ずつ
+    書き換える代わりにTypography層で共通適用)。
+  - iOS: `.font(.system(size:...))`/`.font(.system(size:...,weight:...))`をアプリ全体の
+    Swiftファイルに対しスクリプトで`.font(.kyono(.bold700/.black900, size:...))`へ一括置換
+    (53箇所)。個別に見落としていた相談室チャットバブル本文・KyonoBodyText(共通コンポーネント)・
+    マイ記録の各種メッセージテキスト等も手動で追加修正。
+- **キャラクター画像(オガトレくん)を新設`KyonoCharaImage`(両OS共通コンポーネント)で移植**:
+  - `chara-hitokoto.png`: 相談室チャットの全botメッセージ(Bot/PlanConfirm両方)にアバター表示・
+    オンボーディングのチャットにも同じCSS(.sd-row/.sd-b)を流用しているため同様に表示・
+    ホームの「おかえりなさい」カードに.qbubble相当のレイアウトで表示。
+  - `chara.png`: ホーム最上部の`.logo`マストヘッド(タイトル+サブタイトル横)・使い方タブ冒頭の
+    「おぼえるのはこれだけ！」カードに表示。
+  - `chara-congrats.png`: プラン完走時の`PlanProgressCard`(`.finished`分岐)に表示。
+  - **意図的に対象外としたもの**: `chara-good.png`(index.html:1031)は「記録が消えない3つの守り」
+    というA2HS導線(ホーム画面追加の案内)に埋め込まれた項目で、マスタープラン§2-2のA2HS除外対象と
+    重なるため移植しない(見た目のみのスコープを超えるロジック判断が必要なため)。
+- **かたさタイプ画像を新設`KyonoTypeArt`(両OS)で診断結果画面に追加**: momo/kenko/yawaraは
+  `assets/type-*.png`(Task Bで同梱済み)をそのまま表示。koka/ashi/robotはapp-quiz.jsの
+  インラインSVG(TYPE_ART)をKyonoIcons.kt/.swiftと同じ要領でCanvas/Path直書きに変換
+  (扉・ペンギン・ロボットの3種、円/角丸矩形/二次ベジェ曲線で構成)。index.html:317-318,729
+  `.type-illust`(104x104・中央寄せ)どおりタイプ名の上に配置。
+- **実機確認**: Android実機で①ホームのマストヘッド②相談室チャット全メッセージのアバター
+  (実際にチップをタップして応答チェーンを確認・ロジック無改変)③使い方タブの「おぼえるのは
+  これだけ！」カード④診断結果画面2種(momo系PNGは既存フロー・robotタイプはオンボ→クイズを
+  「常に最後の選択肢」で一気通貫タップし実際にガチガチロボットのCanvas描画を確認)を目視確認。
+  koka/ashi/momo/kenko/yawaraはコードレビュー+robotと同一実装パターンでの信頼度確認に留める
+  (6タイプ全部を毎回実機タップで出すには往復が多く時間コストが高いため、代表2種の実機確認+
+  残り4種はKyonoIcons.ktと同じ実績あるCanvas APIパターンの流用という判断)。
+- **回帰確認**: Android `gradle testDebugUnitTest`全緑・iOS `swift test`各パッケージ緑
+  (SafetyCore 8/8+111 fixtures・RecordCore 35/35・CardCore 16/16+55 card-golden)・
+  `npm test` 442 checks green・Web版配信ファイル無変更。
+
 ## 2026-07-26 見た目パリティ移植の仕上げ: Guide/MyRecord/Catalog/Search画面の「◀ もどる」ボタン削除
 
 `TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md`。Phase 2報告で「要検討」のまま残っていた
