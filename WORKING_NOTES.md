@@ -4,6 +4,32 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 「動画を探す」画面のリクエスト導線欠落を修正(alan5独自調査5件目)
+
+`TASK-C2-2026-07-26-search-request-box.md`。alan5独自調査の同種パターン5件目。Web版の「動画を探す」
+画面(index.html:960-963)は検索結果の下に「やりたいストレッチが見つからない？」というリクエスト
+導線カード(`#reqBox`)があるが、ネイティブ版のSearchScreen/SearchViewには存在しなかった。
+
+- 検索結果リスト(もっと見るボタンの後)の下部にreqBoxを追加。app-search.js:74-81
+  `drawResults()`のreqMsg/reqBtn組み立てロジック+index.html `copyMailAddr()`を1:1移植。
+  - reqMsg: 結果がある/ない で文言分岐(offlineCat分岐はcatalog.jsonをバンドルリソースとして常時
+    同期ロードするネイティブでは該当せず省略)。
+  - reqBtn: 検索キーワード+アクティブなタグを結合した文字列をボタン文言・メール件名/本文へ反映
+    (`「◯◯」をリクエストする` / 未入力時は `リクエストを送る`)。タップで端末のメールAppを開く
+    (Android: `Intent.ACTION_SENDTO`+`mailto:`Uri・iOS: `mailto:`URL+`UIApplication.shared.open`)。
+  - 「📋 アドレスをコピー」: クリップボードへ`kyou-no@ogatore.jp`をコピーし「コピーしました✅」を
+    2秒間表示(Web版`copyMailAddr()`と同じ体験)。
+- **実機確認(Android)**: 検索結果ありの状態でreqBox表示・「リクエストを送る」タップでGmailが起動
+  (宛先/件名/本文を渡すIntentが正しく解決されることを確認)・「アドレスをコピー」タップで
+  「コピーしました✅」表示+OS標準のクリップボード確認トースト(`kyou-no@ogatore.jp`)を確認。
+  検索キーワード入力時にボタン文言が`「◯◯」をリクエストする`に変わることを確認。0件ヒット時に
+  reqMsgが「ごめんなさい まだなかったみたい💦...」に切り替わることも確認。
+- **iOS**: 同一ロジックで実装しビルド成功・3パッケージ`swift test`全緑・シミュレータ起動確認
+  (クラッシュなし)。タップ自動化は従来どおり未対応のため、コードレビューでの1:1ロジック照合に留める。
+- **回帰確認**: Android `gradle testDebugUnitTest`緑・iOS `swift test`3パッケージ緑
+  (SafetyCore 111/111 fixtures・RecordCore 35/35・CardCore 16/16+card-golden 55/55)・
+  `npm test` 442 checks green・Web版配信ファイル無変更。
+
 ## 2026-07-26 とどくメーターの自己ベスト・前回比・トレンドグラフ欠落を修正(alan5独自調査4件目)
 
 `TASK-C2-2026-07-26-reach-meter-details.md`。alan5独自調査の同種パターン4件目。とどくメーター
