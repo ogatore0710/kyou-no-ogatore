@@ -190,7 +190,12 @@ class MainActivity : ComponentActivity() {
                                         is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Diary -> DiaryScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Obu -> ObuScreen(store = store, onBack = { screen = Screen.Home })
-                                        is Screen.Guide -> GuideScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Guide -> GuideScreen(
+                                            store = store,
+                                            onBack = { screen = Screen.Home },
+                                            onReenterOnboarding = { screen = Screen.Onboarding },
+                                            onReenterTour = { screen = Screen.Tour(false) },
+                                        )
                                         is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Home -> HomeScreen(
                                             store = store,

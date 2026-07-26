@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,10 +46,11 @@ import jp.ogatore.kyouno.safety.SafetyGate
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 // Phase 3: index.html:180-197,426-429 .faq-g/.faq details/.searchboxの1:1移植。
 @Composable
-fun GuideScreen(store: RecordStore, onBack: () -> Unit) {
+fun GuideScreen(store: RecordStore, onBack: () -> Unit, onReenterOnboarding: () -> Unit, onReenterTour: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting) {
         val colors = LocalKyonoColors.current
+        val dark = colors.bg == KyonoDarkColors.bg
         var query by remember { mutableStateOf("") }
         val openGroups = remember { mutableStateMapOf<String, Boolean>().apply { put(FAQ_GROUPS[0].title, true) } }
         val openItems = remember { mutableStateMapOf<String, Boolean>() }
@@ -57,6 +60,37 @@ fun GuideScreen(store: RecordStore, onBack: () -> Unit) {
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
+
+            // 使い方タブ再入場リンク欠落修正タスク(TASK-C2-2026-07-26-guide-reentry-links.md):
+            // index.html:970 .daychip×2(obReenterLink/obTourLink)の1:1移植。オンボーディング・
+            // ツアー本体のロジックは変更せず、既存フロー(Screen.Onboarding/Screen.Tour)を呼ぶだけ。
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                Text(
+                    "🌱 はじめてガイド", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier
+                        .background(colors.tealSoft, RoundedCornerShape(50))
+                        .clickable(onClick = onReenterOnboarding)
+                        .padding(horizontal = 16.dp, vertical = 9.dp)
+                        .testTag("obReenterLink"),
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    "📖 使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier
+                        .background(colors.yellowSoft, RoundedCornerShape(50))
+                        .clickable(onClick = onReenterTour)
+                        .padding(horizontal = 16.dp, vertical = 9.dp)
+                        .testTag("obTourLink"),
+                )
+            }
+            Text(
+                "「はじめてガイド」＝さいしょの質問からやりなおす／「使い方ツアー」＝つかいかたをスライドで見る",
+                color = colors.sub, fontSize = 12.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            )
 
             // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
             // §2 キャラクター画像: index.html:973-978 .card.grad-warm(chara.png 84x84+「おぼえるのはこれだけ！」)
