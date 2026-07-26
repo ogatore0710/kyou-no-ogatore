@@ -4,6 +4,44 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 ホーム/マイ記録の情報構造修正(本人実機指摘・最優先)
+
+`TASK-C2-2026-07-26-home-structure-fix.md`。見た目パリティ第2弾を確認した本人から
+「ホームの見た目がWeb版とかなり違う」との指摘。調査の結果、単なる見た目差ではなく
+**情報構造そのものが違っていた**ことが判明: ネイティブ版はWeb版のホーム(index.html:602-708)に
+ある「かたさチェックカード」「オガトレ相談室カード」(ホームの主役級カード)が完全に欠落し、
+代わりに図鑑/じまんカード/せんぱいの声/設定への導線を「メニュー」というプレーンなボタンリストに
+圧縮していた。しかしこれらはWeb版では**そもそもホームに存在せず**(`TAB_OF`マッピングで全部
+マイ記録タブに属する)、置き場所自体が誤っていた。
+
+- **ホーム再構成**(index.html:602-708が正本): 「メニュー」カードを廃止し、Web版どおり
+  きょうのひとこと(qbubble・カード外・chara-hitokoto.png+日替わり引用45件を`dayIndex()`で選択)→
+  かたさチェックカード(chara-3.png+「チェックをはじめる」)→オガトレ相談室カード
+  (chara-hitokoto.png+「相談する」+おすすめチップ)→きょうの1本→続けた日数、の順に並べた。
+  かたさチェック済みのときはckCardが「もう一回チェックする」(ghost色)+前回結果リンクの
+  ミニ表示に変わり、streakCardの直後へ移動する(index.html:2929-2937 renderHome()の1:1移植)。
+  soudanCardはckCardの現在位置に常に追従する(index.html:3396 renderSoudanEntry())。
+  showDoneNudge(pendingVideoReturnActive相当)は別カードではなくqbubble自体の文言差し替えに統合。
+  anchorCard/welcomeBack/recheckCard(新規ユーザー向け)は今回スコープ外(指示どおり)。
+- **マイ記録タブに導線追加**(index.html:752-800が正本): カード図鑑・お楽しみ機能
+  (じまんカード/せんぱいの声)・続ける設定への遷移ボタンを追加。図鑑・じまんカード・
+  せんぱいの声・設定の**画面の中身自体は作り直していない**(Phase 3で実装済みのものへの
+  導線を追加しただけ)。
+- **QUOTES(45件)は手写し禁止(§1-2)のためindex.htmlから機械抽出**(正規表現+json.loadsで
+  抽出→Kotlin/Swiftの配列リテラルへ機械変換)して両OSへ1:1移植。
+- **実機確認(Android)**: エミュレータの`kyono-store.json`を一時的に書き換えて未チェック/
+  チェック済み両状態を作り、それぞれ実タップでスクリーンショット確認。かたさチェック済み時の
+  ckCardミニ表示・soudanCardのstreakCard直後への移動・オガトレ相談室カードタップでの
+  相談室起動・マイ記録タブから図鑑/じまんカード/せんぱいの声/設定4画面すべてへの遷移を確認後、
+  store.jsonを元の状態へ復元。
+- **iOS**: Android版と同一ロジックでHomeView.swift/MyRecordView.swift/SoudanSheetView.swift/
+  KyouNoOgatoreApp.swiftを移植(`Screen.soudan`にpresetIntentId連想値を追加)。ビルド成功のみ
+  確認(シミュレータでの実タップ確認は本タスクでは行っていない。従来からのiOS検証方針どおり
+  コードレビューで信頼度を補完)。
+- **回帰確認**: Android `gradle testDebugUnitTest`緑・iOS `swift test`3パッケージ緑
+  (SafetyCore 111/111 fixtures・RecordCore 35/35・CardCore 16/16+card-golden 55/55)・
+  `npm test` 442 checks green・Web版配信ファイル無変更。
+
 ## 2026-07-26 見た目パリティ第2弾(本人実機フィードバック第2弾): ツアー精密再現・動画サムネイル・ホーム/マイ記録UX強化
 
 `TASK-C2-2026-07-26-visual-parity-round2.md`。フォント/キャラ画像修正版を確認した本人から
