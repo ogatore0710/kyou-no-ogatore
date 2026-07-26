@@ -1,6 +1,7 @@
 package jp.ogatore.kyouno
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,14 +16,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -175,8 +181,12 @@ private fun SearchIcon(fill: Color) {
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): 絵文字だけではTalkBackに
 // 内容が伝わらないため、contentDescriptionを追加(Web版には無いネイティブならではの上乗せ。
 // 見た目・配色・タップ挙動は変更しない)。
+//
+// オガトレ通信FAB実写真化タスク(TASK-C2-2026-07-26-obu-fab-photo.md): index.html:1166-1167
+// #obuFab(絵文字ではなくassets/obu-fab-photo.jpgの実写真・円形・黄色ボーダー)の1:1移植。
+// photoResNameを渡したときだけ絵文字の代わりに写真を表示する(相談室FABは従来どおり絵文字のまま)。
 @Composable
-fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modifier: Modifier = Modifier, photoResName: String? = null, onClick: () -> Unit) {
     val colors = LocalKyonoColors.current
     Box(
         modifier = modifier
@@ -188,6 +198,22 @@ fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modi
             .semantics { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center,
     ) {
-        Text(emoji, fontSize = 22.sp)
+        if (photoResName != null) {
+            // index.html:248 .obu-fab img{object-fit:cover}の1:1移植。KyonoCharaImageは
+            // ContentScale.Fit固定(飾りキャラ画像向け)のためここでは使わず、円を埋める
+            // ContentScale.Cropで直接読み込む(KyonoTourMockups.ktのKyonoTourDrawableと同じ手法)。
+            val context = LocalContext.current
+            val resId = remember(photoResName) { context.resources.getIdentifier(photoResName, "drawable", context.packageName) }
+            if (resId != 0) {
+                Image(
+                    painter = painterResource(id = resId),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize().clip(CircleShape),
+                )
+            }
+        } else {
+            Text(emoji, fontSize = 22.sp)
+        }
     }
 }

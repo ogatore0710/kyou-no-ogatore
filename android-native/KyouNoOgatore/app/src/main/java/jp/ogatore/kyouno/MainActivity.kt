@@ -231,7 +231,7 @@ class MainActivity : ComponentActivity() {
                                     verticalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
                                     KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan() })
-                                    KyonoFab("📣", colors.coral, contentDescription = "オガトレ通信", onClick = { screen = Screen.Obu })
+                                    KyonoFab("📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo", onClick = { screen = Screen.Obu })
                                 }
                             }
                         }
