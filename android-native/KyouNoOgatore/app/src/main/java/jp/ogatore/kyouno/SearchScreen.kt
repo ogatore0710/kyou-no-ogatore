@@ -6,11 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -85,24 +87,44 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
     }
 }
 
+// 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §2 動画サムネイル):
+// index.html:328-336 .video(サムネイル112x16:9+タイトル3行clamp+badge)の1:1移植。
+// KyonoAsyncImage(§1で新設)を再利用し、読み込み失敗時は何も表示しない(Web版onerrorと同じ)。
 @Composable
 private fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit) {
     val colors = LocalKyonoColors.current
-    Column(
+    Row(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 5.dp)
             .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
-            .background(colors.bg, RoundedCornerShape(12.dp))
-            .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
-            .padding(12.dp)
+            .background(colors.card, RoundedCornerShape(16.dp))
+            .border(1.5.dp, colors.line, RoundedCornerShape(16.dp))
+            .padding(10.dp)
             .testTag("video_${v.id}"),
     ) {
-        v.tags.firstOrNull()?.let { tag ->
-            Text(tag, color = colors.tealInk, fontSize = 11.sp, fontWeight = FontWeight.Black)
+        androidx.compose.foundation.layout.Box(
+            Modifier.width(112.dp).aspectRatio(16f / 9f)
+                .background(colors.line, RoundedCornerShape(12.dp)),
+        ) {
+            KyonoAsyncImage(
+                youtubeThumbUrl(v.id),
+                Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp)),
+            )
         }
-        Text(v.t, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
-        Text(v.s, color = colors.sub, fontSize = 12.sp)
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            v.tags.firstOrNull()?.let { tag ->
+                Text(
+                    tag, color = Color(0xFFB4462F), fontSize = 12.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
+                )
+                Spacer(Modifier.height(4.dp))
+            }
+            Text(v.t, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Spacer(Modifier.height(2.dp))
+            Text(v.s, color = colors.sub, fontSize = 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
     }
 }
 
