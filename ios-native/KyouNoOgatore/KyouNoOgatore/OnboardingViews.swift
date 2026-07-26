@@ -429,13 +429,14 @@ struct ResultView: View {
     }
 
     private var content: some View {
-        ResultContentView(info: info, onDone: onDone)
+        ResultContentView(info: info, typeKey: typeKey, onDone: onDone)
     }
 }
 
 private struct ResultContentView: View {
     @Environment(\.kyonoColors) private var colors
     let info: TypeInfo
+    let typeKey: String
     let onDone: () -> Void
 
     var body: some View {
@@ -444,7 +445,10 @@ private struct ResultContentView: View {
                 KyonoGradientCard(gradient: .soft) {
                     Text("あなたのかたさタイプは…").font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
-                    Spacer().frame(height: 8)
+                    Spacer().frame(height: 10)
+                    // index.html:317-318,729 .type-illust(104x104・中央寄せ)の1:1移植。
+                    KyonoTypeArt(typeKey: typeKey).frame(maxWidth: .infinity, alignment: .center)
+                    Spacer().frame(height: 4)
                     Text(info.name).font(.kyono(.black900, size: 29)).foregroundColor(colors.ink)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 8)

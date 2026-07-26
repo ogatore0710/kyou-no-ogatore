@@ -1,5 +1,6 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,7 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -225,8 +228,11 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                                     .testTag("sdUserBubble"),
                             )
                         }
-                        // index.html:481,488 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)
-                        is SdBubble.Bot -> {
+                        // index.html:481,488,3080 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)/
+                        // .sd-ava(chara-hitokoto.pngアバター・botメッセージのみ)の1:1移植。
+                        is SdBubble.Bot -> Row(verticalAlignment = Alignment.Bottom) {
+                            SoudanAvatar()
+                            Spacer(Modifier.width(8.dp))
                             val bg = if (m.red) colors.coralSoft else colors.card
                             val border = if (m.red) colors.coral else colors.line
                             Column(
@@ -247,25 +253,29 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                                 }
                             }
                         }
-                        is SdBubble.PlanConfirm -> Column(
-                            Modifier.fillMaxWidth(0.86f)
-                                .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                                .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                                .padding(horizontal = 14.dp, vertical = 10.dp),
-                        ) {
-                            Text(
-                                if (m.replacing) "いまのプランと入れ替える？きょうの1本が、あなたの${m.label}プランになるよ"
-                                else "きょうの1本が、あなたの${m.label}プランになるよ！2週間いっしょにやってみる？",
-                                color = colors.ink,
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            KyonoPrimaryButton(
-                                if (m.replacing) "入れ替えてはじめる！" else "はじめる！",
-                                { planStart(m.intentId) },
-                                Modifier.testTag("planStartBtn"),
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            KyonoGhostButton("まずは1本だけ", { planDecline() }, Modifier.testTag("planDeclineBtn"))
+                        is SdBubble.PlanConfirm -> Row(verticalAlignment = Alignment.Bottom) {
+                            SoudanAvatar()
+                            Spacer(Modifier.width(8.dp))
+                            Column(
+                                Modifier.fillMaxWidth(0.86f)
+                                    .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                            ) {
+                                Text(
+                                    if (m.replacing) "いまのプランと入れ替える？きょうの1本が、あなたの${m.label}プランになるよ"
+                                    else "きょうの1本が、あなたの${m.label}プランになるよ！2週間いっしょにやってみる？",
+                                    color = colors.ink,
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                KyonoPrimaryButton(
+                                    if (m.replacing) "入れ替えてはじめる！" else "はじめる！",
+                                    { planStart(m.intentId) },
+                                    Modifier.testTag("planStartBtn"),
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                KyonoGhostButton("まずは1本だけ", { planDecline() }, Modifier.testTag("planDeclineBtn"))
+                            }
                         }
                     }
                 }
@@ -352,6 +362,21 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                 }
             }
         }
+    }
+}
+
+// フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+// §2 キャラクター画像: index.html:3080 .sd-ava(botメッセージのみ・chara-hitokoto.png)の1:1移植。
+@Composable
+private fun SoudanAvatar() {
+    val context = LocalContext.current
+    val resId = remember { context.resources.getIdentifier("chara_hitokoto", "drawable", context.packageName) }
+    if (resId != 0) {
+        Image(
+            painter = painterResource(id = resId),
+            contentDescription = null,
+            modifier = Modifier.size(38.dp),
+        )
     }
 }
 

@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -369,7 +370,12 @@ fun ResultScreen(typeKey: String, onDone: () -> Unit) {
                     "あなたのかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
+                // index.html:317-318,729 .type-illust(104x104・中央寄せ)の1:1移植。
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    KyonoTypeArt(typeKey, Modifier.testTag("resultTypeArt"))
+                }
+                Spacer(Modifier.height(4.dp))
                 Text(
                     info.name, color = colors.ink, fontSize = 29.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.fillMaxWidth().testTag("resultTypeName"),
