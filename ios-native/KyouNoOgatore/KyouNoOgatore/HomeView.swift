@@ -28,19 +28,47 @@ private let CHEERS = [
     "イタ気持ちいい できました？😊", "体は正直！ちゃんと応えてくれますよ✨", "昨日の自分より1ミリ前へ🌱",
 ]
 
+// ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:2124 QUOTES
+// (45件)の1:1移植。手写し禁止(§1-2)のためindex.htmlから機械抽出した値をそのまま貼り付けている
+// (Android版MainActivity.ktと同一のリスト。移植元はAndroid側で使ったのと同じ抽出スクリプト出力)。
+private let QUOTES = [
+    "体がガチガチでもだいじょうぶ", "頑張ろうね", "がんばったね おつかれさまでした",
+    "痛気持ちいいところで止めましょうね", "腹筋は無理に使わなくていいですよ", "きつい方は足首を触ってくださいね",
+    "呼吸 止めないでね", "昨日より1ミリ前に進んでたらOK", "休むのもストレッチのうちです",
+    "3・2・1 はい おつかれさまでした", "体は正直！ちゃんと応えてくれます", "『できない』は『のびしろ』の別名です",
+    "1日1本で十分です", "続けてるあなたがいちばんすごい", "お膝もいたわってあげてくださいね",
+    "反動はつけなくて だいじょうぶですよ", "息を吐くと ゆるみますよ〜", "伸びてる場所を 感じてみてくださいね",
+    "体がかたい日もあります そういう日もOK", "ゆっくりでだいじょうぶ 競争じゃないですから", "痛いのは がんばりすぎのサインです",
+    "お風呂あがりは ゴールデンタイムです", "肩の力 ふっと抜いてみましょう", "続けてる人から 変わっていきます",
+    "30秒が 体を変えていきます", "きのうのあなたより きょうのあなた", "深呼吸ひとつぶんの よゆうを",
+    "固まったら ほぐせばいいんです", "首はやさしく いたわってあげて", "のびるって 気持ちいいですね〜",
+    "サボっても再開したら それがいちばんえらい", "体があったまってる夜が ねらい目です", "「なんか調子いいかも」を見逃さないで",
+    "ストレッチに 遅すぎることはないです", "こわばりは すこしずつ返していきましょう", "手が届かなくても 気持ちは届いてます",
+    "姿勢がいいと 呼吸もふかくなりますよ", "がんばりやさんほど 休むのが仕事です", "伸ばした分だけ 楽になっていきます",
+    "あしたの体は きょうつくられます", "完璧じゃなくていい つづくのがいちばん", "気持ちいい〜って 声に出してOKです",
+    "体を大切にする時間 えらいです", "ひざは軽く曲げても いいですからね", "また明日も 待ってますね",
+]
+
+// index.html:1708 dayIndex()の1:1移植(現在時刻+6時間オフセットの日数カウンタ)。
+private func dayIndex(_ now: Date) -> Int {
+    Int((now.timeIntervalSince1970 * 1000 + 6 * 3600 * 1000) / 86400000)
+}
+
 struct HomeView: View {
     private let store: RecordStore
     let onStartTour: (Bool) -> Void
-    let onOpenDex: () -> Void
-    let onOpenVoices: () -> Void
-    let onOpenBrag: () -> Void
-    let onOpenSettings: () -> Void
+    let onOpenQuiz: () -> Void
+    let onShowResult: (String) -> Void
+    let onOpenSoudan: (String?) -> Void
+
+    @Environment(\.kyonoColors) private var colors
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     @State private var streak: RecordLogic.StreakData
     @State private var fd: String?
     @State private var fdday: String?
     @State private var plan: SdPlanData?
+    @State private var typeResult: QuizTypeResult?
 
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     @State private var lastDay: String
@@ -52,26 +80,27 @@ struct HomeView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     init(
-        store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenDex: @escaping () -> Void,
-        onOpenVoices: @escaping () -> Void, onOpenBrag: @escaping () -> Void, onOpenSettings: @escaping () -> Void
+        store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenQuiz: @escaping () -> Void,
+        onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void
     ) {
         self.store = store
         self.onStartTour = onStartTour
-        self.onOpenDex = onOpenDex
-        self.onOpenVoices = onOpenVoices
-        self.onOpenBrag = onOpenBrag
-        self.onOpenSettings = onOpenSettings
+        self.onOpenQuiz = onOpenQuiz
+        self.onShowResult = onShowResult
+        self.onOpenSoudan = onOpenSoudan
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
         _fdday = State(initialValue: store.get("fdday", default: nil))
         _lastDay = State(initialValue: RecordLogic.todayStr(now: Date()))
         _plan = State(initialValue: store.get("plan", default: nil))
+        _typeResult = State(initialValue: store.get("type", default: nil))
     }
 
     private var today: String { RecordLogic.todayStr(now: Date()) }
     private var did: Bool { streak.dates.contains(today) }
     private var fdFocusOn: Bool { HomeLogic.fdFocusHomeActive(fd: fd, streakTotal: streak.total, fdday: fdday, today: today) }
+    private var checked: Bool { typeResult != nil && quizTypes[typeResult!.key] != nil }
 
     // KyonoThemeでの配色解決はRootView(KyouNoOgatoreApp.swift)側で行う(タブバー・FABとも共通の
     // 配色を1箇所で解決するため。二重ラップを避ける)。
@@ -98,23 +127,31 @@ struct HomeView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if showDoneNudge {
-                KyonoCard {
-                    // index.html:451-454 .qbubble(吹き出し+chara-hitokoto.png、img右側・高さ44)の1:1移植。
-                    HStack(alignment: .bottom) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            KyonoBodyText("おかえりなさい！✨ ストレッチできた？")
-                            KyonoGhostButton("わかった") { showDoneNudge = false }
-                        }
-                        Spacer()
-                        KyonoCharaImage(name: "chara-hitokoto").frame(height: 44)
-                    }
+            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:602-603
+            // .qbubble(カードの外・chara-hitokoto.pngアバター+日替わりひとこと)の1:1移植。
+            // pendingVideoReturnActive()相当(showDoneNudge)のときだけ「おかえりなさい」に差し替える
+            // (旧来の別カードdoneNudgeCardは廃止しqbubble1本に統合)。
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(showDoneNudge ? "おかえりなさい" : "きょうのひとこと")
+                        .font(.kyono(.black900, size: 11)).foregroundColor(colors.sub)
+                    Text(showDoneNudge
+                        ? "おわったら下の「きょうやった！」を押してね✅"
+                        : "「\(QUOTES[((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count])」")
+                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
                 }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 16).fill(colors.card)
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+                )
+                Spacer()
+                KyonoCharaImage(name: "chara-hitokoto").frame(height: 44)
             }
 
-            // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)
-            if let plan {
-                PlanProgressCardView(store: store, plan: plan, onCleared: { self.plan = nil })
+            if !checked {
+                CkCard(full: true, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
+                SoudanCard(onOpenSoudan: onOpenSoudan)
             }
 
             // index.html:654 #todayCard(きょうの1本)相当。動画カタログ本体はStep7aの範囲のためここでは
@@ -131,6 +168,12 @@ struct HomeView: View {
                 }
             } else {
                 KyonoBodyText("🌱 はじめの1本ガイド中")
+            }
+
+            // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)。Web版DOM順
+            // (index.html:664 todayCardの直後・streakCardの直前)に合わせて位置を修正。
+            if let plan {
+                PlanProgressCardView(store: store, plan: plan, onCleared: { self.plan = nil })
             }
 
             // index.html:686 #streakCard(続けた日数・通算)相当。
@@ -165,15 +208,10 @@ struct HomeView: View {
                 .disabled(!did)
             }
 
-            // その他の導線: マイ記録/動画を探す/再生リスト/使い方は下部タブバーへ、相談室/オガトレ通信は
-            // FABへ移設済み(RootView側・KyouNoOgatoreApp.swift参照)。ここにはWeb版側でもタブ/FABに
-            // 属さない残り(図鑑・せんぱいの声・じまんカード・設定)だけを置く。
-            KyonoCard {
-                KyonoSectionTitle("メニュー")
-                KyonoGhostButton("📖 図鑑", action: onOpenDex)
-                KyonoGhostButton("💬 せんぱいの声", action: onOpenVoices)
-                KyonoGhostButton("🎉 じまんカード", action: onOpenBrag)
-                KyonoGhostButton("⚙️ 設定", action: onOpenSettings)
+            // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。
+            if checked {
+                CkCard(full: false, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
+                SoudanCard(onOpenSoudan: onOpenSoudan)
             }
         }
         .padding(20)

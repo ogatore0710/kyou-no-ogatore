@@ -153,7 +153,14 @@ class MainActivity : ComponentActivity() {
                                         )
                                         is Screen.Result -> ResultScreen(typeKey = s.typeKey, onDone = { screen = Screen.Home })
                                         is Screen.Tour -> TourScreen(showClosing = s.showClosing, onDone = { screen = Screen.Home })
-                                        is Screen.MyRecord -> MyRecordScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.MyRecord -> MyRecordScreen(
+                                            store = store,
+                                            onBack = { screen = Screen.Home },
+                                            onOpenDex = { screen = Screen.Dex },
+                                            onOpenBrag = { screen = Screen.Brag },
+                                            onOpenVoices = { screen = Screen.Voices },
+                                            onOpenSettings = { screen = Screen.Settings },
+                                        )
                                         is Screen.Soudan -> SoudanSheet(
                                             store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
@@ -679,7 +686,7 @@ fun MyRecordScreen(
             // dexBannerCard(カード図鑑バナー)相当。図鑑の中身はPhase 3実装済みのため導線のみ追加。
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("dexBannerCard")) {
-                KyonoSectionHeader(KyonoIcon.CardStack, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
+                KyonoSectionHeader(KyonoIcon.DexBook, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
                 Spacer(Modifier.height(8.dp))
                 Text("これまで手に入れたカードを見返せます", color = colors.sub)
                 Spacer(Modifier.height(10.dp))
@@ -740,7 +747,7 @@ fun MyRecordScreen(
             // お楽しみ機能バナー(じまんカード/せんぱいの声への入口)相当。画面の中身は作り直さず導線のみ追加。
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("funCard")) {
-                KyonoSectionHeader(KyonoIcon.SparkleGift, "お楽しみ機能", fill = colors.yellowSoft)
+                KyonoSectionHeader(KyonoIcon.Star, "お楽しみ機能", fill = colors.yellowSoft)
                 Spacer(Modifier.height(8.dp))
                 Text("じまんカードやせんぱいの声をチェック", color = colors.sub)
                 Spacer(Modifier.height(10.dp))
@@ -753,7 +760,7 @@ fun MyRecordScreen(
             // 導線のみ追加。
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("settingsBannerCard")) {
-                KyonoSectionHeader(KyonoIcon.Gear, "続ける設定", fill = colors.tealSoft)
+                KyonoSectionHeader(KyonoIcon.Clock, "続ける設定", fill = colors.tealSoft)
                 Spacer(Modifier.height(10.dp))
                 KyonoGhostButton("⚙️ 設定をひらく", onOpenSettings, Modifier.testTag("settingsBtn"))
             }
