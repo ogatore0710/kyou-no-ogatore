@@ -57,7 +57,10 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
         val context = LocalContext.current
         val catalog = remember { CatalogLoader.shared }
         val streak = remember { RecordLogic.loadStreak(store) }
-        var daysText by remember { mutableStateOf((if (streak.total > 0) streak.total else 1).toString()) }
+        // index.html:2724-2730 openBrag()の1:1移植: 「つづいている日数」はcount(いま連続)から
+        // プリフィル(total=通算ではない)。全画面完全性監査タスク #brag で、Web版と異なりtotalから
+        // プリフィルしていた既存の不一致を修正。
+        var daysText by remember { mutableStateOf((if (streak.count > 0) streak.count else 1).toString()) }
         var query by remember { mutableStateOf("") }
         var picked by remember { mutableStateOf<CatalogVideo?>(null) }
         var cardBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
@@ -86,6 +89,13 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                         focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
                     ),
                     modifier = Modifier.testTag("bragDaysInput"),
+                )
+                // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #brag):
+                // index.html:857 #bragDaysNoteの1:1移植。
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    if (streak.count > 0) "いまの記録から入れておきました（数字はすきにかえてOK）" else "まだ記録がなくてもだいじょうぶ すきな数字でためせます",
+                    color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("bragDaysNote"),
                 )
 
                 Spacer(Modifier.height(14.dp))

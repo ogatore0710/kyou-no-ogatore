@@ -24,11 +24,17 @@ struct BragView: View {
     @State private var picked: CatalogVideo?
     @State private var cardImage: UIImage?
 
+    private let streakCount: Int
+
     init(store: RecordStore, onBack: @escaping () -> Void) {
         self.store = store
         self.onBack = onBack
         let streak = RecordLogic.loadStreak(store)
-        _daysText = State(initialValue: String(streak.total > 0 ? streak.total : 1))
+        streakCount = streak.count
+        // index.html:2724-2730 openBrag()の1:1移植: 「つづいている日数」はcount(いま連続)から
+        // プリフィル(total=通算ではない)。全画面完全性監査タスク #brag で、Web版と異なりtotalから
+        // プリフィルしていた既存の不一致を修正。
+        _daysText = State(initialValue: String(streak.count > 0 ? streak.count : 1))
     }
 
     private var hits: [CatalogVideo] {
@@ -41,7 +47,7 @@ struct BragView: View {
         KyonoTheme(themeSetting: themeSetting) {
             BragContentView(
                 store: store, daysText: $daysText, query: $query, picked: $picked, cardImage: $cardImage,
-                hits: hits, onBack: onBack
+                hits: hits, streakCount: streakCount, onBack: onBack
             )
         }
     }
@@ -55,6 +61,7 @@ private struct BragContentView: View {
     @Binding var picked: CatalogVideo?
     @Binding var cardImage: UIImage?
     let hits: [CatalogVideo]
+    let streakCount: Int
     let onBack: () -> Void
 
     var body: some View {
@@ -79,6 +86,11 @@ private struct BragContentView: View {
                         let filtered = newValue.filter { $0.isNumber }
                         daysText = String(filtered.prefix(4))
                     }
+                // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #brag):
+                // index.html:857 #bragDaysNoteの1:1移植。
+                Spacer().frame(height: 4)
+                Text(streakCount > 0 ? "いまの記録から入れておきました（数字はすきにかえてOK）" : "まだ記録がなくてもだいじょうぶ すきな数字でためせます")
+                    .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
 
                 Spacer().frame(height: 14)
                 Text("すきな1本をさがす🎬").font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
