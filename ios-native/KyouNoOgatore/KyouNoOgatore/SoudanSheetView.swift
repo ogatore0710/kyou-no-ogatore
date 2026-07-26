@@ -261,11 +261,13 @@ private struct SoudanContentView: View {
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomLeft]).fill(colors.yellowSoft))
             }
-        // index.html:481,488 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)
+        // index.html:481,488,3080 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)/
+        // .sd-ava(chara-hitokoto.pngアバター・botメッセージのみ)の1:1移植。
         case let .bot(text, red, videoId):
             let bg = red ? colors.coralSoft : colors.card
             let border = red ? colors.coral : colors.line
-            HStack {
+            HStack(alignment: .bottom) {
+                SoudanAvatar()
                 VStack(alignment: .leading, spacing: 6) {
                     if !text.isEmpty { Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink) }
                     if let videoId {
