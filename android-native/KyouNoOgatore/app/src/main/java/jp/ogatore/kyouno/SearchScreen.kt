@@ -47,7 +47,7 @@ import jp.ogatore.kyouno.record.RecordStore
 //
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 // Phase 3: index.html:433-449 .searchbox/.catbtn/.catbtn.on/.chip-a〜d(カテゴリごとの配色)/.chip.onの1:1移植。
-// タブバー配下の画面のため「◀ もどる」自体は既存の導線を維持しつつ見た目だけKyonoLineButton化する。
+// 仕上げ(...-cleanup.md): タブバー画面には「戻る」概念が無いWeb版に合わせ「◀ もどる」ボタンは削除済み。
 
 data class TagCatDef(val key: String, val name: String, val tags: List<String>)
 
@@ -122,8 +122,8 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
         val hits = remember(query, activeTag) { searchCatalog(catalog, query, activeTag, null) }
 
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
-            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("searchBackBtn"))
-            Spacer(Modifier.height(12.dp))
+            // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
+            // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             Text("動画を探す", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(8.dp))
             // index.html:945-949 .searchbox
@@ -199,8 +199,6 @@ fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () 
         val colors = LocalKyonoColors.current
         val catalog = remember { CatalogLoader.shared.sortedWith(compareByDescending<CatalogVideo> { it.y }.thenBy { it.t }) }
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
-            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("catalogBackBtn"))
-            Spacer(Modifier.height(12.dp))
             Text("再生リスト", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(4.dp))
             Text("${catalog.size}本の動画", color = colors.sub, fontSize = 12.sp)

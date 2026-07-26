@@ -443,9 +443,9 @@ fun MyRecordScreen(store: RecordStore, onBack: () -> Unit) {
         val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, now) }
 
         Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
-            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("myRecordBackBtn"))
-            Spacer(Modifier.height(16.dp))
-
+            // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
+            // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除
+            // (onBackパラメータ自体はナビゲーション構造維持のため残す。呼び出し元で使われなくなるだけ)。
             KyonoCard(Modifier.testTag("calCard")) {
                 KyonoSectionHeader(KyonoIcon.CalendarCheck, "マイ記録", fill = colors.pinkSoft, accent = colors.pink)
                 Spacer(Modifier.height(12.dp))

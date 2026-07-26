@@ -133,7 +133,8 @@ private struct SearchContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            KyonoLineButton("◀ もどる", action: onBack)
+            // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
+            // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             Text("動画を探す").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
             // index.html:945-949 .searchbox
             TextField("🔍 例: 肩こり／朝／むくみ", text: $query)
@@ -208,7 +209,6 @@ private struct CatalogListContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            KyonoLineButton("◀ もどる", action: onBack)
             Text("再生リスト").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
             Text("\(catalog.count)本の動画").font(.system(size: 12)).foregroundColor(colors.sub)
             ScrollView {

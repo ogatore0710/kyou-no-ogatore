@@ -53,8 +53,8 @@ fun GuideScreen(store: RecordStore, onBack: () -> Unit) {
         val nq = remember(query) { SafetyGate.norm(query) }
 
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
-            KyonoLineButton("◀ もどる", onBack, Modifier.testTag("guideBackBtn"))
-            Spacer(Modifier.height(12.dp))
+            // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
+            // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             KyonoSectionHeader(KyonoIcon.Question, "よくあるしつもん", fill = colors.coralSoft)
             Spacer(Modifier.height(4.dp))
             Text("しつもんをタップすると こたえがひらきます", color = colors.sub, fontSize = 13.sp)
