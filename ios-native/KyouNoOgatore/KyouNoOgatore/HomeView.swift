@@ -71,6 +71,10 @@ struct HomeView: View {
     @State private var fdday: String?
     @State private var plan: SdPlanData?
     @State private var typeResult: QuizTypeResult?
+    // 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
+    // index.html:1757-1759 planFinishedCache/planCelebratedの1:1移植(プロセス内メモリのみ・§2-3)。
+    @State private var planFinishedCache: PlanFinishedCache?
+    @State private var planCelebrated = false
 
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     @State private var lastDay: String
@@ -177,7 +181,30 @@ struct HomeView: View {
             // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)。Web版DOM順
             // (index.html:664 todayCardの直後・streakCardの直前)に合わせて位置を修正。
             if let plan {
-                PlanProgressCardView(store: store, plan: plan, onCleared: { self.plan = nil })
+                PlanProgressCardView(
+                    store: store, plan: plan, onCleared: { self.plan = nil },
+                    onFinished: { cache in planFinishedCache = cache }
+                )
+            }
+            // 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
+            // index.html:678-684 #planDoneCardの1:1移植。planと独立させる(finishedになった瞬間に
+            // plan=nilで消えてしまわないよう、専用のキャッシュ状態から描画する)。
+            if let cache = planFinishedCache {
+                PlanDoneCardView(
+                    cache: cache, alreadyCelebrated: planCelebrated,
+                    onCelebrate: { planCelebrated = true },
+                    onPlanAgain: {
+                        // index.html:1817 planAgain()の1:1移植。state.mode/mode_manualはネイティブに
+                        // 「きょうの1本」モード切替の仕組み自体が無い(§2-2的な既存スコープ判断)ため
+                        // 対応するstore書き込みは行わない。
+                        let newPlan = SdPlanData(intentId: cache.intentId, label: cache.label, videos: cache.videos, start: today, days: cache.days)
+                        store.set("plan", newPlan)
+                        plan = newPlan
+                        planFinishedCache = nil
+                    },
+                    onStartQuiz: { planFinishedCache = nil; onOpenQuiz() },
+                    onClose: { planFinishedCache = nil }
+                )
             }
 
             // index.html:686 #streakCard(続けた日数・通算)相当。

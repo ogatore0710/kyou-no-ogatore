@@ -423,65 +423,187 @@ private struct RoundedCorner: Shape {
     }
 }
 
-// index.html:1781 renderPlanCard相当の簡略版(進捗バー・完走時の卒業表示・解除ボタン)。
-// 紙吹雪演出(launchConfetti)・章システムとの連携(mode_manual)等の見た目演出は移植対象外(Step6の
-// 検収基準に含まれないため。安全性に無関係)。
+// 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
+// app-record.js/index.html:1795 planFinishedCache相当(完走直後の「もう2週間続ける」用に
+// intentId/label/videos/daysだけ退避する)。
+struct PlanFinishedCache {
+    let intentId: String
+    let label: String
+    let videos: [String]
+    let days: Int
+}
+
+// index.html:1781 renderPlanCard相当(進捗バー・「やめる」は下線付きテキストリンクでボタンではない)。
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md):
-// index.html:667-676 #planCard(.bar進捗バー・「やめる」は下線付きテキストリンクでボタンではない)の
-// 1:1移植。KyonoCard化(Android版PlanProgressCardと同一ロジック。ホーム画面スクショで唯一浮いて
-// 見えていた箇所)。
+// index.html:667-676 #planCard の1:1移植。KyonoCard化(ホーム画面スクショで唯一浮いて見えていた箇所)。
+//
+// 完走(finished)時はこのカード自体を描画しない(呼び出し側がonFinishedを受けてPlanDoneCardViewを
+// 表示する設計に変更 — TASK-C2-2026-07-27-plan-completion-celebration.mdで発見: 従来はfinished時に
+// onClearedを即座に呼んでいたため、呼び出し側でplan=nilになり「finishedの表示」自体が
+// 次の再描画で消えてしまうバグがあった)。
 struct PlanProgressCardView: View {
     @Environment(\.kyonoColors) private var colors
     let store: RecordStore
     let plan: SdPlanData
     let onCleared: () -> Void
+    let onFinished: (PlanFinishedCache) -> Void
 
     var body: some View {
         let today = RecordLogic.todayStr(now: Date())
         let dayNum = max(1, RecordLogic.daysBetween(plan.start, today) + 1)
         let finished = dayNum > plan.days
 
-        KyonoCard {
+        Group {
             if finished {
-                // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
-                // §2 キャラクター画像: index.html:679 #planDoneCard(chara-congrats.png 84x84・中央寄せ)の1:1移植。
-                KyonoCharaImage(name: "chara-congrats").frame(width: 84, height: 84)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                Text("🎉 \(plan.label)プラン完走！すごい！").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                Text("\(plan.days)日間続けたの、ほんとにえらい👏").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")
-                        .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
-                    Spacer()
-                    Text("やめる")
-                        .font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
-                        .underline()
-                        .onTapGesture {
-                            store.set("plan", nil as SdPlanData?)
-                            onCleared()
-                        }
-                }
-                // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
-                let progress = min(1, max(0, Double(dayNum) / Double(plan.days)))
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 99).fill(colors.line)
-                        RoundedRectangle(cornerRadius: 99).fill(colors.teal)
-                            .frame(width: geo.size.width * progress)
+                Color.clear.frame(width: 0, height: 0)
+                    .onAppear {
+                        // index.html:1798 planFinished時のstore.set("plan",null)相当。
+                        onFinished(PlanFinishedCache(intentId: plan.intentId, label: plan.label, videos: plan.videos, days: plan.days))
+                        store.set("plan", nil as SdPlanData?)
+                        onCleared()
                     }
+            } else {
+                KyonoCard {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")
+                            .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                        Spacer()
+                        Text("やめる")
+                            .font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
+                            .underline()
+                            .onTapGesture {
+                                store.set("plan", nil as SdPlanData?)
+                                onCleared()
+                            }
+                    }
+                    // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
+                    let progress = min(1, max(0, Double(dayNum) / Double(plan.days)))
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 99).fill(colors.line)
+                            RoundedRectangle(cornerRadius: 99).fill(colors.teal)
+                                .frame(width: geo.size.width * progress)
+                        }
+                    }
+                    .frame(height: 14)
+                    .padding(.top, 8)
                 }
-                .frame(height: 14)
-                .padding(.top, 8)
             }
         }
-        .onAppear {
-            // index.html:1798 planFinished時のstore.set("plan",null)相当。
-            if finished {
-                store.set("plan", nil as SdPlanData?)
-                onCleared()
+    }
+}
+
+// index.html:678-684 #planDoneCard(プラン完走のお祝い。chara-congrats+紙吹雪+3ボタン)の1:1移植
+// (TASK-C2-2026-07-27-plan-completion-celebration.md)。
+struct PlanDoneCardView: View {
+    @Environment(\.kyonoColors) private var colors
+    let cache: PlanFinishedCache
+    let alreadyCelebrated: Bool
+    let onCelebrate: () -> Void
+    let onPlanAgain: () -> Void
+    let onStartQuiz: () -> Void
+    let onClose: () -> Void
+
+    // index.html:1759 planCelebrated(セッション内で紙吹雪を重ね撃ちしない)の1:1移植。@Stateの初期値は
+    // 初回描画時にのみ評価されるため、onCelebrate()でalreadyCelebratedがtrueに変わっても
+    // 紙吹雪アニメーションの途中で消えない。
+    @State private var showConfettiOnce: Bool
+
+    init(
+        cache: PlanFinishedCache, alreadyCelebrated: Bool, onCelebrate: @escaping () -> Void,
+        onPlanAgain: @escaping () -> Void, onStartQuiz: @escaping () -> Void, onClose: @escaping () -> Void
+    ) {
+        self.cache = cache
+        self.alreadyCelebrated = alreadyCelebrated
+        self.onCelebrate = onCelebrate
+        self.onPlanAgain = onPlanAgain
+        self.onStartQuiz = onStartQuiz
+        self.onClose = onClose
+        _showConfettiOnce = State(initialValue: !alreadyCelebrated)
+    }
+
+    var body: some View {
+        ZStack {
+            KyonoGradientCard(gradient: .mint) {
+                // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク: index.html:679
+                // #planDoneCard(chara-congrats.png 84x84・中央寄せ)の1:1移植。
+                KyonoCharaImage(name: "chara-congrats").frame(width: 84, height: 84)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                Spacer().frame(height: 8)
+                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pink).font(.kyono(.black900, size: 15))
+                    + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
+                    .foregroundColor(colors.ink)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                Spacer().frame(height: 12)
+                KyonoPrimaryButton("💪 もう2週間続ける", action: onPlanAgain)
+                Spacer().frame(height: 8)
+                KyonoGhostButton("📏 かたさチェックで変化をみる", action: onStartQuiz)
+                Spacer().frame(height: 8)
+                KyonoLineButton("とじる", action: onClose)
+            }
+            if showConfettiOnce {
+                KyonoConfetti(count: 105)
+                    .allowsHitTesting(false)
+            }
+        }
+        .onAppear { if !alreadyCelebrated { onCelebrate() } }
+    }
+}
+
+// index.html:1919 launchConfetti()の見た目の1:1移植(紙吹雪演出。DUR=1500ms・4色パレット・
+// 落下+左右のsway+回転)。§2-4許容箇所(markDoneのcheer選択と同じくUI装飾のみの乱数使用。
+// 判定/安全ロジックではない)。
+private struct ConfettiParticle {
+    let x0: Double, y0: Double, vx: Double, vy: Double
+    let w: Double, h: Double, rot0: Double, vr: Double
+    let sway: Double, phase: Double, color: Color
+}
+
+struct KyonoConfetti: View {
+    let count: Int
+
+    private let particles: [ConfettiParticle]
+    private let palette = [Color(hex: 0xFFD93B), Color(hex: 0x2BB3A3), Color(hex: 0xE56A9A), Color(hex: 0xFF8A70)]
+    private let startDate = Date()
+
+    init(count: Int) {
+        self.count = count
+        var particles: [ConfettiParticle] = []
+        let palette = self.palette
+        for i in 0..<count {
+            particles.append(ConfettiParticle(
+                x0: Double.random(in: 0...1),
+                y0: -0.05 - Double.random(in: 0...0.35),
+                vx: (Double.random(in: 0...1) - 0.5) * 80,
+                vy: 200 + Double.random(in: 0...260),
+                w: 6 + Double.random(in: 0...5),
+                h: 9 + Double.random(in: 0...6),
+                rot0: Double.random(in: 0...360),
+                vr: (Double.random(in: 0...1) - 0.5) * 720,
+                sway: 20 + Double.random(in: 0...26),
+                phase: Double.random(in: 0...(2 * .pi)),
+                color: palette[i % palette.count]
+            ))
+        }
+        self.particles = particles
+    }
+
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            Canvas { context, size in
+                let elapsed = timeline.date.timeIntervalSince(startDate)
+                guard elapsed < 1.5 else { return }
+                for p in particles {
+                    let x = p.x0 * size.width + p.vx * elapsed + p.sway * sin(elapsed * 3 + p.phase)
+                    let y = p.y0 * size.height + p.vy * elapsed
+                    guard y > -40 && y < size.height + 40 else { continue }
+                    var rectContext = context
+                    rectContext.translateBy(x: x, y: y)
+                    rectContext.rotate(by: .degrees(p.rot0 + p.vr * elapsed))
+                    let rect = CGRect(x: -p.w / 2, y: -p.h / 2, width: p.w, height: p.h)
+                    rectContext.fill(Path(rect), with: .color(p.color))
+                }
             }
         }
     }
