@@ -85,13 +85,28 @@ struct HomeView: View {
     private var homeContent: some View {
         ScrollView {
         VStack(spacing: 16) {
-            KyonoSectionTitle("#きょうのオガトレ", size: 22)
+            // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+            // §2 キャラクター画像: index.html:91-94 .logo(chara.png 52x52+タイトル+サブタイトル)の1:1移植。
+            HStack(alignment: .center, spacing: 10) {
+                KyonoCharaImage(name: "chara").frame(width: 52, height: 52)
+                VStack(alignment: .leading, spacing: 1) {
+                    KyonoSectionTitle("#きょうのオガトレ", size: 22)
+                    KyonoBodyText("みんなで一緒にストレッチを習慣化")
+                }
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             if showDoneNudge {
                 KyonoCard {
-                    VStack(alignment: .leading, spacing: 8) {
-                        KyonoBodyText("おかえりなさい！✨ ストレッチできた？")
-                        KyonoGhostButton("わかった") { showDoneNudge = false }
+                    // index.html:451-454 .qbubble(吹き出し+chara-hitokoto.png、img右側・高さ44)の1:1移植。
+                    HStack(alignment: .bottom) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            KyonoBodyText("おかえりなさい！✨ ストレッチできた？")
+                            KyonoGhostButton("わかった") { showDoneNudge = false }
+                        }
+                        Spacer()
+                        KyonoCharaImage(name: "chara-hitokoto").frame(height: 44)
                     }
                 }
             }

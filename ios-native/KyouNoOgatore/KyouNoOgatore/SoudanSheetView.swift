@@ -435,8 +435,14 @@ struct PlanProgressCardView: View {
 
         KyonoCard {
             if finished {
+                // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+                // §2 キャラクター画像: index.html:679 #planDoneCard(chara-congrats.png 84x84・中央寄せ)の1:1移植。
+                KyonoCharaImage(name: "chara-congrats").frame(width: 84, height: 84)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 Text("🎉 \(plan.label)プラン完走！すごい！").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 Text("\(plan.days)日間続けたの、ほんとにえらい👏").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    .frame(maxWidth: .infinity, alignment: .center)
             } else {
                 HStack(alignment: .firstTextBaseline) {
                     Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")

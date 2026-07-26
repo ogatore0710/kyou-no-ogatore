@@ -50,6 +50,22 @@ private struct GuideContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
+
+            // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+            // §2 キャラクター画像: index.html:973-978 .card.grad-warm(chara.png 84x84+「おぼえるのはこれだけ！」)
+            // の1:1移植。「記録が消えない3つの守り」(chara-good.png・index.html:1031)はA2HS導線に
+            // 埋め込まれた項目でマスタープラン§2-2の除外対象と重なるため、このタスクでは移植しない。
+            KyonoGradientCard(gradient: .warm) {
+                VStack(spacing: 8) {
+                    KyonoCharaImage(name: "chara").frame(width: 84, height: 84)
+                    Text("おぼえるのはこれだけ！").font(.kyono(.black900, size: 19)).foregroundColor(colors.ink)
+                    Text("1日1本うごいて\n「きょうやった！」を押す")
+                        .font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+                        .multilineTextAlignment(.center)
+                    Text("あとはぜんぶ このアプリがおぼえてます").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub2)
+                }
+                .frame(maxWidth: .infinity)
+            }
             KyonoSectionHeader(icon: .question, title: "よくあるしつもん", fill: colors.coralSoft)
             Text("しつもんをタップすると こたえがひらきます").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
             // index.html:426-429 .searchbox

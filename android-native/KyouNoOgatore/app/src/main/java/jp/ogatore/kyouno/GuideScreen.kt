@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +57,28 @@ fun GuideScreen(store: RecordStore, onBack: () -> Unit) {
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
+
+            // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
+            // §2 キャラクター画像: index.html:973-978 .card.grad-warm(chara.png 84x84+「おぼえるのはこれだけ！」)
+            // の1:1移植。「記録が消えない3つの守り」(chara-good.png・index.html:1031)はA2HS導線
+            // (ホーム画面追加の案内)に埋め込まれた項目でマスタープラン§2-2の除外対象と重なるため、
+            // このタスクでは移植しない(見た目のみのスコープを超えるロジック判断が必要なため)。
+            KyonoGradientCard(KyonoGradient.Warm, Modifier.testTag("guideIntroCard")) {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    KyonoCharaImage("chara", Modifier.size(84.dp))
+                    Spacer(Modifier.height(6.dp))
+                    Text("おぼえるのはこれだけ！", color = colors.ink, fontSize = 19.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "1日1本うごいて\n「きょうやった！」を押す", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text("あとはぜんぶ このアプリがおぼえてます", color = colors.sub2, fontSize = 14.sp)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+
             KyonoSectionHeader(KyonoIcon.Question, "よくあるしつもん", fill = colors.coralSoft)
             Spacer(Modifier.height(4.dp))
             Text("しつもんをタップすると こたえがひらきます", color = colors.sub, fontSize = 13.sp)
