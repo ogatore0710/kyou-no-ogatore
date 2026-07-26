@@ -68,6 +68,9 @@ private func chipColors(for key: String, dark: Bool) -> ChipColors {
     }
 }
 
+// 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §2 動画サムネイル):
+// index.html:328-336 .video(サムネイル112x16:9+タイトル3行clamp+badge)の1:1移植。
+// KyonoAsyncImage(§1で新設)を再利用し、読み込み失敗時は何も表示しない(Web版onerrorと同じ)。
 private struct VideoRow: View {
     @Environment(\.kyonoColors) private var colors
     let v: CatalogVideo
@@ -77,18 +80,28 @@ private struct VideoRow: View {
         Button {
             openUrl("https://www.youtube.com/watch?v=\(v.id)")
         } label: {
-            VStack(alignment: .leading, spacing: 2) {
-                if let tag = v.tags?.first {
-                    Text(tag).font(.kyono(.black900, size: 11)).foregroundColor(colors.tealInk)
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12).fill(colors.line)
+                    KyonoAsyncImage(url: youtubeThumbUrl(v.id))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                Text(v.t).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
-                Text(v.s).font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                .frame(width: 112, height: 112 * 9 / 16)
+                VStack(alignment: .leading, spacing: 2) {
+                    if let tag = v.tags?.first {
+                        Text(tag).font(.kyono(.black900, size: 12)).foregroundColor(Color(hex: 0xB4462F))
+                            .padding(.horizontal, 8).padding(.vertical, 1)
+                            .background(Capsule().fill(colors.coralSoft))
+                    }
+                    Text(v.t).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineLimit(3)
+                    Text(v.s).font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub).lineLimit(1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(colors.bg))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
         .buttonStyle(.plain)
     }
 }
