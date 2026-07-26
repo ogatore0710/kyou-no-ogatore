@@ -4,6 +4,47 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 ダークモード再確認+rDoneNudge/rTourBtn実装
+
+`TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md`。一晩の完全性監査+follow-upで追加した
+約20個の新要素をダークモードで目視確認し、見つかった問題をその場で修正。加えて#resultの
+follow-upとして保留にしていた`rDoneNudge`/`rTourBtn`を実装。
+
+**ダークモードで発見・修正した問題(4件。いずれもWeb版のbody.darkスタイル上書きが
+ネイティブに移植されていなかった/未実装だった箇所)**:
+- `KyonoLineButton`(両OS共通コンポーネント。「メモをのこす」「← まえの質問へ」
+  「ホームにもどる」等で使用): 枠線(`border`)自体が実装されておらず、ライト/ダーク
+  問わず視認性が低かった(index.html:104,143 `.btn-line`/`body.dark .btn-line`の1:1移植漏れ)。
+- `VideoRow`のbadge文言(「①まずほぐす」等): ライト固定色(`#B4462F`)のまま、ダークモードの
+  coralSoft背景に対してコントラストが低すぎて読みにくかった(index.html:137
+  `body.dark .badge{color:#F0A58E}`の1:1移植漏れ)。
+- Android: ステータスバー・ナビゲーションバーがthemes.xmlで常にライト色(`#FFFAF3`)固定に
+  なっており、アプリ内コンテンツはダークなのにシステムバーだけライト色が残留していた。
+  `KyonoTheme`内で`WindowCompat`経由の動的上書きを追加して解消。
+- Android: 検索画面の年フィルタ(`#ySel`)で使った素の`DropdownMenu`がMaterialTheme既定の
+  ライト配色で描画されていた。Popup+自前スタイルのColumnに置き換えて解消
+  (設定画面のやるタイミング変更ピッカー等、既存の自前ドロップダウンと同じ方式に統一)。
+
+**rDoneNudge/rTourBtn(app-quiz.js:262-269, index.html:745-746)**:
+- `rTourBtn`: オンボ→クイズへ直行してツアー未見のまま結果画面に来た場合だけ
+  「📖 つづき：使い方ツアーへ」を表示。`obTourDone`/`obTourAfterQuiz`(index.html:4267の
+  1:1移植・プロセス内メモリのみ・§2-3)をルート画面状態に追加し、オンボ完了時/ツアー終了時に
+  更新。はじめの1本ガイド中は出さない(既存の`HomeLogic.fdActive`を呼ぶだけ)。
+- `rDoneNudge`: 結果画面のrxList/worryExtraから動画を開いて戻ってきたとき、ホームのcheerの
+  代わりに結果画面内へ「おかえりなさい！✨ ストレッチできた？」の復帰案内を表示。HomeScreen/
+  HomeViewの既存の同種ロジック(pendingNudgeDate/showDoneNudge・HANDOFF.mdに壊れやすい箇所と
+  記載済み)には一切触れず、ResultScreen/ResultView内に独立した状態+ライフサイクル監視
+  (Android: DisposableEffect+ON_RESUME、iOS: scenePhase)を新設。動画タップ検知は
+  index.html:3958-3969の「Home用#todayVideoリスナー」とは別に「#result用リスナー」を
+  重ねている設計を1:1移植(=rxList/worryExtraのタップだけを検知し、続けて再生ボタンや
+  他画面の動画タップでは発火しない)。
+- Android実機で「オンボ→かたさチェック→結果画面でrTourBtn表示→タップでツアーへ遷移→
+  スキップでホームへ戻る」「結果画面で動画タップ→アプリバックグラウンド→フォアグラウンド
+  復帰でrDoneNudge表示（未記録時のみ・記録済みなら出ないことも確認）」を実機操作で
+  最初から最後まで動作確認。
+- 安全系テスト(SafetyCore 111/111 fixtures)・card-golden 55/55・RecordCore 35/35・
+  `npm test` 442・Web版配信ファイル無変更を確認。ロジック層は変更せず呼ぶだけ。
+
 ## 2026-07-27 診断結果画面「おすすめ動画3本」(rxList)欠落を修正(#result follow-upタスク)
 
 `TASK-C2-2026-07-26-result-video-recommendations.md`。全画面完全性監査#resultで発見・報告した
