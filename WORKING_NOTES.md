@@ -4,6 +4,26 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-26
 
+## 2026-07-26 見た目パリティ移植の仕上げ: Guide/MyRecord/Catalog/Search画面の「◀ もどる」ボタン削除
+
+`TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md`。Phase 2報告で「要検討」のまま残っていた
+指摘（タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面内の「◀ もどる」ボタンは冗長）を
+本人了承のもと解消。
+
+- Android: `GuideScreen.kt`/`MainActivity.kt`(MyRecordScreen)/`SearchScreen.kt`(SearchScreen・
+  CatalogListScreen)の4箇所から`KyonoLineButton("◀ もどる", onBack, ...)`を削除。
+- iOS: `GuideView.swift`/`SearchView.swift`(SearchContentView・CatalogListContentView)の3箇所
+  から同ボタンを削除(iOS版`MyRecordView`はそもそも`onBack`を持たずボタン自体が無かった)。
+- `onBack`パラメータ自体はナビゲーション構造（Screen sealed class等）を変更しないという
+  タスクの制約により残置（未使用警告のみ・ビルドエラーにはならない）。
+- ボタン削除後にSpacerも合わせて除去し、削除跡が不自然に空かないことをレイアウト目視で確認。
+- Android実機(kyono_testエミュレータ)で`kyono-store.json`を直接書き込んでオンボ済み状態を
+  再現し、使い方/マイ記録/再生リスト/動画を探す全4タブをタップで巡回。戻るボタンが消えている
+  こと・タブ切替だけで元のタブ/ホームへ問題なく行き来できることを確認。
+- 回帰確認: Android `gradle testDebugUnitTest`全緑・iOS `swift test`各パッケージ緑
+  (SafetyCore 8/8+111 fixtures・RecordCore 35/35・CardCore 16/16+55 card-golden)・
+  `npm test` 442 checks green・Web版配信ファイル無変更。
+
 ## 2026-07-26 見た目のWeb版パリティ移植 Phase 3: sec-headアイコン移植+残り全画面のカード型レイアウト適用(完了)
 
 Phase 2で唯一未達成だった「下部タブバー本体」が完了したのを受け、本人から
