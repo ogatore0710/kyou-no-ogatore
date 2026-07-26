@@ -195,6 +195,9 @@ class MainActivity : ComponentActivity() {
                                             onBack = { screen = Screen.Home },
                                             onReenterOnboarding = { screen = Screen.Onboarding },
                                             onReenterTour = { screen = Screen.Tour(false) },
+                                            onOpenQuiz = { screen = Screen.Quiz(null) },
+                                            onOpenSettings = { screen = Screen.Settings },
+                                            onOpenMyRecord = { screen = Screen.MyRecord },
                                         )
                                         is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Home -> HomeScreen(
