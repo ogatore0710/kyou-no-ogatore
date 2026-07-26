@@ -10,6 +10,7 @@
 //  直接再現する(手描き風の意匠を保つ)。
 
 import SwiftUI
+import UIKit
 
 enum KyonoTab {
     case guide, myRecord, home, catalog, search
@@ -161,20 +162,36 @@ private struct SearchIcon: View {
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): 絵文字だけではVoiceOverに
 // 内容が伝わらないため、accessibilityLabelを追加(Web版には無いネイティブならではの上乗せ。
 // 見た目・配色・タップ挙動は変更しない)。
+//
+// オガトレ通信FAB実写真化タスク(TASK-C2-2026-07-26-obu-fab-photo.md): index.html:1166-1167
+// #obuFab(絵文字ではなくassets/obu-fab-photo.jpgの実写真・円形・黄色ボーダー)の1:1移植。
+// photoResNameを渡したときだけ絵文字の代わりに写真を表示する(相談室FABは従来どおり絵文字のまま)。
 struct KyonoFab: View {
     @Environment(\.kyonoColors) private var colors
     let emoji: String
     let borderColor: Color
     var accessibilityLabelText: String = ""
+    var photoResName: String? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(emoji).font(.kyono(.bold700, size: 22))
-                .frame(width: 56, height: 56)
-                .background(Circle().fill(colors.card))
-                .overlay(Circle().stroke(borderColor, lineWidth: 3))
-                .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+            Group {
+                if let photoResName {
+                    // index.html:248 .obu-fab img{object-fit:cover}の1:1移植。
+                    if let url = Bundle.main.url(forResource: photoResName, withExtension: "jpg"),
+                       let uiImage = UIImage(contentsOfFile: url.path) {
+                        Image(uiImage: uiImage).resizable().scaledToFill()
+                    }
+                } else {
+                    Text(emoji).font(.kyono(.bold700, size: 22))
+                }
+            }
+            .frame(width: 56, height: 56)
+            .background(Circle().fill(colors.card))
+            .clipShape(Circle())
+            .overlay(Circle().stroke(borderColor, lineWidth: 3))
+            .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabelText)

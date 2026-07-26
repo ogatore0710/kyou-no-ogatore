@@ -119,7 +119,7 @@ struct RootView: View {
             if screen.kyonoTab != nil {
                 VStack(spacing: 10) {
                     KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan() }
-                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFF8A70), accessibilityLabelText: "オガトレ通信") { screen = .obu }
+                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo") { screen = .obu }
                 }
                 .padding(.trailing, 16)
                 .padding(.bottom, 84)
