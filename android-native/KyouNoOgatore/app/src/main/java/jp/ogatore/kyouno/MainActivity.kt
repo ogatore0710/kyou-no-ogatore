@@ -162,6 +162,7 @@ class MainActivity : ComponentActivity() {
                                             store = store,
                                             typeKey = s.typeKey,
                                             autoReachLv = s.autoReachLv,
+                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onDone = { screen = Screen.Home },
                                             onStartQuiz = { screen = Screen.Quiz(null) },
                                             onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },

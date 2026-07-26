@@ -104,8 +104,12 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §2 動画サムネイル):
 // index.html:328-336 .video(サムネイル112x16:9+タイトル3行clamp+badge)の1:1移植。
 // KyonoAsyncImage(§1で新設)を再利用し、読み込み失敗時は何も表示しない(Web版onerrorと同じ)。
+// index.html:1680-1685 vHTML/videoCard(badge引数)相当。ResultScreen(#result rxList)からも
+// 使うためnon-privateにする(全画面完全性監査タスク #result のfollow-up=
+// TASK-C2-2026-07-26-result-video-recommendations.md)。badge指定時はvideoCard()と同じく
+// タグpillの代わりにbadge文言(「①まずほぐす」等)を表示する。
 @Composable
-private fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit) {
+fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null) {
     val colors = LocalKyonoColors.current
     Row(
         Modifier
@@ -128,9 +132,9 @@ private fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit) {
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            v.tags.firstOrNull()?.let { tag ->
+            (badge ?: v.tags.firstOrNull())?.let { label ->
                 Text(
-                    tag, color = Color(0xFFB4462F), fontSize = 12.sp, fontWeight = FontWeight.Black,
+                    label, color = Color(0xFFB4462F), fontSize = 12.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
                 )
                 Spacer(Modifier.height(4.dp))
