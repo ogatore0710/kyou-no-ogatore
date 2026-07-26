@@ -17,6 +17,8 @@ import RecordCore
 struct GuideView: View {
     let store: RecordStore
     let onBack: () -> Void
+    let onReenterOnboarding: () -> Void
+    let onReenterTour: () -> Void
 
     @State private var query = ""
     @State private var openGroups: Set<String> = [faqGroups[0].title]
@@ -33,23 +35,52 @@ struct GuideView: View {
 
     private var content: some View {
         GuideContentView(
-            query: $query, openGroups: $openGroups, openItems: $openItems, nq: nq, onBack: onBack
+            query: $query, openGroups: $openGroups, openItems: $openItems, nq: nq, onBack: onBack,
+            onReenterOnboarding: onReenterOnboarding, onReenterTour: onReenterTour
         )
     }
 }
 
 private struct GuideContentView: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.colorScheme) private var systemColorScheme
     @Binding var query: String
     @Binding var openGroups: Set<String>
     @Binding var openItems: Set<String>
     let nq: String
     let onBack: () -> Void
+    let onReenterOnboarding: () -> Void
+    let onReenterTour: () -> Void
+
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
+
+            // 使い方タブ再入場リンク欠落修正タスク(TASK-C2-2026-07-26-guide-reentry-links.md):
+            // index.html:970 .daychip×2(obReenterLink/obTourLink)の1:1移植。オンボーディング・
+            // ツアー本体のロジックは変更せず、既存フロー(Screen.onboarding/Screen.tour)を呼ぶだけ。
+            HStack(spacing: 10) {
+                Spacer()
+                Text("🌱 はじめてガイド")
+                    .font(.kyono(.extraBold800, size: 14)).foregroundColor(colors.tealInk)
+                    .padding(.horizontal, 16).padding(.vertical, 9)
+                    .background(Capsule().fill(colors.tealSoft))
+                    .onTapGesture(perform: onReenterOnboarding)
+                Text("📖 使い方ツアー")
+                    .font(.kyono(.extraBold800, size: 14)).foregroundColor(dark ? Color(hex: 0xE8C74C) : Color(hex: 0x7E6400))
+                    .padding(.horizontal, 16).padding(.vertical, 9)
+                    .background(Capsule().fill(colors.yellowSoft))
+                    .onTapGesture(perform: onReenterTour)
+                Spacer()
+            }
+            Text("「はじめてガイド」＝さいしょの質問からやりなおす／「使い方ツアー」＝つかいかたをスライドで見る")
+                .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 8)
 
             // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
             // §2 キャラクター画像: index.html:973-978 .card.grad-warm(chara.png 84x84+「おぼえるのはこれだけ！」)

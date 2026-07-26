@@ -176,7 +176,12 @@ struct RootView: View {
         case .obu:
             ObuView(store: store, onBack: { screen = .home })
         case .guide:
-            GuideView(store: store, onBack: { screen = .home })
+            GuideView(
+                store: store,
+                onBack: { screen = .home },
+                onReenterOnboarding: { screen = .onboarding },
+                onReenterTour: { screen = .tour(showClosing: false) }
+            )
         case .settings:
             SettingsView(store: store, onBack: { screen = .home })
         case .myRecord:
