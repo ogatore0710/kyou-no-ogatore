@@ -10,6 +10,17 @@ alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微�
 存在しない」問題は、下記の全画面完全性監査タスク#homeで`memoRow`として実装済み（既存の
 `RecordLogic.saveMemo()`を呼ぶだけ）。「ひとことにっき」一覧も含め正常に動作する状態になった。
 
+## ✅ 完了: 2週間プラン完走お祝いカード(紙吹雪演出)を実装（2026-07-27）
+`TASK-C2-2026-07-27-plan-completion-celebration.md`。alan5独自調査で発見された、2週間プラン
+完走時のお祝いカード(planDoneCard)と紙吹雪演出(confetti)の欠落を修正。タスク前提の「confetti
+仕組みは相談室で既存流用可」は事実誤認だったため(実際は未実装・コメントで対象外と明記されて
+いただけ)、Web版の`launchConfetti`を両OSに新規移植。実装中に別バグも発見・修正: 完走時
+`PlanProgressCard`が即座に`plan`状態を`null`にしていたため、お祝いカードが表示直後に消える
+構造的な問題があり、`PlanFinishedCache`を独立状態として切り出して解消。Android実機で
+「お祝い+紙吹雪表示→とじる/もう2週間続ける/かたさチェックへ、の3ボタン」を確認済み。
+安全系テスト(111/111)・card-golden 55/55・RecordCore 35/35・`npm test` 442・Web版配信ファイル
+無変更を確認。詳細はWORKING_NOTES.mdの同日エントリ参照。
+
 ## ✅ 完了: ダークモード再確認+rDoneNudge/rTourBtn実装（2026-07-27）
 `TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md`。完全性監査+follow-upで追加した約20個の
 新要素をダークモードで確認し、`KyonoLineButton`の枠線欠落・動画バッジ文言の低コントラスト・

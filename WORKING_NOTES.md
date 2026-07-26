@@ -4,6 +4,48 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 2週間プラン完走お祝いカード(紙吹雪演出)を実装
+
+`TASK-C2-2026-07-27-plan-completion-celebration.md`。alan5独自調査で発見された、2週間プラン
+完走時のお祝いカード(planDoneCard)と紙吹雪演出(confetti)がネイティブに丸ごと欠落していた問題。
+
+**タスク前提の訂正が1件**: タスク説明では「confetti仕組みは相談室で既存流用可」とされていたが、
+実際には`launchConfetti`(index.html:1919-1943)はネイティブのどこにも実装されておらず、
+`SoudanSheet.kt:402`のコメントで「紙吹雪演出(launchConfetti)…は移植対象外(Step6の検収基準に
+含まれないため。安全性に無関係)」と明記されているのみだった。今回は必要になったため、
+Web版の物理演算(`x,y,vx,vy,w,h,rot,vr,sway,ph`・4色パレット・1500ms)を1:1移植する形で
+両OSに新規実装(`KyonoConfetti`。Android: Canvas+Animatable、iOS: TimelineView+Canvas)。
+
+**実装中に見つけた別バグ(お祝いカードが一瞬で消える)**: `PlanProgressCard`/`PlanProgressCardView`
+は`finished=true`になった瞬間、同じ副作用内で`onCleared()`を呼び親の`plan`状態を`null`にして
+いたため、お祝い分岐(`plan?.let{...}`のネスト内)が次の再コンポーズで即座に消えてしまう
+(ユーザーには一瞬のフラッシュにしか見えない)構造上のバグだった。`PlanFinishedCache`
+(intentId/label/videos/daysのみを保持・`plan`の生死と無関係)をルート階層の独立状態として
+新設し、`PlanProgressCard`は進捗バー表示に専念して`onFinished(cache)`を1回呼ぶだけに変更。
+お祝いUI(`PlanDoneCard`/`PlanDoneCardView`)は`planFinishedCache`のみを見て描画するため、
+`plan`が`null`になっても消えない。
+
+紙吹雪の表示判定(`showConfettiOnce`)は、rTourBtn実装時と同じ「合成中の状態ミューテーション」
+アンチパターンを避けるため、`remember{}`(Android)/カスタム`init`での`@State`初期化(iOS)で
+1回だけ捕捉し、`onCelebrate()`発火後に親の`planCelebrated`フラグが`true`に変わっても
+アニメーション中の紙吹雪が消えないようにした。
+
+`onPlanAgain`はWeb版の`state.mode="mine"`/`store.set("mode_manual",...)`は意図的に移植せず
+(「きょうの1本」モード選択の仕組み自体がネイティブに存在しないため。既存の
+`SoudanSheet.kt:402`コメントで既に対象外と明記済みのスコープを踏襲)、同じintentId/label/
+videos/daysで`start`を今日に更新した新規プランを作成・保存するのみ。
+
+Android実機で確認: `kyono-store.json`の`plan.start`を15日前に書き換えて完走状態を強制→
+①お祝いカード+紙吹雪の表示(ダークモードでの視認性含む)、②`とじる`でカードのみ閉じて
+ホームへ戻る、③`もう2週間続ける`で同じ動画リストの新規プラン作成・進捗カードへ切替、
+④`かたさチェックで変化をみる`でカードを閉じてかたさチェックQ1へ遷移、を1つずつ確認。
+①の確認中に`store.set("plan",null)`が反映済みなのにUIが消えないことも直接確認でき、
+上記バグ修正の効果を実機で裏取りできた。
+
+安全系テスト(SafetyCore 111/111 fixtures)・card-golden 55/55・RecordCore 35/35・
+`npm test` 442・Web版配信ファイル無変更を確認。ロジック層・判定ロジックには一切触れず、
+UI装飾層(演出用の乱数のみ・§2-4の既定除外に該当)の追加にとどめた。
+
 ## 2026-07-27 ダークモード再確認+rDoneNudge/rTourBtn実装
 
 `TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md`。一晩の完全性監査+follow-upで追加した
