@@ -311,49 +311,122 @@ struct TypeInfo {
     let copy: String
     let hope: String
     let pt: String
+    let area: String
 }
 
-// app-quiz.js:45-79 TYPES の1:1移植(name/copy/hope/pt。rx/poolは動画カタログ連動でStep7aの範囲=
-// 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #result)で個別のfollow-up
-// タスクとして切り出す方針。ptは動画非依存の解説文なのでここで追加する)。
+// app-quiz.js:45-79 TYPES の1:1移植(name/copy/hope/pt/area。rx/poolは動画選出専用データのため
+// typeRxPoolへ別に切り出す)。areaはTASK-C2-2026-07-26-result-video-recommendations.md(#result
+// のrxHead文言生成)で追加。
 let quizTypes: [String: TypeInfo] = [
     "momo": TypeInfo(
         name: "つっぱりモモンガ",
         copy: "前屈すると、つま先がとても遠い。それはあなたの脚が長い…わけではなく、もも裏がモモンガの滑空ポーズみたいにピンとつっぱっているサイン。",
         hope: "でもモモンガも、着地すればちゃんと脚をゆるめます。もも裏は変化が出やすい場所。2週間後の前屈で、床がぐっと近くなってるはず。",
-        pt: "硬いのは<b>ハムストリングス（もも裏の筋肉）</b>。ここが硬いと骨盤が後ろに倒れたまま固定され、前屈で腰だけが無理に曲がります。放っておくと<b>腰痛や座り姿勢の悪化</b>につながる場所。逆に言えば、もも裏をゆるめるだけで前屈も腰もラクになります。"
+        pt: "硬いのは<b>ハムストリングス（もも裏の筋肉）</b>。ここが硬いと骨盤が後ろに倒れたまま固定され、前屈で腰だけが無理に曲がります。放っておくと<b>腰痛や座り姿勢の悪化</b>につながる場所。逆に言えば、もも裏をゆるめるだけで前屈も腰もラクになります。",
+        area: "もも裏"
     ),
     "koka": TypeInfo(
         name: "開かずのトビラ",
         copy: "あぐらでひざが山になるのは、股関節のとびらが閉まっているから。股関節の封印は解きたいですよね。",
         hope: "とびらは、毎日すこしずつ油をさせば開きます。股関節は9分の習慣がいちばん効く場所。あせらずコツコツ。",
-        pt: "硬いのは<b>内もも（内転筋）とお尻（大臀筋・梨状筋）</b>。股関節を外に開く動きが制限されて、あぐら・開脚が苦手になります。股関節は体の土台なので、ここが動くと<b>歩く・座る・立つ全部がラクに</b>。腰への負担も減ります。"
+        pt: "硬いのは<b>内もも（内転筋）とお尻（大臀筋・梨状筋）</b>。股関節を外に開く動きが制限されて、あぐら・開脚が苦手になります。股関節は体の土台なので、ここが動くと<b>歩く・座る・立つ全部がラクに</b>。腰への負担も減ります。",
+        area: "股関節"
     ),
     "kenko": TypeInfo(
         name: "飛べないダチョウ",
         copy: "ひじをつけたまま上がらないのは、肩甲骨まわりの羽根が飛べないダチョウみたいに、すっかり休眠しているから。デスクワークの勲章です。",
         hope: "ダチョウの羽根だって、バサバサ動かせば血が巡ります。肩甲骨がゆるむと、肩こりも呼吸もぐっとラクに。",
-        pt: "硬いのは<b>肩甲骨まわり（僧帽筋・広背筋・大胸筋など）</b>。肩甲骨の動きが小さくなると、首と肩の筋肉が代わりに働き続けて<b>肩こり・巻き肩・浅い呼吸</b>の原因に。肩甲骨を動かす習慣がつくと、背中が軽くなって姿勢も変わります。"
+        pt: "硬いのは<b>肩甲骨まわり（僧帽筋・広背筋・大胸筋など）</b>。肩甲骨の動きが小さくなると、首と肩の筋肉が代わりに働き続けて<b>肩こり・巻き肩・浅い呼吸</b>の原因に。肩甲骨を動かす習慣がつくと、背中が軽くなって姿勢も変わります。",
+        area: "肩甲骨"
     ),
     "ashi": TypeInfo(
         name: "棒立ちペンギン",
         copy: "しゃがむとかかとがプカッ あるいは後ろにコロン。それは足首がカチッと固まっている証拠。ペンギンは可愛いけど、転ぶと痛い。",
         hope: "足首がゆるむと、歩くのも立つのも軽くなります。つまむだけの簡単ストレッチから始めましょう。",
-        pt: "硬いのは<b>足首の背屈（すねに向けて曲げる動き）＝ふくらはぎ・アキレス腱まわり</b>。ここが硬いと、しゃがむ動作でかかとが浮き、<b>つまずき・むくみ・ふくらはぎの張り</b>につながります。足首は毎日使う関節なので、ゆるめた効果を実感しやすい場所です。"
+        pt: "硬いのは<b>足首の背屈（すねに向けて曲げる動き）＝ふくらはぎ・アキレス腱まわり</b>。ここが硬いと、しゃがむ動作でかかとが浮き、<b>つまずき・むくみ・ふくらはぎの張り</b>につながります。足首は毎日使う関節なので、ゆるめた効果を実感しやすい場所です。",
+        area: "足首"
     ),
     "robot": TypeInfo(
         name: "ガチガチロボット",
         copy: "全体的に、ガチガチ。でも言いかえれば、どこを伸ばしても効く「伸びしろの宝庫」ということ。",
         hope: "ロボットにも心はあります。全身をやさしくほぐす1本から始めれば、ガチガチの体もちゃんと応えてくれます。",
-        pt: "特定の場所というより<b>全身が複合的に硬い状態</b>。この場合は部位を絞るより、全身をまんべんなく動かすルーティンで底上げするのが近道です。<b>どこを伸ばしても効く＝変化を感じやすい</b>ので、実はいちばん楽しいスタート地点だったりします。"
+        pt: "特定の場所というより<b>全身が複合的に硬い状態</b>。この場合は部位を絞るより、全身をまんべんなく動かすルーティンで底上げするのが近道です。<b>どこを伸ばしても効く＝変化を感じやすい</b>ので、実はいちばん楽しいスタート地点だったりします。",
+        area: "全身"
     ),
     "yawara": TypeInfo(
         name: "しなやかネコ",
         copy: "おっと、けっこうしなやか！あなたはもう「しなやかネコ」。ここから先は、そのしなやかさを守るステージです。",
         hope: "しなやかさは資産。猫が毎朝伸びをするみたいに、朝と夜の習慣で守っていきましょう。悩みに合わせた1本もどうぞ。",
-        pt: "関節の可動域は良好です。次の課題は<b>「維持」と「使い方」</b>。柔らかくても、支える筋力や毎日の習慣が崩れると体は硬さに戻ります。朝晩の軽いルーティンで可動域を守りつつ、悩みのある部位を先回りでケアしましょう。"
+        pt: "関節の可動域は良好です。次の課題は<b>「維持」と「使い方」</b>。柔らかくても、支える筋力や毎日の習慣が崩れると体は硬さに戻ります。朝晩の軽いルーティンで可動域を守りつつ、悩みのある部位を先回りでケアしましょう。",
+        area: "メンテナンス"
     ),
 ]
+
+// 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
+// app-quiz.js:45-90 TYPES[].rx/poolの1:1移植(動画選出専用データ。§1-2に基づき機械抽出)。
+struct TypeRxPool { let rx: [String]; let pool: [String] }
+let typeRxPool: [String: TypeRxPool] = [
+    "momo": TypeRxPool(rx: ["momo7"], pool: ["kaikyaku", "momoKai", "momoIsho", "zenkutsu15", "hamu10", "kaikyaku2", "kotsuban5", "yotsu12", "yotsu8", "asa10", "nagomi7"]),
+    "koka": TypeRxPool(rx: ["koka9"], pool: ["kominka", "kokaSai", "koka22", "koka3cho", "kokaIsho", "kokaPoki", "kaikyaku", "kaikyaku90", "nagomi7", "ashisuki", "yotsu12"]),
+    "kenko": TypeRxPool(rx: ["kenko12"], pool: ["asa5", "kenkoIsho", "kenko22", "kenkoIsho2", "kenko3cho", "katakori", "katakori8", "zutsu7", "suwatta8", "nagomi7"]),
+    "ashi": TypeRxPool(rx: ["ashi1"], pool: ["ashi2", "ashi10", "ashi3cho", "ashiIsho", "fukura5", "fukuraMassa", "fukura8", "ashi4", "katai8st", "ashisuki"]),
+    "robot": TypeRxPool(rx: ["honki9"], pool: ["asa10", "asaBaki9", "yoru9umi", "yoru9ice", "zenshinCho", "yoru12kai", "senaka5", "ofuro10", "nagomi7"]),
+    "yawara": TypeRxPool(rx: ["asa10"], pool: ["asa9shi", "asaGachi5", "asa3", "honki9", "yoru9umi", "jukusui9", "jiritsu10", "ofuro6", "choyokin10", "ibuki10", "nagomi7"]),
+]
+
+// app-quiz.js:81-85 WORRYの1:1移植(悩みキー→追加のおすすめ1本+ラベル。yawaraka=null相当は
+// マップに含めないことで表現)。
+struct WorryExtra { let v: String; let label: String }
+let worryExtraMap: [String: WorryExtra] = [
+    "katakori": WorryExtra(v: "katakori", label: "肩こりさんへ もう1本"),
+    "yotsu": WorryExtra(v: "yotsu12", label: "腰痛さんへ もう1本"),
+    "tsukare": WorryExtra(v: "jiritsu10", label: "おつかれさんへ もう1本"),
+]
+
+// index.html:1458 V(かたさタイプおすすめ動画専用の小規模動画カタログ)のキー→YouTube動画IDの
+// 1:1移植(§1-2に基づき機械抽出)。タイトル・サブタイトル等の実体はすでに移植済みの一般カタログ
+// (catalog.json/CatalogLoader)に同じ動画IDが含まれているため、そちらを検索して表示に使う
+// (V自体のt/s/tagsは重複移植しない)。
+let quizVideoKeyToId: [String: String] = [
+    "momo7": "CyWthETY73s", "momoKai": "3_z8R2l4CKE", "kaikyaku": "Re5FPU5_37g", "asa10": "2EfFlQev4rg",
+    "koka9": "-Y5bOC_ecB0", "kominka": "LMz4DV66bV8", "kenko12": "ZYTlwh_FhoU", "yoru15": "HCVb47eWgqA",
+    "asa5": "VTMYfFnkHh4", "ashi1": "6U4fgJu0ZMw", "ashi2": "86u3S-epkRg", "ashi10": "t3C-N5_828k",
+    "fukura5": "gdvjMR61Z4k", "honki9": "q8jr0KhoML4", "yaruki22": "oV0Rqt76bhM", "yoru9umi": "NrJIhK_gOXc",
+    "yoru9ice": "_2g_qWssAEI", "asa9shi": "H9ctJbhTR0Y", "jiritsu10": "XkgsF39kkRw", "ashisuki": "4SsJx5W8hNQ",
+    "katakori": "7FY6SR6cyts", "yotsu12": "vZ4LYE0Ahe8", "nagomi7": "aIIU5R2l-kQ", "momoIsho": "CnxxUFl373A",
+    "zenkutsu15": "0-LT6LWLwOQ", "hamu10": "7LgLQuHx-DI", "kaikyaku2": "P6-GHA1AuwE", "kotsuban5": "3F53Us-nwDY",
+    "yotsu8": "laNHVUwdxZM", "kokaSai": "0jhnX8BPzes", "koka22": "uG2_e0Y7qkw", "koka3cho": "Imgtayb1v78",
+    "kokaIsho": "3br07_9ZbyQ", "kokaPoki": "_ETT9HRUxQE", "kaikyaku90": "2gb2LlmK5XQ", "kenkoIsho": "LdnJXMB2kZs",
+    "kenko22": "Qxqcjj_k0WE", "kenkoIsho2": "xhloKtNFgeQ", "kenko3cho": "lUOSasCDvM8", "katakori8": "Sw5MvxmAoGg",
+    "zutsu7": "8rOq_AqiNaw", "suwatta8": "bzGMeDoGpeA", "ashi3cho": "cs1A8W_HofI", "ashiIsho": "8vftEiHldF8",
+    "fukuraMassa": "uy4loFazBgM", "fukura8": "vVNi7jhGBpU", "ashi4": "nkvn6zyYx08", "katai8st": "B-vdrGt8hlA",
+    "zenshinCho": "NWl4iQSpkgw", "yoru12kai": "9mCCZ39Gb5c", "ofuro20": "JdPVMVfmdzc", "zenshin15": "VDy2XlF9EBE",
+    "senaka5": "aSrdZ4aNRmg", "ofuro10": "JIOnn1-NSHM", "asaBaki9": "0wZ5nElZaRA", "asaGachi5": "gMIlRS_lbYA",
+    "jukusui9": "09C7ti0xY4k", "ofuro6": "WvnX_RsX_jY", "choyokin10": "HCLVdX5esK0", "asa3": "ZVSkWhJVlfk",
+    "ibuki10": "mRz5ZZAi9dU", "ogaRadio6": "6jSlocilSYk", "asa10kesen": "Jz7WdjFV5aw", "neochi10": "TfkPz1DNK2Y",
+]
+
+// app-quiz.js:238-255 currentRx()の1:1移植(乱数不使用・rotationIndexのみで決定的な動画選出)。
+// CardLottery.rotationIndex(既存・CardCoreで移植済み)を再利用するだけで、選出ロジック自体は
+// ここで新規実装するが判定/安全ロジックではないため§3-2の対象外(表示用の推薦リスト生成)。
+func currentRx(_ typeKey: String, now: Date) -> [String] {
+    guard let t = typeRxPool[typeKey] else { return [] }
+    let need = 3 - t.rx.count
+    guard need > 0, !t.pool.isEmpty else { return Array(t.rx.prefix(3)) }
+    let r = CardLottery.rotationIndex(now: now)
+    let spacing = t.pool.count / (need == 3 ? 3 : 2)
+    var picks: [String] = []
+    for i in 0..<need {
+        var idx = (r + i * spacing) % t.pool.count
+        var tries = 0
+        while (t.rx.contains(t.pool[idx]) || picks.contains(t.pool[idx])) && tries < t.pool.count {
+            idx = (idx + 1) % t.pool.count
+            tries += 1
+        }
+        picks.append(t.pool[idx])
+    }
+    return t.rx + picks
+}
 
 // 全画面完全性監査タスク #result: index.html:2976 SOUDAN_TYPE_INTENT(タイプ→相談室プリセット
 // intentId)の1:1移植。最初の1件のみ使う(Web版と同じ)。
@@ -519,15 +592,23 @@ struct ResultView: View {
     let store: RecordStore
     let typeKey: String
     let autoReachLv: Int?
+    let openUrl: (String) -> Void
     let onDone: () -> Void
     let onStartQuiz: () -> Void
     let onOpenSoudan: (String?) -> Void
 
-    private var info: TypeInfo { quizTypes[typeKey] ?? TypeInfo(name: typeKey, copy: "", hope: "", pt: "") }
+    private var info: TypeInfo { quizTypes[typeKey] ?? TypeInfo(name: typeKey, copy: "", hope: "", pt: "", area: "") }
+    // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
+    // app-quiz.js:238-255 currentRx()の1:1移植呼び出し。日付のみで決まる(乱数不使用)。
+    private var rx: [String] { currentRx(typeKey, now: Date()) }
+    private var worry: String? {
+        let result: QuizTypeResult? = store.get("type", default: nil)
+        return result?.worry
+    }
 
     var body: some View {
-        // ResultViewはRecordStoreを従来受け取らなかったが、rSoudanLinkの遷移先(onOpenSoudan)を
-        // 通すために保持する。テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
+        // ResultViewはRecordStoreを従来受け取らなかったが、rSoudanLinkの遷移先(onOpenSoudan)や
+        // worry(WORRY_EXTRA用)を読むために保持する。テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
         KyonoTheme(themeSetting: "auto") {
             content
         }
@@ -535,8 +616,8 @@ struct ResultView: View {
 
     private var content: some View {
         ResultContentView(
-            info: info, typeKey: typeKey, autoReachLv: autoReachLv, onDone: onDone,
-            onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan
+            info: info, typeKey: typeKey, autoReachLv: autoReachLv, rx: rx, worry: worry, openUrl: openUrl,
+            onDone: onDone, onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan
         )
     }
 }
@@ -546,9 +627,19 @@ private struct ResultContentView: View {
     let info: TypeInfo
     let typeKey: String
     let autoReachLv: Int?
+    let rx: [String]
+    let worry: String?
+    let openUrl: (String) -> Void
     let onDone: () -> Void
     let onStartQuiz: () -> Void
     let onOpenSoudan: (String?) -> Void
+
+    private var catalogById: [String: CatalogVideo] {
+        Dictionary(uniqueKeysWithValues: CatalogLoader.shared.map { ($0.id, $0) })
+    }
+    private func lookupVideo(_ key: String) -> CatalogVideo? {
+        quizVideoKeyToId[key].flatMap { catalogById[$0] }
+    }
 
     var body: some View {
         ScrollView {
@@ -585,6 +676,35 @@ private struct ResultContentView: View {
                             .font(.kyono(.black900, size: 13)).foregroundColor(colors.tealInk)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
+                }
+                // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
+                // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
+                KyonoCard {
+                    Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
+                        .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    Spacer().frame(height: 10)
+                    let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
+                    ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
+                        if let v = lookupVideo(vk) {
+                            VideoRow(v: v, openUrl: openUrl, badge: badges.indices.contains(i) ? badges[i] : nil)
+                        }
+                    }
+                    if !rx.isEmpty {
+                        Spacer().frame(height: 8)
+                        KyonoGhostButton("▶ 3本続けて再生する") {
+                            let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
+                            openUrl("https://www.youtube.com/watch_videos?video_ids=\(ids)")
+                        }
+                    }
+                    // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
+                    if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
+                        Spacer().frame(height: 4)
+                        VideoRow(v: v, openUrl: openUrl, badge: "＋ \(extra.label)")
+                    }
+                    // index.html:740 #rRotateNoteの1:1移植。
+                    Spacer().frame(height: 4)
+                    Text("おすすめは3日ごとに自動で入れ替わります")
+                        .font(.kyono(.bold700, size: 12)).foregroundColor(colors.subFaint)
                 }
                 // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
                 KyonoCard {

@@ -145,6 +145,7 @@ struct RootView: View {
         case let .result(typeKey, autoReachLv):
             ResultView(
                 store: store, typeKey: typeKey, autoReachLv: autoReachLv,
+                openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onDone: { screen = .home },
                 onStartQuiz: { screen = .quiz(presetWorry: nil) },
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) }

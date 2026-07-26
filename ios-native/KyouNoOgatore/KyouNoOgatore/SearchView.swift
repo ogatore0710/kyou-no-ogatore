@@ -72,10 +72,15 @@ private func chipColors(for key: String, dark: Bool) -> ChipColors {
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §2 動画サムネイル):
 // index.html:328-336 .video(サムネイル112x16:9+タイトル3行clamp+badge)の1:1移植。
 // KyonoAsyncImage(§1で新設)を再利用し、読み込み失敗時は何も表示しない(Web版onerrorと同じ)。
-private struct VideoRow: View {
+// index.html:1680-1685 vHTML/videoCard(badge引数)相当。ResultView(#result rxList)からも
+// 使うためnon-privateにする(全画面完全性監査タスクのfollow-up=
+// TASK-C2-2026-07-26-result-video-recommendations.md)。badge指定時はvideoCard()と同じく
+// タグpillの代わりにbadge文言(「①まずほぐす」等)を表示する。
+struct VideoRow: View {
     @Environment(\.kyonoColors) private var colors
     let v: CatalogVideo
     let openUrl: (String) -> Void
+    var badge: String? = nil
 
     var body: some View {
         Button {
@@ -89,8 +94,8 @@ private struct VideoRow: View {
                 }
                 .frame(width: 112, height: 112 * 9 / 16)
                 VStack(alignment: .leading, spacing: 2) {
-                    if let tag = v.tags?.first {
-                        Text(tag).font(.kyono(.black900, size: 12)).foregroundColor(Color(hex: 0xB4462F))
+                    if let label = badge ?? v.tags?.first {
+                        Text(label).font(.kyono(.black900, size: 12)).foregroundColor(Color(hex: 0xB4462F))
                             .padding(.horizontal, 8).padding(.vertical, 1)
                             .background(Capsule().fill(colors.coralSoft))
                     }
