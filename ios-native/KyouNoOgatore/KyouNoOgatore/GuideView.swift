@@ -504,7 +504,7 @@ private struct GdSegmentMock: View {
 // display:flex;flex-wrap:wrapの1:1移植。SwiftUIに標準の折り返しレイアウトが無いため、Layout
 // プロトコル(iOS16+)で最小限のflex-wrap相当を実装する。子要素は幅が足りなければ丸ごと次の行へ
 // 落ちる(Web版と同じ「ラベルは割れず、ボタン単位で折り返す」挙動)。
-private struct FlowLayout: Layout {
+struct FlowLayout: Layout {
     var spacing: CGFloat = 8
     var lineSpacing: CGFloat = 8
     var alignment: HorizontalAlignment = .center

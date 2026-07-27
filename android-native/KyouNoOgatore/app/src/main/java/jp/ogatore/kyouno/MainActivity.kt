@@ -330,7 +330,17 @@ class MainActivity : ComponentActivity() {
                                 val showSoudanFab = currentTab != null && screen != Screen.Home && screen != Screen.Guide
                                 // 通信FAB: 使い方(本文・FAQ見出しへの被り対策)・1日目チュートリアル当日
                                 // (練習宣言の吹き出しに被るのを2026-07-21実走で確認)では出さない。
-                                val fdGuideActiveNow = HomeLogic.fdActive(store.get("fd", null as String?), RecordLogic.loadStreak(store).total)
+                                // index.html:1432 tut条件はfdActive()に加えfdday===todayStr()の当日限定
+                                // (alan5指摘・2026-07-28)。fdFocusHomeActiveが同じ当日限定判定を既に
+                                // 持っているのでそちらを使う(fdActiveだけだと翌日以降も通信FABが
+                                // 出続けてしまう)。
+                                val today = RecordLogic.todayStr(Instant.now())
+                                val fdGuideActiveNow = HomeLogic.fdFocusHomeActive(
+                                    store.get("fd", null as String?),
+                                    RecordLogic.loadStreak(store).total,
+                                    store.get("fdday", null as String?),
+                                    today,
+                                )
                                 val showObuFab = currentTab != null && screen != Screen.Guide && !fdGuideActiveNow
                                 if (showSoudanFab || showObuFab) {
                                     val obuIsNew = jp.ogatore.kyouno.obu.obuHasNew(

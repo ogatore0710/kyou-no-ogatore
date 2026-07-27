@@ -193,31 +193,31 @@ private struct SearchContentView: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
                 .onChange(of: query) { _, _ in searchLimit = 24 }
-            // index.html:436-437 .catbtn/.catbtn.on
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(tagCats, id: \.key) { cat in
-                        let on = cat.key == activeCat
-                        Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.ink : colors.sub)
-                            .padding(.horizontal, 13).padding(.vertical, 10)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(on ? colors.yellow : colors.line))
-                            .onTapGesture { activeCat = cat.key; activeTag = nil }
-                    }
+            // index.html:436-437 .catbtn/.catbtn.on。TASK-C2-2026-07-27-chips-overflow-and-
+            // bubble-pop.md §1: index.html:434 .catrow{overflow-x:auto}(検索画面のカテゴリ行は
+            // 元から横スクロール仕様)+右端フェード+「›」ヒントの1:1移植。
+            FadingChipRow(spacing: 6) {
+                ForEach(tagCats, id: \.key) { cat in
+                    let on = cat.key == activeCat
+                    Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.ink : colors.sub)
+                        .padding(.horizontal, 13).padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(on ? colors.yellow : colors.line))
+                        .onTapGesture { activeCat = cat.key; activeTag = nil }
                 }
             }
-            // index.html:440-449 .chip/.chip-a〜d/.chip.on
+            // index.html:440-449,952 .chip/.chip-a〜d/.chip.on。TASK-C2-2026-07-27-chips-overflow-
+            // and-bubble-pop.md §5: .chipsは既定でflex-wrap:wrap(横スクロールは相談室フッターのみの
+            // 例外)のため、折り返しレイアウトにする(3つ目以降が見えなくなっていた欠落の修正)。
             let activeCatTags = tagCats.first { $0.key == activeCat }?.tags ?? []
             let cc = chipColors(for: activeCat, dark: dark)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(activeCatTags, id: \.self) { tag in
-                        let on = tag == activeTag
-                        Text(tag).kyonoFont(.bold700, size: 14).foregroundColor(on ? cc.onText : cc.text)
-                            .padding(.horizontal, 16).padding(.vertical, 10)
-                            .background(Capsule().fill(on ? cc.onBg : cc.bg))
-                            .overlay(Capsule().stroke(on ? cc.onBorder : cc.border, lineWidth: 2))
-                            .onTapGesture { activeTag = (activeTag == tag) ? nil : tag; searchLimit = 24 }
-                    }
+            FlowLayout(spacing: 6, lineSpacing: 6, alignment: .leading) {
+                ForEach(activeCatTags, id: \.self) { tag in
+                    let on = tag == activeTag
+                    Text(tag).kyonoFont(.bold700, size: 14).foregroundColor(on ? cc.onText : cc.text)
+                        .padding(.horizontal, 16).padding(.vertical, 10)
+                        .background(Capsule().fill(on ? cc.onBg : cc.bg))
+                        .overlay(Capsule().stroke(on ? cc.onBorder : cc.border, lineWidth: 2))
+                        .onTapGesture { activeTag = (activeTag == tag) ? nil : tag; searchLimit = 24 }
                 }
             }
             HStack {

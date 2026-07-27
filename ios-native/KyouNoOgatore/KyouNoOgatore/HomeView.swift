@@ -611,11 +611,12 @@ private struct SoudanCard: View {
                         Spacer().frame(height: 10)
                         Text("👇 タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         Spacer().frame(height: 6)
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack {
-                                ForEach(picks, id: \.id) { intent in
-                                    HomeSoudanChip(label: intent.chip) { onOpenSoudan(intent.id) }
-                                }
+                        // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §5: index.html:438
+                        // .chips{display:flex;flex-wrap:wrap}が既定(相談室フッターのチップ行だけが
+                        // 例外の横スクロール)。index.html:650のこのチップは既定どおり折り返し対象。
+                        FlowLayout(spacing: 8, lineSpacing: 8, alignment: .leading) {
+                            ForEach(picks, id: \.id) { intent in
+                                HomeSoudanChip(label: intent.chip) { onOpenSoudan(intent.id) }
                             }
                         }
                     }

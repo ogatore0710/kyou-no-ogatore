@@ -4,6 +4,46 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 chips-overflow-and-bubble-pop.md 完了(§1〜§5全項目)
+
+alan5が§A独立洗い直しで見つけたチップ表示の欠落一式。当初は個別の見落としに見えたが、
+**根本原因は1つ(§5)**: Web版`.chips`は既定`flex-wrap:wrap`(折り返し)で、**相談室フッターの
+チップ行だけが例外的に`flex-wrap:nowrap;overflow-x:auto`(横スクロール)**。ネイティブはこれが
+全逆になっており、どこも横スクロール・どこにもフェードなし、になっていた。
+
+**§5(根本修正・実害あり)**: 以下をLazyRow(横スクロール)→FlowRow/FlowLayout(折り返し)に変更:
+- ガイド画面の目次チップ7個(§4・既出)+ヘッダの「はじめてガイド」「使い方ツアー」ボタン
+- Home「オガトレ相談室」カードのチップ(からだの悩み系。index.html:650)
+- 検索画面のタグ行(index.html:952。カテゴリ行`searchCatRow`とは別物・混同注意)
+- 相談室シートのカテゴリ行(`sdCatRow`。フッター内でも折り返しに戻る指定)
+
+**§1(横スクロールが正しい2箇所には右端フェード+「›」ヒントを追加)**:
+- 相談室シートの実チップ行(`sdChips`。intents/followups/nearmissの3variant共通)
+- 検索画面のカテゴリ行(`searchCatRow`。index.html:434 `.catrow{overflow-x:auto}`で元から
+  横スクロール仕様)
+- Android: `KyonoComponents.kt`に`FadingChipRow`(LazyListState.layoutInfoから`hasMore`判定・
+  Web版`scrollWidth-scrollLeft-clientWidth>8`と同じ考え方)を新設し、3+1箇所で使い回し。
+- iOS: `KyonoComponents.swift`に`FadingChipRow`(GeometryReader+PreferenceKeyで疑似的な
+  スクロール位置追跡)を新設。iOS17時点では`.onScrollGeometryChange`(iOS18+)が無いための対応。
+
+**§3(吹き出しポップイン`.sd-pop`。§Dの対象表に洩れていた分)**: index.html:497は`.sd-sheet`と
+`.sd-pop`の2つを指しており、後者(吹き出し自体のポップイン)は§D完了時点で未実装だった。相談室
+bot/user吹き出し+オンボチャット吹き出しにopacity0→1・translateY(4px)→0・.18s ease-outを追加
+(reduced-motion時は無演出即表示)。Android: `AnimatedVisibility`を各メッセージのfor-loop内に
+ラップ。iOS: `AnyTransition.sdPop`(カスタムViewModifier transition)を定義し、
+`.animation(value: messages.count)`でForEach挿入時に自動再生。
+
+**§4(ガイド目次チップ・ヘッダボタンの折り返し。既出・先行対応済み)**: `FlowRow`(Android)/
+自作`FlowLayout: Layout`(iOS。SwiftUI標準に無いflex-wrap相当を独自実装・`GuideView.swift`に
+定義し他ファイルからも参照できるようinternal化)で対応。
+
+**確認方法**: Android実機で相談室シートを開き、①カテゴリ行が5個とも折り返して見える
+②実チップ行の右端にフェード+「›」が出ていることをスクショで確認。ガイド画面・Home相談室カード・
+検索画面も同様に実機確認済み(§4は前便で完走確認済み)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest` 208件/failures0/errors0・両OSビルド成功。
+判定ロジックは無変更。
+
 ## 2026-07-28 🚨初回起動オンボ1問目が押せない致命バグ+FAB非表示制御未移植を修正完了
 
 `TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md`。alan5が実機で3回再現した最優先バグ。

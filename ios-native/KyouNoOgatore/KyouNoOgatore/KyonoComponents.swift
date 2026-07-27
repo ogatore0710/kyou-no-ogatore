@@ -297,3 +297,74 @@ extension AnyTransition {
         )
     }
 }
+
+// TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §1: index.html:470-474,3190-3198
+// sdChipsFadeUpdate()の1:1移植。横スクロールするチップ列(相談室フッターのチップ行・検索画面の
+// カテゴリ行)にだけ、右端にまだ続きがあることを示すフェード+「›」ヒントを重ねる。hasMore判定は
+// Web版の「scrollWidth-scrollLeft-clientWidth>8」と同じ考え方をGeometryReaderで再現する。
+private struct FadingChipScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+private struct FadingChipContentWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+struct FadingChipRow<Content: View>: View {
+    @Environment(\.kyonoColors) private var colors
+    let spacing: CGFloat
+    @ViewBuilder let content: () -> Content
+
+    @State private var offsetX: CGFloat = 0
+    @State private var contentWidth: CGFloat = 0
+    @State private var containerWidth: CGFloat = 0
+
+    init(spacing: CGFloat = 8, @ViewBuilder content: @escaping () -> Content) {
+        self.spacing = spacing
+        self.content = content
+    }
+
+    private var hasMore: Bool { contentWidth - (-offsetX) - containerWidth > 8 }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: spacing) { content() }
+                .background(
+                    GeometryReader { proxy in
+                        Color.clear
+                            .preference(key: FadingChipScrollOffsetKey.self, value: proxy.frame(in: .named("fadingChipRow")).minX)
+                            .preference(key: FadingChipContentWidthKey.self, value: proxy.size.width)
+                    }
+                )
+        }
+        .coordinateSpace(name: "fadingChipRow")
+        .onPreferenceChange(FadingChipScrollOffsetKey.self) { offsetX = $0 }
+        .onPreferenceChange(FadingChipContentWidthKey.self) { contentWidth = $0 }
+        .background(
+            GeometryReader { proxy in
+                Color.clear.onAppear { containerWidth = proxy.size.width }
+                    .onChange(of: proxy.size.width) { _, newValue in containerWidth = newValue }
+            }
+        )
+        .overlay(alignment: .trailing) {
+            if hasMore {
+                ZStack(alignment: .trailing) {
+                    LinearGradient(colors: [colors.card.opacity(0), colors.card], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: 40)
+                    Circle()
+                        .fill(colors.card)
+                        .overlay(Circle().stroke(colors.line, lineWidth: 1))
+                        .frame(width: 22, height: 22)
+                        .overlay(Text("›").foregroundColor(colors.sub).font(.system(size: 14, weight: .black)))
+                        .padding(.trailing, 2)
+                }
+                .frame(height: 42)
+                .allowsHitTesting(false)
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: hasMore)
+    }
+}

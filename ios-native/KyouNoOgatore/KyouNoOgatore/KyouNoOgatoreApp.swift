@@ -157,7 +157,15 @@ struct RootView: View {
             // 1:1移植。従来はscreen.kyonoTab != nilだけで判定しており、Web版が実測で積み上げた
             // 個別の非表示条件(相談室カードとの重複・FAQ見出しへの被り・1日目チュートリアル当日の
             // 全面非表示等)がすべて欠落していた。
-            let fdGuideActiveNow = HomeLogic.fdActive(fd: store.get("fd", default: nil), streakTotal: RecordLogic.loadStreak(store).total)
+            // index.html:1432 tut条件はfdActive()に加えfdday===todayStr()の当日限定
+            // (alan5指摘・2026-07-28)。fdFocusHomeActiveが同じ当日限定判定を既に持っているので
+            // そちらを使う(fdActiveだけだと翌日以降も通信FABが出続けてしまう)。
+            let fdGuideActiveNow = HomeLogic.fdFocusHomeActive(
+                fd: store.get("fd", default: nil),
+                streakTotal: RecordLogic.loadStreak(store).total,
+                fdday: store.get("fdday", default: nil),
+                today: RecordLogic.todayStr(now: Date())
+            )
             // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・使い方(FAQ見出しの
             // ▾に被る実測あり・2026-07-20監査④)では出さない。
             let showSoudanFab = screen.kyonoTab != nil && screen != .home && screen != .guide

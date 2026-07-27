@@ -460,20 +460,22 @@ private struct SoudanContentView: View {
             case .none:
                 EmptyView() // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
             case let .intents(activeCat):
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(sdChipCats, id: \.key) { cat in
-                            KyonoCatButton(label: cat.label, selected: cat.key == activeCat) { onCatSelect(cat.key) }
-                        }
+                // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §2/§5: index.html:471
+                // .sd-foot .sd-catrow{flex-wrap:wrap}の1:1移植。相談室フッターのチップ行は
+                // 例外的に横スクロールだが、カテゴリ行だけは折り返しに戻る指定。
+                FlowLayout(spacing: 8, lineSpacing: 6, alignment: .leading) {
+                    ForEach(sdChipCats, id: \.key) { cat in
+                        KyonoCatButton(label: cat.label, selected: cat.key == activeCat) { onCatSelect(cat.key) }
                     }
                 }
                 let cat = sdChipCats.first { $0.key == activeCat } ?? sdChipCats[0]
                 let ids = Set(sdCatIntentIds(cat, kb.intents))
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(kb.intents.filter { ids.contains($0.id) }, id: \.id) { intent in
-                            KyonoChip(label: intent.chip) { onChip(intent.id) }
-                        }
+                // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §1: index.html:470
+                // .sd-foot .chips{flex-wrap:nowrap;overflow-x:auto}(相談室フッターのチップ行
+                // だけの例外的な横スクロール)+472 .fade-r(右端フェード+「›」ヒント)の1:1移植。
+                FadingChipRow {
+                    ForEach(kb.intents.filter { ids.contains($0.id) }, id: \.id) { intent in
+                        KyonoChip(label: intent.chip) { onChip(intent.id) }
                     }
                 }
             case let .followups(intentId, nextBestId):
@@ -481,8 +483,7 @@ private struct SoudanContentView: View {
                 // index.html:1828 planInjectChip相当: 動画2本以上・除外intentでない・実行中プランと同一でないときだけ出す
                 let showPlanChip = intent != nil && (intent?.videos?.count ?? 0) >= 2 &&
                     intent?.id != planExcludeIntent && plan?.intentId != intent?.id
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
+                FadingChipRow {
                         if showPlanChip, let intent {
                             KyonoChip(label: "📅 この悩みを2週間プランにする") { onPlanChip(intent.id) }
                         }
@@ -501,18 +502,15 @@ private struct SoudanContentView: View {
                             KyonoChip(label: "30秒のかたさチェックやってみる?") { onOpenQuiz() }
                         }
                         KyonoChip(label: "べつの悩みをそうだん") { onCatSelect("body") }
-                    }
                 }
             case let .nearmiss(ids):
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
+                FadingChipRow {
                         ForEach(ids, id: \.self) { id in
                             if let intent = kb.intents.first(where: { $0.id == id }) {
                                 KyonoChip(label: intent.chip) { onChip(id) }
                             }
                         }
                         KyonoChip(label: "べつの悩みをそうだん") { onCatSelect("body") }
-                    }
                 }
             }
 
