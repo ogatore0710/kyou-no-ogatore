@@ -19,6 +19,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -176,23 +177,16 @@ class MainActivity : ComponentActivity() {
                             else -> null
                         }
                         Box(Modifier.fillMaxSize()) {
-                            // TASK-C2-2026-07-27-screen-transitions.md: 相談室は下からせり上がる
-                            // シート(スクリム+角丸+部分高さ)として別途オーバーレイ描画するため、
-                            // メインコンテンツ側は常にHome扱いにする(既存のonClose={screen=Home}と
-                            // 同じ「相談室は必ずHomeに戻る」前提を利用。Screen方式自体は変更しない)。
-                            val mainScreen = if (screen is Screen.Soudan) Screen.Home else screen
+                            // TASK-C2-2026-07-27-screen-transitions.md: 相談室・オンボはそれぞれ
+                            // 専用のオーバーレイ(スクリム+シート/中央カード)として別途描画するため、
+                            // メインコンテンツ側は常にHome扱いにする(Screen方式自体は変更しない)。
+                            val mainScreen = if (screen is Screen.Soudan || screen is Screen.Onboarding) Screen.Home else screen
                             Column(Modifier.fillMaxSize()) {
                                 Box(Modifier.weight(1f)) {
                                     when (val s = mainScreen) {
-                                        is Screen.Onboarding -> OnboardingScreen(
-                                            store = store,
-                                            onComplete = { route, presetWorry ->
-                                                // index.html:4374 obGo()の1:1移植: quizへ行く人がまだ
-                                                // ツアーを見ていなければ、結果画面にrTourBtnを出す予約をする。
-                                                if (route == "quiz" && !obTourDone) obTourAfterQuiz = true
-                                                screen = if (route == "quiz") Screen.Quiz(presetWorry) else Screen.Home
-                                            },
-                                        )
+                                        // mainScreenはOnboarding/Soudan中も常にHomeへ差し替え済みのため、
+                                        // この分岐は型の網羅性チェックのためだけに存在し実際には到達しない。
+                                        is Screen.Onboarding -> {}
                                         is Screen.Quiz -> QuizScreen(
                                             store = store,
                                             presetWorry = s.presetWorry,
@@ -368,6 +362,44 @@ class MainActivity : ComponentActivity() {
                                             onOpenQuiz = { screen = Screen.Quiz(null) },
                                         )
                                     }
+                                }
+                            }
+                            // TASK-C2-2026-07-27-screen-transitions.md: index.html:511-516 #welcome/
+                            // .ob-sheet(スクリム背景+画面中央のカード・obpop=.28s ease-outでscale
+                            // .94→1+フェードイン)の1:1移植。オンボは完了後にHomeかQuizへ直接遷移する
+                            // (相談室と違い単一の「戻り先」を持たない)ため、閉じるタップは設けない
+                            // (Web版もオンボ中はスクリムタップで閉じない)。
+                            AnimatedVisibility(
+                                visible = screen is Screen.Onboarding,
+                                enter = fadeIn(tween(280)),
+                                exit = fadeOut(tween(200)),
+                                modifier = Modifier.fillMaxSize(),
+                            ) {
+                                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)))
+                            }
+                            AnimatedVisibility(
+                                visible = screen is Screen.Onboarding,
+                                enter = fadeIn(tween(280)) + scaleIn(tween(280, easing = FastOutSlowInEasing), initialScale = 0.94f),
+                                exit = fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.94f),
+                                modifier = Modifier.align(Alignment.Center).padding(14.dp),
+                            ) {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight(0.92f)
+                                        .clip(RoundedCornerShape(22.dp))
+                                        .background(colors.bg)
+                                        .border(1.5.dp, colors.line, RoundedCornerShape(22.dp)),
+                                ) {
+                                    OnboardingScreen(
+                                        store = store,
+                                        onComplete = { route, presetWorry ->
+                                            // index.html:4374 obGo()の1:1移植: quizへ行く人がまだ
+                                            // ツアーを見ていなければ、結果画面にrTourBtnを出す予約をする。
+                                            if (route == "quiz" && !obTourDone) obTourAfterQuiz = true
+                                            screen = if (route == "quiz") Screen.Quiz(presetWorry) else Screen.Home
+                                        },
+                                    )
                                 }
                             }
                         }

@@ -111,6 +111,7 @@ struct RootView: View {
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
+    private var isOnboarding: Bool { if case .onboarding = screen { return true } else { return false } }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -160,6 +161,24 @@ struct RootView: View {
                     onViewArchive: { obuPopupOpen = false; screen = .obu(returnTo: screen) }
                 )
             }
+            // TASK-C2-2026-07-27-screen-transitions.md: index.html:511-516 #welcome/.ob-sheet
+            // (スクリム背景+画面中央のカード・obpop=.28s ease-outでscale.94→1+フェードイン)の
+            // 1:1移植。オンボは完了後にHomeかQuizへ直接遷移する(相談室と違い単一の「戻り先」を
+            // 持たない)ため、閉じるタップは設けない(Web版もオンボ中はスクリムタップで閉じない)。
+            if isOnboarding {
+                Color.black.opacity(0.55)
+                    .ignoresSafeArea()
+                    .transition(.opacity.animation(.easeOut(duration: 0.28)))
+                OnboardingOverlayCard {
+                    OnboardingView(store: store) { route, presetWorry in
+                        // index.html:4374 obGo()の1:1移植: quizへ行く人がまだツアーを見ていなければ、
+                        // 結果画面にrTourBtnを出す予約をする。
+                        if route == "quiz" && !obTourDone { obTourAfterQuiz = true }
+                        screen = route == "quiz" ? .quiz(presetWorry: presetWorry) : .home
+                    }
+                }
+                .transition(.scale(scale: 0.94).combined(with: .opacity).animation(.easeOut(duration: 0.28)))
+            }
         }
         .onChange(of: screen) { _, newValue in
             if case let .soudan(id) = newValue { soudanPresetIntentId = id }
@@ -184,24 +203,22 @@ struct RootView: View {
         }
     }
 
-    // TASK-C2-2026-07-27-screen-transitions.md: 相談室は.sheet()側で別途描画するため、メインの
-    // コンテンツ側は常にHome扱いにする(既存のonClose={screen=.home}と同じ「相談室は必ずHomeに
-    // 戻る」前提を利用。Screen方式自体は変更しない)。
+    // TASK-C2-2026-07-27-screen-transitions.md: 相談室は.sheet()側、オンボはカスタムオーバーレイ側で
+    // 別途描画するため、メインのコンテンツ側は常にHome扱いにする(既存のonClose={screen=.home}と
+    // 同じ「必ずHomeに戻る」前提を利用。Screen方式自体は変更しない)。
     private var effectiveScreen: Screen {
         if case .soudan = screen { return .home }
+        if case .onboarding = screen { return .home }
         return screen
     }
 
     @ViewBuilder
     private var screenContent: some View {
         switch effectiveScreen {
+        // effectiveScreenは.onboardingのときは常に.homeへ差し替え済みのため、この分岐は
+        // switchの網羅性のためだけに存在し実際には到達しない(内容はオーバーレイ側で描画)。
         case .onboarding:
-            OnboardingView(store: store) { route, presetWorry in
-                // index.html:4374 obGo()の1:1移植: quizへ行く人がまだツアーを見ていなければ、
-                // 結果画面にrTourBtnを出す予約をする。
-                if route == "quiz" && !obTourDone { obTourAfterQuiz = true }
-                screen = route == "quiz" ? .quiz(presetWorry: presetWorry) : .home
-            }
+            EmptyView()
         case let .quiz(presetWorry):
             QuizView(
                 store: store, presetWorry: presetWorry,
@@ -287,5 +304,22 @@ struct RootView: View {
                 onOpenSettings: { screen = .settings }
             )
         }
+    }
+}
+
+// TASK-C2-2026-07-27-screen-transitions.md: index.html:515 .ob-sheet(background:var(--bg)・
+// 角丸22px・枠線1.5px・max-height:92vh)の1:1移植。RootView直下で@Environment(\.kyonoColors)を
+// 読むとKyonoThemeが注入するenvironmentの「子孫」にならず既定値(ライト)になってしまうため
+// (KyonoComponents.swiftの同種コメント参照)、専用のView構造体として独立させる。
+private struct OnboardingOverlayCard<Content: View>: View {
+    @Environment(\.kyonoColors) private var colors
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        content()
+            .background(RoundedRectangle(cornerRadius: kyonoRadius).fill(colors.bg))
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius).stroke(colors.line, lineWidth: 1.5))
+            .padding(14)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.92)
     }
 }
