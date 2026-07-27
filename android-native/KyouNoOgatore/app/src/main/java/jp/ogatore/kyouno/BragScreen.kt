@@ -40,6 +40,7 @@ import jp.ogatore.kyouno.catalog.CatalogLoader
 import jp.ogatore.kyouno.catalog.CatalogVideo
 import jp.ogatore.kyouno.record.RecordLogic
 import jp.ogatore.kyouno.record.RecordStore
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 // ネイティブ移植 Step 7b(マスタープラン§6 Step 7b・§2-1「index.html drawBragCard」行): じまんカード
@@ -64,6 +65,8 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
         var query by remember { mutableStateOf("") }
         var picked by remember { mutableStateOf<CatalogVideo?>(null) }
         var cardBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+        var makingCard by remember { mutableStateOf(false) }
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
 
         val hits = remember(query) { if (query.isBlank()) emptyList() else searchCatalog(catalog, query, null, null).take(20) }
 
@@ -139,15 +142,25 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                 KyonoPrimaryButton(
                     "カードをつくる✨",
                     {
-                        val days = BragCardRenderer.clampDays(daysText.toIntOrNull() ?: 1)
-                        val ds = RecordLogic.todayStr(Instant.now())
-                        val dateIdx = CardLottery.dateIdx(ds)
-                        val data = CardDataLoader.shared
-                        val theme = data.CARD_THEMES[dateIdx % data.CARD_THEMES.size]
-                        val resolved = ResolvedTheme(theme.name, theme.bg, theme.main, theme.deco)
-                        cardBitmap = BragCardRenderer.render(ds, days, resolved, picked?.t, context)
+                        // TASK-C2-2026-07-27-brag-card-thumbnail.md: index.html:2765-2774
+                        // loadBragThumb()の1:1移植。サムネイル取得はネットワークI/Oのためsuspend化し、
+                        // 取得中もUIをブロックしない(3秒タイムアウトで先へ進むのはfetchThumbnail側)。
+                        makingCard = true
+                        scope.launch {
+                            val videoId = picked?.id
+                            val thumbnail = videoId?.let { BragCardRenderer.fetchThumbnail(it) }
+                            val days = BragCardRenderer.clampDays(daysText.toIntOrNull() ?: 1)
+                            val ds = RecordLogic.todayStr(Instant.now())
+                            val dateIdx = CardLottery.dateIdx(ds)
+                            val data = CardDataLoader.shared
+                            val theme = data.CARD_THEMES[dateIdx % data.CARD_THEMES.size]
+                            val resolved = ResolvedTheme(theme.name, theme.bg, theme.main, theme.deco)
+                            cardBitmap = BragCardRenderer.render(ds, days, resolved, picked?.t, context, thumbnail)
+                            makingCard = false
+                        }
                     },
                     modifier = Modifier.testTag("bragMakeBtn"),
+                    enabled = !makingCard,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text("えらんだ1本は カードにサムネイル画像で入ります", color = colors.sub, fontSize = 13.sp)

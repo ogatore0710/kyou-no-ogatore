@@ -13,8 +13,11 @@ import ImageIO
 // M PLUS 1p/BananaNumフォントもCardRenderer側の実装(CHARA_FILES/CardFonts)をそのまま再利用する
 // (§2-1備考「じまん・声…」行の「同じアセット・フォント」)。
 //
-// 動画サムネイルはネットワーク取得を要するため、常にWeb版の「オフラインでサムネイルが出せないとき」の
-// 代替パス(動画タイトルを2行まで折り返し表示)を採用する。
+// TASK-C2-2026-07-27-brag-card-thumbnail.md: index.html:2876-2889 drawBragCard()のサムネイル分岐の
+// 1:1移植。取得(3秒タイムアウト・失敗時null)自体はネットワークI/Oのため、CardCore(決定的ロジックの
+// 1:1移植先)の外側=アプリ層(BragView.swift)で行い、ここには結果のCGImageだけを受け取る。
+// thumbnailがnilのとき(未選択・オフライン・タイムアウト)は従来どおり動画タイトルの折り返し表示
+// (index.html:2883-2889)へフォールバックする(このフォールバック自体は変更しない)。
 public enum BragCardRenderer {
     private static let footerPool = [
         "続けてるじぶん、どんどんじまんしてね✨",
@@ -31,7 +34,7 @@ public enum BragCardRenderer {
     // index.html:2808 の1:1移植(小数入力を弾かないtype=numberの実測バグ修正込み)。
     public static func clampDays(_ raw: Int) -> Int { min(9999, max(1, raw)) }
 
-    public static func render(ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?) -> Data {
+    public static func render(ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?, thumbnail: CGImage? = nil) -> Data {
         let width = 1000, height = 1000
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let ctx = CGContext(
@@ -42,13 +45,13 @@ public enum BragCardRenderer {
         ctx.translateBy(x: 0, y: CGFloat(height))
         ctx.scaleBy(x: 1, y: -1)
 
-        draw(in: ctx, ds: ds, days: clampDays(days), theme: theme, favoriteTitle: favoriteTitle)
+        draw(in: ctx, ds: ds, days: clampDays(days), theme: theme, favoriteTitle: favoriteTitle, thumbnail: thumbnail)
 
         guard let image = ctx.makeImage() else { return Data() }
         return CardRenderer.pngData(from: image)
     }
 
-    private static func draw(in ctx: CGContext, ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?) {
+    private static func draw(in ctx: CGContext, ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?, thumbnail: CGImage?) {
         // 背景グラデ+固定飾り(index.html:2815-2827。記録カードと同じ舞台)
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let colors = [CardRenderer.color(theme.bg[0]), CardRenderer.color(theme.bg[1])] as CFArray
@@ -130,11 +133,27 @@ public enum BragCardRenderer {
             CardRenderer.drawLeftText(label, in: ctx, x: 500 - pw / 2 + 24, baselineY: yc + 10, fontSize: 28, weight: .banana, color: CardRenderer.color("#FFFFFF"))
         }
 
-        // サムネイル代替=動画タイトルの折り返し表示(index.html:2883-2889。ネットワーク非依存のため常にこの経路)
-        let favT = favoriteTitle ?? "まだえらんでません（これから見つけます！）"
-        let lines = wrapLines(favT, maxW: 540, maxLines: 2)
-        for (i, ln) in lines.enumerated() {
-            CardRenderer.drawCenteredText(ln, in: ctx, centerX: 500, baselineY: 645 + CGFloat(i) * 52, fontSize: 34, weight: .w800, color: CardRenderer.color("#3A3A35"))
+        // サムネイル(index.html:2876-2883)。取得できなかったとき(オフライン・タイムアウト・
+        // 動画未選択)は従来どおり動画タイトルの折り返し表示(index.html:2883-2889)にフォールバックする。
+        if let thumbnail {
+            let tw: CGFloat = 416, thh: CGFloat = 234, tx: CGFloat = 500 - 416 / 2, ty: CGFloat = 562
+            ctx.saveGState()
+            CardRenderer.roundRectPath(ctx, x: tx, y: ty, w: tw, h: thh, r: 18)
+            ctx.clip()
+            CardRenderer.drawImageJS(thumbnail, x: tx, y: ty, w: tw, h: thh, in: ctx)
+            ctx.restoreGState()
+            ctx.saveGState()
+            ctx.setStrokeColor(CardRenderer.color(theme.main, alpha: 0.5))
+            ctx.setLineWidth(3)
+            CardRenderer.roundRectPath(ctx, x: tx, y: ty, w: tw, h: thh, r: 18)
+            ctx.strokePath()
+            ctx.restoreGState()
+        } else {
+            let favT = favoriteTitle ?? "まだえらんでません（これから見つけます！）"
+            let lines = wrapLines(favT, maxW: 540, maxLines: 2)
+            for (i, ln) in lines.enumerated() {
+                CardRenderer.drawCenteredText(ln, in: ctx, centerX: 500, baselineY: 645 + CGFloat(i) * 52, fontSize: 34, weight: .w800, color: CardRenderer.color("#3A3A35"))
+            }
         }
 
         // キャラ(index.html:2891-2894。日替わりローテ・CardRenderer.CHARA_FILESを共用。§2-1備考どおり

@@ -13,6 +13,8 @@
 import SwiftUI
 import RecordCore
 import CardCore
+import CoreGraphics
+import ImageIO
 
 struct BragView: View {
     let store: RecordStore
@@ -53,6 +55,19 @@ struct BragView: View {
     }
 }
 
+// TASK-C2-2026-07-27-brag-card-thumbnail.md: index.html:2765-2774 loadBragThumb()の1:1移植。
+// 3秒でタイムアウトし、取れなければnil扱いで先へ進む(オフライン・遅い回線でカード生成が
+// 固まらないようにするための上限。取得失敗・デコード失敗も同じくnil扱い)。CardCoreは決定的
+// ロジックの1:1移植先のため、ネットワークI/Oはアプリ層のここで行い、結果のCGImageだけを渡す。
+private func fetchBragThumbnail(videoId: String) async -> CGImage? {
+    guard let url = URL(string: youtubeThumbUrl(videoId)) else { return nil }
+    let config = URLSessionConfiguration.ephemeral
+    config.timeoutIntervalForRequest = 3
+    guard let (data, _) = try? await URLSession(configuration: config).data(from: url) else { return nil }
+    guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+    return CGImageSourceCreateImageAtIndex(source, 0, nil)
+}
+
 private struct BragContentView: View {
     @Environment(\.kyonoColors) private var colors
     let store: RecordStore
@@ -60,6 +75,7 @@ private struct BragContentView: View {
     @Binding var query: String
     @Binding var picked: CatalogVideo?
     @Binding var cardImage: UIImage?
+    @State private var makingCard = false
     let hits: [CatalogVideo]
     let streakCount: Int
     let onBack: () -> Void

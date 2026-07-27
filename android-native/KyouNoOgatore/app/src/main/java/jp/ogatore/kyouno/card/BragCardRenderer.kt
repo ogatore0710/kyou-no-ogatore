@@ -2,14 +2,22 @@ package jp.ogatore.kyouno.card
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import jp.ogatore.kyouno.youtubeThumbUrl
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.net.HttpURLConnection
+import java.net.URL
 
 // ネイティブ移植 Step 7b(マスタープラン§2-1「index.html drawBragCard」行・§6 Step 7b)→Step4/7b
 // パリティ突合タスク(TASK-C2-2026-07-26-native-migration-card-visual-assets.md): じまんカード描画
@@ -20,9 +28,10 @@ import android.graphics.Typeface
 // キャラクター立ち絵・M PLUS 1p/BananaNumフォントもCardRenderer側の実装(CHARA_FILES/CardFonts)を
 // そのまま再利用する(§2-1備考「じまん・声…」行の「同じアセット・フォント」)。
 //
-// 動画サムネイルはネットワーク取得(https://i.ytimg.com/...)を要するため、常にWeb版の「オフラインで
-// サムネイルが出せないとき」の代替パス(動画タイトルを2行まで折り返し表示)を採用する——ネットワーク
-// 依存を増やさない方針(既存のsdVideoHTML等と同じ判断)。
+// TASK-C2-2026-07-27-brag-card-thumbnail.md: index.html:2765-2774 loadBragThumb()/2876-2889
+// drawBragCard()のサムネイル分岐の1:1移植。動画サムネイル取得はfetchThumbnail()(3秒タイムアウト・
+// 失敗時null)で行い、drawはnullなら従来どおり動画タイトルの折り返し表示(index.html:2883-2889)へ
+// フォールバックする(このフォールバック自体はネットワーク非依存のまま・既存実装を変更しない)。
 //
 // 現在時刻・乱数を直接読まない設計(§1-1第3項・§2-4末尾の禁止事項。厳守): フッターメッセージ・
 // キャラクター選定の選定は日付文字列の31進ハッシュ/dateIdxのみで決まり、システム乱数源・現在時刻APIには
@@ -48,14 +57,30 @@ object BragCardRenderer {
     // index.html:2808 の1:1移植(小数入力を弾かないtype=numberの実測バグ修正込み)。
     fun clampDays(raw: Int): Int = raw.coerceIn(1, 9999)
 
-    fun render(ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?, context: Context? = null): Bitmap {
+    // index.html:2765-2774 loadBragThumb()の1:1移植: 3秒でタイムアウトし、取れなければnull扱いで
+    // 先へ進む(オフライン・遅い回線でカード生成が固まらないようにするための上限。取得失敗・
+    // デコード失敗も同じくnull扱い)。
+    suspend fun fetchThumbnail(videoId: String): Bitmap? = withTimeoutOrNull(3000) {
+        runCatching {
+            withContext(Dispatchers.IO) {
+                val conn = URL(youtubeThumbUrl(videoId)).openConnection() as HttpURLConnection
+                conn.connectTimeout = 3000
+                conn.readTimeout = 3000
+                conn.doInput = true
+                conn.connect()
+                conn.inputStream.use { BitmapFactory.decodeStream(it) }
+            }
+        }.getOrNull()
+    }
+
+    fun render(ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?, context: Context? = null, thumbnail: Bitmap? = null): Bitmap {
         val bitmap = Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        draw(canvas, ds, clampDays(days), theme, favoriteTitle, context)
+        draw(canvas, ds, clampDays(days), theme, favoriteTitle, context, thumbnail)
         return bitmap
     }
 
-    private fun draw(canvas: Canvas, ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?, context: Context?) {
+    private fun draw(canvas: Canvas, ds: String, days: Int, theme: ResolvedTheme, favoriteTitle: String?, context: Context?, thumbnail: Bitmap?) {
         val R = CardRenderer // ヘルパー呼び出しの見た目短縮用
         val f900 = CardFonts.get(context, CardFontWeight.W900)
         val f800 = CardFonts.get(context, CardFontWeight.W800)
@@ -124,10 +149,25 @@ object BragCardRenderer {
             R.drawLeftText(canvas, label, 500f - pw / 2f + 24f, yc + 10f, 28f, Color.WHITE, fBanana)
         }
 
-        // サムネイル代替=動画タイトルの折り返し表示(index.html:2883-2889。ネットワーク非依存のため常にこの経路)
-        val favT = favoriteTitle ?: "まだえらんでません（これから見つけます！）"
-        val lines = wrapLines(favT, 540f, 2, f800)
-        lines.forEachIndexed { i, ln -> R.drawCenteredText(canvas, ln, 500f, 645f + i * 52f, 34f, R.color("#3A3A35"), f800) }
+        // サムネイル(index.html:2876-2883)。取得できなかったとき(オフライン・タイムアウト・
+        // 動画未選択)は従来どおり動画タイトルの折り返し表示(index.html:2883-2889)にフォールバックする。
+        if (thumbnail != null) {
+            val tw = 416f; val thh = 234f; val tx = 500f - tw / 2f; val ty = 562f
+            val save = canvas.save()
+            val clipPath = Path().apply { addRoundRect(RectF(tx, ty, tx + tw, ty + thh), 18f, 18f, Path.Direction.CW) }
+            canvas.clipPath(clipPath)
+            canvas.drawBitmap(thumbnail, null, RectF(tx, ty, tx + tw, ty + thh), Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true })
+            canvas.restoreToCount(save)
+            val thumbBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE; strokeWidth = 3f
+                color = R.colorWithAlpha(theme.main, 0.5f)
+            }
+            canvas.drawRoundRect(RectF(tx, ty, tx + tw, ty + thh), 18f, 18f, thumbBorderPaint)
+        } else {
+            val favT = favoriteTitle ?: "まだえらんでません（これから見つけます！）"
+            val lines = wrapLines(favT, 540f, 2, f800)
+            lines.forEachIndexed { i, ln -> R.drawCenteredText(canvas, ln, 500f, 645f + i * 52f, 34f, R.color("#3A3A35"), f800) }
+        }
 
         // キャラ(index.html:2891-2894。日替わりローテ・CardRenderer.CHARA_FILESを共用。§2-1備考どおり
         // 「同じアセット・フォント」を使う。dateIdx駆動の選定理由はCardRenderer.kt冒頭コメント参照)。
