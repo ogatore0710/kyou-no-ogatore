@@ -9,7 +9,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
@@ -397,6 +402,14 @@ fun HomeScreen(
     var showDoneNudge by remember { mutableStateOf(false) }
     var cheerText by remember { mutableStateOf<String?>(null) }
     var cardResult by remember { mutableStateOf<TodayCardResult?>(null) }
+    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge/fd-breatheの
+    // 1:1移植。markDoneでtourpend=trueになった瞬間に出し、fdTourMaybeStart相当(カード閉じ時の
+    // ツアー自動起動)が消費した瞬間に片付ける(Web版と同じ寿命)。
+    var fdCardNudgeVisible by remember { mutableStateOf(false) }
+    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時のcheer差し替え
+    // (fd-cardpopのカードサンプルポップイン)の1:1移植。節目(ms)がある場合はそちらを優先する
+    // Web版と同じ構造(実際にはtotal===1でmsが同時に成立することは無いための保険)。
+    var fdCelebrationVisible by remember { mutableStateOf(false) }
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }
@@ -617,15 +630,25 @@ fun HomeScreen(
                     {
                         if (!did) {
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            // app-record.js:100-102 guide判定(fdフラグを1へ立てる前に読む)の1:1移植。
+                            val wasGuide = fd == "go"
                             RecordLogic.markDone(store, Instant.now())
                             streak = RecordLogic.loadStreak(store)
-                            cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
-                            if (fd == "go") {
+                            val ms = CardDataLoader.shared.MS.find { it.d == streak.total }
+                            if (wasGuide && ms == null) {
+                                fdCelebrationVisible = true
+                                cheerText = null
+                            } else {
+                                fdCelebrationVisible = false
+                                cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
+                            }
+                            if (wasGuide) {
                                 store.set("fd", "1")
                                 fd = "1"
                                 // app-record.js:107 markDone内でtourpend=1相当。実際の起動はカード
                                 // モーダルを閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
                                 store.set("tourpend", true)
+                                fdCardNudgeVisible = true
                             }
                             cardResult = renderTodayCard(store, streak, today, context)
                         }
@@ -633,6 +656,27 @@ fun HomeScreen(
                     Modifier.testTag("doneBtn").scale(doneBtnScale.value),
                     enabled = !did,
                 )
+                // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
+                // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
+                // ポップイン)の1:1移植。
+                AnimatedVisibility(
+                    visible = fdCelebrationVisible,
+                    enter = fadeIn(tween(500)) +
+                        scaleIn(tween(500, easing = androidx.compose.animation.core.CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)), initialScale = 0f),
+                ) {
+                    Column(Modifier.testTag("fdCelebration")) {
+                        Spacer(Modifier.height(10.dp))
+                        Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.height(6.dp))
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            KyonoCharaImage("card_sample", Modifier.size(140.dp))
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖", color = colors.ink, fontSize = 14.sp)
+                        Spacer(Modifier.height(6.dp))
+                        Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）", color = colors.ink, fontSize = 14.sp)
+                    }
+                }
                 // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・.3s
                 // ease-out)の1:1移植。応援メッセージがポップして出る演出が欠落していたため追加。
                 AnimatedVisibility(
@@ -712,7 +756,31 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("記録カードを見る", { cardResult = renderTodayCard(store, streak, today, context) }, Modifier.testTag("makeCardBtn"))
+                // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge
+                // (「👇 つぎは ここを押してみて」)+fd-breathe(呼吸アニメ)の1:1移植。
+                if (fdCardNudgeVisible) {
+                    Text(
+                        "👇 つぎは ここを押してみて", color = colors.pink, fontSize = 14.sp,
+                        fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().testTag("fdCardNudge"),
+                    )
+                    Spacer(Modifier.height(6.dp))
+                }
+                val makeCardBtnScale = if (fdCardNudgeVisible) {
+                    val fdBreatheInfinite = rememberInfiniteTransition(label = "fdBreathe")
+                    val scale by fdBreatheInfinite.animateFloat(
+                        initialValue = 1f, targetValue = 1.025f,
+                        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                        label = "fdBreatheScale",
+                    )
+                    scale
+                } else {
+                    1f
+                }
+                KyonoGhostButton(
+                    "記録カードを見る", { cardResult = renderTodayCard(store, streak, today, context) },
+                    Modifier.scale(makeCardBtnScale).testTag("makeCardBtn"),
+                )
                 // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -745,6 +813,7 @@ fun HomeScreen(
                             if (tourpend && !tourseen) {
                                 store.set("tourpend", false)
                                 store.set("tourseen", true)
+                                fdCardNudgeVisible = false
                                 onStartTour(true)
                             }
                         },

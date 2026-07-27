@@ -87,6 +87,11 @@ struct HomeView: View {
     @State private var cheerText: String?
     @State private var cardResult: TodayCardResult?
     @State private var doneBtnScale: CGFloat = 1
+    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge/fd-breatheと
+    // app-record.js:140-149 1日目クリア時のcheer差し替え(fd-cardpop)の1:1移植。
+    @State private var fdCardNudgeVisible = false
+    @State private var fdCelebrationVisible = false
+    @State private var makeCardBtnBreatheScale: CGFloat = 1
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -264,17 +269,27 @@ struct HomeView: View {
                     // ネイティブならではの上乗せとして、主要アクションに軽いハプティクスを追加
                     // (情報構造・文言・並び順はWeb版のまま変更しない「仕上げ方」のみの改善)。
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    // app-record.js:100-102 guide判定(fdフラグを1へ立てる前に読む)の1:1移植。
+                    let wasGuide = fd == "go"
                     RecordLogic.markDone(store, now: Date())
                     streak = RecordLogic.loadStreak(store)
+                    let ms = CardDataLoader.shared.MS.first { $0.d == streak.total }
                     // §2-4許容箇所: markDoneのcheer選択のみ乱数OK。withAnimationはindex.html:311-312
                     // cpop(.3s ease-out)の1:1移植(下のtransitionと対で挿入時のポップ演出になる)。
-                    withAnimation(.easeOut(duration: 0.3)) { cheerText = CHEERS.randomElement() }
-                    if fd == "go" {
+                    if wasGuide && ms == nil {
+                        withAnimation(.easeOut(duration: 0.5)) { fdCelebrationVisible = true }
+                        cheerText = nil
+                    } else {
+                        fdCelebrationVisible = false
+                        withAnimation(.easeOut(duration: 0.3)) { cheerText = CHEERS.randomElement() }
+                    }
+                    if wasGuide {
                         store.set("fd", "1")
                         fd = "1"
                         // app-record.js:107 markDone内でtourpend=1相当。実際の起動はカードモーダルを
                         // 閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
                         store.set("tourpend", true)
+                        fdCardNudgeVisible = true
                     }
                     cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                 }
@@ -288,6 +303,25 @@ struct HomeView: View {
                     withAnimation(.easeInOut(duration: 0.35).delay(0.35)) { doneBtnScale = 1 }
                     withAnimation(.easeInOut(duration: 0.35).delay(0.7)) { doneBtnScale = 1.045 }
                     withAnimation(.easeInOut(duration: 0.35).delay(1.05)) { doneBtnScale = 1 }
+                }
+                if fdCelebrationVisible {
+                    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
+                    // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
+                    // ポップイン)の1:1移植。
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("🎉 1日目クリア！ナイスご自愛！")
+                            .font(.kyono(.black900, size: 16)).foregroundColor(colors.pink)
+                        HStack {
+                            Spacer()
+                            KyonoCharaImage(name: "card-sample").frame(width: 140, height: 140)
+                            Spacer()
+                        }
+                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
+                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                        Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）")
+                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                    }
+                    .transition(.scale(scale: 0).combined(with: .opacity).animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5)))
                 }
                 if let cheerText {
                     // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・
@@ -315,11 +349,31 @@ struct HomeView: View {
                             .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
                     }
                 }
+                // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge
+                // (「👇 つぎは ここを押してみて」)の1:1移植。
+                if fdCardNudgeVisible {
+                    Text("👇 つぎは ここを押してみて")
+                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.pink)
+                        .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                }
                 KyonoGhostButton("記録カードを見る") {
                     cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                 }
                 .opacity(did ? 1 : 0.5)
                 .disabled(!did)
+                // app-record.js:196-208 fd-breathe(1.8s ease-in-out infinite・scale 1↔1.025)の1:1移植。
+                .scaleEffect(fdCardNudgeVisible ? makeCardBtnBreatheScale : 1)
+                .onAppear {
+                    guard fdCardNudgeVisible else { return }
+                    withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
+                }
+                .onChange(of: fdCardNudgeVisible) { _, newValue in
+                    if newValue {
+                        withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
+                    } else {
+                        makeCardBtnBreatheScale = 1
+                    }
+                }
                 // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
                 Text("カード画像を保存かシェアでのこしてね📤")
                     .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
@@ -368,6 +422,7 @@ struct HomeView: View {
                             if tourpend && !tourseen {
                                 store.set("tourpend", false)
                                 store.set("tourseen", true)
+                                fdCardNudgeVisible = false
                                 onStartTour(true)
                             }
                         }

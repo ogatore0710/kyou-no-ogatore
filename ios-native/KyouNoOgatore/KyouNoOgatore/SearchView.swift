@@ -81,6 +81,9 @@ struct VideoRow: View {
     let v: CatalogVideo
     let openUrl: (String) -> Void
     var badge: String? = nil
+    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: index.html:337 .fd-hero .video(pink枠+pink-soft地)の
+    // 1:1移植。はじめの1本ガイド中の①だけを視覚的に主役化する強調枠。
+    var hero: Bool = false
 
     // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
     // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと
@@ -112,8 +115,8 @@ struct VideoRow: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+        .background(RoundedRectangle(cornerRadius: 16).fill(hero ? colors.pinkSoft : colors.card))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(hero ? colors.pink : colors.line, lineWidth: hero ? 2.5 : 1.5))
         .buttonStyle(.plain)
     }
 }

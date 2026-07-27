@@ -23,6 +23,26 @@ struct KyonoCharaImage: View {
     }
 }
 
+// TASK-C2-2026-07-27-fd-guide-ui-branch.md: index.html:216 fdBob(1.4s ease-in-out infinite・
+// translateY 0↔5px)の1:1移植。はじめの1本ガイドの指差しヒント「👇 ここを押してみて」用。
+struct FdBobText: View {
+    @Environment(\.kyonoColors) private var colors
+    let text: String
+    @State private var bob = false
+
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text)
+            .font(.kyono(.black900, size: 15)).foregroundColor(colors.pink)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .offset(y: bob ? 5 : 0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) { bob = true }
+            }
+    }
+}
+
 // index.html:95 .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px}
 struct KyonoCard<Content: View>: View {
     @Environment(\.kyonoColors) private var colors

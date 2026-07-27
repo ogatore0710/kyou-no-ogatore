@@ -1,5 +1,11 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -675,45 +682,106 @@ fun ResultScreen(
                 }
             }
             Spacer(Modifier.height(16.dp))
-            // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
-            // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
-            KyonoCard {
-                Text(
-                    "おすすめの3本: まずは「${info.area}」から！2週間続けてみて", color = colors.ink,
-                    fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
-                )
-                Spacer(Modifier.height(10.dp))
-                val badges = listOf("①まずほぐす", "②メインの1本", "③しあげ")
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
-                    rx.forEachIndexed { i, vk ->
-                        lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = badges.getOrNull(i)) }
+            if (fdGuideActive) {
+                // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-quiz.js:300-322の1:1移植。ガイド中は
+                // 通常の3本リストではなく、①だけを練習させる専用UIに差し替える(2026-07-21 5視点
+                // 検証D・PO承認済み)。「タスクスイッチできない層がYouTubeから戻れないのが最初の
+                // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
+                KyonoCard {
+                    Text(
+                        "きょうはこの1本だけでOK！", color = colors.ink, fontSize = 15.sp,
+                        fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Column(modifier = Modifier.testTag("rxList")) {
+                        // app-quiz.js:316-320 sd-row.oga相当の練習宣言吹き出し(相談室botバブルと同じ見た目)。
+                        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.testTag("fdPracticeBubble")) {
+                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Column(
+                                Modifier.fillMaxWidth()
+                                    .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                            ) {
+                                Text(
+                                    "ここからは練習だよ🏫 ①を試しにタップ→YouTubeがひらいたら すぐ戻ってきてね" +
+                                        "（ぜんぶ見るのは あとでゆっくりでOK）",
+                                    color = colors.ink,
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "🔙 見おわったら スマホの「もどる」ボタン（◀）で この画面にもどれるよ",
+                                    color = colors.sub, fontSize = 13.sp,
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        // index.html:216 fdBob(1.4s ease-in-out infinite・translateY 0↔5px)の1:1移植。
+                        val fdBobInfinite = rememberInfiniteTransition(label = "fdBob")
+                        val fdBobOffset by fdBobInfinite.animateFloat(
+                            initialValue = 0f, targetValue = 5f,
+                            animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                            label = "fdBobOffset",
+                        )
+                        Text(
+                            "👇 ここを押してみて", color = colors.pink, fontSize = 15.sp, fontWeight = FontWeight.Black,
+                            modifier = Modifier.fillMaxWidth().offset(y = fdBobOffset.dp).testTag("fdPoint"),
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        rx.firstOrNull()?.let { vk ->
+                            lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = null, hero = true) }
+                        }
                     }
-                }
-                if (rx.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    KyonoGhostButton(
-                        "▶ 3本続けて再生する",
-                        { openUrl("https://www.youtube.com/watch_videos?video_ids=" + rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")) },
-                        Modifier.testTag("rxPlayAllBtn"),
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "あと2本とくわしい解説は あしたから見られるよ🌱", color = colors.sub, fontSize = 13.sp,
+                        fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth().testTag("fdRotateNote"),
+                        textAlign = TextAlign.Center,
                     )
                 }
-                // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
-                worry?.let { w ->
-                    WORRY_EXTRA[w]?.let { extra ->
-                        if (extra.v !in rx) {
-                            lookupVideo(extra.v)?.let { v ->
-                                Spacer(Modifier.height(4.dp))
-                                VideoRow(v, onVideoTap, badge = "＋ ${extra.label}")
+            } else {
+                // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
+                // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
+                KyonoCard {
+                    Text(
+                        "おすすめの3本: まずは「${info.area}」から！2週間続けてみて", color = colors.ink,
+                        fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    val badges = listOf("①まずほぐす", "②メインの1本", "③しあげ")
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
+                        rx.forEachIndexed { i, vk ->
+                            lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = badges.getOrNull(i)) }
+                        }
+                    }
+                    if (rx.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        KyonoGhostButton(
+                            "▶ 3本続けて再生する",
+                            { openUrl("https://www.youtube.com/watch_videos?video_ids=" + rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")) },
+                            Modifier.testTag("rxPlayAllBtn"),
+                        )
+                    }
+                    // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
+                    worry?.let { w ->
+                        WORRY_EXTRA[w]?.let { extra ->
+                            if (extra.v !in rx) {
+                                lookupVideo(extra.v)?.let { v ->
+                                    Spacer(Modifier.height(4.dp))
+                                    VideoRow(v, onVideoTap, badge = "＋ ${extra.label}")
+                                }
                             }
                         }
                     }
+                    // index.html:740 #rRotateNoteの1:1移植。
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "おすすめは3日ごとに自動で入れ替わります", color = colors.subFaint, fontSize = 12.sp,
+                        modifier = Modifier.testTag("rRotateNote"),
+                    )
                 }
-                // index.html:740 #rRotateNoteの1:1移植。
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "おすすめは3日ごとに自動で入れ替わります", color = colors.subFaint, fontSize = 12.sp,
-                    modifier = Modifier.testTag("rRotateNote"),
-                )
             }
             Spacer(Modifier.height(16.dp))
             // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。

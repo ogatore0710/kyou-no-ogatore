@@ -744,34 +744,70 @@ private struct ResultContentView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-                // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
-                // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
-                KyonoCard {
-                    Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
-                        .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
-                    Spacer().frame(height: 10)
-                    let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
-                    ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
-                        if let v = lookupVideo(vk) {
-                            VideoRow(v: v, openUrl: onVideoTap, badge: badges.indices.contains(i) ? badges[i] : nil)
+                if fdGuideActive {
+                    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-quiz.js:300-322の1:1移植。ガイド中は
+                    // 通常の3本リストではなく、①だけを練習させる専用UIに差し替える(2026-07-21 5視点
+                    // 検証D・PO承認済み)。「タスクスイッチできない層がYouTubeから戻れないのが最初の
+                    // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
+                    KyonoCard {
+                        Text("きょうはこの1本だけでOK！")
+                            .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                        Spacer().frame(height: 10)
+                        // app-quiz.js:316-320 sd-row.oga相当の練習宣言吹き出し(相談室botバブルと同じ見た目)。
+                        HStack(alignment: .bottom, spacing: 8) {
+                            KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("ここからは練習だよ🏫 ①を試しにタップ→YouTubeがひらいたら すぐ戻ってきてね（ぜんぶ見るのは あとでゆっくりでOK）")
+                                    .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                                Text("🔙 見おわったら 画面ひだり上に出る「◀」か YouTubeをとじると この画面にもどれるよ")
+                                    .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            }
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
                         }
-                    }
-                    if !rx.isEmpty {
                         Spacer().frame(height: 8)
-                        KyonoGhostButton("▶ 3本続けて再生する") {
-                            let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
-                            openUrl("https://www.youtube.com/watch_videos?video_ids=\(ids)")
-                        }
-                    }
-                    // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
-                    if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
+                        // index.html:216 fdBob(1.4s ease-in-out infinite・translateY 0↔5px)の1:1移植。
+                        FdBobText("👇 ここを押してみて")
                         Spacer().frame(height: 4)
-                        VideoRow(v: v, openUrl: onVideoTap, badge: "＋ \(extra.label)")
+                        if let vk = rx.first, let v = lookupVideo(vk) {
+                            VideoRow(v: v, openUrl: onVideoTap, badge: nil, hero: true)
+                        }
+                        Spacer().frame(height: 6)
+                        Text("あと2本とくわしい解説は あしたから見られるよ🌱")
+                            .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            .frame(maxWidth: .infinity, alignment: .center)
                     }
-                    // index.html:740 #rRotateNoteの1:1移植。
-                    Spacer().frame(height: 4)
-                    Text("おすすめは3日ごとに自動で入れ替わります")
-                        .font(.kyono(.bold700, size: 12)).foregroundColor(colors.subFaint)
+                } else {
+                    // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
+                    // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
+                    KyonoCard {
+                        Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
+                            .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                        Spacer().frame(height: 10)
+                        let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
+                        ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
+                            if let v = lookupVideo(vk) {
+                                VideoRow(v: v, openUrl: onVideoTap, badge: badges.indices.contains(i) ? badges[i] : nil)
+                            }
+                        }
+                        if !rx.isEmpty {
+                            Spacer().frame(height: 8)
+                            KyonoGhostButton("▶ 3本続けて再生する") {
+                                let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
+                                openUrl("https://www.youtube.com/watch_videos?video_ids=\(ids)")
+                            }
+                        }
+                        // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
+                        if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
+                            Spacer().frame(height: 4)
+                            VideoRow(v: v, openUrl: onVideoTap, badge: "＋ \(extra.label)")
+                        }
+                        // index.html:740 #rRotateNoteの1:1移植。
+                        Spacer().frame(height: 4)
+                        Text("おすすめは3日ごとに自動で入れ替わります")
+                            .font(.kyono(.bold700, size: 12)).foregroundColor(colors.subFaint)
+                    }
                 }
                 // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
                 KyonoCard {

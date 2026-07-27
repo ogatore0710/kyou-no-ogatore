@@ -111,20 +111,22 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
 // TASK-C2-2026-07-26-result-video-recommendations.md)。badge指定時はvideoCard()と同じく
 // タグpillの代わりにbadge文言(「①まずほぐす」等)を表示する。
 @Composable
-fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null) {
+fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, hero: Boolean = false) {
     val colors = LocalKyonoColors.current
     // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
     // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと
     // ダークモードのcoralSoft背景に対してコントラストが低すぎて読みにくかった。
     val dark = colors.bg == KyonoDarkColors.bg
     val badgeTextColor = if (dark) Color(0xFFF0A58E) else Color(0xFFB4462F)
+    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: index.html:337 .fd-hero .video(pink枠+pink-soft地)の
+    // 1:1移植。はじめの1本ガイド中の①だけを視覚的に主役化する強調枠。
     Row(
         Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp)
             .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
-            .background(colors.card, RoundedCornerShape(16.dp))
-            .border(1.5.dp, colors.line, RoundedCornerShape(16.dp))
+            .background(if (hero) colors.pinkSoft else colors.card, RoundedCornerShape(16.dp))
+            .border(if (hero) 2.5.dp else 1.5.dp, if (hero) colors.pink else colors.line, RoundedCornerShape(16.dp))
             .padding(10.dp)
             .testTag("video_${v.id}"),
     ) {
