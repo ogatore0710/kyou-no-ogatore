@@ -75,6 +75,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
@@ -596,22 +597,47 @@ fun HomeScreen(
 
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
-        // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
-        // scrollIntoView(todayVideo)の1:1移植。「きょうの1本」カードのスクロール内での位置を
-        // onGloballyPositionedで捕捉し、オンボ完了直後だけそこへアニメーションスクロールする。
+        // TASK-C2-2026-07-27-behavior-parity-audit.md §B →
+        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §B修正: index.html:4393
+        // scrollIntoView(todayVideo)(引数なし=ブラウザ既定behavior:"auto"=瞬時)の1:1移植。
+        // 「きょうの1本」カードのスクロール内での位置をonGloballyPositionedで捕捉し、
+        // オンボ完了直後だけそこへ瞬時スクロールする(animateScrollToだとWeb版より演出過剰になる)。
         val homeScrollState = rememberScrollState()
         var todayCardY by remember { mutableStateOf(0f) }
         LaunchedEffect(scrollToTodayPending) {
             if (scrollToTodayPending) {
                 delay(60) // index.html:4393と同じ60ms(直前のレイアウト確定を待つ猶予)
-                homeScrollState.animateScrollTo(todayCardY.toInt())
+                homeScrollState.scrollTo(todayCardY.toInt())
                 onScrolledToToday()
+            }
+        }
+        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C: index.html:4006-4013の
+        // 1:1移植。動画から戻って「おかえりなさい」(showDoneNudge)が出たとき、doneBtnが画面外だと
+        // パルスに気づけないため、画面中央へ寄せる。HomeScreenが表示されている時点でWeb版の
+        // currentSection==="home"条件は常に成立している(Home以外の画面ではこのcomposable自体が
+        // 非表示のため)。doneBtnは直接の子ではない(streakCard越し)ため、positionInRoot()同士の
+        // 差分+現在のスクロール量からスクロール座標系でのYを逆算する。
+        var homeColumnPositionInRootY by remember { mutableStateOf(0f) }
+        var homeViewportHeightPx by remember { mutableStateOf(0) }
+        var doneBtnPositionInRootY by remember { mutableStateOf(0f) }
+        var doneBtnHeightPx by remember { mutableStateOf(0) }
+        val doneNudgeReducedMotion = rememberReducedMotion()
+        LaunchedEffect(showDoneNudge) {
+            if (showDoneNudge) {
+                delay(150) // index.html:4009と同じ150ms
+                val contentY = doneBtnPositionInRootY - homeColumnPositionInRootY + homeScrollState.value
+                val target = (contentY - homeViewportHeightPx / 2f + doneBtnHeightPx / 2f).toInt()
+                if (doneNudgeReducedMotion) homeScrollState.scrollTo(target) else homeScrollState.animateScrollTo(target)
             }
         }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(colors.bg)
+                .onGloballyPositioned { coords ->
+                    homeColumnPositionInRootY = coords.positionInRoot().y
+                    homeViewportHeightPx = coords.size.height
+                }
                 .verticalScroll(homeScrollState)
                 .padding(20.dp),
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
@@ -805,7 +831,13 @@ fun HomeScreen(
                             cardResult = renderTodayCard(store, streak, today, context)
                         }
                     },
-                    Modifier.testTag("doneBtn").scale(doneBtnScale.value),
+                    Modifier
+                        .testTag("doneBtn")
+                        .scale(doneBtnScale.value)
+                        .onGloballyPositioned { coords ->
+                            doneBtnPositionInRootY = coords.positionInRoot().y
+                            doneBtnHeightPx = coords.size.height
+                        },
                     enabled = !did,
                 )
                 // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
