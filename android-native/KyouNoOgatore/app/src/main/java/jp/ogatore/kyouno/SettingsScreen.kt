@@ -35,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -214,27 +215,67 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // アプリの自動化案内)はPWAが通知を送れないことへのiOS限定の回避策でネイティブには
                 // 元から無関係な問題のため移植しない(タスク指示どおり)。マイ記録タブの既存
                 // 「📅 カレンダーに登録する」(時刻指定なし・簡易版)とは別物として両方残す。
+                // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを
+                // 15分刻み(:00/:15/:30/:45の4択)に変更。標準のスピナーではなく時と分を並べて
+                // 選ぶ形にする(実装方式は任せる、との指示どおりドロップダウン2つで組む)。
                 Spacer(Modifier.height(20.dp))
                 Text("カレンダーのおしらせ時間", color = colors.ink, fontSize = 15.sp)
                 Spacer(Modifier.height(6.dp))
-                Text(
-                    "%02d:%02d".format(icsHour, icsMinute), color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
-                    modifier = Modifier
-                        .background(colors.card, RoundedCornerShape(12.dp))
-                        .border(2.dp, colors.line, RoundedCornerShape(12.dp))
-                        .clickable {
-                            TimePickerDialog(
-                                context,
-                                { _, h, m ->
-                                    icsHour = h; icsMinute = m
-                                    store.set("icstime", "%02d:%02d".format(h, m))
-                                },
-                                icsHour, icsMinute, true,
-                            ).show()
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    var showHourMenu by remember { mutableStateOf(false) }
+                    Box {
+                        Text(
+                            "%02d時".format(icsHour), color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
+                            modifier = Modifier
+                                .background(colors.card, RoundedCornerShape(12.dp))
+                                .border(2.dp, colors.line, RoundedCornerShape(12.dp))
+                                .clickable { showHourMenu = true }
+                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                .testTag("icsHourBtn"),
+                        )
+                        DropdownMenu(showHourMenu, { showHourMenu = false }) {
+                            (0..23).forEach { h ->
+                                DropdownMenuItem(
+                                    text = { Text("%02d時".format(h)) },
+                                    onClick = {
+                                        icsHour = h
+                                        showHourMenu = false
+                                        store.set("icstime", "%02d:%02d".format(icsHour, icsMinute))
+                                        DailyNotifications.scheduleNext(context)
+                                    },
+                                    modifier = Modifier.testTag("icsHourOpt_$h"),
+                                )
+                            }
                         }
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
-                        .testTag("icsTimeBtn"),
-                )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    var showMinuteMenu by remember { mutableStateOf(false) }
+                    Box {
+                        Text(
+                            "%02d分".format(icsMinute), color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
+                            modifier = Modifier
+                                .background(colors.card, RoundedCornerShape(12.dp))
+                                .border(2.dp, colors.line, RoundedCornerShape(12.dp))
+                                .clickable { showMinuteMenu = true }
+                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                .testTag("icsMinuteBtn"),
+                        )
+                        DropdownMenu(showMinuteMenu, { showMinuteMenu = false }) {
+                            listOf(0, 15, 30, 45).forEach { m ->
+                                DropdownMenuItem(
+                                    text = { Text("%02d分".format(m)) },
+                                    onClick = {
+                                        icsMinute = m
+                                        showMinuteMenu = false
+                                        store.set("icstime", "%02d:%02d".format(icsHour, icsMinute))
+                                        DailyNotifications.scheduleNext(context)
+                                    },
+                                    modifier = Modifier.testTag("icsMinuteOpt_$m"),
+                                )
+                            }
+                        }
+                    }
+                }
                 Spacer(Modifier.height(10.dp))
                 KyonoLineButton(
                     "📅 Appleカレンダーに入れる",
@@ -249,6 +290,26 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 )
                 Spacer(Modifier.height(6.dp))
                 Text("スマホのカレンダーが毎日その時間に知らせてくれます", color = colors.sub, fontSize = 12.sp)
+
+                // TASK-C2-2026-07-27-local-notifications.md: 「毎日のおしらせ」トグル。既定オフ・
+                // オンにした瞬間だけ許可ダイアログを出す(1日目クリア時のインライン提案とは別経路。
+                // どちらも同じnotif_enabledに収束する)。
+                Spacer(Modifier.height(20.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.weight(1f)) {
+                        Text("毎日のおしらせ", color = colors.ink, fontSize = 15.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "上の時間に、一言だけやわらかくお知らせします(その日すでに記録していれば出ません)",
+                            color = colors.sub, fontSize = 12.sp,
+                        )
+                    }
+                    Switch(
+                        checked = notifEnabled,
+                        onCheckedChange = { on -> if (on) enableNotifications() else disableNotifications() },
+                        modifier = Modifier.testTag("notifEnabledSwitch"),
+                    )
+                }
 
                 Spacer(Modifier.height(20.dp))
                 Text("📦 記録のひっこし", color = colors.ink, fontSize = 16.sp)

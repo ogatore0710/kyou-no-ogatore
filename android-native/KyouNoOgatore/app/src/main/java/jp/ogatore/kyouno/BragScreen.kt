@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -70,10 +73,18 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
 
         val hits = remember(query) { if (query.isBlank()) emptyList() else searchCatalog(catalog, query, null, null).take(20) }
 
-        Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
+        // TASK-C2-2026-07-27-brag-card-thumbnail.md検証時に発覚した既存バグの修正: 検索結果
+        // LazyColumn(旧Modifier.weight(1f))が、非スクロールの外側Columnの中では固定要素群との
+        // 高さ配分の関係で実質0pxになり、検索結果自体は正しく計算されている(hits.size>0)のに
+        // 一切見えなくなっていた(実機でクエリ「10」=379件ヒットするはずが表示0件になる不具合を
+        // デバッグ表示で確認して特定)。iOS版(.frame(maxHeight:240))と同じ「固定高さ+外側は
+        // スクロール」の形に直す。
+        Column(
+            Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(16.dp),
+        ) {
             KyonoLineButton("◀ もどる", onBack, Modifier.testTag("bragBackBtn"))
             Spacer(Modifier.height(12.dp))
-            KyonoCard(Modifier.weight(1f)) {
+            KyonoCard {
                 KyonoSectionHeader(KyonoIcon.Heart, "じまんカードをつくる", fill = colors.pinkSoft, accent = colors.pink)
                 Spacer(Modifier.height(8.dp))
                 Text("続けてる日数と すきな1本を 1枚のカードに✨\nできたカードは保存やSNS投稿ができます", color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp)
@@ -116,7 +127,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth().testTag("bragSearchInput"),
                 )
                 Spacer(Modifier.height(6.dp))
-                LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("bragSearchResults")) {
+                LazyColumn(Modifier.heightIn(max = 240.dp).fillMaxWidth().testTag("bragSearchResults")) {
                     items(hits) { v ->
                         Text(
                             v.t, color = colors.ink, fontSize = 14.sp,
