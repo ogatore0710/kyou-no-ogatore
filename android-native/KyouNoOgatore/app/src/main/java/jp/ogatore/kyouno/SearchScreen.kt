@@ -345,7 +345,9 @@ private fun ReqBox(context: Context, shown: Boolean, kwText: String) {
 
 // index.html:2001系のカレンダーIntentと同じ設計判断(§2-1準拠): ACTION_SENDTOでメールAppにだけ
 // 解決させる(mailto: URI+ACTION_VIEWだと非メールAppにも解決されうるため)。
-private fun openMailIntent(context: Context, to: String, subject: String, body: String): Boolean {
+// TASK-C2-2026-07-27-soudan-safety-copy-and-links: 相談室のフォールバック逃げ道リンクからも
+// 同じmailto導線を再利用するためprivateを外す(package-private)。
+fun openMailIntent(context: Context, to: String, subject: String, body: String): Boolean {
     val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
         putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
         putExtra(Intent.EXTRA_SUBJECT, subject)

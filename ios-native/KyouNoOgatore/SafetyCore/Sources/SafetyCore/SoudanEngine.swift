@@ -42,17 +42,23 @@ public struct SoudanResponse: Equatable {
     public let nearmissChips: [SoudanChip] // フォールバック時の「近いのはこのあたりかも」チップ
     public let needsReferral: Bool
     public let intentId: String?
+    // TASK-C2-2026-07-27-soudan-safety-copy-and-links: フォールバック(未マッチ)応答かどうかの表示専用
+    // フラグ。UI層が「安全文言+3つの逃げ道リンクを出すべきか」を文字列マッチ等で再判定せずに済むよう、
+    // 判定結果そのものを運ぶだけ(判定ロジック自体はfallbackResponse()のまま・ここでは増減しない)。
+    public let isFallback: Bool
 
     public init(
         verdict: SoudanVerdict, empathy: String, message: String, keizoku: String = "",
         hasVideo: Bool, video: SoudanVideoRef? = nil, hasFollowup: Bool,
         followupChips: [SoudanChip] = [], nextBestChip: SoudanChip? = nil,
-        nearmissChips: [SoudanChip] = [], needsReferral: Bool, intentId: String? = nil
+        nearmissChips: [SoudanChip] = [], needsReferral: Bool, intentId: String? = nil,
+        isFallback: Bool = false
     ) {
         self.verdict = verdict; self.empathy = empathy; self.message = message; self.keizoku = keizoku
         self.hasVideo = hasVideo; self.video = video; self.hasFollowup = hasFollowup
         self.followupChips = followupChips; self.nextBestChip = nextBestChip
         self.nearmissChips = nearmissChips; self.needsReferral = needsReferral; self.intentId = intentId
+        self.isFallback = isFallback
     }
 }
 
@@ -193,7 +199,8 @@ public enum SoudanEngine {
         return SoudanResponse(
             verdict: .normal, empathy: "",
             message: "ごめんね、その悩みはまだ勉強中🙏\n近いのはこのあたりかも！下のチップからどうぞ",
-            hasVideo: false, hasFollowup: false, nearmissChips: Array(near), needsReferral: false
+            hasVideo: false, hasFollowup: false, nearmissChips: Array(near), needsReferral: false,
+            isFallback: true
         )
     }
 }

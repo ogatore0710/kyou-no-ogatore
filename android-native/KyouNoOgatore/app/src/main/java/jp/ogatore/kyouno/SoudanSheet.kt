@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,8 +44,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -60,6 +63,8 @@ import jp.ogatore.kyouno.safety.SoudanResponse
 import jp.ogatore.kyouno.safety.SoudanVerdict
 import kotlin.math.sin
 import kotlin.random.Random
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 // ネイティブ移植 Step 6(マスタープラン§6 Step 6・§2-1「相談室エンジン sd*一式」対応): 相談室チャットUI
@@ -89,6 +94,12 @@ val SD_CHIP_CATS = listOf(
 // index.html:1827 PLAN_EXCLUDE_INTENTS の1:1移植(「即中止して様子見」が答えのintentは矛盾するため除外)。
 private const val PLAN_EXCLUDE_INTENT = "itakunatta"
 
+// index.html:2979 SOUDAN_BODY_INTENTS の1:1移植(体の悩み系intent=かたさチェック誘導チップの対象)。
+private val SOUDAN_BODY_INTENTS = setOf("katakori", "youtsuu", "zenkutsu", "kokansetsu", "ashikubi", "kaikyaku", "nekoze", "nemuri", "zenshin")
+
+// index.html:2946 SD_MAIL の1:1移植(検索タブのリクエスト導線と同じ宛先)。
+private const val SD_MAIL = "kyou-no@ogatore.jp"
+
 // index.html:1755 kyono_plan の1:1移植(store方式・保存は1本だけ)。
 @Serializable
 data class SdPlanData(val intentId: String, val label: String, val videos: List<String>, val start: String, val days: Int = 14)
@@ -103,9 +114,11 @@ fun sdCatIntentIds(cat: SdCatDef): List<String> {
 }
 
 sealed class SdBubble {
-    data class Bot(val text: String, val red: Boolean = false, val videoId: String? = null) : SdBubble()
+    data class Bot(val text: String, val red: Boolean = false, val videoId: String? = null, val fallbackCaution: Boolean = false) : SdBubble()
     data class User(val text: String) : SdBubble()
     data class PlanConfirm(val intentId: String, val label: String, val replacing: Boolean, var answered: Boolean = false) : SdBubble()
+    // index.html:3323-3330 sdAnswerFallback内の2通目(逃げ道リンク3つ)の1:1移植。rawUserTextはmailto本文用。
+    data class FallbackLinks(val rawUserText: String) : SdBubble()
 }
 
 sealed class SdChipsMode {
@@ -116,7 +129,16 @@ sealed class SdChipsMode {
 }
 
 @Composable
-fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Unit, presetIntentId: String? = null) {
+fun SoudanSheet(
+    store: RecordStore,
+    openUrl: (String) -> Unit,
+    onClose: () -> Unit,
+    presetIntentId: String? = null,
+    greeted: Boolean = false,
+    onGreeted: () -> Unit = {},
+    onOpenSearch: () -> Unit = {},
+    onOpenQuiz: () -> Unit = {},
+) {
     val kb = remember { SafetyKBLoader.shared }
     var messages by remember { mutableStateOf(listOf<SdBubble>()) }
     var chipsMode by remember { mutableStateOf<SdChipsMode>(SdChipsMode.Intents("body")) }
@@ -124,6 +146,7 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
     val shownVideoIds = remember { mutableStateListOf<String>() } // index.html:2999 sdCtx.shownVideoIds相当(セッション内のみ)
     var input by remember { mutableStateOf("") }
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
+    val hasType = store.get<QuizTypeResult?>("type", null) != null // index.html:3024 sdHasType()の1:1移植
 
     // index.html:3090 sdPush相当。応答1件をbot/userの吹き出し列へ展開しchipsModeを更新する。
     fun applyResponse(userText: String?, r: SoudanResponse) {
@@ -131,12 +154,14 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
         if (userText != null) newMsgs.add(SdBubble.User(userText))
         val red = r.verdict is SoudanVerdict.RedFlag || r.verdict is SoudanVerdict.Crisis
         if (r.empathy.isNotEmpty()) newMsgs.add(SdBubble.Bot(r.empathy, red))
-        if (r.message.isNotEmpty()) newMsgs.add(SdBubble.Bot(r.message, red))
+        if (r.message.isNotEmpty()) newMsgs.add(SdBubble.Bot(r.message, red, fallbackCaution = r.isFallback))
         r.video?.let { v ->
             newMsgs.add(SdBubble.Bot(v.note.ifEmpty { "おすすめの1本" }, videoId = v.videoId))
             if (shownVideoIds.none { it == v.videoId }) shownVideoIds.add(v.videoId)
         }
         if (r.keizoku.isNotEmpty()) newMsgs.add(SdBubble.Bot(r.keizoku))
+        // index.html:3328-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
+        if (r.isFallback) newMsgs.add(SdBubble.FallbackLinks(userText.orEmpty()))
         messages = messages + newMsgs
         if (r.intentId != null) lastIntentId = r.intentId
         chipsMode = when {
@@ -191,10 +216,15 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
         messages = messages + SdBubble.Bot("OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね")
     }
 
-    // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md): index.html:3409
-    // soudanCardChips「タップでそのまま聞けるよ」チップ→openSoudan(intentId)相当。ホームの
-    // オガトレ相談室カードのおすすめチップから開いたときだけ、開いた瞬間にそのintentへ自動応答する。
+    // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3459 sdEnsureGreeting()の1:1移植。
+    // 相談室をアプリのこのセッションで初めて開いたときだけ、吹き出し形式であいさつを1通出す
+    // (sdGreetedはWeb版と同じくセッション内のみ・store非永続。呼び出し元がルート階層で保持する)。
+    // ホーム構造修正タスクのpresetIntentId自動応答(index.html:3464-3467)より先に出す(Web版と同順)。
     LaunchedEffect(Unit) {
+        if (!greeted) {
+            messages = messages + SdBubble.Bot("こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね")
+            onGreeted()
+        }
         presetIntentId?.let { chipTap(it) }
     }
 
@@ -220,13 +250,16 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                     contentAlignment = Alignment.Center,
                 ) { Text("✕", color = colors.ink, fontWeight = FontWeight.Black) }
             }
-            // index.html:466-467 .sd-disc
+            // index.html:1223 .sd-disc(2行・2行目後半は太字強調)
             Text(
-                "※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ",
+                buildAnnotatedString {
+                    append("※回答はオガトレ監修のパターン集から選んでいます\n※目安をつかむ相談室です ")
+                    withStyle(SpanStyle(fontWeight = FontWeight.Black)) { append("強い痛み・しびれがあるときは医療機関へ") }
+                },
                 color = colors.sub,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().background(colors.card).padding(horizontal = 16.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth().background(colors.card).padding(horizontal = 16.dp, vertical = 6.dp).testTag("sdDisc"),
             )
             androidx.compose.material3.HorizontalDivider(color = colors.line)
 
@@ -235,7 +268,6 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                     .padding(16.dp).testTag("sdLog"),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text("肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊", color = colors.sub)
                 for (m in messages) {
                     when (m) {
                         // index.html:482-483 .sd-row.user .sd-b(黄色系吹き出し・右寄せ)
@@ -263,6 +295,15 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                                     .testTag(if (m.red) "sdBotBubbleRed" else "sdBotBubble"),
                             ) {
                                 if (m.text.isNotEmpty()) Text(m.text, color = colors.ink)
+                                // index.html:3330 sdAnswerFallback1通目の末尾<span>(小さめ注意書き)の1:1移植。
+                                if (m.fallbackCaution) {
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        "※つらい症状（強い痛み・胸の苦しさ・熱など）があるときは、メールより先に医療機関に相談してね",
+                                        color = colors.sub, fontSize = 13.sp,
+                                        modifier = Modifier.testTag("sdFallbackCaution"),
+                                    )
+                                }
                                 if (m.videoId != null) {
                                     Spacer(Modifier.height(6.dp))
                                     KyonoGhostButton(
@@ -271,6 +312,50 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                                         Modifier.testTag("sdVideoBtn_${m.videoId}"),
                                     )
                                 }
+                            }
+                        }
+                        // index.html:3323-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
+                        // ①mailto(検索タブと同じopenMailIntent流用)②クリップボードコピー③検索タブへ遷移。
+                        is SdBubble.FallbackLinks -> Row(verticalAlignment = Alignment.Bottom) {
+                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                            Spacer(Modifier.width(8.dp))
+                            val context = LocalContext.current
+                            val clipboard = LocalClipboardManager.current
+                            val scope = rememberCoroutineScope()
+                            var copied by remember { mutableStateOf(false) }
+                            Column(
+                                Modifier.fillMaxWidth(0.86f)
+                                    .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                            ) {
+                                KyonoGhostButton(
+                                    "📮 この悩み、オガトレに届ける",
+                                    {
+                                        val subject = "【相談室リクエスト】きょうのオガトレ"
+                                        val body = "相談した内容:\n${m.rawUserText}\n---\n送信元: きょうのオガトレ「オガトレ相談室」"
+                                        openMailIntent(context, SD_MAIL, subject, body)
+                                    },
+                                    Modifier.testTag("sdFallbackMailBtn"),
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    if (copied) "コピーしました✅" else "📋 メールがひらかない方はアドレスをコピー",
+                                    color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                                    modifier = Modifier
+                                        .clickable {
+                                            clipboard.setText(AnnotatedString(SD_MAIL))
+                                            copied = true
+                                            scope.launch { delay(2000); copied = false }
+                                        }
+                                        .testTag("sdFallbackCopyBtn"),
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    "🔍 動画を探すタブでさがしてみる",
+                                    color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                                    modifier = Modifier.clickable { onOpenSearch() }.testTag("sdFallbackSearchBtn"),
+                                )
                             }
                         }
                         is SdBubble.PlanConfirm -> Row(verticalAlignment = Alignment.Bottom) {
@@ -347,6 +432,12 @@ fun SoudanSheet(store: RecordStore, openUrl: (String) -> Unit, onClose: () -> Un
                                     item {
                                         KyonoChip("${nb.chip}の話も", { chipTap(nb.id) }, Modifier.padding(end = 8.dp).testTag("sdNextBestChip"))
                                     }
+                                }
+                            }
+                            // index.html:3160-3163 未チェックの人への導線(体の悩み系回答にだけ出す)の1:1移植。
+                            if (intent != null && !intent.safety && !hasType && SOUDAN_BODY_INTENTS.contains(intent.id)) {
+                                item {
+                                    KyonoChip("30秒のかたさチェックやってみる?", { onOpenQuiz() }, Modifier.padding(end = 8.dp).testTag("sdQuizChip"))
                                 }
                             }
                             item {

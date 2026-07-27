@@ -106,6 +106,10 @@ class MainActivity : ComponentActivity() {
             // 見終えたか」、obTourAfterQuizは「オンボ→クイズへ直行してツアー未見のまま来た」を表す。
             var obTourDone by remember { mutableStateOf(false) }
             var obTourAfterQuiz by remember { mutableStateOf(false) }
+            // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3479 sdGreeted(モジュール
+            // レベル変数)の1:1移植。相談室シートは開閉のたびに再合成されるため、「このセッションで
+            // 初回オープンかどうか」をSoudanSheet自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
+            var sdGreeted by remember { mutableStateOf(false) }
             val themeSetting = store.get("theme", "auto")
             // フォント適用漏れ修正(TASK-C2-2026-07-26-visual-parity-fonts-characters.md):
             // 本文用フォントをM PLUS 1p(Bold=700系)にするため、Typography全スタイルのfontFamilyを
@@ -204,6 +208,10 @@ class MainActivity : ComponentActivity() {
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onClose = { screen = Screen.Home },
                                             presetIntentId = s.presetIntentId,
+                                            greeted = sdGreeted,
+                                            onGreeted = { sdGreeted = true },
+                                            onOpenSearch = { screen = Screen.Search },
+                                            onOpenQuiz = { screen = Screen.Quiz(null) },
                                         )
                                         is Screen.Search -> SearchScreen(
                                             store = store,

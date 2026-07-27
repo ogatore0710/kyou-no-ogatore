@@ -35,6 +35,10 @@ data class SoudanResponse(
     val nearmissChips: List<SoudanChip> = emptyList(), // フォールバック時の「近いのはこのあたりかも」チップ
     val needsReferral: Boolean,
     val intentId: String? = null,
+    // TASK-C2-2026-07-27-soudan-safety-copy-and-links: フォールバック(未マッチ)応答かどうかの表示専用フラグ。
+    // UI層が「安全文言+3つの逃げ道リンクを出すべきか」を文字列マッチ等で再判定せずに済むよう、
+    // 判定結果そのものを運ぶだけ(判定ロジック自体はfallbackResponse()のまま・ここでは増減しない)。
+    val isFallback: Boolean = false,
 )
 
 object SoudanEngine {
@@ -199,6 +203,7 @@ object SoudanEngine {
             hasFollowup = false,
             nearmissChips = near,
             needsReferral = false,
+            isFallback = true,
         )
     }
 }
