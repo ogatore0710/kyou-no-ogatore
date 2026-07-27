@@ -864,7 +864,7 @@ fun MyRecordScreen(
         var dayCardResult by remember { mutableStateOf<TodayCardResult?>(null) }
 
         var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
-        var reachMsg by remember { mutableStateOf<String?>(null) }
+        var reachMsg by remember { mutableStateOf<androidx.compose.ui.text.AnnotatedString?>(null) }
         val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, now) }
 
         Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
@@ -1083,9 +1083,28 @@ fun MyRecordScreen(
                                 .background(if (on) colors.tealStrong else colors.card, RoundedCornerShape(12.dp))
                                 .border(2.dp, if (on) colors.tealStrong else colors.line, RoundedCornerShape(12.dp))
                                 .clickable {
+                                    // TASK-C2-2026-07-27-reach-meter-messages.md: app-record.js:238-243
+                                    // setReach()のメッセージ3分岐の1:1移植。bestはタップ前の自己ベスト
+                                    // (setReach呼び出しでstoreが更新される前に必ず算出すること)。
+                                    val best = reachList.maxOfOrNull { it.lv } ?: 0
                                     RecordLogic.setReach(store, lv, now)
                                     reachList = RecordLogic.getReach(store)
-                                    reachMsg = "記録しました！"
+                                    reachMsg = buildAnnotatedString {
+                                        when {
+                                            lv > best && best > 0 -> {
+                                                withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) {
+                                                    append("🎉 自己ベスト更新！「${REACH_LV[lv]}」")
+                                                }
+                                                append(" 記録カードにも入ります")
+                                            }
+                                            lv >= 4 && best == 0 -> {
+                                                withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) {
+                                                    append("最初から「${REACH_LV[lv]}」！すばらしい")
+                                                }
+                                            }
+                                            else -> append("記録しました！じわじわ伸びていきますよ")
+                                        }
+                                    }
                                 }
                                 .padding(vertical = 13.dp)
                                 .testTag("reachBtn_$lv"),

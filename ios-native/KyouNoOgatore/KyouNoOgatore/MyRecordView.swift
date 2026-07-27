@@ -42,7 +42,7 @@ struct MyRecordView: View {
     @State private var year: Int
     @State private var month: Int
     @State private var reachList: [RecordLogic.ReachEntry]
-    @State private var reachMsg: String?
+    @State private var reachMsg: Text?
     @State private var calendarMsg: String?
     private let freezeLeft: Int
     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #history):
@@ -146,7 +146,7 @@ private struct MyRecordContentView: View {
     @Binding var year: Int
     @Binding var month: Int
     @Binding var reachList: [RecordLogic.ReachEntry]
-    @Binding var reachMsg: String?
+    @Binding var reachMsg: Text?
     @Binding var calendarMsg: String?
     @Binding var selectedDay: String?
     let doneDates: Set<String>
@@ -335,13 +335,24 @@ private struct MyRecordContentView: View {
                                 .cornerRadius(12)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
+                                    // TASK-C2-2026-07-27-reach-meter-messages.md: app-record.js:238-243
+                                    // setReach()のメッセージ3分岐の1:1移植。bestはタップ前の自己ベスト
+                                    // (setReach呼び出しでstoreが更新される前に必ず算出すること)。
+                                    let best = reachList.map { $0.lv }.max() ?? 0
                                     RecordLogic.setReach(store, lv: lv, now: Date())
                                     reachList = RecordLogic.getReach(store)
-                                    reachMsg = "記録しました！"
+                                    if lv > best && best > 0 {
+                                        reachMsg = Text("🎉 自己ベスト更新！「\(reachLv[lv])」").fontWeight(.black).foregroundColor(colors.pink)
+                                            + Text(" 記録カードにも入ります")
+                                    } else if lv >= 4 && best == 0 {
+                                        reachMsg = Text("最初から「\(reachLv[lv])」！すばらしい").fontWeight(.black).foregroundColor(colors.pink)
+                                    } else {
+                                        reachMsg = Text("記録しました！じわじわ伸びていきますよ")
+                                    }
                                 }
                         }
                     }
-                    if let reachMsg { Spacer().frame(height: 6); Text(reachMsg).font(.kyono(.bold700, size: 15)).foregroundColor(colors.teal) }
+                    if let reachMsg { Spacer().frame(height: 6); reachMsg.font(.kyono(.bold700, size: 15)).foregroundColor(colors.teal) }
                     // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md):
                     // app-record.js:245-264 renderReach()の1:1移植(いまの記録+自己ベスト/前回比コメント/
                     // 直近14回トレンド棒グラフ)。段位の記録・判定ロジック自体は変更せず、表示の追加のみ。
