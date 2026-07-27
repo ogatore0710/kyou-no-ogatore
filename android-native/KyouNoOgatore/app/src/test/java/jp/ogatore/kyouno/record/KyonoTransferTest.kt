@@ -96,4 +96,17 @@ class KyonoTransferTest {
             KyonoTransfer.importString("KYONO1:$b64", store)
         }
     }
+
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版のatobはforgiving-base64
+    // (ASCII空白を無視する)。メモアプリ経由のコピー&ペーストで改行が混入しても読めることを確認する
+    // (Base64.getDecoder()=厳格版だと改行混入だけで失敗していた回帰テスト)。
+    @Test
+    fun importStringToleratesEmbeddedNewlinesInBase64() {
+        val payload = """{"v":1,"data":{"kyono_theme":"\"light\""}}"""
+        val b64 = Base64.getEncoder().encodeToString(payload.toByteArray(Charsets.UTF_8))
+        val withNewlines = b64.chunked(20).joinToString("\n")
+        val store = RecordStore.inMemory()
+        KyonoTransfer.importString("KYONO1:$withNewlines", store)
+        assertEquals("\"light\"", store.rawValue("kyono_theme"))
+    }
 }

@@ -19,15 +19,33 @@ import RecordCore
 // index.html:1974-1979 ANCHORSの1:1移植(ラベル+カレンダー通知の既定時刻)。キー(asa/furo/neru/free)
 // 自体はOnboardingViews.swiftのanchor質問と共有(§1-2手写し禁止対象の機械抽出データではなく、
 // 短い固定UI文言なのでオンボ文言等と同じくUI copyとして直接記述)。
-private struct AnchorInfo { let key: String; let label: String; let defaultHour: Int; let defaultMinute: Int }
-private let settingsAnchors: [AnchorInfo] = [
+struct AnchorInfo { let key: String; let label: String; let defaultHour: Int; let defaultMinute: Int }
+let settingsAnchors: [AnchorInfo] = [
     AnchorInfo(key: "asa", label: "朝おきてそのまま", defaultHour: 7, defaultMinute: 30),
     AnchorInfo(key: "furo", label: "おふろ上がりに", defaultHour: 20, defaultMinute: 30),
     AnchorInfo(key: "neru", label: "寝るまえふとんの上で", defaultHour: 21, defaultMinute: 30),
     AnchorInfo(key: "free", label: "きめてない・そのつど", defaultHour: 20, defaultMinute: 0),
 ]
 
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
+// 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。設定画面・マイ記録画面の両方の
+// カレンダー登録ボタンから共通で使う(以前はマイ記録側だけhour=20,minute=0固定だった)。
+func icsTimeFor(_ store: RecordStore) -> (Int, Int) {
+    let anchor: String? = store.get("anchor", default: nil)
+    let anchorInfo = settingsAnchors.first { $0.key == anchor }
+    let savedIcsTime: String? = store.get("icstime", default: nil)
+    let parts = savedIcsTime?.split(separator: ":").compactMap { Int($0) }
+    let hour = (parts?.count ?? 0) > 0 ? parts![0] : (anchorInfo?.defaultHour ?? settingsAnchors.last!.defaultHour)
+    let minute = (parts?.count ?? 0) > 1 ? parts![1] : (anchorInfo?.defaultMinute ?? settingsAnchors.last!.defaultMinute)
+    return (hour, minute)
+}
+
 struct SettingsView: View {
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §4: ダークモード非対応のハードコード色
+    // (0xFFFFFF/0xF2EADB/0xDFF5F2/0x177065/0xE56A9A)をテーマ変数に差し替えるために追加
+    // (Android版SettingsScreen.ktはcolors.card/colors.line/colors.tealSoft/colors.tealInkで
+    // 対応済みだったが、iOSだけ固定色のままダークで白いチップが浮いていた)。
+    @Environment(\.kyonoColors) private var colors
     let store: RecordStore
     let onBack: () -> Void
 
@@ -51,12 +69,8 @@ struct SettingsView: View {
         _bigtext = State(initialValue: store.get("bigtext", default: true))
         let savedAnchor: String? = store.get("anchor", default: nil)
         _anchor = State(initialValue: savedAnchor)
-        let anchorInfo = settingsAnchors.first { $0.key == savedAnchor }
         // index.html:2003 renderIcs()のdef計算(未設定時はfree扱い)+保存済みicstimeがあればそちらを優先。
-        let savedIcsTime: String? = store.get("icstime", default: nil)
-        let parts = savedIcsTime?.split(separator: ":").compactMap { Int($0) }
-        let savedHour = (parts?.count ?? 0) > 0 ? parts![0] : (anchorInfo?.defaultHour ?? settingsAnchors.last!.defaultHour)
-        let savedMinute = (parts?.count ?? 0) > 1 ? parts![1] : (anchorInfo?.defaultMinute ?? settingsAnchors.last!.defaultMinute)
+        let (savedHour, savedMinute) = icsTimeFor(store)
         // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを15分刻みに変更。
         // 既に保存済みのicstimeが15分刻みでない場合は、表示・保存とも最も近い15分に丸める
         // (既定値はすべて15分刻みなので影響なし)。
@@ -120,7 +134,7 @@ struct SettingsView: View {
                 KyonoLineButton("◀ もどる", action: onBack)
 
                 KyonoCard {
-                    KyonoSectionHeader(icon: .clock, title: "続ける設定", fill: Color(hex: 0xDFF5F2))
+                    KyonoSectionHeader(icon: .clock, title: "続ける設定", fill: colors.tealSoft)
                     Spacer().frame(height: 8)
 
                     // index.html:800 「やるタイミング: 現在値 変える」の1:1移植。Home側のanchorCard
@@ -133,7 +147,7 @@ struct SettingsView: View {
                             + Text(settingsAnchors.first { $0.key == anchor }?.label ?? "未設定").fontWeight(.black))
                             .kyonoFont(.bold700, size: 15).foregroundColor(.primary)
                         Text("変える")
-                            .kyonoFont(.black900, size: 14).foregroundColor(Color(hex: 0x177065))
+                            .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                             .onTapGesture { showAnchorPicker.toggle() }
                     }
                     if showAnchorPicker {
@@ -144,6 +158,17 @@ struct SettingsView: View {
                                     store.set("anchor", info.key)
                                     anchor = info.key
                                     showAnchorPicker = false
+                                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6:
+                                    // index.html:2001-2020 renderIcs()は呼ばれるたびにanchor別の
+                                    // 既定を反映するが、以前はinit時の1回きりで「やるタイミング」を
+                                    // 変えても表示中の時刻が追従しなかった。保存済みicstimeがまだ無い
+                                    // (=本人が時刻を明示的に選んでいない)間だけ、anchor変更にあわせて
+                                    // 既定時刻を追従させる。
+                                    let savedIcsTime: String? = store.get("icstime", default: nil)
+                                    if savedIcsTime == nil {
+                                        icsHour = info.defaultHour
+                                        icsMinute = min(45, ((info.defaultMinute + 7) / 15) * 15)
+                                    }
                                 }
                             }
                         }
@@ -152,7 +177,9 @@ struct SettingsView: View {
 
                     KyonoBodyText("画面のみため")
                     KyonoSegmentedControl(
-                        options: [("auto", "じどう"), ("light", "ライト"), ("dark", "ダーク")],
+                        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:804-805
+                        // ラベル「明るい/暗い」の1:1移植。
+                        options: [("auto", "じどう"), ("light", "明るい"), ("dark", "暗い")],
                         selected: theme,
                         onSelect: { v in theme = v; store.set("theme", v) }
                     )
@@ -193,8 +220,8 @@ struct SettingsView: View {
                             Text("\(String(format: "%02d", icsHour))時")
                                 .kyonoFont(.black900, size: 16).foregroundColor(.primary)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: 0xFFFFFF)))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: 0xF2EADB), lineWidth: 2))
+                                .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
                         }
                         Menu {
                             ForEach(Self.minuteOptions, id: \.self) { m in
@@ -208,8 +235,8 @@ struct SettingsView: View {
                             Text("\(String(format: "%02d", icsMinute))分")
                                 .kyonoFont(.black900, size: 16).foregroundColor(.primary)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: 0xFFFFFF)))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: 0xF2EADB), lineWidth: 2))
+                                .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
                         }
                     }
                     Spacer().frame(height: 10)
@@ -223,7 +250,7 @@ struct SettingsView: View {
                     Spacer().frame(height: 6)
                     Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
                     if let icsMessage {
-                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(Color(hex: 0xE56A9A))
+                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(colors.pink)
                     }
 
                     // TASK-C2-2026-07-27-local-notifications.md: 「毎日のおしらせ」トグル。既定オフ・
@@ -270,6 +297,11 @@ struct SettingsView: View {
                         Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:").kyonoFont(.bold700, size: 12)
                         TextEditor(text: .constant(exportText)).frame(height: 120).border(Color.gray.opacity(0.3))
                     }
+                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:837の1:1移植。
+                    // コピーして終わり→保存されないまま機種変、が起きないよう保存先を促す。
+                    Spacer().frame(height: 6)
+                    Text("コピーした文字はLINEの「じぶん専用トーク」やメモアプリに貼っておくと安心です")
+                        .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
 
                     Spacer().frame(height: 16)
                     Text("よみこみ").kyonoFont(.black900, size: 16)
@@ -292,7 +324,21 @@ struct SettingsView: View {
                     Spacer().frame(height: 8)
                     TextField("KYONO1:... をここに貼りつけ", text: $importInput).textFieldStyle(.roundedBorder)
                     Spacer().frame(height: 8)
-                    KyonoLineButton("📥 よみこむ") { confirmImport = true }
+                    KyonoLineButton("📥 よみこむ") {
+                        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: index.html:2082-2084
+                        // importData()の空欄チェックの1:1移植。以前は空欄でも確認ダイアログへ進み、
+                        // base64/prefixエラーの「文字列が壊れているかも」という誤解を招くメッセージが
+                        // 出ていた。
+                        if importInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            importMessage = "コピーした文字を上のわくに貼ってから「よみこむ」を押してね"
+                        } else {
+                            confirmImport = true
+                        }
+                    }
+                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:843の1:1移植。
+                    Spacer().frame(height: 6)
+                    Text("機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「よみこむ」")
+                        .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
                     if let importMessage {
                         Spacer().frame(height: 8)
                         Text(importMessage).kyonoFont(.bold700, size: 15)

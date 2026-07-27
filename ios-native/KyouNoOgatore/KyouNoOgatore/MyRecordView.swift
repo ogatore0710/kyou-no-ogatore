@@ -45,7 +45,11 @@ struct MyRecordView: View {
     @State private var reachList: [RecordLogic.ReachEntry]
     @State private var reachMsg: Text?
     @State private var calendarMsg: String?
-    private let freezeLeft: Int
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Android版はremember(streak)で
+    // streak変化のたびfreezeLeftを再計算するが、iOSはinit時の1回きり(private let)だった
+    // ため、開きっぱなしで月が替わっても「のこり◯枚」が更新されなかった。streakと同様
+    // checkDayChange()で再計算する@Stateに変更する。
+    @State private var freezeLeft: Int
     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #history):
     // index.html:782 #dayInfo(カレンダーの日タップ→その日の記録詳細)の1:1移植。
     @State private var selectedDay: String?
@@ -70,14 +74,14 @@ struct MyRecordView: View {
         _year = State(initialValue: c.year!)
         _month = State(initialValue: c.month!)
         _reachList = State(initialValue: RecordLogic.getReach(store))
-        freezeLeft = RecordLogic.freezeLeft(store, now: now)
+        _freezeLeft = State(initialValue: RecordLogic.freezeLeft(store, now: now))
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     // TASK-C2-2026-07-27-auto-theme-time-rule.md: Android版MyRecordScreenの60秒日付跨ぎ
-    // 追従(checkRefreshDay相当)の1:1移植。開いたまま日付が変わったらカレンダー/streakを
-    // 再読み込みする(freezeLeftはAndroid版と同じく対象外)。
+    // 追従(checkRefreshDay相当)の1:1移植。開いたまま日付が変わったらカレンダー/streak/freezeLeftを
+    // 再読み込みする。
     private let dayTicker = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     private func checkDayChange() {
@@ -86,6 +90,7 @@ struct MyRecordView: View {
         today = newToday
         streak = RecordLogic.loadStreak(store)
         doneDates = Set(streak.dates)
+        freezeLeft = RecordLogic.freezeLeft(store, now: Date())
     }
 
     var body: some View {
@@ -131,22 +136,26 @@ struct MyRecordView: View {
     // (マスタープラン§2-1「icstimeはEventKit/カレンダーIntentに接続」)。write-onlyアクセスのみ要求し、
     // 既存の予定は読み取らない(Android版のIntent委譲=権限不要、と設計思想を揃えた最小権限)。
     private func connectCalendar(completion: @escaping (Bool) -> Void) {
-        let store = EKEventStore()
-        store.requestWriteOnlyAccessToEvents { granted, _ in
+        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
+        // 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。以前はhour=20,minute=0固定で、
+        // 設定画面の「カレンダーのおしらせ時間」を無視していた。
+        let (hour, minute) = icsTimeFor(store)
+        let ekStore = EKEventStore()
+        ekStore.requestWriteOnlyAccessToEvents { granted, _ in
             DispatchQueue.main.async {
                 guard granted else { completion(false); return }
-                let event = EKEvent(eventStore: store)
+                let event = EKEvent(eventStore: ekStore)
                 event.title = "きょうのオガトレ（1本だけ）"
                 event.notes = "ストレッチの時間です"
                 var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-                comps.hour = 20; comps.minute = 0
+                comps.hour = hour; comps.minute = minute
                 let start = Calendar.current.date(from: comps) ?? Date()
                 event.startDate = start
                 event.endDate = start.addingTimeInterval(10 * 60)
                 event.recurrenceRules = [EKRecurrenceRule(recurrenceWith: .daily, interval: 1, end: nil)]
-                event.calendar = store.defaultCalendarForNewEvents
+                event.calendar = ekStore.defaultCalendarForNewEvents
                 do {
-                    try store.save(event, span: .thisEvent)
+                    try ekStore.save(event, span: .thisEvent)
                     completion(true)
                 } catch {
                     completion(false)
@@ -479,17 +488,23 @@ private struct MyRecordContentView: View {
                                 let isFuture = ds > today
                                 // index.html:406-409,413 .cal .d/.d.done(teal-strong塗り)/.d.today(pink枠)/.d.mute
                                 // index.html:319 done日のみonclick="showDay(ds)"でタップ可能(未記録日はタップ不可)。
+                                // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6:
+                                // Android版は.border()を2回独立に積み重ねる(today→pink・selected→ink)ため
+                                // 両方の条件が同時に成り立つ日は後から重ねたink枠が見た目上勝つ=共存する。
+                                // iOSは三項演算子でtodayとselectedを排他にしてしまっていた(today優先で
+                                // pink固定・selected中でも見えなくなっていた)ため、Android同様「selectedが
+                                // あればink優先・無ければtoday判定」の優先順に直す。
                                 Text(verbatim: "\(day)")
                                     .kyonoFont(.bold700, size: 15)
-                                    .frame(maxWidth: .infinity, minHeight: 32)
+                                    .frame(maxWidth: .infinity, minHeight: 44)
                                     .foregroundStyle(isDone ? .white : (isFuture ? Color(hex: 0xD5CFBE) : colors.ink))
                                     .background(isDone ? colors.tealStrong : Color.clear)
                                     .clipShape(Circle())
-                                    .overlay(Circle().stroke(isToday ? colors.pink : (isDone && selectedDay == ds ? colors.ink : .clear), lineWidth: 2.5))
+                                    .overlay(Circle().stroke(isDone && selectedDay == ds ? colors.ink : (isToday ? colors.pink : .clear), lineWidth: 2.5))
                                     .contentShape(Circle())
                                     .onTapGesture { if isDone { selectedDay = ds } }
                             } else {
-                                Color.clear.frame(maxWidth: .infinity, minHeight: 32)
+                                Color.clear.frame(maxWidth: .infinity, minHeight: 44)
                             }
                         }
                     }

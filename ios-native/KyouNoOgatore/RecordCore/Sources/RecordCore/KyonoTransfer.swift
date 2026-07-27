@@ -30,7 +30,10 @@ public enum KyonoTransfer {
             throw KyonoTransferError.invalidFormat
         }
         let b64 = String(str.dropFirst(prefix.count))
-        guard let decoded = Data(base64Encoded: b64),
+        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版のatobはforgiving-base64
+        // (ASCII空白を無視する)だが、Data(base64Encoded:)は既定で厳格・改行混入だけで失敗する。
+        // メモアプリ経由の引き継ぎ文字列に改行が混じるケースを許容する。
+        guard let decoded = Data(base64Encoded: b64, options: .ignoreUnknownCharacters),
               let obj = try? JSONSerialization.jsonObject(with: decoded)
         else { throw KyonoTransferError.invalidFormat }
 

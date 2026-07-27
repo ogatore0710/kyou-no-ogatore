@@ -209,7 +209,10 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 Text("画面のみため", color = colors.ink, fontSize = 15.sp)
                 Spacer(Modifier.height(6.dp))
                 KyonoSegmentedControl(
-                    options = listOf("auto" to "じどう", "light" to "ライト", "dark" to "ダーク"),
+                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:804-805
+                    // ラベル「明るい/暗い」の1:1移植(想定層にやさしい日本語を選んだ意図が
+                    // 「ライト/ダーク」表記では落ちていた)。
+                    options = listOf("auto" to "じどう", "light" to "明るい", "dark" to "暗い"),
                     selected = theme,
                     onSelect = { v -> theme = v; store.set("theme", v) },
                     modifier = Modifier.testTag("themeSeg"),
@@ -299,7 +302,11 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 }
                 Spacer(Modifier.height(10.dp))
                 KyonoLineButton(
-                    "📅 Appleカレンダーに入れる",
+                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: 実体はAndroidの
+                    // CalendarContract Intent(端末標準カレンダー)であり、Android端末にAppleカレンダーは
+                    // 無いため誤ったラベルだった(Web版は両OS向けの共通コードのため"Apple/Google"併記が
+                    // 正しいが、ネイティブAndroidでは意味が通らない)。
+                    "📅 カレンダーに入れる",
                     { openCalendarIntent(context, icsHour, icsMinute) },
                     Modifier.testTag("icsAppleBtn"),
                 )
@@ -355,6 +362,13 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().testTag("exportText"),
                     )
                 }
+                // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:837の1:1移植。
+                // コピーして終わり→保存されないまま機種変、が起きないよう保存先を促す。
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "コピーした文字はLINEの「じぶん専用トーク」やメモアプリに貼っておくと安心です",
+                    color = colors.subFaint, fontSize = 12.sp, modifier = Modifier.testTag("exportSaveHint"),
+                )
 
                 Spacer(Modifier.height(16.dp))
                 Text("よみこみ", color = colors.ink, fontSize = 16.sp)
@@ -388,7 +402,27 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     placeholder = { Text("KYONO1:... をここに貼りつけ") },
                 )
                 Spacer(Modifier.height(8.dp))
-                KyonoLineButton("📥 よみこむ", { confirmImport = true }, Modifier.testTag("importBtn"))
+                KyonoLineButton(
+                    "📥 よみこむ",
+                    {
+                        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: index.html:2082-2084
+                        // importData()の空欄チェックの1:1移植。以前は空欄でも確認ダイアログへ進み、
+                        // base64/prefixエラーの「文字列が壊れているかも」という誤解を招くメッセージが
+                        // 出ていた。空欄はその場で弾いて「貼ってから押してね」に相当する案内を出す。
+                        if (importInput.isBlank()) {
+                            importMessage = "コピーした文字を上のわくに貼ってから「よみこむ」を押してね"
+                        } else {
+                            confirmImport = true
+                        }
+                    },
+                    Modifier.testTag("importBtn"),
+                )
+                // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:843の1:1移植。
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「よみこむ」",
+                    color = colors.subFaint, fontSize = 12.sp, modifier = Modifier.testTag("machineChangeHint"),
+                )
                 importMessage?.let {
                     Spacer(Modifier.height(8.dp))
                     Text(it, color = colors.ink, modifier = Modifier.testTag("importMsg"))

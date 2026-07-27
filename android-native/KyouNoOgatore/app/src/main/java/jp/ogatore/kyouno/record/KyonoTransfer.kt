@@ -41,7 +41,11 @@ object KyonoTransfer {
             throw KyonoTransferException("invalid prefix or too long")
         }
         val b64 = str.substring(PREFIX.length)
-        val decoded = runCatching { Base64.getDecoder().decode(b64) }.getOrNull()
+        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版のatobはforgiving-base64
+        // (ASCII空白を無視する)だが、Base64.getDecoder()は厳格で改行混入だけで失敗する。メモアプリ
+        // 経由の引き継ぎ文字列に改行が混じるケースを許容するため、MIMEデコーダ(改行含む空白を無視)に
+        // 変更する。
+        val decoded = runCatching { Base64.getMimeDecoder().decode(b64) }.getOrNull()
             ?: throw KyonoTransferException("invalid base64")
         val text = String(decoded, Charsets.UTF_8)
         val elem = runCatching { Json.parseToJsonElement(text) }.getOrNull()

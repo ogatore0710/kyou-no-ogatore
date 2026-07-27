@@ -76,4 +76,29 @@ final class KyonoTransferTests: XCTestCase {
         let store = RecordStore(inMemory: [:])
         XCTAssertThrowsError(try KyonoTransfer.importString("KYONO1:" + b64, into: store))
     }
+
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版のatobはforgiving-base64
+    // (ASCII空白を無視する)。メモアプリ経由のコピー&ペーストで改行が混入しても読めることを確認する
+    // (Data(base64Encoded:)の既定=厳格版だと改行混入だけで失敗していた回帰テスト)。
+    func testImportStringToleratesEmbeddedNewlinesInBase64() throws {
+        let payload = #"{"v":1,"data":{"kyono_theme":"\"light\""}}"#
+        let b64 = Data(payload.utf8).base64EncodedString()
+        let withNewlines = b64.chunked(into: 20).joined(separator: "\n")
+        let store = RecordStore(inMemory: [:])
+        try KyonoTransfer.importString("KYONO1:" + withNewlines, into: store)
+        XCTAssertEqual(store.rawValue(fullKey: "kyono_theme"), "\"light\"")
+    }
+}
+
+private extension String {
+    func chunked(into size: Int) -> [String] {
+        var result: [String] = []
+        var idx = startIndex
+        while idx < endIndex {
+            let end = index(idx, offsetBy: size, limitedBy: endIndex) ?? endIndex
+            result.append(String(self[idx..<end]))
+            idx = end
+        }
+        return result
+    }
 }

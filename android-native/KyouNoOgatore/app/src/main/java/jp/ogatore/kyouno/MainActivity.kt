@@ -1726,7 +1726,13 @@ fun MyRecordScreen(
             var calendarMsg by remember { mutableStateOf<String?>(null) }
             KyonoLineButton(
                 "📅 カレンダーに登録する",
-                { calendarMsg = if (openCalendarIntent(context)) null else "カレンダーアプリが見つかりませんでした" },
+                {
+                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020
+                    // renderIcs()の1:1移植。以前は引数なし(常にhour=20,minute=0)で、設定画面の
+                    // 「カレンダーのおしらせ時間」を無視していた。
+                    val (hour, minute) = icsTimeFor(store)
+                    calendarMsg = if (openCalendarIntent(context, hour, minute)) null else "カレンダーアプリが見つかりませんでした"
+                },
                 Modifier.testTag("calendarConnectBtn"),
             )
             calendarMsg?.let {
