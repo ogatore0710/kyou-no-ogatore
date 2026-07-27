@@ -4,6 +4,40 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 挙動パリティ監査 §B(時間差のある挙動7項目)完了
+
+`TASK-C2-2026-07-27-behavior-parity-audit.md` §B。7項目(実質6項目・コピー2秒revertは§Aで
+既確認済み)を調査し、3件を修正・3件は該当なし/一致と判定:
+
+| 項目 | 判定 | 対応 |
+|---|---|---|
+| 紙吹雪(launchConfetti)タイミング | 一致 | プラン完走時のDUR=1500ms、既に正しく実装済み(§A確認時に既発見) |
+| 記録カード生成中のローディング表示 | 該当なし | Web版の「最大2.2秒フォント読込待ち」はWebフォント(ネットワーク)特有の問題。ネイティブはフォントをバンドル同梱し同期ロードのため該当する遅延自体が存在しない |
+| 検索180msデバウンス | 差分あり→修正 | 両OSとも無遅延で毎打鍵フィルタしていた。debouncedQuery(180ms)を追加 |
+| ツアー350ms/オンボ600-1500ms待ち | 差分あり→一部修正 | ツアー側(カードモーダル閉じてから350ms待つ)のみ実装。オンボ側の待ち時間はWeb版スプラッシュ退場待ちが動機のため、ネイティブにOS標準ランチ画面以外のスプラッシュ概念が無く該当なしと判断(項目5と同じ理由) |
+| 起動スプラッシュ最低表示+フェード | 該当なし | OS標準ランチ画面(Android windowBackground/iOS自動生成LaunchScreen)のみで、Web同等の意図的最低表示+フェード演出を追加作成する価値は薄いと判断 |
+| 「きょうの1本」への自動スクロール | 差分あり→修正 | オンボ完了時にroute!="quiz"(Home直行)の場合だけ「きょうの1本」カードへアニメーションスクロール |
+
+**実装内容**:
+- 検索デバウンス: Android`SearchScreen.kt`(`LaunchedEffect(query){delay(180);debouncedQuery=query}`)・
+  iOS`SearchView.swift`(`.onChange(of:query)`+cancellableTask+`Task.sleep(180ms)`)。
+- ツアー350ms待ち: Android`MainActivity.kt`(cardCloseBtnのonClickで`scope.launch{delay(350);onStartTour(true)}`)・
+  iOS`HomeView.swift`(`DispatchQueue.main.asyncAfter(deadline:.now()+0.35)`)。
+- 自動スクロール: Android`MainActivity.kt`/`HomeScreen`(`onGloballyPositioned`でtodayCardのY座標を捕捉し
+  `scrollState.animateScrollTo(...)`、60ms待ちはindex.html:4393と同じ)・iOS`HomeView.swift`
+  (`ScrollViewReader`+`.id("todayCard")`+`proxy.scrollTo(...)`)。オンボの`onComplete`で
+  route!="quiz"のときだけ`scrollToTodayPending`フラグを立てる。
+
+**確認方法**: Android実機で検索画面での実際の入力→フィルタ動作(180ms追加後も機能が壊れて
+いないこと)、カード図鑑・使い方ツアーへの到達+戻る操作(alan5からのフォローアップ依頼、
+screen-transitionsタスクの検収の一環)を確認。自動スクロールとツアー350ms待ちはコード実装+
+ビルド成功で確認(Android実機でのオンボ完走テストはエミュレータの度重なるアプリデータ消失に
+阻まれ完走できず、標準的なCompose/SwiftUI API(onGloballyPositioned+animateScrollTo、
+ScrollViewReader+scrollTo)の実装であることをもって確認に代えた。次回セッションで機会があれば
+実機で最終確認するとより確実)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑。判定ロジック無変更。
+
 ## 2026-07-27 画面遷移アニメーション §一般画面(3区切り目・タスク完了)
 
 `TASK-C2-2026-07-27-screen-transitions.md`の最終区切り。相談室・オンボに続き、残りの約13画面
