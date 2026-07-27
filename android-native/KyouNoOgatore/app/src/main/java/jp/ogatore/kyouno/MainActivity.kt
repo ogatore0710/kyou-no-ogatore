@@ -110,6 +110,10 @@ class MainActivity : ComponentActivity() {
             // レベル変数)の1:1移植。相談室シートは開閉のたびに再合成されるため、「このセッションで
             // 初回オープンかどうか」をSoudanSheet自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
             var sdGreeted by remember { mutableStateOf(false) }
+            // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 openObuの1:1移植。
+            // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
+            var obuPopupOpen by remember { mutableStateOf(false) }
+            var obuSeen by remember { mutableStateOf(store.get("obu_seen", null as String?)) }
             val themeSetting = store.get("theme", "auto")
             // フォント適用漏れ修正(TASK-C2-2026-07-26-visual-parity-fonts-characters.md):
             // 本文用フォントをM PLUS 1p(Bold=700系)にするため、Typography全スタイルのfontFamilyを
@@ -267,6 +271,9 @@ class MainActivity : ComponentActivity() {
                             }
                             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
                             if (currentTab != null) {
+                                val obuIsNew = jp.ogatore.kyouno.obu.obuHasNew(
+                                    jp.ogatore.kyouno.obu.ObuLoader.shared, obuSeen, RecordLogic.todayStr(Instant.now()),
+                                )
                                 Column(
                                     modifier = Modifier
                                         .align(Alignment.BottomEnd)
@@ -274,8 +281,25 @@ class MainActivity : ComponentActivity() {
                                     verticalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
                                     KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan() })
-                                    KyonoFab("📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo", onClick = { screen = Screen.Obu(returnTo = screen) })
+                                    KyonoFab(
+                                        "📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo",
+                                        badgeDot = obuIsNew,
+                                        onClick = {
+                                            // index.html:1345-1348 openObu(): ポップアップを開いた時点で既読にする。
+                                            jp.ogatore.kyouno.obu.obuLatest(jp.ogatore.kyouno.obu.ObuLoader.shared)?.let { latest ->
+                                                store.set("obu_seen", latest.id)
+                                                obuSeen = latest.id
+                                            }
+                                            obuPopupOpen = true
+                                        },
+                                    )
                                 }
+                            }
+                            if (obuPopupOpen) {
+                                ObuPreviewPopup(
+                                    onClose = { obuPopupOpen = false },
+                                    onViewArchive = { obuPopupOpen = false; screen = Screen.Obu(returnTo = screen) },
+                                )
                             }
                         }
                     }

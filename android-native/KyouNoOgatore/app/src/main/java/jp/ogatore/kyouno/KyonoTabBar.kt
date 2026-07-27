@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +29,7 @@ import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -185,8 +187,12 @@ private fun SearchIcon(fill: Color) {
 // オガトレ通信FAB実写真化タスク(TASK-C2-2026-07-26-obu-fab-photo.md): index.html:1166-1167
 // #obuFab(絵文字ではなくassets/obu-fab-photo.jpgの実写真・円形・黄色ボーダー)の1:1移植。
 // photoResNameを渡したときだけ絵文字の代わりに写真を表示する(相談室FABは従来どおり絵文字のまま)。
+// TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:255-256 .obu-dot(15px・pink・bg色2pxボーダー・
+// 右上にはみ出す配置)の1:1移植。badgeDot=trueのときだけ描画(obuFabのみで使用・soudanFabは常にfalse)。
+// Web版にはこの他「NEW📣」の吹き出しチップ(.obu-bubbletip)もあるが、これは位置指定が複雑な割に
+// 視覚的な付加情報がドット(未読の有無)と重複するため今回は見送り(ドットのみでバッジ機能として成立)。
 @Composable
-fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modifier: Modifier = Modifier, photoResName: String? = null, onClick: () -> Unit) {
+fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modifier: Modifier = Modifier, photoResName: String? = null, badgeDot: Boolean = false, onClick: () -> Unit) {
     val colors = LocalKyonoColors.current
     Box(
         modifier = modifier
@@ -214,6 +220,13 @@ fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modi
             }
         } else {
             Text(emoji, fontSize = 22.sp)
+        }
+        if (badgeDot) {
+            Box(
+                Modifier.align(Alignment.TopEnd).offset(x = 1.dp, y = (-1).dp).size(15.dp)
+                    .background(colors.pink, CircleShape).border(2.dp, colors.bg, CircleShape)
+                    .testTag("obuDot"),
+            )
         }
     }
 }

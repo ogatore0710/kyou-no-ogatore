@@ -172,6 +172,11 @@ struct KyonoFab: View {
     let borderColor: Color
     var accessibilityLabelText: String = ""
     var photoResName: String? = nil
+    // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:255-256 .obu-dot(15px・pink・bg色2pxボーダー・
+    // 右上にはみ出す配置)の1:1移植。trueのときだけ描画(obuFabのみで使用・soudanFabは常にfalse)。
+    // Web版にはこの他「NEW📣」の吹き出しチップ(.obu-bubbletip)もあるが、位置指定が複雑な割に
+    // 視覚的な付加情報がドット(未読の有無)と重複するため今回は見送り(Android版と同じ判断)。
+    var badgeDot: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -191,6 +196,14 @@ struct KyonoFab: View {
             .background(Circle().fill(colors.card))
             .clipShape(Circle())
             .overlay(Circle().stroke(borderColor, lineWidth: 3))
+            .overlay(alignment: .topTrailing) {
+                if badgeDot {
+                    Circle().fill(colors.pink)
+                        .frame(width: 15, height: 15)
+                        .overlay(Circle().stroke(colors.bg, lineWidth: 2))
+                        .offset(x: 1, y: -1)
+                }
+            }
             .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
         .buttonStyle(.plain)

@@ -94,11 +94,16 @@ struct RootView: View {
     // 変数)の1:1移植。相談室シートは開閉のたびに再生成されるため、「このセッションで初回オープンか」
     // をSoudanSheetView自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
     @State private var sdGreeted = false
+    // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 openObuの1:1移植。
+    // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
+    @State private var obuPopupOpen = false
+    @State private var obuSeen: String?
 
     init(store: RecordStore) {
         self.store = store
         let onboarded: Bool = store.get("onboarded", default: false)
         _screen = State(initialValue: onboarded ? .home : .onboarding)
+        _obuSeen = State(initialValue: store.get("obu_seen", default: nil))
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
@@ -130,10 +135,26 @@ struct RootView: View {
             if screen.kyonoTab != nil {
                 VStack(spacing: 10) {
                     KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan() }
-                    KyonoFab(emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo") { screen = .obu(returnTo: screen) }
+                    KyonoFab(
+                        emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo",
+                        badgeDot: obuHasNew(ObuLoader.shared, obuSeen, RecordLogic.todayStr(now: Date()))
+                    ) {
+                        // index.html:1345-1348 openObu(): ポップアップを開いた時点で既読にする。
+                        if let latest = obuLatest(ObuLoader.shared) {
+                            store.set("obu_seen", latest.id)
+                            obuSeen = latest.id
+                        }
+                        obuPopupOpen = true
+                    }
                 }
                 .padding(.trailing, 16)
                 .padding(.bottom, 84)
+            }
+            if obuPopupOpen {
+                ObuPreviewPopupView(
+                    onClose: { obuPopupOpen = false },
+                    onViewArchive: { obuPopupOpen = false; screen = .obu(returnTo: screen) }
+                )
             }
         }
     }

@@ -6,6 +6,7 @@
 //  "obu-feed.js OBU_FEED"行・§6 Step 7b)のDecodableモデル。type: "text"|"photo"|"radio"。
 
 import Foundation
+import RecordCore
 
 struct ObuPost: Decodable {
     let id: String
@@ -39,4 +40,39 @@ enum ObuLoader {
         let base = (imagePath as NSString).lastPathComponent
         return (base as NSString).deletingPathExtension
     }
+}
+
+// TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1275-1289
+// obuIsLaterOrEqual/obuLatest/obuLatestByType の1:1移植。
+func obuIsLaterOrEqual(_ a: ObuPost, _ b: ObuPost) -> Bool {
+    if a.date != b.date { return a.date >= b.date }
+    if let at = a.time, let bt = b.time { return at >= bt }
+    return true
+}
+
+func obuLatest(_ posts: [ObuPost]) -> ObuPost? {
+    guard var best = posts.first else { return nil }
+    for post in posts.dropFirst() where obuIsLaterOrEqual(post, best) { best = post }
+    return best
+}
+
+func obuLatestByType(_ posts: [ObuPost], _ type: String) -> ObuPost? {
+    var best: ObuPost?
+    for item in posts where item.type == type {
+        if best == nil || obuIsLaterOrEqual(item, best!) { best = item }
+    }
+    return best
+}
+
+// index.html:1298-1306 OBU_STALE_DAYS/obuIsStaleDate/obuHasNew の1:1移植。todayは呼び出し元
+// (UI層)がDate()から求めて渡す(§2-4: 純粋ロジック層に現在時刻を直接埋め込まない)。
+let obuStaleDays = 30
+func obuIsStaleDate(_ date: String, _ today: String) -> Bool {
+    RecordLogic.daysBetween(date, today) >= obuStaleDays
+}
+
+func obuHasNew(_ posts: [ObuPost], _ seenId: String?, _ today: String) -> Bool {
+    guard let latest = obuLatest(posts) else { return false }
+    if obuIsStaleDate(latest.date, today) { return false }
+    return seenId != latest.id
 }

@@ -4,8 +4,9 @@
 //
 //  ネイティブ移植 Step 7b(マスタープラン§6 Step 7b・§2-1「obu-feed.js OBU_FEED」行): オガトレ通信
 //  (オガトレ部)の全件アーカイブUI(Android版ObuScreen.ktと同一ロジック。index.html
-//  renderObuArchive()の1:1移植=新着順ソート+type別描画)。FABの新着ポップアップは本ステップでは
-//  簡略化し、アーカイブ一覧のみを実装する(Android版と同じ判断)。
+//  renderObuArchive()の1:1移植=新着順ソート+type別描画)。FABタップ時のプレビューポップアップ
+//  (renderObuPopup/openObu)は当初簡略化していたが、TASK-C2-2026-07-27-obu-fab-preview-popup.mdで
+//  ObuPreviewPopupView(下記)として追加移植した。
 //
 //  ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 //  Phase 3: index.html:266-278 .obu-post/.obu-post.obu-text(yellow-soft)/.obu-date/.obu-title/
@@ -72,7 +73,7 @@ private struct ObuContentView: View {
     }
 }
 
-private struct ObuPostCardView: View {
+struct ObuPostCardView: View {
     @Environment(\.kyonoColors) private var colors
     let post: ObuPost
 
@@ -106,5 +107,61 @@ private struct ObuPostCardView: View {
         .background(isText ? colors.yellowSoft : Color.clear)
         .cornerRadius(isText ? 14 : 0)
         .padding(.bottom, 14)
+    }
+}
+
+// TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 renderObuPopup/openObuの1:1移植。
+// FABタップで直接全アーカイブへ遷移していたのをやめ、まずtext/photo/radio最新1件ずつ(最大3件)だけを
+// 見せるプレビューにする。既読記録(obu_seen)・バッジ更新は呼び出し元(FABのaction)がポップアップを
+// 開く時点で行う(index.html:1345-1348と同じ「開いた瞬間に既読」のタイミング)。
+struct ObuPreviewPopupView: View {
+    @Environment(\.kyonoColors) private var colors
+    let onClose: () -> Void
+    let onViewArchive: () -> Void
+
+    private let items: [ObuPost]
+
+    init(onClose: @escaping () -> Void, onViewArchive: @escaping () -> Void) {
+        self.onClose = onClose
+        self.onViewArchive = onViewArchive
+        let posts = ObuLoader.shared
+        self.items = ["text", "photo", "radio"].compactMap { obuLatestByType(posts, $0) }
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.55).ignoresSafeArea()
+                .onTapGesture { onClose() }
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("オガトレ通信").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    Spacer()
+                    Button(action: onClose) {
+                        Text("✕").font(.kyono(.black900, size: 18)).foregroundColor(colors.ink)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(colors.line))
+                    }
+                    .buttonStyle(.plain)
+                }
+                if items.isEmpty {
+                    Text("まだ投稿がありません また今度のぞいてみてね🌱")
+                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .multilineTextAlignment(.center)
+                        .padding(.vertical, 20)
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(items, id: \.id) { post in ObuPostCardView(post: post) }
+                    }
+                }
+                Text("もっと見る（過去の投稿もぜんぶ）")
+                    .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .onTapGesture { onViewArchive() }
+            }
+            .padding(18)
+            .background(RoundedRectangle(cornerRadius: 20).fill(colors.card))
+            .padding(24)
+        }
     }
 }
