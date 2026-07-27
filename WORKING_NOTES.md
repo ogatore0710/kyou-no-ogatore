@@ -4,6 +4,66 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: local-notifications §4 Androidの差し戻し対応+Compose Row固有バグを発見・修正
+
+alan5差し戻し: iOSには「1日目クリア時に通知の許可を提案する」UI(HomeView.swift:300-312で
+`showNotifPrompt=true`、373-390で「あしたも おしらせしようか？」+「ううん」「うん！」)が
+あるのに、Androidには丸ごと欠落していた。想定ユーザー層(機器が苦手な50-60代)は設定画面を
+自分から開かないため、「1本やり終えて続けたいと思った瞬間に提案する」という設計上、この提案
+経路がなければAndroidユーザーにだけ通知機能の存在が事実上気づかれないことになる、との指摘。
+
+MainActivity.ktのHomeScreenに、iOSと同一条件(`wasGuide && ms==null`かつ
+`!store.get("notif_enabled")`)で`showNotifPrompt`を立て、fdCelebrationの直後に同じ文言のUIを
+追加。「うん！」はAPI33+で`POST_NOTIFICATIONS`権限確認→ダイアログ、許可されたら
+`notif_enabled=true`+`DailyNotifications.scheduleNext`。
+
+**実装直後の実機確認で新たなバグを発見**: 「ううん」「うん！」を`Row { A; Spacer; B }`で並べたら
+`B`(「うん！」)が完全に描画されない。原因は`KyonoGhostButton`/`KyonoPrimaryButton`が内部で
+`Modifier.fillMaxWidth()`を持っており、Compose `Row`は最初の子が`weight`指定なしに全幅を
+専有してしまうため(2番目の子は残り0幅になり消える)。**SwiftUIの`HStack`は同じ内部実装
+(`.frame(maxWidth:.infinity)`)でも複数の柔軟な子に残り幅を自動分配する**ため、iOS側の
+全く同じロジックの実装では問題が起きなかった——ボタン共通コンポーネントの実装は同じ設計方針
+(内部でmaxWidth系修飾子を持つ)でも、レイアウトコンテナの挙動がプラットフォームで異なる、
+という気づきにくい差。両ボタンに`.weight(1f)`を追加して解消(既存の月送り矢印`KyonoGhostButton`
+2つが同じ`weight`パターンをすでに使っていたのが手がかりになった)。
+
+**実機確認方法**: 350msのツアー自動起動猶予だけでは screenshot を撮り切れなかったため、
+検証用worktree(`scripts/verify-worktree.sh`)でその`delay()`だけ一時的に延ばして
+(`pm clear`→オンボ→かたさチェック完走→Home「きょうやった！」→カードモーダル「とじる」)
+プロンプト表示を確認、「うん！」→OS権限ダイアログ→許可→`dumpsys alarm`で翌朝7:30(選択した
+アンカー時刻)へ正しく再予約されることまで確認。本体のツアー自動起動猶予(350ms)自体は変更していない。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS build成功。判定ロジックは無変更。
+
+## 2026-07-28 追記: Web版PLAYLISTS(手動キュレーション16本)のネイティブ移植+全角スペース検索修正
+
+`TASK-C2-2026-07-28-search-playlists-and-fullwidth-space.md`の2件。
+
+**①全角スペース検索(優先度最高・1行修正)**: 「肩こり　朝」のように全角スペース(U+3000)区切りで
+2語検索すると両OS・両画面(動画を探す/じまんカードのすきな1本さがし。同一の`searchCatalog`関数を
+共有)で必ず0件になっていた。日本語キーボードは既定でスペースキーが全角のため、想定どおりに
+2語検索すると高確率で踏む。原因はWeb版`q.split(/\s+/)`のJS `\s`がU+3000を含むのに対し、
+Android `Regex("\\s+")`はASCII空白のみ、iOS `split(separator:" ")`は半角のみだったこと。
+Androidは`Regex("[\\s　]+")`、iOSは`split(whereSeparator:{$0.isWhitespace})`(Swiftの
+`isWhitespace`はU+3000を含む)に変更。Android側はJUnitテスト(`SearchLogicTest.kt`)を追加、
+iOS側は既存app-levelテスト基盤が無かったため`swift`ワンショットスクリプトでの実測(タスク文書が
+「ユニットテストで確認する形でも構わない」と明記)で確認。
+
+**②再生リストのPLAYLISTS16本未移植**: `SearchScreen.kt:64-68`に「alan5への報告で選択を仰ぐ」と
+書かれたまま宙吊りだった判断待ち事項。alan5判断で実装決定(タブ名「再生リスト」の中身が
+catalog.json 454本の平坦一覧のままでは名前が約束する内容と食い違う・想定層の主用途「連続再生」
+に応えられない、との理由)。`scripts-native/gen-playlists.mjs`を新設し、`index.html:3498-3521`
+の`PLAYLISTS`定数をJSエンジン自身に評価させて`playlists.json`として抽出(gen-voices.mjsと同じ
+方針。長いプレイリストIDやi.ytimg.com URLの手書き転記ミスを避けるため)。両OSに
+`PlaylistData.kt`/`.swift`+ローディング+3グループのUIセクションを追加し、既存の454本平坦一覧は
+「○本の動画すべてから探す」見出しの下に残しつつ主役の座をプレイリストに譲る形にした。
+ローカル同梱サムネ(assets/pl-*.jpg・8枚)はAndroid `drawable-nodpi`/iOS `PlaylistArt/`へ追加、
+i.ytimg.com側は既存の`KyonoAsyncImage`で都度取得。両OS実機/シミュレータで3グループ16件+
+既存454本リストの表示・タップでYouTube起動を確認。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑(新規`SearchLogicTest`3件含む)・
+iOS build成功。判定ロジック・Web版配信ファイルは無変更。
+
 ## 2026-07-28 追記: §C「きょうやった！」中央寄せ、alan5が実機で最終検収完了(発注22件すべて完了)
 
 alan5が修正後の実機確認を実施し、bounds中心y 1542→1141(画面中央1200のすぐ近く・401px改善)、

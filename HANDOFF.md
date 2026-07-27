@@ -2,6 +2,29 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: local-notifications §4「1日目クリア時の許可提案」Android差し戻し対応(2026-07-28)
+alan5差し戻し「iOSは実装済み(HomeView.swift:300-312,373-390)だがAndroidに1日目クリア時の
+通知許可提案が丸ごと欠落」への対応。iOSと同一設計(1日目クリア=`fd=="go"`かつ`ms==null`の
+分岐・`notif_enabled`未設定時のみ・「あしたも おしらせしようか？」+「ううん」「うん！」・
+「うん！」でOS権限ダイアログ→許可されたら`notif_enabled=true`+`DailyNotifications.scheduleNext`)
+をMainActivity.ktのHomeScreenに実装。
+
+**実装検証中に見つけた副次バグ(Android固有)**: 「ううん」「うん！」を横並びの`Row`に置いたところ
+「うん！」が丸ごと描画されない実害が発生。原因は`KyonoGhostButton`/`KyonoPrimaryButton`が内部で
+`Modifier.fillMaxWidth()`を持つため、Compose `Row`では最初の子がweight指定なしに全幅を専有し
+2つ目が0幅になる(SwiftUIの`HStack`は複数の`.frame(maxWidth:.infinity)`子に残り幅を自動分配する
+ため同じコードでもiOS側では問題が起きない、というプラットフォーム差)。両ボタンに`.weight(1f)`を
+追加して解消。既存の他画面(カレンダー月送り矢印等)がこのパターンを`weight`付きで使っていたことで
+気づけた。
+
+**実機確認**: `pm clear`→オンボ→かたさチェック完走→Home「きょうやった！」タップ→1日目クリア
+カードモーダル「とじる」→ツアー自動起動までの350ms猶予の間に「あしたも おしらせしようか？」+
+両ボタンが正しく表示されることを確認(検証用worktreeでこの猶予を一時的に延長して確認・本体には
+反映していない)。「うん！」タップ→OS権限ダイアログ→許可→`dumpsys alarm`で翌朝7:30(本人が
+選んだ「朝おきて」アンカー時刻)に正しく再予約されることを確認。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS build成功。判定ロジックは無変更。
+
 ## ✅ 完了: local-notifications.md 毎日のおしらせ通知(両OS実装・実機/シミュレータ確認済み)(2026-07-28)
 `TASK-C2-2026-07-27-local-notifications.md`。Android: `AlarmManager.setAndAllowWhileIdle`+
 `BroadcastReceiver`(発火のたびに`isTodayDone`判定→表示可否決定→無条件で次回を再予約する自己修復

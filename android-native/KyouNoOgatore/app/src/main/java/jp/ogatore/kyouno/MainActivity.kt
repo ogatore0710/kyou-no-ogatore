@@ -968,7 +968,7 @@ fun HomeScreen(
                         Text("あしたも おしらせしようか？", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
                         Spacer(Modifier.height(8.dp))
                         Row {
-                            KyonoGhostButton("ううん", { showNotifPrompt = false }, Modifier.testTag("notifPromptNo"))
+                            KyonoGhostButton("ううん", { showNotifPrompt = false }, Modifier.weight(1f).testTag("notifPromptNo"))
                             Spacer(Modifier.width(8.dp))
                             KyonoPrimaryButton(
                                 "うん！",
@@ -983,7 +983,7 @@ fun HomeScreen(
                                         showNotifPrompt = false
                                     }
                                 },
-                                Modifier.testTag("notifPromptYes"),
+                                Modifier.weight(1f).testTag("notifPromptYes"),
                             )
                         }
                     }
