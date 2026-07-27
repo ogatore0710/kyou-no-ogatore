@@ -2,6 +2,25 @@
 
 最終更新: 2026-07-28
 
+## 🔧 実装済み・実機確認待ち: myrecord-settings-tour-parity.md §1(いま連続が途切れ後も古い数字)(2026-07-28)
+`TASK-C2-2026-07-28-myrecord-settings-tour-parity.md` §1(監査4本中「いちばん実害が大きい」と
+alan5が指摘)。Web版`streakBrokenNow`/`effectiveStreakCount`(index.html:1892-1900。数日あいて
+おやすみ券でもつなげない時は古い連続を見せない=「押した瞬間に消えた」誤解を防ぐ表示専用ガード)が
+両OSともgrep 0件で丸ごと未移植だった。
+
+`RecordLogic.kt`/`RecordLogic.swift`に`streakBrokenNow`/`effectiveStreakCount`を追加
+(既存の`canBridgeFreezes`を呼ぶだけ・保存値=`StreakData.count`自体は書き換えない)。
+マイ記録の「いま連続」(`histStreak`)をeffectiveStreakCount経由に、ホームの連続表示も途切れ確定時は
+「きょうやると新しい章のスタート🌱」に差し替え。ユニットテスト5件を両OSに追加
+(今日済み/gap<2/券で橋渡し可/橋渡し不可で0表示/記録なし、の5ケース。Android 20件・iOS 20件
+いずれもRecordLogicTest内で緑)。
+
+**実機確認は未実施**(エミュレータがalan5の別件検収で使用中のため)。次にエミュレータが空いたら
+「1週間休んだ状態のマイ記録でいま連続が0になる」スクショを撮ってドア報告する。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑(RecordLogicTest 20件)・
+iOS `swift test`緑(RecordLogicTests 20件)・両OSビルド成功。
+
 ## ✅ 完了: local-notifications §4「1日目クリア時の許可提案」Android差し戻し対応(2026-07-28)
 alan5差し戻し「iOSは実装済み(HomeView.swift:300-312,373-390)だがAndroidに1日目クリア時の
 通知許可提案が丸ごと欠落」への対応。iOSと同一設計(1日目クリア=`fd=="go"`かつ`ms==null`の

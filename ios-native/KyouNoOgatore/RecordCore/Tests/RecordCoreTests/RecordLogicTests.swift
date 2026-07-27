@@ -112,6 +112,50 @@ final class RecordLogicTests: XCTestCase {
         XCTAssertFalse(RecordLogic.canBridgeFreezes(store, missedDates: ["2026-07-24"]))
     }
 
+    // ---- streakBrokenNow/effectiveStreakCount(TASK-C2-2026-07-28-myrecord-settings-tour-parity.md
+    // §1): 数日あいて券でもつなげない時は、古い連続を見せない ----
+    func testStreakNotBrokenWhenTodayAlreadyDone() {
+        let seed = ["kyono_streak2": #"{"dates":["2026-07-10","2026-07-25"],"count":5,"total":9}"#]
+        let store = RecordStore(inMemory: seed)
+        let st = RecordLogic.loadStreak(store)
+        XCTAssertFalse(RecordLogic.streakBrokenNow(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst))
+        XCTAssertEqual(RecordLogic.effectiveStreakCount(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst), 5)
+    }
+
+    func testStreakNotBrokenWhenGapUnderTwoDays() {
+        let seed = ["kyono_streak2": #"{"dates":["2026-07-24"],"count":5,"total":9}"#]
+        let store = RecordStore(inMemory: seed)
+        let st = RecordLogic.loadStreak(store)
+        XCTAssertFalse(RecordLogic.streakBrokenNow(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst))
+        XCTAssertEqual(RecordLogic.effectiveStreakCount(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst), 5)
+    }
+
+    func testStreakNotBrokenWhenGapBridgeableByFreezes() {
+        let seed = ["kyono_streak2": #"{"dates":["2026-07-23"],"count":5,"total":9}"#]
+        let store = RecordStore(inMemory: seed)
+        let st = RecordLogic.loadStreak(store)
+        XCTAssertFalse(RecordLogic.streakBrokenNow(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst))
+        XCTAssertEqual(RecordLogic.effectiveStreakCount(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst), 5)
+    }
+
+    func testStreakBrokenWhenGapNotBridgeableByFreezes() {
+        let seed = [
+            "kyono_streak2": #"{"dates":["2026-07-18"],"count":12,"total":30}"#,
+            "kyono_freeze2": #"{"2026-07":3}"#,
+        ]
+        let store = RecordStore(inMemory: seed)
+        let st = RecordLogic.loadStreak(store)
+        XCTAssertTrue(RecordLogic.streakBrokenNow(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst))
+        XCTAssertEqual(RecordLogic.effectiveStreakCount(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst), 0)
+        XCTAssertEqual(st.count, 12) // 保存値そのものは書き換わっていない
+    }
+
+    func testStreakNotBrokenWhenNoDatesYet() {
+        let store = RecordStore(inMemory: [:])
+        let st = RecordLogic.loadStreak(store)
+        XCTAssertFalse(RecordLogic.streakBrokenNow(store, st, now: date(2026, 7, 25, 10, 0), timeZone: jst))
+    }
+
     // ---- daylog: 400件トリム ----
     func testDaylogTrimsTo400() {
         var seed: [String: RecordLogic.DaylogEntry] = [:]

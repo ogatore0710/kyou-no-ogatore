@@ -4,6 +4,47 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: streakBrokenNow/effectiveStreakCountの移植(いま連続が途切れ後も古い数字問題)
+
+`TASK-C2-2026-07-28-myrecord-settings-tour-parity.md` §1。alan5が「監査4本中いちばん実害が
+大きい」と指摘した項目。Web版`index.html:1892-1900`:
+```js
+function streakBrokenNow(st){
+  const did = st.dates.includes(todayStr());
+  if(did || !st.dates.length) return false;
+  const gapNow = daysBetween(st.dates[st.dates.length-1], todayStr());
+  if(gapNow < 2) return false;
+  const miss=[]; for(let i=1;i<gapNow;i++){ miss.push(...); }
+  return !canBridgeFreezes(miss);
+}
+function effectiveStreakCount(st){ return streakBrokenNow(st) ? 0 : (st.count||0); }
+```
+が両OSともgrep 0件=丸ごと未移植で、保存値(`streak.count`)をそのまま表示していた。1週間休んで
+おやすみ券(月3枚)でも埋められない状態でマイ記録を開くと「いま連続12日」のような古い数字が出て、
+「きょうやった！」を押すと1日に戻る=「押した瞬間に消えた」体験になっていた。Web版のコメント
+「数日あいて券でもつなげない時は、古い連続を見せない(押した瞬間に消えたと誤解させない)」の意図が
+丸ごと欠落していた形。
+
+**実装**: `RecordLogic.kt`/`RecordLogic.swift`に`streakBrokenNow(store, st, now)`/
+`effectiveStreakCount(store, st, now)`を追加。既存の`canBridgeFreezes`(おやすみ券の月次予算判定)を
+呼ぶだけで判定ロジックを再実装しない。**保存値(`StreakData.count`)自体は書き換えない**(表示専用
+ガード。`markDone`時に正しく再計算される既存の流れはそのまま)。
+
+- マイ記録`histStreak`: `streak.count`直接表示→`RecordLogic.effectiveStreakCount(store, streak, now)`経由に変更(両OS)
+- ホーム`streakText`/`KyonoStreakText`: 途切れ確定時(`!did && streakBrokenNow`)は
+  「・きょうやると新しい章のスタート🌱」に差し替え(Web版`app-record.js:48`の1:1移植。
+  ネイティブは元々「通算X日・いまY日連続」を1文に結合している独自フォーマットなので、
+  Web版の2要素分離構造でなく既存の「・」接続パターンを保った)
+
+**テスト**: `RecordLogicTest.kt`/`RecordLogicTests.swift`に5件追加(今日済み/gap<2日/おやすみ券で
+橋渡し可/橋渡し不可(=途切れ確定・0表示)/記録なし)。橋渡し不可ケースでは`st.count`が保存値のまま
+書き換わっていないことも合わせて確認(表示専用ガードであることの回帰保証)。両OSとも
+RecordLogicTest全体で20件(既存15件+新規5件)緑。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS `swift test`緑・両OSビルド成功。
+**実機確認は未実施**(エミュレータがalan5の別件検収と重複していたため)。次に空いたら
+「1週間休んだ状態のマイ記録」のスクショを撮る。
+
 ## 2026-07-28 追記: local-notifications §4 Androidの差し戻し対応+Compose Row固有バグを発見・修正
 
 alan5差し戻し: iOSには「1日目クリア時に通知の許可を提案する」UI(HomeView.swift:300-312で
