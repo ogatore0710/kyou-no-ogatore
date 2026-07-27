@@ -42,6 +42,7 @@ struct SettingsView: View {
     @State private var icsHour: Int
     @State private var icsMinute: Int
     @State private var icsMessage: String?
+    @State private var notifEnabled: Bool
 
     init(store: RecordStore, onBack: @escaping () -> Void) {
         self.store = store
@@ -54,24 +55,17 @@ struct SettingsView: View {
         // index.html:2003 renderIcs()のdef計算(未設定時はfree扱い)+保存済みicstimeがあればそちらを優先。
         let savedIcsTime: String? = store.get("icstime", default: nil)
         let parts = savedIcsTime?.split(separator: ":").compactMap { Int($0) }
-        _icsHour = State(initialValue: (parts?.count ?? 0) > 0 ? parts![0] : (anchorInfo?.defaultHour ?? settingsAnchors.last!.defaultHour))
-        _icsMinute = State(initialValue: (parts?.count ?? 0) > 1 ? parts![1] : (anchorInfo?.defaultMinute ?? settingsAnchors.last!.defaultMinute))
+        let savedHour = (parts?.count ?? 0) > 0 ? parts![0] : (anchorInfo?.defaultHour ?? settingsAnchors.last!.defaultHour)
+        let savedMinute = (parts?.count ?? 0) > 1 ? parts![1] : (anchorInfo?.defaultMinute ?? settingsAnchors.last!.defaultMinute)
+        // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを15分刻みに変更。
+        // 既に保存済みのicstimeが15分刻みでない場合は、表示・保存とも最も近い15分に丸める
+        // (既定値はすべて15分刻みなので影響なし)。
+        _icsHour = State(initialValue: savedHour)
+        _icsMinute = State(initialValue: min(45, ((savedMinute + 7) / 15) * 15))
+        _notifEnabled = State(initialValue: store.get("notif_enabled", default: false))
     }
 
-    private var icsDateBinding: Binding<Date> {
-        Binding(
-            get: {
-                var c = DateComponents(); c.hour = icsHour; c.minute = icsMinute
-                return Calendar.current.date(from: c) ?? Date()
-            },
-            set: { newDate in
-                let c = Calendar.current.dateComponents([.hour, .minute], from: newDate)
-                icsHour = c.hour ?? icsHour
-                icsMinute = c.minute ?? icsMinute
-                store.set("icstime", String(format: "%02d:%02d", icsHour, icsMinute))
-            }
-        )
-    }
+    private static let minuteOptions = [0, 15, 30, 45]
 
     // index.html:2001系のカレンダーIntent(MyRecordView.connectCalendarと同じ設計判断・§2-1準拠)。
     // 時刻を指定できるようパラメータ化。

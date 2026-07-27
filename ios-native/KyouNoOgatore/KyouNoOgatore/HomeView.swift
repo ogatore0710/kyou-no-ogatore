@@ -99,6 +99,9 @@ struct HomeView: View {
     @State private var fdCardNudgeVisible = false
     @State private var fdCelebrationVisible = false
     @State private var makeCardBtnBreatheScale: CGFloat = 1
+    // TASK-C2-2026-07-27-local-notifications.md: 1日目クリアの場面で出す「あしたも
+    // おしらせしようか？」の提案(プロセス内メモリのみ・§2-3)。
+    @State private var showNotifPrompt = false
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -288,12 +291,21 @@ struct HomeView: View {
                     let wasGuide = fd == "go"
                     RecordLogic.markDone(store, now: Date())
                     streak = RecordLogic.loadStreak(store)
+                    // TASK-C2-2026-07-27-local-notifications.md: 記録のたびに次回通知を予約し直す
+                    // (今日はもう記録済みなので、次は翌日以降の分に自動でずれる)。
+                    DailyNotifications.resync(store: store)
                     let ms = CardDataLoader.shared.MS.first { $0.d == streak.total }
                     // §2-4許容箇所: markDoneのcheer選択のみ乱数OK。withAnimationはindex.html:311-312
                     // cpop(.3s ease-out)の1:1移植(下のtransitionと対で挿入時のポップ演出になる)。
                     if wasGuide && ms == nil {
                         withAnimation(.easeOut(duration: 0.5)) { fdCelebrationVisible = true }
                         cheerText = nil
+                        // 1日目クリアの場面で通知の許可を提案する(まだ有効化していないときだけ)。
+                        // 起動直後・オンボ中には出さない(この分岐自体が1日目クリア後にしか
+                        // 到達しないため自然に満たされる)。
+                        if !store.get("notif_enabled", default: false) {
+                            showNotifPrompt = true
+                        }
                     } else {
                         fdCelebrationVisible = false
                         withAnimation(.easeOut(duration: 0.3)) { cheerText = CHEERS.randomElement() }
@@ -354,6 +366,27 @@ struct HomeView: View {
                             ? .opacity.animation(.easeOut(duration: 0))
                             : .scale(scale: 0).combined(with: .opacity).animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))
                     )
+                }
+                // TASK-C2-2026-07-27-local-notifications.md §4: 1日目クリアの場面で初めて許可
+                // ダイアログを出す(起動直後・オンボ中には出さない)。断られてもしつこく再提案しない
+                // (この分岐は1日目クリア=fd=="go"のときにしか到達しないため、自然に一度きりになる)。
+                if showNotifPrompt {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("あしたも おしらせしようか？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                        HStack {
+                            KyonoGhostButton("ううん") { showNotifPrompt = false }
+                            KyonoPrimaryButton("うん！") {
+                                DailyNotifications.requestAuthorization { granted in
+                                    if granted {
+                                        store.set("notif_enabled", true)
+                                        DailyNotifications.resync(store: store)
+                                    }
+                                    showNotifPrompt = false
+                                }
+                            }
+                        }
+                    }
+                    .padding(.top, 4)
                 }
                 if let cheerText {
                     // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・
