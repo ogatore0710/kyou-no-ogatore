@@ -17,7 +17,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -61,6 +65,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -171,9 +176,14 @@ class MainActivity : ComponentActivity() {
                             else -> null
                         }
                         Box(Modifier.fillMaxSize()) {
+                            // TASK-C2-2026-07-27-screen-transitions.md: 相談室は下からせり上がる
+                            // シート(スクリム+角丸+部分高さ)として別途オーバーレイ描画するため、
+                            // メインコンテンツ側は常にHome扱いにする(既存のonClose={screen=Home}と
+                            // 同じ「相談室は必ずHomeに戻る」前提を利用。Screen方式自体は変更しない)。
+                            val mainScreen = if (screen is Screen.Soudan) Screen.Home else screen
                             Column(Modifier.fillMaxSize()) {
                                 Box(Modifier.weight(1f)) {
-                                    when (val s = screen) {
+                                    when (val s = mainScreen) {
                                         is Screen.Onboarding -> OnboardingScreen(
                                             store = store,
                                             onComplete = { route, presetWorry ->
@@ -221,16 +231,9 @@ class MainActivity : ComponentActivity() {
                                             onOpenDiary = { screen = Screen.Diary },
                                             onOpenSettings = { screen = Screen.Settings },
                                         )
-                                        is Screen.Soudan -> SoudanSheet(
-                                            store = store,
-                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                                            onClose = { screen = Screen.Home },
-                                            presetIntentId = s.presetIntentId,
-                                            greeted = sdGreeted,
-                                            onGreeted = { sdGreeted = true },
-                                            onOpenSearch = { screen = Screen.Search },
-                                            onOpenQuiz = { screen = Screen.Quiz(null) },
-                                        )
+                                        // mainScreenはSoudan中も常にHomeへ差し替え済みのため、この分岐は
+                                        // 型の網羅性チェックのためだけに存在し実際には到達しない。
+                                        is Screen.Soudan -> {}
                                         is Screen.Search -> SearchScreen(
                                             store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
@@ -315,6 +318,57 @@ class MainActivity : ComponentActivity() {
                                     onClose = { obuPopupOpen = false },
                                     onViewArchive = { obuPopupOpen = false; screen = Screen.Obu(returnTo = screen) },
                                 )
+                            }
+                            // TASK-C2-2026-07-27-screen-transitions.md: index.html:459-460
+                            // .sd-sheet(高さ92%・上角丸20px・スクリム背景・下から.25s ease-outで
+                            // せり上がる)の1:1移植。ナビゲーションの仕組み(Screen方式)自体は変更せず、
+                            // 外側にスクリム+シート演出を被せるだけ。
+                            var lastSoudan by remember { mutableStateOf<Screen.Soudan?>(null) }
+                            LaunchedEffect(screen) {
+                                (screen as? Screen.Soudan)?.let { lastSoudan = it }
+                            }
+                            AnimatedVisibility(
+                                visible = screen is Screen.Soudan,
+                                enter = fadeIn(tween(250)),
+                                exit = fadeOut(tween(200)),
+                                modifier = Modifier.fillMaxSize(),
+                            ) {
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.45f))
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                        ) { screen = Screen.Home },
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = screen is Screen.Soudan,
+                                enter = slideInVertically(tween(250, easing = FastOutSlowInEasing)) { it },
+                                exit = slideOutVertically(tween(200, easing = FastOutSlowInEasing)) { it },
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                            ) {
+                                lastSoudan?.let { s ->
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .fillMaxHeight(0.92f)
+                                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                            .background(colors.bg),
+                                    ) {
+                                        SoudanSheet(
+                                            store = store,
+                                            openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+                                            onClose = { screen = Screen.Home },
+                                            presetIntentId = s.presetIntentId,
+                                            greeted = sdGreeted,
+                                            onGreeted = { sdGreeted = true },
+                                            onOpenSearch = { screen = Screen.Search },
+                                            onOpenQuiz = { screen = Screen.Quiz(null) },
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

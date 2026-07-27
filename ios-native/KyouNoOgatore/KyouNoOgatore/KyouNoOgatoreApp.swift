@@ -98,6 +98,10 @@ struct RootView: View {
     // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
     @State private var obuPopupOpen = false
     @State private var obuSeen: String?
+    // TASK-C2-2026-07-27-screen-transitions.md: index.html:459-460 .sd-sheet(高さ92%・上角丸20px・
+    // スクリム背景・下から.25s ease-outでせり上がる)の1:1移植。.sheet()に任せるため、閉じるアニメーション
+    // 中もpresetIntentIdを保持できるよう別途State化する(Android版lastSoudanと同じ考え方)。
+    @State private var soudanPresetIntentId: String?
 
     init(store: RecordStore) {
         self.store = store
