@@ -161,11 +161,40 @@ struct RootView: View {
                 )
             }
         }
+        .onChange(of: screen) { _, newValue in
+            if case let .soudan(id) = newValue { soudanPresetIntentId = id }
+        }
+        .sheet(isPresented: Binding(
+            get: { if case .soudan = screen { return true } else { return false } },
+            set: { if !$0 { screen = .home } }
+        )) {
+            SoudanSheetView(
+                store: store,
+                openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
+                onClose: { screen = .home },
+                presetIntentId: soudanPresetIntentId,
+                greeted: sdGreeted,
+                onGreeted: { sdGreeted = true },
+                onOpenSearch: { screen = .search },
+                onOpenQuiz: { screen = .quiz(presetWorry: nil) }
+            )
+            .presentationDetents([.fraction(0.92)])
+            .presentationCornerRadius(20)
+            .presentationDragIndicator(.hidden)
+        }
+    }
+
+    // TASK-C2-2026-07-27-screen-transitions.md: 相談室は.sheet()側で別途描画するため、メインの
+    // コンテンツ側は常にHome扱いにする(既存のonClose={screen=.home}と同じ「相談室は必ずHomeに
+    // 戻る」前提を利用。Screen方式自体は変更しない)。
+    private var effectiveScreen: Screen {
+        if case .soudan = screen { return .home }
+        return screen
     }
 
     @ViewBuilder
     private var screenContent: some View {
-        switch screen {
+        switch effectiveScreen {
         case .onboarding:
             OnboardingView(store: store) { route, presetWorry in
                 // index.html:4374 obGo()の1:1移植: quizへ行く人がまだツアーを見ていなければ、
@@ -196,17 +225,10 @@ struct RootView: View {
             )
         case let .tour(showClosing):
             TourView(showClosing: showClosing) { obTourDone = true; screen = .home }
-        case let .soudan(presetIntentId):
-            SoudanSheetView(
-                store: store,
-                openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
-                onClose: { screen = .home },
-                presetIntentId: presetIntentId,
-                greeted: sdGreeted,
-                onGreeted: { sdGreeted = true },
-                onOpenSearch: { screen = .search },
-                onOpenQuiz: { screen = .quiz(presetWorry: nil) }
-            )
+        case .soudan:
+            // effectiveScreenは.soudanのときは常に.homeへ差し替え済みのため、この分岐は
+            // switchの網羅性のためだけに存在し実際には到達しない(内容は.sheet()側で描画)。
+            EmptyView()
         case .search:
             SearchView(
                 store: store,
