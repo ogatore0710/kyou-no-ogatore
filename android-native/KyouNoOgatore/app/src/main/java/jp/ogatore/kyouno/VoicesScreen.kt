@@ -5,9 +5,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -94,25 +97,32 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
     // 一気に切り替わっていたため3Dフリップを追加(裏面は逆回転で文字の鏡像を打ち消す)。
     val rotation by animateFloatAsState(if (open) 180f else 0f, tween(550), label = "vcardFlip")
     // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:351 .vin{min-height:150px}
-    // の1:1移植。Web版は表裏を常に両方DOMに置き(絶対配置)、コンテナの高さは常に一定に保たれる。
+    // +.vfront/.vback{position:absolute;inset:0}の1:1移植。Web版は表裏を常に両方DOMに置き、両方とも
+    // コンテナいっぱいに絶対配置されるため、コンテナの高さは表裏の最大値で常に一定に保たれる。
     // 以前は表裏どちらか片方だけをif分岐で描画していたため、Boxが「いま見えている面」の
     // コンテンツ高さだけで自分のサイズを決めてしまい、表裏で高さが違うとめくった瞬間に
-    // 一覧全体がガタつく(前後のカードが上下に動く)不具合があった。両面を常時composeし
-    // alphaだけで切り替えることで、Boxのサイズが表裏の最大値に固定され、めくっても
-    // 一覧のレイアウトが動かなくなる。
+    // 一覧全体がガタつく(前後のカードが上下に動く)不具合があった。
+    // `Modifier.height(IntrinsicSize.Max)`で両面の高い方に合わせ、両面とも`fillMaxHeight()`で
+    // その高さまで実際に引き伸ばす(単にalphaで切り替えるだけだと、Boxの確保領域は最大値になっても
+    // 短い方の面の背景そのものは自分の内容分の高さにしか描かれず、余白が空いて見えてしまうため)。
     Box(
-        Modifier.graphicsLayer {
+        Modifier.height(IntrinsicSize.Max).graphicsLayer {
             rotationY = rotation
             cameraDistance = 12 * density
         },
     ) {
-        // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)
+        // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)。Web版のjustify-content:center;
+        // align-items:centerと同じく、引き伸ばされた高さの中で内容を縦方向にも中央寄せする。
         KyonoGradientCard(
             KyonoGradient.Warm,
-            Modifier.graphicsLayer { alpha = if (rotation <= 90f) 1f else 0f }
+            Modifier.fillMaxHeight().graphicsLayer { alpha = if (rotation <= 90f) 1f else 0f }
                 .clickable { onToggle() }.testTag("voiceCard_$index"),
         ) {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                Modifier.fillMaxWidth().fillMaxHeight(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 VoiceTag(v.tag)
                 Spacer(Modifier.height(10.dp))
                 Text(v.front, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
@@ -120,9 +130,9 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
                 Text("タップでめくる", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
             }
         }
-        // index.html:358-359,362-363 .vback(card地・枠線)
+        // index.html:358-359,362-363 .vback(card地・枠線・justify-content:centerで縦方向も中央寄せ)
         Column(
-            Modifier.fillMaxWidth()
+            Modifier.fillMaxWidth().fillMaxHeight()
                 .graphicsLayer {
                     rotationY = 180f
                     alpha = if (rotation > 90f) 1f else 0f
@@ -132,6 +142,7 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
                 .border(1.5.dp, colors.line, RoundedCornerShape(22.dp))
                 .padding(18.dp)
                 .testTag("voiceCardBack_$index"),
+            verticalArrangement = Arrangement.Center,
         ) {
             VoiceTag(v.tag)
             Spacer(Modifier.height(8.dp))

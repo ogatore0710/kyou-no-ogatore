@@ -4,6 +4,28 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: obu-voices-diary-and-navigation §8残り3件(せんぱいの声フリップ高さ・にっき破線)
+
+`TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md` §8完了。これで§1〜§8すべて完了。
+
+**せんぱいの声のフリップ高さ統一の実装メモ**: 最初「表裏を両方composeしてalphaだけで切り替える」
+版を実装したところ、実機で「前面(短い)が表示中でも一覧の確保スペースは背面(長い)の高さになる
+が、前面自身の背景色ボックスは自分の内容分の高さにしか描かれず、めくる前から下に大きな空白が
+できる」という別の崩れ方をした。原因はCompose `Box`のデフォルト挙動: 子は「Boxの最終サイズ」に
+自動では引き伸ばされない(`matchParentSize()`を付けない限り、各子は自分の測定結果のサイズで
+配置される)。正しい修正は`Modifier.height(IntrinsicSize.Max)`をBox自体に付け、両面の
+モディファイアにも`fillMaxHeight()`を追加して実際に引き伸ばすこと。Web版の`.vfront/.vback{
+position:absolute;inset:0}`(絶対配置で親いっぱいに広がる)に相当する。短い方の内容は
+Web版の`justify-content:center`と同じく縦方向中央寄せにした。iOSは`ZStack`が既定で最大の子に
+サイズを合わせてくれるため、alphaで切り替えるだけで同じ効果が得られる(matchParentSize相当の
+問題がSwiftUI側には無い)。
+
+**にっき破線**: Composeに標準の破線divider相当が無いため、Android/iOSともCanvas/Shape+
+dashPathEffectで自作。Web版は最終行にも区切り線が付く点を含め1:1移植。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS swift test
+(SafetyCore8/8・RecordCore40/40・CardCore16/16)緑・両OSビルド成功。判定ロジック無変更。
+
 ## 2026-07-28 追記: quiz-result-reach-parity §5・§6(全項目クリア)
 
 `TASK-C2-2026-07-28-quiz-result-reach-parity.md`残り全部。これで§1〜§7すべて完了。

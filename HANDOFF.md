@@ -2,6 +2,35 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: obu-voices-diary-and-navigation.md §8残り3件(せんぱいの声・にっき)(2026-07-28)
+`TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md` §8の残り全部。これで§1〜§8すべて完了。
+
+**せんぱいの声のカード表裏高さ統一**: index.html:351 `.vin{min-height:150px}`+`.vfront/.vback{position:
+absolute;inset:0}`の1:1移植。以前は表裏どちらか一方だけを`if`分岐で描画していたため、Boxが
+「いま見えている面」のコンテンツ高さだけで自分のサイズを決めてしまい、表裏で高さが違うと
+めくった瞬間に一覧全体がガタつく(前後のカードが上下に動く)不具合があった。
+`Modifier.height(IntrinsicSize.Max)`(Android)/`ZStack`(iOS)で両面を常時composeし、両面とも
+`fillMaxHeight()`で高い方の高さまで実際に引き伸ばし、短い方の内容はWeb版と同じく
+`justify-content:center`相当で縦方向にも中央寄せする。**1回目の実装(alphaで切り替えるだけ)は
+実機確認で「Boxの確保領域は最大値になるが短い面の背景自体は伸びず余白が空く」という別の見た目
+崩れを起こしたため、高さを実際に伸ばす方式に修正した**(実機タップで前後の高さが完全一致する
+ことを確認済み)。
+
+**にっきの区切り線**: index.html:271 `border-bottom:1px dashed var(--line)`の1:1移植(以前は
+実線で近似としていた)。Composeに標準の破線divider相当が無いため、Androidは
+Canvas+`PathEffect.dashPathEffect`、iOSはカスタム`Shape`+`StrokeStyle(dash:)`で描画。Web版は
+最終行にも区切り線が付くため、除外条件も削除した。
+
+**iOSにっき日付ラベルの潰れ防止**: index.html:271 `flex-shrink:0`の1:1移植。`.fixedSize()`を
+日付ラベルに付け、長いメモが隣にあっても日付が潰れて折り返されないようにした。
+
+実機で確認: Android実タップでカード表裏の高さが完全一致(めくってもレイアウトが動かない)・
+にっき一覧の全行(最終行含む)に破線区切りが表示されることを確認。iOSは同一ロジック実装+
+ビルド成功まで(simctlタップ不可の制約)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS swift test(SafetyCore8/8・
+RecordCore40/40・CardCore16/16)緑・両OSビルド成功。判定ロジックは無変更。
+
 ## ✅ 完了: obu-voices-diary-and-navigation.md §1・§5・§6・§7・§8の一部(オガトレ通信まわり)(2026-07-28)
 `TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md`の残りのうち、オガトレ通信(Obu)側の
 ファイルで完結する項目。§8の5件中2件(同日ソート・末尾もどるボタン)はObu側なのでここに含む。
