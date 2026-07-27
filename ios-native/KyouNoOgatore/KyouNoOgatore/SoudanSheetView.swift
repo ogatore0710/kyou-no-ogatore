@@ -60,7 +60,7 @@ func sdCatIntentIds(_ cat: SdCatDef, _ intents: [SafetyKB.Intent]) -> [String] {
     return intents[i0...i1].map { $0.id }
 }
 
-enum SdBubble: Identifiable {
+enum SdBubble {
     case bot(text: String, red: Bool, videoId: String?, fallbackCaution: Bool = false)
     case user(text: String)
     case planConfirm(intentId: String, label: String, replacing: Bool)
@@ -68,8 +68,16 @@ enum SdBubble: Identifiable {
     case fallbackLinks(rawUserText: String)
     // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の1:1移植。
     case typing
+}
 
-    var id: String { UUID().uuidString }
+// TASK-C2-2026-07-27-ios-sdbubble-unstable-id.md: SdBubble自体に`var id: String { UUID().uuidString }`
+// という計算プロパティでIdentifiable適合させていたが、アクセスのたびに新しいUUIDを返すため
+// ForEachの差分更新が壊れ、再描画のたびに全要素のViewが破棄・再生成されていた(段階表示の
+// タイピングドットアニメーションが`.onAppear`の再発火で潰され続ける症状として顕在化)。
+// 生成時に1回だけ確定するidを持つラッパーに差し替えて安定させる。
+struct SdMessage: Identifiable {
+    let id = UUID()
+    let bubble: SdBubble
 }
 
 // index.html:3053 sdMsgLen()の1:1移植(タイピング待ち時間の計算専用。空白を除いた文字数)。
@@ -110,7 +118,7 @@ struct SoudanSheetView: View {
     var onOpenQuiz: () -> Void = {}
 
     private let kb = SafetyKBLoader.shared
-    @State private var messages: [SdBubble] = []
+    @State private var messages: [SdMessage] = []
     @State private var chipsMode: SdChipsMode = .intents(activeCat: "body")
     @State private var lastIntentId: String?
     @State private var shownVideoIds: [String] = [] // index.html:2999 sdCtx.shownVideoIds相当(セッション内のみ)
@@ -143,19 +151,19 @@ struct SoudanSheetView: View {
     // 起きないため見送り(表示タイミングの本質=段階表示自体は1:1)。
     private func revealBotMessages(_ botMsgs: [SdBubble], _ newChipsMode: SdChipsMode) async {
         for (i, msg) in botMsgs.enumerated() {
-            messages.append(.typing)
+            messages.append(SdMessage(bubble: .typing))
             let base = min(1600, 500 + sdBubbleLen(msg) * 22)
             let wait = i == 0 ? 400 : (i == 1 ? base : base * 2)
             try? await Task.sleep(nanoseconds: UInt64(wait) * 1_000_000)
             messages.removeLast()
-            messages.append(msg)
+            messages.append(SdMessage(bubble: msg))
         }
         chipsMode = newChipsMode
     }
 
     // index.html:3090 sdPush相当。応答1件をbot/userの吹き出し列へ展開しchipsModeを更新する。
     private func applyResponse(_ userText: String?, _ r: SoudanResponse) async {
-        if let userText { messages.append(.user(text: userText)) }
+        if let userText { messages.append(SdMessage(bubble: .user(text: userText))) }
         let red: Bool
         switch r.verdict {
         case .crisis, .redFlag: red = true
