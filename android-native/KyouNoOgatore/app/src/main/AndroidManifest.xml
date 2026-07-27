@@ -4,6 +4,9 @@
     <!-- 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §2): 動画サムネイル
          (https://i.ytimg.com/vi/...)・使い方ツアーのミニチュア内サムネイルの読み込みに必要。 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- TASK-C2-2026-07-27-offline-banner.md: ConnectivityManager.registerNetworkCallbackで
+         接続状態を監視するために必要(通常権限・実行時ダイアログなし)。 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"

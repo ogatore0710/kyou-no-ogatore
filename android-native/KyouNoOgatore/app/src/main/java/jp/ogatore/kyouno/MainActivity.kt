@@ -474,6 +474,22 @@ fun HomeScreen(
                 Spacer(Modifier.width(10.dp))
                 KyonoCharaImage("chara_hitokoto", Modifier.height(44.dp))
             }
+
+            // TASK-C2-2026-07-27-offline-banner.md: index.html:4064-4080 envBanner(オフライン案内)の
+            // 1:1移植。YouTubeアプリ内ブラウザ脱出案内等のA2HS/PWA固有の他用途は移植対象外(§2-2)なので、
+            // 単純に「オフラインなら表示・オンラインなら非表示」でよい(Web版のenvBannerPrevHTML退避は不要)。
+            if (rememberIsOffline()) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+                    color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
+                    modifier = Modifier.fillMaxWidth()
+                        .background(colors.yellowSoft, RoundedCornerShape(14.dp))
+                        .border(1.5.dp, colors.yellow, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                        .testTag("envBanner"),
+                )
+            }
             Spacer(Modifier.height(14.dp))
 
             val typeResult = remember(streak) { store.get<QuizTypeResult?>("type", null) }

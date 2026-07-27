@@ -75,6 +75,8 @@ struct HomeView: View {
     // index.html:1757-1759 planFinishedCache/planCelebratedの1:1移植(プロセス内メモリのみ・§2-3)。
     @State private var planFinishedCache: PlanFinishedCache?
     @State private var planCelebrated = false
+    // TASK-C2-2026-07-27-offline-banner.md: index.html:4064-4080 envBanner(オフライン案内)の1:1移植。
+    @StateObject private var networkMonitor = NetworkMonitor()
 
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     @State private var lastDay: String
@@ -155,6 +157,20 @@ struct HomeView: View {
                 )
                 Spacer()
                 KyonoCharaImage(name: "chara-hitokoto").frame(height: 44)
+            }
+
+            // TASK-C2-2026-07-27-offline-banner.md: index.html:4064-4080 envBanner(オフライン案内)の
+            // 1:1移植。YouTubeアプリ内ブラウザ脱出案内等のA2HS/PWA固有の他用途は移植対象外(§2-2)なので、
+            // 単純に「オフラインなら表示・オンラインなら非表示」でよい(Web版のenvBannerPrevHTML退避は不要)。
+            if networkMonitor.isOffline {
+                Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+                    .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineSpacing(9)
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14).fill(colors.yellowSoft)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.yellow, lineWidth: 1.5))
+                    )
             }
 
             if !checked {
