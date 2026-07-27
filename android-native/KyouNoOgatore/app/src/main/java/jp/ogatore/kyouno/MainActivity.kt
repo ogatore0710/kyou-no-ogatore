@@ -899,7 +899,9 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(6.dp))
                 }
-                val makeCardBtnScale = if (fdCardNudgeVisible) {
+                // index.html:214 @media(prefers-reduced-motion:no-preference)の1:1移植: 減速設定
+                // オンでは静止させる(TASK-C2-2026-07-27-behavior-parity-audit.md §D)。
+                val makeCardBtnScale = if (fdCardNudgeVisible && !rememberReducedMotion()) {
                     val fdBreatheInfinite = rememberInfiniteTransition(label = "fdBreathe")
                     val scale by fdBreatheInfinite.animateFloat(
                         initialValue = 1f, targetValue = 1.025f,

@@ -721,13 +721,19 @@ fun ResultScreen(
                             }
                         }
                         Spacer(Modifier.height(8.dp))
-                        // index.html:216 fdBob(1.4s ease-in-out infinite・translateY 0↔5px)の1:1移植。
-                        val fdBobInfinite = rememberInfiniteTransition(label = "fdBob")
-                        val fdBobOffset by fdBobInfinite.animateFloat(
-                            initialValue = 0f, targetValue = 5f,
-                            animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                            label = "fdBobOffset",
-                        )
+                        // index.html:214,216 fdBob(1.4s ease-in-out infinite・translateY 0↔5px)の1:1移植。
+                        // index.html:214 @media(prefers-reduced-motion:no-preference)の1:1移植:
+                        // 減速設定オンでは静止させる(TASK-C2-2026-07-27-behavior-parity-audit.md §D)。
+                        val fdBobOffset by if (rememberReducedMotion()) {
+                            remember { mutableStateOf(0f) }
+                        } else {
+                            val fdBobInfinite = rememberInfiniteTransition(label = "fdBob")
+                            fdBobInfinite.animateFloat(
+                                initialValue = 0f, targetValue = 5f,
+                                animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                                label = "fdBobOffset",
+                            )
+                        }
                         Text(
                             "👇 ここを押してみて", color = colors.pink, fontSize = 15.sp, fontWeight = FontWeight.Black,
                             modifier = Modifier.fillMaxWidth().offset(y = fdBobOffset.dp).testTag("fdPoint"),

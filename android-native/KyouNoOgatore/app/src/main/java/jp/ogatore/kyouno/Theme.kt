@@ -208,3 +208,19 @@ fun KyonoTheme(themeSetting: String, bigText: Boolean = true, content: @Composab
         content = content,
     )
 }
+
+// TASK-C2-2026-07-27-behavior-parity-audit.md §D: index.html:3051 sdReduced()/4145
+// obReducedMotion()(prefers-reduced-motion: reduce)の1:1移植。Android版は開発者向け設定に
+// 見えるANIMATOR_DURATION_SCALE(実体は設定アプリの「ユーザー補助>アニメーションを削除」から
+// 変更できる、Web版のprefers-reduced-motionに相当するAndroidの仕組み)を読む。
+@Composable
+fun rememberReducedMotion(): Boolean {
+    val context = LocalContext.current
+    return remember {
+        android.provider.Settings.Global.getFloat(
+            context.contentResolver,
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        ) == 0f
+    }
+}
