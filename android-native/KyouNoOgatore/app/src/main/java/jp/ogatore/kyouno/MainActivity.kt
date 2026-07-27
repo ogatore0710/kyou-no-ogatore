@@ -319,29 +319,47 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
-                            if (currentTab != null) {
-                                val obuIsNew = jp.ogatore.kyouno.obu.obuHasNew(
-                                    jp.ogatore.kyouno.obu.ObuLoader.shared, obuSeen, RecordLogic.todayStr(Instant.now()),
-                                )
-                                Column(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(end = 16.dp, bottom = 84.dp),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                                ) {
-                                    KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan() })
-                                    KyonoFab(
-                                        "📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo",
-                                        badgeDot = obuIsNew,
-                                        onClick = {
-                                            // index.html:1345-1348 openObu(): ポップアップを開いた時点で既読にする。
-                                            jp.ogatore.kyouno.obu.obuLatest(jp.ogatore.kyouno.obu.ObuLoader.shared)?.let { latest ->
-                                                store.set("obu_seen", latest.id)
-                                                obuSeen = latest.id
-                                            }
-                                            obuPopupOpen = true
-                                        },
+                            // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: index.html:1419-1434
+                            // updateFabs()の1:1移植。従来はcurrentTab != nullだけで判定しており、
+                            // Web版が実測で積み上げた個別の非表示条件(相談室カードとの重複・
+                            // FAQ見出しへの被り・1日目チュートリアル当日の全面非表示等)が
+                            // すべて欠落していた。
+                            run {
+                                // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・
+                                // 使い方(FAQ見出しの▾に被る実測あり・2026-07-20監査④)では出さない。
+                                val showSoudanFab = currentTab != null && screen != Screen.Home && screen != Screen.Guide
+                                // 通信FAB: 使い方(本文・FAQ見出しへの被り対策)・1日目チュートリアル当日
+                                // (練習宣言の吹き出しに被るのを2026-07-21実走で確認)では出さない。
+                                val fdGuideActiveNow = HomeLogic.fdActive(store.get("fd", null as String?), RecordLogic.loadStreak(store).total)
+                                val showObuFab = currentTab != null && screen != Screen.Guide && !fdGuideActiveNow
+                                if (showSoudanFab || showObuFab) {
+                                    val obuIsNew = jp.ogatore.kyouno.obu.obuHasNew(
+                                        jp.ogatore.kyouno.obu.ObuLoader.shared, obuSeen, RecordLogic.todayStr(Instant.now()),
                                     )
+                                    Column(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(end = 16.dp, bottom = 84.dp),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                                    ) {
+                                        if (showSoudanFab) {
+                                            KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan() })
+                                        }
+                                        if (showObuFab) {
+                                            KyonoFab(
+                                                "📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo",
+                                                badgeDot = obuIsNew,
+                                                onClick = {
+                                                    // index.html:1345-1348 openObu(): ポップアップを開いた時点で既読にする。
+                                                    jp.ogatore.kyouno.obu.obuLatest(jp.ogatore.kyouno.obu.ObuLoader.shared)?.let { latest ->
+                                                        store.set("obu_seen", latest.id)
+                                                        obuSeen = latest.id
+                                                    }
+                                                    obuPopupOpen = true
+                                                },
+                                            )
+                                        }
+                                    }
                                 }
                             }
                             if (obuPopupOpen) {

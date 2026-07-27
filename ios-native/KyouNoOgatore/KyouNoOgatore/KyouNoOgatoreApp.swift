@@ -153,19 +153,34 @@ struct RootView: View {
                 }
             }
             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
-            if screen.kyonoTab != nil {
+            // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: index.html:1419-1434 updateFabs()の
+            // 1:1移植。従来はscreen.kyonoTab != nilだけで判定しており、Web版が実測で積み上げた
+            // 個別の非表示条件(相談室カードとの重複・FAQ見出しへの被り・1日目チュートリアル当日の
+            // 全面非表示等)がすべて欠落していた。
+            let fdGuideActiveNow = HomeLogic.fdActive(fd: store.get("fd", default: nil), streakTotal: RecordLogic.loadStreak(store).total)
+            // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・使い方(FAQ見出しの
+            // ▾に被る実測あり・2026-07-20監査④)では出さない。
+            let showSoudanFab = screen.kyonoTab != nil && screen != .home && screen != .guide
+            // 通信FAB: 使い方(本文・FAQ見出しへの被り対策)・1日目チュートリアル当日
+            // (練習宣言の吹き出しに被るのを2026-07-21実走で確認)では出さない。
+            let showObuFab = screen.kyonoTab != nil && screen != .guide && !fdGuideActiveNow
+            if showSoudanFab || showObuFab {
                 VStack(spacing: 10) {
-                    KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan() }
-                    KyonoFab(
-                        emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo",
-                        badgeDot: obuHasNew(ObuLoader.shared, obuSeen, RecordLogic.todayStr(now: Date()))
-                    ) {
-                        // index.html:1345-1348 openObu(): ポップアップを開いた時点で既読にする。
-                        if let latest = obuLatest(ObuLoader.shared) {
-                            store.set("obu_seen", latest.id)
-                            obuSeen = latest.id
+                    if showSoudanFab {
+                        KyonoFab(emoji: "💬", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室") { screen = .soudan() }
+                    }
+                    if showObuFab {
+                        KyonoFab(
+                            emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo",
+                            badgeDot: obuHasNew(ObuLoader.shared, obuSeen, RecordLogic.todayStr(now: Date()))
+                        ) {
+                            // index.html:1345-1348 openObu(): ポップアップを開いた時点で既読にする。
+                            if let latest = obuLatest(ObuLoader.shared) {
+                                store.set("obu_seen", latest.id)
+                                obuSeen = latest.id
+                            }
+                            obuPopupOpen = true
                         }
-                        obuPopupOpen = true
                     }
                 }
                 .padding(.trailing, 16)
@@ -182,8 +197,13 @@ struct RootView: View {
             // 1:1移植。オンボは完了後にHomeかQuizへ直接遷移する(相談室と違い単一の「戻り先」を
             // 持たない)ため、閉じるタップは設けない(Web版もオンボ中はスクリムタップで閉じない)。
             if isOnboarding {
+                // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: Android版はこのスクリムに
+                // タップ吸収が無く背後のHomeへタップが素通りしていた欠陥があった(相談室スクリムには
+                // 元々あった)。iOSのColorは既定でヒットテストするはずだが、念のため明示的なno-op
+                // タップで吸収を確定させる(将来Colorが変わってもここが保険になる)。
                 Color.black.opacity(0.55)
                     .ignoresSafeArea()
+                    .onTapGesture {}
                     .transition(.opacity.animation(.easeOut(duration: 0.28)))
                 OnboardingOverlayCard {
                     OnboardingView(store: store) { route, presetWorry in

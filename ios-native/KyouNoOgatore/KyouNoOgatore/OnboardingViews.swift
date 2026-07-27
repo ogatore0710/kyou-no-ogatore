@@ -226,6 +226,7 @@ private struct OnboardingContentView: View {
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 Text("🌱 はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
@@ -264,10 +265,25 @@ private struct OnboardingContentView: View {
                 if let cta = routeCta {
                     KyonoPrimaryButton(cta.btn, action: onCtaTap)
                 }
+                Color.clear.frame(height: 1).id("obBottom")
             }
             .padding(20)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
+        // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: 新しい設問/選択肢が追加されても
+        // スクロール位置が追従しておらず、最新の選択肢がシートの可視領域の端(タップが背後の
+        // Homeへ抜ける位置)ぎりぎりに描画される欠落があった(Android側で実機再現・修正確認済み)。
+        // 追加のたびに最下部へ自動スクロールし、選択肢が常に見える・押せる位置に来るようにする。
+        .onChange(of: bubbles.count) { _, _ in scrollToBottom(proxy) }
+        .onChange(of: activeQuestion?.key) { _, _ in scrollToBottom(proxy) }
+        .onChange(of: routeCta?.btn) { _, _ in scrollToBottom(proxy) }
+        }
+    }
+
+    private func scrollToBottom(_ proxy: ScrollViewProxy) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+            withAnimation { proxy.scrollTo("obBottom", anchor: .bottom) }
+        }
     }
 }
 
