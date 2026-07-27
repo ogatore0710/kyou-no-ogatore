@@ -277,3 +277,23 @@ struct KyonoSegmentedControl<T: Equatable>: View {
         .cornerRadius(16)
     }
 }
+
+// TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:3079,3085,4149 .sd-pop
+// (opacity0→1・translateY(4px)→0)の1:1移植。相談室の吹き出し・タイピング行・オンボのチャット
+// 吹き出しで共用する。
+private struct SdPopModifier: ViewModifier {
+    let opacity: Double
+    let offsetY: CGFloat
+    func body(content: Content) -> some View {
+        content.opacity(opacity).offset(y: offsetY)
+    }
+}
+
+extension AnyTransition {
+    static var sdPop: AnyTransition {
+        .modifier(
+            active: SdPopModifier(opacity: 0, offsetY: 4),
+            identity: SdPopModifier(opacity: 1, offsetY: 0)
+        )
+    }
+}

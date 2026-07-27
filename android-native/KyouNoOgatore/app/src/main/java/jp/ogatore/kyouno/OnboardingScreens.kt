@@ -1,5 +1,8 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -41,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -232,7 +236,18 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(obScrollState).padding(20.dp)) {
             Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
             Spacer(Modifier.height(12.dp))
+            // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:4149 .sd-pop
+            // (opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。reduced-motion時は無演出即表示。
+            val obBubblePopDensity = LocalDensity.current
             for (b in bubbles) {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = if (obReducedMotion) {
+                        fadeIn(tween(0))
+                    } else {
+                        fadeIn(tween(180)) + slideInVertically(tween(180)) { with(obBubblePopDensity) { 4.dp.roundToPx() } }
+                    },
+                ) {
                 // index.html:478-483,4150 .sd-row/.sd-b/.sd-ava(相談室と共用の吹き出しCSS・
                 // chara-hitokotoアバターをオンボでも流用)の1:1移植。
                 Row(
@@ -254,6 +269,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                     ) {
                         Text(b.text, color = colors.ink, fontSize = 15.sp, lineHeight = 26.sp)
                     }
+                }
                 }
             }
             val q = activeQuestion

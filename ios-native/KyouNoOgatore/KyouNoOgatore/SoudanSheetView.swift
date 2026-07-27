@@ -301,6 +301,7 @@ struct SoudanSheetView: View {
 // 親から渡された状態・コールバックをそのまま描画するだけ。
 private struct SoudanContentView: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let messages: [SdMessage]
     let chipsMode: SdChipsMode
     @Binding var input: String
@@ -348,10 +349,16 @@ private struct SoudanContentView: View {
             Divider()
 
             ScrollView {
+                // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:3079 .sd-pop
+                // (opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。reduced-motion時は
+                // 無演出即表示。messages.countの変化にanimation(value:)を効かせ、追加されたぶんの
+                // ForEach挿入トランジションとして再生させる(各appendを個別にwithAnimationで
+                // 囲む代わりに、ここ1箇所でまとめて対応)。
                 VStack(alignment: .leading, spacing: 10) {
-                    ForEach(messages) { m in bubbleView(m.bubble) }
+                    ForEach(messages) { m in bubbleView(m.bubble).transition(.sdPop) }
                 }
                 .padding(16)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: messages.count)
             }
 
             chipsView

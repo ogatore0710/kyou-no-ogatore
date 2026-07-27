@@ -11,17 +11,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
@@ -182,6 +187,56 @@ fun <T> KyonoSegmentedControl(options: List<Pair<T, String>>, selected: T, onSel
                 contentAlignment = Alignment.Center,
             ) {
                 Text(label, color = if (on) colors.ink else colors.sub, fontSize = 15.sp, fontWeight = FontWeight.Black)
+            }
+        }
+    }
+}
+
+// TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §1: index.html:470-474,3190-3198
+// sdChipsFadeUpdate()の1:1移植。横スクロールするチップ列(相談室フッターのチップ行・検索画面の
+// カテゴリ行=Web版で例外的にflex-wrap:nowrap;overflow-x:autoの場所)にだけ、右端にまだ続きが
+// あることを示すフェード+「›」ヒントを重ねる。hasMore判定はWeb版の
+// 「scrollWidth-scrollLeft-clientWidth>8」と同じ考え方をLazyListStateのlayoutInfoで再現する。
+@Composable
+fun FadingChipRow(modifier: Modifier = Modifier, testTag: String, content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit) {
+    val colors = LocalKyonoColors.current
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val hasMore by remember {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val last = info.visibleItemsInfo.lastOrNull() ?: return@derivedStateOf false
+            last.index < info.totalItemsCount - 1 || (last.offset + last.size) > info.viewportEndOffset
+        }
+    }
+    Box(modifier.testTag(testTag)) {
+        androidx.compose.foundation.lazy.LazyRow(state = listState, modifier = Modifier.fillMaxWidth(), content = content)
+        androidx.compose.animation.AnimatedVisibility(
+            visible = hasMore,
+            modifier = Modifier.align(Alignment.CenterEnd),
+            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(200)),
+            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+        ) {
+            Box(Modifier.width(44.dp).height(42.dp)) {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .background(
+                            androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                listOf(colors.card.copy(alpha = 0f), colors.card),
+                            ),
+                        ),
+                )
+                Box(
+                    Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 2.dp)
+                        .size(22.dp)
+                        .background(colors.card, androidx.compose.foundation.shape.CircleShape)
+                        .border(1.dp, colors.line, androidx.compose.foundation.shape.CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("›", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                }
             }
         }
     }

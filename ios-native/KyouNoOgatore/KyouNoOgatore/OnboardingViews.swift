@@ -217,6 +217,7 @@ struct OnboardingView: View {
 
 private struct OnboardingContentView: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let bubbles: [ChatBubble]
     let activeQuestion: ObQuestionDef?
     let routeCta: ObRouteInfo?
@@ -248,6 +249,7 @@ private struct OnboardingContentView: View {
                             .overlay(shape.stroke(b.fromUser ? Color.clear : colors.line, lineWidth: 1.5))
                         if !b.fromUser { Spacer(minLength: 40) }
                     }
+                    .transition(.sdPop)
                 }
                 if let q = activeQuestion {
                     Text("👇 タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
@@ -268,6 +270,9 @@ private struct OnboardingContentView: View {
                 Color.clear.frame(height: 1).id("obBottom")
             }
             .padding(20)
+            // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:4149 .sd-pop
+            // (opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。reduced-motion時は無演出即表示。
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: bubbles.count)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
         // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: 新しい設問/選択肢が追加されても

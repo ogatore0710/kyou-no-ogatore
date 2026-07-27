@@ -2,6 +2,9 @@
 
 package jp.ogatore.kyouno
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -54,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.painterResource
@@ -330,7 +334,20 @@ fun SoudanSheet(
                     .padding(16.dp).testTag("sdLog"),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
+                // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:3079,3085
+                // .sd-pop(opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。§Dの対象表に
+                // 洩れていた分(index.html:497は.sd-sheetと.sd-popの2つを指しており、後者は今回まで
+                // 未実装だった)。reduced-motion時は無演出即表示にする。
+                val bubblePopDensity = LocalDensity.current
                 for (m in messages) {
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = if (sdReducedMotion) {
+                            fadeIn(tween(0))
+                        } else {
+                            fadeIn(tween(180)) + slideInVertically(tween(180)) { with(bubblePopDensity) { 4.dp.roundToPx() } }
+                        },
+                    ) {
                     when (m) {
                         // index.html:482-483 .sd-row.user .sd-b(黄色系吹き出し・右寄せ)
                         is SdBubble.User -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
@@ -474,6 +491,7 @@ fun SoudanSheet(
                             }
                         }
                     }
+                    }
                 }
             }
 
@@ -496,7 +514,10 @@ fun SoudanSheet(
                         }
                         val activeCat = SD_CHIP_CATS.find { it.key == mode.activeCat } ?: SD_CHIP_CATS[0]
                         val ids = sdCatIntentIds(activeCat).toSet()
-                        LazyRow(modifier = Modifier.fillMaxWidth().testTag("sdChips")) {
+                        // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §1/§5: index.html:470
+                        // .sd-foot .chips{flex-wrap:nowrap;overflow-x:auto}(相談室フッターのチップ行
+                        // だけの例外的な横スクロール)+472 .fade-r(右端フェード+「›」ヒント)の1:1移植。
+                        FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "sdChips") {
                             items(kb.intents.filter { ids.contains(it.id) }) { intent ->
                                 KyonoChip(intent.chip, { chipTap(intent.id) }, Modifier.padding(end = 8.dp).testTag("sdChip_${intent.id}"))
                             }
@@ -507,7 +528,7 @@ fun SoudanSheet(
                         // index.html:1828 planInjectChip相当: 動画2本以上・除外intentでない・実行中プランと同一でないときだけ出す
                         val showPlanChip = intent != null && intent.videos.size >= 2 &&
                             intent.id != PLAN_EXCLUDE_INTENT && plan?.intentId != intent.id
-                        LazyRow(modifier = Modifier.fillMaxWidth().testTag("sdChips")) {
+                        FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "sdChips") {
                             if (showPlanChip && intent != null) {
                                 item {
                                     KyonoChip("📅 この悩みを2週間プランにする", { planChipTap(intent.id) }, Modifier.padding(end = 8.dp).testTag("sdPlanChip"))
@@ -544,7 +565,7 @@ fun SoudanSheet(
                         }
                     }
                     is SdChipsMode.Nearmiss -> {
-                        LazyRow(modifier = Modifier.fillMaxWidth().testTag("sdChips")) {
+                        FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "sdChips") {
                             items(mode.ids) { id ->
                                 val intent = kb.intents.find { it.id == id }
                                 if (intent != null) {

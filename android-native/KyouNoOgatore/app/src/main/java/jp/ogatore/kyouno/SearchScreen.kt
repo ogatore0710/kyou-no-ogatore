@@ -211,8 +211,10 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 ),
             )
             Spacer(Modifier.height(10.dp))
-            // index.html:436-437 .catbtn/.catbtn.on
-            LazyRow(modifier = Modifier.fillMaxWidth().testTag("searchCatRow")) {
+            // index.html:436-437 .catbtn/.catbtn.on。TASK-C2-2026-07-27-chips-overflow-and-
+            // bubble-pop.md §1: index.html:434 .catrow{overflow-x:auto}(検索画面のカテゴリ行は
+            // 元から横スクロール仕様)+右端フェード+「›」ヒントの1:1移植。
+            FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "searchCatRow") {
                 items(TAG_CATS) { cat ->
                     val on = cat.key == activeCat
                     Text(
