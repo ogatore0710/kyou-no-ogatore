@@ -1,0 +1,113 @@
+[
+  {
+    "group": "連続再生（流しっぱなしでOK・テレビにも）",
+    "items": [
+      {
+        "id": "PLH9L1OmHFdn0",
+        "title": "朝ストレッチ 連続30分",
+        "desc": "起きてすぐ全身がラクになる",
+        "thumb": "assets/pl-asa30.jpg"
+      },
+      {
+        "id": "PLR-edMOCBxCU",
+        "title": "夜ストレッチ 連続30分",
+        "desc": "寝る前に一日の疲れをリセット",
+        "thumb": "assets/pl-yoru30.jpg"
+      },
+      {
+        "id": "PLRMzTino89Do",
+        "title": "座ったまま 連続20分",
+        "desc": "デスクワークの肩こり・腰痛に",
+        "thumb": "assets/pl-suwatta20.jpg"
+      },
+      {
+        "id": "PLP2Rn_9fit2w",
+        "title": "全身 連続35分",
+        "desc": "ガチガチをじっくりほぐす",
+        "thumb": "assets/pl-zenshin35.jpg"
+      },
+      {
+        "id": "PLCedjuxOvo3U",
+        "title": "股関節&開脚 連続30分",
+        "desc": "硬い人もやわらかくなる",
+        "thumb": "assets/pl-koukansetsu30.jpg"
+      },
+      {
+        "id": "PLU0WWzgSTv8I",
+        "title": "腰痛解消 連続30分",
+        "desc": "骨盤・股関節からゆるめてスッキリ",
+        "thumb": "assets/pl-youtsuu30.jpg"
+      },
+      {
+        "id": "PLSrJDB_YqUGY",
+        "title": "肩こり解消 連続30分",
+        "desc": "肩甲骨から根本解消",
+        "thumb": "assets/pl-katakori30.jpg"
+      },
+      {
+        "id": "PLCGGUq5s6fsk",
+        "title": "自律神経ととのえ 連続30分",
+        "desc": "頭痛・不眠・快眠に",
+        "thumb": "assets/pl-jiritsu30.jpg"
+      }
+    ]
+  },
+  {
+    "group": "姿勢の悩みから探す",
+    "items": [
+      {
+        "id": "PLulTZBLbo7Ajl2zYMWNLdss2y-dNM89e2",
+        "title": "反り腰をしっかり解消",
+        "desc": "まとめ・7本",
+        "thumb": "https://i.ytimg.com/vi/IPvnqtokBMk/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDw3EwVGfubyrvBtkHKZ6DLoj7p8w&days_since_epoch=20642"
+      },
+      {
+        "id": "PLulTZBLbo7AjTVW4Om1w0h6M519j39U8Z",
+        "title": "猫背をしっかり解消",
+        "desc": "まとめ・3本",
+        "thumb": "https://i.ytimg.com/vi/fqIlsbdNZFQ/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCElxsro8n_0gVnn8vBB7aE9-mGJQ&days_since_epoch=20642"
+      },
+      {
+        "id": "PLulTZBLbo7AivbuPAwkb5pavWkHB_ipO1",
+        "title": "巻き肩をしっかり解消",
+        "desc": "まとめ・3本",
+        "thumb": "https://i.ytimg.com/vi/YfK_r3PeP6Q/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLChlwOua7-peAIRLNEp5y_kWgyV1A&days_since_epoch=20642"
+      },
+      {
+        "id": "PLulTZBLbo7Aiow918VD7SLHuillp8CwSd",
+        "title": "スウェイバックをしっかり解消",
+        "desc": "まとめ・3本",
+        "thumb": "https://i.ytimg.com/vi/H6j6DB2XGp0/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLA7ddC0sdXtBJf490tO6mrUSr6FVg&days_since_epoch=20642"
+      },
+      {
+        "id": "PLulTZBLbo7AgZeU3lf1rhjVJtWHNbsyX0",
+        "title": "しっかり「原因」解決ストレッチ",
+        "desc": "まとめ・7本",
+        "thumb": "https://i.ytimg.com/vi/IPvnqtokBMk/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDw3EwVGfubyrvBtkHKZ6DLoj7p8w&days_since_epoch=20642"
+      },
+      {
+        "id": "PLulTZBLbo7AgARmY-lbKKGo0jMWaQ7uBq",
+        "title": "お悩み別ストレッチシリーズ",
+        "desc": "11本",
+        "thumb": "https://i.ytimg.com/vi/nVx6cImPP98/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLBT3SkMnAVB6x-mk4fwWa4vNz6vDw&days_since_epoch=20642"
+      }
+    ]
+  },
+  {
+    "group": "シリーズで深掘り",
+    "items": [
+      {
+        "id": "PLulTZBLbo7AgYjXzkaJZkFY_UY6649rAp",
+        "title": "「肩甲骨」超硬い人向けシリーズ",
+        "desc": "7本",
+        "thumb": "https://i.ytimg.com/vi/ZYTlwh_FhoU/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAGRKHlw48FanMoSRb2hd1JbI0GeA&days_since_epoch=20642"
+      },
+      {
+        "id": "PLulTZBLbo7Agf_o6Ro3t98N6cRmcIoeXX",
+        "title": "理学療法士による「解説」シリーズ",
+        "desc": "なぜ硬いかが分かる・8本",
+        "thumb": "https://i.ytimg.com/vi/MjeubVKGzHs/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDd0OdukP3zVywWwR6BdQN0_RIptw&days_since_epoch=20642"
+      }
+    ]
+  }
+]

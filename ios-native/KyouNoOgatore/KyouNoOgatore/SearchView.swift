@@ -43,7 +43,10 @@ func searchCatalog(_ catalog: [CatalogVideo], query: String, activeTag: String?,
         if let year, v.y != year { return false }
         if q.isEmpty { return true }
         let hay = (v.t + " " + (v.tags ?? []).joined(separator: " ") + " " + String(v.y) + "年").lowercased()
-        return q.lowercased().split(separator: " ").allSatisfy { w in hay.contains(w) }
+        // app-search.js:48 q.split(/\s+/)の1:1移植。JSの\sはU+3000(全角スペース)を含むが、
+        // Swiftのsplit(separator:" ")は半角スペースのみのため、日本語キーボード既定の全角
+        // スペース区切り検索が必ず0件になっていた(TASK-C2-2026-07-28)。isWhitespaceはU+3000を含む。
+        return q.lowercased().split(whereSeparator: { $0.isWhitespace }).allSatisfy { w in hay.contains(w) }
     }
 }
 

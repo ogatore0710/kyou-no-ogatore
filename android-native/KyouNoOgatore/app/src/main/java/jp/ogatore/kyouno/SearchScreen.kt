@@ -104,7 +104,10 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
         if (year != null && v.y != year) return@filter false
         if (q.isEmpty()) return@filter true
         val hay = (v.t + " " + v.tags.joinToString(" ") + " " + v.y + "年").lowercase()
-        q.lowercase().split(Regex("\\s+")).all { w -> w.isEmpty() || hay.contains(w) }
+        // app-search.js:48 q.split(/\s+/)の1:1移植。JSの\sはU+3000(全角スペース)を含むが、
+        // KotlinのRegex("\\s+")はASCII空白のみ(UNICODE_CHARACTER_CLASS未指定)のため、日本語
+        // キーボード既定の全角スペース区切り検索が必ず0件になっていた(TASK-C2-2026-07-28)。
+        q.lowercase().split(Regex("[\\s　]+")).all { w -> w.isEmpty() || hay.contains(w) }
     }
 }
 
@@ -386,21 +389,93 @@ fun openMailIntent(context: Context, to: String, subject: String, body: String):
     }
 }
 
-// 「再生リスト」= catalog.jsonの動画一覧をカテゴリ絞り込みなしで年降順にブラウズできる画面
-// (スコープ解釈はファイル冒頭コメント参照)。LazyColumnがそのまま454件を仮想化するため
-// 検索画面のようなsearchLimit方式のページングは不要。
+// index.html:328-336相当のサムネイル枠。thumbが"assets/pl-*.jpg"のときはネイティブに同梱した
+// ローカル画像(drawable-nodpi/pl_*.jpg)を、https://のときはKyonoAsyncImageで都度取得する
+// (TASK-C2-2026-07-28: index.html:3498-3521 PLAYLISTSはグループによって同梱ローカル画像と
+// 既存i.ytimg.comサムネURLが混在しているため、両対応にする)。
+@Composable
+private fun PlaylistThumb(thumb: String?, modifier: Modifier = Modifier) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    if (thumb == null) return
+    if (thumb.startsWith("http")) {
+        KyonoAsyncImage(thumb, modifier)
+    } else {
+        // "assets/pl-asa30.jpg" -> "pl_asa30"(drawableはハイフン不可のためアンダースコアへ変換済み)
+        val name = thumb.substringAfterLast("/").substringBeforeLast(".").replace("-", "_")
+        val resId = remember(name) { context.resources.getIdentifier(name, "drawable", context.packageName) }
+        if (resId != 0) {
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(resId),
+                contentDescription = null,
+                modifier = modifier,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            )
+        }
+    }
+}
+
+// index.html:3517 renderPlaylists()の1:1移植。プレイリスト1件=角丸サムネ+タイトル+説明、
+// タップでYouTubeプレイリストを開く(タブでの動画個別再生と違い、連続再生キューがそのまま続く)。
+@Composable
+private fun PlaylistRow(item: jp.ogatore.kyouno.catalog.PlaylistItem, openUrl: (String) -> Unit) {
+    val colors = LocalKyonoColors.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
+            .clickable { openUrl("https://www.youtube.com/playlist?list=${item.id}") }
+            .background(colors.card, RoundedCornerShape(16.dp))
+            .border(1.5.dp, colors.line, RoundedCornerShape(16.dp))
+            .padding(10.dp)
+            .semantics(mergeDescendants = true) {}
+            .testTag("playlist_${item.id}"),
+    ) {
+        Box(
+            Modifier.width(112.dp).aspectRatio(16f / 9f)
+                .background(colors.line, RoundedCornerShape(12.dp)),
+        ) {
+            PlaylistThumb(item.thumb, Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp)))
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(item.title, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Spacer(Modifier.height(2.dp))
+            Text(item.desc, color = colors.sub, fontSize = 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+    }
+}
+
+// 「再生リスト」タブ本体。TASK-C2-2026-07-28-search-playlists-and-fullwidth-space.md §1の判断:
+// index.html:3498-3521 PLAYLISTS(手動キュレーション16本・3グループ)を主役として上に置き、
+// 「全部の動画を見たい」需要向けの平坦一覧(catalog.json 454本)は残しつつ下に従える。
+// LazyColumnがそのまま仮想化するため検索画面のようなsearchLimit方式のページングは不要。
 @Composable
 fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
+        val playlistGroups = remember { jp.ogatore.kyouno.catalog.PlaylistLoader.shared }
         val catalog = remember { CatalogLoader.shared.sortedWith(compareByDescending<CatalogVideo> { it.y }.thenBy { it.t }) }
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             Text("再生リスト", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(4.dp))
-            Text("${catalog.size}本の動画", color = colors.sub, fontSize = 12.sp)
             Spacer(Modifier.height(8.dp))
             LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("catalogList")) {
+                playlistGroups.forEach { group ->
+                    item {
+                        Text(
+                            group.group, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+                        )
+                    }
+                    items(group.items) { p -> PlaylistRow(p, openUrl) }
+                }
+                item {
+                    Text(
+                        "${catalog.size}本の動画すべてから探す",
+                        color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.padding(top = 18.dp, bottom = 4.dp),
+                    )
+                }
                 items(catalog) { v -> VideoRow(v, openUrl) }
                 // index.html:941 .hint(リストの一番下に流れる注記のため、固定表示ではなくリスト末尾項目にする。
                 // 固定表示にするとFAB2段(右下)と重なるバグの再発になる=とどくメーターの5番目ボタンで
