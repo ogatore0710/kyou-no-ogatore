@@ -4,6 +4,31 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 オンボーディング締めメッセージ+専用ボタン(routes)を実装
+
+`TASK-C2-2026-07-27-onboarding-routes-closing-message.md`。`ONBOARDING_SCRIPT`
+(index.html:4087-4115)の`routes`(quiz/todayの締めメッセージ+専用CTAボタン)だけが両OSとも
+未実装で、anchor質問の相槌直後に`finish()`が自動で呼ばれ、締めの会話1往復とボタンが
+表示されないまま画面遷移していた問題を修正。
+
+Android `OnboardingScreens.kt`/iOS `OnboardingViews.swift`とも、`OB_ROUTES`/`obRoutes`
+(index.html:4108-4111の1:1移植・quiz→「そしたら30秒で硬さチェックをしよう！」+
+「かたさチェックをはじめる」、today→「じゃあ今日の1本から！」+「きょうの1本を見る」)を
+追加し、質問ループ終了後に`obDecideRoute()`の結果に応じた締めメッセージを`say()`と
+同じ演出で表示→専用CTAボタンを表示→**タップされて初めて**`finish()`(=画面遷移)を呼ぶよう
+変更(既存の「相槌直後に自動でfinish()」という流れ自体をボタン待ちに変更)。
+チップ選択と同じ「Channel+受信待ち」(Android)/「CheckedContinuation」(iOS)のパターンを
+ボタン待ちにも流用し、新しい非同期プリミティブは増やしていない。
+
+Android実機で2ルートとも確認: ①stiff=hard(→quiz)で進め、締めメッセージ→
+「かたさチェックをはじめる」ボタンが表示され自動遷移しないこと・タップで初めて
+かたさチェックQ1へ遷移することを確認。②別セッションでstiff=normal+worry=none(→today)で
+進め、締めメッセージ→「きょうの1本を見る」ボタン→タップでホームへ遷移することを確認。
+`obDecideRoute()`自体は変更なし。
+
+安全系テスト(SafetyCore 111/111 fixtures)・card-golden 55/55・RecordCore 35/35・
+`npm test` 442・Web版配信ファイル無変更を確認。
+
 ## 2026-07-27 2週間プラン完走お祝いカード(紙吹雪演出)を実装
 
 `TASK-C2-2026-07-27-plan-completion-celebration.md`。alan5独自調査で発見された、2週間プラン

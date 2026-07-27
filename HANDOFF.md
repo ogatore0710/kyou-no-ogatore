@@ -10,6 +10,12 @@ alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微�
 存在しない」問題は、下記の全画面完全性監査タスク#homeで`memoRow`として実装済み（既存の
 `RecordLogic.saveMemo()`を呼ぶだけ）。「ひとことにっき」一覧も含め正常に動作する状態になった。
 
+## ✅ 完了: オンボーディング締めメッセージ+専用ボタン(routes)を実装（2026-07-27）
+`TASK-C2-2026-07-27-onboarding-routes-closing-message.md`。`ONBOARDING_SCRIPT.routes`
+(締めメッセージ+専用CTAボタン)が両OSとも未実装で、anchor相槌の直後に自動で画面遷移して
+いた問題を修正。締めメッセージ表示→専用ボタン表示→タップで初めて遷移、に変更。
+Android実機でquiz/today両ルートを確認済み。詳細はWORKING_NOTES.mdの同日エントリ参照。
+
 ## ✅ 完了: 2週間プラン完走お祝いカード(紙吹雪演出)を実装（2026-07-27）
 `TASK-C2-2026-07-27-plan-completion-celebration.md`。alan5独自調査で発見された、2週間プラン
 完走時のお祝いカード(planDoneCard)と紙吹雪演出(confetti)の欠落を修正。タスク前提の「confetti
