@@ -5,6 +5,14 @@
 ## 体制（2026-07-24〜）
 alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微実装・検収）、appdev（C2）が実行工場。大きい実装タスクはalan5からタスクファイルで届き、appdevが実行して完了報告をドア配達で返す。詳細は[docs/HANDOVER-to-alan5-2026-07-24.md](docs/HANDOVER-to-alan5-2026-07-24.md)。
 
+## ✅ 完了: brag-card-thumbnail.md（2026-07-28）
+`TASK-C2-2026-07-27-brag-card-thumbnail.md`。じまんカードが常に「サムネイルが取れなかった
+ときの姿」(動画タイトル文字表示)で出力されていた欠落を修正。`BragCardRenderer.render()`に
+`thumbnail`引数を追加し、YouTubeサムネイル取得(3秒タイムアウト・失敗時null=従来のフォールバック
+描画)を実装。両OSで実際にサムネイルが載ったカードを実機/シミュレータで確認済み。card-golden
+55/55(両OS)は減らさず回帰確認。判定・記録ロジックは無変更。詳細はWORKING_NOTES.mdの同日
+エントリ参照。
+
 ## ✅ 完了: chips-overflow-and-bubble-pop.md（2026-07-28）
 `TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md`。根本原因はWeb版`.chips`の既定仕様の
 取り違え(既定=折り返し・相談室フッターのチップ行だけが例外の横スクロール)で、ネイティブは

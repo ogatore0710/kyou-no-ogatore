@@ -4,6 +4,35 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 brag-card-thumbnail.md 完了(じまんカードにYouTubeサムネイルを実装)
+
+`TASK-C2-2026-07-27-brag-card-thumbnail.md`。alan5が§B洗い直しの過程で発見: ネイティブの
+`BragCardRenderer.render()`はフォールバック(動画タイトル文字表示)専用の引数しか無く、
+**じまんカードは常に「サムネイルが取れなかったときの姿」で出力されていた**(card-goldenが
+サムネなし前提のため欠落を検出できず、見た目上も題名テキストが入るので気づきにくかった)。
+
+**実装**: index.html:2765-2774 `loadBragThumb()`(3秒タイムアウト・失敗時null)+2876-2889
+`drawBragCard()`のサムネイル分岐(tw=416/thh=234/tx=292/ty=562・角丸18クリップ+テーマ色
+`alpha=0.5`のふち)を1:1移植。
+- Android: `BragCardRenderer.kt`に`suspend fun fetchThumbnail(videoId)`(HttpURLConnection+
+  `withTimeoutOrNull(3000)`。既存の`KyonoAsyncImage`と同じ素朴な非同期読み込みパターン)を追加し、
+  `render()`に`thumbnail: Bitmap? = null`引数を追加(nullなら従来のフォールバック描画へ)。
+  `BragScreen.kt`の「カードをつくる✨」を`scope.launch`でラップし、取得中は`makingCard`で
+  二重タップを防止。
+- iOS: CardCoreは決定的ロジックの1:1移植先のため、ネットワークI/O(`URLSession`+
+  `timeoutIntervalForRequest=3`)は`BragView.swift`側(アプリ層)で行い、`BragCardRenderer.render()`
+  へは結果の`CGImage?`だけを渡す設計(`thumbnail: CGImage? = nil`引数追加)。
+
+**確認方法**: 両OSとも実機/シミュレータで実際にYouTubeサムネイルを取得→角丸クリップ+テーマ色の
+ふち付きでカードに描画されることを確認(スクショ添付)。iOSはverify-worktreeで`Screen.brag`へ
+直行+動画ID自動選択+自動生成のtemp-testコードで検証(タップ自動化が無いため)。Androidも同様に
+temp-testで直接`.brag`へ遷移+自動選択(日本語IME入力がadb input textで扱えず検索UIの実タップ
+経由を断念したため)。フォールバック(サムネなし)経路はcard-golden 55/55(両OS)で回帰確認済み・
+既存55件は減らしていない。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑(208件)・iOS CardCore `swift test`緑
+(card-golden 55/55)・両OSビルド成功。記録・判定ロジックは無変更。Web版配信ファイルは無変更。
+
 ## 2026-07-28 chips-overflow-and-bubble-pop.md 完了(§1〜§5全項目)
 
 alan5が§A独立洗い直しで見つけたチップ表示の欠落一式。当初は個別の見落としに見えたが、
