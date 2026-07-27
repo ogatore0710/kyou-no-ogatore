@@ -4,6 +4,53 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 「はじめの1本ガイド」専用UIを実装(結果画面差し替え+つぎはここ+1日目クリア)
+
+`TASK-C2-2026-07-27-fd-guide-ui-branch.md`(挙動パリティ監査§Aの構造的欠落①・本人承認済みで発注)。
+`HomeLogic.fdActive()`(ガイド判定)は既に動いていたが、ガイド中だけ出る専用UIがAndroid/iOS
+双方に1つも無かった。判定ロジックは無変更・呼ぶだけで、以下3箇所を両OSに実装:
+
+1. **結果画面のガイド専用UI**(app-quiz.js:300-322): `fdGuideActive`のとき「おすすめの3本」を
+   出さず、「きょうはこの1本だけでOK！」見出し+練習宣言吹き出し(chara-hitokotoアバター+
+   相談室botバブルと同じ見た目、OS別もどりかた案内つき)+fdBob指差しヒント「👇 ここを押してみて」
+   (1.4s ease-in-out infinite・translateY 0↔5px)+①だけのhero動画(VideoRowに`hero`パラメータ追加、
+   pink枠+pink-soft地)+「あと2本とくわしい解説は あしたから見られるよ🌱」に差し替え。
+2. **記録直後の「つぎはここ」誘導**(app-record.js:196-208): markDone後、「記録カードを見る」の
+   直上に「👇 つぎは ここを押してみて」を挿入し、ボタンにfd-breathe(1.8s ease-in-out infinite・
+   scale 1↔1.025)を付ける。カード閉じ時のツアー自動起動(fdTourMaybeStart相当・既存実装)が
+   `tourpend`を消費する瞬間に両方片付ける(`fdCardNudgeVisible=false`を追加するだけ)。
+3. **1日目クリア時のお祝い**(app-record.js:140-149): markDone時点の`fd=="go"`(フラグを1へ
+   立てる前の値)を`wasGuide`として捕捉し、節目(ms)が無い場合だけcheerTextを「🎉 1日目クリア！
+   ナイスご自愛！」+card_sampleカードサンプル画像(fdPop=.5s cubic-bezier(.34,1.56,.64,1)の
+   バウンド付きポップイン)+説明文2行に差し替え。節目が同時に成立する場合は節目を優先する
+   Web版と同じ構造(実際には通算1日目とMS最小値3が重ならないための保険)。
+
+**Android実機で一連の流れを通しで確認**(オンボ済み状態からfd="go"・streak.total=0を仕込み、
+実際にクイズ5問→結果画面→hero動画タップ→YouTube→戻る→ホーム→きょうやった！→カード→
+とじる→ツアー自動起動、まで通しで実行):
+- 結果画面がガイド専用UI(見出し・吹き出し・指差し・hero動画・あした案内)で表示されることを確認
+- 「✅ 1日目の記録をつけにいく」ボタン文言(fdGuideActive分岐)を確認
+- markDone後、cheerTextの代わりに1日目クリア祝い+card_sample画像が表示されることを確認
+- 「つぎはここ」ヒント+記録カードボタンの呼吸アニメを確認(ボタン幅をピクセル測定:
+  315px⇄323px≒1.025倍で仕様どおりに実測)
+- カードを閉じるとツアーが自動起動し、閉じた後はヒント・呼吸・祝いカードとも消えていることを確認
+
+**iOSはシミュレータで目視確認**(検証専用worktree(`scripts/verify-worktree.sh`)を使い、
+起動画面を一時的に結果画面へ固定+シミュレータのアプリコンテナに`fd="go"`のstore fixtureを
+直接投入して検証。仮コードはeven-sync監視外のworktreeで完結させ、検証後はworktreeごと破棄・
+アプリも一旦アンインストールして通常状態に戻した): 結果画面のガイド専用UI(見出し・吹き出し・
+iOS版もどりかた文言・指差しヒント)の表示を確認。
+
+**教訓(store手編集の罠)**: 実機のkyono-store.jsonを直接書き換えてテスト用状態を仕込む際、
+RecordStoreの内部表現は「全キーの値が二重JSONエンコードされた文字列」(`Map<String,String>`)
+であることを忘れ、`kyono_onboarded`等に生のPython bool/Noneを入れてしまい、store全体が
+沈黙的にロード失敗してオンボーディング画面に強制送還される事故が発生(原因特定に時間を要した)。
+詳細と正しい手編集方法はメモリに記録([[kyono-recordstore-double-json-encoding]])。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS SafetyCore(111+8)/
+RecordCore(35)/CardCore(16+55)緑。判定ロジック(`HomeLogic.fdActive`等)は無変更・UIブランチ
+追加のみ。
+
 ## 2026-07-27 挙動パリティ監査 §A(アニメーション10種+transition)完了・修正4件+構造的欠落2件を発見
 
 `TASK-C2-2026-07-27-behavior-parity-audit.md` §A。Web版の`@keyframes`10種+`transition`6箇所を
