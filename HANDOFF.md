@@ -2,6 +2,31 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: quiz-result-reach-parity.md §4(Q3/Q4図解)・§7(タップヒント順序)(2026-07-28)
+`TASK-C2-2026-07-28-quiz-result-reach-parity.md`の残りのうち2件。
+
+**§4(中)Q3「kenko」/Q4「ashi」の判定基準イラスト**: app-quiz.js:92-137 `QUIZ_ART[2]`/`QUIZ_ART[3]`の
+移植。Q1(momo)/Q2(koka)は実写、Q3/Q4だけが手描きSVG(判定基準の可視化=はな/あごの高さ目安線、
+かかとの浮きのズーム図解)で、写真が無いことをもって以前「装飾で移植対象外」と誤認され欠落して
+いた。ローカルにSVGラスタライズ環境(rsvg-convert/inkscape/cairosvg/sharp)が無く、`KyonoIcons.kt`/
+`.swift`の既存Canvas移植パターンに倣い、判定基準そのもの(高さ目安線・ラベル・かかとの浮きの隙間)
+は正確に保ちつつ、装飾的な手描き曲線は簡略化したベクター図として実装(タスク文が明示的に許容する
+「実装方式は任せます」の範囲内)。新設`QuizArt.kt`/`QuizArt.swift`。
+
+**§7(小・Android限定)タップヒントの順序**: `OnboardingScreens.kt`で「👇タップしてえらんでね」が
+写真/図解より先に描画されており、Q1/Q2の実写の上に指マークが浮いて見える逆順になっていた
+(iOSは元々`タイトル→補足→図版→ヒント→選択肢`の正しい順で問題なし)。Android側をiOSと同じ順序に
+修正。
+
+実機/シミュレータで両OS・Q3/Q4とも視覚確認済み(Android: エミュレータ実タップでオンボ完走→
+かたさチェックQ3/Q4到達しスクショ確認。iOS: simctlにタップ操作が無い制約のため、既存の
+「一時的にルートビューを差し替えてスクショ取得→取得後は実際のHomeView/RootViewへ復元」手順
+(masterplan §4-2)でQuizArtKenko/QuizArtAshiの両方を確認)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS swift test(SafetyCore8/8・
+RecordCore40/40・CardCore16/16)緑・両OSビルド成功。判定ロジックは無変更。
+残り(§5小物4件・§6 Androidシステムもどる)は未着手。
+
 ## ✅ 完了: obu-voices-diary-and-navigation.md §2-4(2026-07-28)
 `TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md`のうち優先度上位3件(alan5指定順: 2→3・4→1)。
 

@@ -4,6 +4,31 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: quiz-result-reach-parity §4・§7(Q3/Q4図解・Android tap-hint順序)
+
+`TASK-C2-2026-07-28-quiz-result-reach-parity.md`の残り2件。
+
+**§4**: `app-quiz.js:92-137`のQUIZ_ART[2]/[3](Q3「kenko」胸の前で両ひじ上げ／Q4「ashi」かかと
+つけしゃがみ)は手描きSVGで判定基準そのもの(はな/あごの高さ目安線・かかとの浮きのズーム図解)を
+表現しており、Q1/Q2(実写)と違って写真が無いことから「装飾で移植不要」と誤認され欠落していた。
+ローカルにSVGラスタライズ手段(rsvg-convert/inkscape/cairosvg/sharp)が無く、`KyonoIcons.kt/.swift`の
+既存Canvas移植パターン(`s = size.width / viewBoxWidth`のスケール係数+moveTo/lineTo/
+quadraticBezierTo直訳)を踏襲し、`QuizArt.kt`/`QuizArt.swift`を新設。判定基準の可視化(目安線・
+ラベル・かかとの浮きの隙間)は正確に保持しつつ装飾的な曲線は簡略化(タスク文が明示的に許容)。
+
+**§7**: Android版`OnboardingScreens.kt`のみ、タップヒント「👇タップしてえらんでね」が図版より先に
+描画される逆順バグがあった(iOSは元から`タイトル→補足→図版→ヒント→選択肢`の正しい順)。Android側を
+iOSと同じ順序に修正(art→hint→optsの`when(q.key)`ブロック)。
+
+**iOS実機確認の制約への対処**: このリポジトリのiOSシミュレータにはタップ操作の自動化手段が無い
+(過去のWORKING_NOTES記載どおり)。今回もmasterplan §4-2の既存手順(`KyouNoOgatoreApp.swift`の
+WindowGroup中身を一時的にQuizArtKenko/QuizArtAshiだけのVStackへ差し替え→ビルド→simctl screenshot→
+確認後に`RootView(store:)`へ復元)でQ3/Q4双方の図解を視覚確認。Androidはエミュレータの実タップ
+(uiautomator dump+座標特定)でオンボ完走→Q3/Q4到達しスクショで確認。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS swift test
+(SafetyCore8/8・RecordCore40/40・CardCore16/16)緑・両OSビルド成功。判定ロジック無変更。
+
 ## 2026-07-28 追記: obu-voices-diary-and-navigation §2-4(FAB表示範囲・タブバー・もどる導線)
 
 `TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md`。alan5指定の優先度(2→3・4→1)に従い
