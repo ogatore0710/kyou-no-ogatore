@@ -218,7 +218,11 @@ private struct MyRecordContentView: View {
                         }
                         HStack(alignment: .lastTextBaseline, spacing: 4) {
                             Text("いま連続").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                            Text("\(streak.count)").kyonoFont(.black900, size: 22).foregroundColor(colors.teal)
+                            // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:277
+                            // effectiveStreakCount(st)の1:1移植。休みが券でもつなげない期間を挟んだ後は
+                            // 保存値(streak.count)そのままでなく0を表示する(表示専用ガード)。
+                            Text("\(RecordLogic.effectiveStreakCount(store, streak, now: Date()))")
+                                .kyonoFont(.black900, size: 22).foregroundColor(colors.teal)
                             Text("日").kyonoFont(.extraBold800, size: 13).foregroundColor(colors.ink)
                         }
                     }

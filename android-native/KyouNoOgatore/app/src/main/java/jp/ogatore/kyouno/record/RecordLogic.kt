@@ -199,6 +199,23 @@ object RecordLogic {
         return true
     }
 
+    // index.html:1892-1900 streakBrokenNow/effectiveStreakCountの1:1移植(TASK-C2-2026-07-28-
+    // myrecord-settings-tour-parity.md §1)。「数日あいて券でもつなげない時は、古い連続を見せない
+    // (押した瞬間に消えたと誤解させない)」ための表示専用ガード。保存値(StreakData.count)そのものは
+    // 書き換えない(markDone時に正しく再計算される既存の流れはそのまま)。
+    fun streakBrokenNow(store: RecordStore, st: StreakData, now: Instant, zone: ZoneId = ZoneId.systemDefault()): Boolean {
+        val today = todayStr(now, zone)
+        if (st.dates.contains(today) || st.dates.isEmpty()) return false
+        val last = st.dates.last()
+        val gapNow = daysBetween(last, today)
+        if (gapNow < 2) return false
+        val missed = (1 until gapNow).map { addDays(last, it) }
+        return !canBridgeFreezes(store, missed)
+    }
+
+    fun effectiveStreakCount(store: RecordStore, st: StreakData, now: Instant, zone: ZoneId = ZoneId.systemDefault()): Int =
+        if (streakBrokenNow(store, st, now, zone)) 0 else st.count
+
     // ---- daylog(その日見た動画。最大400件トリム) ----
     @Serializable
     data class DaylogEntry(val v: String, val t: String, val c: Int)

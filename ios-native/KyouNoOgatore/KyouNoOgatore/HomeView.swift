@@ -132,6 +132,8 @@ struct HomeView: View {
 
     private var today: String { RecordLogic.todayStr(now: Date()) }
     private var did: Bool { streak.dates.contains(today) }
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:48の1:1移植。
+    private var streakBrokenNow: Bool { !did && RecordLogic.streakBrokenNow(store, streak, now: Date()) }
     private var fdFocusOn: Bool { HomeLogic.fdFocusHomeActive(fd: fd, streakTotal: streak.total, fdday: fdday, today: today) }
     private var checked: Bool { typeResult != nil && quizTypes[typeResult!.key] != nil }
 
@@ -272,7 +274,7 @@ struct HomeView: View {
             // index.html:686 #streakCard(続けた日数・通算)相当。
             KyonoCard {
                 KyonoSectionTitle("📅 続けた日数（通算）")
-                KyonoStreakText(streak.total, streakCount: streak.count)
+                KyonoStreakText(streak.total, streakCount: streak.count, brokenNow: streakBrokenNow)
                 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home):
                 // index.html:693 #fdDoneStaticNudge(はじめの1本ガイド中・未記録のときだけ出す常時案内)の
                 // 1:1移植。HomeLogic.fdActive(fd/streakTotalのみ・fdday条件なし)をそのまま使う。

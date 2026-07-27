@@ -209,6 +209,23 @@ public enum RecordLogic {
         return true
     }
 
+    // index.html:1892-1900 streakBrokenNow/effectiveStreakCountの1:1移植(TASK-C2-2026-07-28-
+    // myrecord-settings-tour-parity.md §1)。「数日あいて券でもつなげない時は、古い連続を見せない
+    // (押した瞬間に消えたと誤解させない)」ための表示専用ガード。保存値(StreakData.count)そのものは
+    // 書き換えない(markDone時に正しく再計算される既存の流れはそのまま)。
+    public static func streakBrokenNow(_ store: RecordStore, _ st: StreakData, now: Date, timeZone: TimeZone = .current) -> Bool {
+        let today = todayStr(now: now, timeZone: timeZone)
+        guard !st.dates.contains(today), let last = st.dates.last else { return false }
+        let gapNow = daysBetween(last, today)
+        if gapNow < 2 { return false }
+        let missed = (1..<gapNow).map { addDays(last, $0) }
+        return !canBridgeFreezes(store, missedDates: missed)
+    }
+
+    public static func effectiveStreakCount(_ store: RecordStore, _ st: StreakData, now: Date, timeZone: TimeZone = .current) -> Int {
+        streakBrokenNow(store, st, now: now, timeZone: timeZone) ? 0 : st.count
+    }
+
     // ---- daylog(その日見た動画。最大400件トリム) ----
     public struct DaylogEntry: Codable, Equatable {
         public let v: String

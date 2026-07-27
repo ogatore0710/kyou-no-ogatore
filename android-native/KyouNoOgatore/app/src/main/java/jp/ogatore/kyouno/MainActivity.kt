@@ -636,6 +636,9 @@ fun HomeScreen(
     var fdday by remember { mutableStateOf(store.get("fdday", null as String?)) }
     val today = RecordLogic.todayStr(Instant.now())
     val did = streak.dates.contains(today)
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:48の1:1移植。
+    // 数日あいて券でもつなげない時は、古い連続を見せない(押した瞬間に消えたと誤解させない)。
+    val streakBrokenNow = !did && RecordLogic.streakBrokenNow(store, streak, Instant.now())
 
     // app-env.js:60 refreshDay相当。visibilitychangeの代わりにonResumeで日付またぎ・pendingNudgeを確認する
     fun checkRefreshDay() {
@@ -863,7 +866,11 @@ fun HomeScreen(
                 Text("📅 続けた日数（通算）", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "通算 ${streak.total} 日" + if (streak.count >= 2) "・いま${streak.count}日連続" else "",
+                    "通算 ${streak.total} 日" + when {
+                        streakBrokenNow -> "・きょうやると新しい章のスタート🌱"
+                        streak.count >= 2 -> "・いま${streak.count}日連続"
+                        else -> ""
+                    },
                     color = colors.pink, fontSize = 20.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.testTag("streakText"),
                 )
@@ -1356,7 +1363,14 @@ fun MyRecordScreen(
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text("いま連続", color = colors.sub, fontSize = 13.sp)
                         Spacer(Modifier.width(4.dp))
-                        Text("${streak.count}", color = colors.teal, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histStreak"))
+                        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:277
+                        // effectiveStreakCount(st)の1:1移植。休みが券でもつなげない期間を挟んだ後は
+                        // 保存値(streak.count)そのままでなく0を表示する(押した瞬間に消えたと誤解
+                        // させないための表示専用ガード。保存値自体はmarkDone時に正しく再計算される)。
+                        Text(
+                            "${RecordLogic.effectiveStreakCount(store, streak, Instant.now())}",
+                            color = colors.teal, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histStreak"),
+                        )
                         Text("日", fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, color = colors.ink)
                     }
                 }

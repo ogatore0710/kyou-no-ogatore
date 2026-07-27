@@ -126,6 +126,60 @@ class RecordLogicTest {
         assertFalse(RecordLogic.canBridgeFreezes(store, listOf("2026-07-24")))
     }
 
+    // ---- streakBrokenNow/effectiveStreakCount(TASK-C2-2026-07-28-myrecord-settings-tour-parity.md
+    // §1): 数日あいて券でもつなげない時は、古い連続を見せない ----
+    @Test
+    fun streakNotBrokenWhenTodayAlreadyDone() {
+        val seed = mapOf("kyono_streak2" to """{"dates":["2026-07-10","2026-07-25"],"count":5,"total":9}""")
+        val store = RecordStore.inMemory(seed)
+        val st = RecordLogic.loadStreak(store)
+        assertFalse(RecordLogic.streakBrokenNow(store, st, instant(2026, 7, 25, 10, 0), jst))
+        assertEquals(5, RecordLogic.effectiveStreakCount(store, st, instant(2026, 7, 25, 10, 0), jst))
+    }
+
+    @Test
+    fun streakNotBrokenWhenGapUnderTwoDays() {
+        // 前回記録は昨日(gap=1)。まだ「今日中に記録すれば連続」の範囲なので途切れ確定ではない
+        val seed = mapOf("kyono_streak2" to """{"dates":["2026-07-24"],"count":5,"total":9}""")
+        val store = RecordStore.inMemory(seed)
+        val st = RecordLogic.loadStreak(store)
+        assertFalse(RecordLogic.streakBrokenNow(store, st, instant(2026, 7, 25, 10, 0), jst))
+        assertEquals(5, RecordLogic.effectiveStreakCount(store, st, instant(2026, 7, 25, 10, 0), jst))
+    }
+
+    @Test
+    fun streakNotBrokenWhenGapBridgeableByFreezes() {
+        // 前回記録から2日欠席(gap=2・1日分の空き)・券残数(月3枚)の範囲内なので橋渡し可能=途切れではない
+        val seed = mapOf("kyono_streak2" to """{"dates":["2026-07-23"],"count":5,"total":9}""")
+        val store = RecordStore.inMemory(seed)
+        val st = RecordLogic.loadStreak(store)
+        assertFalse(RecordLogic.streakBrokenNow(store, st, instant(2026, 7, 25, 10, 0), jst))
+        assertEquals(5, RecordLogic.effectiveStreakCount(store, st, instant(2026, 7, 25, 10, 0), jst))
+    }
+
+    @Test
+    fun streakBrokenWhenGapNotBridgeableByFreezes() {
+        // 1週間休み(gap=7・6日分の空き)・券予算(月3枚)を使い切っていて橋渡し不可=途切れ確定。
+        // 保存値(count=12)はそのままだが、表示専用のeffectiveStreakCountは0になる。
+        val seed = mapOf(
+            "kyono_streak2" to """{"dates":["2026-07-18"],"count":12,"total":30}""",
+            "kyono_freeze2" to """{"2026-07":3}""",
+        )
+        val store = RecordStore.inMemory(seed)
+        val st = RecordLogic.loadStreak(store)
+        assertTrue(RecordLogic.streakBrokenNow(store, st, instant(2026, 7, 25, 10, 0), jst))
+        assertEquals(0, RecordLogic.effectiveStreakCount(store, st, instant(2026, 7, 25, 10, 0), jst))
+        // 保存値そのものは書き換わっていない(表示専用ガードであることの確認)
+        assertEquals(12, st.count)
+    }
+
+    @Test
+    fun streakNotBrokenWhenNoDatesYet() {
+        val store = RecordStore.inMemory()
+        val st = RecordLogic.loadStreak(store)
+        assertFalse(RecordLogic.streakBrokenNow(store, st, instant(2026, 7, 25, 10, 0), jst))
+    }
+
     // ---- daylog: 400件トリム ----
     @Test
     fun daylogTrimsTo400() {

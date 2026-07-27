@@ -115,9 +115,14 @@ struct KyonoStreakText: View {
     @Environment(\.kyonoColors) private var colors
     let total: Int
     let streakCount: Int
-    init(_ total: Int, streakCount: Int) { self.total = total; self.streakCount = streakCount }
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:48の1:1移植。
+    // 数日あいて券でもつなげない時は、古い連続を見せない(押した瞬間に消えたと誤解させない)。
+    var brokenNow: Bool = false
+    init(_ total: Int, streakCount: Int, brokenNow: Bool = false) {
+        self.total = total; self.streakCount = streakCount; self.brokenNow = brokenNow
+    }
     var body: some View {
-        Text("通算 \(total) 日" + (streakCount >= 2 ? "・いま\(streakCount)日連続" : ""))
+        Text("通算 \(total) 日" + (brokenNow ? "・きょうやると新しい章のスタート🌱" : (streakCount >= 2 ? "・いま\(streakCount)日連続" : "")))
             .kyonoFont(.black900, size: 20)
             .foregroundColor(colors.pink)
     }
