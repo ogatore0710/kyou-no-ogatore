@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 
 package jp.ogatore.kyouno
 
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -136,9 +137,13 @@ fun GuideScreen(
             // 使い方タブ再入場リンク欠落修正タスク(TASK-C2-2026-07-26-guide-reentry-links.md):
             // index.html:970 .daychip×2(obReenterLink/obTourLink)の1:1移植。オンボーディング・
             // ツアー本体のロジックは変更せず、既存フロー(Screen.Onboarding/Screen.Tour)を呼ぶだけ。
-            Row(
+            // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4-2: index.html:970
+            // display:flex;flex-wrap:wrapの1:1移植。幅が足りないときはラベルが割れるのではなく
+            // ボタンごと下の行に落ちるようRowからFlowRowへ変更。
+            FlowRow(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     "🌱 はじめてガイド", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
@@ -148,7 +153,6 @@ fun GuideScreen(
                         .padding(horizontal = 16.dp, vertical = 9.dp)
                         .testTag("obReenterLink"),
                 )
-                Spacer(Modifier.width(10.dp))
                 Text(
                     "📖 使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier
@@ -188,27 +192,28 @@ fun GuideScreen(
             // 「❓ よくあるしつもん」チップが目次に欠けていた(gd-help以外の6項目のみ)。FAQ本体のコードには
             // 触れず、既存のfaqAnchorRequesterへ大まかにスクロールするだけ(gJump('gd-faq')相当・
             // 特定のグループを開かない=jumpToFaqとは違い openGroups/openItemsは変更しない)。
-            Row(
-                Modifier
+            // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4: index.html:178
+            // display:flex;flex-wrap:wrap;justify-content:centerの1:1移植。横一列(旧LazyRow)だと
+            // 7個中3個しか見えず「❓ よくあるしつもん」等が隠れていたため、FlowRowで折り返して
+            // 全項目を常に見せる。
+            GuideTocChipsFlow(
+                listOf(
+                    "🆘 困ったときは" to "gd-help",
+                    "🌅 はじめての日" to "gd-start",
+                    "▶ まいにちの流れ" to "gd-daily",
+                    "🛡 記録を守る" to "gd-mamori",
+                    "🎫 つづくしくみ" to "gd-tsuzuku",
+                    "📅 マイ記録" to "gd-myrec",
+                    "❓ よくあるしつもん" to "gd-faq",
+                ),
+                // gd-faqはdetailsではない(常時カード)ため、sectionOpen["gd-faq"]=trueは無害な未使用
+                // エントリになるだけ(他の6項目と同じjumpToSectionを使い回してよい)。
+                onTap = { id -> jumpToSection(id) },
+                modifier = Modifier
                     .fillMaxWidth()
                     .onGloballyPositioned { coords -> anchorY["gd-toc"] = coords.positionInRoot().y }
                     .testTag("gtoc"),
-            ) {
-                LazyColumnFreeChipRow(
-                    listOf(
-                        "🆘 困ったときは" to "gd-help",
-                        "🌅 はじめての日" to "gd-start",
-                        "▶ まいにちの流れ" to "gd-daily",
-                        "🛡 記録を守る" to "gd-mamori",
-                        "🎫 つづくしくみ" to "gd-tsuzuku",
-                        "📅 マイ記録" to "gd-myrec",
-                        "❓ よくあるしつもん" to "gd-faq",
-                    ),
-                    // gd-faqはdetailsではない(常時カード)ため、sectionOpen["gd-faq"]=trueは無害な未使用
-                    // エントリになるだけ(他の6項目と同じjumpToSectionを使い回してよい)。
-                    onTap = { id -> jumpToSection(id) },
-                )
-            }
+            )
             Text(
                 "下の見出しカードは タップするとひらきます", color = colors.sub, fontSize = 13.sp, textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 14.dp),
@@ -435,14 +440,17 @@ fun GuideScreen(
     }
 }
 
-// index.html:982-987 .gtoc(目次チップ・横並び)の1:1移植。6個中央寄せで折り返す簡易実装
-// (Web版はflex-wrapで2段になるが、Composeの標準コンポーネントで最短に組むためLazyRow横スクロールで
-// 代替。全項目に到達できる機能自体は同一)。
+// index.html:982-987 .gtoc(目次チップ・横並び+折り返し・中央寄せ)の1:1移植。7個すべてが常に
+// 見える(TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4・旧LazyRow横スクロールからの修正)。
 @Composable
-private fun LazyColumnFreeChipRow(chips: List<Pair<String, String>>, onTap: (String) -> Unit) {
+private fun GuideTocChipsFlow(chips: List<Pair<String, String>>, onTap: (String) -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalKyonoColors.current
-    androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(chips) { (label, id) ->
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        chips.forEach { (label, id) ->
             Text(
                 label, color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
                 modifier = Modifier

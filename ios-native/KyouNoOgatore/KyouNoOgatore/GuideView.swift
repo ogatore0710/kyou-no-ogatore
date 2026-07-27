@@ -122,8 +122,10 @@ private struct GuideContentView: View {
 
                     // 使い方タブ再入場リンク欠落修正タスク(TASK-C2-2026-07-26-guide-reentry-links.md):
                     // index.html:970 .daychip×2(obReenterLink/obTourLink)の1:1移植。
-                    HStack(spacing: 10) {
-                        Spacer()
+                    // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4-2: index.html:970
+                    // display:flex;flex-wrap:wrapの1:1移植。幅が足りないときはラベルが割れるのではなく
+                    // ボタンごと下の行に落ちるようHStackからFlowLayoutへ変更。
+                    FlowLayout(spacing: 10, lineSpacing: 8, alignment: .center) {
                         Text("🌱 はじめてガイド")
                             .kyonoFont(.extraBold800, size: 14).foregroundColor(colors.tealInk)
                             .padding(.horizontal, 16).padding(.vertical, 9)
@@ -134,8 +136,8 @@ private struct GuideContentView: View {
                             .padding(.horizontal, 16).padding(.vertical, 9)
                             .background(Capsule().fill(colors.yellowSoft))
                             .onTapGesture(perform: onReenterTour)
-                        Spacer()
                     }
+                    .frame(maxWidth: .infinity)
                     Text("「はじめてガイド」＝さいしょの質問からやりなおす／「使い方ツアー」＝つかいかたをスライドで見る")
                         .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         .multilineTextAlignment(.center)
@@ -157,17 +159,20 @@ private struct GuideContentView: View {
                     }
 
                     // ---- 目次チップ(index.html:980-989) ----
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(gtocChips, id: \.id) { chip in
-                                Text(chip.label)
-                                    .kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
-                                    .padding(.horizontal, 14).padding(.vertical, 10)
-                                    .background(Capsule().fill(colors.line))
-                                    .onTapGesture { jumpToSection(proxy, id: chip.id) }
-                            }
+                    // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4: index.html:178
+                    // display:flex;flex-wrap:wrap;justify-content:centerの1:1移植。横スクロール
+                    // (旧ScrollView)だと7個中3個しか見えず「❓ よくあるしつもん」等が隠れていたため、
+                    // FlowLayoutで折り返して全項目を常に見せる。
+                    FlowLayout(spacing: 8, lineSpacing: 8, alignment: .center) {
+                        ForEach(gtocChips, id: \.id) { chip in
+                            Text(chip.label)
+                                .kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
+                                .padding(.horizontal, 14).padding(.vertical, 10)
+                                .background(Capsule().fill(colors.line))
+                                .onTapGesture { jumpToSection(proxy, id: chip.id) }
                         }
                     }
+                    .frame(maxWidth: .infinity)
                     .id("gtoc")
                     Text("下の見出しカードは タップするとひらきます")
                         .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
@@ -492,5 +497,65 @@ private struct GdSegmentMock: View {
         }
         .padding(4)
         .background(RoundedRectangle(cornerRadius: 16).fill(colors.line))
+    }
+}
+
+// TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4/§4-2: index.html:178,970の
+// display:flex;flex-wrap:wrapの1:1移植。SwiftUIに標準の折り返しレイアウトが無いため、Layout
+// プロトコル(iOS16+)で最小限のflex-wrap相当を実装する。子要素は幅が足りなければ丸ごと次の行へ
+// 落ちる(Web版と同じ「ラベルは割れず、ボタン単位で折り返す」挙動)。
+private struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    var lineSpacing: CGFloat = 8
+    var alignment: HorizontalAlignment = .center
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        let rows = computeRows(maxWidth: maxWidth, subviews: subviews)
+        let height = rows.reduce(0) { $0 + $1.height } + CGFloat(max(0, rows.count - 1)) * lineSpacing
+        let width = rows.map { $0.width }.max() ?? 0
+        return CGSize(width: maxWidth.isFinite ? maxWidth : width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let rows = computeRows(maxWidth: bounds.width, subviews: subviews)
+        var y = bounds.minY
+        var idx = 0
+        for row in rows {
+            var x: CGFloat
+            switch alignment {
+            case .leading: x = bounds.minX
+            case .trailing: x = bounds.maxX - row.width
+            default: x = bounds.minX + (bounds.width - row.width) / 2
+            }
+            for size in row.sizes {
+                subviews[idx].place(at: CGPoint(x: x, y: y + (row.height - size.height) / 2), proposal: ProposedViewSize(size))
+                x += size.width + spacing
+                idx += 1
+            }
+            y += row.height + lineSpacing
+        }
+    }
+
+    private struct Row { let sizes: [CGSize]; let width: CGFloat; let height: CGFloat }
+
+    private func computeRows(maxWidth: CGFloat, subviews: Subviews) -> [Row] {
+        var rows: [Row] = []
+        var sizes: [CGSize] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if !sizes.isEmpty && width + spacing + size.width > maxWidth {
+                rows.append(Row(sizes: sizes, width: width, height: height))
+                sizes = []; width = 0; height = 0
+            }
+            if !sizes.isEmpty { width += spacing }
+            sizes.append(size)
+            width += size.width
+            height = max(height, size.height)
+        }
+        if !sizes.isEmpty { rows.append(Row(sizes: sizes, width: width, height: height)) }
+        return rows
     }
 }
