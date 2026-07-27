@@ -158,7 +158,7 @@ class MainActivity : ComponentActivity() {
                 labelSmall = baseTypography.labelSmall.copy(fontFamily = mplus1p),
             )
             MaterialTheme(typography = kyonoTypography) {
-                KyonoTheme(themeSetting) {
+                KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
                     val colors = LocalKyonoColors.current
                     Surface(modifier = Modifier.fillMaxSize(), color = colors.bg) {
                         // ネイティブ移植「見た目のWeb版パリティ移植」タスク(下部タブバー): index.html:1158-1164
@@ -512,7 +512,7 @@ fun HomeScreen(
     var planCelebrated by remember { mutableStateOf(false) }
     val themeSetting = store.get("theme", "auto")
 
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         Column(
             modifier = Modifier
@@ -1011,7 +1011,7 @@ fun MyRecordScreen(
 ) {
     val context = LocalContext.current
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }
         var doneDates by remember { mutableStateOf(streak.dates.toSet()) }

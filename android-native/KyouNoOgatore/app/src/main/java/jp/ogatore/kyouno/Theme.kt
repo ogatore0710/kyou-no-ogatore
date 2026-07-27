@@ -14,7 +14,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -160,8 +162,15 @@ fun resolveKyonoColors(themeSetting: String, tick: Int = 0): KyonoColors {
     return if (dark) KyonoDarkColors else KyonoLightColors
 }
 
+// TASK-C2-2026-07-27-text-size-accessibility.md: index.html:87 body.bigtext{zoom:1.18}の1:1移植。
+// Web版は既定でbigtext=true(2026-07-12本人フィードバック・対象ユーザー50-60代)。OS側のフォント
+// スケール(ユーザー補助設定)と掛け合わさって極端になりすぎないよう上限(2.2倍)を設ける
+// (検収基準「アプリ大きめ+端末最大でもレイアウトが破綻しない」への対応)。
+const val KYONO_BIG_TEXT_SCALE = 1.18f
+const val KYONO_MAX_FONT_SCALE = 2.2f
+
 @Composable
-fun KyonoTheme(themeSetting: String, content: @Composable () -> Unit) {
+fun KyonoTheme(themeSetting: String, bigText: Boolean = true, content: @Composable () -> Unit) {
     // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
     // 1:1移植。開いたまま19時/5時の境界をまたいでもテーマが追従するよう、フォアグラウンド中は
     // 60秒ごとに再評価する。
@@ -190,5 +199,12 @@ fun KyonoTheme(themeSetting: String, content: @Composable () -> Unit) {
             controller.isAppearanceLightNavigationBars = !dark
         }
     }
-    CompositionLocalProvider(LocalKyonoColors provides colors, content = content)
+    val baseDensity = LocalDensity.current
+    val scaledFontScale = (baseDensity.fontScale * (if (bigText) KYONO_BIG_TEXT_SCALE else 1f))
+        .coerceAtMost(KYONO_MAX_FONT_SCALE)
+    CompositionLocalProvider(
+        LocalKyonoColors provides colors,
+        LocalDensity provides Density(baseDensity.density, scaledFontScale),
+        content = content,
+    )
 }

@@ -68,7 +68,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
     val context = LocalContext.current
     val themeSetting = store.get("theme", "auto")
 
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         var theme by remember { mutableStateOf(store.get("theme", "auto")) }
         var bigtext by remember { mutableStateOf(store.get("bigtext", true)) }

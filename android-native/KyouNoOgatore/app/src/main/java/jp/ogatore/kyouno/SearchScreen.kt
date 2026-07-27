@@ -159,7 +159,7 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
 @Composable
 fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val context = LocalContext.current
         val dark = colors.bg == KyonoDarkColors.bg
@@ -369,7 +369,7 @@ fun openMailIntent(context: Context, to: String, subject: String, body: String):
 @Composable
 fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val catalog = remember { CatalogLoader.shared.sortedWith(compareByDescending<CatalogVideo> { it.y }.thenBy { it.t }) }
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {

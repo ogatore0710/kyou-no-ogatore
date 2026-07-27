@@ -214,7 +214,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
     }
 
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val dark = colors.bg == KyonoDarkColors.bg
         Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
@@ -490,7 +490,7 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     var showGoHomeConfirm by remember { mutableStateOf(false) }
 
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val dark = colors.bg == KyonoDarkColors.bg
         val q = activeQuestions.getOrNull(qi)
@@ -627,7 +627,7 @@ fun ResultScreen(
     val fdGuideActive = remember { HomeLogic.fdActive(store.get("fd", null as String?), RecordLogic.loadStreak(store).total) }
     // ResultScreenはRecordStoreを従来受け取らなかったが、rSoudanLink表示条件(既存のSafetyKBLoader
     // 読み込み有無)には依存しない前提で常時表示にする(ネイティブはKBを起動時に同期読み込み済み)。
-    KyonoTheme("auto") {
+    KyonoTheme("auto", bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         Column(
             Modifier
@@ -863,7 +863,7 @@ const val OB_TOUR_CLOSING_TITLE = "🌱 これで準備ばっちり！"
 fun TourScreen(showClosing: Boolean, onDone: () -> Unit) {
     var si by remember { mutableStateOf(0) }
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
-    KyonoTheme("auto") {
+    KyonoTheme("auto", bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
             if (si < OB_TOUR_SLIDES.size) {

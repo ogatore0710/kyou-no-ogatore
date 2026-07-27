@@ -77,7 +77,7 @@ fun GuideScreen(
     onOpenMyRecord: () -> Unit,
 ) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val dark = colors.bg == KyonoDarkColors.bg
         var query by remember { mutableStateOf("") }

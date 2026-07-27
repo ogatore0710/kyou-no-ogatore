@@ -52,7 +52,7 @@ import java.time.Instant
 @Composable
 fun BragScreen(store: RecordStore, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val context = LocalContext.current
         val catalog = remember { CatalogLoader.shared }

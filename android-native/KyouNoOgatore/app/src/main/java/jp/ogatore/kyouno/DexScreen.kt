@@ -52,7 +52,7 @@ import jp.ogatore.kyouno.record.RecordStore
 @Composable
 fun DexScreen(store: RecordStore, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val streak = remember { RecordLogic.loadStreak(store) }
         val existing = remember { store.get("rotAssign", emptyMap<String, Int>()) }

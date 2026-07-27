@@ -283,7 +283,7 @@ fun SoudanSheet(
     // Phase 3: index.html:459-489 .sd-sheet/.sd-head/.sd-b/.chip/.catbtnの1:1移植。見た目の変更のみで、
     // 上の判定・状態管理ロジック(applyResponse/chipTap/sendText等)には一切手を入れていない。
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         Column(Modifier.fillMaxSize().background(colors.bg)) {
             // index.html:461-465 .sd-head(ヘッダー・円形×クローズボタン)

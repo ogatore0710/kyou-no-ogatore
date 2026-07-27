@@ -50,7 +50,7 @@ import jp.ogatore.kyouno.record.RecordStore
 @Composable
 fun ObuScreen(store: RecordStore, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val posts = remember {
             ObuLoader.shared.sortedWith(

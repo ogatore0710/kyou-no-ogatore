@@ -26,7 +26,7 @@ import jp.ogatore.kyouno.record.RecordStore
 @Composable
 fun DiaryScreen(store: RecordStore, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         // index.html:269 keys=Object.keys(memos).sort().reverse().slice(0,7)の1:1移植(新しい順に最大7件)。
         val entries = remember { RecordLogic.loadMemos(store).entries.sortedByDescending { it.key }.take(7) }

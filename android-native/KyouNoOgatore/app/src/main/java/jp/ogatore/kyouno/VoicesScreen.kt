@@ -43,7 +43,7 @@ import java.time.Instant
 @Composable
 fun VoicesScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
     val themeSetting = store.get("theme", "auto")
-    KyonoTheme(themeSetting) {
+    KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val today = remember { RecordLogic.todayStr(Instant.now()) }
         val todays = remember { VoicesLogic.pickDaily(today) }
