@@ -27,6 +27,7 @@ struct KyonoCharaImage: View {
 // translateY 0↔5px)の1:1移植。はじめの1本ガイドの指差しヒント「👇 ここを押してみて」用。
 struct FdBobText: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let text: String
     @State private var bob = false
 
@@ -38,6 +39,8 @@ struct FdBobText: View {
             .frame(maxWidth: .infinity, alignment: .center)
             .offset(y: bob ? 5 : 0)
             .onAppear {
+                // §D: index.html:214-220 fd-pointはprefers-reduced-motion:no-preference時のみ発火する。
+                guard !reduceMotion else { return }
                 withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) { bob = true }
             }
     }

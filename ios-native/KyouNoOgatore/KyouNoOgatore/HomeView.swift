@@ -69,6 +69,7 @@ struct HomeView: View {
     var scrollToTodayPending: Binding<Bool> = .constant(false)
 
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     @State private var streak: RecordLogic.StreakData
@@ -330,7 +331,12 @@ struct HomeView: View {
                         Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                     }
-                    .transition(.scale(scale: 0).combined(with: .opacity).animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5)))
+                    // §D: index.html:214-220 fd-cardpopはprefers-reduced-motion:no-preference時のみ発火する。
+                    .transition(
+                        reduceMotion
+                            ? .opacity.animation(.easeOut(duration: 0))
+                            : .scale(scale: 0).combined(with: .opacity).animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))
+                    )
                 }
                 if let cheerText {
                     // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・
@@ -375,11 +381,11 @@ struct HomeView: View {
                 // app-record.js:196-208 fd-breathe(1.8s ease-in-out infinite・scale 1↔1.025)の1:1移植。
                 .scaleEffect(fdCardNudgeVisible ? makeCardBtnBreatheScale : 1)
                 .onAppear {
-                    guard fdCardNudgeVisible else { return }
+                    guard fdCardNudgeVisible && !reduceMotion else { return }
                     withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
                 }
                 .onChange(of: fdCardNudgeVisible) { _, newValue in
-                    if newValue {
+                    if newValue && !reduceMotion {
                         withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
                     } else {
                         makeCardBtnBreatheScale = 1

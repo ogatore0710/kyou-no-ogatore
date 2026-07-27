@@ -191,7 +191,12 @@ struct RootView: View {
                         screen = route == "quiz" ? .quiz(presetWorry: presetWorry) : .home
                     }
                 }
-                .transition(.scale(scale: 0.94).combined(with: .opacity).animation(.easeOut(duration: 0.28)))
+                // §D: index.html:517 .ob-sheetはprefers-reduced-motion:reduce時にanimation:none。
+                .transition(
+                    reduceMotion
+                        ? .opacity.animation(.easeOut(duration: 0))
+                        : .scale(scale: 0.94).combined(with: .opacity).animation(.easeOut(duration: 0.28))
+                )
             }
         }
         .onChange(of: screen) { _, newValue in
