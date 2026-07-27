@@ -4,6 +4,22 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: quiz-result-reach-parity §5・§6(全項目クリア)
+
+`TASK-C2-2026-07-28-quiz-result-reach-parity.md`残り全部。これで§1〜§7すべて完了。
+
+§5は4件まとめ: Q5だけ段階色スキップ(`opt.score != null`判定)・戻ったとき前回選択に
+teal枠(`picked: [String:String]`的なマップでkey→選択値を記憶)・進捗ドット(tourDotsと同じ
+9dp丸+pink/line)・ガイド中①バッジ文言復元。§6はAndroid限定で`BackHandler`新設
+(qi>0で1問戻る・qi==0で既存確認ダイアログ)。
+
+実機タップで6項目とも確認(前回選択の枠色復元・Q5の段階色無し・ドット表示・バッジ文言・
+ハードウェア戻るの1問戻り・qi==0での確認ダイアログ)。iOSは同一ロジック実装+ビルド成功
+まで(simctlタップ不可の既知の制約により、この4件はコードレビュー+ビルド確認でPASS)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS swift test
+(SafetyCore8/8・RecordCore40/40・CardCore16/16)緑・両OSビルド成功。判定ロジック無変更。
+
 ## 2026-07-28 追記: quiz-result-reach-parity §4・§7(Q3/Q4図解・Android tap-hint順序)
 
 `TASK-C2-2026-07-28-quiz-result-reach-parity.md`の残り2件。

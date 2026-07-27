@@ -1,5 +1,6 @@
 package jp.ogatore.kyouno
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -526,6 +527,13 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #quiz):
     // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
     var showGoHomeConfirm by remember { mutableStateOf(false) }
+    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §6(Android限定): app-quiz.js:156-158の
+    // history.pushState設計(戻るで1問ずつ遡れる)の1:1移植。BackHandlerが1つも無く、ハードウェア/
+    // ジェスチャーの「もどる」を押すと確認なしに回答が消えていた欠落。qi==0では既存の確認
+    // ダイアログ(showGoHomeConfirm)を通す。
+    BackHandler {
+        if (qi > 0) qi-- else showGoHomeConfirm = true
+    }
 
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
