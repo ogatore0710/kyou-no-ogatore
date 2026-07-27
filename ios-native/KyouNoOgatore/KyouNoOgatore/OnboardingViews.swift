@@ -540,6 +540,9 @@ struct QuizView: View {
     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §2: app-quiz.js:180の1:1移植。回答タップ直後に
     // 選択肢を無効化し、次の設問が描画されるまで二度押しで判定の入力が汚れるのを防ぐ。
     @State private var answering = false
+    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:166 state.pickedの1:1移植。
+    // 「まえの質問へ」で戻ったとき前回選んだ選択肢が分かるよう、質問key→選択値(scoreまたはworryKey)を覚えておく。
+    @State private var picked: [String: String] = [:]
 
     init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String, Int?) -> Void, onGoHome: @escaping () -> Void) {
         self.store = store
@@ -555,10 +558,11 @@ struct QuizView: View {
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             QuizContentView(
-                activeQuestions: activeQuestions, qi: qi, answering: answering,
+                activeQuestions: activeQuestions, qi: qi, answering: answering, picked: picked,
                 onOptTap: { q, opt in
                     guard !answering else { return }
                     answering = true
+                    picked[q.key] = opt.score.map { String($0) } ?? opt.worryKey
                     if let score = opt.score { scores[q.key] = score }
                     if let worryKey = opt.worryKey { worry = worryKey }
                     qi += 1
@@ -596,6 +600,7 @@ private struct QuizContentView: View {
     let activeQuestions: [QuizQuestionDef]
     let qi: Int
     let answering: Bool
+    let picked: [String: String]
     let onOptTap: (QuizQuestionDef, QuizOptDef) -> Void
     let onBack: () -> Void
     let onGoHomeTap: () -> Void
@@ -607,6 +612,13 @@ private struct QuizContentView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("かたさチェック").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 Text("Q\(qi + 1) / \(activeQuestions.count)").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
+                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: index.html:719 .dots+
+                // app-quiz.js:175-176の1:1移植。ツアー画面にはドットがあるのにクイズには無かった欠落。
+                HStack(spacing: 6) {
+                    ForEach(activeQuestions.indices, id: \.self) { i in
+                        Circle().fill(i <= qi ? colors.pink : colors.line).frame(width: 9, height: 9)
+                    }
+                }
                 if qi < activeQuestions.count {
                     let q = activeQuestions[qi]
                     Spacer().frame(height: 4)
@@ -627,17 +639,23 @@ private struct QuizContentView: View {
                     Text("👇 タップしてえらんでね").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
                     Spacer().frame(height: 4)
                     // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
+                    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:168-169
+                    // 「段階色は数値スコアの設問(Q1-Q4)だけ」の1:1移植。Q5(worry)はscore==nilのため
+                    // 段階色を付けず、通常のカード色(colors.card/colors.line)にする。
                     let palette = obgColors(dark: dark)
                     ForEach(Array(q.opts.enumerated()), id: \.offset) { i, opt in
-                        let c = palette[i % 4]
+                        let c = opt.score != nil ? palette[i % 4] : nil
+                        let pickedVal = opt.score.map { String($0) } ?? opt.worryKey
+                        // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
+                        let isPicked = picked[q.key] == pickedVal
                         VStack(alignment: .leading, spacing: 2) {
                             Text(opt.label).kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                             Text(opt.note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16).padding(.vertical, 14)
-                        .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
+                        .background(RoundedRectangle(cornerRadius: 16).fill(c?.bg ?? colors.card))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(isPicked ? colors.teal : (c?.border ?? colors.line), lineWidth: 2))
                         .contentShape(Rectangle())
                         .onTapGesture { if !answering { onOptTap(q, opt) } }
                         // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
@@ -824,7 +842,9 @@ private struct ResultContentView: View {
                         FdBobText("👇 ここを押してみて")
                         Spacer().frame(height: 4)
                         if let vk = rx.first, let v = lookupVideo(vk) {
-                            VideoRow(v: v, openUrl: onVideoTap, badge: nil, hero: true)
+                            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:320
+                            // videoCard(rx[0], "きょうはこれ1本でOK!")の1:1移植。badge:nilで欠落していた。
+                            VideoRow(v: v, openUrl: onVideoTap, badge: "きょうはこれ1本でOK！", hero: true)
                         }
                         Spacer().frame(height: 6)
                         Text("あと2本とくわしい解説は あしたから見られるよ🌱")

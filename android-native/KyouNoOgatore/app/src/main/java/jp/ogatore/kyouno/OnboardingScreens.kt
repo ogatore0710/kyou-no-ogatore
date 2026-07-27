@@ -303,9 +303,11 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
 data class QuizOptDef(val label: String, val note: String, val score: Int?, val worryKey: String?)
 data class QuizQuestionDef(val key: String, val title: String, val note: String, val opts: List<QuizOptDef>, val artRes: Int? = null)
 
-// app-quiz.js:89-91 QUIZ_ART(momo/kokaのみ実写・kenko/ashi/worryは元々手描きSVG/装飾で写真なし)の
-// 1:1移植。R.drawable.quiz_q1/quiz_q2はassets/check/q1.jpg・q2.jpgをそのまま同梱したもの
-// (§6 Step5c検収基準「QUIZ_ART写真のアセット同梱」)。
+// app-quiz.js:89-137 QUIZ_ARTの1:1移植。momo/kokaは実写(R.drawable.quiz_q1/quiz_q2、
+// assets/check/q1.jpg・q2.jpgをそのまま同梱・§6 Step5c検収基準「QUIZ_ART写真のアセット同梱」)。
+// kenko/ashiは手描きSVGで「はな/あごの高さ線」「かかとの浮き」という判定基準そのものを可視化して
+// おり装飾ではない(QuizArt.ktのQuizArtKenko/QuizArtAshiとして移植済み・TASK-C2-2026-07-28-
+// quiz-result-reach-parity.md §4)。worryのみ図解なし(選択肢はテキストのみ)。
 val QUIZ_QUESTIONS = listOf(
     QuizQuestionDef(
         "momo", "立って前屈 手はどこまでいく？", "ひざを曲げずに ゆっくり倒れてみて",
@@ -513,6 +515,9 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     var qi by remember { mutableStateOf(0) }
     val scores = remember { mutableStateMapOf<String, Int>() }
     var worry by remember { mutableStateOf(presetWorry) }
+    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:166 state.pickedの1:1移植。
+    // 「まえの質問へ」で戻ったとき前回選んだ選択肢が分かるよう、質問key→選択値(scoreまたはworryKey)を覚えておく。
+    val picked = remember { mutableStateMapOf<String, Any?>() }
     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §2: app-quiz.js:180の1:1移植。回答タップ直後に
     // 選択肢を無効化し、次の設問が描画されるまで二度押しで判定の入力が汚れるのを防ぐ(想定層は
     // ダブルタップの癖がある人が多いため)。
@@ -531,6 +536,16 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
             Text("かたさチェック", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(4.dp))
             Text("Q${qi + 1} / ${activeQuestions.size}", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizProgress"))
+            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: index.html:719 .dots+app-quiz.js:175-176の
+            // 1:1移植。ツアー画面にはドットがあるのにクイズには無かった欠落。
+            Row(modifier = Modifier.padding(top = 6.dp).testTag("quizDots"), horizontalArrangement = Arrangement.Center) {
+                for (i in activeQuestions.indices) {
+                    Box(
+                        Modifier.padding(horizontal = 3.dp).size(9.dp)
+                            .background(if (i <= qi) colors.pink else colors.line, RoundedCornerShape(50)),
+                    )
+                }
+            }
             if (q != null) {
                 Spacer(Modifier.height(10.dp))
                 Text(q.title, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizTitle"))
@@ -560,18 +575,25 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                 Text("👇 タップしてえらんでね", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(10.dp))
                 // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
+                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:168-169
+                // 「段階色は数値スコアの設問(Q1-Q4)だけ」の1:1移植。Q5(worry)はscore==nullのため
+                // 段階色を付けず、通常のカード色(colors.card/colors.line)にする。
                 val palette = obgColors(dark)
                 q.opts.forEachIndexed { i, opt ->
-                    val c = palette[i % 4]
+                    val c = if (opt.score != null) palette[i % 4] else null
+                    val pickedVal: Any? = opt.score ?: opt.worryKey
+                    // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
+                    val isPicked = picked[q.key] == pickedVal
                     Column(
                         Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                            .background(c.bg, RoundedCornerShape(16.dp))
-                            .border(2.dp, c.border, RoundedCornerShape(16.dp))
+                            .background(c?.bg ?: colors.card, RoundedCornerShape(16.dp))
+                            .border(2.dp, if (isPicked) colors.teal else (c?.border ?: colors.line), RoundedCornerShape(16.dp))
                             // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
                             // 補足説明を1回のTalkBackスワイプで読める1つの単位にまとめる。
                             .semantics(mergeDescendants = true) {}
                             .clickable(enabled = !answering) {
                                 answering = true
+                                picked[q.key] = pickedVal
                                 opt.score?.let { scores[q.key] = it }
                                 opt.worryKey?.let { worry = it }
                                 qi++
@@ -795,7 +817,9 @@ fun ResultScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         rx.firstOrNull()?.let { vk ->
-                            lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = null, hero = true) }
+                            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:320
+                            // videoCard(rx[0], "きょうはこれ1本でOK!")の1:1移植。badge=nullで欠落していた。
+                            lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = "きょうはこれ1本でOK！", hero = true) }
                         }
                     }
                     Spacer(Modifier.height(6.dp))
