@@ -254,6 +254,7 @@ class MainActivity : ComponentActivity() {
                                             onShowResult = { typeKey -> screen = Screen.Result(typeKey) },
                                             onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
                                             onOpenMyRecord = { screen = Screen.MyRecord },
+                                            onOpenSettings = { screen = Screen.Settings },
                                         )
                                     }
                                 }
@@ -373,6 +374,7 @@ fun HomeScreen(
     onShowResult: (String) -> Unit,
     onOpenSoudan: (String?) -> Unit,
     onOpenMyRecord: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val context = LocalContext.current
     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
@@ -385,7 +387,7 @@ fun HomeScreen(
     var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
     var showDoneNudge by remember { mutableStateOf(false) }
     var cheerText by remember { mutableStateOf<String?>(null) }
-    var cardBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var cardResult by remember { mutableStateOf<TodayCardResult?>(null) }
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }
@@ -594,7 +596,7 @@ fun HomeScreen(
                                 // モーダルを閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
                                 store.set("tourpend", true)
                             }
-                            cardBitmap = renderTodayCard(store, streak, today, context)
+                            cardResult = renderTodayCard(store, streak, today, context)
                         }
                     },
                     Modifier.testTag("doneBtn"),
@@ -670,7 +672,7 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("記録カードを見る", { cardBitmap = renderTodayCard(store, streak, today, context) }, Modifier.testTag("makeCardBtn"))
+                KyonoGhostButton("記録カードを見る", { cardResult = renderTodayCard(store, streak, today, context) }, Modifier.testTag("makeCardBtn"))
                 // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -688,13 +690,14 @@ fun HomeScreen(
             }
         }
 
-        cardBitmap?.let { bmp ->
+        cardResult?.let { result ->
+            val bmp = result.bitmap
             AlertDialog(
-                onDismissRequest = { cardBitmap = null },
+                onDismissRequest = { cardResult = null },
                 confirmButton = {
                     Button(
                         onClick = {
-                            cardBitmap = null
+                            cardResult = null
                             // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
                             // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
                             val tourpend = store.get("tourpend", false)
@@ -716,11 +719,33 @@ fun HomeScreen(
                     ) { Text("保存・シェアする") }
                 },
                 text = {
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = "記録カード",
-                        modifier = Modifier.fillMaxWidth().testTag("cardImage"),
-                    )
+                    Column {
+                        Image(
+                            bitmap = bmp.asImageBitmap(),
+                            contentDescription = "記録カード",
+                            modifier = Modifier.fillMaxWidth().testTag("cardImage"),
+                        )
+                        // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                        // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このダイアログは
+                        // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
+                        if (result.isMilestone) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "せっかくの節目！記録のひかえを取っておくと あんしんです📦",
+                                color = colors.sub, fontSize = 13.sp, textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().testTag("cardMsExportNudge"),
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            KyonoGhostButton(
+                                "記録のひかえを取る",
+                                {
+                                    cardResult = null
+                                    onOpenSettings()
+                                },
+                                Modifier.testTag("cardMsExportBtn"),
+                            )
+                        }
+                    }
                 },
             )
         }
@@ -836,7 +861,7 @@ fun MyRecordScreen(
         // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #history):
         // index.html:782 #dayInfo(カレンダーの日タップ→その日の記録詳細)の1:1移植。
         var selectedDay by remember { mutableStateOf<String?>(null) }
-        var dayCardBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+        var dayCardResult by remember { mutableStateOf<TodayCardResult?>(null) }
 
         var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
         var reachMsg by remember { mutableStateOf<String?>(null) }
@@ -983,7 +1008,7 @@ fun MyRecordScreen(
                         Spacer(Modifier.height(8.dp))
                         Text(
                             "🖼 この日の記録カードを見る", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                            modifier = Modifier.clickable { dayCardBitmap = renderTodayCard(store, streak, ds, context) }.testTag("dayCardLink"),
+                            modifier = Modifier.clickable { dayCardResult = renderTodayCard(store, streak, ds, context) }.testTag("dayCardLink"),
                         )
                     }
                 }
@@ -1181,11 +1206,12 @@ fun MyRecordScreen(
         }
 
         // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
-        dayCardBitmap?.let { bmp ->
+        dayCardResult?.let { result ->
+            val bmp = result.bitmap
             AlertDialog(
-                onDismissRequest = { dayCardBitmap = null },
+                onDismissRequest = { dayCardResult = null },
                 confirmButton = {
-                    Button(onClick = { dayCardBitmap = null }, modifier = Modifier.testTag("dayCardCloseBtn")) { Text("とじる") }
+                    Button(onClick = { dayCardResult = null }, modifier = Modifier.testTag("dayCardCloseBtn")) { Text("とじる") }
                 },
                 dismissButton = {
                     Button(
@@ -1194,7 +1220,28 @@ fun MyRecordScreen(
                     ) { Text("保存・シェアする") }
                 },
                 text = {
-                    Image(bitmap = bmp.asImageBitmap(), contentDescription = "記録カード", modifier = Modifier.fillMaxWidth().testTag("dayCardImage"))
+                    Column {
+                        Image(bitmap = bmp.asImageBitmap(), contentDescription = "記録カード", modifier = Modifier.fillMaxWidth().testTag("dayCardImage"))
+                        // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                        // cardMsExportNudgeの1:1移植(この日別カードもmakeCard(ds)共通のためWeb版と同様に対象)。
+                        if (result.isMilestone) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "せっかくの節目！記録のひかえを取っておくと あんしんです📦",
+                                color = colors.sub, fontSize = 13.sp, textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().testTag("dayCardMsExportNudge"),
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            KyonoGhostButton(
+                                "記録のひかえを取る",
+                                {
+                                    dayCardResult = null
+                                    onOpenSettings()
+                                },
+                                Modifier.testTag("dayCardMsExportBtn"),
+                            )
+                        }
+                    }
                 },
             )
         }
@@ -1274,9 +1321,10 @@ private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, 
     val typeIconKey = typeResult?.key?.takeIf { TYPE_IMG.containsKey(it) }
     val memoText = RecordLogic.loadMemos(store)[ds]
 
-    return CardRenderer.render(
+    val bitmap = CardRenderer.render(
         ds, effTotal, theme, milestone, milestoneTitle, dateIdx, data.CARD_THEMES_V2_FROM,
         context = context, pat = pat, typeName = typeName, typeIconKey = typeIconKey,
         memoText = memoText, streakCount = streak.count,
     )
+    return TodayCardResult(bitmap, milestone)
 }

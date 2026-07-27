@@ -48,7 +48,7 @@ struct MyRecordView: View {
     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #history):
     // index.html:782 #dayInfo(カレンダーの日タップ→その日の記録詳細)の1:1移植。
     @State private var selectedDay: String?
-    @State private var dayCardImage: UIImage?
+    @State private var dayCardResult: TodayCardResult?
 
     init(
         store: RecordStore, onOpenDex: @escaping () -> Void, onOpenBrag: @escaping () -> Void,
@@ -83,17 +83,27 @@ struct MyRecordView: View {
                 streak: streak, store: store, onConnectCalendar: connectCalendar,
                 onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices,
                 onOpenDiary: onOpenDiary, onOpenSettings: onOpenSettings,
-                onShowDayCard: { ds in dayCardImage = renderTodayCard(store: store, streak: streak, ds: ds) }
+                onShowDayCard: { ds in dayCardResult = renderTodayCard(store: store, streak: streak, ds: ds) }
             )
         }
         // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
-        .sheet(isPresented: Binding(get: { dayCardImage != nil }, set: { if !$0 { dayCardImage = nil } })) {
-            if let dayCardImage {
+        .sheet(isPresented: Binding(get: { dayCardResult != nil }, set: { if !$0 { dayCardResult = nil } })) {
+            if let dayCardResult {
                 VStack {
-                    Image(uiImage: dayCardImage).resizable().scaledToFit()
+                    Image(uiImage: dayCardResult.image).resizable().scaledToFit()
+                    // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                    // cardMsExportNudgeの1:1移植(この日別カードもmakeCard(ds)共通のためWeb版と同様に対象)。
+                    if dayCardResult.isMilestone {
+                        Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+                            .font(.kyono(.bold700, size: 13)).multilineTextAlignment(.center)
+                        KyonoGhostButton("記録のひかえを取る") {
+                            self.dayCardResult = nil
+                            onOpenSettings()
+                        }
+                    }
                     HStack {
-                        Button("とじる") { self.dayCardImage = nil }
-                        Button("保存・シェアする") { ShareImage.share(uiImage: dayCardImage, text: "#きょうのオガトレ") }
+                        Button("とじる") { self.dayCardResult = nil }
+                        Button("保存・シェアする") { ShareImage.share(uiImage: dayCardResult.image, text: "#きょうのオガトレ") }
                     }
                 }
                 .padding()

@@ -257,7 +257,8 @@ struct RootView: View {
                 onOpenQuiz: { screen = .quiz(presetWorry: nil) },
                 onShowResult: { typeKey in screen = .result(typeKey: typeKey) },
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
-                onOpenMyRecord: { screen = .myRecord }
+                onOpenMyRecord: { screen = .myRecord },
+                onOpenSettings: { screen = .settings }
             )
         }
     }

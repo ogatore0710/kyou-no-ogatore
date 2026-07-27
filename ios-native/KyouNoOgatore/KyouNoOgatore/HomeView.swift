@@ -62,6 +62,7 @@ struct HomeView: View {
     let onShowResult: (String) -> Void
     let onOpenSoudan: (String?) -> Void
     let onOpenMyRecord: () -> Void
+    let onOpenSettings: () -> Void
 
     @Environment(\.kyonoColors) private var colors
 
@@ -83,20 +84,21 @@ struct HomeView: View {
     @State private var pendingNudgeDate: String?
     @State private var showDoneNudge = false
     @State private var cheerText: String?
-    @State private var cardImage: UIImage?
+    @State private var cardResult: TodayCardResult?
 
     @Environment(\.scenePhase) private var scenePhase
 
     init(
         store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenQuiz: @escaping () -> Void,
         onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void,
-        onOpenMyRecord: @escaping () -> Void
+        onOpenMyRecord: @escaping () -> Void, onOpenSettings: @escaping () -> Void
     ) {
         self.store = store
         self.onStartTour = onStartTour
         self.onOpenQuiz = onOpenQuiz
         self.onShowResult = onShowResult
         self.onOpenSoudan = onOpenSoudan
+        self.onOpenSettings = onOpenSettings
         self.onOpenMyRecord = onOpenMyRecord
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
@@ -251,7 +253,7 @@ struct HomeView: View {
                         // 閉じた「区切り」でcardCloseBtn側が拾う(fdTourMaybeStart相当)。
                         store.set("tourpend", true)
                     }
-                    cardImage = renderTodayCard(store: store, streak: streak, ds: today)
+                    cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                 }
                 if let cheerText {
                     KyonoBodyText(cheerText)
@@ -277,7 +279,7 @@ struct HomeView: View {
                     }
                 }
                 KyonoGhostButton("記録カードを見る") {
-                    cardImage = renderTodayCard(store: store, streak: streak, ds: today)
+                    cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                 }
                 .opacity(did ? 1 : 0.5)
                 .disabled(!did)
@@ -312,13 +314,25 @@ struct HomeView: View {
             }
             pendingNudgeDate = nil // checkDoneNudgeと同じ「一度出したら消す」
         }
-        .sheet(isPresented: Binding(get: { cardImage != nil }, set: { if !$0 { cardImage = nil } })) {
-            if let cardImage {
+        .sheet(isPresented: Binding(get: { cardResult != nil }, set: { if !$0 { cardResult = nil } })) {
+            if let cardResult {
                 VStack {
-                    Image(uiImage: cardImage).resizable().scaledToFit()
+                    Image(uiImage: cardResult.image).resizable().scaledToFit()
+                    // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                    // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
+                    // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
+                    if cardResult.isMilestone {
+                        Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+                            .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            .multilineTextAlignment(.center)
+                        KyonoGhostButton("記録のひかえを取る") {
+                            self.cardResult = nil
+                            onOpenSettings()
+                        }
+                    }
                     HStack {
                         Button("とじる") {
-                            self.cardImage = nil
+                            self.cardResult = nil
                             // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
                             // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
                             let tourpend: Bool = store.get("tourpend", default: false)
@@ -331,7 +345,7 @@ struct HomeView: View {
                         }
                         // index.html shareCard()相当(Step7bで新規実装)。
                         Button("保存・シェアする") {
-                            ShareImage.share(uiImage: cardImage, text: "#きょうのオガトレ \(streak.total)日目！")
+                            ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
                         }
                     }
                 }
@@ -487,11 +501,18 @@ private struct HomeSoudanChip: View {
     }
 }
 
+// TASK-C2-2026-07-27-milestone-card-export-nudge.md: 記録カードシートの節目促し表示可否を
+// 呼び出し元が判定できるよう、描画結果と一緒にmilestone判定も返す。
+struct TodayCardResult {
+    let image: UIImage
+    let isMilestone: Bool
+}
+
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果patから実際に描画するテーマへの
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
 // MyRecordView(dayInfoの記録カード表示)からも参照するため非privateにする
 // (全画面完全性監査タスク #history)。
-func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String) -> UIImage? {
+func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String) -> TodayCardResult? {
     let data = CardDataLoader.shared
     let effTotal = streak.total
     let dateIdx = CardLottery.dateIdx(ds)
@@ -530,12 +551,13 @@ func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: Str
         dateIdx: dateIdx, cardThemesV2From: data.CARD_THEMES_V2_FROM,
         pat: pat, typeName: typeName, typeIconKey: typeIconKey, memoText: memos[ds], streakCount: streak.count
     )
-    return UIImage(data: png)
+    guard let image = UIImage(data: png) else { return nil }
+    return TodayCardResult(image: image, isMilestone: milestone)
 }
 
 #Preview {
     HomeView(
         store: RecordStore(inMemory: [:]), onStartTour: { _ in },
-        onOpenQuiz: {}, onShowResult: { _ in }, onOpenSoudan: { _ in }, onOpenMyRecord: {}
+        onOpenQuiz: {}, onShowResult: { _ in }, onOpenSoudan: { _ in }, onOpenMyRecord: {}, onOpenSettings: {}
     )
 }
