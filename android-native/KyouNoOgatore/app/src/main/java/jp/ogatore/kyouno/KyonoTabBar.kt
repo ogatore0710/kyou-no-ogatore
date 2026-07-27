@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.sp
 enum class KyonoTab { Guide, MyRecord, Home, Catalog, Search }
 
 @Composable
-fun KyonoTabBar(current: KyonoTab, onSelect: (KyonoTab) -> Unit) {
+fun KyonoTabBar(current: KyonoTab?, onSelect: (KyonoTab) -> Unit) {
     val colors = LocalKyonoColors.current
     Row(
         modifier = Modifier

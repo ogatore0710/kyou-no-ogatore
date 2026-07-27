@@ -194,14 +194,22 @@ class MainActivity : ComponentActivity() {
                         // せんぱいの声/じまんカード/図鑑/設定)はWeb版でもタブに属さない別画面(モーダル/
                         // サブ画面)のため、タブバーを隠す(§1-4「NavHost不使用」のScreen sealed class
                         // 構造はそのまま・タブバーの表示条件だけをこのcurrentTabで判定する)。
+                        // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §3: index.html:1541
+                        // TAB_OF(brag/voices/fun→"history")の1:1移植。せんぶんの声・じまんカード・
+                        // にっきは「マイ記録タブに属する別画面」であり、Web版でもタブバーは消えず
+                        // 「マイ記録」がハイライトされ続ける(以前の「Web版でもタブに属さない別画面」
+                        // という native側コメントの認識はTAB_OFと食い違う誤りだった)。
                         val currentTab = when (screen) {
                             Screen.Guide -> KyonoTab.Guide
-                            Screen.MyRecord -> KyonoTab.MyRecord
+                            Screen.MyRecord, Screen.Voices, Screen.Brag, Screen.Diary -> KyonoTab.MyRecord
                             Screen.Home -> KyonoTab.Home
                             Screen.Catalog -> KyonoTab.Catalog
                             Screen.Search -> KyonoTab.Search
                             else -> null
                         }
+                        // オガトレ通信だけはタブバーを表示しつつどのタブもハイライトしない
+                        // (TAB_OFにobuの記載が無い=全消灯だがタブバー自体は表示され続ける)。
+                        val showTabBar = currentTab != null || screen is Screen.Obu
                         Box(Modifier.fillMaxSize()) {
                             // TASK-C2-2026-07-27-screen-transitions.md: 相談室・オンボはそれぞれ
                             // 専用のオーバーレイ(スクリム+シート/中央カード)として別途描画するため、
@@ -278,13 +286,17 @@ class MainActivity : ComponentActivity() {
                                             onBack = { screen = Screen.Home },
                                         )
                                         is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.Home })
+                                        // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §4:
+                                        // 入口は常にマイ記録(MyRecordScreen.onOpenVoices/onOpenBrag/
+                                        // onOpenDiary)のため、Web版「← マイ記録にもどる」と同じく
+                                        // マイ記録へ戻す(以前はホームに飛んでいた)。
                                         is Screen.Voices -> VoicesScreen(
                                             store = store,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                                            onBack = { screen = Screen.Home },
+                                            onBack = { screen = Screen.MyRecord },
                                         )
-                                        is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.Home })
-                                        is Screen.Diary -> DiaryScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Brag -> BragScreen(store = store, onBack = { screen = Screen.MyRecord })
+                                        is Screen.Diary -> DiaryScreen(store = store, onBack = { screen = Screen.MyRecord })
                                         is Screen.Obu -> ObuScreen(store = store, onBack = { screen = s.returnTo })
                                         is Screen.Guide -> GuideScreen(
                                             store = store,
@@ -313,7 +325,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                     }
                                 }
-                                if (currentTab != null) {
+                                if (showTabBar) {
                                     KyonoTabBar(current = currentTab) { tab ->
                                         screen = when (tab) {
                                             KyonoTab.Guide -> Screen.Guide
@@ -326,15 +338,24 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
-                            // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: index.html:1419-1434
-                            // updateFabs()の1:1移植。従来はcurrentTab != nullだけで判定しており、
-                            // Web版が実測で積み上げた個別の非表示条件(相談室カードとの重複・
-                            // FAQ見出しへの被り・1日目チュートリアル当日の全面非表示等)が
-                            // すべて欠落していた。
+                            // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: index.html:
+                            // 1419-1434 updateFabs()の1:1移植。以前はcurrentTab != null(5タブ画面のみ)
+                            // だけで判定しており、Web版より表示範囲が狭かった(alan5の発注ミスに起因。
+                            // updateFabs移植を発注したとき「どの画面で隠すか」の表だけ渡して
+                            // 「どの画面で出るか」を確認していなかった)。Web版は quiz/reach/相談室
+                            // シート/各モーダル/welcome でだけ両FABとも隠し、それ以外(result/voices/
+                            // fun/brag/通信アーカイブ含む)では出す。reach(とどくメーター)はネイティブ
+                            // ではMyRecord内にインライン移植されており独立画面が無いため、reach相当の
+                            // 非表示は行わず、代わりにボタン行側に余白を足して重なりを回避する
+                            // (MyRecordScreen側・後述)。
                             run {
+                                val fabsHiddenEntirely = screen is Screen.Quiz || screen is Screen.Soudan ||
+                                    screen == Screen.Onboarding || screen == Screen.Dex || obuPopupOpen
                                 // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・
-                                // 使い方(FAQ見出しの▾に被る実測あり・2026-07-20監査④)では出さない。
-                                val showSoudanFab = currentTab != null && screen != Screen.Home && screen != Screen.Guide
+                                // 使い方(FAQ見出しの▾に被る実測あり・2026-07-20監査④)・結果画面
+                                // (「相談室で聞いてみる」リンクとの二重導線・2026-07-20監査⑤)では出さない。
+                                val showSoudanFab = !fabsHiddenEntirely && screen != Screen.Home &&
+                                    screen != Screen.Guide && screen !is Screen.Result
                                 // 通信FAB: 使い方(本文・FAQ見出しへの被り対策)・1日目チュートリアル当日
                                 // (練習宣言の吹き出しに被るのを2026-07-21実走で確認)では出さない。
                                 // index.html:1432 tut条件はfdActive()に加えfdday===todayStr()の当日限定
