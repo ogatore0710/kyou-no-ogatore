@@ -104,12 +104,16 @@ private struct VoiceCardView: View {
     @State private var showBack = false
 
     var body: some View {
-        Group {
-            if !showBack {
-                frontView
-            } else {
-                backView.rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
-            }
+        // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:351
+        // .vin{min-height:150px}の1:1移植。Web版は表裏を常に両方DOMに置き(絶対配置)、コンテナの
+        // 高さは常に一定に保たれる。以前は`if showBack`で片方だけをcomposeしていたため、
+        // 表裏で高さが違うとめくった瞬間に一覧全体がガタつく(前後のカードが上下に動く)不具合が
+        // あった。ZStackは既定で最大の子に合わせてサイズが決まるので、両面を常時composeし
+        // opacityだけで切り替えることでコンテナの高さを固定する。
+        ZStack {
+            frontView.opacity(showBack ? 0 : 1)
+            backView.rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                .opacity(showBack ? 1 : 0)
         }
         .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0))
         .contentShape(Rectangle())

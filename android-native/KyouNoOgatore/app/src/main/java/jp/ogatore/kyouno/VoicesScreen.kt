@@ -93,49 +93,57 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
     // .vin(transition:transform .55s・rotateY(180deg))の1:1移植。タップでめくる瞬間が無演出で
     // 一気に切り替わっていたため3Dフリップを追加(裏面は逆回転で文字の鏡像を打ち消す)。
     val rotation by animateFloatAsState(if (open) 180f else 0f, tween(550), label = "vcardFlip")
+    // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:351 .vin{min-height:150px}
+    // の1:1移植。Web版は表裏を常に両方DOMに置き(絶対配置)、コンテナの高さは常に一定に保たれる。
+    // 以前は表裏どちらか片方だけをif分岐で描画していたため、Boxが「いま見えている面」の
+    // コンテンツ高さだけで自分のサイズを決めてしまい、表裏で高さが違うとめくった瞬間に
+    // 一覧全体がガタつく(前後のカードが上下に動く)不具合があった。両面を常時composeし
+    // alphaだけで切り替えることで、Boxのサイズが表裏の最大値に固定され、めくっても
+    // 一覧のレイアウトが動かなくなる。
     Box(
         Modifier.graphicsLayer {
             rotationY = rotation
             cameraDistance = 12 * density
         },
     ) {
-        if (rotation <= 90f) {
-            // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)
-            KyonoGradientCard(
-                KyonoGradient.Warm,
-                Modifier.clickable { onToggle() }.testTag("voiceCard_$index"),
-            ) {
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    VoiceTag(v.tag)
-                    Spacer(Modifier.height(10.dp))
-                    Text(v.front, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(6.dp))
-                    Text("タップでめくる", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
-                }
-            }
-        } else {
-            // index.html:358-359,362-363 .vback(card地・枠線)
-            Column(
-                Modifier.fillMaxWidth()
-                    .graphicsLayer { rotationY = 180f }
-                    .clickable { onToggle() }
-                    .background(colors.card, RoundedCornerShape(22.dp))
-                    .border(1.5.dp, colors.line, RoundedCornerShape(22.dp))
-                    .padding(18.dp)
-                    .testTag("voiceCard_$index"),
-            ) {
+        // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)
+        KyonoGradientCard(
+            KyonoGradient.Warm,
+            Modifier.graphicsLayer { alpha = if (rotation <= 90f) 1f else 0f }
+                .clickable { onToggle() }.testTag("voiceCard_$index"),
+        ) {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 VoiceTag(v.tag)
-                Spacer(Modifier.height(8.dp))
-                Text(v.q, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp)
-                Spacer(Modifier.height(8.dp))
-                Text("— せんぱいの声（${v.src}）", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton(
-                    "せんぱいとおなじ1本をみる ▶",
-                    { openUrl("https://www.youtube.com/watch?v=${v.vid}") },
-                    Modifier.testTag("voiceGoBtn_$index"),
-                )
+                Text(v.front, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(6.dp))
+                Text("タップでめくる", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
             }
+        }
+        // index.html:358-359,362-363 .vback(card地・枠線)
+        Column(
+            Modifier.fillMaxWidth()
+                .graphicsLayer {
+                    rotationY = 180f
+                    alpha = if (rotation > 90f) 1f else 0f
+                }
+                .clickable { onToggle() }
+                .background(colors.card, RoundedCornerShape(22.dp))
+                .border(1.5.dp, colors.line, RoundedCornerShape(22.dp))
+                .padding(18.dp)
+                .testTag("voiceCardBack_$index"),
+        ) {
+            VoiceTag(v.tag)
+            Spacer(Modifier.height(8.dp))
+            Text(v.q, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("— せんぱいの声（${v.src}）", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+            Spacer(Modifier.height(10.dp))
+            KyonoGhostButton(
+                "せんぱいとおなじ1本をみる ▶",
+                { openUrl("https://www.youtube.com/watch?v=${v.vid}") },
+                Modifier.testTag("voiceGoBtn_$index"),
+            )
         }
     }
 }

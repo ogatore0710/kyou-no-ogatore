@@ -1,5 +1,6 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,7 +47,7 @@ fun DiaryScreen(store: RecordStore, onBack: () -> Unit) {
                     )
                 } else {
                     Column(Modifier.testTag("diaryList")) {
-                        entries.forEachIndexed { i, (date, memo) ->
+                        entries.forEach { (date, memo) ->
                             Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = androidx.compose.ui.Alignment.Top) {
                                 Text(
                                     date.substring(5).replace("-", "/"),
@@ -54,17 +57,30 @@ fun DiaryScreen(store: RecordStore, onBack: () -> Unit) {
                                 Spacer(Modifier.width(10.dp))
                                 Text(memo, color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("diaryMemo_$date"))
                             }
-                            // index.html:271 border-bottom:1px dashed var(--line)の簡略化(実線)。
-                            // Composeに標準の破線ボーダーが無いため、区切り線としての機能を優先し実線で近似。
-                            if (i < entries.size - 1) {
-                                Row(Modifier.fillMaxWidth()) {
-                                    androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(1.dp).background(colors.line))
-                                }
-                            }
+                            // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:271
+                            // border-bottom:1px dashed var(--line)の1:1移植(以前は実線で近似としていた)。
+                            // Composeに標準の破線ボーダーが無いためCanvas+dashPathEffectで描画。
+                            // Web版は全行(最終行含む)に付くため、除外条件は付けない。
+                            DashedDivider(colors.line)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+// index.html:271 border-bottom:1px dashed var(--line)の1:1移植。
+@Composable
+private fun DashedDivider(color: androidx.compose.ui.graphics.Color) {
+    Canvas(Modifier.fillMaxWidth().height(1.dp)) {
+        drawLine(
+            color = color,
+            start = androidx.compose.ui.geometry.Offset(0f, 0f),
+            end = androidx.compose.ui.geometry.Offset(size.width, 0f),
+            strokeWidth = 1.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())),
+            cap = StrokeCap.Butt,
+        )
     }
 }
