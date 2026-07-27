@@ -18,6 +18,7 @@
 //  ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 //  Phase 3: index.html:403-415 .cal/.cal .d.done/.cal .d.today/.bar(おやすみ券進捗)の1:1移植。
 
+import Combine
 import SwiftUI
 import EventKit
 import RecordCore
@@ -38,7 +39,7 @@ struct MyRecordView: View {
 
     @State private var streak: RecordLogic.StreakData
     @State private var doneDates: Set<String>
-    private let today: String
+    @State private var today: String
     @State private var year: Int
     @State private var month: Int
     @State private var reachList: [RecordLogic.ReachEntry]
@@ -64,7 +65,7 @@ struct MyRecordView: View {
         _streak = State(initialValue: s)
         _doneDates = State(initialValue: Set(s.dates))
         let now = Date()
-        today = RecordLogic.todayStr(now: now)
+        _today = State(initialValue: RecordLogic.todayStr(now: now))
         let c = Calendar.current.dateComponents([.year, .month], from: now)
         _year = State(initialValue: c.year!)
         _month = State(initialValue: c.month!)
@@ -73,6 +74,19 @@ struct MyRecordView: View {
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
+
+    // TASK-C2-2026-07-27-auto-theme-time-rule.md: Android版MyRecordScreenの60秒日付跨ぎ
+    // 追従(checkRefreshDay相当)の1:1移植。開いたまま日付が変わったらカレンダー/streakを
+    // 再読み込みする(freezeLeftはAndroid版と同じく対象外)。
+    private let dayTicker = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    private func checkDayChange() {
+        let newToday = RecordLogic.todayStr(now: Date())
+        guard newToday != today else { return }
+        today = newToday
+        streak = RecordLogic.loadStreak(store)
+        doneDates = Set(streak.dates)
+    }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting) {
@@ -86,6 +100,7 @@ struct MyRecordView: View {
                 onShowDayCard: { ds in dayCardResult = renderTodayCard(store: store, streak: streak, ds: ds) }
             )
         }
+        .onReceive(dayTicker) { _ in checkDayChange() }
         // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
         .sheet(isPresented: Binding(get: { dayCardResult != nil }, set: { if !$0 { dayCardResult = nil } })) {
             if let dayCardResult {

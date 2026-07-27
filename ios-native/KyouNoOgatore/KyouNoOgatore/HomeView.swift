@@ -18,6 +18,7 @@
 //  Step5aのスコープ(§6検収基準4件に絞っている): 動画カタログ本体・2週間プラン・カレンダー・
 //  オンボ/ツアーUIはStep5b/5c/7aの範囲でありここには含めない(Android版と同じスコープ判断)。
 
+import Combine
 import SwiftUI
 import UIKit
 import RecordCore
@@ -113,6 +114,25 @@ struct HomeView: View {
     private var did: Bool { streak.dates.contains(today) }
     private var fdFocusOn: Bool { HomeLogic.fdFocusHomeActive(fd: fd, streakTotal: streak.total, fdday: fdday, today: today) }
     private var checked: Bool { typeResult != nil && quizTypes[typeResult!.key] != nil }
+
+    // TASK-C2-2026-07-27-auto-theme-time-rule.md: app-env.js:60 setInterval(refreshDay,60000)の
+    // 1:1移植。従来はscenePhaseの.active復帰でしか日付またぎを見ていなかったため、開いたまま
+    // 深夜0時をまたいだ場合に表示が更新されなかった(Android版checkRefreshDay()と同じ抜け)。
+    private func checkRefreshDay() {
+        let r = HomeLogic.refreshDay(now: Date(), lastDay: lastDay)
+        if r.dayChanged {
+            lastDay = r.today
+            streak = RecordLogic.loadStreak(store)
+            fd = store.get("fd", default: nil)
+            fdday = store.get("fdday", default: nil)
+        }
+        if HomeLogic.shouldShowDoneNudge(pendingNudgeDate: pendingNudgeDate, today: r.today, streakDates: streak.dates) {
+            showDoneNudge = true
+        }
+        pendingNudgeDate = nil
+    }
+
+    private let dayTicker = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     // KyonoThemeでの配色解決はRootView(KyouNoOgatoreApp.swift)側で行う(タブバー・FABとも共通の
     // 配色を1箇所で解決するため。二重ラップを避ける)。
@@ -302,18 +322,9 @@ struct HomeView: View {
         // 日付またぎ・pendingNudgeを確認する(Android版のON_RESUMEと同じ役割)。
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
-            let r = HomeLogic.refreshDay(now: Date(), lastDay: lastDay)
-            if r.dayChanged {
-                lastDay = r.today
-                streak = RecordLogic.loadStreak(store)
-                fd = store.get("fd", default: nil)
-                fdday = store.get("fdday", default: nil)
-            }
-            if HomeLogic.shouldShowDoneNudge(pendingNudgeDate: pendingNudgeDate, today: r.today, streakDates: streak.dates) {
-                showDoneNudge = true
-            }
-            pendingNudgeDate = nil // checkDoneNudgeと同じ「一度出したら消す」
+            checkRefreshDay() // checkDoneNudgeと同じ「一度出したら消す」もcheckRefreshDay内で行う
         }
+        .onReceive(dayTicker) { _ in checkRefreshDay() }
         .sheet(isPresented: Binding(get: { cardResult != nil }, set: { if !$0 { cardResult = nil } })) {
             if let cardResult {
                 VStack {
