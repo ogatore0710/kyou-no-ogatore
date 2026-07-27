@@ -119,6 +119,19 @@ sealed class SdBubble {
     data class PlanConfirm(val intentId: String, val label: String, val replacing: Boolean, var answered: Boolean = false) : SdBubble()
     // index.html:3323-3330 sdAnswerFallback内の2通目(逃げ道リンク3つ)の1:1移植。rawUserTextはmailto本文用。
     data class FallbackLinks(val rawUserText: String) : SdBubble()
+    // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の1:1移植。
+    object Typing : SdBubble()
+}
+
+// index.html:3053 sdMsgLen()の1:1移植(タイピング待ち時間の計算専用。空白を除いた文字数)。
+private fun sdMsgLen(text: String) = text.replace(Regex("\\s+"), "").length
+
+// タイピング待ち時間計算のために各吹き出しから代表テキストを取り出す。Web版はHTML文字列全体から
+// タグを除いた文字数を使うため、動画注記込みの吹き出しもその見出しテキストで近似する。
+private fun sdBubbleLen(b: SdBubble): Int = when (b) {
+    is SdBubble.Bot -> sdMsgLen(b.text)
+    is SdBubble.FallbackLinks -> sdMsgLen("この悩み、オガトレに届けるメールがひらかない方はアドレスをコピー動画を探すタブでさがしてみる")
+    else -> 0
 }
 
 sealed class SdChipsMode {
@@ -147,49 +160,82 @@ fun SoudanSheet(
     var input by remember { mutableStateOf("") }
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
     val hasType = store.get<QuizTypeResult?>("type", null) != null // index.html:3024 sdHasType()の1:1移植
+    val scope = rememberCoroutineScope()
+    // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3096 sdPending(応答演出中は次の
+    // チップタップ/送信を受け付けない)の1:1移植。演出中の吹き出し順序が入り乱れるのを防ぐ。
+    var sdPending by remember { mutableStateOf(false) }
+
+    // index.html:3090-3134 sdPush()の1:1移植。bot発言を1つずつ、タイピングドットを挟みながら
+    // 段階的に表示する。チップ列(chipsMode)の更新はWeb版のsdRenderChips()と同じく、
+    // 全吹き出しの表示が終わったタイミングでまとめて行う(表示中は直前のチップがそのまま残る)。
+    // カテゴリタブの早期畳み(index.html:3097-3100)はComposeのレイアウトでは該当する見切れ問題が
+    // 起きないため見送り(表示タイミングの本質=段階表示自体は1:1)。
+    suspend fun revealBotMessages(botMsgs: List<SdBubble>, newChipsMode: SdChipsMode) {
+        for ((i, msg) in botMsgs.withIndex()) {
+            messages = messages + SdBubble.Typing
+            val base = minOf(1600, 500 + sdBubbleLen(msg) * 22)
+            val wait = if (i == 0) 400L else if (i == 1) base.toLong() else (base * 2).toLong()
+            delay(wait)
+            messages = messages.dropLast(1) + msg
+        }
+        chipsMode = newChipsMode
+    }
 
     // index.html:3090 sdPush相当。応答1件をbot/userの吹き出し列へ展開しchipsModeを更新する。
-    fun applyResponse(userText: String?, r: SoudanResponse) {
-        val newMsgs = mutableListOf<SdBubble>()
-        if (userText != null) newMsgs.add(SdBubble.User(userText))
+    suspend fun applyResponse(userText: String?, r: SoudanResponse) {
+        if (userText != null) messages = messages + SdBubble.User(userText)
         val red = r.verdict is SoudanVerdict.RedFlag || r.verdict is SoudanVerdict.Crisis
-        if (r.empathy.isNotEmpty()) newMsgs.add(SdBubble.Bot(r.empathy, red))
-        if (r.message.isNotEmpty()) newMsgs.add(SdBubble.Bot(r.message, red, fallbackCaution = r.isFallback))
+        val botMsgs = mutableListOf<SdBubble>()
+        if (r.empathy.isNotEmpty()) botMsgs.add(SdBubble.Bot(r.empathy, red))
+        if (r.message.isNotEmpty()) botMsgs.add(SdBubble.Bot(r.message, red, fallbackCaution = r.isFallback))
         r.video?.let { v ->
-            newMsgs.add(SdBubble.Bot(v.note.ifEmpty { "おすすめの1本" }, videoId = v.videoId))
+            botMsgs.add(SdBubble.Bot(v.note.ifEmpty { "おすすめの1本" }, videoId = v.videoId))
             if (shownVideoIds.none { it == v.videoId }) shownVideoIds.add(v.videoId)
         }
-        if (r.keizoku.isNotEmpty()) newMsgs.add(SdBubble.Bot(r.keizoku))
+        if (r.keizoku.isNotEmpty()) botMsgs.add(SdBubble.Bot(r.keizoku))
         // index.html:3328-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
-        if (r.isFallback) newMsgs.add(SdBubble.FallbackLinks(userText.orEmpty()))
-        messages = messages + newMsgs
+        if (r.isFallback) botMsgs.add(SdBubble.FallbackLinks(userText.orEmpty()))
         if (r.intentId != null) lastIntentId = r.intentId
-        chipsMode = when {
+        val newChipsMode = when {
             r.verdict is SoudanVerdict.Crisis -> SdChipsMode.None // index.html:3310 チップ・カテゴリタブなし
             r.verdict is SoudanVerdict.RedFlag -> SdChipsMode.Intents("body") // index.html:3304
             r.hasFollowup && r.intentId != null -> SdChipsMode.Followups(r.intentId, r.nextBestChip?.id)
             r.nearmissChips.isNotEmpty() -> SdChipsMode.Nearmiss(r.nearmissChips.map { c -> c.id })
             else -> SdChipsMode.Intents("body")
         }
+        revealBotMessages(botMsgs, newChipsMode)
+    }
+
+    // index.html:3361-3384 sdChipTap/sdFollowupTap/sdSendの「if(sdPending) return」の1:1移植。
+    fun runResponse(userText: String?, r: SoudanResponse) {
+        if (sdPending) return
+        sdPending = true
+        scope.launch {
+            applyResponse(userText, r)
+            sdPending = false
+        }
     }
 
     fun sendText() {
+        if (sdPending) return
         val raw = input.trim()
         if (raw.isEmpty()) return
         input = ""
-        applyResponse(raw, SoudanEngine.respond(raw))
+        runResponse(raw, SoudanEngine.respond(raw))
     }
 
     fun chipTap(id: String) {
+        if (sdPending) return
         val intent = kb.intents.find { it.id == id } ?: return
         val r = SoudanEngine.respondToIntent(id) ?: return
-        applyResponse(intent.chip, r)
+        runResponse(intent.chip, r)
     }
 
     fun followupTap(id: String) {
+        if (sdPending) return
         val f = kb.commonFollowups.find { it.id == id } ?: return
         val r = SoudanEngine.respondToFollowup(id, lastIntentId, shownVideoIds) ?: return
-        applyResponse(f.chip, r)
+        runResponse(f.chip, r)
     }
 
     // index.html:1844 planChipTap相当。即開始はせず確認の吹き出しを積む。
