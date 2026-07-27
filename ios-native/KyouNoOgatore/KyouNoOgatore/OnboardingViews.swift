@@ -615,6 +615,12 @@ private struct QuizContentView: View {
                     if let artResName = q.artResName {
                         Image(artResName).resizable().scaledToFit()
                             .background(colors.bg).cornerRadius(16)
+                    } else if q.key == "kenko" {
+                        Spacer().frame(height: 10)
+                        QuizArtKenko()
+                    } else if q.key == "ashi" {
+                        Spacer().frame(height: 10)
+                        QuizArtAshi()
                     }
                     // 全画面完全性監査タスク #quiz: index.html:717 .tap-hint(タップ誘導文言)の1:1移植。
                     Spacer().frame(height: 6)
