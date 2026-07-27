@@ -536,9 +536,10 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                 Text(q.title, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizTitle"))
                 Spacer(Modifier.height(4.dp))
                 Text(q.note, color = colors.sub, fontSize = 13.sp)
-                // 全画面完全性監査タスク #quiz: index.html:717 .tap-hint(タップ誘導文言)の1:1移植。
-                Spacer(Modifier.height(6.dp))
-                Text("👇 タップしてえらんでね", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §7(Android限定): index.html:713-718
+                // qArt→qtitle→qnote→tap-hint→optsの順序の1:1移植。以前はhint→写真の順で、
+                // 👇が写真を指してしまい写真をタップしても反応がなく戸惑う欠落があった(iOS版は
+                // 元から正しい順序)。写真/図解をヒントより先に描画するよう入れ替える。
                 q.artRes?.let { res ->
                     Spacer(Modifier.height(10.dp))
                     Image(
@@ -547,6 +548,16 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                         modifier = Modifier.fillMaxWidth().background(colors.bg, RoundedCornerShape(16.dp)).testTag("quizArt_${q.key}"),
                     )
                 }
+                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §4: app-quiz.js:92-137
+                // QUIZ_ART[2]/[3](kenko/ashi)の1:1移植。「あたま/あごの高さ線」「かかとの浮き」は
+                // 判定基準そのものの可視化であり装飾ではない(以前は装飾と誤認して未移植だった)。
+                when (q.key) {
+                    "kenko" -> { Spacer(Modifier.height(10.dp)); QuizArtKenko(Modifier.testTag("quizArt_${q.key}")) }
+                    "ashi" -> { Spacer(Modifier.height(10.dp)); QuizArtAshi(Modifier.testTag("quizArt_${q.key}")) }
+                }
+                // 全画面完全性監査タスク #quiz: index.html:717 .tap-hint(タップ誘導文言)の1:1移植。
+                Spacer(Modifier.height(6.dp))
+                Text("👇 タップしてえらんでね", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(10.dp))
                 // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
                 val palette = obgColors(dark)
