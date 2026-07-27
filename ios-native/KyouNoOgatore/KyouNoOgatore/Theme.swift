@@ -6,6 +6,7 @@
 //  §「Web版の正本（デザイントークン」): index.htmlのCSS変数(:root/body.dark)から抽出した値をそのまま
 //  定義する(Android版Theme.ktと同一の値)。独自解釈でのアレンジはしない。
 
+import Combine
 import CoreText
 import SwiftUI
 
@@ -65,13 +66,21 @@ let kyonoDarkColors = KyonoColors(
 let kyonoRadius: CGFloat = 22
 let kyonoButtonRadius: CGFloat = 18
 
+// TASK-C2-2026-07-27-auto-theme-time-rule.md: app-env.js applyTheme()の時刻判定
+// (h>=19||h<5)の1:1移植。端末のローカル時刻(Web版のnew Date().getHours()と同じ)で判定する。
+private func isAutoThemeDarkByTime() -> Bool {
+    let hour = Calendar.current.component(.hour, from: Date())
+    return hour >= 19 || hour < 5
+}
+
 // index.html:1157周辺 storeのtheme値("auto"/"light"/"dark")をシステムのダークモードと合成する。
+// "auto"はOSのダーク設定 OR 時刻判定(19時〜朝5時)のどちらかで暗くなる(Web版と同じ)。
 func resolveKyonoColors(themeSetting: String, systemColorScheme: ColorScheme) -> KyonoColors {
     let dark: Bool
     switch themeSetting {
     case "dark": dark = true
     case "light": dark = false
-    default: dark = systemColorScheme == .dark
+    default: dark = systemColorScheme == .dark || isAutoThemeDarkByTime()
     }
     return dark ? kyonoDarkColors : kyonoLightColors
 }
@@ -91,10 +100,20 @@ struct KyonoTheme<Content: View>: View {
     let themeSetting: String
     @ViewBuilder let content: () -> Content
     @Environment(\.colorScheme) private var systemColorScheme
+    // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
+    // 1:1移植。開いたまま19時/5時の境界をまたいでもテーマが追従するよう、フォアグラウンド中は
+    // 60秒ごとに再評価する(tickを変更するとbodyが再評価され、resolveKyonoColorsが現在時刻を
+    // 素通しで見直す)。
+    @State private var tick = 0
+    private let ticker = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
+        // SwiftUIは@Stateが変化するとそれを保持するView(このKyonoTheme)のbodyを再評価する
+        // (Composeのようなプロパティ単位の読み取り追跡ではない)。tick自体をbody内で参照しなくても、
+        // .onReceiveでのtick更新だけでresolveKyonoColors()の再評価(=現在時刻の再取得)が起きる。
         content()
             .environment(\.kyonoColors, resolveKyonoColors(themeSetting: themeSetting, systemColorScheme: systemColorScheme))
+            .onReceive(ticker) { _ in tick += 1 }
     }
 }
 

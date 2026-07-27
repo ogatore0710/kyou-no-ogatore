@@ -42,6 +42,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,6 +77,7 @@ import jp.ogatore.kyouno.record.RecordLogic
 import jp.ogatore.kyouno.record.RecordStore
 import jp.ogatore.kyouno.safety.SafetyKBLoader
 import java.io.File
+import kotlinx.coroutines.delay
 import java.time.Instant
 import java.util.Calendar as JCalendar
 import kotlin.random.Random
@@ -397,25 +399,35 @@ fun HomeScreen(
     val did = streak.dates.contains(today)
 
     // app-env.js:60 refreshDay相当。visibilitychangeの代わりにonResumeで日付またぎ・pendingNudgeを確認する
+    fun checkRefreshDay() {
+        val r = HomeLogic.refreshDay(Instant.now(), lastDay)
+        if (r.dayChanged) {
+            lastDay = r.today
+            streak = RecordLogic.loadStreak(store) // 再読み込み(他端末/強制終了復帰後の反映も兼ねる)
+            fd = store.get("fd", null as String?)
+            fdday = store.get("fdday", null as String?)
+        }
+        if (HomeLogic.shouldShowDoneNudge(pendingNudgeDate, r.today, streak.dates)) {
+            showDoneNudge = true
+        }
+        pendingNudgeDate = null // checkDoneNudgeと同じ「一度出したら消す」
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                val r = HomeLogic.refreshDay(Instant.now(), lastDay)
-                if (r.dayChanged) {
-                    lastDay = r.today
-                    streak = RecordLogic.loadStreak(store) // 再読み込み(他端末/強制終了復帰後の反映も兼ねる)
-                    fd = store.get("fd", null as String?)
-                    fdday = store.get("fdday", null as String?)
-                }
-                if (HomeLogic.shouldShowDoneNudge(pendingNudgeDate, r.today, streak.dates)) {
-                    showDoneNudge = true
-                }
-                pendingNudgeDate = null // checkDoneNudgeと同じ「一度出したら消す」
-            }
+            if (event == Lifecycle.Event.ON_RESUME) checkRefreshDay()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
+    // 1:1移植。開いたまま日付(3時境界)をまたいでも通算日数・きょうやった状態等の表示が追従するよう、
+    // フォアグラウンド中は60秒ごとに同じ確認を回す。
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000)
+            checkRefreshDay()
+        }
     }
 
     val fdFocusOn = HomeLogic.fdFocusHomeActive(fd, streak.total, fdday, today)
@@ -850,10 +862,23 @@ fun MyRecordScreen(
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting) {
         val colors = LocalKyonoColors.current
-        val now = Instant.now()
-        val streak = remember { RecordLogic.loadStreak(store) }
-        val doneDates = remember { streak.dates.toSet() }
-        val today = remember { RecordLogic.todayStr(now) }
+        var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }
+        var doneDates by remember { mutableStateOf(streak.dates.toSet()) }
+        var today by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
+        // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
+        // 1:1移植。開いたまま日付(3時境界)をまたいでもマイ記録の表示(通算/カレンダー等)が追従するよう、
+        // フォアグラウンド中は60秒ごとに日付を再確認する。
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(60_000)
+                val newToday = RecordLogic.todayStr(Instant.now())
+                if (newToday != today) {
+                    today = newToday
+                    streak = RecordLogic.loadStreak(store)
+                    doneDates = streak.dates.toSet()
+                }
+            }
+        }
 
         val nowCal = JCalendar.getInstance()
         var year by remember { mutableStateOf(nowCal.get(JCalendar.YEAR)) }
@@ -865,7 +890,7 @@ fun MyRecordScreen(
 
         var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
         var reachMsg by remember { mutableStateOf<androidx.compose.ui.text.AnnotatedString?>(null) }
-        val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, now) }
+        val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, Instant.now()) }
 
         Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
             // マイ記録タブ進捗カード欠落修正タスク(TASK-C2-2026-07-26-myrecord-progress-card.md):
@@ -1087,7 +1112,7 @@ fun MyRecordScreen(
                                     // setReach()のメッセージ3分岐の1:1移植。bestはタップ前の自己ベスト
                                     // (setReach呼び出しでstoreが更新される前に必ず算出すること)。
                                     val best = reachList.maxOfOrNull { it.lv } ?: 0
-                                    RecordLogic.setReach(store, lv, now)
+                                    RecordLogic.setReach(store, lv, Instant.now())
                                     reachList = RecordLogic.getReach(store)
                                     reachMsg = buildAnnotatedString {
                                         when {

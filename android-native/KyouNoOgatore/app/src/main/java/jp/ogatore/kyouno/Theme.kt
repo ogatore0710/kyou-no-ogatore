@@ -4,8 +4,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -15,6 +20,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md
 // §「Web版の正本（デザイントークン」): index.htmlのCSS変数(:root/body.dark)から抽出した値をそのまま
@@ -131,22 +138,41 @@ object KyonoFonts {
     }
 }
 
+// TASK-C2-2026-07-27-auto-theme-time-rule.md: app-env.js applyTheme()の時刻判定
+// (h>=19||h<5)の1:1移植。端末のローカル時刻(Web版のnew Date().getHours()と同じ)で判定する。
+private fun isAutoThemeDarkByTime(): Boolean {
+    val hour = LocalTime.now().hour
+    return hour >= 19 || hour < 5
+}
+
 // index.html:1157周辺 storeのtheme値("auto"/"light"/"dark")をシステムのダークモードと合成する。
-// kyono_theme="auto"のときだけisSystemInDarkTheme()を見る(Web版のprefers-color-scheme連動と同じ)。
+// kyono_theme="auto"のときはisSystemInDarkTheme() OR 時刻判定(19時〜朝5時)を見る
+// (Web版のprefers-color-scheme連動+時刻判定と同じ)。tickはKyonoTheme側の60秒ごとの
+// 再合成トリガー用(値自体は使わない。読まれることで呼び出し元を再評価させるだけ)。
 @Composable
-fun resolveKyonoColors(themeSetting: String): KyonoColors {
+fun resolveKyonoColors(themeSetting: String, tick: Int = 0): KyonoColors {
     val systemDark = isSystemInDarkTheme()
     val dark = when (themeSetting) {
         "dark" -> true
         "light" -> false
-        else -> systemDark
+        else -> systemDark || isAutoThemeDarkByTime()
     }
     return if (dark) KyonoDarkColors else KyonoLightColors
 }
 
 @Composable
 fun KyonoTheme(themeSetting: String, content: @Composable () -> Unit) {
-    val colors = resolveKyonoColors(themeSetting)
+    // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
+    // 1:1移植。開いたまま19時/5時の境界をまたいでもテーマが追従するよう、フォアグラウンド中は
+    // 60秒ごとに再評価する。
+    var tick by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000)
+            tick++
+        }
+    }
+    val colors = resolveKyonoColors(themeSetting, tick)
     // ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: themes.xmlの
     // android:statusBarColor/navigationBarColorがライト固定(#FFFAF3)のままで、アプリ内のダーク
     // モード時にステータスバー/ナビゲーションバーだけライト色が残留していた(コンテンツ自体は正しく
