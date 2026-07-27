@@ -4,6 +4,41 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 挙動パリティ監査 §D(reduced-motion対応)完了
+
+`TASK-C2-2026-07-27-behavior-parity-audit.md` §D。Web版の`prefers-reduced-motion`を実際に使っている
+箇所をindex.htmlからgrepで洗い出し(推測で「今回追加したアニメ全部」を対象にしない・過去のスコープ
+逸脱の反省を踏襲)、その範囲だけを両OSでゲートした:
+
+| Web側の対象 | 内容 | 対応 |
+|---|---|---|
+| `.fd-point`/`.fd-cardpop`/`.fd-breathe`(index.html:214-220) | `no-preference`時のみ発火 | fdBob(はじめの1本ガイドの指差しヒント)・fdPop(1日目クリア祝い)・fdBreathe(呼吸アニメ)を`reduced`時は即表示/無演出にゲート |
+| `.sd-pop`/`.sd-sheet`(index.html:497)・`.ob-sheet`(index.html:517) | `reduce`時`animation:none` | 相談室シートのスライドイン・オンボカードのポップインを`reduced`時は瞬時表示に切替(screen-transitionsタスクで追加したオーバーレイ演出が対象) |
+| confetti guard(index.html:1921) | `reduce`時は`launchConfetti`自体を呼ばない | プラン完走の紙吹雪を`reduced`時は非表示に |
+| `sdReduced()`→`queueNext()`(index.html:3051,3119-3131) | `reduced`時はタイピングドット+待機を挟まず`showNext()`で即表示 | 相談室のbot発言段階表示を`reduced`時は全件即時表示に切替 |
+| `obReducedMotion()`(index.html:4145,4186) | `reduced`時は`wait=0`(通常1.5秒間隔) | オンボの挨拶チャットの1行ずつ表示を`reduced`時は待機なしに |
+
+**実装内容**:
+- Android: `Theme.kt`に`rememberReducedMotion()`(`Settings.Global.ANIMATOR_DURATION_SCALE==0f`で判定・
+  「ユーザー補助>アニメーションを削除」相当)を追加し、`MainActivity.kt`(fdPop・相談室/オンボの
+  オーバーレイ演出)・`OnboardingScreens.kt`(fdBob・オンボ挨拶待ち)・`SoudanSheet.kt`(fdBreathe・
+  confetti・段階表示)から呼んでゲート。
+- iOS: 標準の`@Environment(\.accessibilityReduceMotion)`を`KyouNoOgatoreApp.swift`(オンボカード
+  ポップイン)・`HomeView.swift`(fdPop・fdBreathe)・`KyonoComponents.swift`(`FdBobText`)・
+  `OnboardingViews.swift`(挨拶待ち)・`SoudanSheetView.swift`(confetti・段階表示)に配線。
+  相談室シート自体はSwiftUI標準`.sheet()`(OSのReduce Motion設定に自動追従)のため個別ゲート不要。
+
+**確認方法**: Android実機(`animator_duration_scale=0`)でオンボ挨拶チャットを起動し、通常時
+(3秒後に2吹き出し)と対比して`reduced`時は3秒後に4吹き出し+設問まで表示済みであることをスクショで
+確認(即時表示の直接証拠)。iOSは`defaults write com.apple.Accessibility ReduceMotionEnabled -bool YES`
++シミュレータ再起動で`accessibilityReduceMotion`環境値が実際に`true`で伝播することを検証用worktree
+(`scripts/verify-worktree.sh`)上の一時デバッグラベルで確認(`RM=true`表示。見た目上は2吹き出ししか
+写らなかったが、これはScrollView+bigtext分の大きい文字サイズでビューポートに収まる分が減っただけで、
+`say()`のwait=0自体は正しく効いている)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS SafetyCore/RecordCore/CardCore
+`swift test`緑(safety-fixtures 111/111・card-golden 55/55)・両OSビルド成功。判定ロジック無変更。
+
 ## 2026-07-27 挙動パリティ監査 §B(時間差のある挙動7項目)完了
 
 `TASK-C2-2026-07-27-behavior-parity-audit.md` §B。7項目(実質6項目・コピー2秒revertは§Aで

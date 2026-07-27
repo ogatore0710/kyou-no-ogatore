@@ -5,6 +5,15 @@
 ## 体制（2026-07-24〜）
 alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微実装・検収）、appdev（C2）が実行工場。大きい実装タスクはalan5からタスクファイルで届き、appdevが実行して完了報告をドア配達で返す。詳細は[docs/HANDOVER-to-alan5-2026-07-24.md](docs/HANDOVER-to-alan5-2026-07-24.md)。
 
+## ✅ 完了: 挙動パリティ監査 §D(reduced-motion対応)（2026-07-27）
+`TASK-C2-2026-07-27-behavior-parity-audit.md` §D。Web版が`prefers-reduced-motion`で実際にゲート
+している箇所(index.htmlをgrepして特定)だけを対象に、fdBob/fdPop/fdBreathe・相談室シート/オンボ
+カードのポップイン・紙吹雪・相談室の段階表示・オンボ挨拶チャットの待ちを両OSでゲート。Android
+は`Settings.Global.ANIMATOR_DURATION_SCALE`、iOSは標準の`accessibilityReduceMotion`環境値で判定。
+Android実機での実測(reduced時は3秒後に4吹き出し表示済み・通常時は2吹き出し)とiOS検証用worktree
+での環境値伝播確認(`RM=true`)で動作を確認。判定ロジックは無変更。詳細はWORKING_NOTES.mdの同日
+エントリ参照。
+
 ## ✅ 完了: 挙動パリティ監査 §B(時間差のある挙動7項目)（2026-07-27）
 `TASK-C2-2026-07-27-behavior-parity-audit.md` §B。検索180msデバウンス・ツアー起動350ms待ち・
 「きょうの1本」への自動スクロールの3件を両OSに実装。紙吹雪タイミングは既に一致確認済み、
