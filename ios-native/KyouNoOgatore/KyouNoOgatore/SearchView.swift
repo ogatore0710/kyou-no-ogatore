@@ -117,6 +117,9 @@ struct VideoRow: View {
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 16).fill(hero ? colors.pinkSoft : colors.card))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(hero ? colors.pink : colors.line, lineWidth: hero ? 2.5 : 1.5))
+        // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: サムネイル(装飾)+バッジ+タイトル+
+        // 補足を1回のVoiceOverスワイプで読める1つの単位にまとめる。
+        .accessibilityElement(children: .combine)
         .buttonStyle(.plain)
     }
 }

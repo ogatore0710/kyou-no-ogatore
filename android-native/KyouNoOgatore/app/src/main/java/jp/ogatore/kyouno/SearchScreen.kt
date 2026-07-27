@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -128,6 +129,9 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
             .background(if (hero) colors.pinkSoft else colors.card, RoundedCornerShape(16.dp))
             .border(if (hero) 2.5.dp else 1.5.dp, if (hero) colors.pink else colors.line, RoundedCornerShape(16.dp))
             .padding(10.dp)
+            // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: サムネイル(装飾)+バッジ+タイトル+
+            // 補足を1回のTalkBackスワイプで読める1つの単位にまとめる。
+            .semantics(mergeDescendants = true) {}
             .testTag("video_${v.id}"),
     ) {
         androidx.compose.foundation.layout.Box(

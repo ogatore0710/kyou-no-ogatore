@@ -604,6 +604,9 @@ private struct QuizContentView: View {
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
                         .contentShape(Rectangle())
                         .onTapGesture { onOptTap(q, opt) }
+                        // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
+                        // 補足説明を1回のVoiceOverスワイプで読める1つの単位にまとめる。
+                        .accessibilityElement(children: .combine)
                     }
                 }
                 // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。

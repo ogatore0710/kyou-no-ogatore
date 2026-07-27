@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,13 +94,17 @@ fun KyonoPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = M
     val faceOffset = if (pressed) 3.dp else 0.dp
     val alpha = if (enabled) 1f else 0.5f
     Box(modifier = modifier.fillMaxWidth()) {
-        // シャドウ層(下地。面層と同じテキスト・paddingを透明色で重ねて高さを一致させる)
+        // シャドウ層(下地。面層と同じテキスト・paddingを透明色で重ねて高さを一致させる)。
+        // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このTextは見た目上の高さ調整だけの
+        // 複製で本文と同一内容のため、clearAndSetSemantics{}で読み上げ対象から外す(無いとTalkBackが
+        // 同じラベルを2回読み上げてしまっていた)。
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = shadowOffset)
                 .background(colors.btnPrimaryShadow.copy(alpha = alpha), KyonoButtonShape)
-                .padding(16.dp, 18.dp),
+                .padding(16.dp, 18.dp)
+                .clearAndSetSemantics {},
             contentAlignment = Alignment.Center,
         ) { Text(text, color = Color.Transparent, fontSize = 20.sp, fontWeight = FontWeight.Black) }
         // 面(前景)層

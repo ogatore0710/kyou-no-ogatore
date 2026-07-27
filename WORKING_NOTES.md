@@ -4,6 +4,55 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 もじの大きさ(bigtext)未適用+iOS Dynamic Type非対応+読み上げラベル整備を修正
+
+`TASK-C2-2026-07-27-text-size-accessibility.md`(alan5の調査・優先タスクとしてscreen-transitions
+より先に発注)。3件の欠落を修正:
+
+**① もじの大きさ設定が保存されるだけで表示に一切反映されていなかった(両OS)**: 既定はON(大きめ・
+2026-07-12本人フィードバック・対象ユーザー50-60代)。index.html:87 `body.bigtext{zoom:1.18}`の
+1:1移植として実装:
+- Android: `KyonoTheme(themeSetting, bigText: Boolean = true, content)`に`bigText`引数を追加し、
+  `CompositionLocalProvider(LocalDensity provides Density(density, fontScale * 1.18))`でOS側の
+  フォントスケールに1.18倍を掛け合わせる(既存の.sp指定を1件も書き換えずに全体へ反映できる)。
+  17箇所の`KyonoTheme(...)`呼び出し元すべてに`bigText = store.get("bigtext", true)`を追加
+  (TourScreenのみRecordStore非受領のため`bigText = true`固定・既存の"auto"テーマ固定と同じ判断)。
+- iOS: `kyonoBigText` EnvironmentKey(既定true)を新設し`KyonoTheme`経由で注入。既存の
+  `.font(.kyono(weight, size:))`呼び出し(217箇所)を機械的に`.kyonoFont(weight, size:)`
+  (新設ViewModifier・環境値を読んで size*1.18 を適用)に置換。Text連結(+)を使う3箇所のみ
+  `.font(.kyono(...))`のまま残した(Text型が要求されるため。bigtextの1.18倍はこの3箇所のみ
+  非適用・影響は軽微)。16箇所の`KyonoTheme(themeSetting:...)`呼び出し元に`bigText:`を追加
+  (TourView/ResultViewの"auto"固定2箇所も同じ判断)。
+
+**② iOSがDynamic Type(端末の文字サイズ設定)を完全に無視していた**: `Font.kyono`が
+`Font.custom(psName, size:)`(固定サイズ版)だったのを`Font.custom(psName, size:, relativeTo:)`
+に変更。サイズ→TextStyleは20以上→.title2・14-20→.body・それ未満→.captionで対応付け。
+
+**③ 合成時のレイアウト非破綻確認**: アプリ1.18倍+OS側拡大が両方効くと極端になりうるため、
+`KyonoTheme`に`.dynamicTypeSize(...DynamicTypeSize.accessibility2)`で上限キャップを追加(iOS)。
+Android側は`(density.fontScale*1.18).coerceAtMost(2.2f)`でキャップ。実機/シミュレータで
+「アプリ大きめ+端末の文字サイズ最大」を確認: Android(font_scale=2.0+bigtext既定)・iOS
+(content_size accessibility-extra-extra-extra-large+bigtext既定)とも、ホーム画面で文字が
+大きく折り返され縦スクロール量は増えるが、重なり/削れ/操作不能は無く読める状態を保っていた。
+
+**④ 読み上げ(TalkBack/VoiceOver)ラベル整備**: 調査の過程で`KyonoPrimaryButton`(両OS)に
+**実害のあるバグ**を発見: シャドウ演出用に本文と同じテキストをもう1つ重ねて描画している構造
+(`box-shadow`のオフセット矩形をテキスト付きBox/ZStackの二重描画で再現)が、読み上げ対象からも
+2重に見えてしまいTalkBack/VoiceOverが同じラベルを2回読み上げていた(「きょうやった!」を持つ
+ボタンなど、両OSの主要導線に影響)。Android側は`clearAndSetSemantics{}`、iOS側は
+`.accessibilityHidden(true)`でシャドウ層を読み上げ対象から除外して解消。
+その他: 下部タブバー5項目に選択状態つきの読み上げラベルを追加(Android:
+`semantics(mergeDescendants=true){contentDescription=...; selected=...; role=Role.Tab}`、iOS:
+`.accessibilityElement(children:.combine)+.accessibilityAddTraits(.isSelected)`)。かたさチェック
+選択肢・動画カード(VideoRow)も見出し+補足を1回のスワイプで読める単位にまとめた。FAB2つは
+既存実装で対応済み(contentDescription/accessibilityLabelText済み)。キャラ画像等の装飾要素は
+既存どおり読み上げ対象外(変更なし)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS SafetyCore(111+8)/RecordCore(35)/
+CardCore(16+55)緑。判定ロジックは無変更(表示・アクセシビリティのみ)。実機/シミュレータで
+「ふつう」と「大きめ」の比較スクショ、および「アプリ大きめ+端末最大」でのホーム画面スクショを
+確認済み(本人へ送付済み)。
+
 ## 2026-07-27 画面遷移アニメーション §相談室シート化(進行中・チェックポイント)
 
 `TASK-C2-2026-07-27-screen-transitions.md`。方針どおりScreen sealed class/enumは維持し、外側に

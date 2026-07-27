@@ -46,6 +46,10 @@ struct KyonoTabBar: View {
             .padding(.vertical, 4)
         }
         .buttonStyle(.plain)
+        // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: アイコン(装飾)とラベルを1つの
+        // 読み上げ単位にまとめ、選択状態もあわせて伝える(Android版TabItemの対応と同じ)。
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 

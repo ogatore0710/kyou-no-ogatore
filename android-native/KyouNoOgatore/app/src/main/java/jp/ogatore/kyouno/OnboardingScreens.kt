@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -523,6 +524,9 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                         Modifier.fillMaxWidth().padding(vertical = 4.dp)
                             .background(c.bg, RoundedCornerShape(16.dp))
                             .border(2.dp, c.border, RoundedCornerShape(16.dp))
+                            // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
+                            // 補足説明を1回のTalkBackスワイプで読める1つの単位にまとめる。
+                            .semantics(mergeDescendants = true) {}
                             .clickable {
                                 opt.score?.let { scores[q.key] = it }
                                 opt.worryKey?.let { worry = it }

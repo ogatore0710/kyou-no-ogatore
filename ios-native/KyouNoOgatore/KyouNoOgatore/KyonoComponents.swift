@@ -144,12 +144,16 @@ struct KyonoPrimaryButton: View {
         let faceOffset: CGFloat = pressed ? 3 : 0
         let alpha: Double = enabled ? 1 : 0.5
         ZStack {
+            // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このTextは見た目上の高さ調整だけの
+            // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
+            // VoiceOverが同じラベルを2回読み上げてしまっていた)。
             Text(text).kyonoFont(.black900, size: 20).foregroundColor(.clear)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
                 .background(colors.btnPrimaryShadow.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius)
                 .offset(y: shadowOffset)
+                .accessibilityHidden(true)
             Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.ink)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
