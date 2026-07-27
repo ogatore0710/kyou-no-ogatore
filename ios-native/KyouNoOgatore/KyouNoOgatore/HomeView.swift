@@ -156,6 +156,27 @@ struct HomeView: View {
 
     private let dayTicker = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:2718
+    // closeCard()→fdTourMaybeStart()の1:1移植。Web版はどう閉じても(とじるボタン・スワイプ下ろし・
+    // 背景タップ)必ずfdTourMaybeStart()を呼ぶため、カードを閉じる経路を1箇所にまとめて両方から使う
+    // (以前は「とじる」ボタンのactionにしかこのロジックが無かった)。
+    private func closeCardAndMaybeStartTour() {
+        cardResult = nil
+        let tourpend: Bool = store.get("tourpend", default: false)
+        let tourseen: Bool = store.get("tourseen", default: false)
+        if tourpend && !tourseen {
+            store.set("tourpend", false)
+            store.set("tourseen", true)
+            fdCardNudgeVisible = false
+            // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B):
+            // index.html:4293 setTimeout(obOpenTour,350)の1:1移植。カードモーダルの閉じるアニメーションが
+            // 視覚的に完了してからツアーを開始する。
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                onStartTour(true)
+            }
+        }
+    }
+
     // KyonoThemeでの配色解決はRootView(KyouNoOgatoreApp.swift)側で行う(タブバー・FABとも共通の
     // 配色を1箇所で解決するため。二重ラップを避ける)。
     var body: some View {
@@ -477,7 +498,7 @@ struct HomeView: View {
             DailyNotifications.resync(store: store)
         }
         .onReceive(dayTicker) { _ in checkRefreshDay() }
-        .sheet(isPresented: Binding(get: { cardResult != nil }, set: { if !$0 { cardResult = nil } })) {
+        .sheet(isPresented: Binding(get: { cardResult != nil }, set: { if !$0 { closeCardAndMaybeStartTour() } })) {
             if let cardResult {
                 VStack {
                     Image(uiImage: cardResult.image).resizable().scaledToFit()
@@ -494,24 +515,7 @@ struct HomeView: View {
                         }
                     }
                     HStack {
-                        Button("とじる") {
-                            self.cardResult = nil
-                            // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
-                            // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
-                            let tourpend: Bool = store.get("tourpend", default: false)
-                            let tourseen: Bool = store.get("tourseen", default: false)
-                            if tourpend && !tourseen {
-                                store.set("tourpend", false)
-                                store.set("tourseen", true)
-                                fdCardNudgeVisible = false
-                                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B):
-                                // index.html:4293 setTimeout(obOpenTour,350)の1:1移植。カードモーダルの
-                                // 閉じるアニメーションが視覚的に完了してからツアーを開始する。
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                    onStartTour(true)
-                                }
-                            }
-                        }
+                        Button("とじる", action: closeCardAndMaybeStartTour)
                         // index.html shareCard()相当(Step7bで新規実装)。
                         Button("保存・シェアする") {
                             ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")

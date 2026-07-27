@@ -58,13 +58,25 @@ import jp.ogatore.kyouno.record.RecordStore
 // index.html:1974-1979 ANCHORSの1:1移植(ラベル+カレンダー通知の既定時刻)。キー(asa/furo/neru/free)
 // 自体はOnboardingScreens.ktのanchor質問と共有(§1-2手写し禁止対象の機械抽出データではなく、
 // 短い固定UI文言なのでオンボ文言・SOUDAN_CHIP_CATS等と同じくUI copyとして直接記述)。
-private data class AnchorInfo(val key: String, val label: String, val defaultHour: Int, val defaultMinute: Int)
-private val ANCHORS = listOf(
+data class AnchorInfo(val key: String, val label: String, val defaultHour: Int, val defaultMinute: Int)
+val ANCHORS = listOf(
     AnchorInfo("asa", "朝おきてそのまま", 7, 30),
     AnchorInfo("furo", "おふろ上がりに", 20, 30),
     AnchorInfo("neru", "寝るまえふとんの上で", 21, 30),
     AnchorInfo("free", "きめてない・そのつど", 20, 0),
 )
+
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
+// 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。設定画面・マイ記録画面の両方の
+// カレンダー登録ボタンから共通で使う(以前はマイ記録側だけ引数なし=常に20:00のままだった)。
+fun icsTimeFor(store: RecordStore): Pair<Int, Int> {
+    val anchor = store.get<String?>("anchor", null)
+    val anchorInfo = ANCHORS.find { it.key == anchor }
+    val savedIcsTime = store.get<String?>("icstime", null)
+    val hour = savedIcsTime?.substringBefore(":")?.toIntOrNull() ?: anchorInfo?.defaultHour ?: ANCHORS.last().defaultHour
+    val minute = savedIcsTime?.substringAfter(":")?.toIntOrNull() ?: anchorInfo?.defaultMinute ?: ANCHORS.last().defaultMinute
+    return hour to minute
+}
 
 // ネイティブ移植 Step 7b(マスタープラン§6 Step 7b・§2-1「index.html じまん/声/とどくメーター/
 // おやすみ券/エクスポート・インポート」行): 設定UI(index.html:798-846「続ける設定」カードの1:1移植)。
@@ -93,14 +105,23 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         var showAnchorPicker by remember { mutableStateOf(false) }
         val anchorInfo = ANCHORS.find { it.key == anchor }
         // index.html:2003 renderIcs()のdef計算(未設定時はfree扱い)+保存済みicstimeがあればそちらを優先。
-        val savedIcsTime = remember { store.get<String?>("icstime", null) }
-        val savedHour = savedIcsTime?.substringBefore(":")?.toIntOrNull() ?: anchorInfo?.defaultHour ?: ANCHORS.last().defaultHour
-        val savedMinute = savedIcsTime?.substringAfter(":")?.toIntOrNull() ?: anchorInfo?.defaultMinute ?: ANCHORS.last().defaultMinute
+        val (savedHour, savedMinute) = remember { icsTimeFor(store) }
         // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを15分刻みに変更。
         // 既に保存済みのicstimeが15分刻みでない場合は、表示・保存とも最も近い15分に丸める
         // (既定値はすべて15分刻みなので影響なし)。
         var icsHour by remember { mutableStateOf(savedHour) }
         var icsMinute by remember { mutableStateOf(((savedMinute + 7) / 15 * 15).coerceAtMost(45)) }
+        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: index.html:2001-2020 renderIcs()は
+        // 呼ばれるたびにanchor別の既定を反映するが、ネイティブはinit時の1回きりで、その後「やるタイミング」
+        // を変えても表示中の時刻が追従しなかった。保存済みicstimeがまだ無い(=本人が時刻を明示的に
+        // 選んでいない)間だけ、anchor変更にあわせて既定時刻を追従させる。
+        LaunchedEffect(anchor) {
+            if (store.get<String?>("icstime", null) == null) {
+                val info = ANCHORS.find { it.key == anchor } ?: ANCHORS.last()
+                icsHour = info.defaultHour
+                icsMinute = ((info.defaultMinute + 7) / 15 * 15).coerceAtMost(45)
+            }
+        }
         LaunchedEffect(Unit) {
             if (savedMinute != icsMinute) {
                 store.set("icstime", "%02d:%02d".format(icsHour, icsMinute))

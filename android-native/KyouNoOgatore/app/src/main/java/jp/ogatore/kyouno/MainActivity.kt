@@ -111,6 +111,7 @@ import jp.ogatore.kyouno.record.RecordLogic
 import jp.ogatore.kyouno.record.RecordStore
 import jp.ogatore.kyouno.safety.SafetyKBLoader
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -126,6 +127,25 @@ import kotlin.random.Random
 // はじめの1本ガイドの当日限定フォーカス・onResumeでの日付またぎ更新とpendingNudge復帰ナッジ・
 // ファイル永続化(強制終了→再起動で残る)。動画カタログ(videos.js)本体・2週間プラン・カレンダー・
 // オンボ/ツアーUIはStep5b/5c/7aの範囲でありここには含めない(§6 Step5aの「やること」に無いため)。
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:4283-4295 fdTourMaybeStart()の
+// 1:1移植。以前はカード「とじる」ボタンのonClick内にだけ同じロジックが書かれており、
+// index.html:1563(switchTab)・:2718(closeCard、外タップ/戻るを含む)の両方から呼ばれるWeb版と違い、
+// 「とじる」ボタン以外(外タップ・戻る・タブ移動)ではツアーが起動しなかった。tourpend&&!tourseenの
+// ときだけフラグを消費し、350ms後(カード/画面遷移の見た目が完了してから)にツアーを開始する。
+fun tryStartTour(store: RecordStore, scope: CoroutineScope, onTourpendConsumed: () -> Unit = {}, onStartTour: () -> Unit) {
+    val tourpend = store.get("tourpend", false)
+    val tourseen = store.get("tourseen", false)
+    if (tourpend && !tourseen) {
+        store.set("tourpend", false)
+        store.set("tourseen", true)
+        onTourpendConsumed()
+        scope.launch {
+            delay(350)
+            onStartTour()
+        }
+    }
+}
+
 class MainActivity : ComponentActivity() {
     private lateinit var store: RecordStore
 
@@ -137,6 +157,9 @@ class MainActivity : ComponentActivity() {
             var screen by remember {
                 mutableStateOf<Screen>(if (store.get("onboarded", false)) Screen.Home else Screen.Onboarding)
             }
+            // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:1563
+            // switchTab()先頭のfdTourMaybeStart()呼び出し用(タブ移動でのツアー自動起動)。
+            val rootScope = rememberCoroutineScope()
             // ダークモード再確認+rDoneNudge/rTourBtn実装タスク(TASK-C2-2026-07-27-darkmode-recheck-
             // and-nudges.md): index.html:4267 obTourI/obTourDone/obTourAfterQuizの1:1移植。Web版と
             // 同じくプロセス内メモリのみ(§2-3・永続化しない)。obTourDoneは「このセッション内でツアーを
@@ -327,6 +350,8 @@ class MainActivity : ComponentActivity() {
                                 }
                                 if (showTabBar) {
                                     KyonoTabBar(current = currentTab) { tab ->
+                                        // index.html:1562-1563 switchTab()先頭のfdTourMaybeStart()の1:1移植。
+                                        tryStartTour(store, rootScope) { screen = Screen.Tour(true) }
                                         screen = when (tab) {
                                             KyonoTab.Guide -> Screen.Guide
                                             KyonoTab.MyRecord -> Screen.MyRecord
@@ -1148,29 +1173,19 @@ fun HomeScreen(
 
         cardResult?.let { result ->
             val bmp = result.bitmap
+            // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:2718
+            // closeCard()→fdTourMaybeStart()の1:1移植。Web版はどう閉じても(とじるボタン・外タップ・
+            // 戻る)必ずfdTourMaybeStart()を呼ぶため、onDismissRequest(外タップ/戻る)側にも同じ
+            // ツアー自動起動を追加する(以前はconfirmButtonのonClick内にしか無かった)。
+            val onCardClose = {
+                cardResult = null
+                tryStartTour(store, scope, onTourpendConsumed = { fdCardNudgeVisible = false }) { onStartTour(true) }
+            }
             AlertDialog(
-                onDismissRequest = { cardResult = null },
+                onDismissRequest = onCardClose,
                 confirmButton = {
                     Button(
-                        onClick = {
-                            cardResult = null
-                            // index.html:2718 closeCard()→fdTourMaybeStart()の1:1移植。カードモーダルを
-                            // 閉じた「区切り」の瞬間だけツアーを一度きり自動起動する(tourseenで二重防止)。
-                            val tourpend = store.get("tourpend", false)
-                            val tourseen = store.get("tourseen", false)
-                            if (tourpend && !tourseen) {
-                                store.set("tourpend", false)
-                                store.set("tourseen", true)
-                                fdCardNudgeVisible = false
-                                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B):
-                                // index.html:4293 setTimeout(obOpenTour,350)の1:1移植。カードモーダルの
-                                // 閉じるアニメーションが視覚的に完了してからツアーを開始する。
-                                scope.launch {
-                                    delay(350)
-                                    onStartTour(true)
-                                }
-                            }
-                        },
+                        onClick = onCardClose,
                         modifier = Modifier.testTag("cardCloseBtn"),
                     ) { Text("とじる") }
                 },

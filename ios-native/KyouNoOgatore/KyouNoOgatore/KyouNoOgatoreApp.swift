@@ -136,6 +136,22 @@ struct RootView: View {
         _obuSeen = State(initialValue: store.get("obu_seen", default: nil))
     }
 
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:4283-4295 fdTourMaybeStart()の
+    // 1:1移植。以前はカード「とじる」ボタンのactionにだけ同じロジックが書かれており、
+    // index.html:1563(switchTab)・:2718(closeCard、スワイプ下ろし/背景タップを含む)の両方から呼ぶ
+    // Web版と違い、「とじる」ボタン以外ではツアーが起動しなかった。tourpend&&!tourseenのときだけ
+    // フラグを消費し、350ms後(カード/画面遷移の見た目が完了してから)にツアーを開始する。
+    private func tryStartTour(onTourpendConsumed: () -> Void = {}, onStartTour: @escaping () -> Void) {
+        let tourpend: Bool = store.get("tourpend", default: false)
+        let tourseen: Bool = store.get("tourseen", default: false)
+        if tourpend && !tourseen {
+            store.set("tourpend", false)
+            store.set("tourseen", true)
+            onTourpendConsumed()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: onStartTour)
+        }
+    }
+
     private var themeSetting: String { store.get("theme", default: "auto") }
     private var isOnboarding: Bool { if case .onboarding = screen { return true } else { return false } }
     // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
@@ -167,6 +183,8 @@ struct RootView: View {
                     .animation(.easeInOut(duration: 0.22), value: effectiveScreen)
                 if screen.showsTabBar {
                     KyonoTabBar(current: screen.kyonoTab) { newTab in
+                        // index.html:1562-1563 switchTab()先頭のfdTourMaybeStart()の1:1移植。
+                        tryStartTour { screen = .tour(showClosing: true) }
                         switch newTab {
                         case .guide: screen = .guide
                         case .myRecord: screen = .myRecord
