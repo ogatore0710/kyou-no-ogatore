@@ -480,7 +480,9 @@ private func boldHtmlText(_ raw: String, bold: Color) -> Text {
         result = result + Text(rest[rest.startIndex..<startRange.lowerBound])
         let afterOpen = String(rest[startRange.upperBound...])
         guard let endRange = afterOpen.range(of: "</b>") else { result = result + Text(afterOpen); break }
-        result = result + Text(afterOpen[afterOpen.startIndex..<endRange.lowerBound]).kyonoFont(.black900, size: 14).foregroundColor(bold)
+        // Text連結(+)はText型のみ許容するため、ここだけ.kyonoFont(ViewModifier)ではなく
+        // .font(.kyono(...))を直接使う(bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
+        result = result + Text(afterOpen[afterOpen.startIndex..<endRange.lowerBound]).font(.kyono(.black900, size: 14)).foregroundColor(bold)
         rest = String(afterOpen[endRange.upperBound...])
     }
     return result
@@ -660,7 +662,7 @@ struct ResultView: View {
     var body: some View {
         // ResultViewはRecordStoreを従来受け取らなかったが、rSoudanLinkの遷移先(onOpenSoudan)や
         // worry(WORRY_EXTRA用)を読むために保持する。テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
-        KyonoTheme(themeSetting: "auto") {
+        KyonoTheme(themeSetting: "auto", bigText: store.get("bigtext", default: true)) {
             content
         }
         .onChange(of: scenePhase) { _, newPhase in
@@ -883,9 +885,9 @@ struct TourView: View {
     private var totalSlides: Int { obTourSlides.count + (showClosing ? 1 : 0) }
 
     // TourViewはRecordStoreを受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い。
-    // ResultViewと同じ判断)。
+    // ResultViewと同じ判断)。bigtextも同じ理由で既定値(true)をそのまま使う。
     var body: some View {
-        KyonoTheme(themeSetting: "auto") {
+        KyonoTheme(themeSetting: "auto", bigText: true) {
             TourContentView(si: $si, totalSlides: totalSlides, showClosing: showClosing, onDone: onDone)
         }
     }

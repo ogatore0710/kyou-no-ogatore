@@ -339,10 +339,12 @@ struct HomeView: View {
                 // 停滞期はげまし文言)の1:1移植。app-record.js:58-62の閾値をそのまま使う。
                 if !did {
                     if (12...16).contains(streak.total) {
+                        // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
+                        // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
                         (Text("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
-                            + Text("とどくメーター").kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                            + Text("とどくメーター").font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
                             + Text("で確かめてみて"))
-                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
                             .onTapGesture { onOpenMyRecord() }
                     } else if (28...34).contains(streak.total) {
                         Text("💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ")

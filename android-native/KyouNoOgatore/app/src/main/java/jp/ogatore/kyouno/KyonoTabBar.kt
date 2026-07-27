@@ -31,7 +31,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -66,11 +69,20 @@ private fun RowScope.TabItem(
     iconOff: Color, iconOn: Color, labelOn: Color, labelOff: Color,
     selected: Boolean, label: String, onClick: () -> Unit,
 ) {
+    // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 下部タブバー5項目にTalkBack読み上げ
+    // ラベルが無かったため追加。アイコン(装飾)とラベルをmergeDescendants=trueで1つの読み上げ
+    // 単位にまとめ、選択状態(selected)もあわせて伝える。
+    val isSelected = selected
     Column(
         modifier = Modifier
             .weight(1f)
             .clickable(onClick = onClick)
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = label
+                this.selected = isSelected
+                role = Role.Tab
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val fill = if (selected) iconOn else iconOff

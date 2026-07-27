@@ -327,10 +327,12 @@ private struct SoudanContentView: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 12)
             .background(colors.card)
-            // index.html:1223 .sd-disc(2行・2行目後半は太字強調)
+            // index.html:1223 .sd-disc(2行・2行目後半は太字強調)。Text連結(+)はText型のみ許容する
+            // ため、ここだけ.kyonoFont(ViewModifier)ではなく.font(.kyono(...))を直接使う
+            // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
             (Text("※回答はオガトレ監修のパターン集から選んでいます\n※目安をつかむ相談室です ")
-                .kyonoFont(.bold700, size: 13)
-                + Text("強い痛み・しびれがあるときは医療機関へ").kyonoFont(.black900, size: 13))
+                .font(.kyono(.bold700, size: 13))
+                + Text("強い痛み・しびれがあるときは医療機関へ").font(.kyono(.black900, size: 13)))
                 .foregroundColor(colors.sub).multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16).padding(.vertical, 6)
@@ -714,8 +716,10 @@ struct PlanDoneCardView: View {
                 KyonoCharaImage(name: "chara-congrats").frame(width: 84, height: 84)
                     .frame(maxWidth: .infinity, alignment: .center)
                 Spacer().frame(height: 8)
-                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pink).kyonoFont(.black900, size: 15)
-                    + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").kyonoFont(.bold700, size: 15))
+                // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
+                // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
+                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pink).font(.kyono(.black900, size: 15))
+                    + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
                     .foregroundColor(colors.ink)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, alignment: .center)
