@@ -2,6 +2,25 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: local-notifications §4 Android差し戻し、根本原因を特定・修正(2026-07-28)
+alan5が3回の実機テストで再現していた「1日目クリア時の通知許可提案がAndroidで一度も表示されない」
+問題の根本原因を特定。alan5と全く同じ手順(store直接シード+実機タップ)を試しても再現できな
+かったため、`AndroidManifest.xml`に`MainActivity`が`android:configChanges`を宣言していない点に
+着目し、**カードモーダルを閉じた直後に画面回転(設定変更)を挟む**再現手順で実際に再現に成功した。
+
+**根本原因**: 設定変更(回転・マルチウィンドウのリサイズ等)はActivityごと破棄・再生成する。
+`fdCelebrationVisible`/`showNotifPrompt`は素の`remember`で保持していたため、この再生成で
+`mutableStateOf(false)`に巻き戻っていた。`fd`/`streak`等はRecordStoreから再読込されるため
+正しい値に見える一方、この2つの一時UI状態だけが消える紛らわしい症状だった
+(alan5の観察「とじた後ホーム最上部に『きょうのひとこと』が出ていた」と完全に一致)。
+
+**修正**: 両フィールドを`remember`→`rememberSaveable`に変更(Activity再生成をまたいで値を保持)。
+実機で「カードを閉じる→回転→回転を戻す→スクロール」という同じ手順を修正前後で比較し、
+修正前は消える・修正後は保持されることを確認。iOS版はSwiftUIの`@State`が回転で画面ツリーごと
+再構築されないため元々この問題を抱えておらず、修正不要と判断。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・両OSビルド成功。
+
 ## ✅ 完了: quiz-result-reach-parity.md §1-3(2026-07-28)
 `TASK-C2-2026-07-28-quiz-result-reach-parity.md`の優先度上位3件。
 

@@ -75,6 +75,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -606,12 +607,18 @@ fun HomeScreen(
     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時のcheer差し替え
     // (fd-cardpopのカードサンプルポップイン)の1:1移植。節目(ms)がある場合はそちらを優先する
     // Web版と同じ構造(実際にはtotal===1でmsが同時に成立することは無いための保険)。
-    var fdCelebrationVisible by remember { mutableStateOf(false) }
-    // TASK-C2-2026-07-27-local-notifications.md §4: 1日目クリアの場面(fdCelebrationVisible発火と
-    // 同条件)で初めて通知の許可を提案する(まだ有効化していないときだけ)。iOS版HomeView.swift
-    // showNotifPromptと同一設計・同一文言。起動直後・オンボ中には出さない(この分岐自体が
-    // 1日目クリア後にしか到達しないため自然に満たされる)。
-    var showNotifPrompt by remember { mutableStateOf(false) }
+    // TASK-C2-2026-07-28: alan5差し戻し「通知提案が実機で一度も出ない」の根本原因対応。
+    // MainActivityはAndroidManifest.xmlにandroid:configChangesを宣言していないため、端末回転や
+    // マルチウィンドウのリサイズ等の設定変更でActivityごと破棄・再生成される。素の`remember`は
+    // その再生成でmutableStateOf(false)に巻き戻るため、カードモーダルを閉じた直後に回転が挟まると
+    // fdCelebrationVisible/showNotifPromptが両方falseに戻り「提案が出ない」ように見えていた
+    // (fd/streak等はRecordStoreから再読込されるため正しい値に見え、この2つだけ消える紛らわしい
+    // 症状だった)。`rememberSaveable`はActivity再生成をまたいで値を保持するため、これに切り替える。
+    var fdCelebrationVisible by rememberSaveable { mutableStateOf(false) }
+    // 1日目クリアの場面(fdCelebrationVisible発火と同条件)で初めて通知の許可を提案する(まだ有効化
+    // していないときだけ)。iOS版HomeView.swift showNotifPromptと同一設計・同一文言。起動直後・
+    // オンボ中には出さない(この分岐自体が1日目クリア後にしか到達しないため自然に満たされる)。
+    var showNotifPrompt by rememberSaveable { mutableStateOf(false) }
     val notifPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
             store.set("notif_enabled", true)

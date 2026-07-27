@@ -4,6 +4,40 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: local-notifications §4 Android差し戻し、根本原因を特定・修正(rememberSaveable)
+
+alan5が3回に渡り「1日目クリア時の通知許可提案がAndroidで一度も表示されない」と実機で再現し
+続けていた件。前回(コード確認+実機再テスト)ではalan5の再現手順(store直接シード+タップ→とじる)
+を厳密に再現しても再現できず、いったんビルド鮮度の疑いとして報告していたが、今回さらに踏み込んで
+特定した。
+
+**気づいたきっかけ**: `AndroidManifest.xml`で`MainActivity`が`android:configChanges`を宣言して
+いないことに気づいた。宣言が無いと、画面回転・マルチウィンドウのリサイズ・フォントサイズ変更
+などの「設定変更」が起きるたびにAndroidはActivityを**破棄して作り直す**。Compose の素の
+`remember`はプロセス内メモリのみで、この再生成をまたいで値を保持しない(`rememberSaveable`だけが
+Bundle経由で保持する)。`fdCelebrationVisible`/`showNotifPrompt`は素の`remember`で持っていたため、
+カードモーダルを閉じた直後に何らかの理由で設定変更が挟まると、この2つだけ`false`に巻き戻る
+はずだと仮説を立てた。
+
+**再現に成功した手順**: `pm clear`→store直接シード(fd="go"・fdday=昨日・tourseen=true)→
+起動→「きょうやった！」→カードモーダル「とじる」→**直後に画面回転を1往復させる**
+(`adb shell settings put system user_rotation 1`→`0`)→スクロールして確認。
+修正前はここで「1日目クリア！」の祝福テキストごと消え、ホーム最上部の「きょうのひとこと」に
+戻っていた——alan5が報告した症状(「とじた後ホーム最上部に『きょうのひとこと』が出ていた。
+fdCelebrationVisibleも一緒にfalseに戻っているように見える」)と完全に一致する。`fd`/`streak`は
+RecordStoreから再読込されるため正しい値のまま(「きょうの分は完了！」ボタン文言は正しく表示)
+なので、この2つの一時UI状態だけが消える紛らわしい症状になっていた。
+
+**修正**: `fdCelebrationVisible`/`showNotifPrompt`を`remember`→`rememberSaveable`に変更するだけ
+(2行)。実機で同じ回転手順を修正後のビルドで再実行し、今度は祝福テキスト+通知提案が回転を
+またいで保持されることを確認(スクショで前後比較)。
+
+**iOSは対象外と判断した理由**: SwiftUIの`@State`はView構造体の同一性が保たれる限り再生成の
+対象にならず、iOSでは画面回転がView階層を丸ごと破棄・再構築するモデルではない(UIKit/SwiftUIの
+既定挙動)ため、Android版のような症状は原理的に起きない。iOS版のコードは変更していない。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・両OSビルド成功。判定ロジックは無変更。
+
 ## 2026-07-28 追記: quiz-result-reach-parity §1-3(ガイド中結果画面の削ぎ落とし・二度押しガード・とどくメーター日付条件)
 
 `TASK-C2-2026-07-28-quiz-result-reach-parity.md`の優先度上位3件(alan5指定順)。
