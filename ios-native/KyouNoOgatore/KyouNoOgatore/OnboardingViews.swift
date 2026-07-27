@@ -595,6 +595,7 @@ private struct QuizContentView: View {
     @Environment(\.kyonoColors) private var colors
     let activeQuestions: [QuizQuestionDef]
     let qi: Int
+    let answering: Bool
     let onOptTap: (QuizQuestionDef, QuizOptDef) -> Void
     let onBack: () -> Void
     let onGoHomeTap: () -> Void
@@ -632,7 +633,7 @@ private struct QuizContentView: View {
                         .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
                         .contentShape(Rectangle())
-                        .onTapGesture { onOptTap(q, opt) }
+                        .onTapGesture { if !answering { onOptTap(q, opt) } }
                         // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
                         // 補足説明を1回のVoiceOverスワイプで読める1つの単位にまとめる。
                         .accessibilityElement(children: .combine)

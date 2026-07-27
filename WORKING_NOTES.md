@@ -4,6 +4,47 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: quiz-result-reach-parity §1-3(ガイド中結果画面の削ぎ落とし・二度押しガード・とどくメーター日付条件)
+
+`TASK-C2-2026-07-28-quiz-result-reach-parity.md`の優先度上位3件(alan5指定順)。
+
+**§1(大)ガイド中の結果画面**: app-quiz.js:291-299
+```js
+for(const id of ["rHope","rPT","rPace","rGoHomeBtn","rRecheckBtn"]){
+  el.classList.toggle("hidden", guide);
+}
+```
++ app-quiz.js:332 `if(!guide && sdKb())`(相談室リンク)。`fd-guide-ui-branch`タスクで①だけの
+専用UI(「出す側」)は実装済みだったが、その裏返しの「隠す側」が丸ごと抜けており、ガイド中の
+初回ユーザーに長文解説+2ボタン+相談室リンクが全部並び、①だけタップすればいい一本道設計が
+崩れていた。Android `OnboardingScreens.kt`/iOS `OnboardingViews.swift`のResultScreen/ResultView
+で、rHope(黄色ボックス)・rPT(理学療法士解説)・rPace(ペースの目安カード。rSoudanLink込み)・
+resultDoneBtn(「きょうの1本へ」)・resultRecheckBtn(「もう一回チェックする」)を
+`if (!fdGuideActive) { ... }`で囲むだけの変更(rTourBtnは既存のガード`obTourAfterQuiz &&
+!fdGuideActive`のままで変更不要、rDoneNudge/rDoneNudgeBtnもガイド専用表示のためそのまま)。
+
+実機で`pm clear`→オンボ4問→かたさチェック4問→結果画面まで通しで完走確認。タイプ結果カード+
+「きょうはこの1本だけでOK！」の練習カードのみが表示され、rHope/rPT/rPace/相談室リンク/
+下部2ボタンのいずれも(uiautomatorのtext grep 0件で)出ないことを確認。
+
+**§2(中)クイズ選択肢の二度押しガード**: app-quiz.js:180「回答タップ直後に全選択肢disabled」の
+1:1移植。想定層(機器が苦手な50-60代)はダブルタップの癖がある人が多く、素早く2回押すと次の設問が
+意図しない回答で確定し、タイプ判定・とどくメーター自動転記の両方に波及する「判定の入力が汚れる
+唯一の項目」(alan5評)。Android: `var answering by remember`+`LaunchedEffect(qi){answering=false}`+
+`.clickable(enabled = !answering)`。iOS: `@State private var answering`+
+`.onChange(of: qi){answering=false}`+`onOptTap`呼び出し元とタップ側の二重ガード。
+
+**§3(中)とどくメーターの「きょう」条件**: app-record.js:249
+`arr[arr.length-1].d===today && arr[arr.length-1].lv===i`の1:1移植。ネイティブは日付を見ずlvの
+一致だけで点灯させていたため、先週測った記録が点灯し続け「もう今日は記録済み」と誤解させ、
+週1回でOKと案内している計測そのものをスキップさせる方向に誤誘導していた。Android
+`MainActivity.kt`/iOS `MyRecordView.swift`とも`latest?.lv==lv`に`&& latest.d==today`(iOSは
+`reachList.last?.d==today`)を追加するだけ。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS build成功。判定ロジック
+(`decideType`/`currentRx`/`setReach`本体)は無変更。残り§4(Q3/Q4図解)・§5(小物4件)・
+§6(Androidシステムもどる)・§7(タップヒント順序)は未着手(次回に持ち越し)。
+
 ## 2026-07-28 追記: streakBrokenNow/effectiveStreakCountの移植(いま連続が途切れ後も古い数字問題)
 
 `TASK-C2-2026-07-28-myrecord-settings-tour-parity.md` §1。alan5が「監査4本中いちばん実害が

@@ -343,7 +343,10 @@ private struct MyRecordContentView: View {
                     // index.html:504-506 .reach-row(5列グリッド)/.reach-btn/.reach-btn.on(teal-strong塗り)の1:1移植。
                     HStack(spacing: 6) {
                         ForEach(Array(zip(1...5, ["ひざ", "すね", "足首", "つま先", "ゆか"])), id: \.0) { lv, label in
-                            let on = reachList.last?.lv == lv
+                            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §3: app-record.js:249の
+                            // 1:1移植。「きょう記録した場合のみ」点灯する(消灯=「きょうはまだ測って
+                            // いない」の合図が失われると週1計測の誘導が壊れる)。
+                            let on = reachList.last?.lv == lv && reachList.last?.d == today
                             // 見た目パリティ第2弾 §3: タップ領域44pt以上ルールの再確認(既存ルール=HANDOFF.md)。
                             // Web版の13px paddingのままだと44ptをわずかに割り込むため、見た目(padding値)は
                             // 変えずminHeightで下限だけ確保する。

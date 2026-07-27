@@ -2,21 +2,39 @@
 
 最終更新: 2026-07-28
 
-## 🔧 実装済み・実機確認待ち: myrecord-settings-tour-parity.md §1(いま連続が途切れ後も古い数字)(2026-07-28)
+## ✅ 完了: quiz-result-reach-parity.md §1-3(2026-07-28)
+`TASK-C2-2026-07-28-quiz-result-reach-parity.md`の優先度上位3件。
+
+**§1(大)ガイド中の結果画面の削ぎ落とし**: app-quiz.js:291-299の1:1移植。`fdGuideActive`のとき
+長文解説(rHope/rPT)・ペース目安(rPace)・相談室リンク(rSoudanLink)・下部2ボタン
+(resultDoneBtn/resultRecheckBtn)を非表示にする(2026-07-21 5視点検証C・PO承認済み仕様)。
+「出す側」(fd-guide-ui-branchタスクで実装済み)と対になる「隠す側」が丸ごと抜けていた欠落。
+実機で通しの完走確認(オンボ→かたさチェック→ガイド中結果画面)し、タイプ結果+①動画カードのみに
+削ぎ落とされ、余計な解説・ボタンが一切出ないことを確認。
+
+**§2(中)クイズ選択肢の二度押しガード**: app-quiz.js:180の1:1移植。回答タップ後
+`answering`フラグで選択肢を無効化し、次の設問描画時(qi変化)に解除。想定層のダブルタップ癖で
+判定入力が汚れる唯一の項目だったため。
+
+**§3(中)とどくメーターの「きょう」条件**: app-record.js:249の1:1移植。`latest.lv==lv`だけでなく
+`latest.d==today`も見て点灯させる(消灯=「きょうはまだ測っていない」の合図が失われ週1計測を
+誤誘導するのを防ぐ)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS build成功。判定ロジックは無変更。
+残り(§4 Q3/Q4図解・§5小物4件・§6 Androidシステムもどる・§7タップヒント順序)は未着手。
+
+## ✅ 完了: myrecord-settings-tour-parity.md §1(いま連続が途切れ後も古い数字)(2026-07-28・alan5検収済み)
 `TASK-C2-2026-07-28-myrecord-settings-tour-parity.md` §1(監査4本中「いちばん実害が大きい」と
 alan5が指摘)。Web版`streakBrokenNow`/`effectiveStreakCount`(index.html:1892-1900。数日あいて
 おやすみ券でもつなげない時は古い連続を見せない=「押した瞬間に消えた」誤解を防ぐ表示専用ガード)が
-両OSともgrep 0件で丸ごと未移植だった。
-
-`RecordLogic.kt`/`RecordLogic.swift`に`streakBrokenNow`/`effectiveStreakCount`を追加
+両OSともgrep 0件で丸ごと未移植だった。`RecordLogic.kt`/`RecordLogic.swift`に追加
 (既存の`canBridgeFreezes`を呼ぶだけ・保存値=`StreakData.count`自体は書き換えない)。
 マイ記録の「いま連続」(`histStreak`)をeffectiveStreakCount経由に、ホームの連続表示も途切れ確定時は
-「きょうやると新しい章のスタート🌱」に差し替え。ユニットテスト5件を両OSに追加
-(今日済み/gap<2/券で橋渡し可/橋渡し不可で0表示/記録なし、の5ケース。Android 20件・iOS 20件
-いずれもRecordLogicTest内で緑)。
+「きょうやると新しい章のスタート🌱」に差し替え。ユニットテスト5件を両OSに追加。
 
-**実機確認は未実施**(エミュレータがalan5の別件検収で使用中のため)。次にエミュレータが空いたら
-「1週間休んだ状態のマイ記録でいま連続が0になる」スクショを撮ってドア報告する。
+alan5が実機確認済み(12日連続後7日休み=券3枚で埋まらない状態をシード): マイ記録「通算12日・
+いま連続0日」(通算は保持・正しく0表示)・ホーム「通算12日・きょうやると新しい章のスタート🌱」
+とも正常。「今回の監査4本の中でいちばん実害が大きいと見ていた項目」とのコメント。
 
 回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑(RecordLogicTest 20件)・
 iOS `swift test`緑(RecordLogicTests 20件)・両OSビルド成功。

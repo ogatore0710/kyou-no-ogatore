@@ -1539,7 +1539,10 @@ fun MyRecordScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                     val reachLabels = listOf("ひざ", "すね", "足首", "つま先", "ゆか")
                     for (lv in 1..5) {
-                        val on = latest?.lv == lv
+                        // TASK-C2-2026-07-28-quiz-result-reach-parity.md §3: app-record.js:249の1:1移植。
+                        // 「きょう記録した場合のみ」点灯する(日付を見ずlvだけ一致で点灯させると、
+                        // 消灯=「きょうはまだ測っていない」の合図が失われ、週1計測の誘導が壊れる)。
+                        val on = latest?.lv == lv && latest.d == today
                         Box(
                             // 見た目パリティ第2弾 §3: タップ領域44dp以上ルールの再確認(既存ルール=HANDOFF.md)。
                             // Web版の13px paddingのままだと44dpをわずかに割り込むため、見た目(padding値)は
