@@ -2,6 +2,10 @@ package jp.ogatore.kyouno
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -360,6 +364,35 @@ fun SoudanSheet(
                                 }
                             }
                         }
+                        // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の
+                        // 1:1移植。「…」の3点を位相をずらして明滅させるタイピングドット。
+                        is SdBubble.Typing -> Row(verticalAlignment = Alignment.Bottom) {
+                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Box(
+                                Modifier
+                                    .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                                    .testTag("sdTypingBubble"),
+                            ) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    repeat(3) { dotIndex ->
+                                        val infinite = rememberInfiniteTransition(label = "sdTypingDot$dotIndex")
+                                        val alpha by infinite.animateFloat(
+                                            initialValue = 0.3f,
+                                            targetValue = 1f,
+                                            animationSpec = infiniteRepeatable(
+                                                animation = tween(600, delayMillis = dotIndex * 150, easing = LinearEasing),
+                                                repeatMode = RepeatMode.Reverse,
+                                            ),
+                                            label = "sdTypingDotAlpha$dotIndex",
+                                        )
+                                        Box(Modifier.size(7.dp).background(colors.sub.copy(alpha = alpha), androidx.compose.foundation.shape.CircleShape))
+                                    }
+                                }
+                            }
+                        }
                         // index.html:3323-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
                         // ①mailto(検索タブと同じopenMailIntent流用)②クリップボードコピー③検索タブへ遷移。
                         is SdBubble.FallbackLinks -> Row(verticalAlignment = Alignment.Bottom) {
@@ -367,7 +400,7 @@ fun SoudanSheet(
                             Spacer(Modifier.width(8.dp))
                             val context = LocalContext.current
                             val clipboard = LocalClipboardManager.current
-                            val scope = rememberCoroutineScope()
+                            val copyScope = rememberCoroutineScope()
                             var copied by remember { mutableStateOf(false) }
                             Column(
                                 Modifier.fillMaxWidth(0.86f)
@@ -392,7 +425,7 @@ fun SoudanSheet(
                                         .clickable {
                                             clipboard.setText(AnnotatedString(SD_MAIL))
                                             copied = true
-                                            scope.launch { delay(2000); copied = false }
+                                            copyScope.launch { delay(2000); copied = false }
                                         }
                                         .testTag("sdFallbackCopyBtn"),
                                 )
@@ -515,7 +548,7 @@ fun SoudanSheet(
                         placeholder = { Text("気になることを入力") },
                     )
                     Spacer(Modifier.width(8.dp))
-                    KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"))
+                    KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"), enabled = !sdPending)
                 }
             }
         }

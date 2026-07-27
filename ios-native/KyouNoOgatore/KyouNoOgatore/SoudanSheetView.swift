@@ -11,9 +11,10 @@
 //  表示グルーピングのための単純な配列レンジ抽出であり安全判定ではないため、SoudanEngine(SafetyCore)
 //  ではなくこのUIファイル側に置く(マスタープラン§2-1のSoudanSheetView/SoudanSheet行の役割分担どおり)。
 //
-//  未移植(Step6のスコープ外として明示的に見送り。Android版と同じ判断): タイピングアニメーション・
-//  吹き出し分割タイミング演出・雑談(smalltalk 54件)・自由入力でのfollowup同義語マッチ(SD_FU_KW)・
-//  動画サムネイル画像の読み込み・タイプ診断との相性演出(sdTypeFlavor)。
+//  未移植(Step6のスコープ外として明示的に見送り。Android版と同じ判断): 雑談(smalltalk 54件)・
+//  自由入力でのfollowup同義語マッチ(SD_FU_KW)・動画サムネイル画像の読み込み・
+//  タイプ診断との相性演出(sdTypeFlavor)。タイピングドット+吹き出し分割タイミング演出は
+//  TASK-C2-2026-07-27-soudan-staged-reveal.mdで追加移植した(下記applyResponse参照)。
 //
 //  ⚠️ Step6時点の検収基準どおり、iOS側はビルド確認のみでシミュレータ実行確認は必須要件ではない
 //  (Android版で実タップ確認済み・同一ロジックのコードレビューで信頼度を補完する運用。マスタープラン§4-2)。
@@ -65,8 +66,25 @@ enum SdBubble: Identifiable {
     case planConfirm(intentId: String, label: String, replacing: Bool)
     // index.html:3323-3330 sdAnswerFallback内の2通目(逃げ道リンク3つ)の1:1移植。rawUserTextはmailto本文用。
     case fallbackLinks(rawUserText: String)
+    // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の1:1移植。
+    case typing
 
     var id: String { UUID().uuidString }
+}
+
+// index.html:3053 sdMsgLen()の1:1移植(タイピング待ち時間の計算専用。空白を除いた文字数)。
+private func sdMsgLen(_ text: String) -> Int {
+    text.filter { !$0.isWhitespace }.count
+}
+
+// タイピング待ち時間計算のために各吹き出しから代表テキストを取り出す。Web版はHTML文字列全体から
+// タグを除いた文字数を使うため、動画注記込みの吹き出しもその見出しテキストで近似する。
+private func sdBubbleLen(_ b: SdBubble) -> Int {
+    switch b {
+    case let .bot(text, _, _, _): return sdMsgLen(text)
+    case .fallbackLinks: return sdMsgLen("この悩み、オガトレに届けるメールがひらかない方はアドレスをコピー動画を探すタブでさがしてみる")
+    default: return 0
+    }
 }
 
 // index.html:2979 SOUDAN_BODY_INTENTS の1:1移植(体の悩み系intent=かたさチェック誘導チップの対象)。
@@ -98,6 +116,9 @@ struct SoudanSheetView: View {
     @State private var shownVideoIds: [String] = [] // index.html:2999 sdCtx.shownVideoIds相当(セッション内のみ)
     @State private var input = ""
     @State private var plan: SdPlanData?
+    // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3096 sdPending(応答演出中は次の
+    // チップタップ/送信を受け付けない)の1:1移植。演出中の吹き出し順序が入り乱れるのを防ぐ。
+    @State private var sdPending = false
     private var hasType: Bool { store.get("type", default: nil as QuizTypeResult?) != nil } // index.html:3024 sdHasType()の1:1移植
 
     init(
@@ -115,58 +136,89 @@ struct SoudanSheetView: View {
         _plan = State(initialValue: store.get("plan", default: nil))
     }
 
+    // index.html:3090-3134 sdPush()の1:1移植。bot発言を1つずつ、タイピングドットを挟みながら
+    // 段階的に表示する。チップ列(chipsMode)の更新はWeb版のsdRenderChips()と同じく、
+    // 全吹き出しの表示が終わったタイミングでまとめて行う(表示中は直前のチップがそのまま残る)。
+    // カテゴリタブの早期畳み(index.html:3097-3100)はSwiftUIのレイアウトでは該当する見切れ問題が
+    // 起きないため見送り(表示タイミングの本質=段階表示自体は1:1)。
+    private func revealBotMessages(_ botMsgs: [SdBubble], _ newChipsMode: SdChipsMode) async {
+        for (i, msg) in botMsgs.enumerated() {
+            messages.append(.typing)
+            let base = min(1600, 500 + sdBubbleLen(msg) * 22)
+            let wait = i == 0 ? 400 : (i == 1 ? base : base * 2)
+            try? await Task.sleep(nanoseconds: UInt64(wait) * 1_000_000)
+            messages.removeLast()
+            messages.append(msg)
+        }
+        chipsMode = newChipsMode
+    }
+
     // index.html:3090 sdPush相当。応答1件をbot/userの吹き出し列へ展開しchipsModeを更新する。
-    private func applyResponse(_ userText: String?, _ r: SoudanResponse) {
-        var newMsgs: [SdBubble] = []
-        if let userText { newMsgs.append(.user(text: userText)) }
+    private func applyResponse(_ userText: String?, _ r: SoudanResponse) async {
+        if let userText { messages.append(.user(text: userText)) }
         let red: Bool
         switch r.verdict {
         case .crisis, .redFlag: red = true
         case .normal: red = false
         }
-        if !r.empathy.isEmpty { newMsgs.append(.bot(text: r.empathy, red: red, videoId: nil)) }
-        if !r.message.isEmpty { newMsgs.append(.bot(text: r.message, red: red, videoId: nil, fallbackCaution: r.isFallback)) }
+        var botMsgs: [SdBubble] = []
+        if !r.empathy.isEmpty { botMsgs.append(.bot(text: r.empathy, red: red, videoId: nil)) }
+        if !r.message.isEmpty { botMsgs.append(.bot(text: r.message, red: red, videoId: nil, fallbackCaution: r.isFallback)) }
         if let v = r.video {
-            newMsgs.append(.bot(text: v.note.isEmpty ? "おすすめの1本" : v.note, red: false, videoId: v.videoId))
+            botMsgs.append(.bot(text: v.note.isEmpty ? "おすすめの1本" : v.note, red: false, videoId: v.videoId))
             if !shownVideoIds.contains(v.videoId) { shownVideoIds.append(v.videoId) }
         }
-        if !r.keizoku.isEmpty { newMsgs.append(.bot(text: r.keizoku, red: false, videoId: nil)) }
+        if !r.keizoku.isEmpty { botMsgs.append(.bot(text: r.keizoku, red: false, videoId: nil)) }
         // index.html:3328-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
-        if r.isFallback { newMsgs.append(.fallbackLinks(rawUserText: userText ?? "")) }
-        messages += newMsgs
+        if r.isFallback { botMsgs.append(.fallbackLinks(rawUserText: userText ?? "")) }
         if let intentId = r.intentId { lastIntentId = intentId }
+        let newChipsMode: SdChipsMode
         switch r.verdict {
         case .crisis:
-            chipsMode = .none // index.html:3310 チップ・カテゴリタブなし
+            newChipsMode = .none // index.html:3310 チップ・カテゴリタブなし
         case .redFlag:
-            chipsMode = .intents(activeCat: "body") // index.html:3304
+            newChipsMode = .intents(activeCat: "body") // index.html:3304
         case .normal:
             if r.hasFollowup, let intentId = r.intentId {
-                chipsMode = .followups(intentId: intentId, nextBestId: r.nextBestChip?.id)
+                newChipsMode = .followups(intentId: intentId, nextBestId: r.nextBestChip?.id)
             } else if !r.nearmissChips.isEmpty {
-                chipsMode = .nearmiss(ids: r.nearmissChips.map { $0.id })
+                newChipsMode = .nearmiss(ids: r.nearmissChips.map { $0.id })
             } else {
-                chipsMode = .intents(activeCat: "body")
+                newChipsMode = .intents(activeCat: "body")
             }
+        }
+        await revealBotMessages(botMsgs, newChipsMode)
+    }
+
+    // index.html:3361-3384 sdChipTap/sdFollowupTap/sdSendの「if(sdPending) return」の1:1移植。
+    private func runResponse(_ userText: String?, _ r: SoudanResponse) {
+        guard !sdPending else { return }
+        sdPending = true
+        Task {
+            await applyResponse(userText, r)
+            sdPending = false
         }
     }
 
     private func sendText() {
+        guard !sdPending else { return }
         let raw = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !raw.isEmpty else { return }
         input = ""
-        applyResponse(raw, SoudanEngine.respond(to: raw))
+        runResponse(raw, SoudanEngine.respond(to: raw))
     }
 
     private func chipTap(_ id: String) {
+        guard !sdPending else { return }
         guard let intent = kb.intents.first(where: { $0.id == id }), let r = SoudanEngine.respondToIntent(id: id) else { return }
-        applyResponse(intent.chip, r)
+        runResponse(intent.chip, r)
     }
 
     private func followupTap(_ id: String) {
+        guard !sdPending else { return }
         guard let f = kb.commonFollowups.first(where: { $0.id == id }),
               let r = SoudanEngine.respondToFollowup(id: id, lastIntentId: lastIntentId, shownVideoIds: shownVideoIds) else { return }
-        applyResponse(f.chip, r)
+        runResponse(f.chip, r)
     }
 
     // index.html:1844 planChipTap相当。即開始はせず確認の吹き出しを積む。
@@ -208,7 +260,7 @@ struct SoudanSheetView: View {
     private var content: some View {
         SoudanContentView(
             messages: messages, chipsMode: chipsMode, input: $input, plan: plan,
-            kb: kb, hasType: hasType, onClose: onClose, openUrl: openUrl,
+            kb: kb, hasType: hasType, sdPending: sdPending, onClose: onClose, openUrl: openUrl,
             onSend: sendText, onChip: chipTap, onFollowup: followupTap,
             onPlanChip: planChipTap, onPlanStart: planStart, onPlanDecline: planDecline,
             onCatSelect: { key in chipsMode = .intents(activeCat: key) },
@@ -239,6 +291,7 @@ private struct SoudanContentView: View {
     let plan: SdPlanData?
     let kb: SafetyKB
     let hasType: Bool
+    let sdPending: Bool
     let onClose: () -> Void
     let openUrl: (String) -> Void
     let onSend: () -> Void
@@ -323,6 +376,19 @@ private struct SoudanContentView: View {
                         .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(border, lineWidth: 1.5))
                 )
                 .frame(maxWidth: 320, alignment: .leading)
+                Spacer()
+            }
+        // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の1:1移植。
+        // 「…」の3点を位相をずらして明滅させるタイピングドット。
+        case .typing:
+            HStack(alignment: .bottom) {
+                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
+                SdTypingDots()
+                    .padding(.horizontal, 16).padding(.vertical, 14)
+                    .background(
+                        RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).fill(colors.card)
+                            .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.line, lineWidth: 1.5))
+                    )
                 Spacer()
             }
         // index.html:3323-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
@@ -427,11 +493,33 @@ private struct SoudanContentView: View {
 
             HStack {
                 TextField("気になることを入力", text: $input).textFieldStyle(.roundedBorder)
-                KyonoPrimaryButton("送信", action: onSend).frame(width: 90)
+                KyonoPrimaryButton("送信", enabled: !sdPending, action: onSend).frame(width: 90)
             }
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         .background(colors.card)
+    }
+}
+
+// TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の中身
+// (「…」3点を位相をずらして明滅させるドット)。
+private struct SdTypingDots: View {
+    @Environment(\.kyonoColors) private var colors
+    @State private var animate = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .fill(colors.sub.opacity(animate ? 1 : 0.3))
+                    .frame(width: 7, height: 7)
+                    .animation(
+                        .easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(Double(i) * 0.15),
+                        value: animate
+                    )
+            }
+        }
+        .onAppear { animate = true }
     }
 }
 
