@@ -102,7 +102,8 @@ struct RootView: View {
     init(store: RecordStore) {
         self.store = store
         let onboarded: Bool = store.get("onboarded", default: false)
-        _screen = State(initialValue: onboarded ? .home : .onboarding)
+        _screen = State(initialValue: .soudan(presetIntentId: "katakori")) // TEMP-TEST-DO-NOT-COMMIT
+        _ = onboarded
         _obuSeen = State(initialValue: store.get("obu_seen", default: nil))
     }
 

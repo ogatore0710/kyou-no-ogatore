@@ -233,8 +233,8 @@ struct SoudanSheetView: View {
     private func planChipTap(_ id: String) {
         guard let intent = kb.intents.first(where: { $0.id == id }) else { return }
         let replacing = plan != nil && plan?.intentId != id
-        messages.append(.user(text: "📅 この悩みを2週間プランにする"))
-        messages.append(.planConfirm(intentId: id, label: intent.chip, replacing: replacing))
+        messages.append(SdMessage(bubble: .user(text: "📅 この悩みを2週間プランにする")))
+        messages.append(SdMessage(bubble: .planConfirm(intentId: id, label: intent.chip, replacing: replacing)))
     }
 
     // index.html:1857 planStart相当。
@@ -247,11 +247,11 @@ struct SoudanSheetView: View {
         let newPlan = SdPlanData(intentId: id, label: intent.chip, videos: vids, start: today, days: 14)
         store.set("plan", newPlan)
         plan = newPlan
-        messages.append(.bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ😊", red: false, videoId: nil))
+        messages.append(SdMessage(bubble: .bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ😊", red: false, videoId: nil)))
     }
 
     private func planDecline() {
-        messages.append(.bot(text: "OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil))
+        messages.append(SdMessage(bubble: .bot(text: "OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil)))
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
@@ -280,7 +280,7 @@ struct SoudanSheetView: View {
         // ホーム構造修正タスクのpresetIntentId自動応答(index.html:3464-3467)より先に出す(Web版と同順)。
         .onAppear {
             if !greeted {
-                messages.append(.bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね", red: false, videoId: nil))
+                messages.append(SdMessage(bubble: .bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね", red: false, videoId: nil)))
                 onGreeted()
             }
             if let presetIntentId { chipTap(presetIntentId) }
@@ -293,7 +293,7 @@ struct SoudanSheetView: View {
 // 親から渡された状態・コールバックをそのまま描画するだけ。
 private struct SoudanContentView: View {
     @Environment(\.kyonoColors) private var colors
-    let messages: [SdBubble]
+    let messages: [SdMessage]
     let chipsMode: SdChipsMode
     @Binding var input: String
     let plan: SdPlanData?
@@ -339,7 +339,7 @@ private struct SoudanContentView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    ForEach(messages) { m in bubbleView(m) }
+                    ForEach(messages) { m in bubbleView(m.bubble) }
                 }
                 .padding(16)
             }
