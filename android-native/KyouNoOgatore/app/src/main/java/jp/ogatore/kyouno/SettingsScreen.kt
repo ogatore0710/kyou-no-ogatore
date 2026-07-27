@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -92,8 +93,45 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         val anchorInfo = ANCHORS.find { it.key == anchor }
         // index.html:2003 renderIcs()のdef計算(未設定時はfree扱い)+保存済みicstimeがあればそちらを優先。
         val savedIcsTime = remember { store.get<String?>("icstime", null) }
-        var icsHour by remember { mutableStateOf(savedIcsTime?.substringBefore(":")?.toIntOrNull() ?: anchorInfo?.defaultHour ?: ANCHORS.last().defaultHour) }
-        var icsMinute by remember { mutableStateOf(savedIcsTime?.substringAfter(":")?.toIntOrNull() ?: anchorInfo?.defaultMinute ?: ANCHORS.last().defaultMinute) }
+        val savedHour = savedIcsTime?.substringBefore(":")?.toIntOrNull() ?: anchorInfo?.defaultHour ?: ANCHORS.last().defaultHour
+        val savedMinute = savedIcsTime?.substringAfter(":")?.toIntOrNull() ?: anchorInfo?.defaultMinute ?: ANCHORS.last().defaultMinute
+        // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを15分刻みに変更。
+        // 既に保存済みのicstimeが15分刻みでない場合は、表示・保存とも最も近い15分に丸める
+        // (既定値はすべて15分刻みなので影響なし)。
+        var icsHour by remember { mutableStateOf(savedHour) }
+        var icsMinute by remember { mutableStateOf(((savedMinute + 7) / 15 * 15).coerceAtMost(45)) }
+        LaunchedEffect(Unit) {
+            if (savedMinute != icsMinute) {
+                store.set("icstime", "%02d:%02d".format(icsHour, icsMinute))
+                DailyNotifications.scheduleNext(context)
+            }
+        }
+        var notifEnabled by remember { mutableStateOf(store.get("notif_enabled", false)) }
+        val notifPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                store.set("notif_enabled", true)
+                notifEnabled = true
+                DailyNotifications.scheduleNext(context)
+            }
+            // 拒否された場合はトグルをオフのままにする(しつこく再提案しない。設定画面から
+            // いつでもオンにできる形で十分・タスク仕様どおり)。
+        }
+        fun enableNotifications() {
+            if (Build.VERSION.SDK_INT >= 33 &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                store.set("notif_enabled", true)
+                notifEnabled = true
+                DailyNotifications.scheduleNext(context)
+            }
+        }
+        fun disableNotifications() {
+            store.set("notif_enabled", false)
+            notifEnabled = false
+            DailyNotifications.cancel(context)
+        }
 
         Column(
             Modifier
