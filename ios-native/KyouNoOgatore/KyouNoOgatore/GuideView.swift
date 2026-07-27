@@ -73,6 +73,7 @@ private let gtocChips: [(label: String, id: String)] = [
 private struct GuideContentView: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.colorScheme) private var systemColorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var query: String
     @Binding var openGroups: Set<String>
     @Binding var openItems: Set<String>
@@ -87,18 +88,29 @@ private struct GuideContentView: View {
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
+    // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §A: index.html:1585 gJump()の
+    // reduced-motion分岐(behavior:rm?"auto":"smooth")の1:1移植。reduced時はwithAnimationを外して
+    // 瞬時スクロールにする。
+    private func jump(_ proxy: ScrollViewProxy, _ id: String) {
+        if reduceMotion {
+            proxy.scrollTo(id, anchor: .top)
+        } else {
+            withAnimation { proxy.scrollTo(id, anchor: .top) }
+        }
+    }
+
     // index.html:1570 gJump()相当。FAQ本体のコードには触れず、既存のopenGroups/openItems状態
     // (下のFAQ描画ループが読む公開状態)を外からセットし、直前のアンカーへスクロールする。
     private func jumpToFaq(_ proxy: ScrollViewProxy, groupTitle: String, itemQ: String?) {
         query = ""
         openGroups.insert(groupTitle)
         if let itemQ { openItems.insert("\(groupTitle)|\(itemQ)") }
-        withAnimation { proxy.scrollTo("gd-faq-anchor", anchor: .top) }
+        jump(proxy, "gd-faq-anchor")
     }
 
     private func jumpToSection(_ proxy: ScrollViewProxy, id: String) {
         sectionOpen[id] = true
-        withAnimation { proxy.scrollTo(id == "gd-faq" ? "gd-faq-anchor" : id, anchor: .top) }
+        jump(proxy, id == "gd-faq" ? "gd-faq-anchor" : id)
     }
 
     var body: some View {
@@ -184,7 +196,7 @@ private struct GuideContentView: View {
                     GdFoldSection(
                         id: "gd-start", icon: .quizCheck, title: "はじめての日にやること", fill: colors.yellowSoft, accent: nil,
                         open: sectionOpen["gd-start"] ?? false, onToggle: { sectionOpen["gd-start"] = !(sectionOpen["gd-start"] ?? false) },
-                        onBackToToc: { withAnimation { proxy.scrollTo("gtoc", anchor: .top) } },
+                        onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GStep(marker: "1", title: "かたさチェック（30秒）", body: "5問タップするだけ 写真とイラストのお手本つき") {
                             KyonoCharaImage(name: "check-q1")
@@ -203,7 +215,7 @@ private struct GuideContentView: View {
                     GdFoldSection(
                         id: "gd-daily", icon: .play, title: "2日目からの毎日", fill: colors.tealSoft, accent: colors.teal,
                         open: sectionOpen["gd-daily"] ?? false, onToggle: { sectionOpen["gd-daily"] = !(sectionOpen["gd-daily"] ?? false) },
-                        onBackToToc: { withAnimation { proxy.scrollTo("gtoc", anchor: .top) } },
+                        onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GFlow(steps: ["アプリを\nひらく", "きょうの1本を\n▶ 再生", "きょう\nやった！"])
                         Text("チェック済みの人は「あなた用」に あなたのおすすめが日替わりで出ます 気分をかえたい日は「あさ」「よる」へどうぞ")
@@ -224,7 +236,7 @@ private struct GuideContentView: View {
                     GdFoldSection(
                         id: "gd-mamori", icon: .shieldCheck, title: "記録が消えない3つの守り", fill: colors.tealSoft, accent: colors.teal,
                         open: sectionOpen["gd-mamori"] ?? false, onToggle: { sectionOpen["gd-mamori"] = !(sectionOpen["gd-mamori"] ?? false) },
-                        onBackToToc: { withAnimation { proxy.scrollTo("gtoc", anchor: .top) } },
+                        onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         HStack {
                             KyonoCharaImage(name: "chara-good").frame(width: 60, height: 60)
@@ -246,7 +258,7 @@ private struct GuideContentView: View {
                     GdFoldSection(
                         id: "gd-tsuzuku", icon: .star, title: "続けるしくみ（ここがやさしい）", fill: colors.yellowSoft, accent: nil,
                         open: sectionOpen["gd-tsuzuku"] ?? false, onToggle: { sectionOpen["gd-tsuzuku"] = !(sectionOpen["gd-tsuzuku"] ?? false) },
-                        onBackToToc: { withAnimation { proxy.scrollTo("gtoc", anchor: .top) } },
+                        onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GStep(marker: "🎫", title: "おやすみ券が毎月3枚", body: "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
                         GStep(marker: "👑", title: "節目はゴールドカード", body: "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
@@ -267,7 +279,7 @@ private struct GuideContentView: View {
                     GdFoldSection(
                         id: "gd-myrec", icon: .calendarCheck, title: "「マイ記録」タブでできること", fill: colors.tealSoft, accent: colors.teal,
                         open: sectionOpen["gd-myrec"] ?? false, onToggle: { sectionOpen["gd-myrec"] = !(sectionOpen["gd-myrec"] ?? false) },
-                        onBackToToc: { withAnimation { proxy.scrollTo("gtoc", anchor: .top) } },
+                        onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GStep(marker: "📅", title: "カレンダー", body: "やった日に印がつく（×はつきません）")
                         GStep(marker: "📏", title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")

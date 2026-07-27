@@ -5,6 +5,14 @@
 ## 体制（2026-07-24〜）
 alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微実装・検収）、appdev（C2）が実行工場。大きい実装タスクはalan5からタスクファイルで届き、appdevが実行して完了報告をドア配達で返す。詳細は[docs/HANDOVER-to-alan5-2026-07-24.md](docs/HANDOVER-to-alan5-2026-07-24.md)。
 
+## ✅ 完了: スクロール挙動パリティ3件(§D検収の残件C→B→A)（2026-07-27）
+`TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md`。C(「きょうやった！」への画面中央
+寄せが未実装。動画から戻る通常経路+結果画面rDoneNudgeBtn経由の両方に対応)→B(オンボ完了直後の
+スクロールをWeb版と同じ瞬時に修正)→A(ガイド画面の目次/FAQジャンプにreduced-motionゲート追加。
+Androidは`BringIntoViewRequester`を独自の位置捕捉方式に置き換え)の順で対応。`prefers-reduced-motion`
+のWeb版8箇所すべて(index.html:214/497/517/1585/1921/3051/4009/4145)が両OSで対応済みになったことを
+確認。判定ロジックは無変更。詳細はWORKING_NOTES.mdの同日エントリ参照。
+
 ## ✅ 完了: 挙動パリティ監査 §D(reduced-motion対応)（2026-07-27）
 `TASK-C2-2026-07-27-behavior-parity-audit.md` §D。Web版が`prefers-reduced-motion`で実際にゲート
 している箇所(index.htmlをgrepして特定)だけを対象に、fdBob/fdPop/fdBreathe・相談室シート/オンボ

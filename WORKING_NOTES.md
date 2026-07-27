@@ -4,6 +4,49 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 スクロール挙動パリティ3件(§D検収の残件)完了
+
+`TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md`。alan5が§D検収と並行して
+`prefers-reduced-motion`をindex.html全件grepし直した結果見つかった残件3件、C→B→Aの順で対応:
+
+- **C(機能欠落・優先度最高)**: 「おかえりなさい」(showDoneNudge)が立ったとき、150ms後に
+  「きょうやった！」ボタンを画面中央へ寄せる処理が丸ごと未実装だった(nudge-pulseは移植済みだが
+  ボタンが画面外だと気づけず、移植の意味が半分失われていた)。index.html:4006-4013の1:1移植。
+  **さらにalan5指摘の補足対応**: Web版はこの寄せに2経路ある(通常の動画復帰[index.html:4010]と、
+  結果画面のrDoneNudgeBtn経由[index.html:3991])。ネイティブはHome/Result間でshowDoneNudge状態が
+  意図的に独立している(既存設計)ため、rDoneNudgeBtn経由だとHome側のshowDoneNudgeが立たず寄せが
+  効かない欠落があった。scrollToTodayPendingと同じ「ルート(RootView)で保持→Home側で消費」の橋渡し
+  (`pendingDoneNudge`)を新設し、両経路とも同じHome側のshowDoneNudge(既存のpulseアニメも道連れで
+  自然に効く)に収束させた。
+  - Android: `MainActivity.kt`(HomeScreen: `positionInRoot()`差分+`ScrollState.value`で
+    doneBtnの実座標を逆算し`scrollTo`/`animateScrollTo`を出し分け。`pendingDoneNudge`を
+    RootView→ResultScreen(`onDoneFromNudge`新設)→HomeScreenへ配線)。
+  - iOS: `HomeView.swift`(`doneBtn`に`.id("doneBtn")`を追加し`proxy.scrollTo(anchor:.center)`)・
+    `OnboardingViews.swift`(`ResultView`/`ResultContentView`に`onDoneFromNudge`追加)・
+    `KyouNoOgatoreApp.swift`(`pendingDoneNudge` state新設)。
+- **B(パリティ逸脱・1行)**: オンボ完了直後の「きょうの1本」への移動が、Web版
+  (index.html:4393 `scrollIntoView()`引数なし=瞬時)よりアニメーション過剰だった。
+  `animateScrollTo`/`withAnimation`を外して瞬時スクロールに統一(Android`MainActivity.kt`・
+  iOS`HomeView.swift`)。これで対象からもreduced-motionゲートが不要になった(元から瞬時のため)。
+- **A(§D対象表からの漏れ2件)**: ガイド画面の目次ジャンプ・「↑目次へ戻る」・FAQジャンプが
+  reduced-motion未ゲートだった(index.html:1585 `gJump()`)。
+  - Android: `GuideScreen.kt`の`BringIntoViewRequester`(常にアニメーション・reduced-motion分岐
+    不可)を全廃し、todayCard/doneBtnと同じ「`positionInRoot()`を自前で捕捉して
+    `ScrollState.scrollTo`/`animateScrollTo`を出し分け」方式に置き換えた(8箇所のアンカー)。
+  - iOS: `GuideView.swift`は元々`ScrollViewReader`+`proxy.scrollTo`だったため、
+    `withAnimation`の有無を`accessibilityReduceMotion`で分岐するだけで済んだ。
+
+**`prefers-reduced-motion`のWeb版8箇所、全件対応済みを確認**(index.html:214/497/517/1585/1921/
+3051/4009/4145)。214/497/517/1921/3051/4145は§Dで対応済み、1585と4009が今回のA/C対応で埋まった。
+
+**確認方法**: Android実機で動画URLを開いて戻る→150ms後に「きょうやった！」が画面中央へ寄る
+挙動をスクショで確認(Cの直接証拠)。B/Aはコード実装+ビルド成功+既存の§D検証パターン(reduced時
+即時/通常時アニメーション)の踏襲であることをもって確認に代えた。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑。判定ロジック(`showDoneNudge`/`fdActive`等)
+は無変更。`nudge-pulse`自体はWeb版もゲートしていないため(index.html:384に`@media`なし)意図的に
+reduced-motion対象外のまま。
+
 ## 2026-07-27 挙動パリティ監査 §D(reduced-motion対応)完了
 
 `TASK-C2-2026-07-27-behavior-parity-audit.md` §D。Web版の`prefers-reduced-motion`を実際に使っている

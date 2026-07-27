@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 // gd-myrecの6セクション)。**gd-faq(よくあるしつもんQ&A・下のFAQ_GROUPS周りのコード)は
 // 1行も変更していない**——目次には含めず(index.html:982-987の範囲=よくあるしつもんチップ自体を
 // 除く6個)、gd-helpの3ボタンからのジャンプもFAQ本体のコードには触れず、直前に置いた高さ0の
-// アンカー(faqAnchorRequester)への大まかなスクロール+既存のopenGroups/openItems状態を外から
+// アンカー("gd-faq"キー)への大まかなスクロール+既存のopenGroups/openItems状態を外から
 // セットするだけに留めている(既存FAQコードの読み取り専用の公開状態を使うだけで、コード自体は無改変)。
 @Composable
 fun GuideScreen(
