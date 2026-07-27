@@ -79,7 +79,14 @@ bot/user吹き出し+オンボチャット吹き出しにopacity0→1・translat
 **確認方法**: `pm clear`→起動→9秒待ち→1問目タップ→2問目→3問目→4問目→締めCTA→かたさチェック
 Q1画面まで、実機で通しで完走を確認(各設問の選択肢タップ座標をuiautomatorで都度取得しながら
 実施。スクショ添付)。FAB非表示もHome/ガイドタブで実機確認(ホームは通信FABのみ表示・ガイドは
-両方非表示)。
+両方非表示)。alan5が独立に別ビルドで完走+FAB全画面一致を再確認済み。
+
+**追記(alan5指摘・同日)**: 通信FAB非表示条件に`HomeLogic.fdActive`(fd=="go"&&streakTotal==0)を
+使っていたが、Web版(index.html:1432)は`fdActive() && fdday===todayStr()`と**当日限定**。
+ネイティブには既に当日限定版`HomeLogic.fdFocusHomeActive(fd,total,fdday,today)`
+(HomeLogic.kt:21-22。「過去に複数日貼りつきバグが発生した既知の壊れやすい箇所」とコメントあり)
+が用意されていたため、そちらに差し替え(両OS)。実害は「ガイドを始めたが記録せず翌日以降に
+来た人に通信FABが出ない」程度で軽微だったが、Web版の当日限定仕様に揃えた。
 
 回帰確認: `npm test` 443緑・Android`testDebugUnitTest` 208件/failures0/errors0
 (パイプでtail警告の再発防止のため素の終了コードで確認)・iOS SafetyCore `swift test`緑
