@@ -4,6 +4,60 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 自動テーマの時刻判定(19時〜朝5時)+60秒時間追従を実装
+
+`TASK-C2-2026-07-27-auto-theme-time-rule.md`(alan5が実挙動調査で発見)。両OSとも`theme="auto"`
+のとき`app-env.js`にある「19時〜朝5時はOSのダーク設定に関わらず暗くする」時刻判定が丸ごと
+欠落しており、OSのダーク設定だけを見ていた。設定画面の説明文「じどうは夜(19時〜朝5時)や…
+暗くなります」が事実と違う案内になっていた問題も含む。
+
+`isAutoThemeDarkByTime()`(hour>=19||hour<5、index.html`applyTheme()`の1:1移植)を
+Android`Theme.kt`/iOS`Theme.swift`双方に追加し、`resolveKyonoColors`の"auto"分岐で
+`systemDark || isAutoThemeDarkByTime()`に変更。あわせてWeb版`setInterval(refreshDay,60000)`の
+1:1移植として、開いたまま時刻/日付の境界をまたいでも表示が追従するよう60秒ごとの再評価を追加:
+- `KyonoTheme`(Android: `LaunchedEffect`+`delay(60_000)`のtickカウンタ、iOS: `Timer.publish`+
+  `.onReceive`)で配色を60秒ごとに再解決。
+- ホーム画面(Android`HomeScreen`の`checkRefreshDay()`、iOS`HomeView`の`checkRefreshDay()`)と
+  マイ記録画面(Android`MyRecordScreen`、iOS`MyRecordView`)は元々ライフサイクル復帰
+  (ON_RESUME/scenePhase)でしか日付またぎを見ていなかったため、開いたまま日付が変わった場合に
+  streak/カレンダー/おやすみ券等が更新されなかった。同じロジックを60秒ポーリングでも呼ぶよう
+  修正(iOS側は`today`/`streak`/`doneDates`を`let`から`@State`へ変更する必要があった)。
+
+**注意点(iOS)**: `.id(tick)`のような強制再生成は使わない。SwiftUIは`@State`が変化すると
+それを保持するViewの`body`全体を再評価する(Composeの「読まれたプロパティ単位」の
+再コンポーズとは違う)ため、`tick`自体を`body`内で参照しなくても`.onReceive`でのtick更新だけで
+`resolveKyonoColors()`(=現在時刻の再取得)が起きる。`.id()`を使うと部分木ごと
+破棄・再生成されてしまい、`SdBubble`不安定idバグと同じ失敗モードを理論上テーマ層に
+再導入することになる(このタスク中に一度書いて即座に気づき修正・詳細は下記iOS SdBubbleの
+教訓と同じ)。
+
+**「日付が変わる」の実際の境界は深夜0時ではなく午前3時**: `RecordLogic.todayStr()`が
+`now.minusSeconds(3*3600)`で3時間シフトしてから日付を取る仕様(既存ロジック・今回変更なし)
+のため、日付表示が切り替わるのは実際には**午前3時**。この点を見落として最初にAndroidエミュ
+レータの時計を23:59→0:00へ進めて検証したところ表示が変わらず一瞬「バグか」と疑ったが、
+`todayStr`の既存実装を確認して3時境界が正しい仕様と判明(バグではない)。改めて2:59→3:00の
+遷移で検証し、マイ記録カレンダーの「今日」の丸が27日→28日へ、アプリを閉じずに正しく
+生きた状態で移動することを確認した。
+
+**Android実機で確認済み**(エミュレータの時計を`adb shell date`で操作、`auto_time`は検証後に
+再有効化して実時刻へ復元):
+- OSのダークモードOFF+端末時刻19:25 → アプリはダーク表示(時刻判定が正しく効いている)
+- 同条件で端末時刻12:00 → アプリはライト表示
+- アプリを閉じずに端末時刻を18:59→19:01へ進める(実時間70秒待機) → 画面を開いたままテーマが
+  ライト→ダークへ生きて切り替わる(60秒ポーリングが機能)
+- アプリを閉じずに端末時刻を2:59→3:00へ進める(実時間70秒待機) → マイ記録のカレンダー
+  「今日」表示が27日→28日へ生きて切り替わる(60秒ポーリングでの日付跨ぎ追従が機能)
+
+**iOSはビルド確認+コードレビューにとどめた**: iOSシミュレータには時計を単独で進める機構が
+なく(ホストMacのシステム時計をシミュレータがそのまま参照するため、検証するにはホストMac
+自体の時計を変更する必要があり、even-sync等の他プロセスへの影響が大きすぎる)、今回は
+Android側で確認した式・タイマー機構と1:1で同じ実装であることのコードレビュー+
+`xcodebuild`のビルド成功確認にとどめた。この点はalan5への報告で明示的に開示する。
+
+回帰確認: `npm test` 443件(今回追加の一時コードマーカー検知チェック込み)、Android
+`testDebugUnitTest`、iOS `SafetyCore`(111 fixtures+8 tests)/`RecordCore`(35 tests)/
+`CardCore`(16 tests+55 card-golden)すべて緑。判定ロジック(SafetyGate/SoudanEngine)は無変更。
+
 ## 2026-07-27 iOS: SdBubbleの不安定id(ForEach識別破綻)を修正
 
 `TASK-C2-2026-07-27-ios-sdbubble-unstable-id.md`。alan5が段階表示タスクの検収中に発見した
