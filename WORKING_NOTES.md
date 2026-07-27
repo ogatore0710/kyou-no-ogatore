@@ -4,6 +4,33 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 画面遷移アニメーション §オンボのシート化(2区切り目・相談室に続いて完了)
+
+`TASK-C2-2026-07-27-screen-transitions.md`の2区切り目。相談室と同じ考え方(Screen方式は維持し
+外側にオーバーレイを被せるだけ)で、index.html:511-516 `#welcome`/`.ob-sheet`(スクリム背景+
+画面中央のカード・obpop=.28s ease-outでscale.94→1+フェードイン)を1:1移植。
+
+相談室との違い: オンボは完了後にHomeかQuizへ直接遷移する(単一の「戻り先」を持たない)ため、
+①スクリムタップでは閉じない(Web版も同じ) ②Androidの`mainScreen`/iOSの`effectiveScreen`は
+`Screen.Onboarding`/`.onboarding`のときも(相談室と同様に)常にHome扱いにし、Home自体は
+オンボ中も裏で描画され続ける(見た目はスクリムで隠れるだけ)。
+
+- Android: 既存の`when(mainScreen)`から`Screen.Onboarding`分岐を外し、`AnimatedVisibility`
+  2枚(スクリムのfadeIn/Out・カードのscaleIn/Out+fadeIn/Out)で`OnboardingScreen(...)`を
+  画面中央にオーバーレイ描画。
+- iOS: 同様に`effectiveScreen`から`.onboarding`を除外し、`OnboardingOverlayCard`
+  (専用View構造体・`@Environment(\.kyonoColors)`を正しく読むためRootView直下ではなく
+  独立させた。KyonoComponents.swiftの既存コメントと同じ理由)でラップした`OnboardingView`を
+  `.transition(.scale+.opacity)`でオーバーレイ描画。
+
+Android実機(ライトテーマ・新規インストール相当のstoreで確認): スクリムがHome背景を明確に
+暗くし、角丸カードが中央に浮いて表示されることを確認。iOSはシミュレータ目視確認(ダーク
+テーマだったため相談室のときと同様スクリムの視認性は判別しづらかったが、カード自体の
+角丸・浮き出しは確認できた)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑(iOS側はApp targetのみの変更で
+SafetyCore/RecordCore/CardCoreパッケージへの影響が無いため`swift test`は前回結果のまま)。
+
 ## 2026-07-27 もじの大きさ(bigtext)未適用+iOS Dynamic Type非対応+読み上げラベル整備を修正
 
 `TASK-C2-2026-07-27-text-size-accessibility.md`(alan5の調査・優先タスクとしてscreen-transitions
