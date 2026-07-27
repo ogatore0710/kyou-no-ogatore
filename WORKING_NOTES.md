@@ -4,6 +4,30 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: Android BragScreen「すきな1本」検索結果が一切表示されない既存バグを発見・修正
+
+alan5からの「実物のスクショが届いていない」指摘を受けて実機の検索UIを実際に操作したところ
+(`adb shell input text`はASCIIのみ対応・日本語クエリは打てないため、catalog内の英字混じり
+タイトル「Morning routine」で検索)、**検索結果が常に0件表示になる既存バグ**を発見した
+(brag-card-thumbnailの今回変更とは無関係・Step 7b由来の既存欠落)。
+
+**原因**: `BragScreen.kt`の検索結果`LazyColumn`が`Modifier.weight(1f)`だったが、外側の
+`Column`が`verticalScroll`していない(非スクロール)ため、他の固定要素群との高さ配分の関係で
+実質0pxに解決されていた。デバッグ表示で`hits.size=20`(実際は379件マッチのうち20件)と
+検索ロジック自体は正しく動いていることを確認した上で特定。iOS版は元から`.frame(maxHeight:
+240)`という正しいパターンだったため被害なし。
+
+**対応**: iOS版と同じ「結果リストは固定高さ(240dp)+外側はverticalScroll」の形に修正
+(`KyonoCard(Modifier.weight(1f))`→`KyonoCard()`、外側Columnに`.verticalScroll()`追加、
+`LazyColumn`は`.heightIn(max = 240.dp)`)。
+
+**確認方法**: 実機で実際に「すきな1本をさがす」に「Morning」と入力→検索結果が表示される→
+タップして選択→カードをつくる、を通しで実行し、サムネイルありのカードを確認。さらに
+`adb shell svc wifi disable && svc data disable`でオフライン化し、同じ手順でフォールバック
+(動画タイトル文字表示)になることも確認した(スクショ2枚とも添付・ドア配達済み)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑。判定ロジックは無変更。
+
 ## 2026-07-28 brag-card-thumbnail.md 完了(じまんカードにYouTubeサムネイルを実装)
 
 `TASK-C2-2026-07-27-brag-card-thumbnail.md`。alan5が§B洗い直しの過程で発見: ネイティブの
