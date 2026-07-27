@@ -1241,9 +1241,13 @@ fun openCalendarIntent(context: Context, hour: Int = 20, minute: Int = 0): Boole
     }
 }
 
+// TASK-C2-2026-07-27-milestone-card-export-nudge.md: 記録カードモーダルの節目促し表示可否を
+// 呼び出し元(HomeScreen)が判定できるよう、描画結果と一緒にmilestone判定も返す。
+data class TodayCardResult(val bitmap: android.graphics.Bitmap, val isMilestone: Boolean)
+
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果 pat から実際に描画するテーマへの
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
-private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, context: Context): android.graphics.Bitmap {
+private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, context: Context): TodayCardResult {
     val data = CardDataLoader.shared
     val effTotal = streak.total
     val dateIdx = CardLottery.dateIdx(ds)
