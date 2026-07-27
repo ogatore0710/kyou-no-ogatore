@@ -537,6 +537,9 @@ struct QuizView: View {
     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #quiz):
     // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
     @State private var showGoHomeConfirm = false
+    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §2: app-quiz.js:180の1:1移植。回答タップ直後に
+    // 選択肢を無効化し、次の設問が描画されるまで二度押しで判定の入力が汚れるのを防ぐ。
+    @State private var answering = false
 
     init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String, Int?) -> Void, onGoHome: @escaping () -> Void) {
         self.store = store
@@ -552,8 +555,10 @@ struct QuizView: View {
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             QuizContentView(
-                activeQuestions: activeQuestions, qi: qi,
+                activeQuestions: activeQuestions, qi: qi, answering: answering,
                 onOptTap: { q, opt in
+                    guard !answering else { return }
+                    answering = true
                     if let score = opt.score { scores[q.key] = score }
                     if let worryKey = opt.worryKey { worry = worryKey }
                     qi += 1
@@ -578,6 +583,7 @@ struct QuizView: View {
                 onGoHomeTap: { if qi > 0 { showGoHomeConfirm = true } else { onGoHome() } }
             )
         }
+        .onChange(of: qi) { _, _ in answering = false }
         .alert("回答を消してホームにもどる？", isPresented: $showGoHomeConfirm) {
             Button("もどる", role: .destructive) { onGoHome() }
             Button("キャンセル", role: .cancel) {}
@@ -757,18 +763,24 @@ private struct ResultContentView: View {
                     Spacer().frame(height: 8)
                     Text(info.copy).kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
-                    Spacer().frame(height: 12)
-                    Text("🌱 " + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(colors.yellowSoft)
-                        .cornerRadius(14)
-                    // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
-                    Spacer().frame(height: 12)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("🩺 理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
-                        boldHtmlText(info.pt, bold: colors.ink)
-                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: app-quiz.js:291-299の1:1移植。
+                    // ガイド中(fdGuideActive)は結果画面を「タイプ+①」に削ぎ落とす(2026-07-21 5視点
+                    // 検証C・PO承認済み)。長文解説(rHope/rPT)・ペース目安(rPace)・②③・相談室リンクは
+                    // 翌日以降(通常表示)に回す(一本道=①をタップ→もどる→記録、以外の分岐を見せない)。
+                    if !fdGuideActive {
+                        Spacer().frame(height: 12)
+                        Text("🌱 " + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                            .padding(14)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(colors.yellowSoft)
+                            .cornerRadius(14)
+                        // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
+                        Spacer().frame(height: 12)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("🩺 理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                            boldHtmlText(info.pt, bold: colors.ink)
+                                .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                        }
                     }
                     // 全画面完全性監査タスク #result: index.html:734 #rReachNote(Q1自動転記の一言)の1:1移植。
                     if let lv = autoReachLv {
@@ -843,22 +855,26 @@ private struct ResultContentView: View {
                             .kyonoFont(.bold700, size: 12).foregroundColor(colors.subFaint)
                     }
                 }
-                // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
-                KyonoCard {
-                    Text("🩺 ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
-                    Spacer().frame(height: 6)
-                    Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
-                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
-                    Spacer().frame(height: 8)
-                    Text("※効果には個人差があります 痛みが強いときは中止して医療機関へ")
-                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.subFaint)
-                    // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
-                    if let intentId = soudanTypeIntent[typeKey] {
-                        Spacer().frame(height: 10)
-                        Text("💬 この悩み、相談室で聞いてみる")
-                            .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .onTapGesture { onOpenSoudan(intentId) }
+                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rPace/rSoudanLinkもガイド中は隠す
+                // (app-quiz.js:291-299 rPace + app-quiz.js:332 !guide && sdKb()の1:1移植)。
+                if !fdGuideActive {
+                    // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
+                    KyonoCard {
+                        Text("🩺 ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                        Spacer().frame(height: 6)
+                        Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                        Spacer().frame(height: 8)
+                        Text("※効果には個人差があります 痛みが強いときは中止して医療機関へ")
+                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.subFaint)
+                        // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
+                        if let intentId = soudanTypeIntent[typeKey] {
+                            Spacer().frame(height: 10)
+                            Text("💬 この悩み、相談室で聞いてみる")
+                                .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .onTapGesture { onOpenSoudan(intentId) }
+                        }
                     }
                 }
                 // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
@@ -875,9 +891,13 @@ private struct ResultContentView: View {
                 if showTourBtn {
                     KyonoGhostButton("📖 つづき：使い方ツアーへ", action: onStartTour)
                 }
-                KyonoPrimaryButton("きょうの1本へ", action: onDone)
-                // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
-                KyonoGhostButton("もう一回チェックする", action: onStartQuiz)
+                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rGoHomeBtn/rRecheckBtnもガイド中は
+                // 隠す(app-quiz.js:291-299の1:1移植。タブバーからの脱出は常に可能なため迷子にはならない)。
+                if !fdGuideActive {
+                    KyonoPrimaryButton("きょうの1本へ", action: onDone)
+                    // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
+                    KyonoGhostButton("もう一回チェックする", action: onStartQuiz)
+                }
             }
             .padding(20)
         }

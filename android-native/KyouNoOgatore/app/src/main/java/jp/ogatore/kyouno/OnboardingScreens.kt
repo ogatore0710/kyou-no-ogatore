@@ -513,6 +513,11 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     var qi by remember { mutableStateOf(0) }
     val scores = remember { mutableStateMapOf<String, Int>() }
     var worry by remember { mutableStateOf(presetWorry) }
+    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §2: app-quiz.js:180の1:1移植。回答タップ直後に
+    // 選択肢を無効化し、次の設問が描画されるまで二度押しで判定の入力が汚れるのを防ぐ(想定層は
+    // ダブルタップの癖がある人が多いため)。
+    var answering by remember { mutableStateOf(false) }
+    LaunchedEffect(qi) { answering = false }
     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #quiz):
     // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
     var showGoHomeConfirm by remember { mutableStateOf(false) }
@@ -554,7 +559,8 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                             // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
                             // 補足説明を1回のTalkBackスワイプで読める1つの単位にまとめる。
                             .semantics(mergeDescendants = true) {}
-                            .clickable {
+                            .clickable(enabled = !answering) {
+                                answering = true
                                 opt.score?.let { scores[q.key] = it }
                                 opt.worryKey?.let { worry = it }
                                 qi++
@@ -692,19 +698,25 @@ fun ResultScreen(
                     info.copy, color = colors.sub, fontSize = 15.sp,
                     modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(12.dp))
-                Box(Modifier.fillMaxWidth().background(colors.yellowSoft, RoundedCornerShape(14.dp)).padding(14.dp)) {
-                    Text("🌱 " + info.hope, color = colors.ink, fontSize = 15.sp)
-                }
-                // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
-                Spacer(Modifier.height(12.dp))
-                Column {
-                    Text("🩺 理学療法士のひとくち解説", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        annotatedBoldHtml(info.pt, colors.ink), color = colors.sub, fontSize = 14.sp, lineHeight = 21.sp,
-                        modifier = Modifier.testTag("resultPT"),
-                    )
+                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: app-quiz.js:291-299の1:1移植。
+                // ガイド中(fdGuideActive)は結果画面を「タイプ+①」に削ぎ落とす(2026-07-21 5視点
+                // 検証C・PO承認済み)。長文解説(rHope/rPT)・ペース目安(rPace)・②③・相談室リンクは
+                // 翌日以降(通常表示)に回す(一本道=①をタップ→もどる→記録、以外の分岐を見せない)。
+                if (!fdGuideActive) {
+                    Spacer(Modifier.height(12.dp))
+                    Box(Modifier.fillMaxWidth().background(colors.yellowSoft, RoundedCornerShape(14.dp)).padding(14.dp)) {
+                        Text("🌱 " + info.hope, color = colors.ink, fontSize = 15.sp)
+                    }
+                    // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
+                    Spacer(Modifier.height(12.dp))
+                    Column {
+                        Text("🩺 理学療法士のひとくち解説", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            annotatedBoldHtml(info.pt, colors.ink), color = colors.sub, fontSize = 14.sp, lineHeight = 21.sp,
+                            modifier = Modifier.testTag("resultPT"),
+                        )
+                    }
                 }
                 // 全画面完全性監査タスク #result: index.html:734 #rReachNote(Q1自動転記の一言)の1:1移植。
                 autoReachLv?.let { lv ->
@@ -824,28 +836,32 @@ fun ResultScreen(
                     )
                 }
             }
-            Spacer(Modifier.height(16.dp))
-            // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
-            KyonoCard {
-                Text("🩺 ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで",
-                    color = colors.sub, fontSize = 14.sp, lineHeight = 24.sp,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "※効果には個人差があります 痛みが強いときは中止して医療機関へ",
-                    color = colors.subFaint, fontSize = 12.sp,
-                )
-                // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
-                SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->
-                    Spacer(Modifier.height(10.dp))
+            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rPace/rSoudanLinkもガイド中は隠す
+            // (app-quiz.js:291-299 rPace + app-quiz.js:332 !guide && sdKb()の1:1移植)。
+            if (!fdGuideActive) {
+                Spacer(Modifier.height(16.dp))
+                // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
+                KyonoCard {
+                    Text("🩺 ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(6.dp))
                     Text(
-                        "💬 この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                        modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.testTag("resultSoudanLink"),
-                        textAlign = TextAlign.Center,
+                        "・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで",
+                        color = colors.sub, fontSize = 14.sp, lineHeight = 24.sp,
                     )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "※効果には個人差があります 痛みが強いときは中止して医療機関へ",
+                        color = colors.subFaint, fontSize = 12.sp,
+                    )
+                    // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
+                    SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            "💬 この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                            modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.testTag("resultSoudanLink"),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
             // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
@@ -869,10 +885,15 @@ fun ResultScreen(
                 KyonoGhostButton("📖 つづき：使い方ツアーへ", onStartTour, Modifier.testTag("rTourBtn"))
                 Spacer(Modifier.height(10.dp))
             }
-            KyonoPrimaryButton("きょうの1本へ", onDone, Modifier.testTag("resultDoneBtn"))
-            Spacer(Modifier.height(10.dp))
-            // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
-            KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("resultRecheckBtn"))
+            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rGoHomeBtn/rRecheckBtnもガイド中は
+            // 隠す(app-quiz.js:291-299の1:1移植。一本道=①をタップ→もどる→記録、以外の分岐を見せない。
+            // タブバーからの脱出は常に可能なため、隠しても迷子にはならない)。
+            if (!fdGuideActive) {
+                KyonoPrimaryButton("きょうの1本へ", onDone, Modifier.testTag("resultDoneBtn"))
+                Spacer(Modifier.height(10.dp))
+                // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
+                KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("resultRecheckBtn"))
+            }
         }
     }
 }
