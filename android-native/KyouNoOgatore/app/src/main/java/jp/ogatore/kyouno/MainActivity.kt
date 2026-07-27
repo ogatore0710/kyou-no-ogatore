@@ -350,7 +350,7 @@ class MainActivity : ComponentActivity() {
                             // (MyRecordScreen側・後述)。
                             run {
                                 val fabsHiddenEntirely = screen is Screen.Quiz || screen is Screen.Soudan ||
-                                    screen == Screen.Onboarding || screen == Screen.Dex || obuPopupOpen
+                                    screen == Screen.Onboarding || screen == Screen.Dex || screen is Screen.Obu || obuPopupOpen
                                 // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・
                                 // 使い方(FAQ見出しの▾に被る実測あり・2026-07-20監査④)・結果画面
                                 // (「相談室で聞いてみる」リンクとの二重導線・2026-07-20監査⑤)では出さない。
@@ -369,7 +369,7 @@ class MainActivity : ComponentActivity() {
                                     store.get("fdday", null as String?),
                                     today,
                                 )
-                                val showObuFab = currentTab != null && screen != Screen.Guide && !fdGuideActiveNow
+                                val showObuFab = !fabsHiddenEntirely && screen != Screen.Guide && !fdGuideActiveNow
                                 if (showSoudanFab || showObuFab) {
                                     val obuIsNew = jp.ogatore.kyouno.obu.obuHasNew(
                                         jp.ogatore.kyouno.obu.ObuLoader.shared, obuSeen, RecordLogic.todayStr(Instant.now()),
@@ -1718,6 +1718,11 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(6.dp))
                 Text(it, color = colors.pink, modifier = Modifier.testTag("calendarMsgText"))
             }
+            // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: FABの表示範囲をWeb版に
+            // 合わせて拡げた結果、マイ記録タブの末尾要素(カレンダーに登録するボタン)が最大スクロール時に
+            // 右下固定FABと重なることを実機で確認したため、末尾に余白を足して回避する
+            // (行の下に余白を足す対応。Web版のreach-row対策と同じ「実測して決める」方針)。
+            Spacer(Modifier.height(100.dp))
         }
 
         // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
