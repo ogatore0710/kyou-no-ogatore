@@ -138,15 +138,24 @@ private struct BragContentView: View {
                     .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
 
                 Spacer().frame(height: 16)
-                KyonoPrimaryButton("カードをつくる✨") {
-                    let days = BragCardRenderer.clampDays(Int(daysText) ?? 1)
-                    let ds = RecordLogic.todayStr(now: Date())
-                    let dateIdx = CardLottery.dateIdx(ds)
-                    let data = CardDataLoader.shared
-                    let theme = data.CARD_THEMES[dateIdx % data.CARD_THEMES.count]
-                    let resolved = ResolvedTheme(name: theme.name, bg: theme.bg, main: theme.main, deco: theme.deco)
-                    let png = BragCardRenderer.render(ds: ds, days: days, theme: resolved, favoriteTitle: picked?.t)
-                    cardImage = UIImage(data: png)
+                KyonoPrimaryButton("カードをつくる✨", enabled: !makingCard) {
+                    // TASK-C2-2026-07-27-brag-card-thumbnail.md: index.html:2765-2774
+                    // loadBragThumb()の1:1移植。サムネイル取得はネットワークI/Oのためasync化し、
+                    // 取得中もUIをブロックしない(3秒タイムアウトで先へ進むのはfetchBragThumbnail側)。
+                    makingCard = true
+                    Task {
+                        var thumbnail: CGImage?
+                        if let picked { thumbnail = await fetchBragThumbnail(videoId: picked.id) }
+                        let days = BragCardRenderer.clampDays(Int(daysText) ?? 1)
+                        let ds = RecordLogic.todayStr(now: Date())
+                        let dateIdx = CardLottery.dateIdx(ds)
+                        let data = CardDataLoader.shared
+                        let theme = data.CARD_THEMES[dateIdx % data.CARD_THEMES.count]
+                        let resolved = ResolvedTheme(name: theme.name, bg: theme.bg, main: theme.main, deco: theme.deco)
+                        let png = BragCardRenderer.render(ds: ds, days: days, theme: resolved, favoriteTitle: picked?.t, thumbnail: thumbnail)
+                        cardImage = UIImage(data: png)
+                        makingCard = false
+                    }
                 }
                 Spacer().frame(height: 8)
                 Text("えらんだ1本は カードにサムネイル画像で入ります").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
