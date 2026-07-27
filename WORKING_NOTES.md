@@ -4,6 +4,47 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 iOS: SdBubbleの不安定id(ForEach識別破綻)を修正
+
+`TASK-C2-2026-07-27-ios-sdbubble-unstable-id.md`。alan5が段階表示タスクの検収中に発見した
+iOS固有のバグ。`SoudanSheetView.swift`の`enum SdBubble: Identifiable`が
+`var id: String { UUID().uuidString }`という**計算プロパティ**でIdentifiable適合していたため、
+アクセスのたびに新しいUUIDを返していた。これが`ForEach(messages)`の識別子に使われており、
+SwiftUIは差分更新の前提が崩れて**再描画のたびに全吹き出しのViewを破棄・再生成**していた。
+
+段階表示(staged reveal)実装の`revealBotMessages()`は1回の応答中に`messages`を何度も更新する
+(タイピングドット追加→`removeLast()`→吹き出し追加、を吹き出しの数だけ繰り返す)ため、
+この問題が強く顕在化する: `SdTypingDots`(タイピングドットのアニメーション)は
+`@State private var animate`+`.onAppear`で明滅させているが、Viewが作り直されるたびに
+`animate`がリセットされ`onAppear`が再発火するため、アニメーションが正しく回っていない
+可能性が高いと判断された。
+
+`SdBubble`から`Identifiable`適合と計算プロパティのidを削除し、生成時に1回だけ確定するUUIDを
+持つラッパー`struct SdMessage: Identifiable { let id = UUID(); let bubble: SdBubble }`を新設。
+`messages`の型を`[SdBubble]`から`[SdMessage]`に変更し、追加箇所は`SdMessage(bubble: ...)`で
+包み、`ForEach(messages) { m in bubbleView(m.bubble) }`に変更。Android側は元々
+`for (m in messages)`という素朴なループでComposeのスロット位置により識別しておりこの問題が
+存在しないため無変更(検収基準どおり)。
+
+**iOSシミュレータはタップ自動化ができない制約への対応**: `KyouNoOgatoreApp.swift`の
+`RootView.init`を一時的に`_screen = State(initialValue: .soudan(presetIntentId: "katakori"))`
+へ書き換え、既存の「プリセットintent自動応答」機構(タップ不要でオンボ経由チップと同じ動作を
+起動直後に実行)を使って段階表示を無操作で再現→`xcrun simctl io screenshot`を短間隔で連写→
+タイピングドットのクロップ画像を比較し、フレームごとに透明度が変化している(=アニメーションが
+実際に回っている)ことを確認→検証後に該当行を元に戻した。
+
+**⚠️ この一時テストコードがeven-syncのauto-commit(2026-07-27 18:58)に巻き込まれ、
+検証中の数分間だけorigin/mainへpushされてしまった**(起動直後に相談室へ強制遷移する状態が
+一時的に共有リポジトリに乗った)。気づき次第すぐにrevertし、`git push`で明示的に閉じた
+(コミット`2bfd59e`)。今後この種の「起動時に強制的に別画面へ飛ばす」类の一時検証コードは、
+even-syncの自動コミット間隔(10分)より短く済ませるか、検証専用ブランチ/worktreeで行うことを
+検討する余地あり。
+
+Android実機・iOSシミュレータどちらも安全系テスト(SafetyCore 111/111 fixtures)・
+card-golden 55/55・RecordCore 35/35・`npm test` 442・Web版配信ファイル無変更を確認。
+段階表示のタイミングロジック自体(待ち時間の計算式)は無変更・識別子とアニメーションの
+安定化のみ。
+
 ## 2026-07-27 相談室の返信段階表示(タイピングドット+可変ウェイト)を実装
 
 `TASK-C2-2026-07-27-soudan-staged-reveal.md`(alan5が本人指摘を受けて実機タイマー計測: チップ
