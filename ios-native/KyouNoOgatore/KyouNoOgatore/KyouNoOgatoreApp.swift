@@ -112,6 +112,9 @@ struct RootView: View {
 
     private var themeSetting: String { store.get("theme", default: "auto") }
     private var isOnboarding: Bool { if case .onboarding = screen { return true } else { return false } }
+    // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
+    // scrollIntoView(todayVideo)の1:1移植用フラグ。
+    @State private var scrollToTodayPending = false
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -180,6 +183,10 @@ struct RootView: View {
                         // index.html:4374 obGo()の1:1移植: quizへ行く人がまだツアーを見ていなければ、
                         // 結果画面にrTourBtnを出す予約をする。
                         if route == "quiz" && !obTourDone { obTourAfterQuiz = true }
+                        // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B):
+                        // index.html:4392-4393の1:1移植。quiz以外のルートでHomeへ行くときだけ
+                        // 「きょうの1本」へ自動スクロールする。
+                        if route != "quiz" { scrollToTodayPending = true }
                         screen = route == "quiz" ? .quiz(presetWorry: presetWorry) : .home
                     }
                 }
@@ -307,7 +314,8 @@ struct RootView: View {
                 onShowResult: { typeKey in screen = .result(typeKey: typeKey) },
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
                 onOpenMyRecord: { screen = .myRecord },
-                onOpenSettings: { screen = .settings }
+                onOpenSettings: { screen = .settings },
+                scrollToTodayPending: $scrollToTodayPending
             )
         }
     }

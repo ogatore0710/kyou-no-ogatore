@@ -64,6 +64,9 @@ struct HomeView: View {
     let onOpenSoudan: (String?) -> Void
     let onOpenMyRecord: () -> Void
     let onOpenSettings: () -> Void
+    // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
+    // scrollIntoView(todayVideo)の1:1移植用フラグ。
+    var scrollToTodayPending: Binding<Bool> = .constant(false)
 
     @Environment(\.kyonoColors) private var colors
 
@@ -98,7 +101,8 @@ struct HomeView: View {
     init(
         store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenQuiz: @escaping () -> Void,
         onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void,
-        onOpenMyRecord: @escaping () -> Void, onOpenSettings: @escaping () -> Void
+        onOpenMyRecord: @escaping () -> Void, onOpenSettings: @escaping () -> Void,
+        scrollToTodayPending: Binding<Bool> = .constant(false)
     ) {
         self.store = store
         self.onStartTour = onStartTour
@@ -107,6 +111,7 @@ struct HomeView: View {
         self.onOpenSoudan = onOpenSoudan
         self.onOpenSettings = onOpenSettings
         self.onOpenMyRecord = onOpenMyRecord
+        self.scrollToTodayPending = scrollToTodayPending
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
@@ -151,6 +156,7 @@ struct HomeView: View {
     // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md):
     // index.html #home(602行〜)のカード積み重ね構成の1:1移植(Android版HomeScreenと同一ロジック)。
     private var homeContent: some View {
+        ScrollViewReader { proxy in
         ScrollView {
         VStack(spacing: 16) {
             // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
@@ -218,6 +224,9 @@ struct HomeView: View {
                         }
                     }
                 }
+                // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
+                // scrollIntoView(todayVideo)のスクロール先識別子。
+                .id("todayCard")
             } else {
                 KyonoBodyText("🌱 はじめの1本ガイド中")
             }
@@ -425,7 +434,12 @@ struct HomeView: View {
                                 store.set("tourpend", false)
                                 store.set("tourseen", true)
                                 fdCardNudgeVisible = false
-                                onStartTour(true)
+                                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B):
+                                // index.html:4293 setTimeout(obOpenTour,350)の1:1移植。カードモーダルの
+                                // 閉じるアニメーションが視覚的に完了してからツアーを開始する。
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                    onStartTour(true)
+                                }
                             }
                         }
                         // index.html shareCard()相当(Step7bで新規実装)。
@@ -436,6 +450,17 @@ struct HomeView: View {
                 }
                 .padding()
             }
+        }
+        // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
+        // scrollIntoView(todayVideo)の1:1移植。オンボ完了直後だけ「きょうの1本」へアニメーション
+        // スクロールする(60msはindex.html:4393と同じ、直前のレイアウト確定を待つ猶予)。
+        .onChange(of: scrollToTodayPending.wrappedValue) { _, pending in
+            guard pending else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+                withAnimation { proxy.scrollTo("todayCard", anchor: .top) }
+                scrollToTodayPending.wrappedValue = false
+            }
+        }
         }
     }
 }

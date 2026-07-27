@@ -134,6 +134,11 @@ struct SearchView: View {
     @State private var activeCat = tagCats[0].key
     @State private var activeTag: String?
     @State private var query = ""
+    // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B): app-search.js:55
+    // onSearchInput()の180msデバウンス(IME変換中の毎打鍵フル再描画を間引く)の1:1移植。
+    // TextField自体は即時反映するが、実際のフィルタ(hits)はdebouncedQueryを使う。
+    @State private var debouncedQuery = ""
+    @State private var debounceTask: Task<Void, Never>?
     @State private var searchLimit = 24
     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #search):
     // index.html:955 #ySel(年フィルタ)の1:1移植。searchCatalogのyearパラメータ自体は既存で
@@ -141,7 +146,7 @@ struct SearchView: View {
     @State private var selectedYear: Int?
 
     private var years: [Int] { Array(Set(catalog.map { $0.y })).sorted(by: >) }
-    private var hits: [CatalogVideo] { searchCatalog(catalog, query: query, activeTag: activeTag, year: selectedYear) }
+    private var hits: [CatalogVideo] { searchCatalog(catalog, query: debouncedQuery, activeTag: activeTag, year: selectedYear) }
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
@@ -151,6 +156,13 @@ struct SearchView: View {
                 selectedYear: $selectedYear, years: years,
                 hits: hits, onBack: onBack, openUrl: openUrl
             )
+        }
+        .onChange(of: query) { _, newValue in
+            debounceTask?.cancel()
+            debounceTask = Task {
+                try? await Task.sleep(nanoseconds: 180_000_000)
+                if !Task.isCancelled { debouncedQuery = newValue }
+            }
         }
     }
 }

@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -171,6 +172,14 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
         var activeCat by remember { mutableStateOf(TAG_CATS[0].key) }
         var activeTag by remember { mutableStateOf<String?>(null) }
         var query by remember { mutableStateOf("") }
+        // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B): app-search.js:55
+        // onSearchInput()の180msデバウンス(IME変換中の毎打鍵フル再描画を間引く)の1:1移植。
+        // TextField自体は即時反映するが、実際のフィルタ(hits)はdebouncedQueryを使う。
+        var debouncedQuery by remember { mutableStateOf("") }
+        LaunchedEffect(query) {
+            delay(180)
+            debouncedQuery = query
+        }
         var searchLimit by remember { mutableStateOf(24) }
         // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #search):
         // index.html:955 #ySel(年フィルタ)の1:1移植。searchCatalogのyearパラメータ自体は既存で
@@ -179,7 +188,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
         var selectedYear by remember { mutableStateOf<Int?>(null) }
         var yearMenuOpen by remember { mutableStateOf(false) }
 
-        val hits = remember(query, activeTag, selectedYear) { searchCatalog(catalog, query, activeTag, selectedYear) }
+        val hits = remember(debouncedQuery, activeTag, selectedYear) { searchCatalog(catalog, debouncedQuery, activeTag, selectedYear) }
 
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):

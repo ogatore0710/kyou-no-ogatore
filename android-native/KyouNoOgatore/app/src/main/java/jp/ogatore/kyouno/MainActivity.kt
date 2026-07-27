@@ -73,6 +73,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
@@ -99,6 +101,7 @@ import jp.ogatore.kyouno.record.RecordStore
 import jp.ogatore.kyouno.safety.SafetyKBLoader
 import java.io.File
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.Calendar as JCalendar
 import kotlin.random.Random
@@ -129,6 +132,9 @@ class MainActivity : ComponentActivity() {
             // 見終えたか」、obTourAfterQuizは「オンボ→クイズへ直行してツアー未見のまま来た」を表す。
             var obTourDone by remember { mutableStateOf(false) }
             var obTourAfterQuiz by remember { mutableStateOf(false) }
+            // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
+            // scrollIntoView(todayVideo)の1:1移植用フラグ。
+            var scrollToTodayPending by remember { mutableStateOf(false) }
             // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3479 sdGreeted(モジュール
             // レベル変数)の1:1移植。相談室シートは開閉のたびに再合成されるため、「このセッションで
             // 初回オープンかどうか」をSoudanSheet自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
@@ -281,6 +287,8 @@ class MainActivity : ComponentActivity() {
                                             onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
                                             onOpenMyRecord = { screen = Screen.MyRecord },
                                             onOpenSettings = { screen = Screen.Settings },
+                                            scrollToTodayPending = scrollToTodayPending,
+                                            onScrolledToToday = { scrollToTodayPending = false },
                                         )
                                     }
                                     }
@@ -413,6 +421,10 @@ class MainActivity : ComponentActivity() {
                                             // index.html:4374 obGo()の1:1移植: quizへ行く人がまだ
                                             // ツアーを見ていなければ、結果画面にrTourBtnを出す予約をする。
                                             if (route == "quiz" && !obTourDone) obTourAfterQuiz = true
+                                            // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-
+                                            // audit.md §B): index.html:4392-4393の1:1移植。quiz以外の
+                                            // ルートでHomeへ行くときだけ「きょうの1本」へ自動スクロールする。
+                                            if (route != "quiz") scrollToTodayPending = true
                                             screen = if (route == "quiz") Screen.Quiz(presetWorry) else Screen.Home
                                         },
                                     )
@@ -491,12 +503,15 @@ fun HomeScreen(
     onOpenSoudan: (String?) -> Unit,
     onOpenMyRecord: () -> Unit,
     onOpenSettings: () -> Unit,
+    scrollToTodayPending: Boolean = false,
+    onScrolledToToday: () -> Unit = {},
 ) {
     val context = LocalContext.current
     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
     // ネイティブならではの上乗せとして、主要アクション「きょうやった！」に軽いハプティクスを追加
     // (情報構造・文言・並び順はWeb版のまま変更しない「仕上げ方」のみの改善)。
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
 
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
@@ -562,11 +577,23 @@ fun HomeScreen(
 
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
+        // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
+        // scrollIntoView(todayVideo)の1:1移植。「きょうの1本」カードのスクロール内での位置を
+        // onGloballyPositionedで捕捉し、オンボ完了直後だけそこへアニメーションスクロールする。
+        val homeScrollState = rememberScrollState()
+        var todayCardY by remember { mutableStateOf(0f) }
+        LaunchedEffect(scrollToTodayPending) {
+            if (scrollToTodayPending) {
+                delay(60) // index.html:4393と同じ60ms(直前のレイアウト確定を待つ猶予)
+                homeScrollState.animateScrollTo(todayCardY.toInt())
+                onScrolledToToday()
+            }
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(colors.bg)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(homeScrollState)
                 .padding(20.dp),
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
@@ -644,7 +671,11 @@ fun HomeScreen(
             // index.html:654 #todayCard(きょうの1本)相当。動画カタログ本体はStep7aの範囲のためここでは
             // pendingNudge復帰導線の実タップ確認用に、実際に外部へ遷移するリンクだけを用意する。
             if (!fdFocusOn) {
-                KyonoCard(Modifier.testTag("todayCard")) {
+                KyonoCard(
+                    Modifier
+                        .testTag("todayCard")
+                        .onGloballyPositioned { coords -> todayCardY = coords.positionInParent().y },
+                ) {
                     Text("▶️ きょうの1本", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(10.dp))
                     KyonoPrimaryButton(
@@ -916,7 +947,13 @@ fun HomeScreen(
                                 store.set("tourpend", false)
                                 store.set("tourseen", true)
                                 fdCardNudgeVisible = false
-                                onStartTour(true)
+                                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §B):
+                                // index.html:4293 setTimeout(obOpenTour,350)の1:1移植。カードモーダルの
+                                // 閉じるアニメーションが視覚的に完了してからツアーを開始する。
+                                scope.launch {
+                                    delay(350)
+                                    onStartTour(true)
+                                }
                             }
                         },
                         modifier = Modifier.testTag("cardCloseBtn"),
