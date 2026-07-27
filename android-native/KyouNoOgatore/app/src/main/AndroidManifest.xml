@@ -7,6 +7,11 @@
     <!-- TASK-C2-2026-07-27-offline-banner.md: ConnectivityManager.registerNetworkCallbackで
          接続状態を監視するために必要(通常権限・実行時ダイアログなし)。 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- TASK-C2-2026-07-27-local-notifications.md: Android13+で通知を出すための実行時権限。 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 再起動でAlarmManagerの予約が消えるため、次回分を再設定するために必要
+         (通常権限・実行時ダイアログなし)。 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +42,21 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- TASK-C2-2026-07-27-local-notifications.md: 毎日のおしらせ通知(AlarmManager+
+             BroadcastReceiver方式)。exported=falseでアプリ外からの起動は受け付けない。 -->
+        <receiver
+            android:name=".DailyNotificationReceiver"
+            android:exported="false" />
+        <!-- 再起動でAlarmManagerの予約が消えるため、次回分を再設定する。BOOT_COMPLETEDは
+             システムのみが送信するためexported=trueでも安全。 -->
+        <receiver
+            android:name=".NotificationBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
