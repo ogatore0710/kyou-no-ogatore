@@ -90,6 +90,10 @@ struct RootView: View {
     // プロセス内メモリのみ(§2-3・永続化しない)。
     @State private var obTourDone = false
     @State private var obTourAfterQuiz = false
+    // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3479 sdGreeted(モジュールレベル
+    // 変数)の1:1移植。相談室シートは開閉のたびに再生成されるため、「このセッションで初回オープンか」
+    // をSoudanSheetView自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
+    @State private var sdGreeted = false
 
     init(store: RecordStore) {
         self.store = store
@@ -172,7 +176,11 @@ struct RootView: View {
                 store: store,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onClose: { screen = .home },
-                presetIntentId: presetIntentId
+                presetIntentId: presetIntentId,
+                greeted: sdGreeted,
+                onGreeted: { sdGreeted = true },
+                onOpenSearch: { screen = .search },
+                onOpenQuiz: { screen = .quiz(presetWorry: nil) }
             )
         case .search:
             SearchView(

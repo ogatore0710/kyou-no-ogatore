@@ -60,12 +60,19 @@ func sdCatIntentIds(_ cat: SdCatDef, _ intents: [SafetyKB.Intent]) -> [String] {
 }
 
 enum SdBubble: Identifiable {
-    case bot(text: String, red: Bool, videoId: String?)
+    case bot(text: String, red: Bool, videoId: String?, fallbackCaution: Bool = false)
     case user(text: String)
     case planConfirm(intentId: String, label: String, replacing: Bool)
+    // index.html:3323-3330 sdAnswerFallback内の2通目(逃げ道リンク3つ)の1:1移植。rawUserTextはmailto本文用。
+    case fallbackLinks(rawUserText: String)
 
     var id: String { UUID().uuidString }
 }
+
+// index.html:2979 SOUDAN_BODY_INTENTS の1:1移植(体の悩み系intent=かたさチェック誘導チップの対象)。
+private let soudanBodyIntents: Set<String> = ["katakori", "youtsuu", "zenkutsu", "kokansetsu", "ashikubi", "kaikyaku", "nekoze", "nemuri", "zenshin"]
+// index.html:2946 SD_MAIL の1:1移植(検索タブのリクエスト導線と同じ宛先)。
+private let sdMail = "kyou-no@ogatore.jp"
 
 enum SdChipsMode: Equatable {
     case none
@@ -79,6 +86,10 @@ struct SoudanSheetView: View {
     let openUrl: (String) -> Void
     let onClose: () -> Void
     var presetIntentId: String?
+    var greeted: Bool = false
+    var onGreeted: () -> Void = {}
+    var onOpenSearch: () -> Void = {}
+    var onOpenQuiz: () -> Void = {}
 
     private let kb = SafetyKBLoader.shared
     @State private var messages: [SdBubble] = []
@@ -87,12 +98,20 @@ struct SoudanSheetView: View {
     @State private var shownVideoIds: [String] = [] // index.html:2999 sdCtx.shownVideoIds相当(セッション内のみ)
     @State private var input = ""
     @State private var plan: SdPlanData?
+    private var hasType: Bool { store.get("type", default: nil as QuizTypeResult?) != nil } // index.html:3024 sdHasType()の1:1移植
 
-    init(store: RecordStore, openUrl: @escaping (String) -> Void, onClose: @escaping () -> Void, presetIntentId: String? = nil) {
+    init(
+        store: RecordStore, openUrl: @escaping (String) -> Void, onClose: @escaping () -> Void, presetIntentId: String? = nil,
+        greeted: Bool = false, onGreeted: @escaping () -> Void = {}, onOpenSearch: @escaping () -> Void = {}, onOpenQuiz: @escaping () -> Void = {}
+    ) {
         self.store = store
         self.openUrl = openUrl
         self.onClose = onClose
         self.presetIntentId = presetIntentId
+        self.greeted = greeted
+        self.onGreeted = onGreeted
+        self.onOpenSearch = onOpenSearch
+        self.onOpenQuiz = onOpenQuiz
         _plan = State(initialValue: store.get("plan", default: nil))
     }
 
@@ -106,12 +125,14 @@ struct SoudanSheetView: View {
         case .normal: red = false
         }
         if !r.empathy.isEmpty { newMsgs.append(.bot(text: r.empathy, red: red, videoId: nil)) }
-        if !r.message.isEmpty { newMsgs.append(.bot(text: r.message, red: red, videoId: nil)) }
+        if !r.message.isEmpty { newMsgs.append(.bot(text: r.message, red: red, videoId: nil, fallbackCaution: r.isFallback)) }
         if let v = r.video {
             newMsgs.append(.bot(text: v.note.isEmpty ? "おすすめの1本" : v.note, red: false, videoId: v.videoId))
             if !shownVideoIds.contains(v.videoId) { shownVideoIds.append(v.videoId) }
         }
         if !r.keizoku.isEmpty { newMsgs.append(.bot(text: r.keizoku, red: false, videoId: nil)) }
+        // index.html:3328-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
+        if r.isFallback { newMsgs.append(.fallbackLinks(rawUserText: userText ?? "")) }
         messages += newMsgs
         if let intentId = r.intentId { lastIntentId = intentId }
         switch r.verdict {
@@ -187,15 +208,21 @@ struct SoudanSheetView: View {
     private var content: some View {
         SoudanContentView(
             messages: messages, chipsMode: chipsMode, input: $input, plan: plan,
-            kb: kb, onClose: onClose, openUrl: openUrl,
+            kb: kb, hasType: hasType, onClose: onClose, openUrl: openUrl,
             onSend: sendText, onChip: chipTap, onFollowup: followupTap,
             onPlanChip: planChipTap, onPlanStart: planStart, onPlanDecline: planDecline,
-            onCatSelect: { key in chipsMode = .intents(activeCat: key) }
+            onCatSelect: { key in chipsMode = .intents(activeCat: key) },
+            onOpenSearch: onOpenSearch, onOpenQuiz: onOpenQuiz
         )
-        // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md): index.html:3409
-        // soudanCardChips「タップでそのまま聞けるよ」チップ→openSoudan(intentId)相当。ホームの
-        // オガトレ相談室カードのおすすめチップから開いたときだけ、開いた瞬間にそのintentへ自動応答する。
+        // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3459 sdEnsureGreeting()の1:1移植。
+        // 相談室をアプリのこのセッションで初めて開いたときだけ、吹き出し形式であいさつを1通出す
+        // (greetedはWeb版sdGreetedと同じくセッション内のみ・store非永続。呼び出し元がルート階層で保持する)。
+        // ホーム構造修正タスクのpresetIntentId自動応答(index.html:3464-3467)より先に出す(Web版と同順)。
         .onAppear {
+            if !greeted {
+                messages.append(.bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね", red: false, videoId: nil))
+                onGreeted()
+            }
             if let presetIntentId { chipTap(presetIntentId) }
         }
     }
@@ -211,6 +238,7 @@ private struct SoudanContentView: View {
     @Binding var input: String
     let plan: SdPlanData?
     let kb: SafetyKB
+    let hasType: Bool
     let onClose: () -> Void
     let openUrl: (String) -> Void
     let onSend: () -> Void
@@ -220,6 +248,8 @@ private struct SoudanContentView: View {
     let onPlanStart: (String) -> Void
     let onPlanDecline: () -> Void
     let onCatSelect: (String) -> Void
+    let onOpenSearch: () -> Void
+    let onOpenQuiz: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -236,9 +266,11 @@ private struct SoudanContentView: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 12)
             .background(colors.card)
-            // index.html:466-467 .sd-disc
-            Text("※目安をつかむ相談室です 強い痛み・しびれがあるときは医療機関へ")
-                .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub).multilineTextAlignment(.center)
+            // index.html:1223 .sd-disc(2行・2行目後半は太字強調)
+            (Text("※回答はオガトレ監修のパターン集から選んでいます\n※目安をつかむ相談室です ")
+                .font(.kyono(.bold700, size: 13))
+                + Text("強い痛み・しびれがあるときは医療機関へ").font(.kyono(.black900, size: 13)))
+                .foregroundColor(colors.sub).multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16).padding(.vertical, 6)
                 .background(colors.card)
@@ -246,8 +278,6 @@ private struct SoudanContentView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("肩こりや腰痛など、気になることを教えてね。下のチップから選んでもいいよ😊")
-                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
                     ForEach(messages) { m in bubbleView(m) }
                 }
                 .padding(16)
@@ -271,13 +301,18 @@ private struct SoudanContentView: View {
             }
         // index.html:481,488,3080 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)/
         // .sd-ava(chara-hitokoto.pngアバター・botメッセージのみ)の1:1移植。
-        case let .bot(text, red, videoId):
+        case let .bot(text, red, videoId, fallbackCaution):
             let bg = red ? colors.coralSoft : colors.card
             let border = red ? colors.coral : colors.line
             HStack(alignment: .bottom) {
                 KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 6) {
                     if !text.isEmpty { Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink) }
+                    // index.html:3330 sdAnswerFallback1通目の末尾<span>(小さめ注意書き)の1:1移植。
+                    if fallbackCaution {
+                        Text("※つらい症状（強い痛み・胸の苦しさ・熱など）があるときは、メールより先に医療機関に相談してね")
+                            .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                    }
                     if let videoId {
                         KyonoGhostButton("▶ 動画を見る") { openUrl("https://www.youtube.com/watch?v=\(videoId)") }
                     }
@@ -288,6 +323,20 @@ private struct SoudanContentView: View {
                         .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(border, lineWidth: 1.5))
                 )
                 .frame(maxWidth: 320, alignment: .leading)
+                Spacer()
+            }
+        // index.html:3323-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
+        // ①mailto(検索タブと同じopenMailTo流用)②クリップボードコピー③検索タブへ遷移。
+        case let .fallbackLinks(rawUserText):
+            HStack(alignment: .bottom) {
+                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
+                FallbackLinksView(rawUserText: rawUserText, onOpenSearch: onOpenSearch)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(
+                        RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).fill(colors.card)
+                            .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.line, lineWidth: 1.5))
+                    )
+                    .frame(maxWidth: 320, alignment: .leading)
                 Spacer()
             }
         case let .planConfirm(intentId, label, replacing):
@@ -356,6 +405,10 @@ private struct SoudanContentView: View {
                         if let nextBestId, let nb = kb.intents.first(where: { $0.id == nextBestId }) {
                             KyonoChip(label: "\(nb.chip)の話も") { onChip(nb.id) }
                         }
+                        // index.html:3160-3163 未チェックの人への導線(体の悩み系回答にだけ出す)の1:1移植。
+                        if let intent, !(intent.safety ?? false), !hasType, soudanBodyIntents.contains(intent.id) {
+                            KyonoChip(label: "30秒のかたさチェックやってみる?") { onOpenQuiz() }
+                        }
                         KyonoChip(label: "べつの悩みをそうだん") { onCatSelect("body") }
                     }
                 }
@@ -379,6 +432,38 @@ private struct SoudanContentView: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         .background(colors.card)
+    }
+}
+
+// index.html:3323-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の中身。envのkyonoColors解決の都合上
+// (HomeView.swift冒頭コメント参照)、独立したView構造体に切り出す。
+private struct FallbackLinksView: View {
+    @Environment(\.kyonoColors) private var colors
+    let rawUserText: String
+    let onOpenSearch: () -> Void
+    @State private var copied = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            KyonoGhostButton("📮 この悩み、オガトレに届ける") {
+                let subject = "【相談室リクエスト】きょうのオガトレ"
+                let body = "相談した内容:\n\(rawUserText)\n---\n送信元: きょうのオガトレ「オガトレ相談室」"
+                openMailTo(to: sdMail, subject: subject, body: body)
+            }
+            Text(copied ? "コピーしました✅" : "📋 メールがひらかない方はアドレスをコピー")
+                .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                .onTapGesture {
+                    UIPasteboard.general.string = sdMail
+                    copied = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        copied = false
+                    }
+                }
+            Text("🔍 動画を探すタブでさがしてみる")
+                .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                .onTapGesture { onOpenSearch() }
+        }
     }
 }
 

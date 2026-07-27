@@ -281,9 +281,15 @@ private struct ReqBox: View {
 private func openRequestMail(kwText: String) {
     let subject = "ストレッチのリクエスト（きょうのオガトレ）"
     let body = "こんなストレッチの動画が欲しいです：\n\(kwText.isEmpty ? "（ここに書いてね）" : kwText)\n\n--\nきょうのオガトレ「動画を探す」から送信"
+    openMailTo(to: "kyou-no@ogatore.jp", subject: subject, body: body)
+}
+
+// TASK-C2-2026-07-27-soudan-safety-copy-and-links: 相談室のフォールバック逃げ道リンクからも
+// 同じmailto導線を再利用するため、宛先/件名/本文を汎用パラメータ化してprivateを外す。
+func openMailTo(to: String, subject: String, body: String) {
     var comps = URLComponents()
     comps.scheme = "mailto"
-    comps.path = "kyou-no@ogatore.jp"
+    comps.path = to
     comps.queryItems = [URLQueryItem(name: "subject", value: subject), URLQueryItem(name: "body", value: body)]
     if let url = comps.url {
         UIApplication.shared.open(url)
