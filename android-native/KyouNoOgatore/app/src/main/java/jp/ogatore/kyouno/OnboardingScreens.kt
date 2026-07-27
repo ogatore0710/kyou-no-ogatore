@@ -152,8 +152,8 @@ private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ
 //
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §1): index.html:4182 obSay()の
 // 「1.5秒間隔で吹き出しが1つずつ出る」演出をLaunchedEffect+delay(1500)のコルーチンで1:1再現する。
-// reduced-motion設定への対応(Web版は即時表示に切り替え)はこのタスクの検収基準に明記が無く、
-// システム設定の読み取り経路を新設する判断が必要になるため今回は見送る(常に1.5秒間隔で表示)。
+// §D(TASK-C2-2026-07-27-behavior-parity-audit.md): index.html:4145 obReducedMotion()/4186
+// const wait=obReducedMotion()?0:1500の1:1移植として、reduced-motion時は待機をなくす。
 @Composable
 fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry: String?) -> Unit) {
     var bubbles by remember { mutableStateOf(listOf<ChatBubble>()) }
@@ -180,12 +180,14 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         onComplete(route, presetWorry)
     }
 
+    val obReducedMotion = rememberReducedMotion()
     LaunchedEffect(Unit) {
         // index.html:4182 obSay()の1:1移植: 1行ごとに表示→1.5秒待つ、を繰り返す。
         suspend fun say(lines: List<String>) {
+            val wait = if (obReducedMotion) 0L else 1500L
             for (line in lines) {
                 bubbles = bubbles + ChatBubble(line, false)
-                delay(1500)
+                delay(wait)
             }
         }
         say(OB_GREET)

@@ -169,6 +169,7 @@ fun SoudanSheet(
     // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3096 sdPending(応答演出中は次の
     // チップタップ/送信を受け付けない)の1:1移植。演出中の吹き出し順序が入り乱れるのを防ぐ。
     var sdPending by remember { mutableStateOf(false) }
+    val sdReducedMotion = rememberReducedMotion()
 
     // index.html:3090-3134 sdPush()の1:1移植。bot発言を1つずつ、タイピングドットを挟みながら
     // 段階的に表示する。チップ列(chipsMode)の更新はWeb版のsdRenderChips()と同じく、
@@ -176,6 +177,13 @@ fun SoudanSheet(
     // カテゴリタブの早期畳み(index.html:3097-3100)はComposeのレイアウトでは該当する見切れ問題が
     // 起きないため見送り(表示タイミングの本質=段階表示自体は1:1)。
     suspend fun revealBotMessages(botMsgs: List<SdBubble>, newChipsMode: SdChipsMode) {
+        // §D: index.html:3051 sdReduced()がtrueの場合、queueNext()はタイピングドット+待機を
+        // 挟まず即座に全件を表示する(index.html:3119-3131 if(reduced){showNext();return;})の1:1移植。
+        if (sdReducedMotion) {
+            messages = messages + botMsgs
+            chipsMode = newChipsMode
+            return
+        }
         for ((i, msg) in botMsgs.withIndex()) {
             messages = messages + SdBubble.Typing
             val base = minOf(1600, 500 + sdBubbleLen(msg) * 22)
@@ -686,7 +694,8 @@ fun PlanDoneCard(
             Spacer(Modifier.height(8.dp))
             KyonoLineButton("とじる", onClose, Modifier.testTag("planDoneCloseBtn"))
         }
-        if (showConfettiOnce) {
+        // §D: index.html:1921 launchConfetti()冒頭のif(matchMedia(prefers-reduced-motion:reduce).matches) return;の1:1移植。
+        if (showConfettiOnce && !rememberReducedMotion()) {
             KyonoConfetti(count = 105, modifier = Modifier.matchParentSize())
         }
     }

@@ -345,6 +345,7 @@ class MainActivity : ComponentActivity() {
                             LaunchedEffect(screen) {
                                 (screen as? Screen.Soudan)?.let { lastSoudan = it }
                             }
+                            val screenReducedMotion = rememberReducedMotion()
                             AnimatedVisibility(
                                 visible = screen is Screen.Soudan,
                                 enter = fadeIn(tween(250)),
@@ -361,10 +362,19 @@ class MainActivity : ComponentActivity() {
                                         ) { screen = Screen.Home },
                                 )
                             }
+                            // §D: index.html:497 .sd-sheetはprefers-reduced-motion:reduce時にanimation:none。
                             AnimatedVisibility(
                                 visible = screen is Screen.Soudan,
-                                enter = slideInVertically(tween(250, easing = FastOutSlowInEasing)) { it },
-                                exit = slideOutVertically(tween(200, easing = FastOutSlowInEasing)) { it },
+                                enter = if (screenReducedMotion) {
+                                    fadeIn(tween(0))
+                                } else {
+                                    slideInVertically(tween(250, easing = FastOutSlowInEasing)) { it }
+                                },
+                                exit = if (screenReducedMotion) {
+                                    fadeOut(tween(0))
+                                } else {
+                                    slideOutVertically(tween(200, easing = FastOutSlowInEasing)) { it }
+                                },
                                 modifier = Modifier.align(Alignment.BottomCenter),
                             ) {
                                 lastSoudan?.let { s ->
@@ -401,10 +411,19 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)))
                             }
+                            // §D: index.html:517 .ob-sheetはprefers-reduced-motion:reduce時にanimation:none。
                             AnimatedVisibility(
                                 visible = screen is Screen.Onboarding,
-                                enter = fadeIn(tween(280)) + scaleIn(tween(280, easing = FastOutSlowInEasing), initialScale = 0.94f),
-                                exit = fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.94f),
+                                enter = if (screenReducedMotion) {
+                                    fadeIn(tween(0))
+                                } else {
+                                    fadeIn(tween(280)) + scaleIn(tween(280, easing = FastOutSlowInEasing), initialScale = 0.94f)
+                                },
+                                exit = if (screenReducedMotion) {
+                                    fadeOut(tween(0))
+                                } else {
+                                    fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.94f)
+                                },
                                 modifier = Modifier.align(Alignment.Center).padding(14.dp),
                             ) {
                                 Box(
@@ -791,11 +810,17 @@ fun HomeScreen(
                 )
                 // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
                 // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
-                // ポップイン)の1:1移植。
+                // ポップイン)の1:1移植。§D: index.html:214-220 fd-cardpopはprefers-reduced-motion:
+                // no-preference時のみ発火するので、reduced-motion時はバウンドなしで即表示する。
+                val fdReducedMotion = rememberReducedMotion()
                 AnimatedVisibility(
                     visible = fdCelebrationVisible,
-                    enter = fadeIn(tween(500)) +
-                        scaleIn(tween(500, easing = androidx.compose.animation.core.CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)), initialScale = 0f),
+                    enter = if (fdReducedMotion) {
+                        fadeIn(tween(0))
+                    } else {
+                        fadeIn(tween(500)) +
+                            scaleIn(tween(500, easing = androidx.compose.animation.core.CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)), initialScale = 0f)
+                    },
                 ) {
                     Column(Modifier.testTag("fdCelebration")) {
                         Spacer(Modifier.height(10.dp))

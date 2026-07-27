@@ -84,6 +84,7 @@ private enum Screen: Equatable {
 
 struct RootView: View {
     let store: RecordStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var screen: Screen
     // ダークモード再確認+rDoneNudge/rTourBtn実装タスク(TASK-C2-2026-07-27-darkmode-recheck-and-
     // nudges.md): index.html:4267 obTourI/obTourDone/obTourAfterQuizの1:1移植。Web版と同じく

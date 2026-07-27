@@ -117,6 +117,7 @@ struct SoudanSheetView: View {
     var onOpenSearch: () -> Void = {}
     var onOpenQuiz: () -> Void = {}
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let kb = SafetyKBLoader.shared
     @State private var messages: [SdMessage] = []
     @State private var chipsMode: SdChipsMode = .intents(activeCat: "body")
@@ -150,6 +151,13 @@ struct SoudanSheetView: View {
     // カテゴリタブの早期畳み(index.html:3097-3100)はSwiftUIのレイアウトでは該当する見切れ問題が
     // 起きないため見送り(表示タイミングの本質=段階表示自体は1:1)。
     private func revealBotMessages(_ botMsgs: [SdBubble], _ newChipsMode: SdChipsMode) async {
+        // §D: index.html:3051 sdReduced()がtrueの場合、queueNext()はタイピングドット+待機を
+        // 挟まず即座に全件を表示する(index.html:3119-3131 if(reduced){showNext();return;})の1:1移植。
+        if reduceMotion {
+            messages.append(contentsOf: botMsgs.map { SdMessage(bubble: $0) })
+            chipsMode = newChipsMode
+            return
+        }
         for (i, msg) in botMsgs.enumerated() {
             messages.append(SdMessage(bubble: .typing))
             let base = min(1600, 500 + sdBubbleLen(msg) * 22)
@@ -683,6 +691,7 @@ struct PlanProgressCardView: View {
 // (TASK-C2-2026-07-27-plan-completion-celebration.md)。
 struct PlanDoneCardView: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let cache: PlanFinishedCache
     let alreadyCelebrated: Bool
     let onCelebrate: () -> Void
@@ -730,7 +739,8 @@ struct PlanDoneCardView: View {
                 Spacer().frame(height: 8)
                 KyonoLineButton("とじる", action: onClose)
             }
-            if showConfettiOnce {
+            // §D: index.html:1921 launchConfetti()冒頭のif(matchMedia(prefers-reduced-motion:reduce).matches) return;の1:1移植。
+            if showConfettiOnce && !reduceMotion {
                 KyonoConfetti(count: 105)
                     .allowsHitTesting(false)
             }

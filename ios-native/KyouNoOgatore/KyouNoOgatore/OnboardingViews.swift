@@ -115,12 +115,13 @@ private let obBigtextAck = "OK！今後変えたくなったら「マイ記録�
 
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §1): index.html:4182 obSay()の
 // 「1.5秒間隔で吹き出しが1つずつ出る」演出を.task+Task.sleep(1.5秒)のコルーチンで1:1再現する。
-// reduced-motion対応(Web版は即時表示に切り替え)はこのタスクの検収基準に明記が無く、システム設定の
-// 読み取り経路を新設する判断が必要になるため今回は見送る(常に1.5秒間隔で表示。Android版と同じ判断)。
+// §D(TASK-C2-2026-07-27-behavior-parity-audit.md): index.html:4145 obReducedMotion()/4186
+// const wait=obReducedMotion()?0:1500の1:1移植として、reduced-motion時は待機をなくす。
 struct OnboardingView: View {
     let store: RecordStore
     let onComplete: (_ route: String, _ presetWorry: String?) -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bubbles: [ChatBubble] = []
     @State private var activeQuestion: ObQuestionDef?
     @State private var routeCta: ObRouteInfo?
@@ -147,9 +148,10 @@ struct OnboardingView: View {
     }
 
     private func say(_ lines: [String]) async {
+        let wait: UInt64 = reduceMotion ? 0 : 1_500_000_000
         for line in lines {
             bubbles.append(ChatBubble(text: line, fromUser: false))
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            try? await Task.sleep(nanoseconds: wait)
         }
     }
 
