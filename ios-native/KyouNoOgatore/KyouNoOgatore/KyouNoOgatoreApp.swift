@@ -123,7 +123,13 @@ struct RootView: View {
     private var content: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
+                // TASK-C2-2026-07-27-screen-transitions.md §一般画面: 画面切替が常に瞬時だったのに
+                // .22s程度のフェード+わずかなスライドを追加。Screen方式(手組みの状態機械)自体は
+                // 変更せず、.animation(value:)で外側から演出を被せるだけ(.id()は使わない=
+                // KyonoTheme tickの教訓どおり、部分木の強制再生成は状態リセットを招くため)。
                 screenContent
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+                    .animation(.easeInOut(duration: 0.22), value: effectiveScreen)
                 if let tab = screen.kyonoTab {
                     KyonoTabBar(current: tab) { newTab in
                         switch newTab {

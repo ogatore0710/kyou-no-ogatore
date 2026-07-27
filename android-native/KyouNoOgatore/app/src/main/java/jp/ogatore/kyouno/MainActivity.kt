@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -20,8 +21,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -183,7 +186,19 @@ class MainActivity : ComponentActivity() {
                             val mainScreen = if (screen is Screen.Soudan || screen is Screen.Onboarding) Screen.Home else screen
                             Column(Modifier.fillMaxSize()) {
                                 Box(Modifier.weight(1f)) {
-                                    when (val s = mainScreen) {
+                                    // TASK-C2-2026-07-27-screen-transitions.md §一般画面: 画面切替が
+                                    // 常に瞬時だったのに.25s程度のフェード+わずかなスライドを追加。
+                                    // Screen方式(手組みの状態機械)自体は変更せず、AnimatedContentで
+                                    // 外側から演出を被せるだけ。
+                                    AnimatedContent(
+                                        targetState = mainScreen,
+                                        transitionSpec = {
+                                            (fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 20 })
+                                                .togetherWith(fadeOut(tween(160)))
+                                        },
+                                        label = "screenTransition",
+                                    ) { s ->
+                                    when (s) {
                                         // mainScreenはOnboarding/Soudan中も常にHomeへ差し替え済みのため、
                                         // この分岐は型の網羅性チェックのためだけに存在し実際には到達しない。
                                         is Screen.Onboarding -> {}
@@ -267,6 +282,7 @@ class MainActivity : ComponentActivity() {
                                             onOpenMyRecord = { screen = Screen.MyRecord },
                                             onOpenSettings = { screen = Screen.Settings },
                                         )
+                                    }
                                     }
                                 }
                                 if (currentTab != null) {
