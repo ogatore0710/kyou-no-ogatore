@@ -177,9 +177,41 @@ struct SettingsView: View {
                     Spacer().frame(height: 20)
                     KyonoBodyText("カレンダーのおしらせ時間")
                     Spacer().frame(height: 6)
-                    DatePicker("", selection: icsDateBinding, displayedComponents: .hourAndMinute)
-                        .labelsHidden()
-                        .datePickerStyle(.compact)
+                    // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを
+                    // 15分刻み(:00/:15/:30/:45の4択)に変更。Android版のDropdownMenu2つ構成と
+                    // 同じ考え方でMenu2つに置き換える(単一のDatePickerだと分の刻みを制御できない)。
+                    HStack(spacing: 8) {
+                        Menu {
+                            ForEach(0..<24, id: \.self) { h in
+                                Button("\(String(format: "%02d", h))時") {
+                                    icsHour = h
+                                    store.set("icstime", String(format: "%02d:%02d", icsHour, icsMinute))
+                                    DailyNotifications.resync(store: store)
+                                }
+                            }
+                        } label: {
+                            Text("\(String(format: "%02d", icsHour))時")
+                                .kyonoFont(.black900, size: 16).foregroundColor(.primary)
+                                .padding(.horizontal, 14).padding(.vertical, 8)
+                                .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: 0xFFFFFF)))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: 0xF2EADB), lineWidth: 2))
+                        }
+                        Menu {
+                            ForEach(Self.minuteOptions, id: \.self) { m in
+                                Button("\(String(format: "%02d", m))分") {
+                                    icsMinute = m
+                                    store.set("icstime", String(format: "%02d:%02d", icsHour, icsMinute))
+                                    DailyNotifications.resync(store: store)
+                                }
+                            }
+                        } label: {
+                            Text("\(String(format: "%02d", icsMinute))分")
+                                .kyonoFont(.black900, size: 16).foregroundColor(.primary)
+                                .padding(.horizontal, 14).padding(.vertical, 8)
+                                .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: 0xFFFFFF)))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: 0xF2EADB), lineWidth: 2))
+                        }
+                    }
                     Spacer().frame(height: 10)
                     KyonoLineButton("📅 Appleカレンダーに入れる") {
                         addToAppleCalendar(hour: icsHour, minute: icsMinute) { ok in
@@ -192,6 +224,37 @@ struct SettingsView: View {
                     Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
                     if let icsMessage {
                         Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(Color(hex: 0xE56A9A))
+                    }
+
+                    // TASK-C2-2026-07-27-local-notifications.md: 「毎日のおしらせ」トグル。既定オフ・
+                    // オンにした瞬間だけ許可ダイアログを出す(1日目クリア時のインライン提案とは別経路。
+                    // どちらも同じnotif_enabledに収束する。Android版SettingsScreen.ktと同一仕様)。
+                    Spacer().frame(height: 20)
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("毎日のおしらせ").kyonoFont(.bold700, size: 15).foregroundColor(.primary)
+                            Text("上の時間に、一言だけやわらかくお知らせします(その日すでに記録していれば出ません)")
+                                .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { notifEnabled },
+                            set: { on in
+                                if on {
+                                    DailyNotifications.requestAuthorization { granted in
+                                        if granted {
+                                            store.set("notif_enabled", true)
+                                            notifEnabled = true
+                                            DailyNotifications.resync(store: store)
+                                        }
+                                    }
+                                } else {
+                                    store.set("notif_enabled", false)
+                                    notifEnabled = false
+                                    DailyNotifications.cancelAll()
+                                }
+                            }
+                        )).labelsHidden()
                     }
 
                     Spacer().frame(height: 20)

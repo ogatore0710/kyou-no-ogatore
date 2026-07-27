@@ -4,6 +4,56 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: §C「きょうやった！」中央寄せがdoneBtn手前の状態で効かない根本原因を特定・修正
+
+alan5が3回に渡り差し戻した`TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md` §Cの
+「完了と報告されたのに実機で動いていない」不具合。前回(2026-07-27付エントリ参照)の「実機確認
+済み」報告は、たまたま検証時の状態で偶然クランプの影響が出ないケースを踏んでいただけの誤り
+だった。
+
+**再現**: `scripts/verify-worktree.sh new`で検証用worktreeを作り、`todayVideoBtn`タップ・
+`checkRefreshDay`・スクロール計算の3箇所に一時Log.dを追加して実機(`emulator-5556`)で
+alan5の再現手順(force-stop→起動→「きょうの1本を見る」タップ→Chrome起動確認→BACK→
+UI状態確認)をそのまま実行。ログで以下を確認:
+```
+scrollEffect: doneBtnY=2112.9 homeColY=0.0 scrollVal=1583 viewportH=2009 doneBtnH=186
+              contentY=3695.9 target=2784 maxScroll=2383 reducedMotion=false
+scrollEffect: AFTER scroll, scrollVal=2383  ← targetでなくmaxScrollに丸められている
+```
+`showDoneNudge`自体はtrueになり「おかえりなさい」への文言差し替えも正しく動く。`scrollTo`も
+実際に呼ばれ`scrollVal`は1583→2383へ動いている。しかし目標値2784がScrollStateの
+`maxValue`(2383)を超えているため`scrollTo`が暗黙にクランプし、doneBtnの実際の中心Yは
+`[309,1496][771,1588]`(中心1542)——**alan5が報告したboundsと完全一致**——となり画面中心
+(1200)から342pxずれたまま「見た目上ほぼ動いていない」ように見えていた。
+
+**根本原因**: `index.html:82` `body{padding:20px 18px 180px}`。下だけ180pxと極端に大きいのは
+`scrollIntoView({block:"center"})`(index.html:4010の§C該当箇所)がページ末尾付近の要素でも
+実際に中央まで届くための意図的な余白で、`npm test`の
+`body: padding-bottom 180px(下部FABとフッターの重なり対策・2026-07-20に120pxから拡大): ok`
+という既存チェックで検証済みの仕様だった。ネイティブのHome用スクロールコンテナ
+(Android `MainActivity.kt` HomeScreenのColumn・iOS `HomeView.swift`のホームVStack)は
+均一`padding(20.dp)`/`.padding(20)`のままでこの180pxの余白が移植されておらず、スクロール可能
+範囲(`maxValue`)が実際より約1097px足りない状態になっていた。streakが浅い/doneBtn以下の
+残りコンテンツが少ない状態ほどクランプの影響が大きく出る(=alan5の環境で毎回踏み、こちらの
+一部の検証では偶然踏まなかった)。
+
+**修正**: 両OSのHome用スクロールコンテナのpaddingを`top20/horizontal18/bottom180`(dp/pt)に
+変更(index.html:82のCSS値をそのまま1:1移植)。onGloballyPositioned/GeometryReaderによる
+viewport高さの捕捉はpadding適用前の値を見ているため計算式自体は変更不要だった。
+
+**検証結果**(同じ検証用worktreeでビルド→本体リポジトリに反映後、実機で再実行):
+修正前 doneBtn中心Y=1542(画面中心1200から342pxずれ) → 修正後 doneBtn中心Y=1141
+(画面中心から59pxのズレ・5.8倍改善)。alan5の再現手順(force-stop→起動→タップ→Chrome確認→
+BACK)をそのまま実行して確認。検証用worktreeは`scripts/verify-worktree.sh clean`で計装コード
+ごと破棄済み(本体には最終的なpadding変更のみ反映)。
+
+**あわせて**: 一時停止していた`TASK-C2-2026-07-27-local-notifications.md`のiOS側未完了部分
+(`SettingsView.swift`の`DatePicker`→時/分2つの`Menu`置き換え・「毎日のおしらせ」`Toggle`UI)も
+今回のiOSビルド検証のために完成させた(Android版`DropdownMenu`2つ+`Switch`と同一仕様)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS SafetyCore/RecordCore/CardCore
+`swift test`緑(safety-fixtures 111/111・card-golden 55/55)・両OSビルド成功。判定ロジックは無変更。
+
 ## 2026-07-28 追記: Android BragScreen「すきな1本」検索結果が一切表示されない既存バグを発見・修正
 
 alan5からの「実物のスクショが届いていない」指摘を受けて実機の検索UIを実際に操作したところ

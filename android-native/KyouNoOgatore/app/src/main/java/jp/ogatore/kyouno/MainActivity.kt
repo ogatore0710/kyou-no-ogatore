@@ -703,7 +703,13 @@ fun HomeScreen(
                     homeViewportHeightPx = coords.size.height
                 }
                 .verticalScroll(homeScrollState)
-                .padding(20.dp),
+                // index.html:82 body{padding:20px 18px 180px}の1:1移植。下だけ180dpと大きいのは
+                // §C(scrollIntoView({block:"center"})相当のdoneBtn中央寄せ)がページ末尾付近の
+                // 要素でも実際に中央まで届くための余白(TASK-C2-2026-07-28: 3日目等ページ末尾に
+                // 近い状態でscrollToの目標値がmaxValueを超えクランプされ、中央に届かないまま
+                // 見た目上「動いていない」ように見えるバグの根本原因だった。均一20dpのままだと
+                // 再現する)。
+                .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = 180.dp),
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {

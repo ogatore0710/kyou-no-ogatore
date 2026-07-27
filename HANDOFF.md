@@ -2,6 +2,32 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: §C差し戻し「きょうやった！」中央寄せが実機で効かない件(2026-07-28)
+alan5が3回に渡り差し戻した`scroll-parity-and-reduced-motion-gaps.md` §Cの実機不具合を根本原因まで
+特定して修正。**前回(2026-07-27)の「実機確認済み」報告は誤りだった**: 検証時のstreak状態
+(ページ末尾に近い・doneBtn以下の残りコンテンツが少ない)ではscrollToの目標値がScrollStateの
+maxValueを超えてクランプされ、中央まで届かないまま「見た目上ほぼ動いていない」状態になる
+ケースを踏んでいなかった。alan5が報告したbounds(`[309,1496][771,1588]`)を検証専用worktree
+(`scripts/verify-worktree.sh`)でのLog.d計装+実機再現で完全に一致再現し、
+`scrollEffect: ...target=2784 maxScroll=2383`のログで「計算自体は正しいが到達不能な目標値になり
+clampされる」ことを確認。
+
+**根本原因**: `index.html:82` `body{padding:20px 18px 180px}`は下だけ180pxと大きく、これは
+`scrollIntoView({block:"center"})`(index.html:4010)がページ末尾付近の要素でも実際に中央まで
+届くための意図的な余白だった(`npm test`が「2026-07-20に120pxから拡大」と検証済みの既知仕様)。
+ネイティブのHome用スクロールコンテナは均一`padding(20.dp)`/`.padding(20)`のままでこの余白が
+無く、スクロール可能範囲が足りずに手前でクランプしていた。
+
+**修正**: Android `MainActivity.kt`のHomeScreen Column、iOS `HomeView.swift`のホームVStackの
+paddingを`top20/horizontal18/bottom180`(dp/pt)に変更(Web版のCSS値をそのまま移植)。実機再検証で
+doneBtnのY中心が画面中心(1200px, 2400px高)から**342px→59pxのズレ**に改善(5.8倍改善・視覚的に
+中央寄せとして成立するレベル)。あわせて一時停止していた`local-notifications.md`のiOS
+`SettingsView.swift`未完了部分(DatePicker→時/分2つのMenu置き換え・通知トグルUI)も完成させ、
+両OSビルド成功を確認。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS SafetyCore/RecordCore/CardCore
+`swift test`緑(safety-fixtures 111/111・card-golden 55/55)・両OSビルド成功。判定ロジックは無変更。
+
 ## 体制（2026-07-24〜）
 alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微実装・検収）、appdev（C2）が実行工場。大きい実装タスクはalan5からタスクファイルで届き、appdevが実行して完了報告をドア配達で返す。詳細は[docs/HANDOVER-to-alan5-2026-07-24.md](docs/HANDOVER-to-alan5-2026-07-24.md)。
 
