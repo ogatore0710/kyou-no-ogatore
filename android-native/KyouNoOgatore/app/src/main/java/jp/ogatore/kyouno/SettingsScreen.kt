@@ -146,6 +146,12 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     onSelect = { v -> theme = v; store.set("theme", v) },
                     modifier = Modifier.testTag("themeSeg"),
                 )
+                // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:807の1:1移植。
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "「じどう」は夜（19時〜朝5時）やスマホがダーク設定のとき暗くなります",
+                    color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("themeAutoHint"),
+                )
 
                 Spacer(Modifier.height(12.dp))
                 Text("もじの大きさ", color = colors.ink, fontSize = 15.sp)
@@ -224,6 +230,28 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
 
                 Spacer(Modifier.height(16.dp))
                 Text("よみこみ", color = colors.ink, fontSize = 16.sp)
+                Spacer(Modifier.height(8.dp))
+                // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:839,2067-2074
+                // importFromClipboard()の1:1移植。高齢者・デジタル機器が苦手な方向けに、長押しコピー→
+                // 貼り付けという操作をボタン1つで完結させる(2026-07-19 Fableレビュー対応と同じ意図)。
+                // 読み取れない/空のときはWeb版と同趣旨のメッセージで下の手動欄へフォールバックする。
+                KyonoPrimaryButton(
+                    "📋 コピーした記録を自動で読みこむ",
+                    {
+                        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = cm.primaryClip
+                        val text = if (clip != null && clip.itemCount > 0) clip.getItemAt(0).coerceToText(context).toString() else ""
+                        if (text.isBlank()) {
+                            importMessage = "クリップボードが空みたい\nコピーできているか確認してね"
+                        } else {
+                            importInput = text.trim()
+                            confirmImport = true
+                        }
+                    },
+                    Modifier.testTag("importClipboardBtn"),
+                )
+                Spacer(Modifier.height(6.dp))
+                Text("うまくいかないときは 下のわくに手で貼り付けてね", color = colors.subFaint, fontSize = 12.sp)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = importInput,

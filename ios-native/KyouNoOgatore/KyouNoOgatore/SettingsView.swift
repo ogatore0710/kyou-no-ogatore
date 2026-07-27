@@ -162,6 +162,10 @@ struct SettingsView: View {
                         selected: theme,
                         onSelect: { v in theme = v; store.set("theme", v) }
                     )
+                    // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:807の1:1移植。
+                    Spacer().frame(height: 6)
+                    Text("「じどう」は夜（19時〜朝5時）やスマホがダーク設定のとき暗くなります")
+                        .font(.kyono(.bold700, size: 12)).foregroundColor(.secondary)
 
                     Spacer().frame(height: 12)
                     KyonoBodyText("もじの大きさ")
@@ -212,6 +216,22 @@ struct SettingsView: View {
 
                     Spacer().frame(height: 16)
                     Text("よみこみ").font(.kyono(.black900, size: 16))
+                    Spacer().frame(height: 8)
+                    // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:839,2067-2074
+                    // importFromClipboard()の1:1移植。高齢者・デジタル機器が苦手な方向けに、長押しコピー→
+                    // 貼り付けという操作をボタン1つで完結させる(2026-07-19 Fableレビュー対応と同じ意図)。
+                    // 読み取れない/空のときはWeb版と同趣旨のメッセージで下の手動欄へフォールバックする。
+                    KyonoPrimaryButton("📋 コピーした記録を自動で読みこむ") {
+                        let text = UIPasteboard.general.string ?? ""
+                        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            importMessage = "クリップボードが空みたい\nコピーできているか確認してね"
+                        } else {
+                            importInput = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                            confirmImport = true
+                        }
+                    }
+                    Spacer().frame(height: 6)
+                    Text("うまくいかないときは 下のわくに手で貼り付けてね").font(.kyono(.bold700, size: 12)).foregroundColor(.secondary)
                     Spacer().frame(height: 8)
                     TextField("KYONO1:... をここに貼りつけ", text: $importInput).textFieldStyle(.roundedBorder)
                     Spacer().frame(height: 8)
