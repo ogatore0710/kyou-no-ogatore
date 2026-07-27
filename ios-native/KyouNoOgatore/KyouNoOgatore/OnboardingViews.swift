@@ -70,6 +70,16 @@ let obAnchorAck: [String: String] = [
 // "none"は対応表に含めない(worry!=="none"のときだけquizルートへ行く条件と対になっている)。
 let obWorryToQuiz: [String: String] = ["katakori": "katakori", "youtsuu": "yotsu", "zenkutsu": "yawaraka", "nemuri": "tsukare"]
 
+// index.html:4108-4111 ONBOARDING_SCRIPT.routesの1:1移植(TASK-C2-2026-07-27-onboarding-routes-closing-message)。
+struct ObRouteInfo {
+    let say: [String]
+    let btn: String
+}
+let obRoutes: [String: ObRouteInfo] = [
+    "quiz": ObRouteInfo(say: ["そしたら30秒で硬さチェックをしよう！下のボタンタップしてね！"], btn: "かたさチェックをはじめる"),
+    "today": ObRouteInfo(say: ["じゃあ今日の1本から！むずかしいことはなしだよ👍"], btn: "きょうの1本を見る"),
+]
+
 // index.html:4377 obGo()内の条件式の1:1移植。
 func obDecideRoute(stiff: String, worry: String) -> String {
     (stiff == "hard" || stiff == "unknown" || worry != "none") ? "quiz" : "today"
@@ -113,8 +123,10 @@ struct OnboardingView: View {
 
     @State private var bubbles: [ChatBubble] = []
     @State private var activeQuestion: ObQuestionDef?
+    @State private var routeCta: ObRouteInfo?
     @State private var answers: [String: String] = [:]
     @State private var pendingPick: CheckedContinuation<ObChip, Never>?
+    @State private var pendingCta: CheckedContinuation<Void, Never>?
 
     private func finish() {
         // bigtext/anchorは実際の設定として即時反映(index.html:4218-4235 obPick)
@@ -147,6 +159,12 @@ struct OnboardingView: View {
         }
     }
 
+    private func awaitCta() async {
+        await withCheckedContinuation { cont in
+            pendingCta = cont
+        }
+    }
+
     private func runFlow() async {
         await say(obGreet)
         for q in obQuestions {
@@ -163,6 +181,15 @@ struct OnboardingView: View {
                 await say([obBigtextAck])
             }
         }
+        // index.html:4108-4111 ONBOARDING_SCRIPT.routes: 相槌の後にもう1往復、締めメッセージ+
+        // 専用ボタンを表示し、タップされて初めてfinish()(=画面遷移)する(自動遷移しない)。
+        let stiff = answers["stiff"] ?? "normal"
+        let worry = answers["worry"] ?? "none"
+        let routeInfo = obRoutes[obDecideRoute(stiff: stiff, worry: worry)]!
+        await say(routeInfo.say)
+        routeCta = routeInfo
+        await awaitCta()
+        routeCta = nil
         finish()
     }
 
@@ -171,10 +198,14 @@ struct OnboardingView: View {
     var body: some View {
         KyonoTheme(themeSetting: themeSetting) {
             OnboardingContentView(
-                bubbles: bubbles, activeQuestion: activeQuestion,
+                bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
                 onChipTap: { chip in
                     pendingPick?.resume(returning: chip)
                     pendingPick = nil
+                },
+                onCtaTap: {
+                    pendingCta?.resume(returning: ())
+                    pendingCta = nil
                 }
             )
         }
@@ -186,7 +217,9 @@ private struct OnboardingContentView: View {
     @Environment(\.kyonoColors) private var colors
     let bubbles: [ChatBubble]
     let activeQuestion: ObQuestionDef?
+    let routeCta: ObRouteInfo?
     let onChipTap: (ObChip) -> Void
+    let onCtaTap: () -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
@@ -225,6 +258,9 @@ private struct OnboardingContentView: View {
                             .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
                             .onTapGesture { onChipTap(chip) }
                     }
+                }
+                if let cta = routeCta {
+                    KyonoPrimaryButton(cta.btn, action: onCtaTap)
                 }
             }
             .padding(20)

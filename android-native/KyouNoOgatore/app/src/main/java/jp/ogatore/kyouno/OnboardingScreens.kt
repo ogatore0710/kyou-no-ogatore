@@ -109,6 +109,13 @@ val OB_ANCHOR_ACK = mapOf(
 // スキップする対象外=worry!=="none"のときだけquizルートへ行く条件と対になっている)。
 val OB_WORRY_TO_QUIZ = mapOf("katakori" to "katakori", "youtsuu" to "yotsu", "zenkutsu" to "yawaraka", "nemuri" to "tsukare")
 
+// index.html:4108-4111 ONBOARDING_SCRIPT.routesの1:1移植(TASK-C2-2026-07-27-onboarding-routes-closing-message)。
+data class ObRouteInfo(val say: List<String>, val btn: String)
+val OB_ROUTES = mapOf(
+    "quiz" to ObRouteInfo(listOf("そしたら30秒で硬さチェックをしよう！下のボタンタップしてね！"), "かたさチェックをはじめる"),
+    "today" to ObRouteInfo(listOf("じゃあ今日の1本から！むずかしいことはなしだよ👍"), "きょうの1本を見る"),
+)
+
 // index.html:4377 obGo()内の条件式の1:1移植(stiff=hard/unknown、またはworry!=noneならquizへ)。
 fun obDecideRoute(stiff: String, worry: String): String =
     if (stiff == "hard" || stiff == "unknown" || worry != "none") "quiz" else "today"
@@ -143,8 +150,10 @@ private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ
 fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry: String?) -> Unit) {
     var bubbles by remember { mutableStateOf(listOf<ChatBubble>()) }
     var activeQuestion by remember { mutableStateOf<ObQuestionDef?>(null) }
+    var routeCta by remember { mutableStateOf<ObRouteInfo?>(null) }
     val answers = remember { mutableStateMapOf<String, String>() }
     val pickChannel = remember { Channel<ObChip>(Channel.CONFLATED) }
+    val ctaChannel = remember { Channel<Unit>(Channel.CONFLATED) }
 
     fun finish() {
         // bigtext/anchorは実際の設定として即時反映(index.html:4218-4235 obPick)
@@ -185,6 +194,15 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 "bigtext" -> say(listOf(OB_BIGTEXT_ACK))
             }
         }
+        // index.html:4108-4111 ONBOARDING_SCRIPT.routes: 相槌の後にもう1往復、締めメッセージ+
+        // 専用ボタンを表示し、タップされて初めてfinish()(=画面遷移)する(自動遷移しない)。
+        val stiff = answers["stiff"] ?: "normal"
+        val worry = answers["worry"] ?: "none"
+        val routeInfo = OB_ROUTES.getValue(obDecideRoute(stiff, worry))
+        say(routeInfo.say)
+        routeCta = routeInfo
+        ctaChannel.receive()
+        routeCta = null
         finish()
     }
 
@@ -237,6 +255,11 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                             .testTag("obChip_${q.key}_${chip.v}"),
                     )
                 }
+            }
+            val cta = routeCta
+            if (cta != null) {
+                Spacer(Modifier.height(8.dp))
+                KyonoPrimaryButton(cta.btn, { ctaChannel.trySend(Unit) }, Modifier.fillMaxWidth().testTag("obRouteCtaBtn"))
             }
         }
     }
