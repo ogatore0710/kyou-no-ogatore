@@ -2223,6 +2223,55 @@ function checkPythonScripts() {
   assert("python scripts: syntax", result.status === 0, (result.stderr || result.stdout || `${scripts.length} files`).trim());
 }
 
+// 一時検証コードの取り残し検知（2026-07-27 追加・PRINCIPLES 70条「教訓は機械チェックに昇格させる」）
+// 事件: iOSの目視確認のため起動画面を相談室に固定する仮コードを入れたところ、even-syncの10分ごとの
+// 自動コミットに巻き込まれてorigin/mainへpushされた(コミット2bfd59e)。今回はネイティブ(未配布)で
+// 無害だったが、同じ経路で本番配信のindex.htmlに乗れば実害になる(同日朝の衝突マーカー事故が実例)。
+// ソース中に検証用マーカーが残っていたら落とす。ドキュメント(.md)は事故の記録として文字列を
+// 引用するため対象外にする。
+const TEMP_MARKERS = ["DO-NOT-COMMIT", "DO NOT COMMIT", "TEMP-TEST"];
+function checkNoTempMarkers() {
+  const roots = [
+    "index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js",
+    "app-record.js", "app-card.js", "app-env.js", "soudan-kb.js", "sw.js", "manifest.json",
+  ];
+  const dirs = [
+    "android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno",
+    "ios-native/KyouNoOgatore/KyouNoOgatore",
+    "scripts",
+  ];
+  const targets = roots.filter((rel) => exists(rel));
+  for (const dir of dirs) {
+    const abs = path.join(ROOT, dir);
+    if (!fs.existsSync(abs)) continue;
+    const walk = (cur) => {
+      for (const entry of fs.readdirSync(cur, { withFileTypes: true })) {
+        const full = path.join(cur, entry.name);
+        if (entry.isDirectory()) { walk(full); continue; }
+        if (/\.(kt|swift|js|html|json)$/.test(entry.name)) {
+          const rel = path.relative(ROOT, full);
+          // チェッカー自身はマーカー文字列を定義として持っているため対象外
+          if (rel !== path.join("scripts", "qa.js")) targets.push(rel);
+        }
+      }
+    };
+    walk(abs);
+  }
+  const hits = [];
+  for (const rel of targets) {
+    let body;
+    try { body = read(rel); } catch (e) { continue; }
+    for (const marker of TEMP_MARKERS) {
+      if (body.includes(marker)) hits.push(`${rel} (${marker})`);
+    }
+  }
+  assert(
+    "一時検証コード: DO-NOT-COMMIT/TEMP-TESTマーカーがソースに残っていない",
+    hits.length === 0,
+    hits.length ? hits.join(", ") : `${targets.length} files scanned`
+  );
+}
+
 function main() {
   for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "app-card.js", "app-env.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
@@ -2268,6 +2317,7 @@ function main() {
   checkVerification20260720Fixes(html, mainScript);
   checkQuotesCoverage(mainScript);
   checkPythonScripts();
+  checkNoTempMarkers();
 
   if (failures.length) {
     console.error(`\nQA failed: ${failures.length} issue(s)`);
