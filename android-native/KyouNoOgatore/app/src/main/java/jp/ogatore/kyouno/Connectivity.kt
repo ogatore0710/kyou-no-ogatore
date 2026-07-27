@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -29,15 +28,16 @@ fun rememberIsOffline(): Boolean {
     var offline by remember { mutableStateOf(!isCurrentlyOnline(context)) }
     DisposableEffect(Unit) {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        // registerNetworkCallback(NetworkRequest,...)はcapabilityにマッチするネットワークが
+        // 消える瞬間ではなく数十秒のlinger猶予後にonLostが呼ばれ検知が遅れる(実機確認で発覚)。
+        // システムが選んでいる「既定ネットワーク」自体の変化を追うregisterDefaultNetworkCallbackの
+        // 方が「いま電波があるか」の体感と一致し、即座に反映される。
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) { offline = false }
-            override fun onLost(network: Network) { offline = !isCurrentlyOnline(context) }
+            override fun onLost(network: Network) { offline = true }
             override fun onUnavailable() { offline = true }
         }
-        val request = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-        cm.registerNetworkCallback(request, callback)
+        cm.registerDefaultNetworkCallback(callback)
         offline = !isCurrentlyOnline(context)
         onDispose { cm.unregisterNetworkCallback(callback) }
     }

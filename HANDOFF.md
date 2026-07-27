@@ -10,6 +10,14 @@ alan5（C1）がこのプロジェクトの頭（本人窓口・設計・軽微�
 存在しない」問題は、下記の全画面完全性監査タスク#homeで`memoRow`として実装済み（既存の
 `RecordLogic.saveMemo()`を呼ぶだけ）。「ひとことにっき」一覧も含め正常に動作する状態になった。
 
+## ✅ 完了: オフライン案内バナーを実装（2026-07-27）
+`TASK-C2-2026-07-27-offline-banner.md`。Web版envBannerのうちA2HS/PWA固有の他用途は対象外だが、
+純粋なオフライン通知だけは両OSとも未実装だったため新規実装(Android: ConnectivityManager、
+iOS: NWPathMonitor)。実装中、Androidの`registerNetworkCallback`(capability版)はネットワーク
+lingerの影響でonLost検知が遅れるバグを発見し、`registerDefaultNetworkCallback`に切り替えて
+即座反映するよう修正。Android実機で機内モード相当のオン/オフを繰り返し、バナー表示/非表示・
+オフライン中の記録操作(きょうやった！)継続を確認済み。詳細はWORKING_NOTES.mdの同日エントリ参照。
+
 ## ✅ 完了: オガトレ通信FABタップ時のプレビューポップアップを実装（2026-07-27）
 `TASK-C2-2026-07-27-obu-fab-preview-popup.md`。FABタップで直接全アーカイブへ遷移していたのを、
 Web版どおり「text/photo/radio最新1件ずつ(最大3件)のプレビュー→もっと見るで全アーカイブ」の

@@ -4,6 +4,37 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 オフライン案内バナーを実装
+
+`TASK-C2-2026-07-27-offline-banner.md`。Web版`envBanner`(index.html:605,4064-4080)の大半
+(YouTubeアプリ内ブラウザ脱出案内・LINE等アプリ内ブラウザ警告・ホーム画面追加リマインド)は
+A2HS/PWA固有で移植不要(§2-2)だが、純粋なオフライン通知だけはネイティブにも当てはまる汎用機能
+のため確認したところ、両OSとも接続監視コード自体が存在せず未実装だった。
+
+Android: `ConnectivityManager`、iOS: `NWPathMonitor`で接続状態を監視する
+`rememberIsOffline()`/`NetworkMonitor`を新規実装(`Connectivity.kt`/`Connectivity.swift`)。
+ホーム画面のqbubble(きょうのひとこと)直下にWeb版そのままの文言
+「いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）」
+を表示。YouTubeアプリ内ブラウザ云々の他用途との出し合い管理(envBannerPrevHTML退避)はネイティブに
+該当ケースが無いため、単純な表示⇔非表示のみ(Web版より簡略化・意図的)。
+
+**Android実機テスト中に見つけた実装ミス**: 当初`ConnectivityManager.registerNetworkCallback
+(NetworkRequest, callback)`(capability指定のリクエスト版)で実装したが、実機で機内モード相当
+(`svc wifi disable`+`svc data disable`)にしても`onLost`がなかなか呼ばれず、バナーが表示されない
+ことが発覚(Androidのネットワークlinger猶予=切断後も数十秒「まだ使えることにする」独自の遅延の影響と
+判明。`dumpsys connectivity`の`Active default network`は即座に`none`になるのに、個別リクエストの
+`onLost`は遅延する)。システムが選んでいる既定ネットワーク自体の変化を直接追う
+`registerDefaultNetworkCallback`に切り替えて解消(体感の「いま電波があるか」とズレなく即座に反映)。
+
+Android実機で確認: ①オンライン状態でアプリ起動→②アプリ稼働中に`svc wifi/data disable`→
+3秒以内にバナーが表示されることを確認(切り替え前の実装では表示されなかった)→③バナー表示中に
+「きょうやった！」を実行→記録カード(2日目！)が正常に生成され記録が保存されることを確認(オフライン
+中も記録機能は無影響)→④`svc wifi/data enable`→バナーが消え、記録(通算2日・いま2日連続)が
+正しく反映されていることを確認。
+
+安全系テスト(SafetyCore 111/111 fixtures)・card-golden 55/55・RecordCore 35/35・
+`npm test` 442・Web版配信ファイル無変更を確認。
+
 ## 2026-07-27 オガトレ通信FABタップ時のプレビューポップアップを実装
 
 `TASK-C2-2026-07-27-obu-fab-preview-popup.md`。12セクション監査は#obu(全アーカイブ)自体は
