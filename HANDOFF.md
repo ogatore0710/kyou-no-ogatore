@@ -2,6 +2,59 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: myrecord-settings-tour-parity.md §2〜§6 全項目(2026-07-28)
+`TASK-C2-2026-07-28-myrecord-settings-tour-parity.md`の残り全部(§1「いま連続」は既に完了済み)。
+これで本タスクは§1〜§6すべて完了。
+
+**§2(中)ツアー自動起動が「とじる」ボタン経由でしか発火しない**: index.html:1563(switchTab)・
+:2718(closeCard、外タップ/戻る/スワイプ下ろしを含む)の両方が`fdTourMaybeStart()`を呼ぶ1:1移植。
+以前はカード「とじる」ボタンのonClick内にだけ同じロジックがあり、外タップ・戻る・タブ移動では
+ツアーが起動しなかった。Android`tryStartTour()`・iOS`tryStartTour(onTourpendConsumed:onStartTour:)`
+の共通関数を新設し、カード閉じる全経路(onDismissRequest/confirmButton・.sheet dismiss/とじる
+ボタン)とタブ切替の両方から呼ぶよう統一。**実機で確認**: tourpend=true状態でタブをタップすると
+350ms後にツアー(9枚・closing込み)が自動起動することを確認。
+
+**§3(中)マイ記録のカレンダー登録が常に20:00**: index.html:2001-2020 renderIcs()の「anchor別の
+既定＋保存済みicstimeを必ず反映」の1:1移植。設定画面は時刻を渡していたのにマイ記録側だけ
+`hour=20,minute=0`固定だった。Android`icsTimeFor(store)`・iOS`icsTimeFor(_:)`の共通関数を
+SettingsScreen.kt/SettingsView.swiftに新設し、マイ記録側もこれを使うよう統一。
+
+**§4(中)iOS設定画面のダークモード非対応ハードコード色**: `0xFFFFFF`/`0xF2EADB`/`0xDFF5F2`/
+`0x177065`/`0xE56A9A`を`colors.card`/`colors.line`/`colors.tealSoft`/`colors.tealInk`/
+`colors.pink`に差し替え(Android版は元から対応済み)。
+
+**§5(中〜小・まとめて)**:
+- 図鑑バナーのバッジ+見本4枚: index.html:766-771 renderDexBanner()の1:1移植(got/totalバッジ・
+  記念/季節/レア/ノーマル各1枚の見本)。**実機で確認**(Android: badge「0/106」+4サンプル表示)。
+- 機種変ヒント2行: 「コピーした文字はLINEの…」「機種変更のときは前のスマホで…」を追加。
+- カレンダー下のヒント: 「印をタップするとその日の記録が見られます」を追加。
+- Androidの「📅 Appleカレンダーに入れる」→「📅 カレンダーに入れる」(実体はAndroid標準カレンダー
+  Intentであり、Android端末にAppleカレンダーは無いため誤ったラベルだった。iOS側は実際に
+  EventKit/Appleカレンダーを使うため据え置き)。
+- ツアー締めスライドの説明文: 「あしたも待ってるね🌱…」を追加。**実機で確認**。
+- Slide7の文言をネイティブUI(お楽しみ機能の個別3ボタン)に合わせて書きかえ(Web版の「見てみる」
+  ボタンはネイティブに存在しないため)。
+- テーマ選択肢ラベル「ライト/ダーク」→「明るい/暗い」(両OS)。
+
+**§6(小・まとめて)**:
+- base64の厳格デコード: Android`Base64.getMimeDecoder()`・iOS`.ignoreUnknownCharacters`に変更
+  (メモアプリ経由で改行が混入した引き継ぎ文字列を読めるように)。回帰テスト追加(両OS)。
+- 空欄で「よみこむ」: 事前チェックで「コピーした文字を上のわくに貼ってから「よみこむ」を
+  押してね」に変更(以前は空欄でも確認ダイアログへ進み、base64エラーの誤解を招くメッセージ)。
+- iOSカレンダーのマス32pt→44pt(プロジェクトの44pt自主ルールに合わせる)。
+- iOS「今日」と「選択日」の枠を排他から共存に変更(Android版と同じくAndroidの`.border()`2回
+  独立適用=後勝ちの挙動に揃える。selectedがあればink優先・無ければtoday判定)。
+- iOS freezeLeftが画面生存中に更新されない問題を修正(`private let`→`@State`、日付跨ぎ
+  checkDayChange()で再計算。Android版は元からremember(streak)で対応済み)。
+- anchor変更時のおしらせ時間既定値が追従しない問題を修正(保存済みicstimeがまだ無い間だけ、
+  anchor変更にあわせて既定時刻を追従。両OS)。
+- ツアー画面がテーマ・文字サイズ設定を無視する問題を修正(TourScreen/TourViewにstoreを渡し
+  実設定を使うよう変更。以前は"auto"/true固定で、手動ライト設定の人が夜に再訪するとツアーだけ
+  ダークになっていた)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS swift test(SafetyCore8/8・
+RecordCore41/41・CardCore16/16)緑・両OSビルド成功。判定ロジックは無変更。
+
 ## ✅ 完了: obu-voices-diary-and-navigation.md §8残り3件(せんぱいの声・にっき)(2026-07-28)
 `TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md` §8の残り全部。これで§1〜§8すべて完了。
 

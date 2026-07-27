@@ -955,6 +955,9 @@ let obTourSlides = [
     TourSlideDef(title: "📖 忘れてもだいじょうぶ", desc: "このツアーも使い方タブの「📖 使い方ツアー」から いつでももう一度見られるよ"),
 ]
 let obTourClosingTitle = "🌱 これで準備ばっちり！"
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:4275-4277
+// OB_TOUR_CLOSING.dの1:1移植(2026-07-21 PO承認案(b))。以前はタイトルのみで説明文が欠落していた。
+let obTourClosingDesc = "あしたも待ってるね🌱 きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ💪"
 
 // index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。8枚+条件付き9枚目
 // (closing・自動起動時のみ)。「つぎへ」ボタン+ドット進捗のリニアなステップ形式(スワイプ不使用)。
@@ -1001,6 +1004,8 @@ private struct TourContentView: View {
                     VStack(spacing: 8) {
                         KyonoCharaImage(name: "chara-congrats").frame(width: 110, height: 110)
                         Text(obTourClosingTitle).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
+                        Text(obTourClosingDesc).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                            .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
                 }

@@ -4,6 +4,32 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: myrecord-settings-tour-parity §2〜§6(全項目)
+
+`TASK-C2-2026-07-28-myrecord-settings-tour-parity.md` §1以外の全部。夜間監査4本(検索/再生リスト・
+quiz-result-reach-parity・obu-voices-diary-and-navigation・myrecord-settings-tour-parity)が
+これで全項目完了。
+
+**共通関数の抽出パターン**: §2(ツアー自動起動)・§3(カレンダーicstime)はどちらも「複数の呼び出し
+経路のうち1つにしか実装されていなかった」欠落だったため、まず共通ロジックを関数として括り出して
+から全経路で呼ぶ形にした(Android`tryStartTour()`/`icsTimeFor()`をMainActivity.kt/
+SettingsScreen.ktに新設・iOSも同名の関数をKyouNoOgatoreApp.swift/SettingsView.swiftに新設)。
+
+**§6 iOS today/selectedの排他→共存の直し方**: Android版は`.border()`を条件ごとに独立して
+2回チェーンする実装で、同じ日が「今日」かつ「選択中」の場合は後から適用したborderが見た目上
+勝つ(=事実上の優先順位付け)。iOS版は三項演算子で`isToday`を先に判定していたため、選択中でも
+常にpink(today色)が出てink(selected色)が絶対に見えない、という排他になっていた。三項演算子の
+判定順を「selectedがあればink・無ければtoday判定」に入れ替えるだけで、Android版と同じ
+優先順位(selected勝ち)を再現できる。
+
+**§6 iOS freezeLeftの見た目上の罠**: `private let freezeLeft: Int`は文法上は「定数」なので
+一見「意図的に不変にしている」ように見えるが、実際はAndroid版の`remember(streak)`との対応漏れ
+(単なるinit時計算のし忘れ)だった。「private letだから触ってはいけない」と早合点せず、
+対応するAndroid実装が本当に同じ制約を持っているか確認すること。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS swift test
+(SafetyCore8/8・RecordCore41/41・CardCore16/16)緑・両OSビルド成功。判定ロジック無変更。
+
 ## 2026-07-28 追記: obu-voices-diary-and-navigation §8残り3件(せんぱいの声フリップ高さ・にっき破線)
 
 `TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md` §8完了。これで§1〜§8すべて完了。
