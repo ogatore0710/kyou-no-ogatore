@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package jp.ogatore.kyouno
 
 import androidx.compose.animation.core.Animatable
@@ -16,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -479,9 +482,16 @@ fun SoudanSheet(
                 when (val mode = chipsMode) {
                     is SdChipsMode.None -> {} // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
                     is SdChipsMode.Intents -> {
-                        LazyRow(modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).testTag("sdCatRow")) {
-                            items(SD_CHIP_CATS) { cat ->
-                                KyonoCatButton(cat.label, cat.key == mode.activeCat, { chipsMode = SdChipsMode.Intents(cat.key) }, Modifier.padding(end = 8.dp).testTag("sdCat_${cat.key}"))
+                        // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §2/§5: index.html:471
+                        // .sd-foot .sd-catrow{flex-wrap:wrap}の1:1移植。相談室フッターのチップ行は
+                        // 例外的に横スクロールだが、カテゴリ行だけは折り返しに戻る指定。
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).testTag("sdCatRow"),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            SD_CHIP_CATS.forEach { cat ->
+                                KyonoCatButton(cat.label, cat.key == mode.activeCat, { chipsMode = SdChipsMode.Intents(cat.key) }, Modifier.testTag("sdCat_${cat.key}"))
                             }
                         }
                         val activeCat = SD_CHIP_CATS.find { it.key == mode.activeCat } ?: SD_CHIP_CATS[0]

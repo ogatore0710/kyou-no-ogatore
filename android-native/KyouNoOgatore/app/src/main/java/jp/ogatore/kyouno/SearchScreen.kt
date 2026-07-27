@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package jp.ogatore.kyouno
 
 import android.content.Context
@@ -9,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -224,11 +227,17 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 }
             }
             Spacer(Modifier.height(6.dp))
-            // index.html:440-449 .chip/.chip-a〜d/.chip.on
+            // index.html:440-449,952 .chip/.chip-a〜d/.chip.on。TASK-C2-2026-07-27-chips-overflow-
+            // and-bubble-pop.md §5: .chipsは既定でflex-wrap:wrap(横スクロールは相談室フッターのみの
+            // 例外)のため、LazyRowからFlowRowへ変更(3つ目以降が見えなくなっていた欠落の修正)。
             val activeCatTags = TAG_CATS.first { it.key == activeCat }.tags
             val cc = chipColorsFor(activeCat, dark)
-            LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("searchTagRow")) {
-                items(activeCatTags) { tag ->
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("searchTagRow"),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                activeCatTags.forEach { tag ->
                     val on = tag == activeTag
                     Text(
                         tag, color = if (on) cc.onText else cc.text, fontSize = 14.sp, fontWeight = FontWeight.Bold,
@@ -239,7 +248,6 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                             .padding(horizontal = 16.dp, vertical = 10.dp)
                             .testTag("searchTag_$tag"),
                     )
-                    Spacer(Modifier.width(6.dp))
                 }
             }
             Spacer(Modifier.height(8.dp))

@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package jp.ogatore.kyouno
 
 import android.content.Context
@@ -31,6 +33,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -1149,9 +1152,16 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
         Spacer(Modifier.height(10.dp))
         Text("👇 タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
         Spacer(Modifier.height(6.dp))
-        LazyRow(Modifier.fillMaxWidth().testTag("soudanCardChips")) {
-            items(picks) { intent ->
-                KyonoChip(intent.chip, { onOpenSoudan(intent.id) }, Modifier.padding(end = 8.dp).testTag("soudanCardChip_${intent.id}"))
+        // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §5: index.html:438
+        // .chips{display:flex;flex-wrap:wrap}が既定(相談室フッターのチップ行だけが例外の横スクロール)。
+        // index.html:650のこのチップ(からだの悩みチップ)は既定どおり折り返し対象。
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().testTag("soudanCardChips"),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            picks.forEach { intent ->
+                KyonoChip(intent.chip, { onOpenSoudan(intent.id) }, Modifier.testTag("soudanCardChip_${intent.id}"))
             }
         }
     }
