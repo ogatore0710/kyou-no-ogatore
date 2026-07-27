@@ -2,6 +2,29 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: local-notifications.md 毎日のおしらせ通知(両OS実装・実機/シミュレータ確認済み)(2026-07-28)
+`TASK-C2-2026-07-27-local-notifications.md`。Android: `AlarmManager.setAndAllowWhileIdle`+
+`BroadcastReceiver`(発火のたびに`isTodayDone`判定→表示可否決定→無条件で次回を再予約する自己修復
+設計)。iOS: `UNCalendarNotificationTrigger`非repeatingを`scheduleDays=3`分まとめて予約し直す方式
+(前面復帰・記録時に`resync`)。時刻は15分刻み2択(時/分)、既定オフのトグルで有効化(オンにした
+瞬間だけ許可ダイアログ)。
+
+**実機/シミュレータ確認**: Android — 設定で時刻選択・トグルON→権限ダイアログ→`dumpsys alarm`で
+`RTC_WAKEUP ... .DailyNotificationReceiver`が正しい時刻(設定値)で登録されることを確認→
+`am broadcast`で手動発火させ`dumpsys notification`で実際に通知(title/channel/本文とも正しい)が
+投稿されることを確認。iOS — ビルド成功・Settings画面の新UI(時/分Menu2つ+トグル)が検証用
+worktreeで正しくレンダリングされることを確認(タップ自動化ができない既知の環境制約のため、
+ボタン単体のインタラクション確認はコードレビューで代替)。
+
+**設計上の疑問点を検証で解消**: Androidは`markDone`後に明示的な再予約呼び出しが無いが、これは
+バグではなく意図的設計——`showNotificationIfDue`が表示有無に関わらず必ず`scheduleNext`を
+呼ぶ自己修復ループのため、記録済み日は発火時に`isTodayDone`で抑制されるだけで連鎖は途切れない
+(iOS側がresyncを都度呼ぶ必要があるのは`UNCalendarNotificationTrigger`が非repeatingで内容固定の
+ため、という既存コメントの設計差そのまま)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・iOS SafetyCore/RecordCore/CardCore
+`swift test`緑・両OSビルド成功。判定ロジックは無変更。
+
 ## ✅ 完了: §C差し戻し「きょうやった！」中央寄せが実機で効かない件(2026-07-28・alan5検収済み)
 
 **alan5が実機で最終検収完了(2026-07-28)。差し戻し解除。これで発注22件すべて検収完了・
