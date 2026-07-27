@@ -96,35 +96,58 @@ private struct VoiceCardView: View {
     let openUrl: (String) -> Void
     let index: Int
 
+    // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A): index.html:351
+    // .vin(transition:transform .55s・rotateY(180deg))の1:1移植。タップでめくる瞬間が無演出で
+    // 一気に切り替わっていたため3Dフリップを追加。90度地点(半分の時間)でfront/backの表示内容を
+    // 切り替える(裏面が鏡像文字になるのを避けるため、切替後はさらに180度分を逆回転で打ち消す)。
+    @State private var rotation: Double = 0
+    @State private var showBack = false
+
     var body: some View {
         Group {
-            if open {
-                // index.html:358-359,362-363 .vback(card地・枠線)
-                VStack(alignment: .leading, spacing: 8) {
-                    VoiceTag(text: voice.tag)
-                    Text(voice.q).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(6)
-                    Text("— せんぱいの声（\(voice.src)）")
-                        .font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                    KyonoGhostButton("せんぱいとおなじ1本をみる ▶") { openUrl("https://www.youtube.com/watch?v=\(voice.vid)") }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(18)
-                .background(RoundedRectangle(cornerRadius: 22).fill(colors.card))
-                .overlay(RoundedRectangle(cornerRadius: 22).stroke(colors.line, lineWidth: 1.5))
+            if !showBack {
+                frontView
             } else {
-                // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)
-                KyonoGradientCard(gradient: .warm) {
-                    VStack(spacing: 6) {
-                        VoiceTag(text: voice.tag)
-                        Text(voice.front).font(.kyono(.black900, size: 18)).foregroundColor(colors.ink).multilineTextAlignment(.center)
-                        Text("タップでめくる").font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
+                backView.rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
             }
         }
+        .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0))
         .contentShape(Rectangle())
         .onTapGesture { onToggle() }
+        .onChange(of: open) { _, newValue in
+            withAnimation(.easeInOut(duration: 0.275)) { rotation += 90 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.275) {
+                showBack = newValue
+                withAnimation(.easeInOut(duration: 0.275)) { rotation += 90 }
+            }
+        }
+    }
+
+    // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)
+    private var frontView: some View {
+        KyonoGradientCard(gradient: .warm) {
+            VStack(spacing: 6) {
+                VoiceTag(text: voice.tag)
+                Text(voice.front).font(.kyono(.black900, size: 18)).foregroundColor(colors.ink).multilineTextAlignment(.center)
+                Text("タップでめくる").font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    // index.html:358-359,362-363 .vback(card地・枠線)
+    private var backView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            VoiceTag(text: voice.tag)
+            Text(voice.q).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(6)
+            Text("— せんぱいの声（\(voice.src)）")
+                .font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            KyonoGhostButton("せんぱいとおなじ1本をみる ▶") { openUrl("https://www.youtube.com/watch?v=\(voice.vid)") }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: 22).fill(colors.card))
+        .overlay(RoundedRectangle(cornerRadius: 22).stroke(colors.line, lineWidth: 1.5))
     }
 }

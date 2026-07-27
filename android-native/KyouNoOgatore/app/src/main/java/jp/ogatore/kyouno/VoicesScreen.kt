@@ -1,5 +1,7 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +22,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -86,40 +89,52 @@ private fun VoiceTag(text: String) {
 @Composable
 private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (String) -> Unit, index: Int) {
     val colors = LocalKyonoColors.current
-    if (open) {
-        // index.html:358-359,362-363 .vback(card地・枠線)
-        Column(
-            Modifier.fillMaxWidth()
-                .clickable { onToggle() }
-                .background(colors.card, RoundedCornerShape(22.dp))
-                .border(1.5.dp, colors.line, RoundedCornerShape(22.dp))
-                .padding(18.dp)
-                .testTag("voiceCard_$index"),
-        ) {
-            VoiceTag(v.tag)
-            Spacer(Modifier.height(8.dp))
-            Text(v.q, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp)
-            Spacer(Modifier.height(8.dp))
-            Text("— せんぱいの声（${v.src}）", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
-            Spacer(Modifier.height(10.dp))
-            KyonoGhostButton(
-                "せんぱいとおなじ1本をみる ▶",
-                { openUrl("https://www.youtube.com/watch?v=${v.vid}") },
-                Modifier.testTag("voiceGoBtn_$index"),
-            )
-        }
-    } else {
-        // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)
-        KyonoGradientCard(
-            KyonoGradient.Warm,
-            Modifier.clickable { onToggle() }.testTag("voiceCard_$index"),
-        ) {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A): index.html:351
+    // .vin(transition:transform .55s・rotateY(180deg))の1:1移植。タップでめくる瞬間が無演出で
+    // 一気に切り替わっていたため3Dフリップを追加(裏面は逆回転で文字の鏡像を打ち消す)。
+    val rotation by animateFloatAsState(if (open) 180f else 0f, tween(550), label = "vcardFlip")
+    Box(
+        Modifier.graphicsLayer {
+            rotationY = rotation
+            cameraDistance = 12 * density
+        },
+    ) {
+        if (rotation <= 90f) {
+            // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)
+            KyonoGradientCard(
+                KyonoGradient.Warm,
+                Modifier.clickable { onToggle() }.testTag("voiceCard_$index"),
+            ) {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    VoiceTag(v.tag)
+                    Spacer(Modifier.height(10.dp))
+                    Text(v.front, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(6.dp))
+                    Text("タップでめくる", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
+                }
+            }
+        } else {
+            // index.html:358-359,362-363 .vback(card地・枠線)
+            Column(
+                Modifier.fillMaxWidth()
+                    .graphicsLayer { rotationY = 180f }
+                    .clickable { onToggle() }
+                    .background(colors.card, RoundedCornerShape(22.dp))
+                    .border(1.5.dp, colors.line, RoundedCornerShape(22.dp))
+                    .padding(18.dp)
+                    .testTag("voiceCard_$index"),
+            ) {
                 VoiceTag(v.tag)
+                Spacer(Modifier.height(8.dp))
+                Text(v.q, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp)
+                Spacer(Modifier.height(8.dp))
+                Text("— せんぱいの声（${v.src}）", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
                 Spacer(Modifier.height(10.dp))
-                Text(v.front, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
-                Spacer(Modifier.height(6.dp))
-                Text("タップでめくる", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
+                KyonoGhostButton(
+                    "せんぱいとおなじ1本をみる ▶",
+                    { openUrl("https://www.youtube.com/watch?v=${v.vid}") },
+                    Modifier.testTag("voiceGoBtn_$index"),
+                )
             }
         }
     }

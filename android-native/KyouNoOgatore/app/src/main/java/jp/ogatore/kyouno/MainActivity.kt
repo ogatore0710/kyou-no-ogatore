@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
@@ -942,9 +943,12 @@ fun MyRecordScreen(
                     Text("全部の節目をたっせい！すごすぎます", color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("msNote"))
                 }
                 Spacer(Modifier.height(8.dp))
+                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A):
+                // index.html:415 .bar>div(transition:width .4s)の1:1移植。
                 val msProgress = if (next != null && next > 0) (streak.total.toFloat() / next).coerceIn(0f, 1f) else 1f
+                val animatedMsProgress by animateFloatAsState(msProgress, tween(400), label = "msBar")
                 Box(Modifier.fillMaxWidth().height(14.dp).background(colors.line, RoundedCornerShape2(99)).testTag("msBar")) {
-                    Box(Modifier.fillMaxWidth(msProgress).fillMaxHeight().background(colors.teal, RoundedCornerShape2(99)))
+                    Box(Modifier.fillMaxWidth(animatedMsProgress).fillMaxHeight().background(colors.teal, RoundedCornerShape2(99)))
                 }
                 Spacer(Modifier.height(14.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {

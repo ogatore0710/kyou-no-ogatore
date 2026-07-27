@@ -657,13 +657,16 @@ struct PlanProgressCardView: View {
                                 onCleared()
                             }
                     }
-                    // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
+                    // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー・transition:width
+                    // .4s)の1:1移植。挙動パリティ監査タスク §A: 幅の変化が無アニメーションだったため
+                    // .animationを追加。
                     let progress = min(1, max(0, Double(dayNum) / Double(plan.days)))
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 99).fill(colors.line)
                             RoundedRectangle(cornerRadius: 99).fill(colors.teal)
                                 .frame(width: geo.size.width * progress)
+                                .animation(.easeOut(duration: 0.4), value: progress)
                         }
                     }
                     .frame(height: 14)

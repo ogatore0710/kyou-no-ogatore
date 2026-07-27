@@ -198,11 +198,14 @@ private struct MyRecordContentView: View {
                         Text("全部の節目をたっせい！すごすぎます").font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
                     }
                     Spacer().frame(height: 8)
+                    // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A):
+                    // index.html:415 .bar>div(transition:width .4s)の1:1移植。
                     let msProgress = (next != nil && next! > 0) ? min(1, max(0, CGFloat(streak.total) / CGFloat(next!))) : 1
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             Capsule().fill(colors.line)
                             Capsule().fill(colors.teal).frame(width: geo.size.width * msProgress)
+                                .animation(.easeOut(duration: 0.4), value: msProgress)
                         }
                     }
                     .frame(height: 14)

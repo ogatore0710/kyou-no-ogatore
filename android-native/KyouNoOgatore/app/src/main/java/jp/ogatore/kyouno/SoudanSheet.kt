@@ -2,6 +2,7 @@ package jp.ogatore.kyouno
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -623,8 +624,11 @@ fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit
                     .testTag("planQuitBtn"),
             )
         }
-        // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
+        // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー・transition:width .4s)の
+        // 1:1移植。挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A):
+        // 幅の変化が無アニメーションだったためanimateFloatAsStateを追加。
         val progress = (dayNum.toFloat() / plan.days.toFloat()).coerceIn(0f, 1f)
+        val animatedProgress by animateFloatAsState(progress, tween(400), label = "planBar")
         Box(
             Modifier
                 .fillMaxWidth()
@@ -634,7 +638,7 @@ fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit
         ) {
             Box(
                 Modifier
-                    .fillMaxWidth(progress)
+                    .fillMaxWidth(animatedProgress)
                     .fillMaxHeight()
                     .background(colors.teal, RoundedCornerShape(99.dp)),
             )
