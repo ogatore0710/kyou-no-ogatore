@@ -220,7 +220,16 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val dark = colors.bg == KyonoDarkColors.bg
-        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+        // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: 新しい設問/選択肢が追加されても
+        // スクロール位置が追従しておらず、最新の選択肢がシートの可視領域の端(タップ判定が
+        // 効かない位置)ぎりぎりに描画される欠落があった。追加のたびに最下部へ自動スクロールし、
+        // 選択肢が常に見える・押せる位置に来るようにする。
+        val obScrollState = rememberScrollState()
+        LaunchedEffect(bubbles.size, activeQuestion, routeCta) {
+            delay(60) // 直前のレイアウト確定(新しい吹き出し/選択肢の高さ反映)を待つ猶予
+            obScrollState.animateScrollTo(obScrollState.maxValue)
+        }
+        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(obScrollState).padding(20.dp)) {
             Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
             Spacer(Modifier.height(12.dp))
             for (b in bubbles) {

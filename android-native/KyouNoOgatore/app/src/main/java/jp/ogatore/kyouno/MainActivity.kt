@@ -416,13 +416,25 @@ class MainActivity : ComponentActivity() {
                             // .94→1+フェードイン)の1:1移植。オンボは完了後にHomeかQuizへ直接遷移する
                             // (相談室と違い単一の「戻り先」を持たない)ため、閉じるタップは設けない
                             // (Web版もオンボ中はスクリムタップで閉じない)。
+                            // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: このスクリムに
+                            // clickableが無かったため、背後のHome(相談室カード等)へタップが素通り
+                            // していた(相談室スクリムは元々clickableでこの穴が無かった)。閉じる
+                            // アクションは付けず、タップを吸収するだけのno-opにする。
                             AnimatedVisibility(
                                 visible = screen is Screen.Onboarding,
                                 enter = fadeIn(tween(280)),
                                 exit = fadeOut(tween(200)),
                                 modifier = Modifier.fillMaxSize(),
                             ) {
-                                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)))
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.55f))
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                        ) {},
+                                )
                             }
                             // §D: index.html:517 .ob-sheetはprefers-reduced-motion:reduce時にanimation:none。
                             AnimatedVisibility(
