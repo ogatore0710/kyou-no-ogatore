@@ -7,6 +7,11 @@ import android.os.Bundle
 import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -593,6 +599,18 @@ fun HomeScreen(
                     )
                 }
                 Spacer(Modifier.height(12.dp))
+                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A): index.html:384
+                // .done-btn.nudge-pulse(doneNudgePulse 0.7s×2回・scale 1↔1.045)の1:1移植。
+                // 動画から戻ってきてshowDoneNudgeが立った瞬間だけ2回パルスして気づかせる。
+                val doneBtnScale = remember { Animatable(1f) }
+                LaunchedEffect(showDoneNudge) {
+                    if (showDoneNudge) {
+                        repeat(2) {
+                            doneBtnScale.animateTo(1.045f, tween(350))
+                            doneBtnScale.animateTo(1f, tween(350))
+                        }
+                    }
+                }
                 KyonoPrimaryButton(
                     if (did) "きょうの分は完了！おつかれさまでした😊" else "きょうやった！",
                     {
@@ -611,12 +629,21 @@ fun HomeScreen(
                             cardResult = renderTodayCard(store, streak, today, context)
                         }
                     },
-                    Modifier.testTag("doneBtn"),
+                    Modifier.testTag("doneBtn").scale(doneBtnScale.value),
                     enabled = !did,
                 )
-                cheerText?.let {
-                    Spacer(Modifier.height(10.dp))
-                    Text(it, color = colors.sub, modifier = Modifier.testTag("cheerText"))
+                // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・.3s
+                // ease-out)の1:1移植。応援メッセージがポップして出る演出が欠落していたため追加。
+                AnimatedVisibility(
+                    visible = cheerText != null,
+                    enter = fadeIn(tween(300), initialAlpha = 0.4f) + scaleIn(tween(300), initialScale = 0.85f),
+                ) {
+                    cheerText?.let {
+                        Column {
+                            Spacer(Modifier.height(10.dp))
+                            Text(it, color = colors.sub, modifier = Modifier.testTag("cheerText"))
+                        }
+                    }
                 }
                 // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
                 // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する

@@ -86,6 +86,7 @@ struct HomeView: View {
     @State private var showDoneNudge = false
     @State private var cheerText: String?
     @State private var cardResult: TodayCardResult?
+    @State private var doneBtnScale: CGFloat = 1
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -265,7 +266,9 @@ struct HomeView: View {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     RecordLogic.markDone(store, now: Date())
                     streak = RecordLogic.loadStreak(store)
-                    cheerText = CHEERS.randomElement() // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
+                    // §2-4許容箇所: markDoneのcheer選択のみ乱数OK。withAnimationはindex.html:311-312
+                    // cpop(.3s ease-out)の1:1移植(下のtransitionと対で挿入時のポップ演出になる)。
+                    withAnimation(.easeOut(duration: 0.3)) { cheerText = CHEERS.randomElement() }
                     if fd == "go" {
                         store.set("fd", "1")
                         fd = "1"
@@ -275,8 +278,22 @@ struct HomeView: View {
                     }
                     cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                 }
+                .scaleEffect(doneBtnScale)
+                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A): index.html:384
+                // .done-btn.nudge-pulse(doneNudgePulse 0.7s×2回・scale 1↔1.045)の1:1移植。
+                // 動画から戻ってきてshowDoneNudgeが立った瞬間だけ2回パルスして気づかせる。
+                .onChange(of: showDoneNudge) { _, newValue in
+                    guard newValue else { return }
+                    withAnimation(.easeInOut(duration: 0.35)) { doneBtnScale = 1.045 }
+                    withAnimation(.easeInOut(duration: 0.35).delay(0.35)) { doneBtnScale = 1 }
+                    withAnimation(.easeInOut(duration: 0.35).delay(0.7)) { doneBtnScale = 1.045 }
+                    withAnimation(.easeInOut(duration: 0.35).delay(1.05)) { doneBtnScale = 1 }
+                }
                 if let cheerText {
+                    // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・
+                    // .3s ease-out)の1:1移植。応援メッセージがポップして出る演出が欠落していたため追加。
                     KyonoBodyText(cheerText)
+                        .transition(.scale(scale: 0.85).combined(with: .opacity))
                 }
                 // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
                 // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する
