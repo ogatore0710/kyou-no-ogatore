@@ -638,6 +638,10 @@ struct ResultView: View {
     let showTourBtn: Bool
     let openUrl: (String) -> Void
     let onDone: () -> Void
+    // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足(alan5指摘): index.html:3991
+    // rDoneNudgeBtn経由の1:1移植。呼び出し元(KyouNoOgatoreApp)からはHome側のshowDoneNudgeも
+    // 立てる版を渡してもらう。
+    var onDoneFromNudge: (() -> Void)? = nil
     let onStartQuiz: () -> Void
     let onOpenSoudan: (String?) -> Void
     let onStartTour: () -> Void
@@ -686,7 +690,8 @@ struct ResultView: View {
             info: info, typeKey: typeKey, autoReachLv: autoReachLv, rx: rx, worry: worry,
             showDoneNudge: showDoneNudge, fdGuideActive: fdGuideActive, showTourBtn: showTourBtn,
             onVideoTap: { url in pendingNudgeDate = RecordLogic.todayStr(now: Date()); openUrl(url) },
-            openUrl: openUrl, onDone: onDone, onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan, onStartTour: onStartTour
+            openUrl: openUrl, onDone: onDone, onDoneFromNudge: onDoneFromNudge ?? onDone,
+            onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan, onStartTour: onStartTour
         )
     }
 }
@@ -704,6 +709,7 @@ private struct ResultContentView: View {
     let onVideoTap: (String) -> Void
     let openUrl: (String) -> Void
     let onDone: () -> Void
+    let onDoneFromNudge: () -> Void
     let onStartQuiz: () -> Void
     let onOpenSoudan: (String?) -> Void
     let onStartTour: () -> Void
@@ -841,7 +847,7 @@ private struct ResultContentView: View {
                     KyonoCard {
                         Text("おかえりなさい！✨ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
-                        KyonoPrimaryButton(fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく", action: onDone)
+                        KyonoPrimaryButton(fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく", action: onDoneFromNudge)
                     }
                 }
                 // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。

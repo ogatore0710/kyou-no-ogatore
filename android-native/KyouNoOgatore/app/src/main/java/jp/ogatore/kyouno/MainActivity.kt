@@ -136,6 +136,12 @@ class MainActivity : ComponentActivity() {
             // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
             // scrollIntoView(todayVideo)の1:1移植用フラグ。
             var scrollToTodayPending by remember { mutableStateOf(false) }
+            // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足(alan5指摘): index.html
+            // 3991のrDoneNudgeBtn経由(結果画面から動画を見て戻り、そのまま記録しにHomeへ飛ぶ経路)も
+            // 4010の通常復帰と同じくHomeの「きょうやった！」への寄せ対象。ResultScreenのshowDoneNudge
+            // (Home側とは独立管理・既存設計どおり)からHome側のshowDoneNudgeへ、scrollToTodayPendingと
+            // 同じ「ルートで保持→Home側で消費」の橋渡しで伝える。
+            var pendingDoneNudge by remember { mutableStateOf(false) }
             // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3479 sdGreeted(モジュール
             // レベル変数)の1:1移植。相談室シートは開閉のたびに再合成されるため、「このセッションで
             // 初回オープンかどうか」をSoudanSheet自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
@@ -229,6 +235,7 @@ class MainActivity : ComponentActivity() {
                                                 showTourBtn = obTourAfterQuiz && !fdGuideActive,
                                                 openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                                 onDone = { screen = Screen.Home },
+                                                onDoneFromNudge = { pendingDoneNudge = true; screen = Screen.Home },
                                                 onStartQuiz = { screen = Screen.Quiz(null) },
                                                 onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
                                                 onStartTour = { obTourAfterQuiz = false; screen = Screen.Tour(false) },
@@ -290,6 +297,8 @@ class MainActivity : ComponentActivity() {
                                             onOpenSettings = { screen = Screen.Settings },
                                             scrollToTodayPending = scrollToTodayPending,
                                             onScrolledToToday = { scrollToTodayPending = false },
+                                            pendingDoneNudge = pendingDoneNudge,
+                                            onPendingDoneNudgeConsumed = { pendingDoneNudge = false },
                                         )
                                     }
                                     }
@@ -525,6 +534,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     scrollToTodayPending: Boolean = false,
     onScrolledToToday: () -> Unit = {},
+    pendingDoneNudge: Boolean = false,
+    onPendingDoneNudgeConsumed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
@@ -547,6 +558,16 @@ fun HomeScreen(
     // (fd-cardpopのカードサンプルポップイン)の1:1移植。節目(ms)がある場合はそちらを優先する
     // Web版と同じ構造(実際にはtotal===1でmsが同時に成立することは無いための保険)。
     var fdCelebrationVisible by remember { mutableStateOf(false) }
+
+    // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足: rDoneNudgeBtn(結果画面)
+    // 経由でHomeへ来たときも、通常の動画復帰と同じくshowDoneNudgeを立てる(pulse+中央寄せの両方が
+    // 自然に効く。ルート側のpendingDoneNudgeを消費したら即falseへ戻す=scrollToTodayPendingと同じ形)。
+    LaunchedEffect(pendingDoneNudge) {
+        if (pendingDoneNudge) {
+            showDoneNudge = true
+            onPendingDoneNudgeConsumed()
+        }
+    }
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }

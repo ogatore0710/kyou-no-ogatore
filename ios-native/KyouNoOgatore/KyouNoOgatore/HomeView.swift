@@ -67,6 +67,9 @@ struct HomeView: View {
     // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
     // scrollIntoView(todayVideo)の1:1移植用フラグ。
     var scrollToTodayPending: Binding<Bool> = .constant(false)
+    // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足: rDoneNudgeBtn(結果画面)
+    // 経由でHomeへ来たときも、通常の動画復帰と同じくshowDoneNudgeを立てる。
+    var pendingDoneNudge: Binding<Bool> = .constant(false)
 
     @Environment(\.kyonoColors) private var colors
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -103,7 +106,8 @@ struct HomeView: View {
         store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenQuiz: @escaping () -> Void,
         onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void,
         onOpenMyRecord: @escaping () -> Void, onOpenSettings: @escaping () -> Void,
-        scrollToTodayPending: Binding<Bool> = .constant(false)
+        scrollToTodayPending: Binding<Bool> = .constant(false),
+        pendingDoneNudge: Binding<Bool> = .constant(false)
     ) {
         self.store = store
         self.onStartTour = onStartTour
@@ -113,6 +117,7 @@ struct HomeView: View {
         self.onOpenSettings = onOpenSettings
         self.onOpenMyRecord = onOpenMyRecord
         self.scrollToTodayPending = scrollToTodayPending
+        self.pendingDoneNudge = pendingDoneNudge
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
@@ -304,6 +309,7 @@ struct HomeView: View {
                     cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                 }
                 .scaleEffect(doneBtnScale)
+                .id("doneBtn")
                 // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A): index.html:384
                 // .done-btn.nudge-pulse(doneNudgePulse 0.7s×2回・scale 1↔1.045)の1:1移植。
                 // 動画から戻ってきてshowDoneNudgeが立った瞬間だけ2回パルスして気づかせる。
@@ -313,6 +319,17 @@ struct HomeView: View {
                     withAnimation(.easeInOut(duration: 0.35).delay(0.35)) { doneBtnScale = 1 }
                     withAnimation(.easeInOut(duration: 0.35).delay(0.7)) { doneBtnScale = 1.045 }
                     withAnimation(.easeInOut(duration: 0.35).delay(1.05)) { doneBtnScale = 1 }
+                    // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C:
+                    // index.html:4006-4013の1:1移植。ボタンが画面外だとパルスに気づけないため、
+                    // 画面中央へ寄せる。HomeViewが表示されている時点でWeb版のcurrentSection==="home"
+                    // 条件は常に成立している(Home以外の画面ではこのViewごと非表示のため)。
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        if reduceMotion {
+                            proxy.scrollTo("doneBtn", anchor: .center)
+                        } else {
+                            withAnimation { proxy.scrollTo("doneBtn", anchor: .center) }
+                        }
+                    }
                 }
                 if fdCelebrationVisible {
                     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
@@ -457,15 +474,25 @@ struct HomeView: View {
                 .padding()
             }
         }
-        // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
-        // scrollIntoView(todayVideo)の1:1移植。オンボ完了直後だけ「きょうの1本」へアニメーション
-        // スクロールする(60msはindex.html:4393と同じ、直前のレイアウト確定を待つ猶予)。
+        // TASK-C2-2026-07-27-behavior-parity-audit.md §B →
+        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §B修正: index.html:4393
+        // scrollIntoView(todayVideo)(引数なし=ブラウザ既定behavior:"auto"=瞬時)の1:1移植。
+        // オンボ完了直後だけ「きょうの1本」へ瞬時スクロールする(60msはindex.html:4393と同じ、
+        // 直前のレイアウト確定を待つ猶予。withAnimationを付けるとWeb版より演出過剰になるため外す)。
         .onChange(of: scrollToTodayPending.wrappedValue) { _, pending in
             guard pending else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
-                withAnimation { proxy.scrollTo("todayCard", anchor: .top) }
+                proxy.scrollTo("todayCard", anchor: .top)
                 scrollToTodayPending.wrappedValue = false
             }
+        }
+        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足: rDoneNudgeBtn(結果画面)
+        // 経由でHomeへ来たときも、通常の動画復帰と同じくshowDoneNudgeを立てる(pulse+中央寄せの両方が
+        // 自然に効く)。
+        .onChange(of: pendingDoneNudge.wrappedValue) { _, pending in
+            guard pending else { return }
+            showDoneNudge = true
+            pendingDoneNudge.wrappedValue = false
         }
         }
     }

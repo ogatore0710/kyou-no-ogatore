@@ -595,6 +595,10 @@ fun ResultScreen(
     showTourBtn: Boolean,
     openUrl: (String) -> Unit,
     onDone: () -> Unit,
+    // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足(alan5指摘): index.html:3991
+    // rDoneNudgeBtn経由の1:1移植。既定はonDoneと同じ(呼び出し元が渡し忘れても壊れない)だが、
+    // 呼び出し元(MainActivity)からはHome側のshowDoneNudgeも立てる版を渡してもらう。
+    onDoneFromNudge: () -> Unit = onDone,
     onStartQuiz: () -> Unit,
     onOpenSoudan: (String?) -> Unit,
     onStartTour: () -> Unit,
@@ -829,7 +833,7 @@ fun ResultScreen(
                     Spacer(Modifier.height(10.dp))
                     KyonoPrimaryButton(
                         if (fdGuideActive) "✅ 1日目の記録をつけにいく" else "✅ きょうの記録をつけにいく",
-                        onDone,
+                        onDoneFromNudge,
                         Modifier.testTag("rDoneNudgeBtn"),
                     )
                 }

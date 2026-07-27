@@ -116,6 +116,12 @@ struct RootView: View {
     // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
     // scrollIntoView(todayVideo)の1:1移植用フラグ。
     @State private var scrollToTodayPending = false
+    // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足(alan5指摘): index.html:3991
+    // rDoneNudgeBtn経由(結果画面から動画を見て戻り、そのまま記録しにHomeへ飛ぶ経路)も4010の通常復帰と
+    // 同じくHomeの「きょうやった！」への寄せ対象。ResultViewのshowDoneNudge(Home側とは独立管理・
+    // 既存設計どおり)からHome側のshowDoneNudgeへ、scrollToTodayPendingと同じ「ルートで保持→
+    // Home側で消費」の橋渡しで伝える。
+    @State private var pendingDoneNudge = false
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -255,6 +261,7 @@ struct RootView: View {
                 showTourBtn: obTourAfterQuiz && !fdGuideActive,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onDone: { screen = .home },
+                onDoneFromNudge: { pendingDoneNudge = true; screen = .home },
                 onStartQuiz: { screen = .quiz(presetWorry: nil) },
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
                 onStartTour: { obTourAfterQuiz = false; screen = .tour(showClosing: false) }
@@ -321,7 +328,8 @@ struct RootView: View {
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
                 onOpenMyRecord: { screen = .myRecord },
                 onOpenSettings: { screen = .settings },
-                scrollToTodayPending: $scrollToTodayPending
+                scrollToTodayPending: $scrollToTodayPending,
+                pendingDoneNudge: $pendingDoneNudge
             )
         }
     }

@@ -87,24 +87,31 @@ fun GuideScreen(
         val scope = rememberCoroutineScope()
 
         // 目次チップ・「↑目次へ戻る」・gd-helpのFAQジャンプ用のスクロール先アンカー。
-        val tocRequester = remember { BringIntoViewRequester() }
-        val gdHelpRequester = remember { BringIntoViewRequester() }
-        val gdStartRequester = remember { BringIntoViewRequester() }
-        val gdDailyRequester = remember { BringIntoViewRequester() }
-        val gdMamoriRequester = remember { BringIntoViewRequester() }
-        val gdTsuzukuRequester = remember { BringIntoViewRequester() }
-        val gdMyrecRequester = remember { BringIntoViewRequester() }
-        val faqAnchorRequester = remember { BringIntoViewRequester() }
+        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §A: index.html:1585 gJump()の
+        // reduced-motion分岐(behavior:rm?"auto":"smooth")の1:1移植のため、Compose標準の
+        // BringIntoViewRequester(常にアニメーション・reduced-motion分岐不可)から、todayCard/doneBtn
+        // (behavior-parity-audit §B/scroll-parity §Cで導入した手法)と同じ「位置を自前で捕捉して
+        // ScrollState.scrollTo/animateScrollToを出し分ける」方式に置き換える。
+        val guideScrollState = rememberScrollState()
+        var guideColumnY by remember { mutableStateOf(0f) }
+        val anchorY = remember { mutableStateMapOf<String, Float>() }
+        val guideReducedMotion = rememberReducedMotion()
 
         // gd-startのみ既定で開いた状態(index.html:1002 <details ... open>)、他は閉じた状態。
         val sectionOpen = remember {
             mutableStateMapOf("gd-start" to true, "gd-daily" to false, "gd-mamori" to false, "gd-tsuzuku" to false, "gd-myrec" to false)
         }
 
-        fun jump(requester: BringIntoViewRequester) { scope.launch { requester.bringIntoView() } }
-        fun jumpToSection(id: String, requester: BringIntoViewRequester) {
+        fun jump(id: String) {
+            val y = anchorY[id] ?: return
+            val target = (y - guideColumnY + guideScrollState.value).toInt()
+            scope.launch {
+                if (guideReducedMotion) guideScrollState.scrollTo(target) else guideScrollState.animateScrollTo(target)
+            }
+        }
+        fun jumpToSection(id: String) {
             sectionOpen[id] = true
-            jump(requester)
+            jump(id)
         }
         // index.html:1570 gJump()相当。FAQ本体のコードには触れず、既存のopenGroups/openItems状態
         // (下のFAQ描画ループが読む公開状態)を外からセットし、直前のアンカーへ大まかにスクロールする。
@@ -112,11 +119,16 @@ fun GuideScreen(
             query = ""
             openGroups[groupTitle] = true
             if (itemQ != null) openItems["$groupTitle|$itemQ"] = true
-            jump(faqAnchorRequester)
+            jump("gd-faq")
         }
 
         Column(
-            Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(16.dp),
+            Modifier
+                .fillMaxSize()
+                .background(colors.bg)
+                .onGloballyPositioned { coords -> guideColumnY = coords.positionInRoot().y }
+                .verticalScroll(guideScrollState)
+                .padding(16.dp),
         ) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
@@ -176,20 +188,25 @@ fun GuideScreen(
             // 「❓ よくあるしつもん」チップが目次に欠けていた(gd-help以外の6項目のみ)。FAQ本体のコードには
             // 触れず、既存のfaqAnchorRequesterへ大まかにスクロールするだけ(gJump('gd-faq')相当・
             // 特定のグループを開かない=jumpToFaqとは違い openGroups/openItemsは変更しない)。
-            Row(Modifier.fillMaxWidth().bringIntoViewRequester(tocRequester).testTag("gtoc")) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coords -> anchorY["gd-toc"] = coords.positionInRoot().y }
+                    .testTag("gtoc"),
+            ) {
                 LazyColumnFreeChipRow(
                     listOf(
-                        Triple("🆘 困ったときは", "gd-help", gdHelpRequester),
-                        Triple("🌅 はじめての日", "gd-start", gdStartRequester),
-                        Triple("▶ まいにちの流れ", "gd-daily", gdDailyRequester),
-                        Triple("🛡 記録を守る", "gd-mamori", gdMamoriRequester),
-                        Triple("🎫 つづくしくみ", "gd-tsuzuku", gdTsuzukuRequester),
-                        Triple("📅 マイ記録", "gd-myrec", gdMyrecRequester),
-                        Triple("❓ よくあるしつもん", "gd-faq", faqAnchorRequester),
+                        "🆘 困ったときは" to "gd-help",
+                        "🌅 はじめての日" to "gd-start",
+                        "▶ まいにちの流れ" to "gd-daily",
+                        "🛡 記録を守る" to "gd-mamori",
+                        "🎫 つづくしくみ" to "gd-tsuzuku",
+                        "📅 マイ記録" to "gd-myrec",
+                        "❓ よくあるしつもん" to "gd-faq",
                     ),
                     // gd-faqはdetailsではない(常時カード)ため、sectionOpen["gd-faq"]=trueは無害な未使用
                     // エントリになるだけ(他の6項目と同じjumpToSectionを使い回してよい)。
-                    onTap = { id, requester -> jumpToSection(id, requester) },
+                    onTap = { id -> jumpToSection(id) },
                 )
             }
             Text(
@@ -198,7 +215,12 @@ fun GuideScreen(
             )
 
             // ---- 1. 困ったときは(index.html:992-1000。折りたたみでなく常時カード) ----
-            KyonoCard(Modifier.fillMaxWidth().bringIntoViewRequester(gdHelpRequester).testTag("gd-help")) {
+            KyonoCard(
+                Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coords -> anchorY["gd-help"] = coords.positionInRoot().y }
+                    .testTag("gd-help"),
+            ) {
                 KyonoSectionHeader(KyonoIcon.Question, "困ったときは", fill = colors.pinkSoft)
                 Spacer(Modifier.height(10.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -218,7 +240,7 @@ fun GuideScreen(
             GdFoldSection(
                 id = "gd-start", icon = KyonoIcon.QuizCheck, title = "はじめての日にやること", fill = colors.yellowSoft,
                 open = sectionOpen["gd-start"] == true, onToggle = { sectionOpen["gd-start"] = !(sectionOpen["gd-start"] ?: false) },
-                requester = gdStartRequester, onBackToToc = { jump(tocRequester) },
+                anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GStep("1", "かたさチェック（30秒）", "5問タップするだけ 写真とイラストのお手本つき") {
                     KyonoCharaImage(
@@ -239,7 +261,7 @@ fun GuideScreen(
             GdFoldSection(
                 id = "gd-daily", icon = KyonoIcon.Play, title = "2日目からの毎日", fill = colors.tealSoft, accent = colors.teal,
                 open = sectionOpen["gd-daily"] == true, onToggle = { sectionOpen["gd-daily"] = !(sectionOpen["gd-daily"] ?: false) },
-                requester = gdDailyRequester, onBackToToc = { jump(tocRequester) },
+                anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GFlow(listOf("アプリを\nひらく", "きょうの1本を\n▶ 再生", "きょう\nやった！"))
                 Text(
@@ -268,7 +290,7 @@ fun GuideScreen(
             GdFoldSection(
                 id = "gd-mamori", icon = KyonoIcon.ShieldCheck, title = "記録が消えない3つの守り", fill = colors.tealSoft, accent = colors.teal,
                 open = sectionOpen["gd-mamori"] == true, onToggle = { sectionOpen["gd-mamori"] = !(sectionOpen["gd-mamori"] ?: false) },
-                requester = gdMamoriRequester, onBackToToc = { jump(tocRequester) },
+                anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 10.dp)) {
                     KyonoCharaImage("chara_good", Modifier.size(60.dp))
@@ -297,7 +319,7 @@ fun GuideScreen(
             GdFoldSection(
                 id = "gd-tsuzuku", icon = KyonoIcon.Star, title = "続けるしくみ（ここがやさしい）", fill = colors.yellowSoft,
                 open = sectionOpen["gd-tsuzuku"] == true, onToggle = { sectionOpen["gd-tsuzuku"] = !(sectionOpen["gd-tsuzuku"] ?: false) },
-                requester = gdTsuzukuRequester, onBackToToc = { jump(tocRequester) },
+                anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GStep("🎫", "おやすみ券が毎月3枚", "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
                 GStep("👑", "節目はゴールドカード", "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
@@ -321,7 +343,7 @@ fun GuideScreen(
             GdFoldSection(
                 id = "gd-myrec", icon = KyonoIcon.CalendarCheck, title = "「マイ記録」タブでできること", fill = colors.tealSoft, accent = colors.teal,
                 open = sectionOpen["gd-myrec"] == true, onToggle = { sectionOpen["gd-myrec"] = !(sectionOpen["gd-myrec"] ?: false) },
-                requester = gdMyrecRequester, onBackToToc = { jump(tocRequester) },
+                anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GStep("📅", "カレンダー", "やった日に印がつく（×はつきません）")
                 GStep("📏", "とどくメーター", "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
@@ -335,7 +357,13 @@ fun GuideScreen(
 
             // 高さ0のアンカー。gd-help内のFAQジャンプボタンがここまでスクロールする(FAQ本体のコードは
             // 一切変更しない。上のコメント参照)。
-            Spacer(Modifier.height(1.dp).fillMaxWidth().bringIntoViewRequester(faqAnchorRequester).testTag("gd-faq-anchor"))
+            Spacer(
+                Modifier
+                    .height(1.dp)
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coords -> anchorY["gd-faq"] = coords.positionInRoot().y }
+                    .testTag("gd-faq-anchor"),
+            )
 
             // ==== ここから下(gd-faq)は既存のまま・1文字も変更していない ====
             KyonoSectionHeader(KyonoIcon.Question, "よくあるしつもん", fill = colors.coralSoft)
@@ -411,15 +439,15 @@ fun GuideScreen(
 // (Web版はflex-wrapで2段になるが、Composeの標準コンポーネントで最短に組むためLazyRow横スクロールで
 // 代替。全項目に到達できる機能自体は同一)。
 @Composable
-private fun LazyColumnFreeChipRow(chips: List<Triple<String, String, BringIntoViewRequester>>, onTap: (String, BringIntoViewRequester) -> Unit) {
+private fun LazyColumnFreeChipRow(chips: List<Pair<String, String>>, onTap: (String) -> Unit) {
     val colors = LocalKyonoColors.current
     androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(chips) { (label, id, requester) ->
+        items(chips) { (label, id) ->
             Text(
                 label, color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
                 modifier = Modifier
                     .background(colors.line, RoundedCornerShape(50))
-                    .clickable { onTap(id, requester) }
+                    .clickable { onTap(id) }
                     .padding(horizontal = 14.dp, vertical = 10.dp)
                     .testTag("gtocChip_$id"),
             )
@@ -437,12 +465,17 @@ private fun GdFoldSection(
     accent: Color? = null,
     open: Boolean,
     onToggle: () -> Unit,
-    requester: BringIntoViewRequester,
+    anchorY: MutableMap<String, Float>,
     onBackToToc: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = LocalKyonoColors.current
-    KyonoCard(Modifier.fillMaxWidth().bringIntoViewRequester(requester).testTag(id)) {
+    KyonoCard(
+        Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { coords -> anchorY[id] = coords.positionInRoot().y }
+            .testTag(id),
+    ) {
         Row(
             Modifier.fillMaxWidth().clickable(onClick = onToggle).testTag("${id}Toggle"),
             verticalAlignment = Alignment.CenterVertically,
