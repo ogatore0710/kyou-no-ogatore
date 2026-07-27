@@ -4,6 +4,34 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 画面遷移アニメーション §相談室シート化(進行中・チェックポイント)
+
+`TASK-C2-2026-07-27-screen-transitions.md`。方針どおりScreen sealed class/enumは維持し、外側に
+演出を被せるだけ。相談室から着手(→オンボ→一般画面の順で進める予定、alan5より優先タスク
+`text-size-accessibility`が入ったため一時中断・後で再開)。
+
+**Android**: `MainActivity.kt`。`Screen.Soudan`を通常のwhen分岐から外し、`mainScreen`
+(`screen is Screen.Soudan`のときは`Screen.Home`扱い)を導入してHomeを常に裏で描画したまま、
+外側にスクリム(`AnimatedVisibility`+`fadeIn/fadeOut`)+シート本体(`AnimatedVisibility`+
+`slideInVertically/slideOutVertically`・高さ92%・上角丸20dp)を重ねるオーバーレイとして実装。
+`lastSoudan`(直近のSoudanの値を保持するstate)でexit中もpresetIntentIdを失わないようにした
+(Web版sd-sheet .25s ease-outの1:1移植)。**Android実機で確認済み**: FABタップ→下からせり上がる
+シート(スクリム越しにHomeが薄く見える)→内部のチップタップ・段階表示も正常動作→✕で閉じると
+Homeへクリーンに復帰、まで確認。
+
+**iOS**: `KyouNoOgatoreApp.swift`。`effectiveScreen`(同じ考え方でSoudan中はHome扱い)を導入し、
+`.sheet(isPresented:)`+`.presentationDetents([.fraction(0.92)])`+`.presentationCornerRadius(20)`
+で実装。`soudanPresetIntentId`をSoudan遷移時に`.onChange(of: screen)`で捕捉しdismissアニメ中も
+保持。**iOSはシミュレータで目視確認したが、92%高さの上部ギャップ(スクリム越しのHome)が
+視覚的にほぼ判別できなかった**(ダークテーマの背景色とスクリムの黒が非常に近く、クロップ+
+ピクセルサンプリングでも上部と本文とで色差を検出できず)。`presentationDetents`自体が効いて
+いないのか、単にダークテーマで視覚的に判別しづらいだけなのかは未確定。次回再開時に
+ライトテーマでの目視確認、または`GeometryReader`でシートの実際の高さをログ出力する等で
+切り分けること。
+
+回帰: Android`testDebugUnitTest`緑・`npm test`443緑(iOS側は本タスクの変更がApp targetのみで
+SafetyCore/RecordCore/CardCoreパッケージに影響しないため`swift test`は前回結果のまま)。
+
 ## 2026-07-27 「はじめの1本ガイド」専用UIを実装(結果画面差し替え+つぎはここ+1日目クリア)
 
 `TASK-C2-2026-07-27-fd-guide-ui-branch.md`(挙動パリティ監査§Aの構造的欠落①・本人承認済みで発注)。
