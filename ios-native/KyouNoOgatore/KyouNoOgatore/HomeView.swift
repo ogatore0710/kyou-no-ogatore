@@ -428,6 +428,10 @@ struct HomeView: View {
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
             checkRefreshDay() // checkDoneNudgeと同じ「一度出したら消す」もcheckRefreshDay内で行う
+            // TASK-C2-2026-07-27-local-notifications.md: 前面復帰のたびに次回通知を予約し直す
+            // (UNUserNotificationCenterのnon-repeating方式は自分で発火するたび次を積み直せない
+            // ため、アプリを開くたびに再同期する設計。DailyNotifications.swiftの冒頭コメント参照)。
+            DailyNotifications.resync(store: store)
         }
         .onReceive(dayTicker) { _ in checkRefreshDay() }
         .sheet(isPresented: Binding(get: { cardResult != nil }, set: { if !$0 { cardResult = nil } })) {
