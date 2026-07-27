@@ -4,6 +4,32 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 画面遷移アニメーション §一般画面(3区切り目・タスク完了)
+
+`TASK-C2-2026-07-27-screen-transitions.md`の最終区切り。相談室・オンボに続き、残りの約13画面
+(結果/カード/図鑑/じまん/せんぱいの声/オガトレ通信/設定/マイ記録等の一般的な画面切替)に
+フェード+わずかなスライドを追加してタスク完了。
+
+- Android: 既存の`when(mainScreen)`をそのまま`AnimatedContent(targetState = mainScreen)`の
+  contentラムダに移すだけ(分岐の中身は無変更)。`transitionSpec`は
+  `fadeIn(220ms)+slideInHorizontally(it/20)` → `fadeOut(160ms)`。
+- iOS: `screenContent`に`.transition(.opacity.combined(with:.move(edge:.trailing)))`+
+  `.animation(.easeInOut(duration:0.22), value: effectiveScreen)`を追加(`Screen`は既存の
+  カスタム`Equatable`適合を利用)。`.id()`は使わない(KyonoTheme tickの教訓どおり、部分木の
+  強制再生成は子孫の状態リセットを招くため)。
+
+**既存の遷移が壊れていないことの確認方法**: Android実機でタブ切替(ホーム→マイ記録→ホーム)を
+実施し、切替後の画面内容(カレンダー等)が正しく表示され、タブバーの選択状態も正しく追従する
+ことを確認。iOSはシミュレータで(タップ自動化不可のため)起動0.6秒後に`screen = .myRecord`へ
+自動遷移させるコードを検証専用worktreeで一時的に追加して確認(遷移後にマイ記録の内容が正しく
+描画されることを確認。検証後はworktreeごと破棄)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑(iOS側はApp targetのみの変更で
+SafetyCore/RecordCore/CardCoreパッケージへの影響が無いため`swift test`は前回結果のまま)。
+判定ロジック無変更・各画面の中身(レイアウト・文言・ロジック)も無変更(遷移と器だけ)。
+
+これでTASK-C2-2026-07-27-screen-transitions.md(相談室→オンボ→一般画面の3区切り)が完了。
+
 ## 2026-07-27 画面遷移アニメーション §オンボのシート化(2区切り目・相談室に続いて完了)
 
 `TASK-C2-2026-07-27-screen-transitions.md`の2区切り目。相談室と同じ考え方(Screen方式は維持し
