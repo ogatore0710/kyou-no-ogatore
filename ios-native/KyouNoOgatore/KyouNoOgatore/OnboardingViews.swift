@@ -948,14 +948,21 @@ let obTourSlides = [
     TourSlideDef(title: "📖 ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→🎉お楽しみ機能）"),
     TourSlideDef(title: "💬 悩みは相談室で質問", desc: "右下の💬ボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
     TourSlideDef(title: "📣 オガトレ通信をのぞく", desc: "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります✅"),
-    TourSlideDef(title: "📅 マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ） 📏とどくメーターと🎉お楽しみ機能（じまんカード・せんぱいの声・ひとことにっき）もこのタブの「見てみる」から見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ📅"),
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版の「見てみる」ボタンはネイティブの
+    // マイ記録に存在しない(お楽しみは🎉じまんカード/💬せんぱいの声/📔ひとことにっきの個別3ボタン)ため、
+    // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
+    TourSlideDef(title: "📅 マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ） 📏とどくメーターと🎉じまんカード・💬せんぱいの声・📔ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ📅"),
     TourSlideDef(title: "📖 忘れてもだいじょうぶ", desc: "このツアーも使い方タブの「📖 使い方ツアー」から いつでももう一度見られるよ"),
 ]
 let obTourClosingTitle = "🌱 これで準備ばっちり！"
 
 // index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。8枚+条件付き9枚目
 // (closing・自動起動時のみ)。「つぎへ」ボタン+ドット進捗のリニアなステップ形式(スワイプ不使用)。
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: 以前はRecordStoreを受け取らず
+// テーマ・文字サイズを"auto"/trueに固定していたため、手動でライト設定にしている本人が夜に
+// 再訪するとツアー画面だけダークになる不具合があった。他画面と同じくstoreの実設定を使う。
 struct TourView: View {
+    let store: RecordStore
     let showClosing: Bool
     let onDone: () -> Void
 
@@ -963,10 +970,8 @@ struct TourView: View {
 
     private var totalSlides: Int { obTourSlides.count + (showClosing ? 1 : 0) }
 
-    // TourViewはRecordStoreを受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い。
-    // ResultViewと同じ判断)。bigtextも同じ理由で既定値(true)をそのまま使う。
     var body: some View {
-        KyonoTheme(themeSetting: "auto", bigText: true) {
+        KyonoTheme(themeSetting: store.get("theme", default: "auto"), bigText: store.get("bigtext", default: true)) {
             TourContentView(si: $si, totalSlides: totalSlides, showClosing: showClosing, onDone: onDone)
         }
     }

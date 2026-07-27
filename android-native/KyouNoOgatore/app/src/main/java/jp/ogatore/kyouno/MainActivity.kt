@@ -82,6 +82,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -103,6 +104,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import jp.ogatore.kyouno.card.CardDataLoader
 import jp.ogatore.kyouno.card.CardLottery
 import jp.ogatore.kyouno.card.CardRenderer
+import jp.ogatore.kyouno.card.DexItem
+import jp.ogatore.kyouno.card.DexLogic
 import jp.ogatore.kyouno.card.ResolvedTheme
 import jp.ogatore.kyouno.card.TYPE_IMG
 import jp.ogatore.kyouno.record.CalendarLogic
@@ -283,6 +286,7 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                         is Screen.Tour -> TourScreen(
+                                            store = store,
                                             showClosing = s.showClosing,
                                             onDone = { obTourDone = true; screen = Screen.Home },
                                         )
@@ -1485,6 +1489,14 @@ fun MyRecordScreen(
                         }
                     }
                 }
+                // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:783の1:1移植。
+                // done日タップ→dayInfoは移植済みなのに、それをタップできると気づく手がかりが
+                // 無かった(発見手段がゼロ)。
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "印をタップするとその日の記録が見られます", color = colors.sub, fontSize = 12.sp,
+                    modifier = Modifier.testTag("calTapHint"),
+                )
                 // 全画面完全性監査タスク #history: index.html:782,292-305 #dayInfo/showDay()の1:1移植。
                 // その日に見た動画(あれば)・メモ(あれば)・記録カードを見る導線を表示する。
                 selectedDay?.let { ds ->
@@ -1523,14 +1535,40 @@ fun MyRecordScreen(
             }
 
             // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
-            // dexBannerCard(カード図鑑バナー)相当。図鑑の中身はPhase 3実装済みのため導線のみ追加。
+            // dexBannerCard(カード図鑑バナー)相当。
+            // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771
+            // renderDexBanner()の1:1移植(got/totalバッジ+記念/季節/レア/ノーマル各1枚の見本4枚)。
+            // 以前はプレーンカード+別文言で「あと何枚」の収集フックが欠落していた。
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("dexBannerCard")) {
-                KyonoSectionHeader(KyonoIcon.DexBook, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
-                Spacer(Modifier.height(8.dp))
-                Text("これまで手に入れたカードを見返せます", color = colors.sub)
+                val existingRot = remember { store.get("rotAssign", emptyMap<String, Int>()) }
+                val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existingRot) }
+                LaunchedEffect(Unit) { if (existingRot.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
+                val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
+                val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
+                val dexGot = dexAll.count { it.got }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    KyonoSectionHeader(KyonoIcon.DexBook, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
+                    Spacer(Modifier.width(8.dp))
+                    Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
+                        Text("$dexGot/${dexAll.size}", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexBadge"))
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text("記念日・季節・レアなカードをあつめよう", color = colors.sub, fontSize = 14.sp)
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
+                Row(Modifier.fillMaxWidth().testTag("dexBannerSamples")) {
+                    val samples = listOfNotNull(
+                        dexStatus.toku.firstOrNull(), dexStatus.season.firstOrNull(),
+                        dexStatus.rare.firstOrNull(), dexStatus.normal.firstOrNull(),
+                    )
+                    for (item in samples) {
+                        DexBannerCell(item, Modifier.weight(1f))
+                    }
+                    repeat(4 - samples.size) { Spacer(Modifier.weight(1f)) }
+                }
+                Spacer(Modifier.height(10.dp))
+                KyonoGhostButton("📖 図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
             }
 
             Spacer(Modifier.height(16.dp))
@@ -1792,6 +1830,49 @@ fun MyRecordScreen(
 private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shape.RoundedCornerShape(
     topStartPercent = percent, topEndPercent = percent, bottomStartPercent = percent, bottomEndPercent = percent,
 )
+
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:768-771
+// dexCellHtml(item,{noFlavor:true})の1:1移植(見本4枚専用の簡略セル。DexScreenのDexCellと違い
+// flavor/hint文言は出さない=バナーの高さを固定してFAB/相談室チャットとの衝突を避けるWeb版の設計)。
+@Composable
+private fun DexBannerCell(item: DexItem, modifier: Modifier) {
+    val colors = LocalKyonoColors.current
+    val context = LocalContext.current
+    Column(modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            Modifier.fillMaxWidth().aspectRatio(1f)
+                .background(colors.bg, RoundedCornerShape(12.dp))
+                .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+                .testTag("dexBannerCell_${item.tier}_${item.name}"),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (item.tier == "normal") {
+                val nc = CardDataLoader.shared.NORMAL_CARDS.find { n -> n.name == item.name }
+                if (item.got && nc != null) {
+                    Box(Modifier.fillMaxSize(0.34f).background(Color(android.graphics.Color.parseColor(nc.main)), RoundedCornerShape(50)))
+                } else {
+                    Text("？", color = colors.sub, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                }
+            } else if (item.key != null) {
+                val resId = remember(item.key) { context.resources.getIdentifier(item.key, "drawable", context.packageName) }
+                if (resId != 0) {
+                    Image(
+                        painter = painterResource(id = resId),
+                        contentDescription = item.name,
+                        colorFilter = if (item.got) null else ColorFilter.tint(Color.Black.copy(alpha = 0.55f), androidx.compose.ui.graphics.BlendMode.SrcAtop),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            if (item.got) item.name else "？？？",
+            color = colors.ink, fontSize = 10.sp, fontWeight = FontWeight.Black,
+            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
 
 // index.html:2001 renderIcs/saveIcsTime相当。Web版はICSファイルダウンロード/Googleカレンダーリンクだが、
 // ネイティブはOS標準のカレンダーAppへIntent委譲する(マスタープラン§2-1「icstimeはEventKit/

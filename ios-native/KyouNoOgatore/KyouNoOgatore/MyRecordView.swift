@@ -165,6 +165,85 @@ struct MyRecordView: View {
     }
 }
 
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771 renderDexBanner()の
+// 1:1移植。DexView.swiftのDexCellViewと違い、flavor/hint文言は出さない(バナーの高さを固定して
+// FAB/相談室チャットとの衝突を避けるWeb版の設計・index.html:768-771のコメントと同じ判断)。
+private struct DexBannerCardView: View {
+    @Environment(\.kyonoColors) private var colors
+    let store: RecordStore
+    let streak: RecordLogic.StreakData
+    let onOpenDex: () -> Void
+
+    private let status: DexStatus
+
+    init(store: RecordStore, streak: RecordLogic.StreakData, onOpenDex: @escaping () -> Void) {
+        self.store = store
+        self.streak = streak
+        self.onOpenDex = onOpenDex
+        let existing: [String: Int] = store.get("rotAssign", default: [:])
+        let rot = CardLottery.ensureRotAssign(dates: streak.dates, total: streak.total, existing: existing)
+        if existing.isEmpty && !rot.isEmpty { store.set("rotAssign", rot) }
+        self.status = DexLogic.getDexStatus(dates: streak.dates, total: streak.total, rotAssign: rot)
+    }
+
+    private var all: [DexItem] { status.toku + status.season + status.rare + status.normal }
+    private var samples: [DexItem] { [status.toku.first, status.season.first, status.rare.first, status.normal.first].compactMap { $0 } }
+
+    var body: some View {
+        KyonoCard {
+            HStack(alignment: .center, spacing: 8) {
+                KyonoSectionHeader(icon: .dexBook, title: "カード図鑑", fill: colors.pinkSoft, accent: colors.pink)
+                Text("\(all.filter { $0.got }.count)/\(all.count)")
+                    .kyonoFont(.bold700, size: 11).foregroundColor(colors.sub)
+                    .padding(.horizontal, 10).padding(.vertical, 2)
+                    .background(Capsule().fill(colors.bg))
+            }
+            Spacer().frame(height: 4)
+            Text("記念日・季節・レアなカードをあつめよう").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+            Spacer().frame(height: 10)
+            HStack(spacing: 8) {
+                ForEach(Array(samples.enumerated()), id: \.offset) { _, item in DexBannerCellView(item: item) }
+            }
+            Spacer().frame(height: 10)
+            KyonoGhostButton("📖 図鑑をひらく", action: onOpenDex)
+        }
+    }
+}
+
+private struct DexBannerCellView: View {
+    @Environment(\.kyonoColors) private var colors
+    let item: DexItem
+
+    var body: some View {
+        VStack(spacing: 4) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12).fill(colors.bg)
+                RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5)
+                if item.tier == "normal" {
+                    if item.got, let nc = CardDataLoader.shared.NORMAL_CARDS.first(where: { $0.name == item.name }) {
+                        Circle().fill(Color(hex: nc.main)).frame(width: 20, height: 20)
+                    } else {
+                        Text("？").kyonoFont(.black900, size: 18).foregroundColor(colors.sub)
+                    }
+                } else if let key = item.key, let uiImage = loadDexBannerCardArt(key) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .colorMultiply(item.got ? .white : Color.black.opacity(0.55))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            .aspectRatio(1, contentMode: .fit)
+            Text(item.got ? item.name : "？？？").kyonoFont(.black900, size: 10).foregroundColor(colors.ink).multilineTextAlignment(.center)
+        }
+    }
+}
+
+private func loadDexBannerCardArt(_ key: String) -> UIImage? {
+    guard let url = Bundle.main.url(forResource: key, withExtension: "png") else { return nil }
+    return UIImage(contentsOfFile: url.path)
+}
+
 private struct MyRecordContentView: View {
     @Environment(\.kyonoColors) private var colors
     @Binding var year: Int
@@ -264,6 +343,11 @@ private struct MyRecordContentView: View {
                         }
                     }
                     calendarGrid
+                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:783の1:1移植。
+                    // done日タップ→dayInfoは移植済みなのに、それをタップできると気づく手がかりが
+                    // 無かった(発見手段がゼロ)。
+                    Spacer().frame(height: 6)
+                    Text("印をタップするとその日の記録が見られます").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     // 全画面完全性監査タスク #history: index.html:782,292-305 #dayInfo/showDay()の1:1移植。
                     // その日に見た動画(あれば)・メモ(あれば)・記録カードを見る導線を表示する。
                     if let ds = selectedDay {
@@ -299,15 +383,12 @@ private struct MyRecordContentView: View {
                 }
 
                 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
-                // dexBannerCard(カード図鑑バナー)相当。図鑑の中身はPhase 3実装済みのため導線のみ追加
+                // dexBannerCard(カード図鑑バナー)相当。
+                // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771
+                // renderDexBanner()の1:1移植(got/totalバッジ+記念/季節/レア/ノーマル各1枚の見本4枚)。
+                // 以前はプレーンカード+別文言で「あと何枚」の収集フックが欠落していた
                 // (Android版MyRecordScreenと同一構成)。
-                KyonoCard {
-                    KyonoSectionHeader(icon: .dexBook, title: "カード図鑑", fill: colors.pinkSoft, accent: colors.pink)
-                    Spacer().frame(height: 8)
-                    Text("これまで手に入れたカードを見返せます").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
-                    Spacer().frame(height: 10)
-                    KyonoGhostButton("図鑑をひらく", action: onOpenDex)
-                }
+                DexBannerCardView(store: store, streak: streak, onOpenDex: onOpenDex)
 
                 KyonoCard {
                     Text("🎫 おやすみ券").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)

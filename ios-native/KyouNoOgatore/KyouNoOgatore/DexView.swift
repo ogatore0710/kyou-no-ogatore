@@ -142,7 +142,7 @@ private func loadCardArt(_ key: String) -> UIImage? {
     return UIImage(contentsOfFile: url.path)
 }
 
-private extension Color {
+extension Color {
     init(hex: String) {
         var s = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
         if s.count == 3 { s = s.map { "\($0)\($0)" }.joined() }

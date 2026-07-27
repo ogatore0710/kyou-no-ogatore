@@ -953,24 +953,30 @@ val OB_TOUR_SLIDES = listOf(
     TourSlideDef("📖 ためると図鑑がうまる", "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→🎉お楽しみ機能）"),
     TourSlideDef("💬 悩みは相談室で質問", "右下の💬ボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
     TourSlideDef("📣 オガトレ通信をのぞく", "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります✅"),
-    TourSlideDef("📅 マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ） 📏とどくメーターと🎉お楽しみ機能（じまんカード・せんぱいの声・ひとことにっき）もこのタブの「見てみる」から見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ📅"),
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版の「見てみる」ボタンはネイティブの
+    // マイ記録に存在しない(お楽しみは🎉じまんカード/💬せんぱいの声/📔ひとことにっきの個別3ボタン)ため、
+    // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
+    TourSlideDef("📅 マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ） 📏とどくメーターと🎉じまんカード・💬せんぱいの声・📔ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ📅"),
     TourSlideDef("📖 忘れてもだいじょうぶ", "このツアーも使い方タブの「📖 使い方ツアー」から いつでももう一度見られるよ"),
 )
 const val OB_TOUR_CLOSING_TITLE = "🌱 これで準備ばっちり！"
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:4275-4277
+// OB_TOUR_CLOSING.dの1:1移植(2026-07-21 PO承認案(b))。以前はタイトルのみで説明文が欠落していた。
+const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね🌱 きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ💪"
 
 // index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。8枚+条件付き9枚目(closing・
 // 自動起動時のみ)。スワイプカルーセルでなく「つぎへ」ボタン+ドット進捗のリニアなステップ形式
 // (index.html:4297-4324と同じ構造)。
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
-// Phase 3: index.html:172-176,313-315 .obt-t/.obt-d/.dots/.dot/.dot.onの1:1移植。TourScreenはRecordStoreを
-// 受け取らないため、テーマ設定はシステムのダークモードに委ねる("auto"扱い。ResultScreenと同じ判断)。
+// Phase 3: index.html:172-176,313-315 .obt-t/.obt-d/.dots/.dot/.dot.onの1:1移植。
+// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: 以前はRecordStoreを受け取らず
+// テーマ・文字サイズを"auto"/trueに固定していたため、手動でライト設定にしている本人が
+// 夜に再訪するとツアー画面だけダークになる不具合があった。他画面と同じくstoreの実設定を使う。
 @Composable
-fun TourScreen(showClosing: Boolean, onDone: () -> Unit) {
+fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
     var si by remember { mutableStateOf(0) }
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
-    // TourScreenはRecordStoreを受け取らない設計(上記コメント参照)のため、bigtextは既定値(true)を
-    // そのまま使う(themeSetting="auto"を既に個人設定に依らず固定しているのと同じ判断)。
-    KyonoTheme("auto", bigText = true) {
+    KyonoTheme(store.get("theme", "auto"), bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
             if (si < OB_TOUR_SLIDES.size) {
@@ -994,6 +1000,11 @@ fun TourScreen(showClosing: Boolean, onDone: () -> Unit) {
                     KyonoCharaImage("chara_congrats", Modifier.size(110.dp))
                     Spacer(Modifier.height(8.dp))
                     Text(OB_TOUR_CLOSING_TITLE, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        OB_TOUR_CLOSING_DESC, color = colors.sub, fontSize = 14.sp, lineHeight = 22.sp,
+                        textAlign = TextAlign.Center, modifier = Modifier.testTag("tourDesc"),
+                    )
                 }
             }
             // index.html:313-315 .dots/.dot/.dot.on

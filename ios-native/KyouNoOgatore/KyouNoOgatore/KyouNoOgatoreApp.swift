@@ -349,7 +349,7 @@ struct RootView: View {
                 onStartTour: { obTourAfterQuiz = false; screen = .tour(showClosing: false) }
             )
         case let .tour(showClosing):
-            TourView(showClosing: showClosing) { obTourDone = true; screen = .home }
+            TourView(store: store, showClosing: showClosing) { obTourDone = true; screen = .home }
         case .soudan:
             // effectiveScreenは.soudanのときは常に.homeへ差し替え済みのため、この分岐は
             // switchの網羅性のためだけに存在し実際には到達しない(内容は.sheet()側で描画)。
