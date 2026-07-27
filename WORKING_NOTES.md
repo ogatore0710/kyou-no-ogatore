@@ -4,6 +4,46 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: obu-voices-diary-and-navigation §2-4(FAB表示範囲・タブバー・もどる導線)
+
+`TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md`。alan5指定の優先度(2→3・4→1)に従い
+上位3件。
+
+**§2 FABの表示範囲(alan5の発注ミスに起因)**: `onboarding-sheet-tap-stolen.md`でupdateFabs()の
+移植を発注したとき、「どの画面で隠すか」の表だけ渡して「どの画面で出るか」を確認していなかった。
+結果、実装は`currentTab != null`(5タブ画面のみ)になり、Web版(index.html:1419-1434)より表示
+範囲が狭かった。Web版の実際のhide条件は`quiz||reach||sdSheetOpen()||各モーダル(obu/card/
+welcome/dex/a2hs)`のみで、それ以外(result/voices/fun/brag/通信アーカイブ含む)では出る。
+ネイティブは`fabsHiddenEntirely`(quiz/soudanシート/onboarding/dex/obu画面/obuPopupOpen)を
+新設し、そこから`showSoudanFab`(+home/guide/resultで非表示)・`showObuFab`(+guide/当日
+チュートリアルで非表示)を導出する形に統一(Android `MainActivity.kt`/iOS
+`KyouNoOgatoreApp.swift`)。
+
+**reach(とどくメーター)重なり対策**: Web版はreachが独立の非スクロールページのためFAB自体を
+隠すが、ネイティブはMyRecord内にインライン移植されており独立画面が無い。実機で確認したところ、
+とどくメーターの5番目ボタン「ゆか」自体は通常のスクロール操作では重ならない(中間のtransientな
+スクロール位置でのみ一瞬重なるが、最大スクロール/画面上端という「resting」位置では重ならない)。
+一方、マイ記録タブの**末尾要素**(「📅 カレンダーに登録する」ボタン)は最大スクロール時に
+右下固定FABの帯と実際に重なることを確認したため、末尾に100dp/ptの余白を追加して回避した
+(Web版のreach-row対策と同じ「実測して決める」方針。行の下に余白を足す対応)。
+
+**§3 タブバーの表示範囲**: index.html:1541 `TAB_OF`(`brag:"history"`,`voices:"history"`,
+`fun:"history"`)の1:1移植。ネイティブの既存コメントには「せんぱいの声等はWeb版でもタブに
+属さない別画面」と書かれていたが、これは`TAB_OF`と食い違う誤認だった。`currentTab`計算に
+Voices/Brag/Diaryを追加してマイ記録タブとしてハイライトされるようにした。通信(obu)は
+`TAB_OF`に記載が無く「タブバー表示・全消灯」扱いのため、`KyonoTabBar`の`current`パラメータを
+`KyonoTab?`(nullable)に変更し、通信画面表示中は`current=nil`でタブバーだけ出す形にした
+(Android/iOSとも同じ変更)。
+
+**§4 もどる導線**: せんぱいの声・じまんカード・にっきの入口は常にマイ記録
+(`MyRecordScreen.onOpenVoices`/`onOpenBrag`/`onOpenDiary`)のため、Web版「← マイ記録にもどる」
+と同じくonBackの遷移先をHomeからMyRecordへ変更(既存のオガトレ通信`returnTo`方式と同じ考え方。
+Obuは複数の入口を持つため既にreturnTo方式だったが、Voices/Brag/Diaryは入口が単一なので
+単純に固定遷移先を変えるだけで足りた)。
+
+回帰確認: `npm test` 443緑・Android`testDebugUnitTest`緑・両OSビルド成功。判定ロジックは無変更。
+残り§1(ラジオ再生・実装コスト大きめ)・§5-8(小物多数)は次回に持ち越し。
+
 ## 2026-07-28 追記: local-notifications §4 Android差し戻し、根本原因を特定・修正(rememberSaveable)
 
 alan5が3回に渡り「1日目クリア時の通知許可提案がAndroidで一度も表示されない」と実機で再現し

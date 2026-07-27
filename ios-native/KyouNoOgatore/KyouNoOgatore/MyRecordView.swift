@@ -452,6 +452,10 @@ private struct MyRecordContentView: View {
                     }
                 }
                 if let calendarMsg { Text(calendarMsg).kyonoFont(.bold700, size: 15).foregroundColor(colors.pink) }
+                // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: FABの表示範囲をWeb版に
+                // 合わせて拡げた結果、マイ記録タブの末尾要素(カレンダーに登録するボタン)が最大スクロール
+                // 時に右下固定FABと重なることを実機で確認したため、末尾に余白を足して回避する。
+                Spacer().frame(height: 100)
             }
             .padding(20)
         }

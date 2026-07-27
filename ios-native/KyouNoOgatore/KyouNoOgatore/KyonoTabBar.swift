@@ -20,7 +20,7 @@ private let strokeColor = Color(hex: 0x3A3A35)
 
 struct KyonoTabBar: View {
     @Environment(\.kyonoColors) private var colors
-    let current: KyonoTab
+    let current: KyonoTab?
     let onSelect: (KyonoTab) -> Void
 
     var body: some View {

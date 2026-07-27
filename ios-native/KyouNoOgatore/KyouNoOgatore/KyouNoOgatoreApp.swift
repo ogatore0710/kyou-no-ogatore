@@ -83,18 +83,27 @@ private enum Screen: Equatable {
         }
     }
 
-    // ネイティブ移植「見た目のWeb版パリティ移植」タスク(下部タブバー): index.html:1158-1164
-    // <nav class="tabbar">の5項目だけがタブとして永続表示される。それ以外の画面はWeb版でもタブに
-    // 属さない別画面(モーダル/サブ画面)のため、タブバーを隠す。
+    // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §3: index.html:1541 TAB_OF
+    // (brag/voices/fun→"history")の1:1移植。せんぱいの声・じまんカード・にっきは「マイ記録タブに
+    // 属する別画面」であり、Web版でもタブバーは消えず「マイ記録」がハイライトされ続ける(以前の
+    // 「Web版でもタブに属さない別画面」という native側の認識はTAB_OFと食い違う誤りだった)。
     var kyonoTab: KyonoTab? {
         switch self {
         case .guide: return .guide
-        case .myRecord: return .myRecord
+        case .myRecord, .voices, .brag, .diary: return .myRecord
         case .home: return .home
         case .catalog: return .catalog
         case .search: return .search
         default: return nil
         }
+    }
+
+    // オガトレ通信だけはタブバーを表示しつつどのタブもハイライトしない
+    // (TAB_OFにobuの記載が無い=全消灯だがタブバー自体は表示され続ける)。
+    var showsTabBar: Bool {
+        if kyonoTab != nil { return true }
+        if case .obu = self { return true }
+        return false
     }
 }
 
@@ -156,8 +165,8 @@ struct RootView: View {
                 screenContent
                     .transition(.opacity.combined(with: .move(edge: .trailing)))
                     .animation(.easeInOut(duration: 0.22), value: effectiveScreen)
-                if let tab = screen.kyonoTab {
-                    KyonoTabBar(current: tab) { newTab in
+                if screen.showsTabBar {
+                    KyonoTabBar(current: screen.kyonoTab) { newTab in
                         switch newTab {
                         case .guide: screen = .guide
                         case .myRecord: screen = .myRecord
@@ -169,13 +178,19 @@ struct RootView: View {
                 }
             }
             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
-            // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: index.html:1419-1434 updateFabs()の
-            // 1:1移植。従来はscreen.kyonoTab != nilだけで判定しており、Web版が実測で積み上げた
-            // 個別の非表示条件(相談室カードとの重複・FAQ見出しへの被り・1日目チュートリアル当日の
-            // 全面非表示等)がすべて欠落していた。
-            // index.html:1432 tut条件はfdActive()に加えfdday===todayStr()の当日限定
-            // (alan5指摘・2026-07-28)。fdFocusHomeActiveが同じ当日限定判定を既に持っているので
-            // そちらを使う(fdActiveだけだと翌日以降も通信FABが出続けてしまう)。
+            // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: index.html:1419-1434
+            // updateFabs()の1:1移植。以前はscreen.kyonoTab != nil(5タブ画面のみ)だけで判定しており、
+            // Web版より表示範囲が狭かった(alan5の発注ミスに起因)。Web版は quiz/reach/相談室シート/
+            // 各モーダル/welcome でだけ両FABとも隠し、それ以外(result/voices/fun/brag/通信アーカイブ
+            // 含む)では出す。reach(とどくメーター)はネイティブではMyRecord内にインライン移植されて
+            // おり独立画面が無いため、reach相当の非表示は行わず、MyRecordView側の余白で重なりを回避する。
+            let fabsHiddenEntirely: Bool = {
+                if case .quiz = screen { return true }
+                if case .soudan = screen { return true }
+                if screen == .onboarding || screen == .dex { return true }
+                if case .obu = screen { return true }
+                return obuPopupOpen
+            }()
             let fdGuideActiveNow = HomeLogic.fdFocusHomeActive(
                 fd: store.get("fd", default: nil),
                 streakTotal: RecordLogic.loadStreak(store).total,
@@ -183,11 +198,16 @@ struct RootView: View {
                 today: RecordLogic.todayStr(now: Date())
             )
             // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・使い方(FAQ見出しの
-            // ▾に被る実測あり・2026-07-20監査④)では出さない。
-            let showSoudanFab = screen.kyonoTab != nil && screen != .home && screen != .guide
+            // ▾に被る実測あり・2026-07-20監査④)・結果画面(「相談室で聞いてみる」リンクとの
+            // 二重導線・2026-07-20監査⑤)では出さない。
+            let showSoudanFab: Bool = {
+                if fabsHiddenEntirely || screen == .home || screen == .guide { return false }
+                if case .result = screen { return false }
+                return true
+            }()
             // 通信FAB: 使い方(本文・FAQ見出しへの被り対策)・1日目チュートリアル当日
             // (練習宣言の吹き出しに被るのを2026-07-21実走で確認)では出さない。
-            let showObuFab = screen.kyonoTab != nil && screen != .guide && !fdGuideActiveNow
+            let showObuFab = !fabsHiddenEntirely && screen != .guide && !fdGuideActiveNow
             if showSoudanFab || showObuFab {
                 VStack(spacing: 10) {
                     if showSoudanFab {
@@ -330,16 +350,19 @@ struct RootView: View {
             )
         case .dex:
             DexView(store: store, onBack: { screen = .home })
+        // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §4: 入口は常にマイ記録
+        // (MyRecordViewのonOpenVoices/onOpenBrag/onOpenDiary)のため、Web版「← マイ記録にもどる」と
+        // 同じくマイ記録へ戻す(以前はホームに飛んでいた)。
         case .voices:
             VoicesView(
                 store: store,
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
-                onBack: { screen = .home }
+                onBack: { screen = .myRecord }
             )
         case .brag:
-            BragView(store: store, onBack: { screen = .home })
+            BragView(store: store, onBack: { screen = .myRecord })
         case .diary:
-            DiaryView(store: store, onBack: { screen = .home })
+            DiaryView(store: store, onBack: { screen = .myRecord })
         case let .obu(returnTo):
             ObuView(store: store, onBack: { screen = returnTo })
         case .guide:
