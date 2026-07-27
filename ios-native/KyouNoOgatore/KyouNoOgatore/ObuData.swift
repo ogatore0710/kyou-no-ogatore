@@ -40,6 +40,14 @@ enum ObuLoader {
         let base = (imagePath as NSString).lastPathComponent
         return (base as NSString).deletingPathExtension
     }
+
+    // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §1: audio(type=radioのmp3パス)を
+    // バンドル内ファイル名に変換する。画像と同じ命名規則。
+    static func audioFileBaseName(_ audioPath: String) -> String? {
+        guard audioPath.range(of: "^assets/obu/[A-Za-z0-9_.\\-/]+$", options: .regularExpression) != nil else { return nil }
+        let base = (audioPath as NSString).lastPathComponent
+        return (base as NSString).deletingPathExtension
+    }
 }
 
 // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1275-1289
@@ -75,4 +83,13 @@ func obuHasNew(_ posts: [ObuPost], _ seenId: String?, _ today: String) -> Bool {
     guard let latest = obuLatest(posts) else { return false }
     if obuIsStaleDate(latest.date, today) { return false }
     return seenId != latest.id
+}
+
+// TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §5: index.html:1314-1318 obuFmtDate()の
+// 1:1移植。"2026-07-09"→"7月9日"(ゼロ埋めなし)。timeがあれば"7月9日 12:30ごろ"。
+func obuFmtDate(_ date: String, _ time: String?) -> String {
+    let m = Int(date.dropFirst(5).prefix(2)) ?? 0
+    let d = Int(date.dropFirst(8).prefix(2)) ?? 0
+    let base = "\(m)月\(d)日"
+    return time.map { "\(base) \($0)ごろ" } ?? base
 }
