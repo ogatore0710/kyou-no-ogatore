@@ -194,32 +194,37 @@ private fun SearchIcon(fill: Color) {
 @Composable
 fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modifier: Modifier = Modifier, photoResName: String? = null, badgeDot: Boolean = false, onClick: () -> Unit) {
     val colors = LocalKyonoColors.current
-    Box(
-        modifier = modifier
-            .size(56.dp)
-            .shadow(4.dp, CircleShape)
-            .background(colors.card, CircleShape)
-            .border(3.dp, borderColor, CircleShape)
-            .clickable(onClickLabel = contentDescription, onClick = onClick)
-            .semantics { this.contentDescription = contentDescription },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (photoResName != null) {
-            // index.html:248 .obu-fab img{object-fit:cover}の1:1移植。KyonoCharaImageは
-            // ContentScale.Fit固定(飾りキャラ画像向け)のためここでは使わず、円を埋める
-            // ContentScale.Cropで直接読み込む(KyonoTourMockups.ktのKyonoTourDrawableと同じ手法)。
-            val context = LocalContext.current
-            val resId = remember(photoResName) { context.resources.getIdentifier(photoResName, "drawable", context.packageName) }
-            if (resId != 0) {
-                Image(
-                    painter = painterResource(id = resId),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize().clip(CircleShape),
-                )
+    // badgeDotは意図的にshadow()のクリップ範囲(下記の内側Box)の外に置く: Modifier.shadow(elevation>0.dp)は
+    // 既定でclip=trueとなり、その場に描くと円の外へはみ出す部分が切り取られてほぼ見えなくなるため
+    // (実機確認で発覚)、はみ出し表示が要るドットだけ外側の非クリップBoxの子として重ねる。
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .shadow(4.dp, CircleShape)
+                .background(colors.card, CircleShape)
+                .border(3.dp, borderColor, CircleShape)
+                .clickable(onClickLabel = contentDescription, onClick = onClick)
+                .semantics { this.contentDescription = contentDescription },
+            contentAlignment = Alignment.Center,
+        ) {
+            if (photoResName != null) {
+                // index.html:248 .obu-fab img{object-fit:cover}の1:1移植。KyonoCharaImageは
+                // ContentScale.Fit固定(飾りキャラ画像向け)のためここでは使わず、円を埋める
+                // ContentScale.Cropで直接読み込む(KyonoTourMockups.ktのKyonoTourDrawableと同じ手法)。
+                val context = LocalContext.current
+                val resId = remember(photoResName) { context.resources.getIdentifier(photoResName, "drawable", context.packageName) }
+                if (resId != 0) {
+                    Image(
+                        painter = painterResource(id = resId),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize().clip(CircleShape),
+                    )
+                }
+            } else {
+                Text(emoji, fontSize = 22.sp)
             }
-        } else {
-            Text(emoji, fontSize = 22.sp)
         }
         if (badgeDot) {
             Box(

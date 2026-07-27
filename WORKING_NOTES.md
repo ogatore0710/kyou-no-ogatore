@@ -4,6 +4,41 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-27
 
+## 2026-07-27 オガトレ通信FABタップ時のプレビューポップアップを実装
+
+`TASK-C2-2026-07-27-obu-fab-preview-popup.md`。12セクション監査は#obu(全アーカイブ)自体は
+カバー済みだったが、FABタップ時の挙動はモーダルUIのため対象外だった。Web版はFAB(📣)タップで
+まずtext/photo/radio各最新1件(最大3件)だけを見せるプレビューポップアップを開き、「もっと見る」
+リンクで初めて全アーカイブへ遷移する2段階構成なのに対し、ネイティブはFABタップで直接全アーカイブ
+(既存実装)へ遷移していて、プレビュー段階が丸ごとスキップされていた。
+
+`ObuLoader.shared`(既存)に加え、`obuIsLaterOrEqual`/`obuLatest`/`obuLatestByType`
+(index.html:1275-1289)・`obuIsStaleDate`/`obuHasNew`(index.html:1298-1306・30日しきい値)を
+両OSに1:1移植(Android: `obu/ObuData.kt`、iOS: `ObuData.swift`)。既存の`RecordLogic.daysBetween`
+を再利用し新規の日付計算ロジックは増やしていない。
+
+新規`ObuPreviewPopup`/`ObuPreviewPopupView`(Android: Dialog、iOS: ZStack+スクリム)を追加し、
+FABの`onClick`を「全アーカイブへ直接遷移」から「ポップアップを開く(同時にobu_seenを更新して
+既読化)」に変更。「もっと見る」タップで初めて全アーカイブ画面(既存実装)へ遷移する。
+未読バッジ(index.html:255 `.obu-dot`・ピンクの小さい丸)もこのタスクで新規実装(従来は
+バッジ機構自体が存在しなかった)。Web版にはこの他「NEW📣」の吹き出しチップ(`.obu-bubbletip`)も
+あるが、位置指定が複雑な割にドットと情報が重複するため見送り(両OSとも同じ判断・コード内コメントに明記)。
+
+**Android実機テスト中に見つけたバグ**: `KyonoFab`の`Modifier.shadow(4.dp, CircleShape)`は
+elevation>0のとき既定で`clip=true`になり、円形の外へはみ出す要素(バッジドット)がほぼ切り取られて
+見えなくなる問題があった。ドットを`shadow`のクリップ対象になる内側Boxの外(非クリップな外側Box)の
+子として置き直して解消。iOS版は`.clipShape`の後に`.overlay`を追加する構造のため元々この問題は
+発生しない(SwiftUIのoverlayは手前のclipShapeの影響を受けない)。
+
+Android実機で確認: ①FABに未読ドット表示→タップでプレビューポップアップ(1件のみ登録されている
+現状のobu-feed.jsonでは投稿1件が表示される)→②ポップアップを開いた時点でobu_seenが即座に
+store永続化されドットが消えることを確認→③「もっと見る」タップで全アーカイブ画面へ遷移することを
+確認。投稿ゼロ時の空メッセージ表示は、既存のObuScreen全アーカイブと全く同じ条件分岐パターンの
+再利用のためコードレビューで確認(実機での0件データセット再現は行っていない)。
+
+安全系テスト(SafetyCore 111/111 fixtures)・card-golden 55/55・RecordCore 35/35・
+`npm test` 442・Web版配信ファイル無変更を確認。
+
 ## 2026-07-27 相談室の雑談KB・タイプ別パーソナライズ・同義語追跡は見送り判断（判断依頼タスク）
 
 `TASK-C2-2026-07-27-soudan-smalltalk-personalization.md`。前タスクの調査中に見つかった
