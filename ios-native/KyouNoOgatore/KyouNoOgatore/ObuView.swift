@@ -34,7 +34,7 @@ struct ObuView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             ObuContentView(posts: posts, onBack: onBack)
         }
     }
@@ -52,11 +52,11 @@ private struct ObuContentView: View {
             // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #obu):
             // index.html:932 説明文の1:1移植。
             Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱")
-                .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
             if posts.isEmpty {
                 KyonoCard {
                     Text("まだ投稿がありません また今度のぞいてみてね🌱")
-                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
                 }
@@ -83,7 +83,7 @@ struct ObuPostCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(post.date + (post.time.map { " " + $0 } ?? ""))
-                .font(.kyono(.black900, size: 12)).foregroundColor(isText ? colors.sub2 : colors.sub)
+                .kyonoFont(.black900, size: 12).foregroundColor(isText ? colors.sub2 : colors.sub)
             switch post.type {
             case "photo":
                 if let imagePath = post.image, let base = ObuLoader.imageFileBaseName(imagePath),
@@ -94,12 +94,12 @@ struct ObuPostCardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
                 }
-                if let text = post.text { Text(text).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(6) }
+                if let text = post.text { Text(text).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(6) }
             case "radio":
-                if let title = post.title { Text("📻 \(title)").font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk) }
-                Text("🎧 音声つき投稿(ネイティブでは再生UI未実装)").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                if let title = post.title { Text("📻 \(title)").kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk) }
+                Text("🎧 音声つき投稿(ネイティブでは再生UI未実装)").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             default:
-                if let text = post.text { Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineSpacing(9) }
+                if let text = post.text { Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9) }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -134,10 +134,10 @@ struct ObuPreviewPopupView: View {
                 .onTapGesture { onClose() }
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("オガトレ通信").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    Text("オガトレ通信").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                     Spacer()
                     Button(action: onClose) {
-                        Text("✕").font(.kyono(.black900, size: 18)).foregroundColor(colors.ink)
+                        Text("✕").kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
                             .frame(width: 40, height: 40)
                             .background(Circle().fill(colors.line))
                     }
@@ -145,7 +145,7 @@ struct ObuPreviewPopupView: View {
                 }
                 if items.isEmpty {
                     Text("まだ投稿がありません また今度のぞいてみてね🌱")
-                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
                         .padding(.vertical, 20)
@@ -155,7 +155,7 @@ struct ObuPreviewPopupView: View {
                     }
                 }
                 Text("もっと見る（過去の投稿もぜんぶ）")
-                    .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                    .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .onTapGesture { onViewArchive() }
             }

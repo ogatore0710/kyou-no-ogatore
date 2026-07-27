@@ -41,7 +41,7 @@ struct GuideView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             content
         }
     }
@@ -113,19 +113,19 @@ private struct GuideContentView: View {
                     HStack(spacing: 10) {
                         Spacer()
                         Text("🌱 はじめてガイド")
-                            .font(.kyono(.extraBold800, size: 14)).foregroundColor(colors.tealInk)
+                            .kyonoFont(.extraBold800, size: 14).foregroundColor(colors.tealInk)
                             .padding(.horizontal, 16).padding(.vertical, 9)
                             .background(Capsule().fill(colors.tealSoft))
                             .onTapGesture(perform: onReenterOnboarding)
                         Text("📖 使い方ツアー")
-                            .font(.kyono(.extraBold800, size: 14)).foregroundColor(dark ? Color(hex: 0xE8C74C) : Color(hex: 0x7E6400))
+                            .kyonoFont(.extraBold800, size: 14).foregroundColor(dark ? Color(hex: 0xE8C74C) : Color(hex: 0x7E6400))
                             .padding(.horizontal, 16).padding(.vertical, 9)
                             .background(Capsule().fill(colors.yellowSoft))
                             .onTapGesture(perform: onReenterTour)
                         Spacer()
                     }
                     Text("「はじめてガイド」＝さいしょの質問からやりなおす／「使い方ツアー」＝つかいかたをスライドで見る")
-                        .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                         .padding(.bottom, 8)
@@ -135,11 +135,11 @@ private struct GuideContentView: View {
                     KyonoGradientCard(gradient: .warm) {
                         VStack(spacing: 8) {
                             KyonoCharaImage(name: "chara").frame(width: 84, height: 84)
-                            Text("おぼえるのはこれだけ！").font(.kyono(.black900, size: 19)).foregroundColor(colors.ink)
+                            Text("おぼえるのはこれだけ！").kyonoFont(.black900, size: 19).foregroundColor(colors.ink)
                             Text("1日1本うごいて\n「きょうやった！」を押す")
-                                .font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+                                .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                                 .multilineTextAlignment(.center)
-                            Text("あとはぜんぶ このアプリがおぼえてます").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub2)
+                            Text("あとはぜんぶ このアプリがおぼえてます").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub2)
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -149,7 +149,7 @@ private struct GuideContentView: View {
                         HStack(spacing: 8) {
                             ForEach(gtocChips, id: \.id) { chip in
                                 Text(chip.label)
-                                    .font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
+                                    .kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                                     .padding(.horizontal, 14).padding(.vertical, 10)
                                     .background(Capsule().fill(colors.line))
                                     .onTapGesture { jumpToSection(proxy, id: chip.id) }
@@ -158,7 +158,7 @@ private struct GuideContentView: View {
                     }
                     .id("gtoc")
                     Text("下の見出しカードは タップするとひらきます")
-                        .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 4).padding(.bottom, 14)
@@ -207,14 +207,14 @@ private struct GuideContentView: View {
                     ) {
                         GFlow(steps: ["アプリを\nひらく", "きょうの1本を\n▶ 再生", "きょう\nやった！"])
                         Text("チェック済みの人は「あなた用」に あなたのおすすめが日替わりで出ます 気分をかえたい日は「あさ」「よる」へどうぞ")
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         // index.html:1022 .seg.gmock(タップ不可の静止モック)。既存の見た目のみ流用し
                         // 選択を無効化(onSelectを何もしない)して「見た目は本物・操作は無効」を1:1で再現。
                         GdSegmentMock()
                         Spacer().frame(height: 10)
                         Text("おわったら✍️ ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです")
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 14)
                         GStep(marker: "💬", title: "オガトレ通信", body: "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
                     }
@@ -228,7 +228,7 @@ private struct GuideContentView: View {
                     ) {
                         HStack {
                             KyonoCharaImage(name: "chara-good").frame(width: 60, height: 60)
-                            Text("3つおさえれば安心です").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                            Text("3つおさえれば安心です").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                         }
                         Spacer().frame(height: 10)
                         // A2HS(ホーム画面に追加)の概念自体がネイティブアプリには無いため、Web版の
@@ -252,12 +252,12 @@ private struct GuideContentView: View {
                         GStep(marker: "👑", title: "節目はゴールドカード", body: "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
                         VStack {
                             KyonoCharaImage(name: "card-sample-gold").frame(width: 180, height: 180)
-                            Text("見本（ほんものは日付や あなたのメモ入り）").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            Text("見本（ほんものは日付や あなたのメモ入り）").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         }
                         .frame(maxWidth: .infinity)
                         Spacer().frame(height: 10)
                         Text("記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「🎉お楽しみ機能」の中にあるカード図鑑📖でいつでも見返せます")
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         GStep(marker: "🌱", title: "サボっても だいじょうぶ", body: "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
                         GStep(marker: "⏱", title: "時間がない日は30秒の1本でもOK", body: "「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です")
@@ -284,7 +284,7 @@ private struct GuideContentView: View {
 
                     // ==== ここから下(gd-faq)は既存のまま・1文字も変更していない ====
                     KyonoSectionHeader(icon: .question, title: "よくあるしつもん", fill: colors.coralSoft)
-                    Text("しつもんをタップすると こたえがひらきます").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                    Text("しつもんをタップすると こたえがひらきます").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     // index.html:426-429 .searchbox
                     TextField("🔍 キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
                         .padding(.horizontal, 14).padding(.vertical, 10)
@@ -302,9 +302,9 @@ private struct GuideContentView: View {
                                 let isOpen = openGroups.contains(group.title) || !nq.isEmpty
                                 // index.html:180-183 .faq-g(グループ見出し・開閉矢印)
                                 HStack {
-                                    Text(group.title).font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                                    Text(group.title).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                                     Spacer()
-                                    Text(isOpen ? "▴" : "▾").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                                    Text(isOpen ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                                 }
                                 .padding(.top, 12)
                                 .contentShape(Rectangle())
@@ -316,13 +316,13 @@ private struct GuideContentView: View {
                                         // index.html:190-196 .faq details/summary(枠線ボックス・"Q"プレフィックス)
                                         VStack(alignment: .leading, spacing: 8) {
                                             HStack(alignment: .top) {
-                                                Text("Q").font(.kyono(.black900, size: 15)).foregroundColor(colors.pink)
-                                                Text(item.q).font(.kyono(.extraBold800, size: 14)).foregroundColor(colors.ink)
+                                                Text("Q").kyonoFont(.black900, size: 15).foregroundColor(colors.pink)
+                                                Text(item.q).kyonoFont(.extraBold800, size: 14).foregroundColor(colors.ink)
                                                 Spacer()
-                                                Text(open ? "▴" : "▾").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                                                Text(open ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                                             }
                                             if open {
-                                                Text(item.a).font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub).padding(.leading, 18)
+                                                Text(item.a).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub).padding(.leading, 18)
                                             }
                                         }
                                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -379,7 +379,7 @@ private struct GdFoldSection<Content: View>: View {
             HStack {
                 KyonoSectionHeader(icon: icon, title: title, fill: fill, accent: accent ?? Color(hex: 0xE56A9A))
                 Spacer()
-                Text(open ? "▴" : "▾").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                Text(open ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
             }
             .contentShape(Rectangle())
             .onTapGesture(perform: onToggle)
@@ -387,7 +387,7 @@ private struct GdFoldSection<Content: View>: View {
                 Spacer().frame(height: 10)
                 VStack(alignment: .leading, spacing: 0, content: sectionContent)
                 Text("↑ 目次へ戻る")
-                    .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 8)
                     .contentShape(Rectangle())
@@ -414,13 +414,13 @@ private struct GStep<Extra: View>: View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle().fill(colors.yellow)
-                Text(marker).font(.kyono(.black900, size: 13)).foregroundColor(colors.ink)
+                Text(marker).kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
             }
             .frame(width: 30, height: 30)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                Text(title).kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                 if !body_.isEmpty {
-                    Text(body_).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                    Text(body_).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                 }
                 if let extra {
                     Spacer().frame(height: 8)
@@ -447,14 +447,14 @@ private struct GFlow: View {
         HStack(spacing: 4) {
             ForEach(Array(steps.enumerated()), id: \.offset) { i, s in
                 Text(s)
-                    .font(.kyono(.black900, size: 13)).foregroundColor(colors.ink)
+                    .kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 10).padding(.vertical, 10)
                     .frame(minWidth: 76)
                     .background(RoundedRectangle(cornerRadius: 14).fill(colors.bg))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
                 if i < steps.count - 1 {
-                    Text("→").font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                    Text("→").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                 }
             }
         }
@@ -471,7 +471,7 @@ private struct GdSegmentMock: View {
         HStack(spacing: 4) {
             ForEach(["あなた用", "あさ", "よる"], id: \.self) { label in
                 Text(label)
-                    .font(.kyono(.black900, size: 14))
+                    .kyonoFont(.black900, size: 14)
                     .foregroundColor(label == "あなた用" ? colors.ink : colors.sub)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)

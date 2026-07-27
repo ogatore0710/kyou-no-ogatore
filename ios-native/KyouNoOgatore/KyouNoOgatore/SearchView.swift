@@ -104,12 +104,12 @@ struct VideoRow: View {
                 .frame(width: 112, height: 112 * 9 / 16)
                 VStack(alignment: .leading, spacing: 2) {
                     if let label = badge ?? v.tags?.first {
-                        Text(label).font(.kyono(.black900, size: 12)).foregroundColor(badgeTextColor)
+                        Text(label).kyonoFont(.black900, size: 12).foregroundColor(badgeTextColor)
                             .padding(.horizontal, 8).padding(.vertical, 1)
                             .background(Capsule().fill(colors.coralSoft))
                     }
-                    Text(v.t).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineLimit(3)
-                    Text(v.s).font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub).lineLimit(1)
+                    Text(v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(3)
+                    Text(v.s).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub).lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -142,7 +142,7 @@ struct SearchView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             SearchContentView(
                 activeCat: $activeCat, activeTag: $activeTag, query: $query, searchLimit: $searchLimit,
                 selectedYear: $selectedYear, years: years,
@@ -171,7 +171,7 @@ private struct SearchContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
-            Text("動画を探す").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+            Text("動画を探す").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
             // index.html:945-949 .searchbox
             TextField("🔍 例: 肩こり／朝／むくみ", text: $query)
                 .padding(.horizontal, 14).padding(.vertical, 10)
@@ -183,7 +183,7 @@ private struct SearchContentView: View {
                 HStack(spacing: 6) {
                     ForEach(tagCats, id: \.key) { cat in
                         let on = cat.key == activeCat
-                        Text(cat.name).font(.kyono(.black900, size: 14)).foregroundColor(on ? colors.ink : colors.sub)
+                        Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.ink : colors.sub)
                             .padding(.horizontal, 13).padding(.vertical, 10)
                             .background(RoundedRectangle(cornerRadius: 12).fill(on ? colors.yellow : colors.line))
                             .onTapGesture { activeCat = cat.key; activeTag = nil }
@@ -197,7 +197,7 @@ private struct SearchContentView: View {
                 HStack(spacing: 6) {
                     ForEach(activeCatTags, id: \.self) { tag in
                         let on = tag == activeTag
-                        Text(tag).font(.kyono(.bold700, size: 14)).foregroundColor(on ? cc.onText : cc.text)
+                        Text(tag).kyonoFont(.bold700, size: 14).foregroundColor(on ? cc.onText : cc.text)
                             .padding(.horizontal, 16).padding(.vertical, 10)
                             .background(Capsule().fill(on ? cc.onBg : cc.bg))
                             .overlay(Capsule().stroke(on ? cc.onBorder : cc.border, lineWidth: 2))
@@ -213,13 +213,13 @@ private struct SearchContentView: View {
                     }
                 } label: {
                     Text((selectedYear.map { "\($0)年" } ?? "すべての年") + " ▾")
-                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                         .padding(.horizontal, 10).padding(.vertical, 6)
                         .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
                         .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
                 }
                 Spacer()
-                Text("\(hits.count)件見つかりました").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                Text("\(hits.count)件見つかりました").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
@@ -253,19 +253,19 @@ private struct ReqBox: View {
             Text(shown
                 ? "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます📮"
                 : "ごめんなさい まだなかったみたい💦\nリクエストを送ってもらえたら動画づくりの参考にします📮")
-                .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
             Spacer().frame(height: 12)
             KyonoGhostButton(kwText.isEmpty ? "リクエストを送る" : "「\(kwText)」をリクエストする") {
                 openRequestMail(kwText: kwText)
             }
             Spacer().frame(height: 6)
             Text("メールがひらかない方は kyou-no@ogatore.jp へ直接どうぞ")
-                .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .multilineTextAlignment(.center)
             Spacer().frame(height: 4)
             Text(copied ? "コピーしました✅" : "📋 アドレスをコピー")
-                .font(.kyono(.black900, size: 12)).foregroundColor(colors.tealInk)
+                .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .onTapGesture {
                     UIPasteboard.general.string = "kyou-no@ogatore.jp"
@@ -310,7 +310,7 @@ struct CatalogListView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             CatalogListContentView(catalog: catalog, onBack: onBack, openUrl: openUrl)
         }
     }
@@ -324,15 +324,15 @@ private struct CatalogListContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("再生リスト").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
-            Text("\(catalog.count)本の動画").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+            Text("再生リスト").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+            Text("\(catalog.count)本の動画").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
                     ForEach(catalog, id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
                     // index.html:941 .hint(固定表示にするとFAB2段(右下)と重なるバグの再発になる=
                     // とどくメーターの5番目ボタンで既発見済みの教訓と同種のため、リスト末尾項目にする)
                     Text("タップするとYouTubeで開きます！テレビで流すのもおすすめ📺")
-                        .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         .padding(.top, 8).padding(.bottom, 90)
                 }
             }

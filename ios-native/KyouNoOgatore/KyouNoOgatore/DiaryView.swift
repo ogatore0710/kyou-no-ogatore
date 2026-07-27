@@ -27,7 +27,7 @@ struct DiaryView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             DiaryContentView(entries: entries, onBack: onBack)
         }
     }
@@ -46,15 +46,15 @@ private struct DiaryContentView: View {
                 Spacer().frame(height: 10)
                 if entries.isEmpty {
                     Text("「きょうやった！」のあとにメモをのこせます")
-                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                 } else {
                     VStack(spacing: 0) {
                         ForEach(Array(entries.enumerated()), id: \.offset) { i, entry in
                             HStack(alignment: .top, spacing: 10) {
                                 Text(diaryDateLabel(entry.date))
-                                    .font(.kyono(.black900, size: 15)).foregroundColor(colors.sub)
+                                    .kyonoFont(.black900, size: 15).foregroundColor(colors.sub)
                                 Text(entry.memo)
-                                    .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                             }
                             .padding(.vertical, 7)
                             // index.html:271 border-bottom:1px dashed var(--line)の簡略化(実線)。

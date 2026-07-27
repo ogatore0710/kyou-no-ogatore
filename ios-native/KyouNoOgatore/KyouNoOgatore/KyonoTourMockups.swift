@@ -18,7 +18,7 @@ struct KyonoTourMockup: View {
         // 1) 📺まいにち1本: 「きょうの1本」カードのミニチュア(動画サムネイル+タイトル+案内文)
         case 0:
             KyonoCard {
-                Text("きょうの1本").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                Text("きょうの1本").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                 Spacer().frame(height: 8)
                 HStack(alignment: .center) {
                     ZStack {
@@ -29,8 +29,8 @@ struct KyonoTourMockup: View {
                     .frame(width: 120, height: 120 * 9 / 16)
                     Spacer().frame(width: 10)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("開脚できるようになる2週間ストレッチ").font(.kyono(.bold700, size: 13)).foregroundColor(colors.ink)
-                        Text("▶ タップでYouTubeがひらきます").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                        Text("開脚できるようになる2週間ストレッチ").kyonoFont(.bold700, size: 13).foregroundColor(colors.ink)
+                        Text("▶ タップでYouTubeがひらきます").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     }
                 }
             }
@@ -38,17 +38,17 @@ struct KyonoTourMockup: View {
         case 1:
             KyonoCard {
                 VStack(spacing: 2) {
-                    Text("続けた日数（通算）").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    Text("続けた日数（通算）").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                     HStack(alignment: .bottom, spacing: 0) {
-                        Text("8").font(.kyono(.black900, size: 38)).foregroundColor(colors.pink)
-                        Text("日目").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink).padding(.bottom, 6)
+                        Text("8").kyonoFont(.black900, size: 38).foregroundColor(colors.pink)
+                        Text("日目").kyonoFont(.black900, size: 16).foregroundColor(colors.ink).padding(.bottom, 6)
                     }
                     Spacer().frame(height: 6)
                     // index.html:380-381 .done-btn(teal-strong塗り+立体シャドウ。gmockのため押下は無し)
                     ZStack {
                         RoundedRectangle(cornerRadius: 18).fill(Color(hex: 0x1E8A7D)).offset(y: 4)
                         RoundedRectangle(cornerRadius: 18).fill(colors.tealStrong)
-                        Text("きょうやった！").font(.kyono(.black900, size: 16)).foregroundColor(.white).padding(.vertical, 14)
+                        Text("きょうやった！").kyonoFont(.black900, size: 16).foregroundColor(.white).padding(.vertical, 14)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -64,14 +64,14 @@ struct KyonoTourMockup: View {
         case 3:
             KyonoCard {
                 VStack {
-                    Text("カード図鑑").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    Text("カード図鑑").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                     Spacer().frame(height: 8)
                     HStack(spacing: 8) {
                         KyonoTourDrawable(name: "card-sample").frame(width: 52, height: 52).clipShape(RoundedRectangle(cornerRadius: 10))
                         ForEach(0..<3, id: \.self) { _ in
                             RoundedRectangle(cornerRadius: 10).stroke(colors.line, lineWidth: 1.5)
                                 .frame(width: 52, height: 52)
-                                .overlay(Text("？").font(.kyono(.black900, size: 16)).foregroundColor(colors.sub))
+                                .overlay(Text("？").kyonoFont(.black900, size: 16).foregroundColor(colors.sub))
                         }
                     }
                 }
@@ -82,14 +82,14 @@ struct KyonoTourMockup: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Spacer()
-                    Text("肩こりがつらい").font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                    Text("肩こりがつらい").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(UnevenRoundedRectangle(topLeadingRadius: 16, bottomLeadingRadius: 16, bottomTrailingRadius: 6, topTrailingRadius: 16).fill(colors.yellowSoft))
                 }
                 HStack(alignment: .bottom) {
                     KyonoCharaImage(name: "chara-hitokoto").frame(width: 34, height: 34)
                     let shape = UnevenRoundedRectangle(topLeadingRadius: 16, bottomLeadingRadius: 6, bottomTrailingRadius: 16, topTrailingRadius: 16)
-                    Text("それはつらいね…！まずはこの1本からやってみよう😊").font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                    Text("それはつらいね…！まずはこの1本からやってみよう😊").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(shape.fill(colors.card))
                         .overlay(shape.stroke(colors.line, lineWidth: 1.5))
@@ -103,8 +103,8 @@ struct KyonoTourMockup: View {
                     .overlay(Circle().stroke(colors.yellow, lineWidth: 3))
                 Spacer().frame(width: 12)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("右下のこの写真ボタン").font(.kyono(.black900, size: 13)).foregroundColor(colors.ink)
-                    Text("ひとこと・写真・ラジオ📻").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                    Text("右下のこの写真ボタン").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                    Text("ひとこと・写真・ラジオ📻").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                 }
                 Spacer()
             }
@@ -112,14 +112,14 @@ struct KyonoTourMockup: View {
         case 6:
             KyonoCard {
                 VStack {
-                    Text("カレンダー").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                    Text("カレンダー").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                     Spacer().frame(height: 8)
                     HStack(spacing: 7) {
                         ForEach(1...5, id: \.self) { n in
                             let done = n <= 3
                             Circle().fill(done ? colors.tealStrong : Color.clear)
                                 .frame(width: 34, height: 34)
-                                .overlay(Text("\(n)").font(.kyono(.black900, size: 14)).foregroundColor(done ? .white : colors.sub))
+                                .overlay(Text("\(n)").kyonoFont(.black900, size: 14).foregroundColor(done ? .white : colors.sub))
                         }
                     }
                 }
@@ -129,7 +129,7 @@ struct KyonoTourMockup: View {
         case 7:
             KyonoCard {
                 Text("下の「使い方」タブに\nぜんぶ書いてあります")
-                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(10)
+                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(10)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .multilineTextAlignment(.center)
             }

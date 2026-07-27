@@ -40,7 +40,7 @@ struct KyonoTabBar: View {
         return Button(action: { onSelect(tab) }) {
             VStack(spacing: 2) {
                 icon(selected ? colors.yellow : colors.tabbarIconOff).frame(width: 24, height: 24)
-                Text(label).font(.kyono(.black900, size: 12)).foregroundColor(selected ? colors.ink : colors.sub)
+                Text(label).kyonoFont(.black900, size: 12).foregroundColor(selected ? colors.ink : colors.sub)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 4)
@@ -189,7 +189,7 @@ struct KyonoFab: View {
                         Image(uiImage: uiImage).resizable().scaledToFill()
                     }
                 } else {
-                    Text(emoji).font(.kyono(.bold700, size: 22))
+                    Text(emoji).kyonoFont(.bold700, size: 22)
                 }
             }
             .frame(width: 56, height: 56)

@@ -172,11 +172,11 @@ struct HomeView: View {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(showDoneNudge ? "おかえりなさい" : "きょうのひとこと")
-                        .font(.kyono(.black900, size: 11)).foregroundColor(colors.sub)
+                        .kyonoFont(.black900, size: 11).foregroundColor(colors.sub)
                     Text(showDoneNudge
                         ? "おわったら下の「きょうやった！」を押してね✅"
                         : "「\(QUOTES[((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count])」")
-                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                        .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(
@@ -192,7 +192,7 @@ struct HomeView: View {
             // 単純に「オフラインなら表示・オンラインなら非表示」でよい(Web版のenvBannerPrevHTML退避は不要)。
             if networkMonitor.isOffline {
                 Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
-                    .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineSpacing(9)
+                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
                     .padding(.horizontal, 12).padding(.vertical, 10)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
@@ -260,7 +260,7 @@ struct HomeView: View {
                 // 1:1移植。HomeLogic.fdActive(fd/streakTotalのみ・fdday条件なし)をそのまま使う。
                 if HomeLogic.fdActive(fd: fd, streakTotal: streak.total) && !did {
                     Text("動画を見おわったら、ここを押してね👇")
-                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.pink)
+                        .kyonoFont(.black900, size: 14).foregroundColor(colors.pink)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
                 KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did) {
@@ -310,16 +310,16 @@ struct HomeView: View {
                     // ポップイン)の1:1移植。
                     VStack(alignment: .leading, spacing: 6) {
                         Text("🎉 1日目クリア！ナイスご自愛！")
-                            .font(.kyono(.black900, size: 16)).foregroundColor(colors.pink)
+                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
                         HStack {
                             Spacer()
                             KyonoCharaImage(name: "card-sample").frame(width: 140, height: 140)
                             Spacer()
                         }
                         Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）")
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                     }
                     .transition(.scale(scale: 0).combined(with: .opacity).animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5)))
                 }
@@ -340,20 +340,20 @@ struct HomeView: View {
                 if !did {
                     if (12...16).contains(streak.total) {
                         (Text("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
-                            + Text("とどくメーター").font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                            + Text("とどくメーター").kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                             + Text("で確かめてみて"))
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                             .onTapGesture { onOpenMyRecord() }
                     } else if (28...34).contains(streak.total) {
                         Text("💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ")
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     }
                 }
                 // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge
                 // (「👇 つぎは ここを押してみて」)の1:1移植。
                 if fdCardNudgeVisible {
                     Text("👇 つぎは ここを押してみて")
-                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.pink)
+                        .kyonoFont(.black900, size: 14).foregroundColor(colors.pink)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
                 KyonoGhostButton("記録カードを見る") {
@@ -376,7 +376,7 @@ struct HomeView: View {
                 }
                 // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
                 Text("カード画像を保存かシェアでのこしてね📤")
-                    .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     .multilineTextAlignment(.center).frame(maxWidth: .infinity)
             }
 
@@ -405,7 +405,7 @@ struct HomeView: View {
                     // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
                     if cardResult.isMilestone {
                         Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
-                            .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             .multilineTextAlignment(.center)
                         KyonoGhostButton("記録のひかえを取る") {
                             self.cardResult = nil
@@ -469,7 +469,7 @@ private struct HomeMemoRow: View {
                 saved = true
             }
             if let savedNote {
-                Text(savedNote).font(.kyono(.bold700, size: 14)).foregroundColor(colors.tealInk)
+                Text(savedNote).kyonoFont(.bold700, size: 14).foregroundColor(colors.tealInk)
             }
         }
     }
@@ -492,7 +492,7 @@ private struct CkCard: View {
                 Spacer().frame(height: 10)
                 HStack(alignment: .center) {
                     Text("タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります")
-                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub2)
+                        .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                     Spacer()
                     KyonoCharaImage(name: "chara-3").frame(width: 74, height: 74)
                 }
@@ -500,14 +500,14 @@ private struct CkCard: View {
                 KyonoPrimaryButton("チェックをはじめる", action: onStartQuiz)
                 Spacer().frame(height: 10)
                 Text("※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ")
-                    .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             } else {
                 Spacer().frame(height: 6)
                 if let tr = typeResult, let name = quizTypes[tr.key]?.name {
                     Text("前回の結果: \(name)")
-                        .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                        .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                         .onTapGesture { onShowResult(tr.key) }
                     Spacer().frame(height: 10)
                 }
@@ -542,14 +542,14 @@ private struct SoudanCard: View {
                         Spacer().frame(height: 10)
                         HStack(alignment: .center) {
                             Text("からだの悩み\nオガトレに聞いてみて💬")
-                                .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub2)
+                                .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                             Spacer()
                             KyonoCharaImage(name: "chara-hitokoto").frame(width: 64, height: 64)
                         }
                         Spacer().frame(height: 10)
                         KyonoPrimaryButton("💬 相談する") { onOpenSoudan(nil) }
                         Spacer().frame(height: 10)
-                        Text("👇 タップでそのまま聞けるよ").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                        Text("👇 タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         Spacer().frame(height: 6)
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack {
@@ -575,7 +575,7 @@ private struct HomeSoudanChip: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(label).font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+            Text(label).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                 .padding(.horizontal, 16).padding(.vertical, 10)
                 .overlay(Capsule().stroke(colors.line, lineWidth: 2))
                 .background(Capsule().fill(colors.card))

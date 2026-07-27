@@ -44,7 +44,7 @@ struct BragView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             BragContentView(
                 store: store, daysText: $daysText, query: $query, picked: $picked, cardImage: $cardImage,
                 hits: hits, streakCount: streakCount, onBack: onBack
@@ -71,11 +71,11 @@ private struct BragContentView: View {
                 KyonoSectionHeader(icon: .heart, title: "じまんカードをつくる", fill: colors.pinkSoft, accent: colors.pink)
                 Spacer().frame(height: 8)
                 Text("続けてる日数と すきな1本を 1枚のカードに✨\nできたカードは保存やSNS投稿ができます")
-                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
 
                 // index.html:340 #brag .lbl
                 Spacer().frame(height: 14)
-                Text("つづいている日数").font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
+                Text("つづいている日数").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                 Spacer().frame(height: 6)
                 TextField("", text: $daysText)
                     .keyboardType(.numberPad)
@@ -90,10 +90,10 @@ private struct BragContentView: View {
                 // index.html:857 #bragDaysNoteの1:1移植。
                 Spacer().frame(height: 4)
                 Text(streakCount > 0 ? "いまの記録から入れておきました（数字はすきにかえてOK）" : "まだ記録がなくてもだいじょうぶ すきな数字でためせます")
-                    .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
 
                 Spacer().frame(height: 14)
-                Text("すきな1本をさがす🎬").font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
+                Text("すきな1本をさがす🎬").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                 Spacer().frame(height: 6)
                 TextField("例: 肩甲骨／朝／開脚", text: $query)
                     .padding(.horizontal, 14).padding(.vertical, 10)
@@ -104,7 +104,7 @@ private struct BragContentView: View {
                     LazyVStack(alignment: .leading, spacing: 6) {
                         ForEach(hits, id: \.id) { v in
                             Text(v.t)
-                                .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                                .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(12)
                                 .background(RoundedRectangle(cornerRadius: 12).fill(colors.bg))
@@ -117,9 +117,9 @@ private struct BragContentView: View {
                 .frame(maxHeight: 240)
 
                 Spacer().frame(height: 8)
-                Text("えらんだ1本").font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
+                Text("えらんだ1本").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                 Text(picked.map { "選択中: \($0.t)" } ?? "まだえらんでいません 上の検索からどうぞ")
-                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
 
                 Spacer().frame(height: 16)
                 KyonoPrimaryButton("カードをつくる✨") {
@@ -133,7 +133,7 @@ private struct BragContentView: View {
                     cardImage = UIImage(data: png)
                 }
                 Spacer().frame(height: 8)
-                Text("えらんだ1本は カードにサムネイル画像で入ります").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                Text("えらんだ1本は カードにサムネイル画像で入ります").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
             }
         }
         .padding(16)

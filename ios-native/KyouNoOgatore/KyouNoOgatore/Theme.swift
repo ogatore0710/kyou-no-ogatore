@@ -96,8 +96,24 @@ extension EnvironmentValues {
     }
 }
 
+// TASK-C2-2026-07-27-text-size-accessibility.md: index.html:87 body.bigtext{zoom:1.18}の1:1移植。
+// Web版は既定でbigtext=true(2026-07-12本人フィードバック・対象ユーザー50-60代)。
+private struct KyonoBigTextKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
+extension EnvironmentValues {
+    var kyonoBigText: Bool {
+        get { self[KyonoBigTextKey.self] }
+        set { self[KyonoBigTextKey.self] = newValue }
+    }
+}
+
+let kyonoBigTextScale: CGFloat = 1.18
+
 struct KyonoTheme<Content: View>: View {
     let themeSetting: String
+    var bigText: Bool = true
     @ViewBuilder let content: () -> Content
     @Environment(\.colorScheme) private var systemColorScheme
     // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
@@ -113,6 +129,11 @@ struct KyonoTheme<Content: View>: View {
         // .onReceiveでのtick更新だけでresolveKyonoColors()の再評価(=現在時刻の再取得)が起きる。
         content()
             .environment(\.kyonoColors, resolveKyonoColors(themeSetting: themeSetting, systemColorScheme: systemColorScheme))
+            .environment(\.kyonoBigText, bigText)
+            // TASK-C2-2026-07-27-text-size-accessibility.md 項目3: アプリ側1.18倍+端末側Dynamic
+            // Typeが両方効くと極端に大きくなりうるため、OS側の拡大に上限を設ける(検収基準の
+            // 「アプリ大きめ+端末最大でもレイアウトが破綻しない」への対応)。
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
             .onReceive(ticker) { _ in tick += 1 }
     }
 }
@@ -141,6 +162,18 @@ enum KyonoFontWeight {
 }
 
 extension Font {
+    // TASK-C2-2026-07-27-text-size-accessibility.md 項目2: 固定サイズ版のFont.custom(_:size:)は
+    // Dynamic Type(端末の文字サイズ設定)に追従しないため、relativeTo:付きの版に変更する。
+    // サイズ→TextStyleの対応は「20以上→title2・15前後→body・12-13→caption」の妥当な範囲でよいと
+    // 指示されている(タスク文面どおり)。
+    private static func relativeStyle(for size: CGFloat) -> Font.TextStyle {
+        switch size {
+        case 20...: return .title2
+        case 14..<20: return .body
+        default: return .caption
+        }
+    }
+
     // CTFontManagerRegisterFontsForURLで登録した実ファイルのPostScript名はビルドごとに調べる手間があるため、
     // Bundle.main.url経由でCTFontDescriptorから直接名前を取得して使う(CardRenderer.swift CardFontsと同じ考え方)。
     static func kyono(_ weight: KyonoFontWeight, size: CGFloat) -> Font {
@@ -160,6 +193,26 @@ extension Font {
         }
         let ctFont = CTFontCreateWithFontDescriptor(descriptor, size, nil)
         let psName = CTFontCopyPostScriptName(ctFont) as String
-        return Font.custom(psName, size: size)
+        return Font.custom(psName, size: size, relativeTo: relativeStyle(for: size))
+    }
+}
+
+// TASK-C2-2026-07-27-text-size-accessibility.md 項目1: もじの大きさ(bigtext)設定を実際のフォント
+// サイズへ反映する。既存の`.font(.kyono(weight, size:))`呼び出し(200箇所超)を1つずつ書き換える
+// 代わりに、環境値`kyonoBigText`を読むViewModifierを新設し機械的に置換する
+// (`.font(.kyono(w, size: n))` → `.kyonoFont(w, size: n)`)。
+private struct KyonoFontModifier: ViewModifier {
+    @Environment(\.kyonoBigText) private var bigText
+    let weight: KyonoFontWeight
+    let size: CGFloat
+
+    func body(content: Content) -> some View {
+        content.font(.kyono(weight, size: bigText ? size * kyonoBigTextScale : size))
+    }
+}
+
+extension View {
+    func kyonoFont(_ weight: KyonoFontWeight, size: CGFloat) -> some View {
+        modifier(KyonoFontModifier(weight: weight, size: size))
     }
 }

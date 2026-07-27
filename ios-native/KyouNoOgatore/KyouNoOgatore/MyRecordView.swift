@@ -89,7 +89,7 @@ struct MyRecordView: View {
     }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             MyRecordContentView(
                 year: $year, month: $month, reachList: $reachList, reachMsg: $reachMsg,
                 calendarMsg: $calendarMsg, selectedDay: $selectedDay,
@@ -110,7 +110,7 @@ struct MyRecordView: View {
                     // cardMsExportNudgeの1:1移植(この日別カードもmakeCard(ds)共通のためWeb版と同様に対象)。
                     if dayCardResult.isMilestone {
                         Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
-                            .font(.kyono(.bold700, size: 13)).multilineTextAlignment(.center)
+                            .kyonoFont(.bold700, size: 13).multilineTextAlignment(.center)
                         KyonoGhostButton("記録のひかえを取る") {
                             self.dayCardResult = nil
                             onOpenSettings()
@@ -193,9 +193,9 @@ private struct MyRecordContentView: View {
                         (Text("次のお祝い「")
                             + Text(ms.t).foregroundColor(colors.pink).fontWeight(.black)
                             + Text("」は通算\(next)日目🌱 マイペースでどうぞ"))
-                            .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                            .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     } else {
-                        Text("全部の節目をたっせい！すごすぎます").font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                        Text("全部の節目をたっせい！すごすぎます").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     }
                     Spacer().frame(height: 8)
                     // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A):
@@ -212,19 +212,19 @@ private struct MyRecordContentView: View {
                     Spacer().frame(height: 14)
                     HStack(alignment: .lastTextBaseline, spacing: 20) {
                         HStack(alignment: .lastTextBaseline, spacing: 4) {
-                            Text("通算").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
-                            Text("\(streak.total)").font(.kyono(.black900, size: 22)).foregroundColor(colors.pink)
-                            Text("日").font(.kyono(.extraBold800, size: 13)).foregroundColor(colors.ink)
+                            Text("通算").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                            Text("\(streak.total)").kyonoFont(.black900, size: 22).foregroundColor(colors.pink)
+                            Text("日").kyonoFont(.extraBold800, size: 13).foregroundColor(colors.ink)
                         }
                         HStack(alignment: .lastTextBaseline, spacing: 4) {
-                            Text("いま連続").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
-                            Text("\(streak.count)").font(.kyono(.black900, size: 22)).foregroundColor(colors.teal)
-                            Text("日").font(.kyono(.extraBold800, size: 13)).foregroundColor(colors.ink)
+                            Text("いま連続").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                            Text("\(streak.count)").kyonoFont(.black900, size: 22).foregroundColor(colors.teal)
+                            Text("日").kyonoFont(.extraBold800, size: 13).foregroundColor(colors.ink)
                         }
                     }
                     Spacer().frame(height: 10)
                     Text("おやすみ券 のこり\(freezeLeft)枚\n休んだ日に自動でつかわれて連続がつながります")
-                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                 }
 
                 KyonoCard {
@@ -238,7 +238,7 @@ private struct MyRecordContentView: View {
                         // Text(verbatim:)必須: 素朴なText("\(year)年...")はLocalizedStringKeyの
                         // 数値補間経由でロケール依存の桁区切り(2,026年のような表記)が入ってしまうため
                         // (実機検証で発見)。
-                        Text(verbatim: "\(year)年\(month)月").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+                        Text(verbatim: "\(year)年\(month)月").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                         Spacer()
                         KyonoGhostButton("▶") { if month == 12 { month = 1; year += 1 } else { month += 1 } }
                             .frame(maxWidth: 60)
@@ -246,7 +246,7 @@ private struct MyRecordContentView: View {
                     Spacer().frame(height: 8)
                     HStack {
                         ForEach(["日", "月", "火", "水", "木", "金", "土"], id: \.self) { w in
-                            Text(w).font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
+                            Text(w).kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -258,24 +258,24 @@ private struct MyRecordContentView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             let mm = Int(ds.dropFirst(5).prefix(2)) ?? 0
                             let dd = Int(ds.dropFirst(8)) ?? 0
-                            Text(verbatim: "\(mm)/\(dd) にやった記録").font(.kyono(.black900, size: 14)).foregroundColor(colors.ink)
+                            Text(verbatim: "\(mm)/\(dd) にやった記録").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
                             let log = RecordLogic.loadDaylog(store)[ds]
                             let memo = RecordLogic.loadMemos(store)[ds]
                             if let log, !log.v.isEmpty {
                                 Text("▶ この日の動画をYouTubeでチェックする")
-                                    .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                                    .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                                     .onTapGesture {
                                         if let url = URL(string: "https://www.youtube.com/watch?v=\(log.v)") { UIApplication.shared.open(url) }
                                     }
                             }
                             if let memo, !memo.isEmpty {
-                                Text("✍️ \(memo)").font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                                Text("✍️ \(memo)").kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             }
                             if log == nil && (memo?.isEmpty ?? true) {
-                                Text("この日は「やった！」の印だけ残っています").font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                                Text("この日は「やった！」の印だけ残っています").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                             }
                             Text("🖼 この日の記録カードを見る")
-                                .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                                .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                                 .onTapGesture { onShowDayCard(ds) }
                         }
                         .padding(14)
@@ -291,15 +291,15 @@ private struct MyRecordContentView: View {
                 KyonoCard {
                     KyonoSectionHeader(icon: .dexBook, title: "カード図鑑", fill: colors.pinkSoft, accent: colors.pink)
                     Spacer().frame(height: 8)
-                    Text("これまで手に入れたカードを見返せます").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                    Text("これまで手に入れたカードを見返せます").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
                     KyonoGhostButton("図鑑をひらく", action: onOpenDex)
                 }
 
                 KyonoCard {
-                    Text("🎫 おやすみ券").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+                    Text("🎫 おやすみ券").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                     Spacer().frame(height: 6)
-                    Text(verbatim: "おやすみ券 のこり\(freezeLeft)枚").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                    Text(verbatim: "おやすみ券 のこり\(freezeLeft)枚").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     Spacer().frame(height: 8)
                     // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
                     GeometryReader { geo in
@@ -318,10 +318,10 @@ private struct MyRecordContentView: View {
                     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #reach):
                     // index.html:898-899 常時表示の説明文・注意書きの1:1移植。
                     Text("ひざを伸ばして前屈 手はどこまで届く？\n届いたところのボタンを押すと記録されます（週1回でOK）")
-                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
                     Text("いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ🏥）")
-                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     // index.html:900-902 assets/check/meter.jpg(前屈のお手本写真)の1:1移植。
                     Spacer().frame(height: 10)
                     KyonoCharaImage(name: "meter")
@@ -333,7 +333,7 @@ private struct MyRecordContentView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 10)
                     if reachList.isEmpty {
-                        Text("まだ記録なし！まずは1回はかってみましょう").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                        Text("まだ記録なし！まずは1回はかってみましょう").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         Spacer().frame(height: 8)
                     }
                     // index.html:504-506 .reach-row(5列グリッド)/.reach-btn/.reach-btn.on(teal-strong塗り)の1:1移植。
@@ -344,7 +344,7 @@ private struct MyRecordContentView: View {
                             // Web版の13px paddingのままだと44ptをわずかに割り込むため、見た目(padding値)は
                             // 変えずminHeightで下限だけ確保する。
                             Text(label)
-                                .font(.kyono(.black900, size: 14))
+                                .kyonoFont(.black900, size: 14)
                                 .foregroundColor(on ? .white : colors.sub)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .padding(.vertical, 13)
@@ -370,7 +370,7 @@ private struct MyRecordContentView: View {
                                 }
                         }
                     }
-                    if let reachMsg { Spacer().frame(height: 6); reachMsg.font(.kyono(.bold700, size: 15)).foregroundColor(colors.teal) }
+                    if let reachMsg { Spacer().frame(height: 6); reachMsg.kyonoFont(.bold700, size: 15).foregroundColor(colors.teal) }
                     // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md):
                     // app-record.js:245-264 renderReach()の1:1移植(いまの記録+自己ベスト/前回比コメント/
                     // 直近14回トレンド棒グラフ)。段位の記録・判定ロジック自体は変更せず、表示の追加のみ。
@@ -380,10 +380,10 @@ private struct MyRecordContentView: View {
                         (Text("いまの記録: ")
                             + Text(reachLv[latest.lv]).fontWeight(.black).foregroundColor(colors.ink)
                             + Text(verbatim: "（\(latest.d.dropFirst(5).replacingOccurrences(of: "-", with: "/"))）"))
-                            .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         Spacer().frame(height: 4)
                         (Text("自己ベスト: ") + Text(reachLv[best]).fontWeight(.black).foregroundColor(colors.teal))
-                            .font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         // 前回比(2回以上の記録があるときだけ・数字プレッシャーをかけない「段」表現)。
                         if reachList.count >= 2 {
                             let prev = reachList[reachList.count - 2]
@@ -392,13 +392,13 @@ private struct MyRecordContentView: View {
                             if diff > 0 {
                                 (Text("前回（\(reachLv[prev.lv])）より")
                                     + Text("\(diff)段とどくようになった！🎉").fontWeight(.black).foregroundColor(colors.pink))
-                                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             } else if diff == 0 {
                                 Text("前回とおなじ「\(reachLv[latest.lv])」 キープも立派です！")
-                                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             } else {
                                 Text("体は日によってちがうもの またコツコツいきましょう🌱")
-                                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             }
                         }
                         // index.html:508-509 .rbar(直近14回・各バーの高さ=段位×20%)の1:1移植。
@@ -419,7 +419,7 @@ private struct MyRecordContentView: View {
                 KyonoCard {
                     KyonoSectionHeader(icon: .star, title: "お楽しみ機能", fill: colors.yellowSoft)
                     Spacer().frame(height: 8)
-                    Text("じまんカードやせんぱいの声をチェック").font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                    Text("じまんカードやせんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
                     KyonoGhostButton("🎉 じまんカード", action: onOpenBrag)
                     Spacer().frame(height: 8)
@@ -444,7 +444,7 @@ private struct MyRecordContentView: View {
                         calendarMsg = ok ? "カレンダーに追加しました" : "カレンダーへの追加が許可されませんでした"
                     }
                 }
-                if let calendarMsg { Text(calendarMsg).font(.kyono(.bold700, size: 15)).foregroundColor(colors.pink) }
+                if let calendarMsg { Text(calendarMsg).kyonoFont(.bold700, size: 15).foregroundColor(colors.pink) }
             }
             .padding(20)
         }
@@ -469,7 +469,7 @@ private struct MyRecordContentView: View {
                                 // index.html:406-409,413 .cal .d/.d.done(teal-strong塗り)/.d.today(pink枠)/.d.mute
                                 // index.html:319 done日のみonclick="showDay(ds)"でタップ可能(未記録日はタップ不可)。
                                 Text(verbatim: "\(day)")
-                                    .font(.kyono(.bold700, size: 15))
+                                    .kyonoFont(.bold700, size: 15)
                                     .frame(maxWidth: .infinity, minHeight: 32)
                                     .foregroundStyle(isDone ? .white : (isFuture ? Color(hex: 0xD5CFBE) : colors.ink))
                                     .background(isDone ? colors.tealStrong : Color.clear)

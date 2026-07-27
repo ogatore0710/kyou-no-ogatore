@@ -115,7 +115,7 @@ struct SettingsView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             content
         }
     }
@@ -137,9 +137,9 @@ struct SettingsView: View {
                     HStack(alignment: .lastTextBaseline, spacing: 8) {
                         (Text("やるタイミング: ")
                             + Text(settingsAnchors.first { $0.key == anchor }?.label ?? "未設定").fontWeight(.black))
-                            .font(.kyono(.bold700, size: 15)).foregroundColor(.primary)
+                            .kyonoFont(.bold700, size: 15).foregroundColor(.primary)
                         Text("変える")
-                            .font(.kyono(.black900, size: 14)).foregroundColor(Color(hex: 0x177065))
+                            .kyonoFont(.black900, size: 14).foregroundColor(Color(hex: 0x177065))
                             .onTapGesture { showAnchorPicker.toggle() }
                     }
                     if showAnchorPicker {
@@ -165,7 +165,7 @@ struct SettingsView: View {
                     // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:807の1:1移植。
                     Spacer().frame(height: 6)
                     Text("「じどう」は夜（19時〜朝5時）やスマホがダーク設定のとき暗くなります")
-                        .font(.kyono(.bold700, size: 12)).foregroundColor(.secondary)
+                        .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
 
                     Spacer().frame(height: 12)
                     KyonoBodyText("もじの大きさ")
@@ -195,13 +195,13 @@ struct SettingsView: View {
                     Spacer().frame(height: 8)
                     KyonoLineButton("📅 Googleカレンダーに入れる") { openGoogleCalendar(hour: icsHour, minute: icsMinute) }
                     Spacer().frame(height: 6)
-                    Text("スマホのカレンダーが毎日その時間に知らせてくれます").font(.kyono(.bold700, size: 12))
+                    Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
                     if let icsMessage {
-                        Text(icsMessage).font(.kyono(.bold700, size: 12)).foregroundColor(Color(hex: 0xE56A9A))
+                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(Color(hex: 0xE56A9A))
                     }
 
                     Spacer().frame(height: 20)
-                    Text("📦 記録のひっこし").font(.kyono(.black900, size: 16))
+                    Text("📦 記録のひっこし").kyonoFont(.black900, size: 16)
                     Spacer().frame(height: 10)
                     KyonoLineButton("📦 記録をコピーする") {
                         let str = KyonoTransfer.buildExportString(store)
@@ -210,12 +210,12 @@ struct SettingsView: View {
                     }
                     if let exportText {
                         Spacer().frame(height: 8)
-                        Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:").font(.kyono(.bold700, size: 12))
+                        Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:").kyonoFont(.bold700, size: 12)
                         TextEditor(text: .constant(exportText)).frame(height: 120).border(Color.gray.opacity(0.3))
                     }
 
                     Spacer().frame(height: 16)
-                    Text("よみこみ").font(.kyono(.black900, size: 16))
+                    Text("よみこみ").kyonoFont(.black900, size: 16)
                     Spacer().frame(height: 8)
                     // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:839,2067-2074
                     // importFromClipboard()の1:1移植。高齢者・デジタル機器が苦手な方向けに、長押しコピー→
@@ -231,14 +231,14 @@ struct SettingsView: View {
                         }
                     }
                     Spacer().frame(height: 6)
-                    Text("うまくいかないときは 下のわくに手で貼り付けてね").font(.kyono(.bold700, size: 12)).foregroundColor(.secondary)
+                    Text("うまくいかないときは 下のわくに手で貼り付けてね").kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
                     Spacer().frame(height: 8)
                     TextField("KYONO1:... をここに貼りつけ", text: $importInput).textFieldStyle(.roundedBorder)
                     Spacer().frame(height: 8)
                     KyonoLineButton("📥 よみこむ") { confirmImport = true }
                     if let importMessage {
                         Spacer().frame(height: 8)
-                        Text(importMessage).font(.kyono(.bold700, size: 15))
+                        Text(importMessage).kyonoFont(.bold700, size: 15)
                     }
                 }
             }

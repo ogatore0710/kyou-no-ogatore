@@ -863,7 +863,9 @@ const val OB_TOUR_CLOSING_TITLE = "🌱 これで準備ばっちり！"
 fun TourScreen(showClosing: Boolean, onDone: () -> Unit) {
     var si by remember { mutableStateOf(0) }
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
-    KyonoTheme("auto", bigText = store.get("bigtext", true)) {
+    // TourScreenはRecordStoreを受け取らない設計(上記コメント参照)のため、bigtextは既定値(true)を
+    // そのまま使う(themeSetting="auto"を既に個人設定に依らず固定しているのと同じ判断)。
+    KyonoTheme("auto", bigText = true) {
         val colors = LocalKyonoColors.current
         Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
             if (si < OB_TOUR_SLIDES.size) {

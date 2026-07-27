@@ -260,7 +260,7 @@ struct SoudanSheetView: View {
     // Phase 3: index.html:459-489 .sd-sheet/.sd-head/.sd-b/.chip/.catbtnの1:1移植。見た目の変更のみで、
     // 上の判定・状態管理ロジック(applyResponse/chipTap/sendText等)には一切手を入れていない。
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             content
         }
     }
@@ -319,7 +319,7 @@ private struct SoudanContentView: View {
                 KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
                 Spacer()
                 Button(action: onClose) {
-                    Text("✕").font(.kyono(.black900, size: 18)).foregroundColor(colors.ink)
+                    Text("✕").kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
                         .frame(width: 40, height: 40)
                         .background(Circle().fill(colors.line))
                 }
@@ -329,8 +329,8 @@ private struct SoudanContentView: View {
             .background(colors.card)
             // index.html:1223 .sd-disc(2行・2行目後半は太字強調)
             (Text("※回答はオガトレ監修のパターン集から選んでいます\n※目安をつかむ相談室です ")
-                .font(.kyono(.bold700, size: 13))
-                + Text("強い痛み・しびれがあるときは医療機関へ").font(.kyono(.black900, size: 13)))
+                .kyonoFont(.bold700, size: 13)
+                + Text("強い痛み・しびれがあるときは医療機関へ").kyonoFont(.black900, size: 13))
                 .foregroundColor(colors.sub).multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16).padding(.vertical, 6)
@@ -356,7 +356,7 @@ private struct SoudanContentView: View {
         case let .user(text):
             HStack {
                 Spacer()
-                Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomLeft]).fill(colors.yellowSoft))
             }
@@ -368,11 +368,11 @@ private struct SoudanContentView: View {
             HStack(alignment: .bottom) {
                 KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 6) {
-                    if !text.isEmpty { Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink) }
+                    if !text.isEmpty { Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink) }
                     // index.html:3330 sdAnswerFallback1通目の末尾<span>(小さめ注意書き)の1:1移植。
                     if fallbackCaution {
                         Text("※つらい症状（強い痛み・胸の苦しさ・熱など）があるときは、メールより先に医療機関に相談してね")
-                            .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     }
                     if let videoId {
                         KyonoGhostButton("▶ 動画を見る") { openUrl("https://www.youtube.com/watch?v=\(videoId)") }
@@ -420,7 +420,7 @@ private struct SoudanContentView: View {
                     Text(replacing
                         ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"
                         : "きょうの1本が、あなたの\(label)プランになるよ！2週間いっしょにやってみる？")
-                        .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                        .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     KyonoPrimaryButton(replacing ? "入れ替えてはじめる！" : "はじめる！") { onPlanStart(intentId) }
                     KyonoGhostButton("まずは1本だけ") { onPlanDecline() }
                 }
@@ -547,7 +547,7 @@ private struct FallbackLinksView: View {
                 openMailTo(to: sdMail, subject: subject, body: body)
             }
             Text(copied ? "コピーしました✅" : "📋 メールがひらかない方はアドレスをコピー")
-                .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                 .onTapGesture {
                     UIPasteboard.general.string = sdMail
                     copied = true
@@ -557,7 +557,7 @@ private struct FallbackLinksView: View {
                     }
                 }
             Text("🔍 動画を探すタブでさがしてみる")
-                .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                 .onTapGesture { onOpenSearch() }
         }
     }
@@ -570,7 +570,7 @@ private struct KyonoChip: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(label).font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+            Text(label).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                 .padding(.horizontal, 16).padding(.vertical, 10)
                 .overlay(Capsule().stroke(colors.line, lineWidth: 2))
                 .background(Capsule().fill(colors.card))
@@ -587,7 +587,7 @@ private struct KyonoCatButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(label).font(.kyono(.black900, size: 14)).foregroundColor(selected ? Color(hex: 0x3A3A35) : colors.sub)
+            Text(label).kyonoFont(.black900, size: 14).foregroundColor(selected ? Color(hex: 0x3A3A35) : colors.sub)
                 .padding(.horizontal, 13).padding(.vertical, 10)
                 .background(RoundedRectangle(cornerRadius: 12).fill(selected ? colors.yellow : colors.line))
         }
@@ -647,10 +647,10 @@ struct PlanProgressCardView: View {
                 KyonoCard {
                     HStack(alignment: .firstTextBaseline) {
                         Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")
-                            .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                            .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer()
                         Text("やめる")
-                            .font(.kyono(.black900, size: 13)).foregroundColor(colors.sub)
+                            .kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                             .underline()
                             .onTapGesture {
                                 store.set("plan", nil as SdPlanData?)
@@ -714,8 +714,8 @@ struct PlanDoneCardView: View {
                 KyonoCharaImage(name: "chara-congrats").frame(width: 84, height: 84)
                     .frame(maxWidth: .infinity, alignment: .center)
                 Spacer().frame(height: 8)
-                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pink).font(.kyono(.black900, size: 15))
-                    + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
+                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pink).kyonoFont(.black900, size: 15)
+                    + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").kyonoFont(.bold700, size: 15))
                     .foregroundColor(colors.ink)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, alignment: .center)

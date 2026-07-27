@@ -196,7 +196,7 @@ struct OnboardingView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             OnboardingContentView(
                 bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
                 onChipTap: { chip in
@@ -226,7 +226,7 @@ private struct OnboardingContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("🌱 はじめてガイド").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+                Text("🌱 はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 // index.html:478-483 .sd-row/.sd-b(相談室と共用の吹き出しCSSをオンボでも流用)の1:1移植。
                 // border-bottom-right-radius:6px(user)/border-bottom-left-radius:6px(bot)をUnevenRoundedRectangleで再現。
                 ForEach(bubbles) { b in
@@ -239,7 +239,7 @@ private struct OnboardingContentView: View {
                             topLeadingRadius: 16, bottomLeadingRadius: b.fromUser ? 16 : 6,
                             bottomTrailingRadius: b.fromUser ? 6 : 16, topTrailingRadius: 16
                         )
-                        Text(b.text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink).lineSpacing(11)
+                        Text(b.text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(11)
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(shape.fill(b.fromUser ? colors.yellowSoft : colors.card))
                             .overlay(shape.stroke(b.fromUser ? Color.clear : colors.line, lineWidth: 1.5))
@@ -247,11 +247,11 @@ private struct OnboardingContentView: View {
                     }
                 }
                 if let q = activeQuestion {
-                    Text("👇 タップしてえらんでね").font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                    Text("👇 タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     let palette = obgColors(dark: dark)
                     ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
                         let c = palette[i % 4]
-                        Text(chip.label).font(.kyono(.bold700, size: 16)).foregroundColor(colors.ink)
+                        Text(chip.label).kyonoFont(.bold700, size: 16).foregroundColor(colors.ink)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 18).padding(.vertical, 14)
                             .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
@@ -480,7 +480,7 @@ private func boldHtmlText(_ raw: String, bold: Color) -> Text {
         result = result + Text(rest[rest.startIndex..<startRange.lowerBound])
         let afterOpen = String(rest[startRange.upperBound...])
         guard let endRange = afterOpen.range(of: "</b>") else { result = result + Text(afterOpen); break }
-        result = result + Text(afterOpen[afterOpen.startIndex..<endRange.lowerBound]).font(.kyono(.black900, size: 14)).foregroundColor(bold)
+        result = result + Text(afterOpen[afterOpen.startIndex..<endRange.lowerBound]).kyonoFont(.black900, size: 14).foregroundColor(bold)
         rest = String(afterOpen[endRange.upperBound...])
     }
     return result
@@ -525,7 +525,7 @@ struct QuizView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             QuizContentView(
                 activeQuestions: activeQuestions, qi: qi,
                 onOptTap: { q, opt in
@@ -573,28 +573,28 @@ private struct QuizContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                Text("かたさチェック").font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
-                Text("Q\(qi + 1) / \(activeQuestions.count)").font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
+                Text("かたさチェック").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                Text("Q\(qi + 1) / \(activeQuestions.count)").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                 if qi < activeQuestions.count {
                     let q = activeQuestions[qi]
                     Spacer().frame(height: 4)
-                    Text(q.title).font(.kyono(.black900, size: 18)).foregroundColor(colors.ink)
-                    Text(q.note).font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                    Text(q.title).kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
+                    Text(q.note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     if let artResName = q.artResName {
                         Image(artResName).resizable().scaledToFit()
                             .background(colors.bg).cornerRadius(16)
                     }
                     // 全画面完全性監査タスク #quiz: index.html:717 .tap-hint(タップ誘導文言)の1:1移植。
                     Spacer().frame(height: 6)
-                    Text("👇 タップしてえらんでね").font(.kyono(.black900, size: 13)).foregroundColor(colors.ink)
+                    Text("👇 タップしてえらんでね").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
                     Spacer().frame(height: 4)
                     // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
                     let palette = obgColors(dark: dark)
                     ForEach(Array(q.opts.enumerated()), id: \.offset) { i, opt in
                         let c = palette[i % 4]
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(opt.label).font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
-                            Text(opt.note).font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            Text(opt.label).kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                            Text(opt.note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16).padding(.vertical, 14)
@@ -712,19 +712,19 @@ private struct ResultContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 KyonoGradientCard(gradient: .soft) {
-                    Text("あなたのかたさタイプは…").font(.kyono(.black900, size: 14)).foregroundColor(colors.sub)
+                    Text("あなたのかたさタイプは…").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 10)
                     // index.html:317-318,729 .type-illust(104x104・中央寄せ)の1:1移植。
                     KyonoTypeArt(typeKey: typeKey).frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 4)
-                    Text(info.name).font(.kyono(.black900, size: 29)).foregroundColor(colors.ink)
+                    Text(info.name).kyonoFont(.black900, size: 29).foregroundColor(colors.ink)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 8)
-                    Text(info.copy).font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+                    Text(info.copy).kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 12)
-                    Text("🌱 " + info.hope).font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                    Text("🌱 " + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                         .padding(14)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(colors.yellowSoft)
@@ -732,15 +732,15 @@ private struct ResultContentView: View {
                     // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
                     Spacer().frame(height: 12)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("🩺 理学療法士のひとくち解説").font(.kyono(.black900, size: 13)).foregroundColor(colors.ink)
+                        Text("🩺 理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
                         boldHtmlText(info.pt, bold: colors.ink)
-                            .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     }
                     // 全画面完全性監査タスク #result: index.html:734 #rReachNote(Q1自動転記の一言)の1:1移植。
                     if let lv = autoReachLv {
                         Spacer().frame(height: 8)
                         Text("📏 いまの前屈「\(reachLv[lv])」を とどくメーターにも記録したよ")
-                            .font(.kyono(.black900, size: 13)).foregroundColor(colors.tealInk)
+                            .kyonoFont(.black900, size: 13).foregroundColor(colors.tealInk)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -751,16 +751,16 @@ private struct ResultContentView: View {
                     // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
                     KyonoCard {
                         Text("きょうはこの1本だけでOK！")
-                            .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                            .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         // app-quiz.js:316-320 sd-row.oga相当の練習宣言吹き出し(相談室botバブルと同じ見た目)。
                         HStack(alignment: .bottom, spacing: 8) {
                             KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("ここからは練習だよ🏫 ①を試しにタップ→YouTubeがひらいたら すぐ戻ってきてね（ぜんぶ見るのは あとでゆっくりでOK）")
-                                    .font(.kyono(.bold700, size: 15)).foregroundColor(colors.ink)
+                                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                                 Text("🔙 見おわったら 画面ひだり上に出る「◀」か YouTubeをとじると この画面にもどれるよ")
-                                    .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             }
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
@@ -775,7 +775,7 @@ private struct ResultContentView: View {
                         }
                         Spacer().frame(height: 6)
                         Text("あと2本とくわしい解説は あしたから見られるよ🌱")
-                            .font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 } else {
@@ -783,7 +783,7 @@ private struct ResultContentView: View {
                     // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
                     KyonoCard {
                         Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
-                            .font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                            .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
                         ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
@@ -806,23 +806,23 @@ private struct ResultContentView: View {
                         // index.html:740 #rRotateNoteの1:1移植。
                         Spacer().frame(height: 4)
                         Text("おすすめは3日ごとに自動で入れ替わります")
-                            .font(.kyono(.bold700, size: 12)).foregroundColor(colors.subFaint)
+                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.subFaint)
                     }
                 }
                 // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
                 KyonoCard {
-                    Text("🩺 ペースの目安").font(.kyono(.black900, size: 14)).foregroundColor(colors.ink)
+                    Text("🩺 ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
                     Spacer().frame(height: 6)
                     Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
-                        .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     Spacer().frame(height: 8)
                     Text("※効果には個人差があります 痛みが強いときは中止して医療機関へ")
-                        .font(.kyono(.bold700, size: 12)).foregroundColor(colors.subFaint)
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.subFaint)
                     // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
                     if let intentId = soudanTypeIntent[typeKey] {
                         Spacer().frame(height: 10)
                         Text("💬 この悩み、相談室で聞いてみる")
-                            .font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
+                            .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .onTapGesture { onOpenSoudan(intentId) }
                     }
@@ -832,7 +832,7 @@ private struct ResultContentView: View {
                 // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
                 if showDoneNudge {
                     KyonoCard {
-                        Text("おかえりなさい！✨ ストレッチできた？").font(.kyono(.black900, size: 15)).foregroundColor(colors.ink)
+                        Text("おかえりなさい！✨ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         KyonoPrimaryButton(fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく", action: onDone)
                     }
@@ -903,10 +903,10 @@ private struct TourContentView: View {
             VStack(alignment: .leading, spacing: 10) {
                 if si < obTourSlides.count {
                     let slide = obTourSlides[si]
-                    Text(slide.title).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
+                    Text(slide.title).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
                     // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
                     KyonoTourMockup(slideIndex: si)
-                    Text(slide.desc).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(11)
+                    Text(slide.desc).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(11)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
@@ -914,7 +914,7 @@ private struct TourContentView: View {
                     // index.html:4276 OB_TOUR_CLOSING(chara-congrats.png 110x110・中央表示)の1:1移植。
                     VStack(spacing: 8) {
                         KyonoCharaImage(name: "chara-congrats").frame(width: 110, height: 110)
-                        Text(obTourClosingTitle).font(.kyono(.black900, size: 17)).foregroundColor(colors.ink)
+                        Text(obTourClosingTitle).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
                     }
                     .frame(maxWidth: .infinity)
                 }

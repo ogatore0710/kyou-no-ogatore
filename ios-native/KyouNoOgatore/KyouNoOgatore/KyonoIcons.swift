@@ -27,7 +27,7 @@ struct KyonoSectionHeader: View {
     var body: some View {
         HStack(spacing: 8) {
             KyonoIconGlyph(icon: icon, fill: fill, accent: accent).frame(width: 24, height: 24)
-            Text(title).font(.kyono(.black900, size: 16)).foregroundColor(colors.ink)
+            Text(title).kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
         }
     }
 }

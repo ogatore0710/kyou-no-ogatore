@@ -32,7 +32,7 @@ struct VoicesView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             VoicesContentView(todays: todays, openIndices: $openIndices, onBack: onBack, openUrl: openUrl)
         }
     }
@@ -52,10 +52,10 @@ private struct VoicesContentView: View {
                 KyonoSectionHeader(icon: .envelope, title: "せんぱいの声", fill: colors.pinkSoft)
                 Spacer().frame(height: 8)
                 Text("まえを歩くせんぱいたちの ほんとうの声です🌱\nカードをタップするとめくれます")
-                    .font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink)
+                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                 Spacer().frame(height: 4)
                 Text("※YouTubeコメントの原文のまま（お名前は出ません）\n※個人の感想です 症状があるときは医療機関へ")
-                    .font(.kyono(.bold700, size: 12)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             }
             ScrollView {
                 LazyVStack(spacing: 10) {
@@ -82,7 +82,7 @@ private struct VoiceTag: View {
     @Environment(\.kyonoColors) private var colors
     let text: String
     var body: some View {
-        Text(text).font(.kyono(.black900, size: 11)).foregroundColor(colors.tealInk)
+        Text(text).kyonoFont(.black900, size: 11).foregroundColor(colors.tealInk)
             .padding(.horizontal, 8).padding(.vertical, 2)
             .background(Capsule().fill(colors.tealSoft))
     }
@@ -128,8 +128,8 @@ private struct VoiceCardView: View {
         KyonoGradientCard(gradient: .warm) {
             VStack(spacing: 6) {
                 VoiceTag(text: voice.tag)
-                Text(voice.front).font(.kyono(.black900, size: 18)).foregroundColor(colors.ink).multilineTextAlignment(.center)
-                Text("タップでめくる").font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
+                Text(voice.front).kyonoFont(.black900, size: 18).foregroundColor(colors.ink).multilineTextAlignment(.center)
+                Text("タップでめくる").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
             }
             .frame(maxWidth: .infinity)
         }
@@ -139,9 +139,9 @@ private struct VoiceCardView: View {
     private var backView: some View {
         VStack(alignment: .leading, spacing: 8) {
             VoiceTag(text: voice.tag)
-            Text(voice.q).font(.kyono(.bold700, size: 14)).foregroundColor(colors.ink).lineSpacing(6)
+            Text(voice.q).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(6)
             Text("— せんぱいの声（\(voice.src)）")
-                .font(.kyono(.black900, size: 12)).foregroundColor(colors.sub)
+                .kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             KyonoGhostButton("せんぱいとおなじ1本をみる ▶") { openUrl("https://www.youtube.com/watch?v=\(voice.vid)") }
         }

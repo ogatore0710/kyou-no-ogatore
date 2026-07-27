@@ -46,7 +46,7 @@ struct DexView: View {
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
-        KyonoTheme(themeSetting: themeSetting) {
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             DexContentView(status: status, all: all, onBack: onBack)
         }
     }
@@ -63,7 +63,7 @@ private struct DexContentView: View {
             VStack(alignment: .leading, spacing: 4) {
                 KyonoLineButton("◀ もどる", action: onBack)
                 KyonoSectionHeader(icon: .dexBook, title: "図鑑", fill: colors.tealSoft)
-                Text("\(all.filter { $0.got }.count)/\(all.count)個 あつめました").font(.kyono(.bold700, size: 13)).foregroundColor(colors.sub)
+                Text("\(all.filter { $0.got }.count)/\(all.count)個 あつめました").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                 DexSectionView(title: "記念日カード", items: status.toku)
                 DexSectionView(title: "季節のカード", items: status.season)
                 DexSectionView(title: "レアカード", items: status.rare)
@@ -83,11 +83,11 @@ private struct DexSectionView: View {
     var body: some View {
         KyonoCard {
             HStack {
-                Text(title).font(.kyono(.black900, size: 14)).foregroundColor(colors.ink)
+                Text(title).kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
                 Spacer()
                 // index.html:233 .dex-seccount(bg丸ピル)
                 Text("\(items.filter { $0.got }.count)/\(items.count)")
-                    .font(.kyono(.bold700, size: 11)).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 11).foregroundColor(colors.sub)
                     .padding(.horizontal, 10).padding(.vertical, 2)
                     .background(Capsule().fill(colors.bg))
             }
@@ -114,7 +114,7 @@ private struct DexCellView: View {
                     if item.got, let nc = CardDataLoader.shared.NORMAL_CARDS.first(where: { $0.name == item.name }) {
                         Circle().fill(Color(hex: nc.main)).frame(width: 24, height: 24)
                     } else {
-                        Text("？").font(.kyono(.black900, size: 22)).foregroundColor(colors.sub)
+                        Text("？").kyonoFont(.black900, size: 22).foregroundColor(colors.sub)
                     }
                 } else if let key = item.key, let uiImage = loadCardArt(key) {
                     Image(uiImage: uiImage)
@@ -126,10 +126,10 @@ private struct DexCellView: View {
             }
             .aspectRatio(1, contentMode: .fit)
             // index.html:241 .dex-name
-            Text(item.got ? item.name : "？？？").font(.kyono(.black900, size: 11)).foregroundColor(colors.ink).multilineTextAlignment(.center)
+            Text(item.got ? item.name : "？？？").kyonoFont(.black900, size: 11).foregroundColor(colors.ink).multilineTextAlignment(.center)
             let sub = item.got ? item.flavor : item.hint
             if !sub.isEmpty {
-                Text(sub).font(.kyono(.bold700, size: 10)).foregroundColor(colors.sub).multilineTextAlignment(.center)
+                Text(sub).kyonoFont(.bold700, size: 10).foregroundColor(colors.sub).multilineTextAlignment(.center)
             }
         }
     }

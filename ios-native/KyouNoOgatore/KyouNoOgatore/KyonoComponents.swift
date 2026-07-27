@@ -34,7 +34,7 @@ struct FdBobText: View {
 
     var body: some View {
         Text(text)
-            .font(.kyono(.black900, size: 15)).foregroundColor(colors.pink)
+            .kyonoFont(.black900, size: 15).foregroundColor(colors.pink)
             .frame(maxWidth: .infinity, alignment: .center)
             .offset(y: bob ? 5 : 0)
             .onAppear {
@@ -95,7 +95,7 @@ struct KyonoSectionTitle: View {
     let size: CGFloat
     init(_ text: String, size: CGFloat = 16) { self.text = text; self.size = size }
     var body: some View {
-        Text(text).font(.kyono(.black900, size: size)).foregroundColor(colors.ink)
+        Text(text).kyonoFont(.black900, size: size).foregroundColor(colors.ink)
     }
 }
 
@@ -104,7 +104,7 @@ struct KyonoBodyText: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text).font(.kyono(.bold700, size: 15)).foregroundColor(colors.sub)
+        Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
     }
 }
 
@@ -115,7 +115,7 @@ struct KyonoStreakText: View {
     init(_ total: Int, streakCount: Int) { self.total = total; self.streakCount = streakCount }
     var body: some View {
         Text("通算 \(total) 日" + (streakCount >= 2 ? "・いま\(streakCount)日連続" : ""))
-            .font(.kyono(.black900, size: 20))
+            .kyonoFont(.black900, size: 20)
             .foregroundColor(colors.pink)
     }
 }
@@ -144,13 +144,13 @@ struct KyonoPrimaryButton: View {
         let faceOffset: CGFloat = pressed ? 3 : 0
         let alpha: Double = enabled ? 1 : 0.5
         ZStack {
-            Text(text).font(.kyono(.black900, size: 20)).foregroundColor(.clear)
+            Text(text).kyonoFont(.black900, size: 20).foregroundColor(.clear)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
                 .background(colors.btnPrimaryShadow.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius)
                 .offset(y: shadowOffset)
-            Text(text).font(.kyono(.black900, size: 20)).foregroundColor(colors.ink)
+            Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.ink)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
                 .background(colors.yellow.opacity(alpha))
@@ -180,7 +180,7 @@ struct KyonoGhostButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(text).font(.kyono(.black900, size: 15)).foregroundColor(colors.tealInk)
+            Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
                 .background(colors.tealSoft)
@@ -202,7 +202,7 @@ struct KyonoGhostNavigationLink<Destination: View>: View {
 
     var body: some View {
         NavigationLink { destination() } label: {
-            Text(text).font(.kyono(.black900, size: 15)).foregroundColor(colors.tealInk)
+            Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
                 .background(colors.tealSoft)
@@ -231,7 +231,7 @@ struct KyonoLineButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(text).font(.kyono(.extraBold800, size: 15)).foregroundColor(colors.sub2)
+            Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
                 .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2))
@@ -256,7 +256,7 @@ struct KyonoSegmentedControl<T: Equatable>: View {
                 let (value, label) = options[i]
                 let on = value == selected
                 Button(action: { onSelect(value) }) {
-                    Text(label).font(.kyono(.black900, size: 15)).foregroundColor(on ? colors.ink : colors.sub)
+                    Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 13)
                         .background(on ? colors.card : Color.clear)
