@@ -317,25 +317,81 @@ func openMailTo(to: String, subject: String, body: String) {
     }
 }
 
-// 「再生リスト」= catalog.jsonの動画一覧をカテゴリ絞り込みなしで年降順にブラウズできる画面
-// (スコープ解釈はファイル冒頭コメント参照)。
+// index.html:328-336相当のサムネイル枠。thumbが"assets/pl-*.jpg"のときはネイティブに同梱した
+// ローカル画像(PlaylistArt/pl-*.jpg)を、https://のときはKyonoAsyncImageで都度取得する
+// (TASK-C2-2026-07-28: index.html:3498-3521 PLAYLISTSはグループによって同梱ローカル画像と
+// 既存i.ytimg.comサムネURLが混在しているため、両対応にする。KyonoCharaImageと同じ
+// PBXFileSystemSynchronizedRootGroup前提でsubdirectory指定なしで探す)。
+private struct PlaylistThumb: View {
+    let thumb: String?
+
+    var body: some View {
+        if let thumb {
+            if thumb.hasPrefix("http") {
+                KyonoAsyncImage(url: thumb)
+            } else if let name = thumb.split(separator: "/").last.map({ String($0.dropLast(4)) }),
+                      let url = Bundle.main.url(forResource: name, withExtension: "jpg"),
+                      let uiImage = UIImage(contentsOfFile: url.path) {
+                Image(uiImage: uiImage).resizable().aspectRatio(contentMode: .fill)
+            }
+        }
+    }
+}
+
+// index.html:3517 renderPlaylists()の1:1移植。プレイリスト1件=角丸サムネ+タイトル+説明、
+// タップでYouTubeプレイリストを開く(タブでの動画個別再生と違い、連続再生キューがそのまま続く)。
+private struct PlaylistRow: View {
+    @Environment(\.kyonoColors) private var colors
+    let item: PlaylistItem
+    let openUrl: (String) -> Void
+
+    var body: some View {
+        Button {
+            openUrl("https://www.youtube.com/playlist?list=\(item.id)")
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12).fill(colors.line)
+                    PlaylistThumb(thumb: item.thumb).clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .frame(width: 112, height: 112 * 9 / 16)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.title).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(2)
+                    Text(item.desc).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub).lineLimit(1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+        .accessibilityElement(children: .combine)
+        .buttonStyle(.plain)
+    }
+}
+
+// 「再生リスト」タブ本体。TASK-C2-2026-07-28-search-playlists-and-fullwidth-space.md §1の判断:
+// index.html:3498-3521 PLAYLISTS(手動キュレーション16本・3グループ)を主役として上に置き、
+// 「全部の動画を見たい」需要向けの平坦一覧(catalog.json 454本)は残しつつ下に従える。
 struct CatalogListView: View {
     let store: RecordStore
     let openUrl: (String) -> Void
     let onBack: () -> Void
 
+    private let playlistGroups = PlaylistLoader.shared
     private let catalog = CatalogLoader.shared.sorted { a, b in a.y != b.y ? a.y > b.y : a.t < b.t }
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
-            CatalogListContentView(catalog: catalog, onBack: onBack, openUrl: openUrl)
+            CatalogListContentView(playlistGroups: playlistGroups, catalog: catalog, onBack: onBack, openUrl: openUrl)
         }
     }
 }
 
 private struct CatalogListContentView: View {
     @Environment(\.kyonoColors) private var colors
+    let playlistGroups: [PlaylistGroup]
     let catalog: [CatalogVideo]
     let onBack: () -> Void
     let openUrl: (String) -> Void
@@ -343,9 +399,15 @@ private struct CatalogListContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("再生リスト").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
-            Text("\(catalog.count)本の動画").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
+                    ForEach(playlistGroups, id: \.group) { gr in
+                        Text(gr.group).kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                            .padding(.top, 10).padding(.bottom, 4)
+                        ForEach(gr.items, id: \.id) { p in PlaylistRow(item: p, openUrl: openUrl) }
+                    }
+                    Text("\(catalog.count)本の動画すべてから探す").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                        .padding(.top, 18).padding(.bottom, 4)
                     ForEach(catalog, id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
                     // index.html:941 .hint(固定表示にするとFAB2段(右下)と重なるバグの再発になる=
                     // とどくメーターの5番目ボタンで既発見済みの教訓と同種のため、リスト末尾項目にする)

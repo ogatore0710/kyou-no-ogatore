@@ -2,13 +2,19 @@
 
 package jp.ogatore.kyouno
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -601,6 +607,18 @@ fun HomeScreen(
     // (fd-cardpopのカードサンプルポップイン)の1:1移植。節目(ms)がある場合はそちらを優先する
     // Web版と同じ構造(実際にはtotal===1でmsが同時に成立することは無いための保険)。
     var fdCelebrationVisible by remember { mutableStateOf(false) }
+    // TASK-C2-2026-07-27-local-notifications.md §4: 1日目クリアの場面(fdCelebrationVisible発火と
+    // 同条件)で初めて通知の許可を提案する(まだ有効化していないときだけ)。iOS版HomeView.swift
+    // showNotifPromptと同一設計・同一文言。起動直後・オンボ中には出さない(この分岐自体が
+    // 1日目クリア後にしか到達しないため自然に満たされる)。
+    var showNotifPrompt by remember { mutableStateOf(false) }
+    val notifPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            store.set("notif_enabled", true)
+            DailyNotifications.scheduleNext(context)
+        }
+        showNotifPrompt = false
+    }
 
     // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足: rDoneNudgeBtn(結果画面)
     // 経由でHomeへ来たときも、通常の動画復帰と同じくshowDoneNudgeを立てる(pulse+中央寄せの両方が
@@ -886,6 +904,10 @@ fun HomeScreen(
                             if (wasGuide && ms == null) {
                                 fdCelebrationVisible = true
                                 cheerText = null
+                                // 1日目クリアの場面で通知の許可を提案する(まだ有効化していないときだけ)。
+                                if (!store.get("notif_enabled", false)) {
+                                    showNotifPrompt = true
+                                }
                             } else {
                                 fdCelebrationVisible = false
                                 cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
@@ -935,6 +957,35 @@ fun HomeScreen(
                         Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖", color = colors.ink, fontSize = 14.sp)
                         Spacer(Modifier.height(6.dp))
                         Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）", color = colors.ink, fontSize = 14.sp)
+                    }
+                }
+                // TASK-C2-2026-07-27-local-notifications.md §4: 1日目クリアの場面で初めて許可
+                // ダイアログを出す(起動直後・オンボ中には出さない)。断られてもしつこく再提案しない
+                // (この分岐は1日目クリア=fd=="go"のときにしか到達しないため、自然に一度きりになる)。
+                // iOS版HomeView.swift showNotifPromptと同一設計・同一文言。
+                if (showNotifPrompt) {
+                    Column(Modifier.testTag("notifPrompt").padding(top = 4.dp)) {
+                        Text("あしたも おしらせしようか？", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.height(8.dp))
+                        Row {
+                            KyonoGhostButton("ううん", { showNotifPrompt = false }, Modifier.testTag("notifPromptNo"))
+                            Spacer(Modifier.width(8.dp))
+                            KyonoPrimaryButton(
+                                "うん！",
+                                {
+                                    if (Build.VERSION.SDK_INT >= 33 &&
+                                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else {
+                                        store.set("notif_enabled", true)
+                                        DailyNotifications.scheduleNext(context)
+                                        showNotifPrompt = false
+                                    }
+                                },
+                                Modifier.testTag("notifPromptYes"),
+                            )
+                        }
                     }
                 }
                 // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・.3s
