@@ -179,8 +179,13 @@ fun GuideScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                // UI/UXパリティ監査2巡目A1(2026-07-29): 前回G2で検索チップだけに適用した
+                // KyonoTightLineTextStyle(実測ベースのフォント行送り超過補正)をここにも展開。
+                // このピル2つが横並びにならず縦積みになっていた保留項目(#10)は、paddingの数値では
+                // なくこのフォント行送り超過が横幅にも余分に効いていたことが一因と見て対処する。
                 Text(
                     "🌱 はじめてガイド", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                    lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                     modifier = Modifier
                         .background(colors.tealSoft, RoundedCornerShape(50))
                         .clickable(onClick = onReenterOnboarding)
@@ -189,6 +194,7 @@ fun GuideScreen(
                 )
                 Text(
                     "📖 使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                    lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                     modifier = Modifier
                         .background(colors.yellowSoft, RoundedCornerShape(50))
                         .clickable(onClick = onReenterTour)
@@ -459,7 +465,15 @@ fun GuideScreen(
                             ) {
                                 Row(verticalAlignment = Alignment.Top) {
                                     Text("Q", color = colors.pink, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 8.dp))
-                                    Text(faqItem.q, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
+                                    // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:191 .faq summary
+                                    // {font-size:14px;line-height:1.6}の1:1移植。KyonoTightLineTextStyleは
+                                    // 「行送りを詰める」だけでなく「フォント由来の余分な行送りを打ち消して
+                                    // 指定したlineHeightどおりにする」ためのものなので、Web値そのまま渡す。
+                                    Text(
+                                        faqItem.q, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                                        lineHeight = 22.4.sp, style = KyonoTightLineTextStyle,
+                                        modifier = Modifier.weight(1f),
+                                    )
                                     Text(if (open) "▴" else "▾", color = colors.sub)
                                 }
                                 if (open) {
