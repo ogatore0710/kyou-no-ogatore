@@ -4,6 +4,35 @@
 > 着手前にこれを読む。仕様の変更をしたらここも更新して commit（正本ルール=PRINCIPLES 36条）。
 > 最終更新: 2026-07-28
 
+## 2026-07-28 追記: 5視点ワンループ GO16件
+
+夜間監査4本の後に実施した5視点(圏外／老眼・低視力／デジタル弱者／小柄・片手／運動直後)Fable
+アイデア出し→alan5仕分け(GO16/REJECT7/HOLD9)→GO16件実装、のワンループ。詳細はHANDOFF.mdの
+該当エントリ参照。ここでは今後また踏みそうな設計判断だけ書く。
+
+**bigtextの「フロア」実装がAndroid/iOSで非対称になった理由**: iOSは`.kyonoFont(weight, size:)`
+という単一の共通ViewModifier(200箇所超が経由済み)がbigtextスケーリングの唯一の入口だったため、
+`max(size * 1.18, 14)`をその1箇所に足すだけで全文言に自動適用できた。Androidは逆に
+`LocalDensity`のfontScaleを丸ごと差し替える方式(全Textが暗黙に一律スケール)で、個別Text単位の
+「フロア」という非線形操作を差し込むフックが存在しない。そのため`kyonoFloorSp()`という新しい
+`@Composable`ヘルパー+`LocalKyonoBigText`を追加し、フロアが必要な最小階層(10sp/11sp。
+12sp以上は1.18倍で自動的に14spを超えるため対象外)の呼び出し側だけを個別に置き換えた。
+**今後同種の要望が来たら**: 「Android全体に効く単一フック」を新設するかどうかは費用対効果で
+判断すること(今回は対象9箇所だけだったので個別置換で十分だったが、対象が数十箇所を超えるなら
+共通Text wrapperの新設を検討する価値が出てくる)。
+
+**Compose `BackHandler`はScreen.Homeの意味論に注意**: このアプリはNavHost不使用で、相談室/
+オンボ中も内部的には`screen`がHome以外の値でも`mainScreen`(表示用に丸めた値)はHomeのまま
+描画され続ける(オーバーレイ演出のため)。そのため`HomeScreen`composable自体は相談室が開いている
+間も裏で生き続けており、素朴に`BackHandler(enabled = true)`を書くと相談室のBackHandlerと
+競合する。`isForeground: Boolean`という追加パラメータ(呼び出し元で`screen == Screen.Home`を
+渡す)でHomeScreen側のBackHandlerを無効化する形にして回避した。
+
+**iOS `NetworkMonitor`/Android `rememberIsOffline()`は画面ごとに`@StateObject`/呼び出しが要る**:
+共有状態ではなく画面ローカルなインスタンス化なので、新しい画面にオフラインバナーを追加する際は
+単純にコピペで同じ宣言を足すだけでよい(グローバルシングルトンにする設計ではない。既存のHome側
+実装踏襲)。
+
 ## 2026-07-28 追記: myrecord-settings-tour-parity §2〜§6(全項目)
 
 `TASK-C2-2026-07-28-myrecord-settings-tour-parity.md` §1以外の全部。夜間監査4本(検索/再生リスト・

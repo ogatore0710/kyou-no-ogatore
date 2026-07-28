@@ -526,6 +526,10 @@ private struct SoudanContentView: View {
                 TextField("気になることを入力", text: $input).textFieldStyle(.roundedBorder)
                 KyonoPrimaryButton("送信", enabled: !sdPending, action: onSend).frame(width: 90)
             }
+            // GO-G16(5視点ワンループ): 高さ92%のシートで✕が最上部右端40×40だけだったため、
+            // 入力欄の下にも「とじる」を1つ追加する。
+            Spacer().frame(height: 8)
+            KyonoLineButton("とじる", action: onClose)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         .background(colors.card)
