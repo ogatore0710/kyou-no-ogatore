@@ -62,6 +62,7 @@ public struct CardData: Decodable {
     public let CARD_THEMES_V2_FROM: Int
     public let MILESTONES: [Int]
     public let CARD_IMG_FROM: Int
+    public let MILESTONE_MSG_VIDEO: String
     public let SEASON_CARDS: [SeasonCard]
     public let RARE_CARDS: [RareCard]
     public let NORMAL_CARDS: [NormalCard]

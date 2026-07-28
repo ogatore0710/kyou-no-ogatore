@@ -719,6 +719,16 @@ fun HomeScreen(
     var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
     var showDoneNudge by remember { mutableStateOf(false) }
     var cheerText by remember { mutableStateOf<String?>(null) }
+    // UI/UXパリティ監査GO-1(2026-07-28): app-record.js:120-131 節目カードの中身(ms!=null分岐)。
+    // 部品(CardDataLoader.shared.MSのd/t/m/q・KyonoConfetti)はあったが、ホーム画面のmarkDone
+    // ハンドラから一度も接続されていなかった欠落を修正する。
+    var milestoneInfo by remember { mutableStateOf<jp.ogatore.kyouno.card.MilestoneInfo?>(null) }
+    // app-record.js:132 launchConfetti(ms?105:70)の1:1移植。countだけをkeyにすると同じ粒数の
+    // 連続タップで再生されない(Composeのremember(count)が同じキーを再利用してしまう)ため、
+    // タップのたびに増分するtriggerをkey()に使って毎回新規のKyonoConfettiとして張り替える。
+    var confettiTrigger by remember { mutableStateOf<Int?>(null) }
+    var confettiCount by remember { mutableStateOf(70) }
+    val confettiReducedMotion = rememberReducedMotion()
     var cardResult by remember { mutableStateOf<TodayCardResult?>(null) }
     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge/fd-breatheの
     // 1:1移植。markDoneでtourpend=trueになった瞬間に出し、fdTourMaybeStart相当(カード閉じ時の
@@ -1065,9 +1075,17 @@ fun HomeScreen(
                             // GO-H1(ホーム画面ウィジェット): 記録した瞬間にウィジェットを更新する。
                             scope.launch { jp.ogatore.kyouno.widget.WidgetUpdater.notifyRecorded(context) }
                             val ms = CardDataLoader.shared.MS.find { it.d == streak.total }
-                            if (wasGuide && ms == null) {
+                            // app-record.js:103-105: 節目とは重ならない前提(通算1日目=guideの
+                            // 唯一の発生タイミングはMSの最小値3より前)だが、念のため節目表示を
+                            // 優先する構造にしてある(このelse ifは節目でないときだけ通る)。
+                            if (ms != null) {
+                                fdCelebrationVisible = false
+                                cheerText = null
+                                milestoneInfo = ms
+                            } else if (wasGuide) {
                                 fdCelebrationVisible = true
                                 cheerText = null
+                                milestoneInfo = null
                                 // 1日目クリアの場面で通知の許可を提案する(まだ有効化していないときだけ)。
                                 if (!store.get("notif_enabled", false)) {
                                     showNotifPrompt = true
@@ -1075,6 +1093,13 @@ fun HomeScreen(
                             } else {
                                 fdCelebrationVisible = false
                                 cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
+                                milestoneInfo = null
+                            }
+                            // UI/UXパリティ監査GO-1: app-record.js:132 launchConfetti(ms?105:70)の
+                            // 1:1移植。粒数はUI装飾のみの乱数使用(§2-4許容箇所)。
+                            if (!confettiReducedMotion) {
+                                confettiCount = if (ms != null) 105 else 70
+                                confettiTrigger = (confettiTrigger ?: 0) + 1
                             }
                             if (wasGuide) {
                                 store.set("fd", "1")
