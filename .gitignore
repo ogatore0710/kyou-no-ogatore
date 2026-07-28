@@ -13,9 +13,9 @@ android-native/*/local.properties
 android-native/*/.gradle/
 android-native/*/build/
 android-native/*/app/build/
-ios-native/*/SafetyCore/.build/
-ios-native/*/RecordCore/.build/
-ios-native/*/CardCore/.build/
+# SwiftPMのビルド成果物。2026-07-28: パッケージ名を1つずつ列挙する書き方だったため、
+# 新設のWidgetCoreだけ穴になり201MB・2341ファイルが混入した。以後は総称で塞ぐ。
+ios-native/**/.build/
 ios-native/*/SafetyCore/.swiftpm/
 ios-native/*/RecordCore/.swiftpm/
 ios-native/*/CardCore/.swiftpm/
