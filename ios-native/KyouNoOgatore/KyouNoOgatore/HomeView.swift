@@ -93,6 +93,15 @@ struct HomeView: View {
     @State private var pendingNudgeDate: String?
     @State private var showDoneNudge = false
     @State private var cheerText: String?
+    // UI/UXパリティ監査GO-1(2026-07-28): app-record.js:133-139 節目カードの中身(ms!=nil分岐)。
+    // 部品(CardDataLoader.shared.MSのd/t/m/q・KyonoConfetti)はあったが、ホーム画面のmarkDone
+    // ハンドラから一度も接続されていなかった欠落を修正する(Android版HomeScreenと同一設計)。
+    @State private var milestoneInfo: MilestoneInfo?
+    // app-record.js:132 launchConfetti(ms?105:70)の1:1移植。同じcountの連続タップでも必ず
+    // 再生させるため、単調増加するconfettiTriggerを.id()に使って毎回新規のKyonoConfettiとして
+    // 張り替える(PlanDoneCardViewのshowConfettiOnceと違い、Homeでは同じViewが繰り返し使われるため)。
+    @State private var confettiTrigger: Int?
+    @State private var confettiCount = 70
     @State private var cardResult: TodayCardResult?
     @State private var doneBtnScale: CGFloat = 1
     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge/fd-breatheと
@@ -181,7 +190,18 @@ struct HomeView: View {
     // KyonoThemeでの配色解決はRootView(KyouNoOgatoreApp.swift)側で行う(タブバー・FABとも共通の
     // 配色を1箇所で解決するため。二重ラップを避ける)。
     var body: some View {
-        homeContent
+        ZStack {
+            homeContent
+            // UI/UXパリティ監査GO-1(2026-07-28): index.html:1919-1942 launchConfetti()は
+            // position:fixedの全画面canvasなので、homeContentの上に重ねる。confettiTriggerを
+            // .id()に使い、同じcountの連続タップでも必ず新規Viewとして張り替えて再生させる
+            // (PlanDoneCardViewのKyonoConfettiと同じ部品。§D reduceMotion時は不発火)。
+            if let confettiTrigger, !reduceMotion {
+                KyonoConfetti(count: confettiCount)
+                    .id(confettiTrigger)
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
     // Step7bで導線ボタンを5件追加し画面高さを超えるようになったため、Android版HomeScreenの
@@ -325,9 +345,17 @@ struct HomeView: View {
                     let ms = CardDataLoader.shared.MS.first { $0.d == streak.total }
                     // §2-4許容箇所: markDoneのcheer選択のみ乱数OK。withAnimationはindex.html:311-312
                     // cpop(.3s ease-out)の1:1移植(下のtransitionと対で挿入時のポップ演出になる)。
-                    if wasGuide && ms == nil {
+                    // app-record.js:133-149: 節目とは重ならない前提(通算1日目=guideの唯一の発生
+                    // タイミングはMSの最小値3より前)だが、念のため節目表示を優先する構造にしてある
+                    // (このelse ifは節目でないときだけ通る)。
+                    if let ms {
+                        fdCelebrationVisible = false
+                        cheerText = nil
+                        withAnimation(.easeOut(duration: 0.3)) { milestoneInfo = ms }
+                    } else if wasGuide {
                         withAnimation(.easeOut(duration: 0.5)) { fdCelebrationVisible = true }
                         cheerText = nil
+                        milestoneInfo = nil
                         // 1日目クリアの場面で通知の許可を提案する(まだ有効化していないときだけ)。
                         // 起動直後・オンボ中には出さない(この分岐自体が1日目クリア後にしか
                         // 到達しないため自然に満たされる)。
@@ -336,7 +364,13 @@ struct HomeView: View {
                         }
                     } else {
                         fdCelebrationVisible = false
+                        milestoneInfo = nil
                         withAnimation(.easeOut(duration: 0.3)) { cheerText = CHEERS.randomElement() }
+                    }
+                    // UI/UXパリティ監査GO-1: app-record.js:132 launchConfetti(ms?105:70)の1:1移植。
+                    if !reduceMotion {
+                        confettiCount = ms != nil ? 105 : 70
+                        confettiTrigger = (confettiTrigger ?? 0) + 1
                     }
                     if wasGuide {
                         store.set("fd", "1")
@@ -421,6 +455,49 @@ struct HomeView: View {
                     // .3s ease-out)の1:1移植。応援メッセージがポップして出る演出が欠落していたため追加。
                     KyonoBodyText(cheerText)
                         .transition(.scale(scale: 0.85).combined(with: .opacity))
+                }
+                // UI/UXパリティ監査GO-1(2026-07-28): app-record.js:133-139 節目カードの中身
+                // (ms!=nil分岐)の1:1移植。cheerTextと同じ#cheer要素への差し込みなので、同じ
+                // cpop(scale .85→1・opacity .4→1・.3s ease-out)演出を使う(fd-cardpopの
+                // 弾むバウンドとは別物)。
+                if let milestoneInfo {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("🎉 \(milestoneInfo.t)！（通算\(streak.total)日）")
+                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
+                        if !milestoneInfo.m.isEmpty {
+                            Spacer().frame(height: 4)
+                            Text(milestoneInfo.m).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+                        }
+                        if !milestoneInfo.q.isEmpty {
+                            Spacer().frame(height: 8)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("💬 せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.teal)
+                                Text(milestoneInfo.q.hasSuffix("（先輩の声）")
+                                    ? String(milestoneInfo.q.dropLast("（先輩の声）".count))
+                                    : milestoneInfo.q)
+                                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                            }
+                            .padding(.horizontal, 12).padding(.vertical, 9)
+                            .background(colors.bg)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        Spacer().frame(height: 10)
+                        HStack {
+                            Spacer()
+                            KyonoCharaImage(name: "chara-crown").frame(width: 72, height: 72)
+                            Spacer()
+                        }
+                        if !CardDataLoader.shared.MILESTONE_MSG_VIDEO.isEmpty {
+                            Spacer().frame(height: 10)
+                            KyonoGhostButton("🎬 尾形さんからお祝いメッセージ") {
+                                if let url = URL(string: "https://www.youtube.com/watch?v=\(CardDataLoader.shared.MILESTONE_MSG_VIDEO)") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }
+                        }
+                    }
+                    .transition(.scale(scale: 0.85).combined(with: .opacity))
                 }
                 // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
                 // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する

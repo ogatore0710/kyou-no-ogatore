@@ -74,6 +74,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -866,6 +867,15 @@ fun HomeScreen(
                 if (doneNudgeReducedMotion) homeScrollState.scrollTo(target) else homeScrollState.animateScrollTo(target)
             }
         }
+        // UI/UXパリティ監査GO-1: index.html:1919-1942 launchConfetti()はposition:fixedの
+        // 全画面canvasなので、Box(fillMaxSize)でColumnを包んでその上に重ねられるようにする。
+        LaunchedEffect(confettiTrigger) {
+            if (confettiTrigger != null) {
+                delay(1500 + 600) // index.html:1942 DUR(1500)+600msでcleanup
+                confettiTrigger = null
+            }
+        }
+        Box(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1190,6 +1200,54 @@ fun HomeScreen(
                         }
                     }
                 }
+                // UI/UXパリティ監査GO-1(2026-07-28): app-record.js:133-139 節目カードの中身
+                // (ms!=null分岐)の1:1移植。cheerTextと同じ#cheer要素への差し込みなので、同じ
+                // cpop(fadeIn+scaleIn 300ms)演出を使う(fd-cardpopの弾むバウンドとは別物)。
+                AnimatedVisibility(
+                    visible = milestoneInfo != null,
+                    enter = fadeIn(tween(300), initialAlpha = 0.4f) + scaleIn(tween(300), initialScale = 0.85f),
+                ) {
+                    milestoneInfo?.let { ms ->
+                        Column(Modifier.testTag("milestoneCelebration")) {
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                "🎉 ${ms.t}！（通算${streak.total}日）",
+                                color = colors.pink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                            )
+                            if (ms.m.isNotBlank()) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(ms.m, color = colors.ink, fontSize = 14.sp)
+                            }
+                            if (ms.q.isNotBlank()) {
+                                Spacer(Modifier.height(8.dp))
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .background(colors.bg, RoundedCornerShape(12.dp))
+                                        .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+                                        .padding(horizontal = 12.dp, vertical = 9.dp),
+                                ) {
+                                    Column {
+                                        Text("💬 せんぱいの声", color = colors.teal, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                                        Text(ms.q.removeSuffix("（先輩の声）"), color = colors.sub, fontSize = 13.sp)
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                KyonoCharaImage("chara_crown", Modifier.size(72.dp))
+                            }
+                            if (CardDataLoader.shared.MILESTONE_MSG_VIDEO.isNotEmpty()) {
+                                Spacer(Modifier.height(10.dp))
+                                KyonoGhostButton(
+                                    "🎬 尾形さんからお祝いメッセージ",
+                                    { openUrl("https://www.youtube.com/watch?v=${CardDataLoader.shared.MILESTONE_MSG_VIDEO}") },
+                                    Modifier.testTag("milestoneMsgVideoBtn"),
+                                )
+                            }
+                        }
+                    }
+                }
                 // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
                 // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する
                 // (判定・データ構造は変更しない)。
@@ -1302,6 +1360,15 @@ fun HomeScreen(
                 Spacer(Modifier.height(16.dp))
                 SoudanCard(onOpenSoudan = onOpenSoudan)
             }
+        }
+        // UI/UXパリティ監査GO-1: index.html:1919-1942 launchConfetti()の1:1移植。countが同じ値の
+        // 連続タップでも必ず再生させるため、単調増加するconfettiTriggerをkey()に使って毎回新規の
+        // KyonoConfettiとして張り替える(remember(count)だけだと同じ粒数のとき再生されない)。
+        if (confettiTrigger != null) {
+            key(confettiTrigger) {
+                KyonoConfetti(count = confettiCount, modifier = Modifier.matchParentSize())
+            }
+        }
         }
 
         cardResult?.let { result ->
