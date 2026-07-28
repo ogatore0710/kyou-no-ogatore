@@ -38,13 +38,37 @@
   Android全体で231件・失敗0(`--rerun-tasks`で強制実行・XML集計で確認。alan5も自身の環境で
   同じ231/0を再確認済み)。
 
-**iOS: 着手中。** WidgetKit Extension新設(xcodeprojはRuby `xcodeproj` gemで編集・`xcodebuild -list`で
-壊れていないことを都度確認しながら進めた)・App Group `group.jp.ogatore.kyouno`をアプリ本体・
-拡張の両方に追加済み。**実機宛(generic/platform=iOS)ビルド+自動プロビジョニングで検証: 無償の
-Personal Team(FMR8VB3QLX)でもApp Groupsが両ターゲットの実署名entitlementsに正しく含まれることを
-`codesign -d --entitlements`で確認した**(着手前に懸念していた「無償枠では使えないかも」は解消)。
-RecordStore本体はDocuments配下のまま(引っ越さない)・ミラー用サマリJSONを共有コンテナへ書き出す
-方式(発注書§3)は次のコミットから着手。
+**iOS: 完了。** WidgetKit Extension新設(xcodeprojはRuby `xcodeproj` gemで編集・`xcodebuild -list`+
+実ビルドで壊れていないことを都度確認しながら進めた。ターゲット追加/entitlements追加/UI実装を
+別コミットに分けた)。
+- App Group `group.jp.ogatore.kyouno`をアプリ本体・拡張の両方に追加。**実機宛
+  (generic/platform=iOS)ビルド+自動プロビジョニングで検証: 無償のPersonal Team(FMR8VB3QLX)でも
+  App Groupsが両ターゲットの実署名entitlementsに正しく含まれることを`codesign -d --entitlements`
+  で確認した**(着手前に懸念していた「無償枠では使えないかも」は解消)。
+- RecordStore本体はDocuments配下のまま(引っ越さない)。`WidgetSummaryWriter.swift`が
+  markDone直後+アプリ起動時(onAppear)に、effectiveStreakCount等を計算したサマリJSONを
+  App Groupの共有コンテナへ片道で書き出す(ミラー方式)。
+- **`streakBreaksOnDate`(発注書の4項目に対する拡張、appdev判断)**: アプリを開き直さなくても
+  ウィジェット側で「連続日数が壊れる日」を正しく判定できるよう、書き出し時に
+  `streakBrokenNow`を最大14日先まで走査して事前計算しJSONに含める。ウィジェット拡張の
+  `TimelineProvider`はこの日付を跨ぐタイミングでもエントリを生成するため、アプリを一切
+  開かなくても正しく「また1日め」に切り替わる。
+- ウィジェット拡張は使用可6枚のみを自分のバンドルに同梱(`CharaArt/`をターゲット固有に複製。
+  拡張は別バンドルのためアプリ本体のリソースを実行時に読めない)。`CharaAsset` enumが6値のみ
+  列挙するため禁止4枚の参照は構造的に不可能(Android版と同じ設計)。タップでアプリを開く動作は
+  WidgetKitの既定動作に任せた(URL Scheme新設は不要)。
+- **実機確認(重要)**: 「連続12日+7日あき→また1日め」をシミュレータで検証。App Group共有
+  コンテナに実際に書き出されたミラーJSONを直接確認したところ`streak: 0`(生値12ではない)を
+  確認。さらに実際の`WidgetStateCalculator.compute()`(本番コードそのもの、再実装ではない)を
+  そのJSONに対して実行し、`chara: chara-cheer`・`message: "きょうから また1日め🌱"`・
+  `streakLabel: "また1日め"`を確認した。**ホーム画面への実配置スクリーンショットは今回
+  取得できていない**(このセッションにSystem Events/Accessibility権限が付与されておらず、
+  Simulatorへのタップ操作を自動化する手段が無かったため。Android版のPixel Launcher問題と
+  同種の「検証手段の制約」であり、ロジック自体の問題ではない)。alan5または本人の環境で
+  ホーム画面に置いての見た目確認をお願いしたい。
+- 回帰確認: iOS swift test(SafetyCore8/8・RecordCore41/41・CardCore16/16、計65件緑)・
+  シミュレータ/実機宛/拡張ターゲット単体の3ビルド構成すべて成功・`npm test` 443緑・
+  Web版配信ファイル無変更。
 
 ## ✅ 完了: 5視点ワンループ GO16件(2026-07-28)
 夜間監査4件完了後に実施した「5視点(圏外／老眼・低視力／デジタル弱者／小柄・片手／運動直後)
