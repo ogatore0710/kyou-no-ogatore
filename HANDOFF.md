@@ -28,6 +28,28 @@
   再読み上げされない)。iOS(`OnboardingViews.swift`/`SoudanSheetView.swift`)は
   `UIAccessibility.post(.announcement, argument:)`を追加のたびに1回だけ命令的に呼ぶ方式
   (ビュー領域に依存しないため全文再読み上げが構造的に起こり得ない)。
+- **③のAndroid実装への懸念(alan5指摘2026-07-28)を実機TalkBackで検証済み**: 「liveRegionは
+  宣言的なので、config changeによる全体再構築で吹き出しが全部いっぺんに読み上げられないか」
+  という懸念に対し、Androidエミュレータ+TalkBack実機検証(音声合成イベント数をlogcatの
+  `GoogleTTSServiceImpl: Synthesis request`件数で計測)で2パターンを確認した:
+  - **19時の自動ダーク切替(tick駆動)**: システムのConfiguration変更を経由しない
+    純粋なCompose再コンポーズであることをTheme.kt(`resolveKyonoColors(themeSetting, tick)`・
+    60秒ごとのLaunchedEffect)のコードで確認した上で、相談室を開いたまま端末時刻を18:58→
+    19:01まで実際に進め、テーマが本当にダークへ切り替わる(スクリーンショットで確認)のを
+    見届けた。**この間、音声合成イベントは0件**(切替前の静穏時ベースラインも0件)。
+    相談室シートも開いたまま。吹き出しの再読み上げは起きない。
+  - **画面回転**: `AndroidManifest.xml`に`android:configChanges`の指定が無いため、回転は
+    デフォルト挙動どおりActivity破棄→再生成を起こす(`finishDrawing of relaunch`をlogcatで
+    確認)。ただし`screen`状態(`MainActivity.kt`)が`rememberSaveable`ではなくただの
+    `remember`のため、**回転すると相談室シート自体が閉じてホームに戻ってしまう**(吹き出し
+    再読み上げ以前に、会話の続きを失う形の別の劣化)。回転直後に音声合成イベントが4件
+    観測されたが、これは新しいホーム画面の読み上げ(通知許可ダイアログ含む)によるもので、
+    相談室の吹き出しが再読み上げされたわけではない(シート自体が無くなっているため吹き合わせ
+    ようがない)。**この`screen`のrememberSaveable化は今回のリードアップ差分とは無関係の
+    既存の設計特性であり、今回は未対応**(気になる点として次点で報告)。
+  - 結論: 今回alan5が名指しした「複数の吹き出しが全部いっぺんに読み上げ直される」という
+    形の事故は、実測した2パターンいずれでも発生しなかった。回転時は別の問題(会話の消失)が
+    ある、というのが正直な報告。
 - 3件とも両OSビルド成功・Android全テストgreen(--rerun-tasks)。3件は互いのファイルへ手を
   出していないことを確認済み(git diffで相互スコープ外への変更なしを確認)。
 
