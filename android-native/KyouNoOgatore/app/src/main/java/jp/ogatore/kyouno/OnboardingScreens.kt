@@ -700,7 +700,9 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                         // (KyonoTightLineTextStyle、前回G2は検索チップのみに適用)をクイズ選択肢にも展開。
                         // index.html:293-297 .opt(行送り指定なし=タイト)/.opt .crit{line-height:1.5}の1:1移植。
                         Text(
-                            opt.label, color = colors.ink, fontSize = 15.sp, lineHeight = 15.sp,
+                            // UI/UXパリティ監査2巡目A4(2026-07-29): index.html:294 .opt{font-size:18px}
+                            // の1:1移植。従来15spで-16.7%小さく値がズレていた欠落を修正する。
+                            opt.label, color = colors.ink, fontSize = 18.sp, lineHeight = 18.sp,
                             style = KyonoTightLineTextStyle, fontWeight = FontWeight.Black,
                         )
                         Text(

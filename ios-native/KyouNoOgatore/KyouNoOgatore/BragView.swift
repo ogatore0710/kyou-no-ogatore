@@ -83,6 +83,12 @@ private struct BragContentView: View {
     let onBack: () -> Void
 
     var body: some View {
+        // UI/UXパリティ監査2巡目A5(2026-07-29): この画面だけ他の全画面(Home/MyRecord/Search/
+        // Guide/Voices/Dex/Settings/Obu等)と違いページ全体のScrollViewが無く、内側の検索結果
+        // 一覧(240pt)だけがスクロール可能だった欠落。Web版の#bragはページ全体がウィンドウ
+        // スクロールする通常のドキュメントフローのため、小さい画面やキーボード表示中に
+        // ボタン・注意書きへ到達できなくなるリスクがあった(Android版は既にverticalScroll済み)。
+        ScrollView {
         VStack(alignment: .leading, spacing: 8) {
             KyonoLineButton("◀ もどる", action: onBack)
             KyonoCard {
@@ -170,6 +176,7 @@ private struct BragContentView: View {
             }
         }
         .padding(16)
+        }
         .background(KyonoBackgroundColor().ignoresSafeArea())
         // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
         // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
