@@ -103,8 +103,8 @@ class WidgetLogicTest {
         val threeHoursLater = WidgetLogic.compute(store, recordedAt.plusSeconds(3 * 3600), zone, recordedAtMillis)
         val fourHoursOneMinLater = WidgetLogic.compute(store, recordedAt.plusSeconds(4 * 3600 + 60), zone, recordedAtMillis)
         val lateSameDay = WidgetLogic.compute(store, recordedAt.plusSeconds(10 * 3600), zone, recordedAtMillis) // 19時UTC、当日いっぱい
-        // 翌日(+33時間、3時境界を越えた時刻)。doneTodayがfalseになり「まだ」側へ抜ける。
-        val nextDayMorning = WidgetLogic.compute(store, recordedAt.plusSeconds(33 * 3600), zone, recordedAtMillis)
+        // 翌日夕方(+33時間=18時UTC、3時境界を越えた時刻)。doneTodayがfalseになり「まだ」側へ抜ける。
+        val nextDayEvening = WidgetLogic.compute(store, recordedAt.plusSeconds(33 * 3600), zone, recordedAtMillis)
 
         assertEquals(CharaAsset.CONGRATS, justAfter.chara)
         assertEquals("きょうもおつかれさま！", justAfter.message)
@@ -112,8 +112,12 @@ class WidgetLogicTest {
         assertEquals(CharaAsset.GOOD, fourHoursOneMinLater.chara)
         assertEquals("つづいてるね！", fourHoursOneMinLater.message)
         assertEquals(CharaAsset.GOOD, lateSameDay.chara)
-        assertTrue(nextDayMorning.chara == CharaAsset.CHEER || nextDayMorning.chara == CharaAsset.KAIKYAKU)
-        assertTrue(!nextDayMorning.doneToday)
+        // GO-H1 監査GO-9(alan5差し戻し2026-07-28・141条案件): 以前はCHEER||KAIKYAKUのOR判定で、
+        // 朝夕判定(isMorning)を反転させても通ってしまっていた。+33時間後は18時UTCで
+        // 朝(5-17時)には該当しないため、期待値をKAIKYAKUの1つに固定する
+        // (isMorningの境界が壊れれば確実に落ちる)。
+        assertEquals(CharaAsset.KAIKYAKU, nextDayEvening.chara)
+        assertTrue(!nextDayEvening.doneToday)
     }
 
     @Test
@@ -129,11 +133,40 @@ class WidgetLogicTest {
         val dots = WidgetLogic.buildLast7(store, RecordLogic.loadStreak(store).dates.toSet(), RecordLogic.loadStreak(store).dates.sorted(), "2026-07-20")
 
         assertEquals(7, dots.size)
-        // today=7/20がindex6、7/19がindex5、7/18がindex4
-        assertEquals(DotState.FREEZE, dots[5])
-        assertEquals(DotState.FREEZE, dots[4])
-        assertEquals(DotState.DONE, dots[6])
-        assertTrue(dots.all { it == DotState.DONE || it == DotState.FREEZE || it == DotState.NONE })
+        // GO-H1 監査GO-8(alan5差し戻し2026-07-28・141条案件): 以前の
+        // dots.all{DONE||FREEZE||NONE}はDotStateがそもそも3値しか無いenumのため恒真で、
+        // 壊れても検知できなかった。窓の7日分(7/14〜7/20)全indexを明示的に固定する。
+        // 7/17より前(7/14-16、index0-2)は「橋渡し元」となる前のdone日が無いのでisFreezeBridgedが
+        // 即falseを返しNONE、7/17(index3)はDONE、7/18-19(index4-5)は実際に橋渡しされたFREEZE、
+        // 7/20(index6・today)はDONE。
+        assertEquals(DotState.NONE, dots[0]) // 7/14
+        assertEquals(DotState.NONE, dots[1]) // 7/15
+        assertEquals(DotState.NONE, dots[2]) // 7/16
+        assertEquals(DotState.DONE, dots[3]) // 7/17
+        assertEquals(DotState.FREEZE, dots[4]) // 7/18
+        assertEquals(DotState.FREEZE, dots[5]) // 7/19
+        assertEquals(DotState.DONE, dots[6]) // 7/20(today)
+    }
+
+    // GO-H1 監査GO-10(alan5差し戻し2026-07-28・141条案件): isFreezeBridgedの
+    // after==null分岐(現在進行中の末尾ギャップ・まだ確定していない・WidgetSummaryWriter.write()や
+    // ウィジェットの通常描画で毎回通る本線)にテストが無かった。既存のテストは全てafter!=null
+    // (前後を挟まれた確定済みギャップ)だけを踏んでいる。7/15に記録→まだ何も記録していない
+    // 状態で7/17を見る(1日だけの未確定ギャップ・券残3で橋渡し可能)ことでこの分岐を固定する。
+    @Test
+    fun last7BridgesOpenEndedGapStillInProgress() {
+        val store = RecordStore.inMemory()
+        RecordLogic.markDone(store, Instant.parse("2026-07-15T09:00:00Z"), zone) // 7/15
+
+        val streak = RecordLogic.loadStreak(store)
+        val dots = WidgetLogic.buildLast7(store, streak.dates.toSet(), streak.dates.sorted(), "2026-07-17")
+
+        // today=7/17がindex6、7/16がindex5(末尾ギャップ・afterが無い・canBridgeFreezesで橋渡し可能)、
+        // 7/15がindex4(DONE)。todayの7/17自体はまだ「記録していないだけ」でギャップの一部では
+        // ないのでNONE。
+        assertEquals(DotState.FREEZE, dots[5]) // 7/16
+        assertEquals(DotState.DONE, dots[4]) // 7/15
+        assertEquals(DotState.NONE, dots[6]) // 7/17(today、未記録だが橋渡し対象ではない)
     }
 
     // GO-H1 D4(alan5差し戻し2026-07-28): 「持っていない券を使ったように見える」バグの再現+修正確認。
@@ -156,6 +189,54 @@ class WidgetLogicTest {
         // today=7/4がindex6、7/3がindex5、7/2がindex4。どちらも券で埋まっていないのでNONE。
         assertEquals(DotState.NONE, dots[5])
         assertEquals(DotState.NONE, dots[4])
+    }
+
+    // Fable監査GO-4(alan5差し戻し2026-07-28): 月をまたぐギャップの再現+修正確認。
+    // 7/29に記録→7/30・7/31・8/1の3日ギャップ(券で橋渡し)→8/2に記録、を実際のmarkDoneで
+    // 起こすと、tryUseFreezesはneedを月ごとに分割してfreeze2へ積む(7月:2枚・8月:1枚)。
+    // 修正前は「ギャップ全体の日数(3) <= その月だけのusedThisMonth」を見ていたため、
+    // 7月分(2)・8月分(1)どちらで比べても3以下にならずFREEZEを取りこぼしていた
+    // (本当に券で埋めた日がNONE=未記録に見える、D4の逆方向の誤り)。
+    @Test
+    fun last7BridgesFreezeAcrossMonthBoundary() {
+        val store = RecordStore.inMemory()
+        RecordLogic.markDone(store, Instant.parse("2026-07-29T09:00:00Z"), zone) // 7/29
+        // 7/30・7/31・8/1は記録しない(3日ギャップ・7月2枚+8月1枚で橋渡し可能)。
+        RecordLogic.markDone(store, Instant.parse("2026-08-02T09:00:00Z"), zone) // 8/2
+
+        val streak = RecordLogic.loadStreak(store)
+        val dots = WidgetLogic.buildLast7(store, streak.dates.toSet(), streak.dates.sorted(), "2026-08-02")
+
+        // today=8/2がindex6、8/1がindex5、7/31がindex4、7/30がindex3。
         assertEquals(DotState.DONE, dots[6])
+        assertEquals(DotState.FREEZE, dots[5]) // 8/1(8月分の橋渡し)
+        assertEquals(DotState.FREEZE, dots[4]) // 7/31(7月分の橋渡し)
+        assertEquals(DotState.FREEZE, dots[3]) // 7/30(7月分の橋渡し)
+    }
+
+    // Fable監査GO-6(alan5差し戻し2026-07-28): 節目当日、congrats窓(4時間)を過ぎてから見ると、
+    // charaはCRACKER/CROWNのままなのにmessageだけ「つづいてるね！」に戻ってしまっていた
+    // (iOS版は元々chara/messageを同じswitch式で両方セットしており揃っている)。
+    // card-data.jsonのMILESTONESに小さい節目(7日、30日未満=CRACKER)があるので、
+    // 7日連続を実際のmarkDoneで作り、4時間窓を過ぎた時点でchara/messageとも節目文言に
+    // なっていることを固定する。
+    @Test
+    fun milestoneDayKeepsCelebratoryMessageAfterCongratsWindowElapses() {
+        val store = RecordStore.inMemory()
+        var t = Instant.parse("2026-07-01T09:00:00Z")
+        lateinit var recordedAt: Instant
+        repeat(7) {
+            recordedAt = t
+            RecordLogic.markDone(store, t, zone)
+            t = t.plusSeconds(86400)
+        }
+        // 記録から5時間後(congrats窓4時間は過ぎたが、まだ同じ日=doneToday=trueのまま)。
+        val afterWindow = recordedAt.plusSeconds(5 * 3600)
+
+        val state = WidgetLogic.compute(store, afterWindow, zone, recordedAt.toEpochMilli())
+
+        assertEquals(7, RecordLogic.loadStreak(store).total)
+        assertEquals(CharaAsset.CRACKER, state.chara)
+        assertEquals("きょうもおつかれさま！", state.message)
     }
 }

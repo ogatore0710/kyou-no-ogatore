@@ -160,8 +160,11 @@ struct KyonoWideView: View {
 }
 
 // GO-H1§2-1: 表示は必ずeffectiveStreakCount経由(WidgetStateCalculator.compute内で確定済み)。
+// Fable監査GO-5: ミラーJSON不在(isUnavailable)のときはstreakCountの値を一切見ない
+// (0日の新規ユーザーと区別する中立文言)。
 private func streakLabel(_ state: WidgetDisplayState) -> String {
-    state.streakCount == 0 ? "また1日め" : "\(state.streakCount)日つづいてる"
+    if state.isUnavailable { return "じゅんび中…" }
+    return state.streakCount == 0 ? "また1日め" : "\(state.streakCount)日つづいてる"
 }
 
 private func dotColor(_ dot: String) -> Color {

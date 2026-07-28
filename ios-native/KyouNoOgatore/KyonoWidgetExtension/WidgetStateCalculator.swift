@@ -26,14 +26,21 @@ struct WidgetDisplayState {
     let message: String
     let streakCount: Int
     let last7: [String]
+    // Fable監査GO-5(alan5差し戻し2026-07-28): ミラーJSONが壊れている/未書き出しでnilになった
+    // ときと、本当に連続0日の新規ユーザーとを、表示上区別するためのフラグ。以前はどちらも
+    // 同じ(streakCount: 0, "また1日め")を返しており、200日続けた人がデコード失敗の瞬間に
+    // 「連続が消えた」と誤解しかねなかった。trueのときはstreakCount/last7の値を信用しない
+    // (画面側はstreakLabel()でこのフラグを見て中立文言に差し替える)。
+    let isUnavailable: Bool
 }
 
 enum WidgetStateCalculator {
     static func compute(summary: WidgetSummary?, at date: Date) -> WidgetDisplayState {
         guard let summary else {
+            // 連続日数を主張しない中立表示(「また1日め」は言わない・0日を騙らない)。
             return WidgetDisplayState(
-                chara: .cheer, message: "きょうから また1日め🌱",
-                streakCount: 0, last7: Array(repeating: "none", count: 7)
+                chara: .cheer, message: "すこし時間をおいてから開いてみてね",
+                streakCount: 0, last7: Array(repeating: "none", count: 7), isUnavailable: true
             )
         }
 
@@ -81,6 +88,6 @@ enum WidgetStateCalculator {
             message = celebrating ? "きょうもおつかれさま！" : "つづいてるね！"
         }
 
-        return WidgetDisplayState(chara: chara, message: message, streakCount: effStreak, last7: summary.last7)
+        return WidgetDisplayState(chara: chara, message: message, streakCount: effStreak, last7: summary.last7, isUnavailable: false)
     }
 }

@@ -6,30 +6,15 @@
 //  RecordStore本体(Documents配下)は一切動かさず、表示専用の小さなサマリJSONだけを片道で
 //  App Groupの共有コンテナへ書き出す(ミラー方式)。ウィジェット拡張はこのJSONしか読まない。
 //
+//  WidgetSummary構造体自体はKyonoWidgetExtension/WidgetSummary.swiftに定義されており、この
+//  1ファイルをアプリ本体ターゲットのCompile Sourcesにも所属させることで両ターゲットが同じ
+//  定義を共有する(Fable監査GO-5・以前は手で複製し「フィールドを変えるときは両方揃えること」
+//  という運用ルール任せだった)。
+//
 
 import Foundation
 import RecordCore
 import CardCore
-
-struct WidgetSummary: Codable {
-    // このスナップショットが「きょう」として計算された日(doneToday/streakの基準日)。
-    let recordedDate: String
-    let doneToday: Bool
-    // GO-H1§2-1(最重要): 書き出す時点でRecordLogic.effectiveStreakCountを通した値。
-    // 生のstreak.countは絶対に書き出さない。
-    let streak: Int
-    // 何もしなければ、この日付(yyyy-MM-dd)以降はstreakBrokenNowがtrueになる(=0扱いにすべき)。
-    // アプリを開き直さなくてもウィジェット側で正しく「また1日め」に切り替えられるようにするための
-    // 事前計算値(nilは「直近14日は壊れない」)。
-    let streakBreaksOnDate: String?
-    // 直近7日(きょう含む・古い→新しい順)。"done" / "freeze" / "none" のいずれか。
-    let last7: [String]
-    let milestone: Bool
-    let milestoneBig: Bool
-    // GO-H1§2-4「記録した直後〜当日」vs「翌日以降に見たとき」の区別用(congrats→goodへの
-    // 切り替え)。この時刻(epoch秒)まではcongrats、以降はgoodをウィジェット側が選ぶ。
-    let celebrateUntil: TimeInterval?
-}
 
 enum WidgetSummaryWriter {
     static let appGroupId = "group.jp.ogatore.kyouno"

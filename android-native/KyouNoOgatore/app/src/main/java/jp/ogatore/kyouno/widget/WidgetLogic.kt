@@ -78,6 +78,11 @@ object WidgetLogic {
         }
 
         val message = when {
+            // Fable監査GO-6(alan5差し戻し2026-07-28): charaはisMilestoneToday分岐を持つのに
+            // messageには節目分岐が無く、congrats窓(4時間)を過ぎた節目当日は絵が王冠/クラッカーの
+            // ままなのに文言だけ「つづいてるね！」に戻ってしまっていた(iOS版WidgetStateCalculator.
+            // swiftは元々chara/messageを同じswitch式で両方セットしており揃っている)。
+            isMilestoneToday -> "きょうもおつかれさま！"
             effCount == 0 -> "きょうから また1日め🌱"
             !doneToday && isMorning -> "きょうもいこう！💪"
             !doneToday -> "ねる前に1本 どう？🌙"
