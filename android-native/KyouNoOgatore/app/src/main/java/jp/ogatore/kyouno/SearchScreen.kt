@@ -276,7 +276,13 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                             .background(if (on) cc.onBg else cc.bg, RoundedCornerShape(50))
                             .border(2.dp, if (on) cc.onBorder else cc.border, RoundedCornerShape(50))
                             .clickable { activeTag = if (activeTag == tag) null else tag; searchLimit = 24 }
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            // alan5差し戻し(2026-07-29): 「からだの場所」1行目が全身｜肩・肩甲骨の
+                            // 2つで折り返し、Web版(3つ)と揃わない実機所見。padding値自体はCSS
+                            // (.chip{padding:10px 16px})と数値上一致していたが、カスタムフォントの
+                            // 実測グリフ幅がブラウザと完全一致しないため、「3つ入るか」を合格条件と
+                            // する指示に基づき左右パディングを詰める。14dpでは実測1px未満の差で
+                            // ギリギリ入らなかったため、余裕を持って12dpにする。
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
                             .testTag("searchTag_$tag"),
                     )
                 }
