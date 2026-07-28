@@ -7,30 +7,44 @@
 発注書: `TASK-C2-2026-07-28-home-widget.md`。Phase1=表示専用(RecordStoreへ書き込まない・
 ウィジェットからの記録操作は作らない)。
 
-**Android: 完了。** `widget/`パッケージ新設。
+**Android: 完了・alan5検収OK(自身のエミュレータで再確認済み)。** `widget/`パッケージ新設。
 - `WidgetLogic.kt`: 純粋関数。`RecordLogic.effectiveStreakCount`経由を徹底(生の`streak.count`は
   読まない)。連続0のときは「また1日め🌱」・使用可6枚のみ(chara_cheer/kaikyaku/congrats/good/
   crown/cracker)・禁止4枚(chara/chara_3/chara_hitokoto。chara_2は元々未移植)はcharaResId()の
-  when式に存在しないため参照不可能。節目の大小区分(30日以上=大=王冠・未満=小=クラッカー)は
-  既存コードに無かったためappdev判断で新設(要alan5確認)。「記録直後(congrats)」判定はサマリに
-  タイムスタンプを持たせない設計のため、専用SharedPreferences(kyono-store.jsonとは別ファイル・
-  「最後に記録した日」だけ保持)で「記録した日と同じ日か」を見る方式。
+  when式に存在しないため参照不可能(alan5が「参照ゼロ」を実地確認済み)。節目の大小区分
+  (30日以上=大=王冠・未満=小=クラッカー)は既存コードに無かったためappdev判断で新設し、
+  **alan5承認済み**(既存のMS配列が3/4/7/14/21/30…という並びのため30を境にするのは自然、との判断)。
+  「記録直後(congrats)」判定はサマリにタイムスタンプを持たせない設計のため、専用
+  SharedPreferences(kyono-store.jsonとは別ファイル・「最後に記録した日」だけ保持)で
+  「記録した日と同じ日か」を見る方式。
 - `KyonoWidget.kt`(Glance AppWidget・SizeMode.Responsiveで2×2〜4×2を1個のウィジェットとして提供)・
   `KyonoWidgetReceiver.kt`・`WidgetUpdater.kt`(markDone直後にupdateAll()で即時更新)。
-- **実機確認**(pin-10/14/17/19のスクショ): 朝(cheer)→夕夜(kaikyaku、`am broadcast`で強制更新して
-  確認)→記録直後(congrats、「きょうやった！」タップで即時反映を確認)→連続0(cheer+
-  「また1日め」で「0日」表記なしを確認)。
+- **サイズ別の表示内容は設計判断**(発注書に明記は無いが事故ではない): **2×2=絵+数字だけ**
+  (スペース上、一言・7日ドットは省略)・**4×2=絵+一言+数字+7日ドット**の全部入り。
+- **実機確認**(pin-10/14/17/19のスクショ、alan5も自身のエミュレータで再確認済み):
+  朝(cheer)→夕夜(kaikyaku)→記録直後(congrats、「きょうやった！」タップで即時反映を確認・
+  絵がcheer→congrats、文言が「6日つづいてる」に変わることをalan5も確認)→連続0(cheer+
+  「また1日め」で「0日」表記なしを確認。**alan5が`streak2`にcount:12・最終記録7日前を仕込んで
+  検証し、生値なら「12日」と出るところが正しく「また1日め」になることを実地で証明**)。
+  4×2(Wide)の実機描画と夕夜kaikyakuはalan5未確認・`KyonoWidgetRenderTest`/`WidgetLogicTest`に
+  依拠(テスト内容は妥当と判断済み)。
 - **検証手段のメモ**: Pixel Launcherのウィジェット一覧UIがadb合成タッチに反応せず(他アプリの
   ウィジェットは反応するため本アプリ固有の何かが原因と推定・未特定)、`AppWidgetManager.
   requestPinAppWidget()`を呼ぶデバッグ専用ボタン(設定画面最下部・`ApplicationInfo.
-  FLAG_DEBUGGABLE`で判定しリリースビルドには出ない)を新設して回避した。このボタンは今後の
-  検証にも使えるため残置。
+  FLAG_DEBUGGABLE`で判定しリリースビルドには出ない。alan5がリリース非出現を確認済み)を新設して
+  回避した。このボタンは今後の検証にも使えるため残置。
 - テスト: `WidgetLogicTest`(5件・状態選択ロジック)+`KyonoWidgetRenderTest`(3件・
   `androidx.glance.appwidget.testing`の`runGlanceAppWidgetUnitTest`で実際の描画結果を検証)。
-  Android全体で231件・失敗0(`--rerun-tasks`で強制実行・XML集計で確認)。
+  Android全体で231件・失敗0(`--rerun-tasks`で強制実行・XML集計で確認。alan5も自身の環境で
+  同じ231/0を再確認済み)。
 
-**iOS: 着手中。** App Group `group.jp.ogatore.kyouno`・WidgetKit Extension新設・RecordStore本体は
-Documents配下のまま(引っ越さない)・ミラー用サマリJSONを共有コンテナへ書き出す方式(発注書§3)。
+**iOS: 着手中。** WidgetKit Extension新設(xcodeprojはRuby `xcodeproj` gemで編集・`xcodebuild -list`で
+壊れていないことを都度確認しながら進めた)・App Group `group.jp.ogatore.kyouno`をアプリ本体・
+拡張の両方に追加済み。**実機宛(generic/platform=iOS)ビルド+自動プロビジョニングで検証: 無償の
+Personal Team(FMR8VB3QLX)でもApp Groupsが両ターゲットの実署名entitlementsに正しく含まれることを
+`codesign -d --entitlements`で確認した**(着手前に懸念していた「無償枠では使えないかも」は解消)。
+RecordStore本体はDocuments配下のまま(引っ越さない)・ミラー用サマリJSONを共有コンテナへ書き出す
+方式(発注書§3)は次のコミットから着手。
 
 ## ✅ 完了: 5視点ワンループ GO16件(2026-07-28)
 夜間監査4件完了後に実施した「5視点(圏外／老眼・低視力／デジタル弱者／小柄・片手／運動直後)
