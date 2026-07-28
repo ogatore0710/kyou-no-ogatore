@@ -69,7 +69,7 @@ enum WidgetSummaryWriter {
             guard let d = cal.date(byAdding: .day, value: -(6 - offsetFromOldest), to: now) else { return nil }
             let ds = RecordLogic.todayStr(now: d)
             if doneDates.contains(ds) { return "done" }
-            if sortedDates.contains(where: { $0 < ds }) && sortedDates.contains(where: { $0 > ds }) { return "freeze" }
+            if isFreezeBridged(store: store, sortedDoneDates: sortedDates, d: ds, today: today) { return "freeze" }
             return "none"
         }
 
@@ -92,5 +92,50 @@ enum WidgetSummaryWriter {
 
         guard let encoded = try? JSONEncoder().encode(summary) else { return }
         try? encoded.write(to: dir.appendingPathComponent(fileName), options: .atomic)
+    }
+
+    // GO-H1 D4(alan5差し戻し2026-07-28・両OS共通の指摘): 以前は「その日の前後どちらにもやった日が
+    // ある」だけでfreeze扱いにしていたが、券を使っていない日(単に連続が切れて再開しただけ)も
+    // 券色に見せてしまう欠陥があった(「持っていない券を使ったように見える」)。Android版
+    // WidgetLogic.ktのisFreezeBridgedと同じ考え方で、実際の残数チェックを通す。
+    // 現在進行中の末尾ギャップ(afterが無い)はまだ確定していないのでcanBridgeFreezesをそのまま
+    // 使えるが、既に確定した過去のギャップはtryUseFreezesで既にfreeze2へ加算済みのため、同じ
+    // canBridgeFreezesを再度呼ぶと使用済み分を二重計上してfalseになってしまう。過去のギャップは
+    // 「その月に実際に記録されている使用量が、このギャップの日数以上あるか」で近似する。
+    private static func isFreezeBridged(store: RecordStore, sortedDoneDates: [String], d: String, today: String) -> Bool {
+        guard let before = sortedDoneDates.last(where: { $0 < d }) else { return false }
+        let after = sortedDoneDates.first(where: { $0 > d })
+        if after == nil {
+            let missedRun = datesBetweenExclusive(before, today)
+            return missedRun.contains(d) && RecordLogic.canBridgeFreezes(store, missedDates: missedRun)
+        }
+        let missedRun = datesBetweenExclusive(before, after!)
+        guard missedRun.contains(d) else { return false }
+        let monthKey = String(d.prefix(7))
+        let usedThisMonth = RecordLogic.freezeMap(store)[monthKey] ?? 0
+        return missedRun.count <= usedThisMonth
+    }
+
+    // RecordLogic.addDays相当は非公開(internal実装詳細)のため、ここではCalendarで同じ
+    // "yyyy-MM-dd"文字列の加算をローカルに再実装する(RecordLogic.daysBetweenは公開済みなので
+    // それだけ流用する)。
+    private static func ymdFormatter() -> DateFormatter {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.timeZone = TimeZone(identifier: "UTC")
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }
+
+    private static func datesBetweenExclusive(_ startInclusive: String, _ endExclusive: String) -> [String] {
+        let gap = RecordLogic.daysBetween(startInclusive, endExclusive)
+        guard gap > 1 else { return [] }
+        let f = ymdFormatter()
+        guard let startDate = f.date(from: startInclusive) else { return [] }
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "UTC")!
+        return (1..<gap).compactMap { offset in
+            cal.date(byAdding: .day, value: offset, to: startDate).map { f.string(from: $0) }
+        }
     }
 }

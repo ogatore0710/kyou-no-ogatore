@@ -2,7 +2,7 @@
 
 最終更新: 2026-07-28
 
-## 🚧 進行中: H1 ホーム画面ウィジェット(Duolingo式・本人GO 2026-07-28)
+## ✅ 完了: H1 ホーム画面ウィジェット(Duolingo式・本人GO 2026-07-28。D1〜D4差し戻し対応まで完了)
 
 発注書: `TASK-C2-2026-07-28-home-widget.md`。Phase1=表示専用(RecordStoreへ書き込まない・
 ウィジェットからの記録操作は作らない)。
@@ -69,6 +69,43 @@
 - 回帰確認: iOS swift test(SafetyCore8/8・RecordCore41/41・CardCore16/16、計65件緑)・
   シミュレータ/実機宛/拡張ターゲット単体の3ビルド構成すべて成功・`npm test` 443緑・
   Web版配信ファイル無変更。
+
+**D1・D2・D3・D4差し戻し(alan5コードレビュー・2026-07-28)対応完了。**
+- **D1**(`GuideScreen.kt`): 使い方タブでセクションを開いた状態で戻るボタンを押すと、
+  タブ移動ではなくセクションを閉じるだけになるべきところが素通りしていた。ユーザーが
+  実際にトグル操作をしたか(`sectionEverToggled`)を追跡し、`BackHandler`をその状態に応じて
+  分岐させて修正。実機確認済み。
+- **D2**(`SettingsScreen.kt`・G9): インポート直後の「元に戻す」スナップショットが素の
+  `remember`のため画面回転等のリコンポーズで消えていた。`rememberSaveable`+カスタム`Saver`
+  (Map⇄フラットな`ArrayList<String>`)に切替え、`RecordSnapshot.kt`(capture/restore)を新設して
+  ロジックを分離。`RecordSnapshotTest.kt`3件(実際の`KyonoTransfer.importString`往復を含む)追加。
+  ついでに「すべての年▾」セレクタのタップ領域が45.8dpとAndroid最小基準48dpを割っていたのを
+  `Box(heightIn(min=48.dp))`で修正。
+- **D3(alan5が原因を自認: 「発注書の書き方が原因」)**: 「記録直後(congrats)→4時間後(good)→
+  翌日(cheer/kaikyaku)」の解釈がAndroid/iOSで食い違っていた。Android版`WidgetUpdater.
+  wasRecordedToday()`は日付比較のため記録した日は一日中trueになりGOODへ絶対に落ちない
+  デッドコードだった(コード内コメントとも矛盾)。**iOS側(`celebrateUntil`=記録から4時間の
+  epoch秒しきい値)を正としてAndroidを統一**: `WidgetUpdater`を`recordedAtMillis`(独立した
+  SharedPreferences)+`CELEBRATE_WINDOW_MILLIS=4h`の経過時間比較に全面書き換え、
+  `WidgetLogic.compute()`のシグネチャも`justRecorded: Boolean`→`recordedAtMillis: Long?`に
+  変更。新規ユニットテスト`congratsDecaysToGoodAfterFourHoursThenToCheerOrKaikyakuNextDay`で
+  指定の3点(直後/4時間後/翌日)を固定(Android)。iOS側は既存の`celebrateUntil`実装が正しいか
+  再検証(スタンドアロン`swiftc`ビルドで本番の`WidgetStateCalculator.compute()`を実データに対して
+  実行)し、3点とも正しく遷移することを確認(修正不要と判明)。
+- **D4(両OS共通)**: 7日ドットの券(freeze)判定が「前後どちらにもやった日があるだけ」で
+  券色にしていたため、券を使わず単に連続が切れて再開しただけの日も券色に見せてしまう欠陥が
+  あった。`RecordLogic.canBridgeFreezes`相当の実残数チェックに寄せて修正——ただし素朴に
+  `canBridgeFreezes`をそのまま呼ぶと、**既に確定した過去のギャップ**(=`tryUseFreezes`で
+  月間使用量へ加算済み)に対して同じ判定を再度通すと使用量を二重計上してfalseになる新バグを
+  自前のテストで検出。**現在進行中の末尾ギャップ(まだ確定していない)は`canBridgeFreezes`の
+  ままでよいが、確定済みの過去ギャップは「その月に記録されている使用量がギャップ日数以上
+  あるか」の直接チェックに置き換える**、という2分岐で決着。Android(`WidgetLogic.
+  isFreezeBridged`)・iOS(`WidgetSummaryWriter.isFreezeBridged`)とも同じロジックで実装。
+  Android新規テスト2件(`last7NoRedOrCrossStatesOnlyThreeKinds`=実際の`markDone`呼び出しで
+  券が本当に使われた日だけFREEZE・`last7DoesNotShowFreezeWhenBudgetAlreadyExhausted`=券未使用
+  月は前後を挟まれていてもFREEZEにならない)。
+- 修正後の全区間回帰: Android 232件(0失敗・`--rerun-tasks`)、iOS swift test 41件
+  (RecordCore、0失敗)+シミュレータ/実機宛ビルド両方成功。
 
 ## ✅ 完了: 5視点ワンループ GO16件(2026-07-28)
 夜間監査4件完了後に実施した「5視点(圏外／老眼・低視力／デジタル弱者／小柄・片手／運動直後)
