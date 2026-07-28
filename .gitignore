@@ -19,3 +19,8 @@ ios-native/*/CardCore/.build/
 ios-native/*/SafetyCore/.swiftpm/
 ios-native/*/RecordCore/.swiftpm/
 ios-native/*/CardCore/.swiftpm/
+
+# Xcodeのユーザー個別UI状態（開いたタブ・カーソル位置などを記録するバイナリ）。
+# 2026-07-28時点で19回ぶんの無意味なコミットを生んでいた。バイナリなのでマージできず、
+# 2台のMacでeven-syncが同時に拾うと衝突してリポジトリ全体の同期が止まる危険がある。
+ios-native/**/xcuserdata/
