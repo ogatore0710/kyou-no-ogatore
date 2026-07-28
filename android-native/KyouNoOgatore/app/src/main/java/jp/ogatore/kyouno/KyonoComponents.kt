@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -71,14 +72,17 @@ fun KyonoAppHeader() {
             // 明記されたコメントが残っており、マイ記録タブでG6(左右余白統一)前の幅ではこの
             // タイトルが実機で2行に折り返す実害が確認された。22spのままmaxLines無指定だった
             // 欠落を修正する。
+            // UI/UXパリティ監査2巡目A9(2026-07-29): overflow未指定だと既定のTextOverflow.Clipで
+            // 文字が「…」無しに途中で切れる(OS最大文字サイズ+bigtext限定で発生)。iOSは既定で
+            // 「…」が出るため、Androidにも明示する。
             Text(
                 "#きょうのオガトレ", color = colors.ink, fontSize = 20.sp, fontWeight = FontWeight.Black,
-                maxLines = 1, softWrap = false,
+                maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
             )
             // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
             Text(
                 "みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black,
-                maxLines = 1, softWrap = false,
+                maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
             )
         }
     }
