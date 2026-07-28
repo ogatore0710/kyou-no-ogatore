@@ -8,6 +8,7 @@
 import SwiftUI
 import RecordCore
 import UserNotifications
+import WidgetKit
 
 // TASK-C2-2026-07-27-local-notifications.md: 毎日のおしらせ通知をフォアグラウンド中も表示する
 // (既定だとUNUserNotificationCenterはアプリがフォアグラウンドのとき通知バナーを出さない)ための
@@ -41,6 +42,13 @@ struct KyouNoOgatoreApp: App {
             // (「戻る」スワイプ等のOS標準操作を素朴に得られるため。ホーム自体の画面遷移は増やさない)。
             NavigationStack {
                 RootView(store: Self.store)
+            }
+            // GO-H1(ホーム画面ウィジェット): markDone時だけでなく、アプリを開くたびにもミラーを
+            // 最新化する(日をまたいで「きょうやった」が未実施に戻った、等の変化を反映するため)。
+            // RecordStore本体には触れない片道の書き出しのみ。
+            .onAppear {
+                WidgetSummaryWriter.write(store: Self.store)
+                WidgetCenter.shared.reloadAllTimelines()
             }
         }
     }
