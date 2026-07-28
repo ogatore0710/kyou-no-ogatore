@@ -205,8 +205,13 @@ private struct DexBannerCardView: View {
             Spacer().frame(height: 4)
             Text("記念日・季節・レアなカードをあつめよう").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
             Spacer().frame(height: 10)
+            // alan5差し戻し(2巡目・A1続き、2026-07-29): index.html:245 .dex-banner-samples
+            // .dex-thumb{width:56px;height:56px}の1:1移植。従来はセルに明示的な幅指定が無く、
+            // HStackが利用可能幅いっぱいに引き伸ばしていたため、Webの固定56ptよりずっと大きく
+            // なり「見本カード+ボタンが画面に収まらない」の直接原因になっていた。
             HStack(spacing: 8) {
                 ForEach(Array(samples.enumerated()), id: \.offset) { _, item in DexBannerCellView(item: item) }
+                Spacer(minLength: 0)
             }
             Spacer().frame(height: 10)
             KyonoGhostButton("📖 図鑑をひらく", action: onOpenDex)
@@ -237,9 +242,11 @@ private struct DexBannerCellView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
-            .aspectRatio(1, contentMode: .fit)
-            Text(item.got ? item.name : "？？？").kyonoFont(.black900, size: 10).foregroundColor(colors.ink).multilineTextAlignment(.center)
+            .frame(width: 56, height: 56)
+            // index.html:241 .dex-name{line-height:1.3}の1:1移植(dexCellHtmlはバナー・図鑑本体で共通)。
+            Text(item.got ? item.name : "？？？").kyonoFont(.black900, size: 10).foregroundColor(colors.ink).multilineTextAlignment(.center).lineSpacing(3)
         }
+        .frame(width: 56)
     }
 }
 

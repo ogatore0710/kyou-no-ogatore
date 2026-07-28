@@ -1588,6 +1588,10 @@ fun MyRecordScreen(
                 val cardData = CardDataLoader.shared
                 val next = cardData.MILESTONES.firstOrNull { it > streak.total }
                 val ms = next?.let { n -> cardData.MS.find { it.d == n } }
+                // alan5差し戻し(2巡目・A1続き、2026-07-29): index.html:758 #msNote{font-size:15px}
+                // (line-height指定なし=CSS既定の"normal")の1:1移植。他の箇所と同じくカスタムフォントの
+                // 行送り超過でCompose既定のままだと1行分余分に折り返す(Web2行→ネイティブ3行)ため、
+                // KyonoTightLineTextStyleをここにも展開する。
                 if (next != null && ms != null) {
                     Text(
                         buildAnnotatedString {
@@ -1595,10 +1599,14 @@ fun MyRecordScreen(
                             withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) { append(ms.t) }
                             append("」は通算${next}日目🌱 マイペースでどうぞ")
                         },
-                        color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("msNote"),
+                        color = colors.ink, fontSize = 15.sp, lineHeight = 15.sp, style = KyonoTightLineTextStyle,
+                        modifier = Modifier.testTag("msNote"),
                     )
                 } else {
-                    Text("全部の節目をたっせい！すごすぎます", color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("msNote"))
+                    Text(
+                        "全部の節目をたっせい！すごすぎます", color = colors.ink, fontSize = 15.sp,
+                        lineHeight = 15.sp, style = KyonoTightLineTextStyle, modifier = Modifier.testTag("msNote"),
+                    )
                 }
                 Spacer(Modifier.height(8.dp))
                 // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A):
@@ -1664,15 +1672,22 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(4.dp))
                 Text("記念日・季節・レアなカードをあつめよう", color = colors.sub, fontSize = 14.sp)
                 Spacer(Modifier.height(10.dp))
-                Row(Modifier.fillMaxWidth().testTag("dexBannerSamples")) {
+                // alan5差し戻し(2巡目・A1続き、2026-07-29): index.html:245 .dex-banner-samples
+                // .dex-thumb{width:56px;height:56px}の1:1移植。従来はModifier.weight(1f)で行の
+                // 全幅を4等分していたため、サムネイルがWebの固定56pxよりずっと大きく(実測で
+                // 画面幅次第では87dp相当)なり、そのぶん縦にも余分に伸びて「見本カード+ボタンが
+                // 画面に収まらない」の直接原因になっていた。固定56dp+CSSと同じ8dpの間隔に直す。
+                Row(
+                    Modifier.fillMaxWidth().testTag("dexBannerSamples"),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     val samples = listOfNotNull(
                         dexStatus.toku.firstOrNull(), dexStatus.season.firstOrNull(),
                         dexStatus.rare.firstOrNull(), dexStatus.normal.firstOrNull(),
                     )
                     for (item in samples) {
-                        DexBannerCell(item, Modifier.weight(1f))
+                        DexBannerCell(item, Modifier.width(56.dp))
                     }
-                    repeat(4 - samples.size) { Spacer(Modifier.weight(1f)) }
                 }
                 Spacer(Modifier.height(10.dp))
                 KyonoGhostButton("📖 図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
@@ -2075,7 +2090,10 @@ private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shap
 private fun DexBannerCell(item: DexItem, modifier: Modifier) {
     val colors = LocalKyonoColors.current
     val context = LocalContext.current
-    Column(modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    // alan5差し戻し(2巡目・A1続き、2026-07-29): 呼び出し元がModifier.width(56.dp)という固定幅を
+    // 渡すようになったため、ここでさらにpadding(4.dp)を足すとRowのspacedBy(8.dp)と二重に間隔が
+    // 空いてしまう。Web版のCSSにセル自体のpaddingは無い(間隔は親のgapだけ)ため取り除く。
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             Modifier.fillMaxWidth().aspectRatio(1f)
                 .background(colors.bg, RoundedCornerShape(12.dp))
@@ -2103,9 +2121,12 @@ private fun DexBannerCell(item: DexItem, modifier: Modifier) {
             }
         }
         Spacer(Modifier.height(4.dp))
+        // index.html:241 .dex-name{line-height:1.3}の1:1移植(dexCellHtmlはバナー・図鑑本体で共通)。
+        val bannerNameFontSize = kyonoFloorSp(10f)
         Text(
             if (item.got) item.name else "？？？",
-            color = colors.ink, fontSize = kyonoFloorSp(10f), fontWeight = FontWeight.Black,
+            color = colors.ink, fontSize = bannerNameFontSize, lineHeight = (bannerNameFontSize.value * 1.3f).sp,
+            style = KyonoTightLineTextStyle, fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
         )
     }

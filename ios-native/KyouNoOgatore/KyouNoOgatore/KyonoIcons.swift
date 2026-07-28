@@ -17,6 +17,9 @@ enum KyonoIcon {
     case dexBook, heart, envelope, notes, mountainCheck, shieldCheck, star
 }
 
+// UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
+// 1:1移植。従来24pt固定だったため常時+14%大きく、図鑑・使い方・検索・マイ記録・ホームの
+// 全セクション見出しに波及していた欠落を修正する。
 struct KyonoSectionHeader: View {
     @Environment(\.kyonoColors) private var colors
     let icon: KyonoIcon
@@ -26,7 +29,7 @@ struct KyonoSectionHeader: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            KyonoIconGlyph(icon: icon, fill: fill, accent: accent).frame(width: 24, height: 24)
+            KyonoIconGlyph(icon: icon, fill: fill, accent: accent).frame(width: 21, height: 21)
             Text(title).kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
         }
     }

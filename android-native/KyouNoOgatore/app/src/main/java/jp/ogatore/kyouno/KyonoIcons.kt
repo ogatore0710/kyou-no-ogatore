@@ -33,11 +33,14 @@ enum class KyonoIcon {
     DexBook, Heart, Envelope, Notes, MountainCheck, ShieldCheck, Star,
 }
 
+// UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
+// 1:1移植。従来24dpだったため常時+14%(bigtext時はさらに1.18倍で実効+35%相当)大きく、
+// 図鑑・使い方・検索・マイ記録・ホームの全セクション見出しに波及していた欠落を修正する。
 @Composable
 fun KyonoSectionHeader(icon: KyonoIcon, title: String, fill: Color, accent: Color = Color(0xFFE56A9A), modifier: Modifier = Modifier) {
     val colors = LocalKyonoColors.current
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        KyonoIconGlyph(icon, fill, accent, Modifier.size(24.dp))
+        KyonoIconGlyph(icon, fill, accent, Modifier.size(21.dp))
         Text(title, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 8.dp))
     }
 }
