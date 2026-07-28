@@ -460,7 +460,7 @@ fun SoudanSheet(
                                         .clickable {
                                             clipboard.setText(AnnotatedString(SD_MAIL))
                                             copied = true
-                                            copyScope.launch { delay(2000); copied = false }
+                                            copyScope.launch { delay(kyonoTransientMessageMillis(store)); copied = false }
                                         }
                                         .testTag("sdFallbackCopyBtn"),
                                 )

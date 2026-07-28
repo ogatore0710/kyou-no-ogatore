@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -114,6 +115,16 @@ val KyonoButtonRadius = 18.dp
 
 val LocalKyonoColors = compositionLocalOf { KyonoLightColors }
 
+// GO-G12(5視点ワンループ): bigtext ON時に最小文字階層(10sp/11sp、既存の1.18倍スケールでも
+// 14spに届かない階層のみ)へフロアを入れる。非線形スケールの全面導入は保留(縮小版の指示どおり)。
+val LocalKyonoBigText = compositionLocalOf { true }
+
+@Composable
+fun kyonoFloorSp(base: Float): androidx.compose.ui.unit.TextUnit {
+    val bigText = LocalKyonoBigText.current
+    return if (bigText) maxOf(base, 14f / KYONO_BIG_TEXT_SCALE).sp else base.sp
+}
+
 // index.html:99-105 .btn/.btn-primary/.btn-ghost/.btn-lineの角丸・シャドウ形状。
 val KyonoCardShape = RoundedCornerShape(KyonoRadius)
 val KyonoButtonShape = RoundedCornerShape(KyonoButtonRadius)
@@ -181,6 +192,11 @@ fun resolveKyonoColors(themeSetting: String, tick: Int = 0): KyonoColors {
 const val KYONO_BIG_TEXT_SCALE = 1.18f
 const val KYONO_MAX_FONT_SCALE = 2.2f
 
+// GO-G11(5視点ワンループ): 「コピーしました」等の一時メッセージの自動消滅時間。既存のbigtext
+// シグナルを流用し、bigtext ONのときは読み切るまでの時間を確保して4秒へ延ばす(通常は2秒のまま)。
+fun kyonoTransientMessageMillis(store: jp.ogatore.kyouno.record.RecordStore): Long =
+    if (store.get("bigtext", true)) 4000L else 2000L
+
 @Composable
 fun KyonoTheme(themeSetting: String, bigText: Boolean = true, content: @Composable () -> Unit) {
     // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
@@ -216,6 +232,7 @@ fun KyonoTheme(themeSetting: String, bigText: Boolean = true, content: @Composab
         .coerceAtMost(KYONO_MAX_FONT_SCALE)
     CompositionLocalProvider(
         LocalKyonoColors provides colors,
+        LocalKyonoBigText provides bigText,
         LocalDensity provides Density(baseDensity.density, scaledFontScale),
         content = content,
     )

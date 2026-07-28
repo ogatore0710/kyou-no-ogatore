@@ -317,7 +317,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 item {
                     Spacer(Modifier.height(10.dp))
                     val kwText = listOfNotNull(query.trim().ifBlank { null }, activeTag).joinToString(" ")
-                    ReqBox(context = context, shown = hits.isNotEmpty(), kwText = kwText)
+                    ReqBox(context = context, store = store, shown = hits.isNotEmpty(), kwText = kwText)
                 }
             }
         }
@@ -327,7 +327,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
 // index.html:961 reqMsg/reqBtnの表示切り替え。offlineCat分岐(Web版はCATALOG未ロード時の対応)は
 // ネイティブではcatalog.jsonを同梱リソースとして常に同期ロードするため該当せず、常時表示でよい。
 @Composable
-private fun ReqBox(context: Context, shown: Boolean, kwText: String) {
+private fun ReqBox(context: Context, store: RecordStore, shown: Boolean, kwText: String) {
     val colors = LocalKyonoColors.current
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
@@ -364,7 +364,7 @@ private fun ReqBox(context: Context, shown: Boolean, kwText: String) {
                 .clickable {
                     clipboard.setText(AnnotatedString("kyou-no@ogatore.jp"))
                     copied = true
-                    scope.launch { delay(2000); copied = false }
+                    scope.launch { delay(kyonoTransientMessageMillis(store)); copied = false }
                 }
                 .testTag("copyMailAddrBtn"),
         )

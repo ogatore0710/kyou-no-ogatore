@@ -676,7 +676,7 @@ fun HomeScreen(
         } else {
             showExitConfirm = true
             scope.launch {
-                delay(2000)
+                delay(kyonoTransientMessageMillis(store))
                 showExitConfirm = false
             }
         }
@@ -825,7 +825,7 @@ fun HomeScreen(
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text("#きょうのオガトレ", color = colors.ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
-                    Text("みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                    Text("みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black)
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -844,7 +844,7 @@ fun HomeScreen(
                     Column {
                         Text(
                             if (showDoneNudge) "おかえりなさい" else "きょうのひとこと",
-                            color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Black,
+                            color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black,
                         )
                         Text(
                             if (showDoneNudge) "おわったら下の「きょうやった！」を押してね✅"
@@ -1609,7 +1609,7 @@ fun MyRecordScreen(
                     KyonoSectionHeader(KyonoIcon.DexBook, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
                     Spacer(Modifier.width(8.dp))
                     Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
-                        Text("$dexGot/${dexAll.size}", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexBadge"))
+                        Text("$dexGot/${dexAll.size}", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexBadge"))
                     }
                 }
                 Spacer(Modifier.height(4.dp))
@@ -1928,7 +1928,7 @@ private fun DexBannerCell(item: DexItem, modifier: Modifier) {
         Spacer(Modifier.height(4.dp))
         Text(
             if (item.got) item.name else "？？？",
-            color = colors.ink, fontSize = 10.sp, fontWeight = FontWeight.Black,
+            color = colors.ink, fontSize = kyonoFloorSp(10f), fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
         )
     }

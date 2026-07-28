@@ -220,7 +220,9 @@ private struct KyonoFontModifier: ViewModifier {
     let size: CGFloat
 
     func body(content: Content) -> some View {
-        content.font(.kyono(weight, size: bigText ? size * kyonoBigTextScale : size))
+        // GO-G12(5視点ワンループ): bigtext ON時に最小文字階層へフロアを入れる(既存の1.18倍
+        // スケールでも14ptに届かない階層のみ)。非線形スケールの全面導入は保留(縮小版の指示どおり)。
+        content.font(.kyono(weight, size: bigText ? max(size * kyonoBigTextScale, 14) : size))
     }
 }
 

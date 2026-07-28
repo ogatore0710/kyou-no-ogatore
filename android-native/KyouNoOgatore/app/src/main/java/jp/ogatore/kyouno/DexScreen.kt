@@ -91,7 +91,7 @@ private fun DexSection(title: String, items: List<DexItem>) {
             Text(title, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
             // index.html:233 .dex-seccount(bg丸ピル)
             Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
-                Text("$got/${items.size}", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexSecCount_$title"))
+                Text("$got/${items.size}", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexSecCount_$title"))
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -144,14 +144,14 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
         Text(
             if (item.got) item.name else "？？？",
             color = colors.ink,
-            fontSize = 11.sp,
+            fontSize = kyonoFloorSp(11f),
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
         val sub = if (item.got) item.flavor else item.hint
         if (sub.isNotEmpty()) {
-            Text(sub, fontSize = 10.sp, color = colors.sub, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            Text(sub, fontSize = kyonoFloorSp(10f), color = colors.sub, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
         }
     }
 }

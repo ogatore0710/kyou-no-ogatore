@@ -262,6 +262,9 @@ private struct SearchContentView: View {
 // ネイティブではcatalog.jsonをバンドルリソースとして常に同期ロードするため該当せず、常時表示でよい。
 private struct ReqBox: View {
     @Environment(\.kyonoColors) private var colors
+    // GO-G11(5視点ワンループ): 「コピーしました」等の一時メッセージの自動消滅時間を、既存の
+    // bigtext環境値に連動させる(ONのときは読み切れるよう4秒へ延ばす)。
+    @Environment(\.kyonoBigText) private var bigText
     let shown: Bool
     let kwText: String
     @State private var copied = false
@@ -289,7 +292,7 @@ private struct ReqBox: View {
                     UIPasteboard.general.string = "kyou-no@ogatore.jp"
                     copied = true
                     Task {
-                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        try? await Task.sleep(nanoseconds: bigText ? 4_000_000_000 : 2_000_000_000)
                         copied = false
                     }
                 }

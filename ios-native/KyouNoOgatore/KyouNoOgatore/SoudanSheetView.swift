@@ -558,6 +558,9 @@ private struct SdTypingDots: View {
 // (HomeView.swift冒頭コメント参照)、独立したView構造体に切り出す。
 private struct FallbackLinksView: View {
     @Environment(\.kyonoColors) private var colors
+    // GO-G11(5視点ワンループ): 「コピーしました」等の一時メッセージの自動消滅時間を、既存の
+    // bigtext環境値に連動させる(ONのときは読み切れるよう4秒へ延ばす)。
+    @Environment(\.kyonoBigText) private var bigText
     let rawUserText: String
     let onOpenSearch: () -> Void
     @State private var copied = false
@@ -575,7 +578,7 @@ private struct FallbackLinksView: View {
                     UIPasteboard.general.string = sdMail
                     copied = true
                     Task {
-                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        try? await Task.sleep(nanoseconds: bigText ? 4_000_000_000 : 2_000_000_000)
                         copied = false
                     }
                 }
