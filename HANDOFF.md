@@ -2,6 +2,88 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: Fable監査(5視点)GO15件+D5(2026-07-28・`REPORT-C2-2026-07-28-fable-audit.md`)
+Fable監査(5視点A〜E、詳細は`REPORT-C2-2026-07-28-fable-audit.md`)の結果をalan5が仕分け、GO15件+
+D5(回転で状態が消える件)を1バッチで実装。alan5指定の順序(1→2→7→3→4→5→6→残りのテスト→15→D5)で
+実施。
+
+**GO-1(最重要・視点A/Cが独立検出)**: iOS `WidgetStateCalculator.swift`の`isoDate()`が
+深夜3時境界(`RecordLogic.todayStr`)を通さず素の深夜0時境界で「今日」を計算しており、
+書き手(`WidgetSummaryWriter`)と読み手で日付定義がズレていた。ウィジェット拡張ターゲットに
+RecordCoreを依存追加し、`RecordLogic.todayStr(now:)`を直接呼ぶよう統一(alan5指示「ウィジェット内で
+日付を自前計算しないこと」)。
+
+**GO-2**: 5タブ中3つ(マイ記録・動画を探す・再生リスト)+結果画面に`BackHandler`が無く、
+システム「もどる」が即アプリ終了していた。各画面に`BackHandler(onBack = onBack)`
+(結果画面は`onDone`)を追加。onBack自体は既に呼び出し元で`screen=Home`配線済みだったため
+最小差分で解決。
+
+**GO-3**: せんぱいの声カードめくりで、裏返っている間もalpha=0の面がヒットテスト対象に
+残っており、表向きの下部タップが裏面のYouTubeボタンを誤発火しうる欠陥。Android:
+`Modifier.clickable`を`Modifier.then(if (visible) ... else Modifier)`で見えない面には
+一切付与しない方式に変更(`KyonoGhostButton`にも`enabled`パラメータ追加)。iOS:
+`.allowsHitTesting(!showBack)`/`.allowsHitTesting(showBack)`を追加。**Androidエミュレータで
+実機確認**: 前向きカード下部タップ→正しくめくれる/裏返り後の実ボタン座標タップ→
+Chromeが開くことを両方確認。
+
+**GO-4**: freeze判定(`isFreezeBridged`)が月をまたぐギャップで壊れる問題(7/30-8/1の
+3日ギャップを7月2枚+8月1枚で正しく橋渡し済みでも、どちらの月の使用量とだけ比べると
+3以下にならずFREEZEを取りこぼす)。ギャップをdの月に属する部分だけに絞ってから
+その月の使用量と比較するよう修正(両OS)。
+
+**GO-5**: iOSミラーJSON不在(nil)時に本当の連続0日ユーザーと同じ表示(「また1日め」)に
+なっていた問題。`WidgetDisplayState`に`isUnavailable`フラグを追加し、nilのときは
+「すこし時間をおいてから開いてみてね」の中立文言(streakLabel側も「じゅんび中…」)に
+差し替え。あわせて`WidgetSummary`構造体の手動複製(アプリ/拡張2箇所)を、GO-14で新設した
+`WidgetCore` Swift Packageへの1箇所定義に統合。
+
+**GO-6**: Android`WidgetLogic.kt`のmessage when式に節目分岐が無く、congrats窓(4時間)経過後の
+節目当日はchara(crown/cracker)とmessage(「つづいてるね！」)が食い違っていた。message側にも
+`isMilestoneToday -> "きょうもおつかれさま！"`を追加(iOS版は元から一致)。
+
+**GO-7(141条案件)**: `activeStreakUsesEffectiveCountNotRawCount`が実は生カウントとの
+食い違いを検知できていなかった(選んだ入力でeffectiveCount==raw countが偶然一致)。
+alan5指定の再現条件(count=12・最終記録7日前・券で埋まらない)に差し替えた新テストを追加。
+
+**GO-8〜13(テストの穴・141条案件)**: `dots.all{DONE||FREEZE||NONE}`の恒真アサーションを
+7日分の具体的な期待値に置換/朝夕判定のORアサーションを単一値に固定/`isFreezeBridged`の
+`after==null`分岐(毎回の描画で通る本線)のテストを追加/crown・cracker分岐のテスト追加(両OS)/
+`tryStartTour`のテスト新規追加/`GuideScreen`のD1戻る分岐を`decideGuideBackAction`純関数へ
+切り出しテスト追加。
+
+**GO-14**: iOSウィジェットのロジックにコミット済みテストが1つも無かった問題。
+`WidgetStateCalculator`/`WidgetSummary`をRecordCore等と同じ構成のローカルSwift Package
+`WidgetCore`へ移設し、`swift test`でコミット済みの回帰テストとして固定(D3の3点遷移・
+節目crown/cracker一致・nil summary区別の3件)。「手元でswiftcして確認した」で終わらせない、
+とのalan5指示に対応。
+
+**GO-15**: Android`CELEBRATE_WINDOW_MILLIS`の二重定義+呼ばれていない`isCelebrating()`を
+削除、`WidgetLogic.kt`側の定義のみに一本化。
+
+**D5(回転で状態が消える・alan5発注)**: `MainActivity.kt`の`screen`(`Screen`)、
+`SoudanSheet.kt`の会話(`messages`/`chipsMode`/`lastIntentId`/`input`)、`OnboardingScreens.kt`の
+クイズ回答途中(`qi`/`scores`/`worry`/`picked`)を`rememberSaveable`+手書きSaver(Bundle互換の
+入れ子ArrayListへ平坦化・D2/RecordSnapshotと同じ方式)で回転(Activity再生成)をまたいで
+保持するようにした。**Androidエミュレータで実機確認**: 相談室で「肩こり・首こり」→ボット応答→
+プラン提案チップまで会話を進めた状態で画面回転(横→縦)しても、会話が一切消えずそのまま
+表示されることを確認。
+- **オンボ(`OnboardingScreen`)は今回D5の対象外(alan5の「復元しないほうがマシ」基準に
+  照らした判断)**: `bubbles`/`activeQuestion`/`routeCta`/`answers`は単純な`remember`ではなく
+  `LaunchedEffect(Unit)`が挨拶〜全質問〜締めまでを一度きりの台本として実行する設計。
+  回転でActivityが再生成されると、たとえ`bubbles`等を正しく復元してもこの`LaunchedEffect`が
+  ゼロから再実行され、挨拶や質問が重複して追加される・既に答えた質問を再度尋ねる、という
+  「画面だけ戻って中身が空」より悪い壊れ方になる。台本自体を「途中から再開できる」設計に
+  作り替える必要があり、今回のD5の範囲を超えるため見送った。クイズ(`QuizScreen`)は
+  同種のスクリプト実行が無く安全に復元できるため実施済み。
+- 対象外のまま(alan5指示どおり): `shownVideoIds`・ツアーのスライド番号・検索文字列・
+  ひとことメモの下書き・設定画面のインポート文字列。iOS側の同種リスクは`@State`が
+  プロセス再起動(回転ではない)で失われる別の仕組みで、明示的な永続化が要る設計判断のため
+  今回は保留(本人預かり)。
+
+**回帰確認**: Android 267件・失敗0(`--rerun-tasks`)。iOS swift test(SafetyCore8・
+RecordCore41・CardCore16・WidgetCore3、計68件緑)+シミュレータ/実機宛ビルド両方成功。
+`npm test` 443緑・Web版配信ファイル無変更。
+
 ## ✅ 完了: 保留から3件並列(2026-07-28・`TASK-C2-2026-07-28-hold-parallel-3.md`)
 本人GOで保留9件のうち触るファイルが完全に別の3件だけをサブエージェント3体で並列実施。
 - **①iOSエッジスワイプで戻る**: `EdgeSwipeBack.swift`(新規ViewModifier)を検索/再生リスト/図鑑/
