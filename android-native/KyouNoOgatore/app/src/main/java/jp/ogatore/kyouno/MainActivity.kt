@@ -895,16 +895,9 @@ fun HomeScreen(
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
-            // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
-            // §2 キャラクター画像: index.html:91-94 .logo(chara.png 52x52+タイトル+サブタイトル)の1:1移植。
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                KyonoCharaImage("chara", Modifier.size(52.dp))
-                Spacer(Modifier.width(10.dp))
-                Column {
-                    Text("#きょうのオガトレ", color = colors.ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
-                    Text("みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black)
-                }
-            }
+            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植をKyonoAppHeaderへ
+            // 共通化(マイ記録/動画を探す/使い方の3タブにも同じ部品を展開する)。
+            KyonoAppHeader()
             Spacer(Modifier.height(16.dp))
 
             // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:602-603
@@ -1572,6 +1565,10 @@ fun MyRecordScreen(
         val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, Instant.now()) }
 
         Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植。マイ記録タブに
+            // 共通ヘッダーが無かった欠落の修正。
+            KyonoAppHeader()
+            Spacer(Modifier.height(16.dp))
             // マイ記録タブ進捗カード欠落修正タスク(TASK-C2-2026-07-26-myrecord-progress-card.md):
             // index.html:752-763 renderHistory()の「続けた記録」カードの1:1移植(msNote/msBar/
             // 通算・いま連続ミニ表示/おやすみ券説明文)。MSはCardCoreから参照するだけで新規定義しない。

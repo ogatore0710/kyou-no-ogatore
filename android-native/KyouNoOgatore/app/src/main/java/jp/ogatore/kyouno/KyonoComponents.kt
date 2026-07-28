@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -49,6 +50,25 @@ fun KyonoCharaImage(resName: String, modifier: Modifier = Modifier) {
     val resId = remember(resName) { context.resources.getIdentifier(resName, "drawable", context.packageName) }
     if (resId != 0) {
         Image(painter = painterResource(id = resId), contentDescription = null, modifier = modifier)
+    }
+}
+
+// index.html:91-94,592-598 .logo(chara.png 52x52+タイトル+サブタイトル)の1:1移植。Web版はこの
+// 要素がセクション切り替えの外側にある単一のグローバルヘッダーで、home/history/search/guideの
+// 4タブすべての先頭に共通で出る。UI/UXパリティ監査GO-5(2026-07-28): ネイティブはホーム画面にしか
+// 実装が無く、他3タブ(マイ記録・動画を探す・使い方)には出ていなかった欠落の修正。4画面とも
+// このコンポーネント1つを呼ぶことで、以後のズレを構造的に防ぐ(seasonal mark<id="logoMark">は
+// ネイティブ側に対応する仕組みが元々無く、このタスクのスコープ外)。
+@Composable
+fun KyonoAppHeader() {
+    val colors = LocalKyonoColors.current
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.testTag("appHeader")) {
+        KyonoCharaImage("chara", Modifier.size(52.dp))
+        Spacer(Modifier.width(10.dp))
+        Column {
+            Text("#きょうのオガトレ", color = colors.ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
+            Text("みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black)
+        }
     }
 }
 

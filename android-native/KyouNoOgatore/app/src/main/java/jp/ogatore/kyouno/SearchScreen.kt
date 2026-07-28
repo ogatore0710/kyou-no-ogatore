@@ -204,8 +204,11 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
-            Text("動画を探す", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(8.dp))
+            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94,945 Web版の#search節には
+            // 独自タイトルが無く、セクション切り替えの外にある共通ヘッダー(.logo)だけで構成されている。
+            // 「動画を探す」という単独タイトルはネイティブ独自の代替であり、共通ヘッダーへ置き換える。
+            KyonoAppHeader()
+            Spacer(Modifier.height(16.dp))
             // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
             // 文言・スタイルはホーム版(MainActivity.kt)と完全に同じにする。
             if (rememberIsOffline()) {

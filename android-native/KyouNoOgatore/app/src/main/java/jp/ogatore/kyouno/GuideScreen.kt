@@ -161,6 +161,11 @@ fun GuideScreen(
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
 
+            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植。使い方タブに
+            // 共通ヘッダーが無かった欠落の修正。
+            KyonoAppHeader()
+            Spacer(Modifier.height(16.dp))
+
             // 使い方タブ再入場リンク欠落修正タスク(TASK-C2-2026-07-26-guide-reentry-links.md):
             // index.html:970 .daychip×2(obReenterLink/obTourLink)の1:1移植。オンボーディング・
             // ツアー本体のロジックは変更せず、既存フロー(Screen.Onboarding/Screen.Tour)を呼ぶだけ。
