@@ -186,9 +186,12 @@ struct RootView: View {
                 // .22s程度のフェード+わずかなスライドを追加。Screen方式(手組みの状態機械)自体は
                 // 変更せず、.animation(value:)で外側から演出を被せるだけ(.id()は使わない=
                 // KyonoTheme tickの教訓どおり、部分木の強制再生成は状態リセットを招くため)。
+                // UI/UXパリティ監査2巡目A8(2026-07-29): 相談室・オンボのオーバーレイは既に
+                // §Dのreduce-motion分岐があるのに、この一般画面切替本体だけ抜けていた。同じ
+                // accessibilityReduceMotionで揃える。
                 screenContent
                     .transition(.opacity.combined(with: .move(edge: .trailing)))
-                    .animation(.easeInOut(duration: 0.22), value: effectiveScreen)
+                    .animation(reduceMotion ? .easeInOut(duration: 0) : .easeInOut(duration: 0.22), value: effectiveScreen)
                 if screen.showsTabBar {
                     KyonoTabBar(current: screen.kyonoTab) { newTab in
                         // index.html:1562-1563 switchTab()先頭のfdTourMaybeStart()の1:1移植。

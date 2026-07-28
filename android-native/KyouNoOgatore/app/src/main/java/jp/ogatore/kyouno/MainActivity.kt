@@ -256,6 +256,10 @@ class MainActivity : ComponentActivity() {
                                     // 常に瞬時だったのに.25s程度のフェード+わずかなスライドを追加。
                                     // Screen方式(手組みの状態機械)自体は変更せず、AnimatedContentで
                                     // 外側から演出を被せるだけ。
+                                    // UI/UXパリティ監査2巡目A8(2026-07-29): 相談室・オンボのオーバーレイは
+                                    // §Dのprefers-reduced-motion分岐が既にあるのに、この一般画面切替本体
+                                    // だけ抜けていた。同じrememberReducedMotion()で揃える。
+                                    val mainScreenReducedMotion = rememberReducedMotion()
                                     AnimatedContent(
                                         targetState = mainScreen,
                                         transitionSpec = {
@@ -263,8 +267,12 @@ class MainActivity : ComponentActivity() {
                                             // 160ms/fadeのみでiOS(220ms/fade+slide)と食い違っていた
                                             // (Web版に基準値の無い追加演出のため「揃える」ことが目的。
                                             // 入退で対称なiOS側の値に寄せる)。
-                                            (fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 20 })
-                                                .togetherWith(fadeOut(tween(220)) + slideOutHorizontally(tween(220)) { it / 20 })
+                                            if (mainScreenReducedMotion) {
+                                                fadeIn(tween(0)).togetherWith(fadeOut(tween(0)))
+                                            } else {
+                                                (fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 20 })
+                                                    .togetherWith(fadeOut(tween(220)) + slideOutHorizontally(tween(220)) { it / 20 })
+                                            }
                                         },
                                         label = "screenTransition",
                                     ) { s ->
