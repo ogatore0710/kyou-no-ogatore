@@ -2,6 +2,29 @@
 
 最終更新: 2026-07-28
 
+## 🚧 進行中: TestFlight内部テスト配信(2026-07-28・`TASK-C2-2026-07-28-testflight-internal.md`)
+正本は`~/Claude/ogatore-hub/apps/fleet-office/ios-relay/SETUP.md`(牧場オフィスが2026-07-27に
+同じMacから到達済み)。手順1(Team切替)・手順3(App Group)・Bundle ID・アイコン/暗号化申告/
+PrivacyInfo.xcprivacyまで完了、アーカイブ+エクスポートまで成功済み。**手順7(ASC アプリレコード
+作成)がASC APIキーの権限(ロール=App Manager)では実行できず(`POST /v1/apps`は403)、
+Account Holder(`app@ogatore.jp`)によるWeb UI操作が必要**なため、そこで一時停止中。
+詳細は`REPORT-C2-2026-07-28-testflight-*.md`3件参照。
+
+- **App Group**: `group.jp.ogatore.kyouno`はPersonal Team(FMR8VB3QLX)側で既に登録済みのため、
+  有料チーム(R47FY8GH3R)向けに新識別子`group.jp.ogatore.kyouno.app`を採用(本人判断・
+  選択肢2=Personal Team側の削除はしない)。
+- **Bundle ID**: 同じ理由で本体`jp.ogatore.kyouno`・拡張`jp.ogatore.kyouno.widget`へ変更
+  (本人判断・Android版パッケージ名と一致)。**Personal Team版とは別アプリ扱い**(記録データは
+  引き継がれない・了承済み)。
+- **Personal Team側に残る旧識別子(`group.jp.ogatore.kyouno`・`jp.ogatore.KyouNoOgatore`/
+  `.KyonoWidget`)の掃除は今日はやらない。いつか整理する対象として残っている。**
+- アイコン(`AppIcon.appiconset`が空だった落とし穴を解消)・
+  `ITSAppUsesNonExemptEncryption=NO`・`PrivacyInfo.xcprivacy`(File Timestamp API=
+  `ThumbnailCache.swift`のcontentModificationDateKey使用を理由3B52.1で申告)まで対応済み。
+- アーカイブ+エクスポート成功、署名済みIPA(`/tmp/KyouNoOgatore-export/KyouNoOgatore.ipa`・
+  ローカルのみ)まで到達。あとはASCアプリレコードが出来次第、`altool`アップロード→
+  内部テスターグループ紐付け→本人のTestFlightで確認、のみ。
+
 ## ✅ 完了: D7 画面の向きを縦固定(2026-07-28・本人GO・TestFlight直前対応)
 D5検証中にalan5が横向きで発見: 相談室シートが横向きだとヘッダー+注意書き+チップ+入力欄で
 埋まり、**会話部分の高さがゼロに潰れて吹き出しが1つも見えなくなる**(状態自体は生きている・
