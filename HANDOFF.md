@@ -2,6 +2,28 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: D7 画面の向きを縦固定(2026-07-28・本人GO・TestFlight直前対応)
+D5検証中にalan5が横向きで発見: 相談室シートが横向きだとヘッダー+注意書き+チップ+入力欄で
+埋まり、**会話部分の高さがゼロに潰れて吹き出しが1つも見えなくなる**(状態自体は生きている・
+縦に戻せば見える)。このアプリは動画を外部YouTubeで見る縦前提の設計で横の価値が無いこと、
+TestFlight前に17画面ぶんの未検証な横レイアウトを丸ごと消せることから、本人判断で
+「縦固定」に決定。iPadはスコープ外(今回は触らない)。
+
+- **Android**: `AndroidManifest.xml`の`MainActivity`に`android:screenOrientation="portrait"`を
+  追加(以前は指定なし=全向き許可)。
+- **iOS**: `project.pbxproj`の`INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone`を
+  `"UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft
+  UIInterfaceOrientationLandscapeRight"`→`UIInterfaceOrientationPortrait`のみへ変更
+  (Debug/Release両方)。**`_iPad`キーは意図的に無変更**(iPadは今回のスコープ外)。
+- **実機確認**: Androidエミュレータで`accelerometer_rotation=0`+`user_rotation=1`
+  (強制横向き)を送っても画面が縦のまま変わらないことを確認。iOSはビルド後のInfo.plistを
+  直接確認し、`UISupportedInterfaceOrientations~iphone`がPortraitのみ・
+  `~ipad`は4方向のまま(無変更)であることを確認。
+- **D5との関係**: 縦固定にしても回転以外の経路(システムフォントサイズ変更・言語変更・
+  プロセス再生成)では引き続きActivity/シーンが再生成されるため、D5(screen/相談室会話/
+  クイズ回答途中のrememberSaveable化)は無駄にならない。
+- 回帰確認: Android全テスト(`--rerun-tasks`)green・iOSシミュレータ/実機宛ビルド両方成功。
+
 ## ✅ 完了: Fable監査(5視点)GO15件+D5(2026-07-28・`REPORT-C2-2026-07-28-fable-audit.md`)
 Fable監査(5視点A〜E、詳細は`REPORT-C2-2026-07-28-fable-audit.md`)の結果をalan5が仕分け、GO15件+
 D5(回転で状態が消える件)を1バッチで実装。alan5指定の順序(1→2→7→3→4→5→6→残りのテスト→15→D5)で
