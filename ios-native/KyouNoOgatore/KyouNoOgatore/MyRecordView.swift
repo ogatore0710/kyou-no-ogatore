@@ -107,27 +107,30 @@ struct MyRecordView: View {
         }
         .onReceive(dayTicker) { _ in checkDayChange() }
         // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
-        .sheet(isPresented: Binding(get: { dayCardResult != nil }, set: { if !$0 { dayCardResult = nil } })) {
-            if let dayCardResult {
-                VStack {
-                    Image(uiImage: dayCardResult.image).resizable().scaledToFit()
-                    // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
-                    // cardMsExportNudgeの1:1移植(この日別カードもmakeCard(ds)共通のためWeb版と同様に対象)。
-                    if dayCardResult.isMilestone {
-                        Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
-                            .kyonoFont(.bold700, size: 13).multilineTextAlignment(.center)
-                        KyonoGhostButton("記録のひかえを取る") {
-                            self.dayCardResult = nil
-                            onOpenSettings()
+        // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
+        // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
+        .overlay {
+            KyonoCardModalOverlay(isPresented: dayCardResult != nil, onClose: { dayCardResult = nil }) {
+                if let dayCardResult {
+                    VStack {
+                        Image(uiImage: dayCardResult.image).resizable().scaledToFit()
+                        // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                        // cardMsExportNudgeの1:1移植(この日別カードもmakeCard(ds)共通のためWeb版と同様に対象)。
+                        if dayCardResult.isMilestone {
+                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+                                .kyonoFont(.bold700, size: 13).multilineTextAlignment(.center)
+                            KyonoGhostButton("記録のひかえを取る") {
+                                self.dayCardResult = nil
+                                onOpenSettings()
+                            }
+                        }
+                        // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一。
+                        HStack(spacing: 12) {
+                            KyonoGhostButton("とじる") { self.dayCardResult = nil }
+                            KyonoPrimaryButton("保存・シェアする") { ShareImage.share(uiImage: dayCardResult.image, text: "#きょうのオガトレ") }
                         }
                     }
-                    // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一。
-                    HStack(spacing: 12) {
-                        KyonoGhostButton("とじる") { self.dayCardResult = nil }
-                        KyonoPrimaryButton("保存・シェアする") { ShareImage.share(uiImage: dayCardResult.image, text: "#きょうのオガトレ") }
-                    }
                 }
-                .padding()
             }
         }
     }

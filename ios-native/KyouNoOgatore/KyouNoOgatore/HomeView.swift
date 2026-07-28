@@ -498,34 +498,37 @@ struct HomeView: View {
             DailyNotifications.resync(store: store)
         }
         .onReceive(dayTicker) { _ in checkRefreshDay() }
-        .sheet(isPresented: Binding(get: { cardResult != nil }, set: { if !$0 { closeCardAndMaybeStartTour() } })) {
-            if let cardResult {
-                VStack {
-                    Image(uiImage: cardResult.image).resizable().scaledToFit()
-                    // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
-                    // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
-                    // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
-                    if cardResult.isMilestone {
-                        Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
-                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                            .multilineTextAlignment(.center)
-                        KyonoGhostButton("記録のひかえを取る") {
-                            self.cardResult = nil
-                            onOpenSettings()
+        // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
+        // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
+        .overlay {
+            KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour) {
+                if let cardResult {
+                    VStack {
+                        Image(uiImage: cardResult.image).resizable().scaledToFit()
+                        // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                        // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
+                        // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
+                        if cardResult.isMilestone {
+                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+                                .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                                .multilineTextAlignment(.center)
+                            KyonoGhostButton("記録のひかえを取る") {
+                                self.cardResult = nil
+                                onOpenSettings()
+                            }
                         }
-                    }
-                    // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一
-                    // (タップ領域・見た目ともアプリの基準コンポーネントに揃える)。あわせて2ボタンが
-                    // 隙間なく隣接していた点を余白で解消。
-                    HStack(spacing: 12) {
-                        KyonoGhostButton("とじる", action: closeCardAndMaybeStartTour)
-                        // index.html shareCard()相当(Step7bで新規実装)。
-                        KyonoPrimaryButton("保存・シェアする") {
-                            ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
+                        // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一
+                        // (タップ領域・見た目ともアプリの基準コンポーネントに揃える)。あわせて2ボタンが
+                        // 隙間なく隣接していた点を余白で解消。
+                        HStack(spacing: 12) {
+                            KyonoGhostButton("とじる", action: closeCardAndMaybeStartTour)
+                            // index.html shareCard()相当(Step7bで新規実装)。
+                            KyonoPrimaryButton("保存・シェアする") {
+                                ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
+                            }
                         }
                     }
                 }
-                .padding()
             }
         }
         // TASK-C2-2026-07-27-behavior-parity-audit.md §B →

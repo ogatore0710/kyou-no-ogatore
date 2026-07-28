@@ -163,19 +163,22 @@ private struct BragContentView: View {
         }
         .padding(16)
         .background(KyonoBackgroundColor().ignoresSafeArea())
-        .sheet(isPresented: Binding(get: { cardImage != nil }, set: { if !$0 { cardImage = nil } })) {
-            if let cardImage {
-                VStack {
-                    Image(uiImage: cardImage).resizable().scaledToFit()
-                    HStack {
-                        KyonoGhostButton("とじる") { self.cardImage = nil }
-                        KyonoPrimaryButton("保存・シェアする") {
-                            let days = BragCardRenderer.clampDays(Int(daysText) ?? 1)
-                            ShareImage.share(uiImage: cardImage, text: "#きょうのオガトレ \(days)日つづいてる！")
+        // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
+        // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
+        .overlay {
+            KyonoCardModalOverlay(isPresented: cardImage != nil, onClose: { cardImage = nil }) {
+                if let cardImage {
+                    VStack {
+                        Image(uiImage: cardImage).resizable().scaledToFit()
+                        HStack(spacing: 12) {
+                            KyonoGhostButton("とじる") { self.cardImage = nil }
+                            KyonoPrimaryButton("保存・シェアする") {
+                                let days = BragCardRenderer.clampDays(Int(daysText) ?? 1)
+                                ShareImage.share(uiImage: cardImage, text: "#きょうのオガトレ \(days)日つづいてる！")
+                            }
                         }
                     }
                 }
-                .padding()
             }
         }
     }

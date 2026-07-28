@@ -3,6 +3,7 @@
 package jp.ogatore.kyouno
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -337,6 +339,7 @@ class MainActivity : ComponentActivity() {
                                         is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
                                         is Screen.Home -> HomeScreen(
                                             store = store,
+                                            isForeground = screen == Screen.Home,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
                                             onOpenQuiz = { screen = Screen.Quiz(null) },
@@ -443,6 +446,9 @@ class MainActivity : ComponentActivity() {
                             LaunchedEffect(screen) {
                                 (screen as? Screen.Soudan)?.let { lastSoudan = it }
                             }
+                            // GO-G6(5視点ワンループ): システム「もどる」を相談室シートでも拾う。
+                            // 既存のスクリムタップ(screen = Screen.Home)と同じ挙動にするだけ。
+                            BackHandler(enabled = screen is Screen.Soudan) { screen = Screen.Home }
                             val screenReducedMotion = rememberReducedMotion()
                             AnimatedVisibility(
                                 visible = screen is Screen.Soudan,
@@ -626,6 +632,11 @@ val REACH_LV = listOf("", "ひざまで", "すねまで", "足首まで", "つ�
 fun HomeScreen(
     store: RecordStore,
     openUrl: (String) -> Unit,
+    // GO-G6(5視点ワンループ): mainScreenはSoudan/Onboarding中もHomeへ差し替え済み(§screenTransition)
+    // のため、HomeScreen自体はその間も裏で描画され続けている。isForegroundは「実際にホームタブが
+    // 最前面か」を示すフラグで、trueのときだけ2回もどるでアプリを閉じるBackHandlerを有効にする
+    // (相談室シート等が前面のときはそちら側のBackHandlerに譲る)。
+    isForeground: Boolean = true,
     onStartTour: (Boolean) -> Unit,
     onOpenQuiz: () -> Unit,
     onShowResult: (String) -> Unit,
@@ -654,6 +665,20 @@ fun HomeScreen(
     // 1:1移植。markDoneでtourpend=trueになった瞬間に出し、fdTourMaybeStart相当(カード閉じ時の
     // ツアー自動起動)が消費した瞬間に片付ける(Web版と同じ寿命)。
     var fdCardNudgeVisible by remember { mutableStateOf(false) }
+    // GO-G6(5視点ワンループ): ホームタブのルートで「もどる」を押すと即アプリ終了していた件の対応。
+    // 1回目は終了せずバナーで予告し、一定時間内の2回目でだけ終了する(誤タップでの即終了を防ぐ)。
+    var showExitConfirm by remember { mutableStateOf(false) }
+    BackHandler(enabled = isForeground) {
+        if (showExitConfirm) {
+            (context as? Activity)?.finish()
+        } else {
+            showExitConfirm = true
+            scope.launch {
+                delay(2000)
+                showExitConfirm = false
+            }
+        }
+    }
     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時のcheer差し替え
     // (fd-cardpopのカードサンプルポップイン)の1:1移植。節目(ms)がある場合はそちらを優先する
     // Web版と同じ構造(実際にはtotal===1でmsが同時に成立することは無いための保険)。
@@ -844,6 +869,20 @@ fun HomeScreen(
                         .border(1.5.dp, colors.yellow, RoundedCornerShape(14.dp))
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                         .testTag("envBanner"),
+                )
+            }
+            // GO-G6(5視点ワンループ): 2回もどるでアプリ終了の1回目予告バナー。envBannerと同じ見た目で
+            // 統一する(新しいスタイルを増やさない)。
+            if (showExitConfirm) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "もう一度で閉じます",
+                    color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
+                    modifier = Modifier.fillMaxWidth()
+                        .background(colors.yellowSoft, RoundedCornerShape(14.dp))
+                        .border(1.5.dp, colors.yellow, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                        .testTag("exitConfirmBanner"),
                 )
             }
             Spacer(Modifier.height(14.dp))
