@@ -317,7 +317,9 @@ struct HomeView: View {
                         .kyonoFont(.black900, size: 14).foregroundColor(colors.pink)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
-                KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did) {
+                // UI/UXパリティ監査GO-8(2026-07-28): index.html:382 .done-btn.did
+                // (背景グレー・影なし・文字縮小)の1:1移植。
+                KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did, flatWhenDisabled: true) {
                     guard !did else { return }
                     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
                     // ネイティブならではの上乗せとして、主要アクションに軽いハプティクスを追加

@@ -151,10 +151,34 @@ fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, co
 // box-shadow:0 4px 0 #E8BE1E(ぼかし無しのオフセット矩形)をCompose上でBox二重描画により再現。
 // :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、pressed状態をMutableInteractionSource経由で検知する。
 @Composable
-fun KyonoPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun KyonoPrimaryButton(
+    text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true,
+    flatWhenDisabled: Boolean = false,
+) {
     val colors = LocalKyonoColors.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    // index.html:382 .done-btn.did{background:var(--line);color:var(--sub);box-shadow:none;
+    // font-size:14px}の1:1移植。UI/UXパリティ監査GO-8(2026-07-28): 完了後も黄色+3D影のまま
+    // alpha0.5にするだけで、Webの「フラットな灰色化=もう押せない見た目」になっていなかった欠落。
+    // 「きょうやった!」ボタンだけflatWhenDisabled=trueを渡し、完了後はグレー1枚のフラット表示に
+    // 切り替える(他の呼び出し元=相談室の送信ボタン等は#sdSendBtn:disabled{opacity:.45}が対応する
+    // 半透明ディムのままでよいため、既定はfalseで従来どおり)。
+    if (flatWhenDisabled && !enabled) {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(colors.line, KyonoButtonShape)
+                .padding(16.dp, 18.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
+        }
+        return
+    }
     val shadowOffset = if (pressed) 1.dp else 4.dp
     val faceOffset = if (pressed) 3.dp else 0.dp
     val alpha = if (enabled) 1f else 0.5f

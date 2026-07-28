@@ -178,42 +178,56 @@ struct KyonoPrimaryButton: View {
     let text: String
     let action: () -> Void
     var enabled: Bool = true
+    // index.html:382 .done-btn.did{background:var(--line);color:var(--sub);box-shadow:none;
+    // font-size:14px}の1:1移植。UI/UXパリティ監査GO-8(2026-07-28): 完了後も黄色+3D影のまま
+    // opacity 0.5にするだけで、Webの「フラットな灰色化=もう押せない見た目」になっていなかった
+    // 欠落。「きょうやった!」ボタンだけtrueを渡し、完了後はグレー1枚のフラット表示に切り替える
+    // (他の呼び出し元=相談室の送信ボタン等は従来どおりの半透明ディムのままでよいため既定false)。
+    var flatWhenDisabled = false
     @State private var pressed = false
 
-    init(_ text: String, enabled: Bool = true, action: @escaping () -> Void) {
-        self.text = text; self.enabled = enabled; self.action = action
+    init(_ text: String, enabled: Bool = true, flatWhenDisabled: Bool = false, action: @escaping () -> Void) {
+        self.text = text; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.action = action
     }
 
     var body: some View {
-        let shadowOffset: CGFloat = pressed ? 1 : 4
-        let faceOffset: CGFloat = pressed ? 3 : 0
-        let alpha: Double = enabled ? 1 : 0.5
-        ZStack {
-            // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このTextは見た目上の高さ調整だけの
-            // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
-            // VoiceOverが同じラベルを2回読み上げてしまっていた)。
-            Text(text).kyonoFont(.black900, size: 20).foregroundColor(.clear)
+        if flatWhenDisabled && !enabled {
+            Text(text).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                 .padding(.horizontal, 18).padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
-                .background(colors.btnPrimaryShadow.opacity(alpha))
+                .background(colors.line)
                 .cornerRadius(kyonoButtonRadius)
-                .offset(y: shadowOffset)
-                .accessibilityHidden(true)
-            Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.ink)
-                .padding(.horizontal, 18).padding(.vertical, 16)
-                .frame(maxWidth: .infinity)
-                .background(colors.yellow.opacity(alpha))
-                .cornerRadius(kyonoButtonRadius)
-                .offset(y: faceOffset)
+        } else {
+            let shadowOffset: CGFloat = pressed ? 1 : 4
+            let faceOffset: CGFloat = pressed ? 3 : 0
+            let alpha: Double = enabled ? 1 : 0.5
+            ZStack {
+                // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このTextは見た目上の高さ調整だけの
+                // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
+                // VoiceOverが同じラベルを2回読み上げてしまっていた)。
+                Text(text).kyonoFont(.black900, size: 20).foregroundColor(.clear)
+                    .padding(.horizontal, 18).padding(.vertical, 16)
+                    .frame(maxWidth: .infinity)
+                    .background(colors.btnPrimaryShadow.opacity(alpha))
+                    .cornerRadius(kyonoButtonRadius)
+                    .offset(y: shadowOffset)
+                    .accessibilityHidden(true)
+                Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.ink)
+                    .padding(.horizontal, 18).padding(.vertical, 16)
+                    .frame(maxWidth: .infinity)
+                    .background(colors.yellow.opacity(alpha))
+                    .cornerRadius(kyonoButtonRadius)
+                    .offset(y: faceOffset)
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in if enabled { pressed = true } }
+                    .onEnded { _ in
+                        if enabled { pressed = false; action() }
+                    }
+            )
         }
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in if enabled { pressed = true } }
-                .onEnded { _ in
-                    if enabled { pressed = false; action() }
-                }
-        )
     }
 }
 

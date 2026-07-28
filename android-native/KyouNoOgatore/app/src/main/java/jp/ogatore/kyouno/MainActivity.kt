@@ -1123,6 +1123,9 @@ fun HomeScreen(
                             doneBtnHeightPx = coords.size.height
                         },
                     enabled = !did,
+                    // UI/UXパリティ監査GO-8(2026-07-28): index.html:382 .done-btn.did
+                    // (背景グレー・影なし・文字縮小)の1:1移植。
+                    flatWhenDisabled = true,
                 )
                 // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
                 // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
