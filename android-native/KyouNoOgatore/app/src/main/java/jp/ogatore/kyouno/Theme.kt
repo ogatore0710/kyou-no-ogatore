@@ -124,6 +124,13 @@ val KyonoScreenPadding = androidx.compose.foundation.layout.PaddingValues(
     start = 18.dp, top = 20.dp, end = 18.dp, bottom = 180.dp,
 )
 
+// UI/UXパリティ監査GO-13(2026-07-28・SUSPECTED): CSSの`ease-out`(cubic-bezier(0,0,.58,1))に
+// 対応するアニメーションの一部がeasing引数省略でCompose既定のFastOutSlowInEasing
+// (cubic-bezier(.4,0,.2,1)。開始直後にわずかな「溜め」が入る)にフォールバックしていた。
+// 例: index.html:312 #cheer>div{animation:cpop .3s ease-out}/489 .sd-pop{animation:sdpop .18s
+// ease-out}。
+val KyonoEaseOut = androidx.compose.animation.core.CubicBezierEasing(0f, 0f, 0.58f, 1f)
+
 val LocalKyonoColors = compositionLocalOf { KyonoLightColors }
 
 // GO-G12(5視点ワンループ): bigtext ON時に最小文字階層(10sp/11sp、既存の1.18倍スケールでも

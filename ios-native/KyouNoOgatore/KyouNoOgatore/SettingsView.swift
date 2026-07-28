@@ -310,7 +310,11 @@ struct SettingsView: View {
                     }
                     if let exportText {
                         Spacer().frame(height: 8)
-                        Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:").kyonoFont(.bold700, size: 12)
+                        // UI/UXパリティ監査GO-10(2026-07-28): index.html:835 「この文字を長押しで
+                        // コピーしてね」の1:1移植。ネイティブは自動コピーという機能差があるためWeb版と
+                        // 文言はそのまま同じにはできないが、句点・コロンで終わる説明文調ではなく
+                        // Web版と同じカジュアルな文体に寄せる。
+                        Text("クリップボードにコピーしたよ 下の文字は長押しでも選べるよ").kyonoFont(.bold700, size: 12)
                         TextEditor(text: .constant(exportText)).frame(height: 120).border(Color.gray.opacity(0.3))
                     }
                     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:837の1:1移植。

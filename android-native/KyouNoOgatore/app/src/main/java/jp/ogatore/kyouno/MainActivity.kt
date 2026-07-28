@@ -1187,7 +1187,7 @@ fun HomeScreen(
                 // ease-out)の1:1移植。応援メッセージがポップして出る演出が欠落していたため追加。
                 AnimatedVisibility(
                     visible = cheerText != null,
-                    enter = fadeIn(tween(300), initialAlpha = 0.4f) + scaleIn(tween(300), initialScale = 0.85f),
+                    enter = fadeIn(tween(300, easing = KyonoEaseOut), initialAlpha = 0.4f) + scaleIn(tween(300, easing = KyonoEaseOut), initialScale = 0.85f),
                 ) {
                     cheerText?.let {
                         Column {
@@ -1201,7 +1201,7 @@ fun HomeScreen(
                 // cpop(fadeIn+scaleIn 300ms)演出を使う(fd-cardpopの弾むバウンドとは別物)。
                 AnimatedVisibility(
                     visible = milestoneInfo != null,
-                    enter = fadeIn(tween(300), initialAlpha = 0.4f) + scaleIn(tween(300), initialScale = 0.85f),
+                    enter = fadeIn(tween(300, easing = KyonoEaseOut), initialAlpha = 0.4f) + scaleIn(tween(300, easing = KyonoEaseOut), initialScale = 0.85f),
                 ) {
                     milestoneInfo?.let { ms ->
                         Column(Modifier.testTag("milestoneCelebration")) {

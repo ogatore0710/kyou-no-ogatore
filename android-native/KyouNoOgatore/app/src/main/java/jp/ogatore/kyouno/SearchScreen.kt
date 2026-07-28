@@ -340,7 +340,9 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                         }
                     }
                 }
-                Text("${hits.size}件見つかりました", color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("searchHitCount"))
+                // UI/UXパリティ監査GO-10(2026-07-28): app-search.js:61 `${hits.length}本`の1:1移植。
+                // 「件見つかりました」は動詞つきの事務的な文体で、Web版のカジュアルな単位表現とは別物だった。
+                Text("${hits.size}本", color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("searchHitCount"))
             }
             Spacer(Modifier.height(6.dp))
             LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("searchResults")) {

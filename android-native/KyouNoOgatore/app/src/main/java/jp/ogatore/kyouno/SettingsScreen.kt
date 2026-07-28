@@ -396,7 +396,11 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // 用途はオガトレ通信の30日超の古い投稿日付のみ)。
                 exportText?.let {
                     Spacer(Modifier.height(8.dp))
-                    Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:", color = colors.sub, fontSize = 12.sp)
+                    // UI/UXパリティ監査GO-10(2026-07-28): index.html:835 「この文字を長押しで
+                    // コピーしてね」の1:1移植。ネイティブは自動コピーという機能差があるためWeb版と
+                    // 文言はそのまま同じにはできないが、句点・コロンで終わる説明文調ではなくWeb版と
+                    // 同じカジュアルな文体に寄せる。
+                    Text("クリップボードにコピーしたよ 下の文字は長押しでも選べるよ", color = colors.sub, fontSize = 12.sp)
                     OutlinedTextField(
                         value = it,
                         onValueChange = {},

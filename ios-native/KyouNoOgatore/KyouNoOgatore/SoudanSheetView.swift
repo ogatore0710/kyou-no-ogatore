@@ -431,7 +431,10 @@ private struct SoudanContentView: View {
         case let .user(text):
             HStack {
                 Spacer()
-                Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                // UI/UXパリティ監査GO-12(2026-07-28): index.html:481 .sd-b{font-size:15px;
+                // line-height:1.75}の1:1移植。lineSpacing指定なしでSwiftUI既定にフォールバックし、
+                // Web版より行間が詰まっていた欠落を修正する。
+                Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(11)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomLeft]).fill(colors.yellowSoft))
             }
@@ -443,7 +446,9 @@ private struct SoudanContentView: View {
             HStack(alignment: .bottom) {
                 KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 6) {
-                    if !text.isEmpty { Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink) }
+                    // UI/UXパリティ監査GO-12(2026-07-28): index.html:481 .sd-b{font-size:15px;
+                    // line-height:1.75}の1:1移植。
+                    if !text.isEmpty { Text(text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(11) }
                     // index.html:3330 sdAnswerFallback1通目の末尾<span>(小さめ注意書き)の1:1移植。
                     if fallbackCaution {
                         Text("※つらい症状（強い痛み・胸の苦しさ・熱など）があるときは、メールより先に医療機関に相談してね")

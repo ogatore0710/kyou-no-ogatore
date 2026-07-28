@@ -418,10 +418,14 @@ fun SoudanSheet(
                 for (m in messages) {
                     AnimatedVisibility(
                         visible = true,
+                        // UI/UXパリティ監査GO-13(2026-07-28・SUSPECTED): index.html:489 .sd-pop
+                        // {animation:sdpop .18s ease-out}の1:1移植。easing省略でCompose既定の
+                        // FastOutSlowInEasingにフォールバックしていた。
                         enter = if (sdReducedMotion) {
                             fadeIn(tween(0))
                         } else {
-                            fadeIn(tween(180)) + slideInVertically(tween(180)) { with(bubblePopDensity) { 4.dp.roundToPx() } }
+                            fadeIn(tween(180, easing = KyonoEaseOut)) +
+                                slideInVertically(tween(180, easing = KyonoEaseOut)) { with(bubblePopDensity) { 4.dp.roundToPx() } }
                         },
                     ) {
                     when (m) {
@@ -432,8 +436,11 @@ fun SoudanSheet(
                             // 追加され、for(m in messages)はkey()なし=位置ベース記憶のため、既存の
                             // 吹き出しは新規吹き出し追加時に再コンポーズされず、このTextは
                             // 「新規生成された瞬間」だけliveRegionが発火する。
+                            // UI/UXパリティ監査GO-12(2026-07-28): index.html:481 .sd-b{font-size:15px;
+                            // line-height:1.75}の1:1移植。指定なしでMaterial3既定(bodyLarge=16sp/24sp=
+                            // 比率1.5)にフォールバックし、Web版より行間が詰まっていた欠落を修正する。
                             Text(
-                                m.text, color = colors.ink,
+                                m.text, color = colors.ink, fontSize = 15.sp, lineHeight = 26.25.sp,
                                 modifier = Modifier
                                     .background(colors.yellowSoft, RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp)
@@ -459,7 +466,12 @@ fun SoudanSheet(
                                 // Column(caution文言・動画ボタンを含む)には付けない。動画ボタンが
                                 // mergeDescendants経由でTalkBackから個別に触れなくなる副作用を避けるため。
                                 if (m.text.isNotEmpty()) {
-                                    Text(m.text, color = colors.ink, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                                    // UI/UXパリティ監査GO-12(2026-07-28): index.html:481 .sd-b{font-size:15px;
+                                    // line-height:1.75}の1:1移植。
+                                    Text(
+                                        m.text, color = colors.ink, fontSize = 15.sp, lineHeight = 26.25.sp,
+                                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                                    )
                                 }
                                 // index.html:3330 sdAnswerFallback1通目の末尾<span>(小さめ注意書き)の1:1移植。
                                 if (m.fallbackCaution) {

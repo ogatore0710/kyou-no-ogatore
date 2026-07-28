@@ -257,7 +257,9 @@ private struct SearchContentView: View {
                         .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
                 }
                 Spacer()
-                Text("\(hits.count)件見つかりました").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                // UI/UXパリティ監査GO-10(2026-07-28): app-search.js:61 `${hits.length}本`の1:1移植。
+                // 「件見つかりました」は動詞つきの事務的な文体で、Web版のカジュアルな単位表現とは別物だった。
+                Text(verbatim: "\(hits.count)本").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
