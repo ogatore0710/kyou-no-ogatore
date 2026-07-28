@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -127,19 +128,27 @@ fun KyonoPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = M
     }
 }
 
-// index.html:103 .btn-ghost{background:var(--teal-soft);color:var(--tealink);font-size:15px}
+// index.html:103,105 .btn-ghost{background:var(--teal-soft);color:var(--tealink);font-size:15px}
+// / .btn-ghost:active{transform:translateY(1px);opacity:.85}の1:1移植。
+// UI/UXパリティ監査GO-2(2026-07-28): 既定のripple止まりでWebの:active(1px沈み込み+
+// 透明度低下)とは別の質感だった欠落。KyonoPrimaryButtonと同じinteractionSource.
+// collectIsPressedAsState()の手法をここにも展開する。
 @Composable
 fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val colors = LocalKyonoColors.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .offset(y = if (pressed) 1.dp else 0.dp)
+            .alpha(if (pressed) 0.85f else 1f)
             .background(colors.tealSoft, KyonoButtonShape)
             // Fable監査GO-3: enabled=falseのときは.clickable自体を付けない(clickable自身の
             // enabledフラグに頼らず、Modifier.thenで条件付き付与することで、隠れている間は
             // ポインタイベントを一切消費しないことを構造的に保証する)。VoicesScreenの
             // カードめくりで、裏返っている間もボタンだけ独立してタップされてしまう事故の対策。
-            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(if (enabled) Modifier.clickable(interactionSource = interactionSource, indication = null, onClick = onClick) else Modifier)
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -151,17 +160,23 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 // {border-color:#4A443A}の1:1移植。ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-
 // and-nudges.md)で発覚: 従来この関数にborder自体が無く、ライト/ダーク両方で枠線が完全に欠落していた
 // (境界がテキストのみで判別できず、特にダークモードで視認性が低い)。
+// index.html:104,105,143 .btn-line:active{transform:translateY(1px);opacity:.85}の1:1移植。
+// UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
 @Composable
 fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     val borderColor = if (dark) Color(0xFF4A443A) else Color(0xFFE0D5BE)
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .offset(y = if (pressed) 1.dp else 0.dp)
+            .alpha(if (pressed) 0.85f else 1f)
             .background(Color.Transparent, KyonoButtonShape)
             .border(2.dp, borderColor, KyonoButtonShape)
-            .clickable(enabled = enabled, onClick = onClick)
+            .clickable(interactionSource = interactionSource, indication = null, enabled = enabled, onClick = onClick)
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -182,11 +197,17 @@ fun <T> KyonoSegmentedControl(options: List<Pair<T, String>>, selected: T, onSel
     ) {
         options.forEach { (value, label) ->
             val on = value == selected
+            // index.html:373,432(相当) .seg button:not(.on):active{opacity:.6}の1:1移植。
+            // UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButton/KyonoLineButtonと同じ欠落。
+            // 選択中(on)のセグメントはWeb版でも:active対象外(not(.on))なのでそのまま。
+            val interactionSource = remember { MutableInteractionSource() }
+            val pressed by interactionSource.collectIsPressedAsState()
             Box(
                 modifier = Modifier
                     .weight(1f)
+                    .alpha(if (!on && pressed) 0.6f else 1f)
                     .background(if (on) colors.card else Color.Transparent, RoundedCornerShape(12.dp))
-                    .clickable { onSelect(value) }
+                    .clickable(interactionSource = interactionSource, indication = null) { onSelect(value) }
                     .padding(vertical = 13.dp),
                 contentAlignment = Alignment.Center,
             ) {

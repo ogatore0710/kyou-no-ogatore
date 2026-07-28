@@ -180,25 +180,35 @@ struct KyonoPrimaryButton: View {
     }
 }
 
-// index.html:103 .btn-ghost{background:var(--teal-soft);color:var(--tealink);font-size:15px}
+// index.html:103,105 .btn-ghost{background:var(--teal-soft);color:var(--tealink);font-size:15px}
+// / .btn-ghost:active{transform:translateY(1px);opacity:.85}の1:1移植。
+// UI/UXパリティ監査GO-2(2026-07-28): .buttonStyle(.plain)がSwiftUI既定の押下ディムを消したまま
+// 代替を入れていなかった(タップしても無反応に見える欠落)。KyonoPrimaryButtonと同じ
+// DragGesture+@State pressedの手法をここにも展開する。
 struct KyonoGhostButton: View {
     @Environment(\.kyonoColors) private var colors
     let text: String
     let action: () -> Void
+    @State private var pressed = false
 
     init(_ text: String, action: @escaping () -> Void) {
         self.text = text; self.action = action
     }
 
     var body: some View {
-        Button(action: action) {
-            Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
-                .padding(.horizontal, 18).padding(.vertical, 16)
-                .frame(maxWidth: .infinity)
-                .background(colors.tealSoft)
-                .cornerRadius(kyonoButtonRadius)
-        }
-        .buttonStyle(.plain)
+        Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+            .padding(.horizontal, 18).padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+            .background(colors.tealSoft)
+            .cornerRadius(kyonoButtonRadius)
+            .opacity(pressed ? 0.85 : 1)
+            .offset(y: pressed ? 1 : 0)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in pressed = true }
+                    .onEnded { _ in pressed = false; action() }
+            )
     }
 }
 
@@ -240,17 +250,24 @@ struct KyonoLineButton: View {
     }
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    @State private var pressed = false
 
+    // index.html:104,105,143 .btn-line + .btn-line:active{transform:translateY(1px);opacity:.85}の
+    // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
     var body: some View {
-        Button(action: action) {
-            Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
-                .padding(.horizontal, 18).padding(.vertical, 16)
-                .frame(maxWidth: .infinity)
-                .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2))
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.5)
+        Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
+            .padding(.horizontal, 18).padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2))
+            .opacity(enabled ? (pressed ? 0.85 : 1) : 0.5)
+            .offset(y: pressed ? 1 : 0)
+            .contentShape(Rectangle())
+            .disabled(!enabled)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in if enabled { pressed = true } }
+                    .onEnded { _ in if enabled { pressed = false; action() } }
+            )
     }
 }
 
@@ -267,19 +284,38 @@ struct KyonoSegmentedControl<T: Equatable>: View {
             ForEach(options.indices, id: \.self) { i in
                 let (value, label) = options[i]
                 let on = value == selected
-                Button(action: { onSelect(value) }) {
-                    Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(on ? colors.card : Color.clear)
-                        .cornerRadius(12)
-                }
-                .buttonStyle(.plain)
+                // index.html:373,432(相当) .seg button:not(.on):active{opacity:.6}の1:1移植。
+                // UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButton/KyonoLineButtonと同じ欠落。
+                // 選択中(on)のセグメントはWeb版でも:active対象外(not(.on))なのでそのまま。
+                SegmentedOptionButton(label: label, on: on, colors: colors) { onSelect(value) }
             }
         }
         .padding(4)
         .background(colors.line)
         .cornerRadius(16)
+    }
+}
+
+private struct SegmentedOptionButton: View {
+    let label: String
+    let on: Bool
+    let colors: KyonoColors
+    let action: () -> Void
+    @State private var pressed = false
+
+    var body: some View {
+        Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 13)
+            .background(on ? colors.card : Color.clear)
+            .cornerRadius(12)
+            .opacity(!on && pressed ? 0.6 : 1)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in pressed = true }
+                    .onEnded { _ in pressed = false; action() }
+            )
     }
 }
 

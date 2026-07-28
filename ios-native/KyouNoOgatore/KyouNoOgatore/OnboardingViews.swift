@@ -656,19 +656,18 @@ private struct QuizContentView: View {
                         let pickedVal = opt.score.map { String($0) } ?? opt.worryKey
                         // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
                         let isPicked = picked[q.key] == pickedVal
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(opt.label).kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
-                            Text(opt.note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16).padding(.vertical, 14)
-                        .background(RoundedRectangle(cornerRadius: 16).fill(c?.bg ?? colors.card))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(isPicked ? colors.teal : (c?.border ?? colors.line), lineWidth: 2))
-                        .contentShape(Rectangle())
-                        .onTapGesture { if !answering { onOptTap(q, opt) } }
-                        // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
-                        // 補足説明を1回のVoiceOverスワイプで読める1つの単位にまとめる。
-                        .accessibilityElement(children: .combine)
+                        // UI/UXパリティ監査GO-2(2026-07-28)・視点D確信度CONFIRMED: 素の
+                        // VStack{...}.onTapGestureのみで押下時の見た目変化が一切無く、新規ユーザーが
+                        // 最初に触る5問クイズがタップしても無反応に見えていた欠落。index.html:295
+                        // .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}の
+                        // 1:1移植(KyonoPrimaryButtonと同じDragGesture+@State pressedの手法を展開)。
+                        QuizOptionCard(
+                            label: opt.label, note: opt.note,
+                            background: c?.bg ?? colors.card,
+                            borderColor: isPicked ? colors.teal : (c?.border ?? colors.line),
+                            pressedBackground: colors.yellowSoft, pressedBorderColor: colors.yellow,
+                            colors: colors
+                        ) { if !answering { onOptTap(q, opt) } }
                     }
                 }
                 // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。
@@ -683,6 +682,41 @@ private struct QuizContentView: View {
             .padding(20)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
+    }
+}
+
+// UI/UXパリティ監査GO-2(2026-07-28): index.html:293-295 .opt/.opt:activeの1:1移植。
+// KyonoPrimaryButtonと同じDragGesture+@State pressedの手法で、押した瞬間だけ
+// background/borderをyellow-soft/yellowへ切り替える(transitionなし=CSS同様の瞬時切り替え)。
+private struct QuizOptionCard: View {
+    let label: String
+    let note: String
+    let background: Color
+    let borderColor: Color
+    let pressedBackground: Color
+    let pressedBorderColor: Color
+    let colors: KyonoColors
+    let action: () -> Void
+    @State private var pressed = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+            Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16).padding(.vertical, 14)
+        .background(RoundedRectangle(cornerRadius: 16).fill(pressed ? pressedBackground : background))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(pressed ? pressedBorderColor : borderColor, lineWidth: 2))
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in pressed = true }
+                .onEnded { _ in pressed = false; action() }
+        )
+        // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+補足説明を
+        // 1回のVoiceOverスワイプで読める1つの単位にまとめる。
+        .accessibilityElement(children: .combine)
     }
 }
 

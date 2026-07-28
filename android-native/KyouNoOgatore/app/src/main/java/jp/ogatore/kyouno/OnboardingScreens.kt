@@ -13,6 +13,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -650,14 +652,27 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                     val pickedVal: Any? = opt.score ?: opt.worryKey
                     // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
                     val isPicked = picked[q.key] == pickedVal
+                    // UI/UXパリティ監査GO-2(2026-07-28)・視点D確信度CONFIRMED: indication指定なしの
+                    // 素の.clickableでCompose既定のripple(広がる波紋)にフォールバックしており、
+                    // Webの「色/枠がパッと変わる」質感(index.html:295 .opt:active{background:
+                    // var(--yellow-soft);border-color:var(--yellow)})とは別物だった欠落。
+                    // KyonoPrimaryButtonと同じinteractionSource.collectIsPressedAsState()の手法を
+                    // ここにも展開し、indication=nullでripple自体を止めてbackground/borderを
+                    // 直接yellow-soft/yellowへ切り替える(遷移なし=CSS同様の瞬時切り替え)。
+                    val optInteractionSource = remember { MutableInteractionSource() }
+                    val optPressed by optInteractionSource.collectIsPressedAsState()
                     Column(
                         Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                            .background(c?.bg ?: colors.card, RoundedCornerShape(16.dp))
-                            .border(2.dp, if (isPicked) colors.teal else (c?.border ?: colors.line), RoundedCornerShape(16.dp))
+                            .background(if (optPressed) colors.yellowSoft else (c?.bg ?: colors.card), RoundedCornerShape(16.dp))
+                            .border(
+                                2.dp,
+                                if (optPressed) colors.yellow else if (isPicked) colors.teal else (c?.border ?: colors.line),
+                                RoundedCornerShape(16.dp),
+                            )
                             // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+
                             // 補足説明を1回のTalkBackスワイプで読める1つの単位にまとめる。
                             .semantics(mergeDescendants = true) {}
-                            .clickable(enabled = !answering) {
+                            .clickable(interactionSource = optInteractionSource, indication = null, enabled = !answering) {
                                 answering = true
                                 picked[q.key] = pickedVal
                                 opt.score?.let { scores[q.key] = it }
