@@ -50,6 +50,13 @@ data class KyonoColors(
     val line: Color,
     val btnPrimaryShadow: Color,
     val tabbarIconOff: Color,
+    // GO-G1(5視点ワンループ): index.html:392,121 .tabbar button{color:var(--sub)}/
+    // body.dark .tabbar button{color:#847D6C}の1:1移植。タブバーのアイコン輪郭線(SVGの
+    // stroke="currentColor")はボタンのtext colorを継承しており、ダークモードでは--sub
+    // (通常の二次テキスト色)ではなくこの専用の控えめな色に上書きされる。以前はこの輪郭線が
+    // 全テーマ固定のColor(0xFF3A3A35)になっており、ダーク背景に対しコントラスト比1.0〜1.45
+    // (実測)でほぼ見えなくなっていた欠落。
+    val tabbarStrokeOff: Color,
 )
 
 val KyonoLightColors = KyonoColors(
@@ -72,6 +79,7 @@ val KyonoLightColors = KyonoColors(
     line = Color(0xFFF2EADB),
     btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFFC4BDA9),
+    tabbarStrokeOff = Color(0xFF6E6B5F),
 )
 
 val KyonoDarkColors = KyonoColors(
@@ -94,6 +102,7 @@ val KyonoDarkColors = KyonoColors(
     line = Color(0xFF3D382F),
     btnPrimaryShadow = Color(0xFF8A6D00),
     tabbarIconOff = Color(0xFF3D382F),
+    tabbarStrokeOff = Color(0xFF847D6C),
 )
 
 // index.html:95 .card{border-radius:var(--radius)}・--radius:22px の1:1移植。
