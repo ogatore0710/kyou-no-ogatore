@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
@@ -522,17 +523,60 @@ private fun annotatedBoldHtml(raw: String, boldColor: Color): AnnotatedString = 
 // REACH_FROM_MOMO(Q1の回答index→とどくメーター段位への対応表)の1:1移植。
 private val REACH_FROM_MOMO = listOf(5, 4, 2, 1)
 
+// Fable監査D5-1(alan5差し戻し2026-07-28): クイズは(オンボと違いLaunchedEffect(Unit)の
+// 一発台本フローが無く)qi/scores/worry/pickedを直接読むだけの単純な画面のため、回転を
+// またいでもそのまま安全に復元できる。scoresの値はInt・pickedの値はInt(score)かString
+// (worryKey)かnullのため、それぞれ型タグ付きでBundle互換の入れ子リストへ平坦化する。
+private fun encodeQuizPickedEntry(key: String, value: Any?): ArrayList<Any?> = when (value) {
+    is Int -> arrayListOf(key, "int", value)
+    is String -> arrayListOf(key, "string", value)
+    else -> arrayListOf(key, "null", null)
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun decodeQuizPickedEntry(saved: List<Any?>): Pair<String, Any?> {
+    val key = saved.getOrNull(0) as? String ?: ""
+    val value: Any? = when (saved.getOrNull(1) as? String) {
+        "int" -> saved.getOrNull(2) as? Int
+        "string" -> saved.getOrNull(2) as? String
+        else -> null
+    }
+    return key to value
+}
+
+internal val QuizScoresSaver: Saver<SnapshotStateMap<String, Int>, Any> = Saver(
+    save = { map -> ArrayList(map.flatMap { (k, v) -> listOf(k, v) }) },
+    restore = { saved ->
+        @Suppress("UNCHECKED_CAST")
+        val list = saved as List<Any?>
+        mutableStateMapOf<String, Int>().apply {
+            list.chunked(2).forEach { (k, v) -> put(k as String, v as Int) }
+        }
+    },
+)
+
+internal val QuizPickedSaver: Saver<SnapshotStateMap<String, Any?>, Any> = Saver(
+    save = { map -> ArrayList(map.map { (k, v) -> encodeQuizPickedEntry(k, v) }) },
+    restore = { saved ->
+        @Suppress("UNCHECKED_CAST")
+        val list = saved as List<List<Any?>>
+        mutableStateMapOf<String, Any?>().apply {
+            list.forEach { entry -> val (k, v) = decodeQuizPickedEntry(entry); put(k, v) }
+        }
+    },
+)
+
 @Composable
 fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit, onGoHome: () -> Unit) {
     val activeQuestions = remember(presetWorry) {
         if (presetWorry != null) QUIZ_QUESTIONS.filter { it.key != "worry" } else QUIZ_QUESTIONS
     }
-    var qi by remember { mutableStateOf(0) }
-    val scores = remember { mutableStateMapOf<String, Int>() }
-    var worry by remember { mutableStateOf(presetWorry) }
+    var qi by rememberSaveable { mutableStateOf(0) }
+    val scores = rememberSaveable(saver = QuizScoresSaver) { mutableStateMapOf<String, Int>() }
+    var worry by rememberSaveable { mutableStateOf(presetWorry) }
     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:166 state.pickedの1:1移植。
     // 「まえの質問へ」で戻ったとき前回選んだ選択肢が分かるよう、質問key→選択値(scoreまたはworryKey)を覚えておく。
-    val picked = remember { mutableStateMapOf<String, Any?>() }
+    val picked = rememberSaveable(saver = QuizPickedSaver) { mutableStateMapOf<String, Any?>() }
     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §2: app-quiz.js:180の1:1移植。回答タップ直後に
     // 選択肢を無効化し、次の設問が描画されるまで二度押しで判定の入力が汚れるのを防ぐ(想定層は
     // ダブルタップの癖がある人が多いため)。
