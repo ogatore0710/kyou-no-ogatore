@@ -1635,6 +1635,47 @@ fun MyRecordScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // UI/UXパリティ監査GO-9(2026-07-28): Web順(続けた記録→カード図鑑→カレンダー→
+            // とどくメーター→お楽しみ機能→続ける設定)に合わせ、カード図鑑をカレンダーより前へ移動する
+            // (以前はカレンダー→カード図鑑の順で入れ替わっていた)。
+            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
+            // dexBannerCard(カード図鑑バナー)相当。
+            // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771
+            // renderDexBanner()の1:1移植(got/totalバッジ+記念/季節/レア/ノーマル各1枚の見本4枚)。
+            // 以前はプレーンカード+別文言で「あと何枚」の収集フックが欠落していた。
+            KyonoCard(Modifier.testTag("dexBannerCard")) {
+                val existingRot = remember { store.get("rotAssign", emptyMap<String, Int>()) }
+                val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existingRot) }
+                LaunchedEffect(Unit) { if (existingRot.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
+                val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
+                val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
+                val dexGot = dexAll.count { it.got }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    KyonoSectionHeader(KyonoIcon.DexBook, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
+                    Spacer(Modifier.width(8.dp))
+                    Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
+                        Text("$dexGot/${dexAll.size}", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexBadge"))
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text("記念日・季節・レアなカードをあつめよう", color = colors.sub, fontSize = 14.sp)
+                Spacer(Modifier.height(10.dp))
+                Row(Modifier.fillMaxWidth().testTag("dexBannerSamples")) {
+                    val samples = listOfNotNull(
+                        dexStatus.toku.firstOrNull(), dexStatus.season.firstOrNull(),
+                        dexStatus.rare.firstOrNull(), dexStatus.normal.firstOrNull(),
+                    )
+                    for (item in samples) {
+                        DexBannerCell(item, Modifier.weight(1f))
+                    }
+                    repeat(4 - samples.size) { Spacer(Modifier.weight(1f)) }
+                }
+                Spacer(Modifier.height(10.dp))
+                KyonoGhostButton("📖 図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
+            }
+
+            Spacer(Modifier.height(16.dp))
+
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除
             // (onBackパラメータ自体はナビゲーション構造維持のため残す。呼び出し元で使われなくなるだけ)。
@@ -1761,54 +1802,9 @@ fun MyRecordScreen(
                 }
             }
 
-            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
-            // dexBannerCard(カード図鑑バナー)相当。
-            // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771
-            // renderDexBanner()の1:1移植(got/totalバッジ+記念/季節/レア/ノーマル各1枚の見本4枚)。
-            // 以前はプレーンカード+別文言で「あと何枚」の収集フックが欠落していた。
-            Spacer(Modifier.height(16.dp))
-            KyonoCard(Modifier.testTag("dexBannerCard")) {
-                val existingRot = remember { store.get("rotAssign", emptyMap<String, Int>()) }
-                val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existingRot) }
-                LaunchedEffect(Unit) { if (existingRot.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
-                val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
-                val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
-                val dexGot = dexAll.count { it.got }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    KyonoSectionHeader(KyonoIcon.DexBook, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
-                    Spacer(Modifier.width(8.dp))
-                    Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
-                        Text("$dexGot/${dexAll.size}", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexBadge"))
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Text("記念日・季節・レアなカードをあつめよう", color = colors.sub, fontSize = 14.sp)
-                Spacer(Modifier.height(10.dp))
-                Row(Modifier.fillMaxWidth().testTag("dexBannerSamples")) {
-                    val samples = listOfNotNull(
-                        dexStatus.toku.firstOrNull(), dexStatus.season.firstOrNull(),
-                        dexStatus.rare.firstOrNull(), dexStatus.normal.firstOrNull(),
-                    )
-                    for (item in samples) {
-                        DexBannerCell(item, Modifier.weight(1f))
-                    }
-                    repeat(4 - samples.size) { Spacer(Modifier.weight(1f)) }
-                }
-                Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("📖 図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
-            }
-
-            Spacer(Modifier.height(16.dp))
-            KyonoCard(Modifier.testTag("freezeCard")) {
-                Text("🎫 おやすみ券", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(6.dp))
-                Text("おやすみ券 のこり${freezeLeft}枚", color = colors.sub, modifier = Modifier.testTag("freezeLeftText"))
-                Spacer(Modifier.height(8.dp))
-                // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
-                Box(Modifier.fillMaxWidth().height(14.dp).background(colors.line, RoundedCornerShape2(99))) {
-                    Box(Modifier.fillMaxWidth(freezeLeft / 3f).fillMaxHeight().background(colors.teal, RoundedCornerShape2(99)))
-                }
-            }
+            // UI/UXパリティ監査GO-9(2026-07-28): カード図鑑はここから続けた記録の直後(カレンダーより
+            // 前)へ移動した。独立した「おやすみ券」カード(freezeCard)はWeb側に対応が無い重複表示
+            // だったため削除する(続けた記録カード内の説明文で既に触れている)。
 
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("reachCard")) {
