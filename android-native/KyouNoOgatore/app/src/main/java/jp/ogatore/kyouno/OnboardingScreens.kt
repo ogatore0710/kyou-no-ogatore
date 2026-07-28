@@ -696,8 +696,18 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                             .padding(horizontal = 16.dp, vertical = 14.dp)
                             .testTag("quizOpt_${q.key}_$i"),
                     ) {
-                        Text(opt.label, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
-                        Text(opt.note, color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
+                        // UI/UXパリティ監査2巡目A1(2026-07-29): カスタムフォントの行送り超過補正
+                        // (KyonoTightLineTextStyle、前回G2は検索チップのみに適用)をクイズ選択肢にも展開。
+                        // index.html:293-297 .opt(行送り指定なし=タイト)/.opt .crit{line-height:1.5}の1:1移植。
+                        Text(
+                            opt.label, color = colors.ink, fontSize = 15.sp, lineHeight = 15.sp,
+                            style = KyonoTightLineTextStyle, fontWeight = FontWeight.Black,
+                        )
+                        Text(
+                            opt.note, color = colors.sub, fontSize = 13.sp, lineHeight = 19.5.sp,
+                            style = KyonoTightLineTextStyle, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
                     }
                 }
                 // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示・まえの質問へ戻る)の1:1移植。

@@ -181,8 +181,9 @@ fun GuideScreen(
             ) {
                 // UI/UXパリティ監査2巡目A1(2026-07-29): 前回G2で検索チップだけに適用した
                 // KyonoTightLineTextStyle(実測ベースのフォント行送り超過補正)をここにも展開。
-                // このピル2つが横並びにならず縦積みになっていた保留項目(#10)は、paddingの数値では
-                // なくこのフォント行送り超過が横幅にも余分に効いていたことが一因と見て対処する。
+                // 実機(エミュレータ)で確認したところ、この修正だけでは縦積み(保留項目#10)は
+                // 解消しなかった——#10は行送りではなく横幅側の別要因と見られる。#10は指示どおり
+                // 保留のまま・ここでは行送り超過の補正のみを目的として適用する。
                 Text(
                     "🌱 はじめてガイド", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                     lineHeight = 14.sp, style = KyonoTightLineTextStyle,
@@ -477,7 +478,12 @@ fun GuideScreen(
                                     Text(if (open) "▴" else "▾", color = colors.sub)
                                 }
                                 if (open) {
-                                    Text(faqItem.a, color = colors.sub, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp, start = 18.dp))
+                                    // index.html:196 .faq .fa{font-size:14px;line-height:1.9}の1:1移植。
+                                    Text(
+                                        faqItem.a, color = colors.sub, fontSize = 14.sp,
+                                        lineHeight = 26.6.sp, style = KyonoTightLineTextStyle,
+                                        modifier = Modifier.padding(top = 8.dp, start = 18.dp),
+                                    )
                                 }
                             }
                         }

@@ -367,12 +367,18 @@ private struct GuideContentView: View {
                                         VStack(alignment: .leading, spacing: 8) {
                                             HStack(alignment: .top) {
                                                 Text("Q").kyonoFont(.black900, size: 15).foregroundColor(colors.pink)
-                                                Text(item.q).kyonoFont(.extraBold800, size: 14).foregroundColor(colors.ink)
+                                                // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:191 .faq summary
+                                                // {font-size:14px;line-height:1.6}の1:1移植。前回G2は検索チップの
+                                                // カスタムフォント行送り超過補正(Android KyonoTightLineTextStyle)を
+                                                // 検索チップのみに適用していたが、iOSは1件も対応が無かったため
+                                                // ここに展開する。
+                                                Text(item.q).kyonoFont(.extraBold800, size: 14).foregroundColor(colors.ink).lineSpacing(8)
                                                 Spacer()
                                                 Text(open ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                                             }
                                             if open {
-                                                Text(item.a).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub).padding(.leading, 18)
+                                                // index.html:196 .faq .fa{font-size:14px;line-height:1.9}の1:1移植。
+                                                Text(item.a).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub).lineSpacing(13).padding(.leading, 18)
                                             }
                                         }
                                         .frame(maxWidth: .infinity, alignment: .leading)

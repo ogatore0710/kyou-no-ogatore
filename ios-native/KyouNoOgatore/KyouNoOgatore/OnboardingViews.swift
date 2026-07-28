@@ -706,7 +706,9 @@ private struct QuizOptionCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label).kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
-            Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+            // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:297 .opt .crit{line-height:1.5}の
+            // 1:1移植。前回G2は検索チップのみに適用していたカスタムフォント行送り超過補正をここにも展開する。
+            Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub).lineSpacing(7)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16 * zoom).padding(.vertical, 14 * zoom)

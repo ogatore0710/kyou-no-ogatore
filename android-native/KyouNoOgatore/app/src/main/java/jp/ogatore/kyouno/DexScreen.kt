@@ -150,18 +150,31 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
             }
         }
         Spacer(Modifier.height(5.dp))
-        // index.html:241 .dex-name
+        // index.html:241 .dex-name{font-size:11px;line-height:1.3}の1:1移植。
+        // UI/UXパリティ監査2巡目A1(2026-07-29): カスタムフォントの行送り超過補正
+        // (KyonoTightLineTextStyle、前回G2は検索チップのみに適用)をここにも展開する。
+        // kyonoFloorSp()はbigtext時に実際のフォントサイズが変わりうるため、lineHeightは
+        // その解決後の値に対する比率(1.3倍)で計算し、常にCSSと同じ比率を保つ。
+        val nameFontSize = kyonoFloorSp(11f)
         Text(
             if (item.got) item.name else "？？？",
             color = colors.ink,
-            fontSize = kyonoFloorSp(11f),
+            fontSize = nameFontSize,
+            lineHeight = (nameFontSize.value * 1.3f).sp,
+            style = KyonoTightLineTextStyle,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
         val sub = if (item.got) item.flavor else item.hint
         if (sub.isNotEmpty()) {
-            Text(sub, fontSize = kyonoFloorSp(10f), color = colors.sub, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            // index.html:242 .dex-hint{font-size:10px;line-height:1.35}の1:1移植。
+            val hintFontSize = kyonoFloorSp(10f)
+            Text(
+                sub, fontSize = hintFontSize, lineHeight = (hintFontSize.value * 1.35f).sp,
+                style = KyonoTightLineTextStyle, color = colors.sub, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
