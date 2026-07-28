@@ -11,7 +11,9 @@ import Foundation
 import WidgetCore
 
 enum WidgetSummaryReader {
-    static let appGroupId = "group.jp.ogatore.kyouno"
+    // TestFlight配信準備(alan5判断2026-07-28・選択肢2): WidgetSummaryWriter.swiftと同じ理由で
+    // 有料チーム向けに新しい識別子(.app)へ変更。
+    static let appGroupId = "group.jp.ogatore.kyouno.app"
     private static let fileName = "widget-summary.json"
 
     static func read() -> WidgetSummary? {

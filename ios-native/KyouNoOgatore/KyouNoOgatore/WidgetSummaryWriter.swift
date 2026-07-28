@@ -18,7 +18,11 @@ import CardCore
 import WidgetCore
 
 enum WidgetSummaryWriter {
-    static let appGroupId = "group.jp.ogatore.kyouno"
+    // TestFlight配信準備(alan5判断2026-07-28・選択肢2): group.jp.ogatore.kyounoは
+    // Personal Team(FMR8VB3QLX)側で既に登録済みのため、有料チーム(R47FY8GH3R)側では
+    // 新しい識別子(.app)を使う。App Group IDはユーザーに一切見えない内部識別子のため、
+    // 文字列変更による実害はない。Personal Team側の旧識別子はまだ残っている(掃除は別途)。
+    static let appGroupId = "group.jp.ogatore.kyouno.app"
     private static let fileName = "widget-summary.json"
     // GO-H1(alan5承認2026-07-28): 既存のMS配列(3/4/7/14/21/30…)の並びに合わせ、30日以上を
     // 「大きい節目」とする(Android版WidgetLogic.ktと同じ閾値)。
