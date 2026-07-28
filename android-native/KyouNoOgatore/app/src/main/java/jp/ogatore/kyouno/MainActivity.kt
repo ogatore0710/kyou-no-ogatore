@@ -320,7 +320,11 @@ class MainActivity : ComponentActivity() {
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onBack = { screen = Screen.Home },
                                         )
-                                        is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.Home })
+                                        // UI/UXパリティ監査2巡目A2(2026-07-29): TASK-C2-2026-07-28-
+                                        // obu-voices-diary-and-navigation.md §4でVoices/Brag/Diaryは
+                                        // 「入口は常にマイ記録なのでマイ記録へ戻す」よう直したが、図鑑だけ
+                                        // 同じ原則から外れてホームへ戻る旧挙動が残っていた欠落を修正する。
+                                        is Screen.Dex -> DexScreen(store = store, onBack = { screen = Screen.MyRecord })
                                         // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §4:
                                         // 入口は常にマイ記録(MyRecordScreen.onOpenVoices/onOpenBrag/
                                         // onOpenDiary)のため、Web版「← マイ記録にもどる」と同じく

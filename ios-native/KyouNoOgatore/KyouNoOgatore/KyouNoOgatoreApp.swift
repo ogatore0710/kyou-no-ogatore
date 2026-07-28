@@ -374,8 +374,11 @@ struct RootView: View {
                 openUrl: { url in if let u = URL(string: url) { UIApplication.shared.open(u) } },
                 onBack: { screen = .home }
             )
+        // UI/UXパリティ監査2巡目A2(2026-07-29): TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md
+        // §4でVoices/Brag/Diaryは「入口は常にマイ記録なのでマイ記録へ戻す」よう直したが、図鑑だけ
+        // 同じ原則から外れてホームへ戻る旧挙動が残っていた欠落を修正する。
         case .dex:
-            DexView(store: store, onBack: { screen = .home })
+            DexView(store: store, onBack: { screen = .myRecord })
         // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §4: 入口は常にマイ記録
         // (MyRecordViewのonOpenVoices/onOpenBrag/onOpenDiary)のため、Web版「← マイ記録にもどる」と
         // 同じくマイ記録へ戻す(以前はホームに飛んでいた)。
