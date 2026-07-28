@@ -48,6 +48,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -157,6 +159,69 @@ sealed class SdChipsMode {
     data class Nearmiss(val ids: List<String>) : SdChipsMode()
 }
 
+// Fable監査D5-1/D5-2(alan5差し戻し2026-07-28): 回転でActivity再生成されると、相談室の会話
+// (messages/chipsMode/lastIntentId/input)が素の`remember`のまま消え、シートは開き直っても
+// 中身が空になる欠陥があった。「画面だけ戻って中身が空」は今より悪い(D5-2)ため、
+// MainActivity.ktのScreenSaverと同じ「Bundle互換の入れ子ArrayListへ手で平坦化する」方式で
+// 会話そのものをrememberSaveableに載せる。
+internal fun encodeSdBubble(b: SdBubble): ArrayList<Any?> = when (b) {
+    is SdBubble.Bot -> arrayListOf("Bot", b.text, b.red, b.videoId, b.fallbackCaution)
+    is SdBubble.User -> arrayListOf("User", b.text)
+    is SdBubble.PlanConfirm -> arrayListOf("PlanConfirm", b.intentId, b.label, b.replacing, b.answered)
+    is SdBubble.FallbackLinks -> arrayListOf("FallbackLinks", b.rawUserText)
+    is SdBubble.Typing -> arrayListOf("Typing")
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun decodeSdBubble(saved: Any?): SdBubble {
+    val list = saved as? List<Any?> ?: return SdBubble.Typing
+    return when (list.getOrNull(0) as? String) {
+        "Bot" -> SdBubble.Bot(
+            text = list.getOrNull(1) as? String ?: "",
+            red = list.getOrNull(2) as? Boolean ?: false,
+            videoId = list.getOrNull(3) as? String,
+            fallbackCaution = list.getOrNull(4) as? Boolean ?: false,
+        )
+        "User" -> SdBubble.User(list.getOrNull(1) as? String ?: "")
+        "PlanConfirm" -> SdBubble.PlanConfirm(
+            intentId = list.getOrNull(1) as? String ?: "",
+            label = list.getOrNull(2) as? String ?: "",
+            replacing = list.getOrNull(3) as? Boolean ?: false,
+            answered = list.getOrNull(4) as? Boolean ?: false,
+        )
+        "FallbackLinks" -> SdBubble.FallbackLinks(list.getOrNull(1) as? String ?: "")
+        else -> SdBubble.Typing
+    }
+}
+
+internal fun encodeSdChipsMode(m: SdChipsMode): ArrayList<Any?> = when (m) {
+    is SdChipsMode.None -> arrayListOf("None")
+    is SdChipsMode.Intents -> arrayListOf("Intents", m.activeCat)
+    is SdChipsMode.Followups -> arrayListOf("Followups", m.intentId, m.nextBestId)
+    is SdChipsMode.Nearmiss -> arrayListOf("Nearmiss", ArrayList(m.ids))
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun decodeSdChipsMode(saved: Any?): SdChipsMode {
+    val list = saved as? List<Any?> ?: return SdChipsMode.None
+    return when (list.getOrNull(0) as? String) {
+        "Intents" -> SdChipsMode.Intents(list.getOrNull(1) as? String ?: "body")
+        "Followups" -> SdChipsMode.Followups(list.getOrNull(1) as? String ?: "", list.getOrNull(2) as? String)
+        "Nearmiss" -> SdChipsMode.Nearmiss((list.getOrNull(1) as? List<String>)?.toList() ?: emptyList())
+        else -> SdChipsMode.None
+    }
+}
+
+val SdMessagesSaver: Saver<List<SdBubble>, Any> = Saver(
+    save = { list -> ArrayList(list.map { encodeSdBubble(it) }) },
+    restore = { saved -> (saved as? List<Any?>)?.map { decodeSdBubble(it) } ?: emptyList() },
+)
+
+val SdChipsModeSaver: Saver<SdChipsMode, Any> = Saver(
+    save = { mode -> encodeSdChipsMode(mode) },
+    restore = { saved -> decodeSdChipsMode(saved) },
+)
+
 @Composable
 fun SoudanSheet(
     store: RecordStore,
@@ -169,11 +234,14 @@ fun SoudanSheet(
     onOpenQuiz: () -> Unit = {},
 ) {
     val kb = remember { SafetyKBLoader.shared }
-    var messages by remember { mutableStateOf(listOf<SdBubble>()) }
-    var chipsMode by remember { mutableStateOf<SdChipsMode>(SdChipsMode.Intents("body")) }
-    var lastIntentId by remember { mutableStateOf<String?>(null) }
+    // Fable監査D5-1/D5-2(alan5差し戻し2026-07-28): 会話・チップの状態・直近の話題・入力途中の
+    // 文章は回転をまたいで保持する(rememberSaveable)。shownVideoIds(表示済み動画の重複防止)は
+    // 今回のD5対象外(alan5指示・「持っていない券を使ったように見える」ほどの実害ではない)。
+    var messages by rememberSaveable(stateSaver = SdMessagesSaver) { mutableStateOf(listOf<SdBubble>()) }
+    var chipsMode by rememberSaveable(stateSaver = SdChipsModeSaver) { mutableStateOf<SdChipsMode>(SdChipsMode.Intents("body")) }
+    var lastIntentId by rememberSaveable { mutableStateOf<String?>(null) }
     val shownVideoIds = remember { mutableStateListOf<String>() } // index.html:2999 sdCtx.shownVideoIds相当(セッション内のみ)
-    var input by remember { mutableStateOf("") }
+    var input by rememberSaveable { mutableStateOf("") }
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
     val hasType = store.get<QuizTypeResult?>("type", null) != null // index.html:3024 sdHasType()の1:1移植
     val scope = rememberCoroutineScope()

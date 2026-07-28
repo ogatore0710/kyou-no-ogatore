@@ -77,6 +77,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -161,7 +162,9 @@ class MainActivity : ComponentActivity() {
         store = RecordStore.forFile(File(filesDir, "kyono-store.json"))
         setContent {
             // index.html:4402 obIsFresh()相当。onboarded未設定=初回起動なのでオンボから開始する。
-            var screen by remember {
+            // Fable監査D5-1(alan5差し戻し2026-07-28): 回転でActivity再生成されても画面位置を
+            // 保つため、ScreenSaverを介したrememberSaveableにする(以前は素のremember)。
+            var screen by rememberSaveable(stateSaver = ScreenSaver) {
                 mutableStateOf<Screen>(if (store.get("onboarded", false)) Screen.Home else Screen.Onboarding)
             }
             // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:1563
@@ -596,6 +599,60 @@ sealed class Screen {
     data class Result(val typeKey: String, val autoReachLv: Int? = null) : Screen()
     data class Tour(val showClosing: Boolean) : Screen()
 }
+
+// Fable監査D5-1(alan5差し戻し2026-07-28): 端末回転(configChanges未指定のためActivity再生成)で
+// `screen`が素の`remember`のまま失われ、相談室シートを開いたまま持ち替えただけで会話ごと
+// 消えてホームへ戻される欠陥があった。Screenは自己参照(Obu.returnTo)を含むsealed classなので
+// Parcelize等は使わず、D2(RecordSnapshot)と同じ「Bundle互換の入れ子ArrayListへ手で
+// 平坦化する」方式のSaverを書く。画面位置だけを戻すためのものであり、相談室の会話やクイズの
+// 回答途中はSoudanSheet.kt/OnboardingScreens.kt側で別途保持する(D5-2: 画面だけ戻って中身が
+// 空、を作らないため)。
+internal fun encodeScreen(screen: Screen): ArrayList<Any?> = when (screen) {
+    is Screen.Home -> arrayListOf("Home")
+    is Screen.MyRecord -> arrayListOf("MyRecord")
+    is Screen.Onboarding -> arrayListOf("Onboarding")
+    is Screen.Soudan -> arrayListOf("Soudan", screen.presetIntentId)
+    is Screen.Search -> arrayListOf("Search")
+    is Screen.Catalog -> arrayListOf("Catalog")
+    is Screen.Dex -> arrayListOf("Dex")
+    is Screen.Voices -> arrayListOf("Voices")
+    is Screen.Brag -> arrayListOf("Brag")
+    is Screen.Diary -> arrayListOf("Diary")
+    is Screen.Obu -> arrayListOf("Obu", encodeScreen(screen.returnTo))
+    is Screen.Guide -> arrayListOf("Guide")
+    is Screen.Settings -> arrayListOf("Settings")
+    is Screen.Quiz -> arrayListOf("Quiz", screen.presetWorry)
+    is Screen.Result -> arrayListOf("Result", screen.typeKey, screen.autoReachLv)
+    is Screen.Tour -> arrayListOf("Tour", screen.showClosing)
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun decodeScreen(saved: Any?): Screen {
+    val list = saved as? List<Any?> ?: return Screen.Home
+    return when (list.getOrNull(0) as? String) {
+        "MyRecord" -> Screen.MyRecord
+        "Onboarding" -> Screen.Onboarding
+        "Soudan" -> Screen.Soudan(list.getOrNull(1) as? String)
+        "Search" -> Screen.Search
+        "Catalog" -> Screen.Catalog
+        "Dex" -> Screen.Dex
+        "Voices" -> Screen.Voices
+        "Brag" -> Screen.Brag
+        "Diary" -> Screen.Diary
+        "Obu" -> Screen.Obu(decodeScreen(list.getOrNull(1)))
+        "Guide" -> Screen.Guide
+        "Settings" -> Screen.Settings
+        "Quiz" -> Screen.Quiz(list.getOrNull(1) as? String)
+        "Result" -> Screen.Result(list.getOrNull(1) as? String ?: "", list.getOrNull(2) as? Int)
+        "Tour" -> Screen.Tour(list.getOrNull(1) as? Boolean ?: false)
+        else -> Screen.Home
+    }
+}
+
+val ScreenSaver: Saver<Screen, Any> = Saver(
+    save = { screen -> encodeScreen(screen) },
+    restore = { saved -> decodeScreen(saved) },
+)
 
 private val CHEERS = listOf(
     "ナイスご自愛🎉", "がんばったね！おつかれさまでした✨", "その数分が体を変えます💪",
