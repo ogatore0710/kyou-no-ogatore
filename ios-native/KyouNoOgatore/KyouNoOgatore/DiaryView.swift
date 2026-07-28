@@ -30,6 +30,8 @@ struct DiaryView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             DiaryContentView(entries: entries, onBack: onBack)
         }
+        // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
+        .edgeSwipeBack(onBack: onBack)
     }
 }
 

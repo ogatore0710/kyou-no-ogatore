@@ -151,6 +151,12 @@ struct OnboardingView: View {
         let wait: UInt64 = reduceMotion ? 0 : 1_500_000_000
         for line in lines {
             bubbles.append(ChatBubble(text: line, fromUser: false))
+            // アクセシビリティ対応(スクリーンリーダー無音問題の解消): 吹き出しを配列に積んだ
+            // その瞬間だけ、その1件のテキストをVoiceOverへ通知する。post(.announcement,...)は
+            // 「このView階層のどこかのregionが変わったので中身を全部読み直す」方式ではなく、
+            // 呼び出し側が渡した文字列そのものを1回読み上げるだけの命令的API。したがって
+            // 過去に出た吹き出し(bubbles中の既存要素)には一切触れず、会話の再読み上げは起きない。
+            UIAccessibility.post(notification: .announcement, argument: line)
             try? await Task.sleep(nanoseconds: wait)
         }
     }
@@ -177,6 +183,8 @@ struct OnboardingView: View {
             activeQuestion = nil
             answers[q.key] = picked.v
             bubbles.append(ChatBubble(text: picked.label, fromUser: true)) // index.html:4221 obPick内obBubble("user",...)は即時
+            // アクセシビリティ対応: ユーザーが選んだチップの吹き出しも同様に、追加された瞬間だけ通知する。
+            UIAccessibility.post(notification: .announcement, argument: picked.label)
             if q.key == "anchor" {
                 await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ📝"])
             } else if q.key == "bigtext" {

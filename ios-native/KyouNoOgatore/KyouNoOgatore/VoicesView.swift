@@ -35,6 +35,8 @@ struct VoicesView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             VoicesContentView(todays: todays, openIndices: $openIndices, onBack: onBack, openUrl: openUrl)
         }
+        // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
+        .edgeSwipeBack(onBack: onBack)
     }
 }
 

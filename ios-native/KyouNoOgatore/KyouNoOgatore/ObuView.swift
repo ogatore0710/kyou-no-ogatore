@@ -42,6 +42,8 @@ struct ObuView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             ObuContentView(posts: posts, onBack: onBack)
         }
+        // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
+        .edgeSwipeBack(onBack: onBack)
     }
 }
 

@@ -36,6 +36,12 @@ struct GuideView: View {
     @State private var openItems: Set<String> = []
     // gd-startのみ既定で開いた状態(index.html:1002 <details ... open>)、他は閉じた状態。
     @State private var sectionOpen: [String: Bool] = ["gd-start": true]
+    // Android版GuideScreen.ktのBackHandler(D1・5視点ワンループG6検収)と同じ`sectionEverToggled`。
+    // 「今回のセッションでユーザー自身がどれかを開閉した」ことを追跡する。gd-startが既定で開いている
+    // だけの状態(=ユーザーが1度も触っていない)ではこのフラグはfalseのままで、左端スワイプは
+    // 通常どおりonBackへ直行する。ユーザーが1度でもどこかを開閉した後は、開いているセクションが
+    // あれば左端スワイプでまずそれを閉じるだけに留め、onBackへは進まない(下のperformEdgeSwipeBack参照)。
+    @State private var sectionEverToggled = false
 
     private var nq: String { SafetyGate.norm(query) }
     private var themeSetting: String { store.get("theme", default: "auto") }
@@ -44,11 +50,22 @@ struct GuideView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             content
         }
+        .edgeSwipeBack(onBack: performEdgeSwipeBack)
+    }
+
+    // GuideScreen.kt BackHandlerの1:1移植: `sectionEverToggled && sectionOpen.values.any { it }`。
+    private func performEdgeSwipeBack() {
+        if sectionEverToggled && sectionOpen.values.contains(true) {
+            for key in sectionOpen.keys { sectionOpen[key] = false }
+        } else {
+            onBack()
+        }
     }
 
     private var content: some View {
         GuideContentView(
-            query: $query, openGroups: $openGroups, openItems: $openItems, sectionOpen: $sectionOpen, nq: nq,
+            query: $query, openGroups: $openGroups, openItems: $openItems,
+            sectionOpen: $sectionOpen, sectionEverToggled: $sectionEverToggled, nq: nq,
             onBack: onBack, onReenterOnboarding: onReenterOnboarding, onReenterTour: onReenterTour,
             onOpenQuiz: onOpenQuiz, onOpenSettings: onOpenSettings, onOpenMyRecord: onOpenMyRecord
         )
@@ -78,6 +95,7 @@ private struct GuideContentView: View {
     @Binding var openGroups: Set<String>
     @Binding var openItems: Set<String>
     @Binding var sectionOpen: [String: Bool]
+    @Binding var sectionEverToggled: Bool
     let nq: String
     let onBack: () -> Void
     let onReenterOnboarding: () -> Void
@@ -108,9 +126,19 @@ private struct GuideContentView: View {
         jump(proxy, "gd-faq-anchor")
     }
 
+    // Android版GuideScreen.kt jumpToSection()の1:1移植: 目次チップ経由で強制オープンする場合も
+    // sectionEverToggled=trueにする(ユーザーがこのセクションの状態に関与した扱いにする)。
     private func jumpToSection(_ proxy: ScrollViewProxy, id: String) {
         sectionOpen[id] = true
+        sectionEverToggled = true
         jump(proxy, id == "gd-faq" ? "gd-faq-anchor" : id)
+    }
+
+    // Android版GuideScreen.kt toggleSection()の1:1移植: 開閉と同時に「ユーザー自身が触った」ことを
+    // 記録する(左端スワイプの「開いていれば閉じるだけ」判定=performEdgeSwipeBackが使う)。
+    private func toggleSection(_ id: String) {
+        sectionOpen[id] = !(sectionOpen[id] ?? false)
+        sectionEverToggled = true
     }
 
     var body: some View {
@@ -200,7 +228,7 @@ private struct GuideContentView: View {
                     // ---- 2. はじめての日にやること(index.html:1002-1011。既定で開いた状態) ----
                     GdFoldSection(
                         id: "gd-start", icon: .quizCheck, title: "はじめての日にやること", fill: colors.yellowSoft, accent: nil,
-                        open: sectionOpen["gd-start"] ?? false, onToggle: { sectionOpen["gd-start"] = !(sectionOpen["gd-start"] ?? false) },
+                        open: sectionOpen["gd-start"] ?? false, onToggle: { toggleSection("gd-start") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GStep(marker: "1", title: "かたさチェック（30秒）", body: "5問タップするだけ 写真とイラストのお手本つき") {
@@ -219,7 +247,7 @@ private struct GuideContentView: View {
                     // ---- 3. 2日目からの毎日(index.html:1013-1027) ----
                     GdFoldSection(
                         id: "gd-daily", icon: .play, title: "2日目からの毎日", fill: colors.tealSoft, accent: colors.teal,
-                        open: sectionOpen["gd-daily"] ?? false, onToggle: { sectionOpen["gd-daily"] = !(sectionOpen["gd-daily"] ?? false) },
+                        open: sectionOpen["gd-daily"] ?? false, onToggle: { toggleSection("gd-daily") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GFlow(steps: ["アプリを\nひらく", "きょうの1本を\n▶ 再生", "きょう\nやった！"])
@@ -240,7 +268,7 @@ private struct GuideContentView: View {
                     // ネイティブ向けに置き換え。判断根拠はやることブロック参照。他は1:1) ----
                     GdFoldSection(
                         id: "gd-mamori", icon: .shieldCheck, title: "記録が消えない3つの守り", fill: colors.tealSoft, accent: colors.teal,
-                        open: sectionOpen["gd-mamori"] ?? false, onToggle: { sectionOpen["gd-mamori"] = !(sectionOpen["gd-mamori"] ?? false) },
+                        open: sectionOpen["gd-mamori"] ?? false, onToggle: { toggleSection("gd-mamori") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         HStack {
@@ -262,7 +290,7 @@ private struct GuideContentView: View {
                     // ---- 5. 続けるしくみ（ここがやさしい）(index.html:1047-1059) ----
                     GdFoldSection(
                         id: "gd-tsuzuku", icon: .star, title: "続けるしくみ（ここがやさしい）", fill: colors.yellowSoft, accent: nil,
-                        open: sectionOpen["gd-tsuzuku"] ?? false, onToggle: { sectionOpen["gd-tsuzuku"] = !(sectionOpen["gd-tsuzuku"] ?? false) },
+                        open: sectionOpen["gd-tsuzuku"] ?? false, onToggle: { toggleSection("gd-tsuzuku") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GStep(marker: "🎫", title: "おやすみ券が毎月3枚", body: "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
@@ -283,7 +311,7 @@ private struct GuideContentView: View {
                     // ---- 6. 「マイ記録」タブでできること(index.html:1061-1070) ----
                     GdFoldSection(
                         id: "gd-myrec", icon: .calendarCheck, title: "「マイ記録」タブでできること", fill: colors.tealSoft, accent: colors.teal,
-                        open: sectionOpen["gd-myrec"] ?? false, onToggle: { sectionOpen["gd-myrec"] = !(sectionOpen["gd-myrec"] ?? false) },
+                        open: sectionOpen["gd-myrec"] ?? false, onToggle: { toggleSection("gd-myrec") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
                         GStep(marker: "📅", title: "カレンダー", body: "やった日に印がつく（×はつきません）")

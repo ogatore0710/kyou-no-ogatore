@@ -52,6 +52,8 @@ struct BragView: View {
                 hits: hits, streakCount: streakCount, onBack: onBack
             )
         }
+        // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
+        .edgeSwipeBack(onBack: onBack)
     }
 }
 

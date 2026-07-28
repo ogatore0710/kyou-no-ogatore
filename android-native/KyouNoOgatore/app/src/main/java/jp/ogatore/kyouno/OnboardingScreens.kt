@@ -49,6 +49,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -268,7 +270,17 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                             }
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     ) {
-                        Text(b.text, color = colors.ink, fontSize = 15.sp, lineHeight = 26.sp)
+                        // アクセシビリティ対応(スクリーンリーダー無音問題の解消): liveRegionはこの
+                        // 「1つの吹き出しのTextコンポーザブル」自体に付ける(親のColumn/Rowコンテナには
+                        // 付けない)。bubblesリストは常に末尾へのみ追加され、この for ループは
+                        // key()なしの位置ベース記憶のため、既存の吹き出し(bはbubbles中で同じ位置・
+                        // 同じ値のまま)はbubbles.size変化時も再コンポーズがスキップされ、この
+                        // Text自体は「新しく生成された瞬間」にしかliveRegionが発火しない
+                        // (=新しい吹き出しが増えるたびに全文が読み直される事故を回避)。
+                        Text(
+                            b.text, color = colors.ink, fontSize = 15.sp, lineHeight = 26.sp,
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                        )
                     }
                 }
                 }

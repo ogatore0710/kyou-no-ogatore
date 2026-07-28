@@ -59,7 +59,9 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.painterResource
@@ -357,12 +359,18 @@ fun SoudanSheet(
                     when (m) {
                         // index.html:482-483 .sd-row.user .sd-b(黄色系吹き出し・右寄せ)
                         is SdBubble.User -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                            // アクセシビリティ対応: liveRegionはこのTextコンポーザブル自体に付ける
+                            // (メッセージ全体を囲むsdLog Columnには付けない)。messagesは末尾へのみ
+                            // 追加され、for(m in messages)はkey()なし=位置ベース記憶のため、既存の
+                            // 吹き出しは新規吹き出し追加時に再コンポーズされず、このTextは
+                            // 「新規生成された瞬間」だけliveRegionが発火する。
                             Text(
                                 m.text, color = colors.ink,
                                 modifier = Modifier
                                     .background(colors.yellowSoft, RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp)
-                                    .testTag("sdUserBubble"),
+                                    .testTag("sdUserBubble")
+                                    .semantics { liveRegion = LiveRegionMode.Polite },
                             )
                         }
                         // index.html:481,488,3080 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)/
@@ -379,7 +387,12 @@ fun SoudanSheet(
                                     .padding(horizontal = 14.dp, vertical = 10.dp)
                                     .testTag(if (m.red) "sdBotBubbleRed" else "sdBotBubble"),
                             ) {
-                                if (m.text.isNotEmpty()) Text(m.text, color = colors.ink)
+                                // アクセシビリティ対応: liveRegionは本文Textのみに付け、この吹き出しの
+                                // Column(caution文言・動画ボタンを含む)には付けない。動画ボタンが
+                                // mergeDescendants経由でTalkBackから個別に触れなくなる副作用を避けるため。
+                                if (m.text.isNotEmpty()) {
+                                    Text(m.text, color = colors.ink, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                                }
                                 // index.html:3330 sdAnswerFallback1通目の末尾<span>(小さめ注意書き)の1:1移植。
                                 if (m.fallbackCaution) {
                                     Spacer(Modifier.height(4.dp))
@@ -443,6 +456,10 @@ fun SoudanSheet(
                                     .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                             ) {
+                                // アクセシビリティ対応: このFallbackLinks吹き出しには単独の本文Textが
+                                // 無いため、先頭のボタン(既に押せる要素として自前のsemanticsノードを
+                                // 持つ)にliveRegionだけ足す。ボタン自体のcontentDescription/クリック
+                                // 動作はKyonoGhostButton内部の実装のまま変えない。
                                 KyonoGhostButton(
                                     "📮 この悩み、オガトレに届ける",
                                     {
@@ -450,7 +467,7 @@ fun SoudanSheet(
                                         val body = "相談した内容:\n${m.rawUserText}\n---\n送信元: きょうのオガトレ「オガトレ相談室」"
                                         openMailIntent(context, SD_MAIL, subject, body)
                                     },
-                                    Modifier.testTag("sdFallbackMailBtn"),
+                                    Modifier.testTag("sdFallbackMailBtn").semantics { liveRegion = LiveRegionMode.Polite },
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
@@ -481,10 +498,13 @@ fun SoudanSheet(
                                     .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                             ) {
+                                // アクセシビリティ対応: liveRegionは案内文Textのみに付け、下の2つの
+                                // ボタン(はじめる！/まずは1本だけ)は個別のTalkBack操作対象のまま残す。
                                 Text(
                                     if (m.replacing) "いまのプランと入れ替える？きょうの1本が、あなたの${m.label}プランになるよ"
                                     else "きょうの1本が、あなたの${m.label}プランになるよ！2週間いっしょにやってみる？",
                                     color = colors.ink,
+                                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                                 )
                                 Spacer(Modifier.height(8.dp))
                                 KyonoPrimaryButton(

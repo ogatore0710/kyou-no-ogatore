@@ -167,6 +167,9 @@ struct SearchView: View {
                 if !Task.isCancelled { debouncedQuery = newValue }
             }
         }
+        // iOSスワイプもどり導線追加タスク: Android版GuideScreen.ktのBackHandler(D1)対比の一環。
+        // このアコーディオン状態を持たない画面ではonBackへ直行するだけでよい(EdgeSwipeBack.swift参照)。
+        .edgeSwipeBack(onBack: onBack)
     }
 }
 
@@ -402,6 +405,8 @@ struct CatalogListView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             CatalogListContentView(playlistGroups: playlistGroups, catalog: catalog, onBack: onBack, openUrl: openUrl)
         }
+        // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
+        .edgeSwipeBack(onBack: onBack)
     }
 }
 

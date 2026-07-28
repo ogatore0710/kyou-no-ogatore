@@ -95,6 +95,36 @@ private func sdBubbleLen(_ b: SdBubble) -> Int {
     }
 }
 
+// アクセシビリティ対応(スクリーンリーダー無音問題の解消): 新しく追加された吹き出し「1件だけ」を
+// VoiceOverへ読み上げるための代表テキスト抽出。sdBubbleLen()と同じ「代表テキストで近似する」
+// 考え方の踏襲(表示用ではなく読み上げ専用の文字列)。.typingは「…」の点滅ドットのみで読み上げる
+// 実体が無いためnilを返す(タイピング演出中に毎回読み上げが発火するのを防ぐ)。
+private func sdBubbleAnnounceText(_ b: SdBubble) -> String? {
+    switch b {
+    case let .user(text):
+        return text
+    case let .bot(text, _, _, _):
+        return text.isEmpty ? nil : text
+    case let .planConfirm(_, label, replacing):
+        return replacing
+            ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"
+            : "きょうの1本が、あなたの\(label)プランになるよ！2週間いっしょにやってみる？"
+    case .fallbackLinks:
+        return "この悩み、オガトレに届けるメールがひらかない方はアドレスをコピー動画を探すタブでさがしてみる"
+    case .typing:
+        return nil
+    }
+}
+
+// UIAccessibility.post(.announcement, argument:)は「渡した文字列を1回読み上げる」だけの命令的API
+// であり、Viewのregionを丸ごと再読み上げする仕組みとは無関係。呼び出し側(=吹き出しをmessagesに
+// 積む各箇所)で「いま積んだ1件」だけを渡すことで、過去の吹き出しには一切触れず、追加された
+// 吹き出しだけが読まれることを保証する。
+private func announceBubble(_ b: SdBubble) {
+    guard let text = sdBubbleAnnounceText(b) else { return }
+    UIAccessibility.post(notification: .announcement, argument: text)
+}
+
 // index.html:2979 SOUDAN_BODY_INTENTS の1:1移植(体の悩み系intent=かたさチェック誘導チップの対象)。
 private let soudanBodyIntents: Set<String> = ["katakori", "youtsuu", "zenkutsu", "kokansetsu", "ashikubi", "kaikyaku", "nekoze", "nemuri", "zenshin"]
 // index.html:2946 SD_MAIL の1:1移植(検索タブのリクエスト導線と同じ宛先)。
@@ -156,6 +186,10 @@ struct SoudanSheetView: View {
         if reduceMotion {
             messages.append(contentsOf: botMsgs.map { SdMessage(bubble: $0) })
             chipsMode = newChipsMode
+            // reduced-motion時は演出無しでまとめて積むが、読み上げは1件ずつ順番に発火させる
+            // (複数の新規吹き出しがまとめて届いた場合でも、それぞれの新規テキストのみを読む。
+            // 過去の吹き出しの再読み上げにはならない)。
+            for msg in botMsgs { announceBubble(msg) }
             return
         }
         for (i, msg) in botMsgs.enumerated() {
@@ -165,13 +199,19 @@ struct SoudanSheetView: View {
             try? await Task.sleep(nanoseconds: UInt64(wait) * 1_000_000)
             messages.removeLast()
             messages.append(SdMessage(bubble: msg))
+            // アクセシビリティ対応: タイピングドットを実際のbot発言に差し替えた直後、その1件だけを通知する。
+            announceBubble(msg)
         }
         chipsMode = newChipsMode
     }
 
     // index.html:3090 sdPush相当。応答1件をbot/userの吹き出し列へ展開しchipsModeを更新する。
     private func applyResponse(_ userText: String?, _ r: SoudanResponse) async {
-        if let userText { messages.append(SdMessage(bubble: .user(text: userText))) }
+        if let userText {
+            let userBubble = SdBubble.user(text: userText)
+            messages.append(SdMessage(bubble: userBubble))
+            announceBubble(userBubble)
+        }
         let red: Bool
         switch r.verdict {
         case .crisis, .redFlag: red = true
@@ -241,8 +281,12 @@ struct SoudanSheetView: View {
     private func planChipTap(_ id: String) {
         guard let intent = kb.intents.first(where: { $0.id == id }) else { return }
         let replacing = plan != nil && plan?.intentId != id
-        messages.append(SdMessage(bubble: .user(text: "📅 この悩みを2週間プランにする")))
-        messages.append(SdMessage(bubble: .planConfirm(intentId: id, label: intent.chip, replacing: replacing)))
+        let userBubble = SdBubble.user(text: "📅 この悩みを2週間プランにする")
+        let confirmBubble = SdBubble.planConfirm(intentId: id, label: intent.chip, replacing: replacing)
+        messages.append(SdMessage(bubble: userBubble))
+        announceBubble(userBubble)
+        messages.append(SdMessage(bubble: confirmBubble))
+        announceBubble(confirmBubble)
     }
 
     // index.html:1857 planStart相当。
@@ -255,11 +299,15 @@ struct SoudanSheetView: View {
         let newPlan = SdPlanData(intentId: id, label: intent.chip, videos: vids, start: today, days: 14)
         store.set("plan", newPlan)
         plan = newPlan
-        messages.append(SdMessage(bubble: .bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ😊", red: false, videoId: nil)))
+        let bubble = SdBubble.bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ😊", red: false, videoId: nil)
+        messages.append(SdMessage(bubble: bubble))
+        announceBubble(bubble)
     }
 
     private func planDecline() {
-        messages.append(SdMessage(bubble: .bot(text: "OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil)))
+        let bubble = SdBubble.bot(text: "OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil)
+        messages.append(SdMessage(bubble: bubble))
+        announceBubble(bubble)
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
@@ -288,7 +336,9 @@ struct SoudanSheetView: View {
         // ホーム構造修正タスクのpresetIntentId自動応答(index.html:3464-3467)より先に出す(Web版と同順)。
         .onAppear {
             if !greeted {
-                messages.append(SdMessage(bubble: .bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね", red: false, videoId: nil)))
+                let greetBubble = SdBubble.bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね", red: false, videoId: nil)
+                messages.append(SdMessage(bubble: greetBubble))
+                announceBubble(greetBubble)
                 onGreeted()
             }
             if let presetIntentId { chipTap(presetIntentId) }

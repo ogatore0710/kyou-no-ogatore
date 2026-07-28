@@ -66,8 +66,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5187B9F33014B06500013565 /* KyouNoOgatore */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = KyouNoOgatore;
 			sourceTree = "<group>";
 		};
@@ -132,7 +130,6 @@
 				59B49D0CB02844CD0C0AB536 /* chara-crown.png */,
 				F580755EE5B3160657F65AB6 /* chara-cracker.png */,
 			);
-			name = CharaArt;
 			path = CharaArt;
 			sourceTree = "<group>";
 		};
