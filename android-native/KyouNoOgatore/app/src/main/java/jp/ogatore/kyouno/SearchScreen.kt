@@ -241,6 +241,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                     val on = cat.key == activeCat
                     Text(
                         cat.name, color = if (on) colors.ink else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier
                             .background(if (on) colors.yellow else colors.line, RoundedCornerShape(12.dp))
                             .clickable { activeCat = cat.key; activeTag = null }
@@ -265,6 +266,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                     val on = tag == activeTag
                     Text(
                         tag, color = if (on) cc.onText else cc.text, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                        lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier
                             .background(if (on) cc.onBg else cc.bg, RoundedCornerShape(50))
                             .border(2.dp, if (on) cc.onBorder else cc.border, RoundedCornerShape(50))

@@ -18,9 +18,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
@@ -191,6 +194,17 @@ fun resolveKyonoColors(themeSetting: String, tick: Int = 0): KyonoColors {
 // (検収基準「アプリ大きめ+端末最大でもレイアウトが破綻しない」への対応)。
 const val KYONO_BIG_TEXT_SCALE = 1.18f
 const val KYONO_MAX_FONT_SCALE = 2.2f
+
+// UI/UXパリティ監査GO-3/G4差し戻し(2026-07-29): カスタムフォント(mplus1p)は、Web版のブラウザ既定
+// line-heightより内部の行送り(ascent+descent)が大きく、Compose Textの既定のまま1行ラベルを
+// paddingで包むと、paddingの数値がWeb版(.chip{padding:10px 16px})と一致していてもピル全体の
+// 高さが実測で1割ほど高くなる(実機測定: 全身チップ 223×176 vs Web 232×160)。1行チップ/ラベルに
+// 限ってincludeFontPadding=false+line-height=文字サイズそのままにし、フォント由来の余分な行送りを
+// 打ち消す(paddingの値自体は変更しない=Web版のCSSと数値上も一致させたまま)。
+val KyonoTightLineTextStyle = TextStyle(
+    platformStyle = PlatformTextStyle(includeFontPadding = false),
+    lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Center, trim = LineHeightStyle.Trim.Both),
+)
 
 // GO-G11(5視点ワンループ): 「コピーしました」等の一時メッセージの自動消滅時間。既存のbigtext
 // シグナルを流用し、bigtext ONのときは読み切るまでの時間を確保して4秒へ延ばす(通常は2秒のまま)。
