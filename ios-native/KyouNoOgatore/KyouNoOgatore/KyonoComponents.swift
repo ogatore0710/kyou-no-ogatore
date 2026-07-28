@@ -34,8 +34,14 @@ struct KyonoAppHeader: View {
         HStack(alignment: .center, spacing: 10) {
             KyonoCharaImage(name: "chara").frame(width: 52, height: 52)
             VStack(alignment: .leading, spacing: 1) {
-                KyonoSectionTitle("#きょうのオガトレ", size: 22)
-                KyonoBodyText("みんなで一緒にストレッチを習慣化")
+                // UI/UXパリティ監査GO-11(2026-07-28・前倒し): index.html:88-89 h1{font-size:20px;
+                // white-space:nowrap}の1:1移植。Web側は「22px→20pxへ意図的に縮小のうえnowrap」と
+                // 明記されたコメントが残っており、マイ記録タブでG6(左右余白統一)前の幅ではこの
+                // タイトルが実機で2行に折り返す実害が確認された。22ptのままlineLimit無指定だった
+                // 欠落を修正する。
+                KyonoSectionTitle("#きょうのオガトレ", size: 20).lineLimit(1)
+                // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
+                KyonoBodyText("みんなで一緒にストレッチを習慣化").lineLimit(1)
             }
             Spacer()
         }
