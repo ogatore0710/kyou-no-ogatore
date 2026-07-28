@@ -176,6 +176,8 @@ struct SearchView: View {
 private struct SearchContentView: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.colorScheme) private var systemColorScheme
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応(チップのみ・第1段階)。
+    @Environment(\.kyonoBigText) private var bigText
     @Binding var activeCat: String
     @Binding var activeTag: String?
     @Binding var query: String
@@ -187,6 +189,7 @@ private struct SearchContentView: View {
     let openUrl: (String) -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
     // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
     @StateObject private var networkMonitor = NetworkMonitor()
 
@@ -223,8 +226,8 @@ private struct SearchContentView: View {
                 ForEach(tagCats, id: \.key) { cat in
                     let on = cat.key == activeCat
                     Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.ink : colors.sub)
-                        .padding(.horizontal, 13).padding(.vertical, 10)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(on ? colors.yellow : colors.line))
+                        .padding(.horizontal, 13 * zoom).padding(.vertical, 10 * zoom)
+                        .background(RoundedRectangle(cornerRadius: 12 * zoom).fill(on ? colors.yellow : colors.line))
                         .onTapGesture { activeCat = cat.key; activeTag = nil }
                 }
             }
@@ -237,9 +240,9 @@ private struct SearchContentView: View {
                 ForEach(activeCatTags, id: \.self) { tag in
                     let on = tag == activeTag
                     Text(tag).kyonoFont(.bold700, size: 14).foregroundColor(on ? cc.onText : cc.text)
-                        .padding(.horizontal, 16).padding(.vertical, 10)
+                        .padding(.horizontal, 16 * zoom).padding(.vertical, 10 * zoom)
                         .background(Capsule().fill(on ? cc.onBg : cc.bg))
-                        .overlay(Capsule().stroke(on ? cc.onBorder : cc.border, lineWidth: 2))
+                        .overlay(Capsule().stroke(on ? cc.onBorder : cc.border, lineWidth: 2 * zoom))
                         .onTapGesture { activeTag = (activeTag == tag) ? nil : tag; searchLimit = 24 }
                 }
             }

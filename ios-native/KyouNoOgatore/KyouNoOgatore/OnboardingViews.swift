@@ -697,7 +697,11 @@ private struct QuizOptionCard: View {
     let pressedBorderColor: Color
     let colors: KyonoColors
     let action: () -> Void
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     @State private var pressed = false
+
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -705,9 +709,9 @@ private struct QuizOptionCard: View {
             Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16).padding(.vertical, 14)
-        .background(RoundedRectangle(cornerRadius: 16).fill(pressed ? pressedBackground : background))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(pressed ? pressedBorderColor : borderColor, lineWidth: 2))
+        .padding(.horizontal, 16 * zoom).padding(.vertical, 14 * zoom)
+        .background(RoundedRectangle(cornerRadius: 16 * zoom).fill(pressed ? pressedBackground : background))
+        .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(pressed ? pressedBorderColor : borderColor, lineWidth: 2 * zoom))
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 0)

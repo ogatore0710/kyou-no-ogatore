@@ -80,18 +80,24 @@ let kyonoCardShadowColor = Color(hex: 0xA08C50)
 
 struct KyonoCard<Content: View>: View {
     @Environment(\.kyonoColors) private var colors
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): index.html:87 body.bigtext{zoom:1.18}の1:1移植。
+    // Android版はCompose LocalDensityの一括変換(density自体を1.18倍)で済むが、SwiftUIには
+    // 対応する仕組みが無いため、共有部品ごとに@Environment(\.kyonoBigText)を読んで余白・角丸・
+    // 枠線・影を手動で1.18倍する(フォントは既存の.kyonoFont()が既に1.18倍済みなので触らない)。
+    @Environment(\.kyonoBigText) private var bigText
     @ViewBuilder let content: () -> Content
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content() }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(20)
+            .padding(20 * zoom)
             .background(colors.card)
-            .cornerRadius(kyonoRadius)
-            .overlay(RoundedRectangle(cornerRadius: kyonoRadius).stroke(colors.line, lineWidth: 1.5))
-            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10, x: 0, y: 2)
+            .cornerRadius(kyonoRadius * zoom)
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
+            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
     }
 }
 
@@ -102,11 +108,14 @@ enum KyonoGradient { case warm, mint, pink, soft }
 struct KyonoGradientCard<Content: View>: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.colorScheme) private var systemColorScheme
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     let gradient: KyonoGradient
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         let dark = colors.bg == kyonoDarkColors.bg
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
         let (from, to): (Color, Color) = {
             switch gradient {
             case .warm: return dark ? (Color(hex: 0x37301C), Color(hex: 0x33232B)) : (Color(hex: 0xFFF3C4), Color(hex: 0xFFEDF3))
@@ -117,11 +126,11 @@ struct KyonoGradientCard<Content: View>: View {
         }()
         VStack(alignment: .leading, spacing: 0) { content() }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(20)
+            .padding(20 * zoom)
             .background(LinearGradient(colors: [from, to], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .cornerRadius(kyonoRadius)
-            .overlay(RoundedRectangle(cornerRadius: kyonoRadius).stroke(colors.line, lineWidth: 1.5))
-            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10, x: 0, y: 2)
+            .cornerRadius(kyonoRadius * zoom)
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
+            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
     }
 }
 
@@ -175,6 +184,8 @@ struct KyonoBackgroundColor: View {
 // :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、DragGesture(minimumDistance:0)で押下検知する。
 struct KyonoPrimaryButton: View {
     @Environment(\.kyonoColors) private var colors
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     let text: String
     let action: () -> Void
     var enabled: Bool = true
@@ -190,33 +201,35 @@ struct KyonoPrimaryButton: View {
         self.text = text; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.action = action
     }
 
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+
     var body: some View {
         if flatWhenDisabled && !enabled {
             Text(text).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
-                .padding(.horizontal, 18).padding(.vertical, 16)
+                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                 .frame(maxWidth: .infinity)
                 .background(colors.line)
-                .cornerRadius(kyonoButtonRadius)
+                .cornerRadius(kyonoButtonRadius * zoom)
         } else {
-            let shadowOffset: CGFloat = pressed ? 1 : 4
-            let faceOffset: CGFloat = pressed ? 3 : 0
+            let shadowOffset: CGFloat = (pressed ? 1 : 4) * zoom
+            let faceOffset: CGFloat = (pressed ? 3 : 0) * zoom
             let alpha: Double = enabled ? 1 : 0.5
             ZStack {
                 // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このTextは見た目上の高さ調整だけの
                 // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
                 // VoiceOverが同じラベルを2回読み上げてしまっていた)。
                 Text(text).kyonoFont(.black900, size: 20).foregroundColor(.clear)
-                    .padding(.horizontal, 18).padding(.vertical, 16)
+                    .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                     .frame(maxWidth: .infinity)
                     .background(colors.btnPrimaryShadow.opacity(alpha))
-                    .cornerRadius(kyonoButtonRadius)
+                    .cornerRadius(kyonoButtonRadius * zoom)
                     .offset(y: shadowOffset)
                     .accessibilityHidden(true)
                 Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.ink)
-                    .padding(.horizontal, 18).padding(.vertical, 16)
+                    .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                     .frame(maxWidth: .infinity)
                     .background(colors.yellow.opacity(alpha))
-                    .cornerRadius(kyonoButtonRadius)
+                    .cornerRadius(kyonoButtonRadius * zoom)
                     .offset(y: faceOffset)
             }
             .contentShape(Rectangle())
@@ -238,6 +251,8 @@ struct KyonoPrimaryButton: View {
 // DragGesture+@State pressedの手法をここにも展開する。
 struct KyonoGhostButton: View {
     @Environment(\.kyonoColors) private var colors
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     let text: String
     let action: () -> Void
     @State private var pressed = false
@@ -246,14 +261,16 @@ struct KyonoGhostButton: View {
         self.text = text; self.action = action
     }
 
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+
     var body: some View {
         Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
-            .padding(.horizontal, 18).padding(.vertical, 16)
+            .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
             .frame(maxWidth: .infinity)
             .background(colors.tealSoft)
-            .cornerRadius(kyonoButtonRadius)
+            .cornerRadius(kyonoButtonRadius * zoom)
             .opacity(pressed ? 0.85 : 1)
-            .offset(y: pressed ? 1 : 0)
+            .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -266,6 +283,8 @@ struct KyonoGhostButton: View {
 // KyonoGhostButtonと同じ見た目でNavigationLinkを包む版(遷移先画面があるメニュー項目用)。
 struct KyonoGhostNavigationLink<Destination: View>: View {
     @Environment(\.kyonoColors) private var colors
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     let text: String
     @ViewBuilder let destination: () -> Destination
 
@@ -274,12 +293,13 @@ struct KyonoGhostNavigationLink<Destination: View>: View {
     }
 
     var body: some View {
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
         NavigationLink { destination() } label: {
             Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
-                .padding(.horizontal, 18).padding(.vertical, 16)
+                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                 .frame(maxWidth: .infinity)
                 .background(colors.tealSoft)
-                .cornerRadius(kyonoButtonRadius)
+                .cornerRadius(kyonoButtonRadius * zoom)
         }
         .buttonStyle(.plain)
     }
@@ -292,6 +312,8 @@ struct KyonoGhostNavigationLink<Destination: View>: View {
 // (Web版はダークモード専用の暗い色に切り替わる)。
 struct KyonoLineButton: View {
     @Environment(\.kyonoColors) private var colors
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     let text: String
     var enabled: Bool = true
     let action: () -> Void
@@ -301,17 +323,18 @@ struct KyonoLineButton: View {
     }
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
     @State private var pressed = false
 
     // index.html:104,105,143 .btn-line + .btn-line:active{transform:translateY(1px);opacity:.85}の
     // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
     var body: some View {
         Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
-            .padding(.horizontal, 18).padding(.vertical, 16)
+            .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
             .frame(maxWidth: .infinity)
-            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2))
+            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2 * zoom))
             .opacity(enabled ? (pressed ? 0.85 : 1) : 0.5)
-            .offset(y: pressed ? 1 : 0)
+            .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())
             .disabled(!enabled)
             .gesture(
@@ -326,11 +349,14 @@ struct KyonoLineButton: View {
 // 例: 設定画面の「画面のみため」「もじの大きさ」トグル。
 struct KyonoSegmentedControl<T: Equatable>: View {
     @Environment(\.kyonoColors) private var colors
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     let options: [(T, String)]
     let selected: T
     let onSelect: (T) -> Void
 
     var body: some View {
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
         HStack(spacing: 0) {
             ForEach(options.indices, id: \.self) { i in
                 let (value, label) = options[i]
@@ -338,12 +364,12 @@ struct KyonoSegmentedControl<T: Equatable>: View {
                 // index.html:373,432(相当) .seg button:not(.on):active{opacity:.6}の1:1移植。
                 // UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButton/KyonoLineButtonと同じ欠落。
                 // 選択中(on)のセグメントはWeb版でも:active対象外(not(.on))なのでそのまま。
-                SegmentedOptionButton(label: label, on: on, colors: colors) { onSelect(value) }
+                SegmentedOptionButton(label: label, on: on, colors: colors, zoom: zoom) { onSelect(value) }
             }
         }
-        .padding(4)
+        .padding(4 * zoom)
         .background(colors.line)
-        .cornerRadius(16)
+        .cornerRadius(16 * zoom)
     }
 }
 
@@ -351,15 +377,16 @@ private struct SegmentedOptionButton: View {
     let label: String
     let on: Bool
     let colors: KyonoColors
+    let zoom: CGFloat
     let action: () -> Void
     @State private var pressed = false
 
     var body: some View {
         Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 13)
+            .padding(.vertical, 13 * zoom)
             .background(on ? colors.card : Color.clear)
-            .cornerRadius(12)
+            .cornerRadius(12 * zoom)
             .opacity(!on && pressed ? 0.6 : 1)
             .contentShape(Rectangle())
             .gesture(

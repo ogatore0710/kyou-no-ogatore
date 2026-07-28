@@ -85,11 +85,16 @@ let kyonoButtonRadius: CGFloat = 18
 // 4画面ともこの1つのViewModifierを使うことで、以後のズレを構造的に防ぐ(Android版
 // KyonoScreenPaddingと同一設計)。
 private struct KyonoScreenPaddingModifier: ViewModifier {
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): index.html:87 body.bigtext{zoom:1.18}の1:1移植。
+    // 画面ガター自体もCSSのzoomでは他の余白と同じく1.18倍される対象のため、KyonoCard等の
+    // 共有部品と同じくbigText時に1.18倍する。
+    @Environment(\.kyonoBigText) private var bigText
     func body(content: Content) -> some View {
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
         content
-            .padding(.horizontal, 18)
-            .padding(.top, 20)
-            .padding(.bottom, 180)
+            .padding(.horizontal, 18 * zoom)
+            .padding(.top, 20 * zoom)
+            .padding(.bottom, 180 * zoom)
     }
 }
 

@@ -18,10 +18,13 @@ enum KyonoTab {
 
 struct KyonoTabBar: View {
     @Environment(\.kyonoColors) private var colors
+    // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
+    @Environment(\.kyonoBigText) private var bigText
     let current: KyonoTab?
     let onSelect: (KyonoTab) -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -31,7 +34,7 @@ struct KyonoTabBar: View {
             tabItem(.catalog, "再生リスト") { CatalogIcon(fill: $0, stroke: $1) }
             tabItem(.search, "動画を探す") { SearchIcon(fill: $0, stroke: $1) }
         }
-        .padding(.horizontal, 4).padding(.vertical, 6)
+        .padding(.horizontal, 4 * zoom).padding(.vertical, 6 * zoom)
         // index.html:389-391 .tabbar{...background:rgba(255,255,255,.97);backdrop-filter:blur(8px);
         // border-top:1.5px solid var(--line)}/121 body.dark .tabbar{background:rgba(33,30,25,.97);
         // border-top-color:#3D382F}の1:1移植。UI/UXパリティ監査GO-7(2026-07-28): 半透明・
@@ -44,7 +47,7 @@ struct KyonoTabBar: View {
             }
         }
         .overlay(alignment: .top) {
-            Rectangle().fill(colors.line).frame(height: 1.5)
+            Rectangle().fill(colors.line).frame(height: 1.5 * zoom)
         }
     }
 
@@ -54,12 +57,12 @@ struct KyonoTabBar: View {
         // 選択時=ink・非選択時=tabbarStrokeOff(テーマ別)。
         let stroke = selected ? colors.ink : colors.tabbarStrokeOff
         return Button(action: { onSelect(tab) }) {
-            VStack(spacing: 2) {
-                icon(selected ? colors.yellow : colors.tabbarIconOff, stroke).frame(width: 24, height: 24)
+            VStack(spacing: 2 * zoom) {
+                icon(selected ? colors.yellow : colors.tabbarIconOff, stroke).frame(width: 24 * zoom, height: 24 * zoom)
                 Text(label).kyonoFont(.black900, size: 12).foregroundColor(selected ? colors.ink : colors.sub)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
+            .padding(.vertical, 4 * zoom)
         }
         .buttonStyle(.plain)
         // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: アイコン(装飾)とラベルを1つの
