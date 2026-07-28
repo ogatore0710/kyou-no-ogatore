@@ -430,7 +430,7 @@
 				CODE_SIGN_ENTITLEMENTS = KyouNoOgatore/KyouNoOgatore.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FMR8VB3QLX;
+				DEVELOPMENT_TEAM = R47FY8GH3R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
@@ -464,7 +464,7 @@
 				CODE_SIGN_ENTITLEMENTS = KyouNoOgatore/KyouNoOgatore.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FMR8VB3QLX;
+				DEVELOPMENT_TEAM = R47FY8GH3R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
@@ -497,7 +497,7 @@
 				CODE_SIGN_ENTITLEMENTS = KyonoWidgetExtension/KyonoWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FMR8VB3QLX;
+				DEVELOPMENT_TEAM = R47FY8GH3R;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = KyonoWidgetExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -524,7 +524,7 @@
 				CODE_SIGN_ENTITLEMENTS = KyonoWidgetExtension/KyonoWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FMR8VB3QLX;
+				DEVELOPMENT_TEAM = R47FY8GH3R;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = KyonoWidgetExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
