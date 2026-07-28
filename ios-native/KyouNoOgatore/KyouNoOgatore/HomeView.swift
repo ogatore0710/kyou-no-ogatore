@@ -74,6 +74,11 @@ struct HomeView: View {
 
     @Environment(\.kyonoColors) private var colors
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    // iOS画面まるごとズーム第2段階(2026-07-29): 共有部品(第1段階)だけでなく、この画面自身が
+    // 持つリテラルpadding/frame/cornerRadius/lineWidthにも1.18倍を適用する(フォントサイズは
+    // .kyonoFont()側で既に掛かっているため対象外・第1段階と同じ除外理由)。
+    @Environment(\.kyonoBigText) private var bigText
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     @State private var streak: RecordLogic.StreakData
@@ -211,7 +216,7 @@ struct HomeView: View {
     private var homeContent: some View {
         ScrollViewReader { proxy in
         ScrollView {
-        VStack(spacing: 16) {
+        VStack(spacing: 16 * zoom) {
             // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植をKyonoAppHeaderへ
             // 共通化(マイ記録/動画を探す/使い方の3タブにも同じ部品を展開する)。
             KyonoAppHeader()
@@ -221,7 +226,7 @@ struct HomeView: View {
             // pendingVideoReturnActive()相当(showDoneNudge)のときだけ「おかえりなさい」に差し替える
             // (旧来の別カードdoneNudgeCardは廃止しqbubble1本に統合)。
             HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 4 * zoom) {
                     Text(showDoneNudge ? "おかえりなさい" : "きょうのひとこと")
                         .kyonoFont(.black900, size: 11).foregroundColor(colors.sub)
                     Text(showDoneNudge
@@ -229,13 +234,13 @@ struct HomeView: View {
                         : "「\(QUOTES[((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count])」")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                 }
-                .padding(.horizontal, 14).padding(.vertical, 10)
+                .padding(.horizontal, 14 * zoom).padding(.vertical, 10 * zoom)
                 .background(
-                    RoundedRectangle(cornerRadius: 16).fill(colors.card)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+                    RoundedRectangle(cornerRadius: 16 * zoom).fill(colors.card)
+                        .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
                 )
                 Spacer()
-                KyonoCharaImage(name: "chara-hitokoto").frame(height: 44)
+                KyonoCharaImage(name: "chara-hitokoto").frame(height: 44 * zoom)
             }
 
             // TASK-C2-2026-07-27-offline-banner.md: index.html:4064-4080 envBanner(オフライン案内)の
@@ -244,11 +249,11 @@ struct HomeView: View {
             if networkMonitor.isOffline {
                 Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
                     .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
-                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .padding(.horizontal, 12 * zoom).padding(.vertical, 10 * zoom)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
-                        RoundedRectangle(cornerRadius: 14).fill(colors.yellowSoft)
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.yellow, lineWidth: 1.5))
+                        RoundedRectangle(cornerRadius: 14 * zoom).fill(colors.yellowSoft)
+                            .overlay(RoundedRectangle(cornerRadius: 14 * zoom).stroke(colors.yellow, lineWidth: 1.5 * zoom))
                     )
             }
 
@@ -403,12 +408,12 @@ struct HomeView: View {
                     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
                     // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
                     // ポップイン)の1:1移植。
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 6 * zoom) {
                         Text("🎉 1日目クリア！ナイスご自愛！")
                             .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
                         HStack {
                             Spacer()
-                            KyonoCharaImage(name: "card-sample").frame(width: 140, height: 140)
+                            KyonoCharaImage(name: "card-sample").frame(width: 140 * zoom, height: 140 * zoom)
                             Spacer()
                         }
                         Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
@@ -427,7 +432,7 @@ struct HomeView: View {
                 // ダイアログを出す(起動直後・オンボ中には出さない)。断られてもしつこく再提案しない
                 // (この分岐は1日目クリア=fd=="go"のときにしか到達しないため、自然に一度きりになる)。
                 if showNotifPrompt {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8 * zoom) {
                         Text("あしたも おしらせしようか？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         HStack {
                             KyonoGhostButton("ううん") { showNotifPrompt = false }
@@ -442,7 +447,7 @@ struct HomeView: View {
                             }
                         }
                     }
-                    .padding(.top, 4)
+                    .padding(.top, 4 * zoom)
                 }
                 if let cheerText {
                     // 挙動パリティ監査タスク §A: index.html:311-312 cpop(scale .85→1・opacity .4→1・
@@ -459,31 +464,31 @@ struct HomeView: View {
                         Text("🎉 \(milestoneInfo.t)！（通算\(streak.total)日）")
                             .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
                         if !milestoneInfo.m.isEmpty {
-                            Spacer().frame(height: 4)
+                            Spacer().frame(height: 4 * zoom)
                             Text(milestoneInfo.m).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         }
                         if !milestoneInfo.q.isEmpty {
-                            Spacer().frame(height: 8)
-                            VStack(alignment: .leading, spacing: 2) {
+                            Spacer().frame(height: 8 * zoom)
+                            VStack(alignment: .leading, spacing: 2 * zoom) {
                                 Text("💬 せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.teal)
                                 Text(milestoneInfo.q.hasSuffix("（先輩の声）")
                                     ? String(milestoneInfo.q.dropLast("（先輩の声）".count))
                                     : milestoneInfo.q)
                                     .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             }
-                            .padding(.horizontal, 12).padding(.vertical, 9)
+                            .padding(.horizontal, 12 * zoom).padding(.vertical, 9 * zoom)
                             .background(colors.bg)
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12 * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
+                            .clipShape(RoundedRectangle(cornerRadius: 12 * zoom))
                         }
-                        Spacer().frame(height: 10)
+                        Spacer().frame(height: 10 * zoom)
                         HStack {
                             Spacer()
-                            KyonoCharaImage(name: "chara-crown").frame(width: 72, height: 72)
+                            KyonoCharaImage(name: "chara-crown").frame(width: 72 * zoom, height: 72 * zoom)
                             Spacer()
                         }
                         if !CardDataLoader.shared.MILESTONE_MSG_VIDEO.isEmpty {
-                            Spacer().frame(height: 10)
+                            Spacer().frame(height: 10 * zoom)
                             KyonoGhostButton("🎬 尾形さんからお祝いメッセージ") {
                                 if let url = URL(string: "https://www.youtube.com/watch?v=\(CardDataLoader.shared.MILESTONE_MSG_VIDEO)") {
                                     UIApplication.shared.open(url)
@@ -594,7 +599,7 @@ struct HomeView: View {
                         // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一
                         // (タップ領域・見た目ともアプリの基準コンポーネントに揃える)。あわせて2ボタンが
                         // 隙間なく隣接していた点を余白で解消。
-                        HStack(spacing: 12) {
+                        HStack(spacing: 12 * zoom) {
                             KyonoGhostButton("とじる", action: closeCardAndMaybeStartTour)
                             // index.html shareCard()相当(Step7bで新規実装)。
                             KyonoPrimaryButton("保存・シェアする") {
@@ -634,6 +639,8 @@ struct HomeView: View {
 // (既存の純粋関数)を呼ぶだけに徹する(判定・データ構造は変更しない)。
 private struct HomeMemoRow: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.kyonoBigText) private var bigText
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
     let store: RecordStore
     let today: String
 
@@ -648,7 +655,7 @@ private struct HomeMemoRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 8 * zoom) {
             TextField("ひとことメモをどうぞ", text: Binding(
                 get: { text },
                 set: { text = String($0.prefix(30)); saved = false }
@@ -673,6 +680,8 @@ private struct HomeMemoRow: View {
 // 「もう一回チェックする」ghostボタン+前回結果リンク)分岐(Android版CkCardと同一ロジック)。
 private struct CkCard: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.kyonoBigText) private var bigText
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
     let full: Bool
     let typeResult: QuizTypeResult?
     let onStartQuiz: () -> Void
@@ -682,29 +691,29 @@ private struct CkCard: View {
         KyonoCard {
             KyonoSectionHeader(icon: .quizCheck, title: "かたさチェック", fill: colors.tealSoft, accent: colors.teal)
             if full {
-                Spacer().frame(height: 10)
+                Spacer().frame(height: 10 * zoom)
                 HStack(alignment: .center) {
                     Text("タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                     Spacer()
-                    KyonoCharaImage(name: "chara-3").frame(width: 74, height: 74)
+                    KyonoCharaImage(name: "chara-3").frame(width: 74 * zoom, height: 74 * zoom)
                 }
-                Spacer().frame(height: 12)
+                Spacer().frame(height: 12 * zoom)
                 KyonoPrimaryButton("チェックをはじめる", action: onStartQuiz)
-                Spacer().frame(height: 10)
+                Spacer().frame(height: 10 * zoom)
                 Text("※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ")
                     .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             } else {
-                Spacer().frame(height: 6)
+                Spacer().frame(height: 6 * zoom)
                 if let tr = typeResult, let name = quizTypes[tr.key]?.name {
                     // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
                     Text("前回の結果: \(name)")
                         .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 12 * zoom)
                         .onTapGesture { onShowResult(tr.key) }
-                    Spacer().frame(height: 10)
+                    Spacer().frame(height: 10 * zoom)
                 }
                 KyonoGhostButton("もう一回チェックする", action: onStartQuiz)
             }
@@ -717,6 +726,8 @@ private struct CkCard: View {
 // 未読込(intents空)のときは非表示。おすすめチップはintents先頭3件+"jikan"(index.html:3403-3405)。
 private struct SoudanCard: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.kyonoBigText) private var bigText
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
     let onOpenSoudan: (String?) -> Void
     private let kb = SafetyKBLoader.shared
 
@@ -734,18 +745,18 @@ private struct SoudanCard: View {
                 Button(action: { onOpenSoudan(nil) }) {
                     VStack(alignment: .leading, spacing: 0) {
                         KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
-                        Spacer().frame(height: 10)
+                        Spacer().frame(height: 10 * zoom)
                         HStack(alignment: .center) {
                             Text("からだの悩み\nオガトレに聞いてみて💬")
                                 .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                             Spacer()
-                            KyonoCharaImage(name: "chara-hitokoto").frame(width: 64, height: 64)
+                            KyonoCharaImage(name: "chara-hitokoto").frame(width: 64 * zoom, height: 64 * zoom)
                         }
-                        Spacer().frame(height: 10)
+                        Spacer().frame(height: 10 * zoom)
                         KyonoPrimaryButton("💬 相談する") { onOpenSoudan(nil) }
-                        Spacer().frame(height: 10)
+                        Spacer().frame(height: 10 * zoom)
                         Text("👇 タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-                        Spacer().frame(height: 6)
+                        Spacer().frame(height: 6 * zoom)
                         // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §5: index.html:438
                         // .chips{display:flex;flex-wrap:wrap}が既定(相談室フッターのチップ行だけが
                         // 例外の横スクロール)。index.html:650のこのチップは既定どおり折り返し対象。
@@ -767,13 +778,15 @@ private struct SoudanCard: View {
 // 同名衝突とfile-private境界を避けるためここに複製せず別名で用意する(見た目は同一)。
 private struct HomeSoudanChip: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.kyonoBigText) private var bigText
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
     let label: String
     let action: () -> Void
     var body: some View {
         Button(action: action) {
             Text(label).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
-                .padding(.horizontal, 16).padding(.vertical, 10)
-                .overlay(Capsule().stroke(colors.line, lineWidth: 2))
+                .padding(.horizontal, 16 * zoom).padding(.vertical, 10 * zoom)
+                .overlay(Capsule().stroke(colors.line, lineWidth: 2 * zoom))
                 .background(Capsule().fill(colors.card))
         }
         .buttonStyle(.plain)
