@@ -181,6 +181,14 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                 )
                 Spacer(Modifier.height(8.dp))
                 Text("えらんだ1本は カードにサムネイル画像で入ります", color = colors.sub, fontSize = 13.sp)
+                // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
+                // 数字・達成率は書かない(デザイン原則どおり)。
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "この記録はこの端末に保存されるよ",
+                    color = colors.sub, fontSize = 12.sp,
+                    modifier = Modifier.testTag("deviceStorageNote"),
+                )
             }
         }
 

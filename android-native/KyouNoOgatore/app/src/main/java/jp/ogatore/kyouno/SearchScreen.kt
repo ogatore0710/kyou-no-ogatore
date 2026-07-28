@@ -201,6 +201,20 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             Text("動画を探す", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(8.dp))
+            // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
+            // 文言・スタイルはホーム版(MainActivity.kt)と完全に同じにする。
+            if (rememberIsOffline()) {
+                Text(
+                    "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+                    color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
+                    modifier = Modifier.fillMaxWidth()
+                        .background(colors.yellowSoft, RoundedCornerShape(14.dp))
+                        .border(1.5.dp, colors.yellow, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                        .testTag("envBanner"),
+                )
+                Spacer(Modifier.height(10.dp))
+            }
             // index.html:945-949 .searchbox
             TextField(
                 value = query,
@@ -459,6 +473,20 @@ fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () 
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             Text("再生リスト", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(8.dp))
+            // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
+            // 文言・スタイルはホーム版(MainActivity.kt)と完全に同じにする。
+            if (rememberIsOffline()) {
+                Text(
+                    "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+                    color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
+                    modifier = Modifier.fillMaxWidth()
+                        .background(colors.yellowSoft, RoundedCornerShape(14.dp))
+                        .border(1.5.dp, colors.yellow, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                        .testTag("envBanner"),
+                )
+                Spacer(Modifier.height(10.dp))
+            }
             LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("catalogList")) {
                 playlistGroups.forEach { group ->
                     item {

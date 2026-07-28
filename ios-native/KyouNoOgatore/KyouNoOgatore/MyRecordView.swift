@@ -554,6 +554,10 @@ private struct MyRecordContentView: View {
                     }
                 }
                 if let calendarMsg { Text(calendarMsg).kyonoFont(.bold700, size: 15).foregroundColor(colors.pink) }
+                // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
+                // 数字・達成率は書かない(デザイン原則どおり)。
+                Spacer().frame(height: 16)
+                Text("この記録はこの端末に保存されるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: FABの表示範囲をWeb版に
                 // 合わせて拡げた結果、マイ記録タブの末尾要素(カレンダーに登録するボタン)が最大スクロール
                 // 時に右下固定FABと重なることを実機で確認したため、末尾に余白を足して回避する。
@@ -594,6 +598,16 @@ private struct MyRecordContentView: View {
                                     .background(isDone ? colors.tealStrong : Color.clear)
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(isDone && selectedDay == ds ? colors.ink : (isToday ? colors.pink : .clear), lineWidth: 2.5))
+                                    // GO-G13(5視点ワンループ): 「やった日」を色(teal塗り)だけでなく
+                                    // 形(✓)でも示す(色分けのみに頼らない)。
+                                    .overlay(alignment: .bottomTrailing) {
+                                        if isDone {
+                                            // 装飾的な補助バッジのため、G12のbigtextフロア(読む文章向け)は
+                                            // 適用せず固定サイズにする(.kyonoFont()は使わない)。
+                                            Text("✓").font(.kyono(.black900, size: 9)).foregroundColor(.white)
+                                                .padding(.bottom, 1).padding(.trailing, 3)
+                                        }
+                                    }
                                     .contentShape(Circle())
                                     .onTapGesture { if isDone { selectedDay = ds } }
                             } else {

@@ -1538,6 +1538,18 @@ fun MyRecordScreen(
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier.testTag("calCell_$ds"),
                                             )
+                                            // GO-G13(5視点ワンループ): 「やった日」を色(teal塗り)だけでなく
+                                            // 形(✓)でも示す(色分けのみに頼らない)。
+                                            if (isDone) {
+                                                Text(
+                                                    "✓",
+                                                    color = Color.White,
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 1.dp, end = 3.dp)
+                                                        .testTag("calCellCheck_$ds"),
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -1837,6 +1849,14 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(6.dp))
                 Text(it, color = colors.pink, modifier = Modifier.testTag("calendarMsgText"))
             }
+            // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
+            // 数字・達成率は書かない(デザイン原則どおり)。
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "この記録はこの端末に保存されるよ",
+                color = colors.sub, fontSize = 12.sp,
+                modifier = Modifier.testTag("deviceStorageNote"),
+            )
             // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: FABの表示範囲をWeb版に
             // 合わせて拡げた結果、マイ記録タブの末尾要素(カレンダーに登録するボタン)が最大スクロール時に
             // 右下固定FABと重なることを実機で確認したため、末尾に余白を足して回避する

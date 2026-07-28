@@ -184,12 +184,25 @@ private struct SearchContentView: View {
     let openUrl: (String) -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
+    @StateObject private var networkMonitor = NetworkMonitor()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             Text("動画を探す").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+            // GO-G14(5視点ワンループ): 文言・スタイルはホーム版(HomeView.swift)と完全に同じにする。
+            if networkMonitor.isOffline {
+                Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14).fill(colors.yellowSoft)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.yellow, lineWidth: 1.5))
+                    )
+            }
             // index.html:945-949 .searchbox
             TextField("🔍 例: 肩こり／朝／むくみ", text: $query)
                 .padding(.horizontal, 14).padding(.vertical, 10)
@@ -398,10 +411,23 @@ private struct CatalogListContentView: View {
     let catalog: [CatalogVideo]
     let onBack: () -> Void
     let openUrl: (String) -> Void
+    // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
+    @StateObject private var networkMonitor = NetworkMonitor()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("再生リスト").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+            // GO-G14(5視点ワンループ): 文言・スタイルはホーム版(HomeView.swift)と完全に同じにする。
+            if networkMonitor.isOffline {
+                Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14).fill(colors.yellowSoft)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.yellow, lineWidth: 1.5))
+                    )
+            }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
                     ForEach(playlistGroups, id: \.group) { gr in

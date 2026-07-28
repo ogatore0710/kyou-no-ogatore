@@ -68,6 +68,10 @@ private struct DexContentView: View {
                 DexSectionView(title: "季節のカード", items: status.season)
                 DexSectionView(title: "レアカード", items: status.rare)
                 DexSectionView(title: "ノーマルカード", items: status.normal)
+                // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
+                // 数字・達成率は書かない(デザイン原則どおり)。
+                Spacer().frame(height: 12)
+                Text("この記録はこの端末に保存されるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             }
             .padding(16)
         }

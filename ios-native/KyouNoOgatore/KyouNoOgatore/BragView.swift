@@ -161,6 +161,10 @@ private struct BragContentView: View {
                 }
                 Spacer().frame(height: 8)
                 Text("えらんだ1本は カードにサムネイル画像で入ります").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
+                // 数字・達成率は書かない(デザイン原則どおり)。
+                Spacer().frame(height: 6)
+                Text("この記録はこの端末に保存されるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             }
         }
         .padding(16)

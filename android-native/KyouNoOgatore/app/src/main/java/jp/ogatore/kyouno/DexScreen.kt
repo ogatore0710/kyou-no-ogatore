@@ -78,6 +78,16 @@ fun DexScreen(store: RecordStore, onBack: () -> Unit) {
             item { DexSection("季節のカード", status.season) }
             item { DexSection("レアカード", status.rare) }
             item { DexSection("ノーマルカード", status.normal) }
+            // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
+            // 数字・達成率は書かない(デザイン原則どおり)。
+            item {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "この記録はこの端末に保存されるよ",
+                    color = colors.sub, fontSize = 12.sp,
+                    modifier = Modifier.testTag("deviceStorageNote"),
+                )
+            }
         }
     }
 }

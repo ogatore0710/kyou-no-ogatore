@@ -596,6 +596,10 @@ fun SoudanSheet(
                     Spacer(Modifier.width(8.dp))
                     KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"), enabled = !sdPending)
                 }
+                // GO-G16(5視点ワンループ): 高さ92%のシートで✕が最上部右端40×40だけだったため、
+                // 入力欄の下にも「とじる」を1つ追加する。
+                Spacer(Modifier.height(8.dp))
+                KyonoLineButton("とじる", onClose, Modifier.testTag("soudanCloseBtnBottom"))
             }
         }
     }
