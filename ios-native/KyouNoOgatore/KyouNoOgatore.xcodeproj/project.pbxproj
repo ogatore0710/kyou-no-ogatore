@@ -8,23 +8,64 @@
 
 /* Begin PBXBuildFile section */
 		4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5818E1CC197288CC2CC64AF6 /* CardCore */; };
+		6D9193F5E2CF91AEE8F3B8F7 /* KyonoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */ = {isa = PBXBuildFile; productRef = DCABFED709CFEEF540C7D4CE /* SafetyCore */; };
 		8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 470554BE76139B65EDACBBF6 /* RecordCore */; };
+		C4D917BDD08FBC986489BD28 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBE743BE096F7B13A3A7B4AD /* Foundation.framework */; };
+		D9B39E65C905184139D8DB3C /* KyonoWidgetExtensionBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		830BE2B3000628B7E3C788D1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5187B9E93014B06500013565 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C5A1011C488ADEC5D2C5BC3C;
+			remoteInfo = KyonoWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		60EBC3A94D1B311BED5A9391 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				6D9193F5E2CF91AEE8F3B8F7 /* KyonoWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KyonoWidgetExtensionBundle.swift; sourceTree = "<group>"; };
 		5187B9F13014B06500013565 /* KyouNoOgatore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KyouNoOgatore.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KyonoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CBE743BE096F7B13A3A7B4AD /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		D3352044F6C350112CE7A976 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5187B9F33014B06500013565 /* KyouNoOgatore */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = KyouNoOgatore;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0449B1D401A67974B319D166 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4D917BDD08FBC986489BD28 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5187B9EE3014B06500013565 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -38,11 +79,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		307B79830C346653F315085B /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				CBE743BE096F7B13A3A7B4AD /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		5187B9E83014B06500013565 = {
 			isa = PBXGroup;
 			children = (
 				5187B9F33014B06500013565 /* KyouNoOgatore */,
 				5187B9F23014B06500013565 /* Products */,
+				9F29A784F25B954AB8004FBE /* Frameworks */,
+				B90E06C6B828CAFDFB14DEDA /* KyonoWidgetExtension */,
 			);
 			sourceTree = "<group>";
 		};
@@ -50,8 +101,27 @@
 			isa = PBXGroup;
 			children = (
 				5187B9F13014B06500013565 /* KyouNoOgatore.app */,
+				9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9F29A784F25B954AB8004FBE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				307B79830C346653F315085B /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B90E06C6B828CAFDFB14DEDA /* KyonoWidgetExtension */ = {
+			isa = PBXGroup;
+			children = (
+				12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */,
+				D3352044F6C350112CE7A976 /* Info.plist */,
+			);
+			name = KyonoWidgetExtension;
+			path = KyonoWidgetExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -64,10 +134,12 @@
 				5187B9ED3014B06500013565 /* Sources */,
 				5187B9EE3014B06500013565 /* Frameworks */,
 				5187B9EF3014B06500013565 /* Resources */,
+				60EBC3A94D1B311BED5A9391 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4DBBA5CD122831E7FAE021EB /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5187B9F33014B06500013565 /* KyouNoOgatore */,
@@ -81,6 +153,23 @@
 			productName = KyouNoOgatore;
 			productReference = 5187B9F13014B06500013565 /* KyouNoOgatore.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C5A1011C488ADEC5D2C5BC3C /* KyonoWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 416D57C86A87AF812028C637 /* Build configuration list for PBXNativeTarget "KyonoWidgetExtension" */;
+			buildPhases = (
+				17C5B531D6698FA71C38CBB3 /* Sources */,
+				0449B1D401A67974B319D166 /* Frameworks */,
+				687E07620225B3EABEA153EE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KyonoWidgetExtension;
+			productName = KyonoWidgetExtension;
+			productReference = 9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -117,6 +206,7 @@
 			projectRoot = "";
 			targets = (
 				5187B9F03014B06500013565 /* KyouNoOgatore */,
+				C5A1011C488ADEC5D2C5BC3C /* KyonoWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -129,9 +219,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		687E07620225B3EABEA153EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		17C5B531D6698FA71C38CBB3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9B39E65C905184139D8DB3C /* KyonoWidgetExtensionBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5187B9ED3014B06500013565 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -140,6 +245,15 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4DBBA5CD122831E7FAE021EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = KyonoWidgetExtension;
+			target = C5A1011C488ADEC5D2C5BC3C /* KyonoWidgetExtension */;
+			targetProxy = 830BE2B3000628B7E3C788D1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5187B9FA3014B06600013565 /* Debug */ = {
@@ -327,9 +441,71 @@
 			};
 			name = Release;
 		};
+		805F540F3048914C73509424 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FMR8VB3QLX;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KyonoWidgetExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.ogatore.KyouNoOgatore.KyonoWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C4302BBC09F79D2C25A0527B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FMR8VB3QLX;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KyonoWidgetExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.ogatore.KyouNoOgatore.KyonoWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		416D57C86A87AF812028C637 /* Build configuration list for PBXNativeTarget "KyonoWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C4302BBC09F79D2C25A0527B /* Release */,
+				805F540F3048914C73509424 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5187B9EC3014B06500013565 /* Build configuration list for PBXProject "KyouNoOgatore" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
