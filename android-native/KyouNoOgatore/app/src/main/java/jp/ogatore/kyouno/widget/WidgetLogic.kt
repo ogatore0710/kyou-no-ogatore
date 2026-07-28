@@ -34,15 +34,19 @@ data class WidgetState(
 
 object WidgetLogic {
     // 発注書§2-4「大きい節目/小さい節目」の区分。既存コード(CardData.MILESTONES)に大小の分類は
-    // 無かったため、appdev判断で「30日以上=大きい節目」を線引きした(Duolingo的に王冠は月単位の
-    // 大きな節目、クラッカーはそれ未満の早期の節目、という一般的な使い分けを踏襲)。
+    // 無かったため、appdev判断で「30日以上=大きい節目」を線引きした(alan5承認2026-07-28)。
     private val BIG_MILESTONE_THRESHOLD = 30
+    // GO-H1 D3(alan5差し戻し2026-07-28): iOS版celebrateUntilと同じ「記録から4時間」に統一。
+    const val CELEBRATE_WINDOW_MILLIS = 4L * 3600 * 1000
 
     fun compute(
         store: RecordStore,
         now: Instant,
         zone: ZoneId = ZoneId.systemDefault(),
-        justRecorded: Boolean = false,
+        // GO-H1 D3(alan5差し戻し): 「記録した日と同じ日か」の日付比較は、記録した日は一日じゅう
+        // trueになりGOODへ絶対に落ちないデッドコードだった(alan5指摘のとおり)。「記録した時刻から
+        // 4時間以内か」の経過時間比較に直す(iOS版celebrateUntilと同じ考え方)。
+        recordedAtMillis: Long? = null,
     ): WidgetState {
         val streak = RecordLogic.loadStreak(store)
         val today = RecordLogic.todayStr(now, zone)
@@ -52,6 +56,7 @@ object WidgetLogic {
         val effCount = RecordLogic.effectiveStreakCount(store, streak, now, zone)
         val hour = now.atZone(zone).hour
         val isMorning = hour in 5 until 17
+        val celebrating = recordedAtMillis != null && (now.toEpochMilli() - recordedAtMillis) < CELEBRATE_WINDOW_MILLIS
 
         val data = CardDataLoader.shared
         // 節目判定はrenderTodayCard(MainActivity.kt)の既存の考え方(streak.total=通算日数を
@@ -66,11 +71,9 @@ object WidgetLogic {
             effCount == 0 -> CharaAsset.CHEER
             !doneToday && isMorning -> CharaAsset.CHEER
             !doneToday -> CharaAsset.KAIKYAKU
-            // GO-H1§2-4「記録した直後〜当日」vs「翌日以降に見たとき」: サマリ相当のデータに
-            // タイムスタンプを持たせない設計(発注書§3の4項目のみ)のため、「直後」はmarkDone
-            // 呼び出しから直接update()されたこの1回の描画だけをcongratsとし、それ以外の
-            // (定期更新・アプリ再起動後等の)描画は全てgoodにする(appdev判断)。
-            justRecorded -> CharaAsset.CONGRATS
+            // GO-H1§2-4(alan5差し戻しD3で確定): 記録から4時間はcongrats・そのあと当日いっぱいは
+            // good・翌日はdoneToday=falseになるので自然に「まだ」側(cheer/kaikyaku)へ抜ける。
+            celebrating -> CharaAsset.CONGRATS
             else -> CharaAsset.GOOD
         }
 
@@ -78,28 +81,68 @@ object WidgetLogic {
             effCount == 0 -> "きょうから また1日め🌱"
             !doneToday && isMorning -> "きょうもいこう！💪"
             !doneToday -> "ねる前に1本 どう？🌙"
-            justRecorded -> "きょうもおつかれさま！"
+            celebrating -> "きょうもおつかれさま！"
             else -> "つづいてるね！"
         }
 
-        val last7 = buildLast7(streak.dates.toSet(), streak.dates.sorted(), today)
+        val last7 = buildLast7(store, streak.dates.toSet(), streak.dates.sorted(), today)
 
         return WidgetState(doneToday, effCount, last7, chara, message)
     }
 
-    // 直近7日(きょう含む)のドット状態。freeze2は月ごとの使用回数しか保存しておらず日付単位の
-    // 記録が無いため、「その日の前後どちらにもやった日がある(=streakが継続した実績がある)」日を
-    // おやすみ券で埋まった日として扱う(markDoneのstreak継続ロジック上、間の空白日が埋まらなければ
-    // countは途切れているはずなので、後にやった日がある=埋まった、という推論はロジック上健全)。
-    internal fun buildLast7(doneDates: Set<String>, sortedDoneDates: List<String>, today: String): List<DotState> {
+    // GO-H1 D4(alan5差し戻し2026-07-28): 直近7日(きょう含む)のドット状態。
+    // 以前は「その日の前後どちらにもやった日がある」だけでFREEZE扱いにしていたが、これだと
+    // 券を使っていない日(例: 月末に3日あけて再開した=連続は切れているだけ)も券色に塗って
+    // しまう欠陥があった(alan5指摘のとおり・「持っていない券を使ったように見える」)。
+    // streakBrokenNowと同じcanBridgeFreezes(実際の残数チェック)を、その空白日を含む連続した
+    // 空白区間(前後の「やった日」に挟まれた区間、または現在進行中の末尾ギャップ)に対して呼び、
+    // 本当に券で埋まりうる区間だけをFREEZE扱いにする。
+    internal fun buildLast7(store: RecordStore, doneDates: Set<String>, sortedDoneDates: List<String>, today: String): List<DotState> {
         val todayDate = LocalDate.parse(today)
         return (6 downTo 0).map { offset ->
             val d = todayDate.minusDays(offset.toLong()).toString()
             when {
                 d in doneDates -> DotState.DONE
-                sortedDoneDates.any { it < d } && sortedDoneDates.any { it > d } -> DotState.FREEZE
+                isFreezeBridged(store, sortedDoneDates, d, today) -> DotState.FREEZE
                 else -> DotState.NONE
             }
         }
+    }
+
+    private fun isFreezeBridged(store: RecordStore, sortedDoneDates: List<String>, d: String, today: String): Boolean {
+        val before = sortedDoneDates.lastOrNull { it < d } ?: return false
+        val after = sortedDoneDates.firstOrNull { it > d }
+        if (after == null) {
+            // 現在進行中の末尾ギャップ(まだ確定していない・freeze2に反映されていない): streakBrokenNow
+            // と同じcanBridgeFreezesをそのまま使える(残数からまだ何も引かれていないため二重計上の
+            // 心配がない)。
+            val missedRun = datesBetweenExclusive(before, today)
+            return d in missedRun && RecordLogic.canBridgeFreezes(store, missedRun)
+        }
+        // 過去の(既に確定した)ギャップ: canBridgeFreezes(残数+need<=上限)をそのまま呼ぶと、
+        // このギャップが実際に橋渡しされた時点でfreeze2へ既に加算済みの使用量に対して
+        // もう一度needを足すことになり、二重計上でfalseになってしまう(実際に橋渡しできたのに
+        // できなかった扱いになるバグをテストで検出した)。「その月に記録されている使用量が、
+        // このギャップの日数以上あるか」で近似する(1か月に複数の独立したギャップがある場合の
+        // 完全な精度は無いが、月内の使用量がゼロなら確実にNONEになり、alan5指摘の「持っていない
+        // 券を使ったように見える」主要ケースは正しく直る)。
+        val missedRun = datesBetweenExclusive(before, after)
+        if (d !in missedRun) return false
+        val monthKey = d.take(7)
+        val usedThisMonth = RecordLogic.freezeMap(store)[monthKey] ?: 0
+        return missedRun.size <= usedThisMonth
+    }
+
+    private fun datesBetweenExclusive(startInclusive: String, endExclusive: String): List<String> {
+        val start = LocalDate.parse(startInclusive).plusDays(1)
+        val end = LocalDate.parse(endExclusive)
+        if (!start.isBefore(end)) return emptyList()
+        val result = mutableListOf<String>()
+        var cur = start
+        while (cur.isBefore(end)) {
+            result.add(cur.toString())
+            cur = cur.plusDays(1)
+        }
+        return result
     }
 }

@@ -66,7 +66,7 @@ class KyonoWidget : GlanceAppWidget() {
         // このウィジェットからはget/loadStreak等の読み取り専用の呼び出ししか行わない)。
         val store = RecordStore.forFile(File(context.filesDir, "kyono-store.json"))
         val now = Instant.now()
-        val state = WidgetLogic.compute(store, now, justRecorded = WidgetUpdater.wasRecordedToday(context, now))
+        val state = WidgetLogic.compute(store, now, recordedAtMillis = WidgetUpdater.recordedAtMillis(context))
 
         provideContent {
             val size = LocalSize.current
