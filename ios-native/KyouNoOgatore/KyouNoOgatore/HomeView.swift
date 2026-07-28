@@ -21,6 +21,7 @@
 import Combine
 import SwiftUI
 import UIKit
+import WidgetKit
 import RecordCore
 import CardCore
 import SafetyCore
@@ -317,6 +318,10 @@ struct HomeView: View {
                     // TASK-C2-2026-07-27-local-notifications.md: 記録のたびに次回通知を予約し直す
                     // (今日はもう記録済みなので、次は翌日以降の分に自動でずれる)。
                     DailyNotifications.resync(store: store)
+                    // GO-H1(ホーム画面ウィジェット): 記録した瞬間にサマリを書き出し、ウィジェットを
+                    // 即時更新する(発注書§4)。RecordStore本体には触れない片道の書き出しのみ。
+                    WidgetSummaryWriter.write(store: store)
+                    WidgetCenter.shared.reloadAllTimelines()
                     let ms = CardDataLoader.shared.MS.first { $0.d == streak.total }
                     // §2-4許容箇所: markDoneのcheer選択のみ乱数OK。withAnimationはindex.html:311-312
                     // cpop(.3s ease-out)の1:1移植(下のtransitionと対で挿入時のポップ演出になる)。

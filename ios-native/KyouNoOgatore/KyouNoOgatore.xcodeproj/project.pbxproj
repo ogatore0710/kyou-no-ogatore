@@ -50,8 +50,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5187B9F33014B06500013565 /* KyouNoOgatore */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = KyouNoOgatore;
 			sourceTree = "<group>";
 		};
