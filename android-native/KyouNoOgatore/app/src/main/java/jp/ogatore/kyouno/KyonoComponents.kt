@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -54,13 +55,26 @@ fun KyonoCharaImage(resName: String, modifier: Modifier = Modifier) {
 // index.html:95 .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px}
 // 内部はColumn(縦積み)。中身が複数要素のとき単純にBoxへ渡すと重なって描画されてしまうため注意
 // (実機検証で発見・修正: KyonoCard内の複数Text/Buttonが同一座標に重なって表示されるバグがあった)。
+// index.html:95-96 .card{...border:1.5px solid var(--line);box-shadow:0 2px 10px
+// rgba(160,140,80,.06)} / body.dark .card{box-shadow:none}の1:1移植。
+// UI/UXパリティ監査GO-4(2026-07-28): 枠線・影とも欠落していた(ダークモードは
+// Web版どおり影を出さず、枠線のみ)。
 @Composable
 fun KyonoCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(
+                if (!dark) {
+                    Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
+                } else {
+                    Modifier
+                },
+            )
             .background(colors.card, KyonoCardShape)
+            .border(1.5.dp, colors.line, KyonoCardShape)
             .padding(20.dp),
         content = content,
     )
@@ -70,9 +84,14 @@ fun KyonoCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.()
 // ホームの一部カードなど「白一色ではない」目立たせカードに使う斜めグラデーション背景。
 enum class KyonoGradient { Warm, Mint, Pink, Soft }
 
+// index.html:95-96 .card(枠線・影)は.grad-*にも適用される(併記クラスのため)。
+// UI/UXパリティ監査GO-4(2026-07-28): KyonoCardと同じ欠落・同じ対処。
+val KyonoCardShadowColor = Color(0xFFA08C50)
+
 @Composable
 fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    val dark = LocalKyonoColors.current.bg.let { it == KyonoDarkColors.bg }
+    val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
     val (from, to) = when (gradient) {
         KyonoGradient.Warm -> if (dark) Color(0xFF37301C) to Color(0xFF33232B) else Color(0xFFFFF3C4) to Color(0xFFFFEDF3)
         KyonoGradient.Mint -> if (dark) Color(0xFF22403B) to Color(0xFF33301C) else Color(0xFFE7F8F1) to Color(0xFFFFF9DC)
@@ -82,7 +101,15 @@ fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, co
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(
+                if (!dark) {
+                    Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
+                } else {
+                    Modifier
+                },
+            )
             .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(from, to)), KyonoCardShape)
+            .border(1.5.dp, colors.line, KyonoCardShape)
             .padding(20.dp),
         content = content,
     )

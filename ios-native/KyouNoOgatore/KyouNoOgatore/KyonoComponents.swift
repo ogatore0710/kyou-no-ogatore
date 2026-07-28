@@ -46,10 +46,17 @@ struct FdBobText: View {
     }
 }
 
-// index.html:95 .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+// index.html:95-96 .card{...border:1.5px solid var(--line);box-shadow:0 2px 10px
+// rgba(160,140,80,.06)} / body.dark .card{box-shadow:none}の1:1移植。
+// UI/UXパリティ監査GO-4(2026-07-28): 枠線・影とも欠落していた(ダークモードは
+// Web版どおり影を出さず、枠線のみ)。
+let kyonoCardShadowColor = Color(hex: 0xA08C50)
+
 struct KyonoCard<Content: View>: View {
     @Environment(\.kyonoColors) private var colors
     @ViewBuilder let content: () -> Content
+
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content() }
@@ -57,6 +64,8 @@ struct KyonoCard<Content: View>: View {
             .padding(20)
             .background(colors.card)
             .cornerRadius(kyonoRadius)
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius).stroke(colors.line, lineWidth: 1.5))
+            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10, x: 0, y: 2)
     }
 }
 
@@ -85,6 +94,8 @@ struct KyonoGradientCard<Content: View>: View {
             .padding(20)
             .background(LinearGradient(colors: [from, to], startPoint: .topLeading, endPoint: .bottomTrailing))
             .cornerRadius(kyonoRadius)
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius).stroke(colors.line, lineWidth: 1.5))
+            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10, x: 0, y: 2)
     }
 }
 

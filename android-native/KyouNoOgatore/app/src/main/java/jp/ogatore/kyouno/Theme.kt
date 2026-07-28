@@ -231,15 +231,21 @@ fun KyonoTheme(themeSetting: String, bigText: Boolean = true, content: @Composab
     // UI/UXパリティ監査GO-3(2026-07-28)・Android限定: index.html:87 body.bigtext{zoom:1.18}は
     // 画面全体を1.18倍する(文字だけでなく余白・角丸・アイコンサイズも連動)。従来はfontScaleだけを
     // 掛けており、dp指定の余白/サイズがbigtext ON時も拡大されない構造的な差があった。
-    // density自体も同じ倍率で掛けることで、dp→px変換が全体的にCSSのzoomと同じ意味になる
-    // (OS側のアクセシビリティ文字サイズと掛け合わさる恐れがあるfontScaleと違い、densityは
-    // OS側の拡大設定とは独立した値のためKYONO_MAX_FONT_SCALEの上限は適用しない)。
+    //
+    // GO-3差し戻し(2026-07-29): 最初の修正はdensityとfontScaleの両方に1.18を掛けており、
+    // Composeの sp.toPx() = value×density×fontScale という式のせいで文字だけ1.18×1.18=1.39倍と
+    // 二重に拡大されてしまっていた(dpは1.18倍のまま)。「箱に対して文字だけ大きい」状態になり、
+    // 検索タブの例文2行折返し・カテゴリチップ3列→2列・タブバー文字折返しなどWebより悪化する
+    // 回帰を招いた。density**だけ**にbigTextScaleを掛け、fontScaleはOS側のアクセシビリティ設定値の
+    // ままにする(sp.toPx()の式の中でdensity側の1.18が既に効くため、これでdp/sp双方とも一律1.18倍
+    // になる。二重掛けにはならない)。KYONO_MAX_FONT_SCALEはOS設定自体の暴走対策として引き続き
+    // fontScale側に適用する。
     val bigTextScale = if (bigText) KYONO_BIG_TEXT_SCALE else 1f
-    val scaledFontScale = (baseDensity.fontScale * bigTextScale).coerceAtMost(KYONO_MAX_FONT_SCALE)
+    val cappedFontScale = baseDensity.fontScale.coerceAtMost(KYONO_MAX_FONT_SCALE)
     CompositionLocalProvider(
         LocalKyonoColors provides colors,
         LocalKyonoBigText provides bigText,
-        LocalDensity provides Density(baseDensity.density * bigTextScale, scaledFontScale),
+        LocalDensity provides Density(baseDensity.density * bigTextScale, cappedFontScale),
         content = content,
     )
 }
