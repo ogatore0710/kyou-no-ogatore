@@ -11,8 +11,11 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class CardTheme(val name: String, val bg: List<String>, val main: String, val deco: List<String>)
 
+// UI/UXパリティ監査GO-1(2026-07-28): m(祝いメッセージ)/q(先輩の声引用)は元々d/tだけに
+// 間引かれてスキップされていた(節目のお祝い演出が通常日と見分けつかなくなっていた欠落の
+// 原因)。gen-card-data.mjsの機械抽出をd/t/m/qの4項目に広げたので、ここも合わせる。
 @Serializable
-data class MilestoneInfo(val d: Int, val t: String)
+data class MilestoneInfo(val d: Int, val t: String, val m: String = "", val q: String = "")
 
 @Serializable
 data class CharaFile(val file: String, val w: Int)
@@ -39,6 +42,7 @@ data class CardData(
     val CARD_THEMES_V2_FROM: Int,
     val MILESTONES: List<Int>,
     val CARD_IMG_FROM: Int,
+    val MILESTONE_MSG_VIDEO: String = "",
     val SEASON_CARDS: List<SeasonCard>,
     val RARE_CARDS: List<RareCard>,
     val NORMAL_CARDS: List<NormalCard>,

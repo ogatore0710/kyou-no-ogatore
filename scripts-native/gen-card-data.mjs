@@ -45,6 +45,9 @@ const indexConsts = [
   "CARD_THEMES_V2_FROM",
   "MILESTONES",
   "CARD_IMG_FROM",
+  // UI/UXパリティ監査GO-1(2026-07-28): 節目お祝いメッセージ動画リンク(空文字=機能オフ)。
+  // 節目カードの中身をmarkDone直後の演出として移植する際に必要。
+  "MILESTONE_MSG_VIDEO",
   "SEASON_CARDS",
   "RARE_CARDS",
   "NORMAL_CARDS",
@@ -61,6 +64,7 @@ const indexConsts = [
 const NAMES = [
   "CARD_THEMES", "GOLD", "MS", "CHARA_FILES",
   "CARD_THEMES_V1_COUNT", "CARD_THEMES_V2_FROM", "MILESTONES", "CARD_IMG_FROM",
+  "MILESTONE_MSG_VIDEO",
   "SEASON_CARDS", "RARE_CARDS", "NORMAL_CARDS", "TOKU_CARDS", "CARD_ROT_ORDER",
   "DEX_TEASE", "DEX_FLAVOR", "DEX_FLAVOR_NORMAL", "DEX_NORMAL_TEASE",
 ];
@@ -84,9 +88,16 @@ if (data.NORMAL_CARDS.length + data.RARE_CARDS.length !== 50) {
   throw new Error(`NORMAL_CARDS+RARE_CARDSが50でない(実測${data.NORMAL_CARDS.length + data.RARE_CARDS.length})`);
 }
 
-// MSからmilestone d/tだけを抜き出す(m/qは長文お祝いメッセージ・先輩の声でmarkDone側=Step5aの管轄。
-// Step4のカード描画(節目タイトル表示)にはd/tしか使わないため、カードデータとしてはこの2フィールドのみ同梱する)
-const msSlim = data.MS.map((x) => ({ d: x.d, t: x.t }));
+// UI/UXパリティ監査GO-1(2026-07-28): 節目お祝い(記録直後の紙吹雪カード)の中身がm/q未同梱のため
+// 移植されず、通常日と見分けがつかない状態になっていた欠落の修正。以前は「m/qは長文お祝い
+// メッセージ・先輩の声でmarkDone側=Step5aの管轄」としてd/tだけを抜き出していたが、Step5a側では
+// 結局手当てされていなかった。手写し禁止(§1-2)の原則どおりm/qも同じくJSエンジンに実評価させて
+// 機械抽出し、カードデータに同梱する(空文字の項目はWeb版でも元々m/qが無い節目=そのまま)。
+// d=3のmだけ、Web側で折返し制御用の<span style='display:inline-block'>...</span>タグを含む。
+// ネイティブはHTMLを描画しないため、タグを除いたプレーンテキストにして同梱する
+// (2つのspanは元々隣接=間に空白なしなので、タグ除去だけで意味は変わらない)。
+const stripHtml = (s) => (s || "").replace(/<[^>]+>/g, "");
+const msSlim = data.MS.map((x) => ({ d: x.d, t: x.t, m: stripHtml(x.m), q: stripHtml(x.q) }));
 
 mkdirSync(new URL("./out/", import.meta.url), { recursive: true });
 const out = {
@@ -98,6 +109,7 @@ const out = {
   CARD_THEMES_V2_FROM: data.CARD_THEMES_V2_FROM,
   MILESTONES: data.MILESTONES,
   CARD_IMG_FROM: data.CARD_IMG_FROM,
+  MILESTONE_MSG_VIDEO: data.MILESTONE_MSG_VIDEO,
   SEASON_CARDS: data.SEASON_CARDS,
   RARE_CARDS: data.RARE_CARDS,
   NORMAL_CARDS: data.NORMAL_CARDS,

@@ -11,9 +11,14 @@ public struct CardTheme: Decodable {
     public let deco: [String]
 }
 
+// UI/UXパリティ監査GO-1(2026-07-28): m(祝いメッセージ)/q(先輩の声引用)は元々d/tだけに
+// 間引かれてスキップされていた(節目のお祝い演出が通常日と見分けつかなくなっていた欠落の
+// 原因)。gen-card-data.mjsの機械抽出をd/t/m/qの4項目に広げたので、ここも合わせる。
 public struct MilestoneInfo: Decodable {
     public let d: Int
     public let t: String
+    public let m: String
+    public let q: String
 }
 
 public struct CharaFile: Decodable {
