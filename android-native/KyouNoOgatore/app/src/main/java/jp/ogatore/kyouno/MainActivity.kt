@@ -1005,6 +1005,8 @@ fun HomeScreen(
                             val wasGuide = fd == "go"
                             RecordLogic.markDone(store, Instant.now())
                             streak = RecordLogic.loadStreak(store)
+                            // GO-H1(ホーム画面ウィジェット): 記録した瞬間にウィジェットを更新する。
+                            scope.launch { jp.ogatore.kyouno.widget.WidgetUpdater.notifyRecorded(context) }
                             val ms = CardDataLoader.shared.MS.find { it.d == streak.total }
                             if (wasGuide && ms == null) {
                                 fdCelebrationVisible = true
