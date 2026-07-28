@@ -111,12 +111,19 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
             cameraDistance = 12 * density
         },
     ) {
+        // Fable監査GO-3(視点B): 両面を常時composeする形にした際、裏面(後に宣言された方が
+        // 常に最前面)がalpha=0のまま最前面のヒットテスト対象に居座り、表面下部のタップを
+        // 奪うことがあった。alphaだけでなく、いま見えていない面には.clickable自体を
+        // 付けない(Modifier.thenで条件付き付与)ことで、見えない面はポインタイベントを
+        // 一切消費しない=素通りして下の面に届くようにする。
+        val frontVisible = rotation <= 90f
         // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)。Web版のjustify-content:center;
         // align-items:centerと同じく、引き伸ばされた高さの中で内容を縦方向にも中央寄せする。
         KyonoGradientCard(
             KyonoGradient.Warm,
-            Modifier.fillMaxHeight().graphicsLayer { alpha = if (rotation <= 90f) 1f else 0f }
-                .clickable { onToggle() }.testTag("voiceCard_$index"),
+            Modifier.fillMaxHeight().graphicsLayer { alpha = if (frontVisible) 1f else 0f }
+                .then(if (frontVisible) Modifier.clickable { onToggle() } else Modifier)
+                .testTag("voiceCard_$index"),
         ) {
             Column(
                 Modifier.fillMaxWidth().fillMaxHeight(),
@@ -130,14 +137,15 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
                 Text("タップでめくる", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
             }
         }
+        val backVisible = !frontVisible
         // index.html:358-359,362-363 .vback(card地・枠線・justify-content:centerで縦方向も中央寄せ)
         Column(
             Modifier.fillMaxWidth().fillMaxHeight()
                 .graphicsLayer {
                     rotationY = 180f
-                    alpha = if (rotation > 90f) 1f else 0f
+                    alpha = if (backVisible) 1f else 0f
                 }
-                .clickable { onToggle() }
+                .then(if (backVisible) Modifier.clickable { onToggle() } else Modifier)
                 .background(colors.card, RoundedCornerShape(22.dp))
                 .border(1.5.dp, colors.line, RoundedCornerShape(22.dp))
                 .padding(18.dp)
@@ -150,10 +158,13 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
             Spacer(Modifier.height(8.dp))
             Text("— せんぱいの声（${v.src}）", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
             Spacer(Modifier.height(10.dp))
+            // 裏面が見えていない間はボタン自体も独立してタップされうる(親のclickableとは別の
+            // ヒットテスト対象のため)ので、KyonoGhostButtonのenabledで個別に閉じる。
             KyonoGhostButton(
                 "せんぱいとおなじ1本をみる ▶",
                 { openUrl("https://www.youtube.com/watch?v=${v.vid}") },
                 Modifier.testTag("voiceGoBtn_$index"),
+                enabled = backVisible,
             )
         }
     }

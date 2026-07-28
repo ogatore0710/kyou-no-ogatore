@@ -129,13 +129,17 @@ fun KyonoPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = M
 
 // index.html:103 .btn-ghost{background:var(--teal-soft);color:var(--tealink);font-size:15px}
 @Composable
-fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val colors = LocalKyonoColors.current
     Box(
         modifier = modifier
             .fillMaxWidth()
             .background(colors.tealSoft, KyonoButtonShape)
-            .clickable(onClick = onClick)
+            // Fable監査GO-3: enabled=falseのときは.clickable自体を付けない(clickable自身の
+            // enabledフラグに頼らず、Modifier.thenで条件付き付与することで、隠れている間は
+            // ポインタイベントを一切消費しないことを構造的に保証する)。VoicesScreenの
+            // カードめくりで、裏返っている間もボタンだけ独立してタップされてしまう事故の対策。
+            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,
     ) {

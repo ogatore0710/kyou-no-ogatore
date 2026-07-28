@@ -123,14 +123,19 @@ object WidgetLogic {
         // このギャップが実際に橋渡しされた時点でfreeze2へ既に加算済みの使用量に対して
         // もう一度needを足すことになり、二重計上でfalseになってしまう(実際に橋渡しできたのに
         // できなかった扱いになるバグをテストで検出した)。「その月に記録されている使用量が、
-        // このギャップの日数以上あるか」で近似する(1か月に複数の独立したギャップがある場合の
-        // 完全な精度は無いが、月内の使用量がゼロなら確実にNONEになり、alan5指摘の「持っていない
-        // 券を使ったように見える」主要ケースは正しく直る)。
+        // このギャップの日数以上あるか」で近似する。
+        // Fable監査GO-4(alan5差し戻し2026-07-28): 上の近似は、ギャップが月をまたぐと壊れる
+        // (例: 7/30-8/1の3日ギャップを7月2券+8月1券で正しく橋渡し済みでも、どちらの月で見ても
+        // missedRun.size(3) <= その月のusedThisMonth(2 or 1)がfalseになり、本当は券で埋めた
+        // 日がNONE=未記録扱いに見えてしまう)。tryUseFreezes自体がmissedDatesを月ごとに
+        // 分割してneedを積むため、ここも同じくギャップをdの月に属する部分だけに絞ってから
+        // その月の使用量と比べる。
         val missedRun = datesBetweenExclusive(before, after)
         if (d !in missedRun) return false
         val monthKey = d.take(7)
+        val monthPortionSize = missedRun.count { it.take(7) == monthKey }
         val usedThisMonth = RecordLogic.freezeMap(store)[monthKey] ?: 0
-        return missedRun.size <= usedThisMonth
+        return monthPortionSize <= usedThisMonth
     }
 
     private fun datesBetweenExclusive(startInclusive: String, endExclusive: String): List<String> {

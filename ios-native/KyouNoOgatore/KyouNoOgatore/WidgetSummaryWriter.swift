@@ -109,11 +109,16 @@ enum WidgetSummaryWriter {
             let missedRun = datesBetweenExclusive(before, today)
             return missedRun.contains(d) && RecordLogic.canBridgeFreezes(store, missedDates: missedRun)
         }
+        // Fable監査GO-4(alan5差し戻し2026-07-28): ギャップ全体の日数を1つの月の使用量とだけ
+        // 比べると、月をまたぐギャップ(例: 7/30-8/1)で壊れる。tryUseFreezesがmissedDatesを
+        // 月ごとに分割してneedを積むのと同じく、ここもdの月に属する部分だけに絞ってから
+        // その月の使用量と比べる(Android版WidgetLogic.ktと同じ修正)。
         let missedRun = datesBetweenExclusive(before, after!)
         guard missedRun.contains(d) else { return false }
         let monthKey = String(d.prefix(7))
+        let monthPortionSize = missedRun.filter { $0.prefix(7) == monthKey }.count
         let usedThisMonth = RecordLogic.freezeMap(store)[monthKey] ?? 0
-        return missedRun.count <= usedThisMonth
+        return monthPortionSize <= usedThisMonth
     }
 
     // RecordLogic.addDays相当は非公開(internal実装詳細)のため、ここではCalendarで同じ

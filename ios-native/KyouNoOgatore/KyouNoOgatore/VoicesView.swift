@@ -112,10 +112,15 @@ private struct VoiceCardView: View {
         // 表裏で高さが違うとめくった瞬間に一覧全体がガタつく(前後のカードが上下に動く)不具合が
         // あった。ZStackは既定で最大の子に合わせてサイズが決まるので、両面を常時composeし
         // opacityだけで切り替えることでコンテナの高さを固定する。
+        // Fable監査GO-3(視点B・Android版VoicesScreen.ktと同じ指摘): opacity(0)はSwiftUIでも
+        // ヒットテストを止めない。backViewの中のKyonoGhostButtonが、表向き(front)の間も
+        // ZStack内に重なったまま存在し続けるため、表面のタップが裏側のボタンに奪われうる。
+        // allowsHitTestingで、見えていない面を構造的にタップ不可能にする(外側の.onTapGesture
+        // だけがその領域で反応するようになる)。
         ZStack {
-            frontView.opacity(showBack ? 0 : 1)
+            frontView.opacity(showBack ? 0 : 1).allowsHitTesting(!showBack)
             backView.rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
-                .opacity(showBack ? 1 : 0)
+                .opacity(showBack ? 1 : 0).allowsHitTesting(showBack)
         }
         .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0))
         .contentShape(Rectangle())
