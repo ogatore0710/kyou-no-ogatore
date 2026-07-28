@@ -276,16 +276,24 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box {
-                    Text(
-                        (selectedYear?.let { "${it}年" } ?: "すべての年") + " ▾",
-                        color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                    // alan5差し戻し(小1件・5視点ワンループG3検収): 実測45.8dpで48dp未満だったため、
+                    // Box+heightIn(min=48.dp)+中央寄せで確実に48dp以上へ(padding値だけの微調整は
+                    // 端末・フォント設定によって再び48dp未満へ戻りうるため、下限を明示する方式にする)。
+                    Box(
                         modifier = Modifier
+                            .heightIn(min = 48.dp)
                             .background(colors.card, RoundedCornerShape(12.dp))
                             .border(2.dp, colors.line, RoundedCornerShape(12.dp))
                             .clickable { yearMenuOpen = true }
                             .padding(horizontal = 10.dp, vertical = 6.dp)
                             .testTag("searchYearSelect"),
-                    )
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            (selectedYear?.let { "${it}年" } ?: "すべての年") + " ▾",
+                            color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        )
+                    }
                     // ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚:
                     // 素のDropdownMenu/DropdownMenuItemはMaterialTheme既定の配色(ライト固定)で描画され、
                     // アプリのダークモードと無関係にライト色のポップアップが出ていた。他の箇所(設定画面の

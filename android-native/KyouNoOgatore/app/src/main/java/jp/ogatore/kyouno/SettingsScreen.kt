@@ -40,6 +40,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jp.ogatore.kyouno.record.KyonoTransfer
 import jp.ogatore.kyouno.record.KyonoTransferException
+import jp.ogatore.kyouno.record.RecordSnapshot
 import jp.ogatore.kyouno.record.RecordStore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -108,8 +111,18 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         // GO-G9(5視点ワンループ): 「よみこむ」実行前の状態を1件だけプロセス内メモリに退避し、実行直後の
         // 一定時間だけ「さっきの状態にもどす」を出す(永続化はしない・RecordLogicの計算には一切触れない
         // コピー退避のみ)。
-        var preImportSnapshot by remember { mutableStateOf<Map<String, String>?>(null) }
-        var showImportUndo by remember { mutableStateOf(false) }
+        // alan5差し戻し(D2): 素の`remember`は画面回転等のconfig changeでActivityごと再生成されると
+        // 消える(通知プロンプトfdCelebrationVisible/showNotifPromptで踏んだのと同じ罠)。
+        // Map<String,String>はBundleへ直接保存できないため、ArrayList<String>(key,value…の
+        // フラット列)へ変換するSaverを介してrememberSaveableにする。
+        val snapshotSaver = remember {
+            Saver<Map<String, String>?, ArrayList<String>>(
+                save = { m -> ArrayList(m?.flatMap { (k, v) -> listOf(k, v) } ?: emptyList()) },
+                restore = { list -> if (list.isEmpty()) null else list.chunked(2).associate { it[0] to it[1] } },
+            )
+        }
+        var preImportSnapshot by rememberSaveable(stateSaver = snapshotSaver) { mutableStateOf<Map<String, String>?>(null) }
+        var showImportUndo by rememberSaveable { mutableStateOf(false) }
         val importScope = androidx.compose.runtime.rememberCoroutineScope()
 
         // 設定画面「やるタイミング」「カレンダーのおしらせ時間」欠落修正タスク
@@ -463,9 +476,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         "さっきの状態にもどす",
                         {
                             preImportSnapshot?.let { snapshot ->
-                                val current = store.allRawKyonoEntries
-                                for (k in current.keys) if (k !in snapshot) store.removeRaw(k)
-                                for ((k, v) in snapshot) store.setRaw(k, v)
+                                RecordSnapshot.restore(store, snapshot)
                                 theme = store.get("theme", "auto")
                                 bigtext = store.get("bigtext", true)
                             }
@@ -490,7 +501,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                             confirmImport = false
                             try {
                                 // GO-G9(5視点ワンループ): 上書き前の状態を1件だけ退避してからimportする。
-                                val snapshot = store.allRawKyonoEntries
+                                val snapshot = RecordSnapshot.capture(store)
                                 KyonoTransfer.importString(importInput.trim(), store)
                                 theme = store.get("theme", "auto")
                                 bigtext = store.get("bigtext", true)

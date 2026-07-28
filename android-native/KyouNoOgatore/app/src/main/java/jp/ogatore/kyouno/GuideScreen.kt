@@ -78,9 +78,6 @@ fun GuideScreen(
     onOpenSettings: () -> Unit,
     onOpenMyRecord: () -> Unit,
 ) {
-    // GO-G6(5視点ワンループ): システム「もどる」を拾いHomeへ戻す(onBackはこれまで未使用の
-    // 死んだパラメータだったが、この対応で初めて呼ばれるようになる)。
-    BackHandler(onBack = onBack)
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
@@ -106,6 +103,23 @@ fun GuideScreen(
         val sectionOpen = remember {
             mutableStateMapOf("gd-start" to true, "gd-daily" to false, "gd-mamori" to false, "gd-tsuzuku" to false, "gd-myrec" to false)
         }
+        // alan5差し戻し(D1・5視点ワンループG6検収): セクションを開いて読んでいる最中に「もどる」を
+        // 押すと、開いた場所を失ってホームへ即ジャンプしていた欠落の修正。「今回のセッションで
+        // ユーザー自身がどれかを開閉した」ことを追跡し、その状態でどれか1つでも開いていれば、
+        // まず全部閉じるだけに留める(Homeへは飛ばさない)。1件も自分で触っていなければ(=gd-start
+        // が既定で開いているだけの状態)、いつもどおりonBackへ直行する。
+        var sectionEverToggled by remember { mutableStateOf(false) }
+        fun toggleSection(id: String) {
+            sectionOpen[id] = !(sectionOpen[id] ?: false)
+            sectionEverToggled = true
+        }
+        BackHandler {
+            if (sectionEverToggled && sectionOpen.values.any { it }) {
+                sectionOpen.keys.toList().forEach { sectionOpen[it] = false }
+            } else {
+                onBack()
+            }
+        }
 
         fun jump(id: String) {
             val y = anchorY[id] ?: return
@@ -116,6 +130,7 @@ fun GuideScreen(
         }
         fun jumpToSection(id: String) {
             sectionOpen[id] = true
+            sectionEverToggled = true
             jump(id)
         }
         // index.html:1570 gJump()相当。FAQ本体のコードには触れず、既存のopenGroups/openItems状態
@@ -248,7 +263,7 @@ fun GuideScreen(
             // ---- 2. はじめての日にやること(index.html:1002-1011。既定で開いた状態) ----
             GdFoldSection(
                 id = "gd-start", icon = KyonoIcon.QuizCheck, title = "はじめての日にやること", fill = colors.yellowSoft,
-                open = sectionOpen["gd-start"] == true, onToggle = { sectionOpen["gd-start"] = !(sectionOpen["gd-start"] ?: false) },
+                open = sectionOpen["gd-start"] == true, onToggle = { toggleSection("gd-start") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GStep("1", "かたさチェック（30秒）", "5問タップするだけ 写真とイラストのお手本つき") {
@@ -269,7 +284,7 @@ fun GuideScreen(
             // ---- 3. 2日目からの毎日(index.html:1013-1027) ----
             GdFoldSection(
                 id = "gd-daily", icon = KyonoIcon.Play, title = "2日目からの毎日", fill = colors.tealSoft, accent = colors.teal,
-                open = sectionOpen["gd-daily"] == true, onToggle = { sectionOpen["gd-daily"] = !(sectionOpen["gd-daily"] ?: false) },
+                open = sectionOpen["gd-daily"] == true, onToggle = { toggleSection("gd-daily") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GFlow(listOf("アプリを\nひらく", "きょうの1本を\n▶ 再生", "きょう\nやった！"))
@@ -298,7 +313,7 @@ fun GuideScreen(
             // ネイティブ向けに置き換え。判断根拠はやることブロック参照。他は1:1) ----
             GdFoldSection(
                 id = "gd-mamori", icon = KyonoIcon.ShieldCheck, title = "記録が消えない3つの守り", fill = colors.tealSoft, accent = colors.teal,
-                open = sectionOpen["gd-mamori"] == true, onToggle = { sectionOpen["gd-mamori"] = !(sectionOpen["gd-mamori"] ?: false) },
+                open = sectionOpen["gd-mamori"] == true, onToggle = { toggleSection("gd-mamori") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 10.dp)) {
@@ -327,7 +342,7 @@ fun GuideScreen(
             // ---- 5. 続けるしくみ（ここがやさしい）(index.html:1047-1059) ----
             GdFoldSection(
                 id = "gd-tsuzuku", icon = KyonoIcon.Star, title = "続けるしくみ（ここがやさしい）", fill = colors.yellowSoft,
-                open = sectionOpen["gd-tsuzuku"] == true, onToggle = { sectionOpen["gd-tsuzuku"] = !(sectionOpen["gd-tsuzuku"] ?: false) },
+                open = sectionOpen["gd-tsuzuku"] == true, onToggle = { toggleSection("gd-tsuzuku") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GStep("🎫", "おやすみ券が毎月3枚", "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
@@ -351,7 +366,7 @@ fun GuideScreen(
             // ---- 6. 「マイ記録」タブでできること(index.html:1061-1070) ----
             GdFoldSection(
                 id = "gd-myrec", icon = KyonoIcon.CalendarCheck, title = "「マイ記録」タブでできること", fill = colors.tealSoft, accent = colors.teal,
-                open = sectionOpen["gd-myrec"] == true, onToggle = { sectionOpen["gd-myrec"] = !(sectionOpen["gd-myrec"] ?: false) },
+                open = sectionOpen["gd-myrec"] == true, onToggle = { toggleSection("gd-myrec") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
                 GStep("📅", "カレンダー", "やった日に印がつく（×はつきません）")
