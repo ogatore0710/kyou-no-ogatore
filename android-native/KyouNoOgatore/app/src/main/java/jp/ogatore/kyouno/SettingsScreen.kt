@@ -487,6 +487,24 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         Modifier.testTag("importUndoBtn"),
                     )
                 }
+                // GO-H1(ホーム画面ウィジェット)検証専用: デバッグビルドのみ、ランチャーの
+                // requestPinAppWidgetダイアログを直接呼ぶボタン(alan5指示の手段A)。実機描画の
+                // スクショ確認が終わったら削除するか、リリースビルドに絶対残さないこと
+                // (isDebuggableで判定・BuildConfig機能を新設しない)。
+                if (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+                    Spacer(Modifier.height(20.dp))
+                    KyonoLineButton(
+                        "🧪 [検証用] ウィジェットをホームに追加",
+                        {
+                            val awm = context.getSystemService(android.appwidget.AppWidgetManager::class.java)
+                            val provider = android.content.ComponentName(context, jp.ogatore.kyouno.widget.KyonoWidgetReceiver::class.java)
+                            if (awm != null && awm.isRequestPinAppWidgetSupported) {
+                                awm.requestPinAppWidget(provider, null, null)
+                            }
+                        },
+                        Modifier.testTag("debugPinWidgetBtn"),
+                    )
+                }
             }
         }
 
