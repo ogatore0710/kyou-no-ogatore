@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/primary.swiftdeps"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.derived/runner.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner.dia"
+  }
+}

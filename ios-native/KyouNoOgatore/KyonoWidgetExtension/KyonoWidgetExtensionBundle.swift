@@ -10,6 +10,7 @@
 
 import WidgetKit
 import SwiftUI
+import WidgetCore
 
 @main
 struct KyonoWidgetExtensionBundle: WidgetBundle {

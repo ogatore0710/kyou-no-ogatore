@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/primary.swiftdeps"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetStateCalculator.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator.dia"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetSummary.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary.dia"
+  }
+}

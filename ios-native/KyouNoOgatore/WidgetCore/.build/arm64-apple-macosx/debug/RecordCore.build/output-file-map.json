@@ -1,0 +1,40 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/primary.swiftdeps"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/CalendarLogic.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic.dia"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/HomeLogic.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic.dia"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/KyonoTransfer.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer.dia"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordLogic.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic.dia"
+  },
+  "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordStore.swift": {
+    "dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore.d",
+    "object": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore.swift.o",
+    "swiftmodule": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore~partial.swiftmodule",
+    "swift-dependencies": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore.swiftdeps",
+    "diagnostics": "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore.dia"
+  }
+}

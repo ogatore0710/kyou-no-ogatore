@@ -1,0 +1,875 @@
+{
+  "builtTestProducts" : [
+    {
+      "binaryPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.xctest/Contents/MacOS/WidgetCorePackageTests",
+      "packagePath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore",
+      "productName" : "WidgetCorePackageTests"
+    }
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.RecordCore-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/sources",
+      "importPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/CalendarLogic.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/HomeLogic.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/KyonoTransfer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordLogic.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "RecordCore",
+      "moduleOutputPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/RecordCore.swiftmodule",
+      "objects" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic.swift.o",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic.swift.o",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer.swift.o",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic.swift.o",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx10.13",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/include/RecordCore-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "recordcore"
+      ],
+      "outputFileMapPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/RecordCore.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/CalendarLogic.swift",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/HomeLogic.swift",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/KyonoTransfer.swift",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordLogic.swift",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordStore.swift"
+      ],
+      "tempsPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.WidgetCore-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/sources",
+      "importPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetStateCalculator.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetSummary.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/RecordCore.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "WidgetCore",
+      "moduleOutputPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCore.swiftmodule",
+      "objects" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator.swift.o",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx10.13",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/include/WidgetCore-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "widgetcore"
+      ],
+      "outputFileMapPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCore.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetStateCalculator.swift",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetSummary.swift"
+      ],
+      "tempsPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.WidgetCorePackageTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/sources",
+      "importPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.derived/runner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCoreTests.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "WidgetCorePackageTests",
+      "moduleOutputPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCorePackageTests.swiftmodule",
+      "objects" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx10.13",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/include/WidgetCorePackageTests-Swift.h",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "widgetcore"
+      ],
+      "outputFileMapPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCorePackageTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.derived/runner.swift"
+      ],
+      "tempsPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.WidgetCoreTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/sources",
+      "importPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Tests/WidgetCoreTests/WidgetStateCalculatorTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCore.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "WidgetCoreTests",
+      "moduleOutputPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCoreTests.swiftmodule",
+      "objects" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/WidgetStateCalculatorTests.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "widgetcore"
+      ],
+      "outputFileMapPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/WidgetStateCalculatorTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules/WidgetCoreTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Tests/WidgetCoreTests/WidgetStateCalculatorTests.swift"
+      ],
+      "tempsPath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "RecordCore" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "RecordCore",
+      "-package-name",
+      "recordcore",
+      "-c",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/CalendarLogic.swift",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/HomeLogic.swift",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/KyonoTransfer.swift",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordLogic.swift",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordStore.swift",
+      "-I",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx10.13",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/include/RecordCore-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "recordcore",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "WidgetCore" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "WidgetCore",
+      "-package-name",
+      "widgetcore",
+      "-c",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetStateCalculator.swift",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetSummary.swift",
+      "-I",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx10.13",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/include/WidgetCore-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "widgetcore",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "WidgetCorePackageTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "WidgetCorePackageTests",
+      "-package-name",
+      "widgetcore",
+      "-c",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.derived/runner.swift",
+      "-I",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx10.13",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/include/WidgetCorePackageTests-Swift.h",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "widgetcore",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "WidgetCoreTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "WidgetCoreTests",
+      "-package-name",
+      "widgetcore",
+      "-c",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Tests/WidgetCoreTests/WidgetStateCalculatorTests.swift",
+      "-I",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "widgetcore",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "RecordCore" : [
+
+    ],
+    "WidgetCore" : [
+      "RecordCore"
+    ],
+    "WidgetCorePackageTests" : [
+      "WidgetCoreTests",
+      "WidgetCore",
+      "RecordCore"
+    ],
+    "WidgetCoreTests" : [
+      "WidgetCore",
+      "RecordCore"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+    "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.derived/runner.swift" : {
+      "inputs" : [
+
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.derived/runner.swift"
+        }
+      ]
+    }
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/CalendarLogic.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/HomeLogic.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/KyonoTransfer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordLogic.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore/Sources/RecordCore/RecordStore.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/sources"
+    },
+    "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetStateCalculator.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetSummary.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/sources"
+    },
+    "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.derived/runner.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/sources"
+    },
+    "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/CalendarLogic.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/HomeLogic.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/KyonoTransfer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordLogic.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/RecordCore.build/RecordStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetStateCalculator.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCore.build/WidgetSummary.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/WidgetStateCalculatorTests.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCorePackageTests.product/Objects.LinkFileList"
+    },
+    "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/Tests/WidgetCoreTests/WidgetStateCalculatorTests.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/WidgetCoreTests.build/sources"
+    },
+    "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/WidgetCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

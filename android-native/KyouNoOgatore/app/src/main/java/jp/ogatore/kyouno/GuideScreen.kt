@@ -68,6 +68,15 @@ import kotlinx.coroutines.launch
 // 除く6個)、gd-helpの3ボタンからのジャンプもFAQ本体のコードには触れず、直前に置いた高さ0の
 // アンカー("gd-faq"キー)への大まかなスクロール+既存のopenGroups/openItems状態を外から
 // セットするだけに留めている(既存FAQコードの読み取り専用の公開状態を使うだけで、コード自体は無改変)。
+// Fable監査GO-13(alan5差し戻し2026-07-28・141条案件): D1で入れた「もどる」の分岐判定
+// (どれか1件でも開いていれば閉じるだけに留める/そうでなければonBackへ)は、これまでComposeの
+// BackHandlerの中に直書きでテストが無かった。Compose UIテスト無しでも固定できるよう、
+// 判定部分だけを純関数として切り出す。
+internal enum class GuideBackAction { CLOSE_SECTIONS, NAVIGATE_BACK }
+
+internal fun decideGuideBackAction(sectionEverToggled: Boolean, sectionOpen: Map<String, Boolean>): GuideBackAction =
+    if (sectionEverToggled && sectionOpen.values.any { it }) GuideBackAction.CLOSE_SECTIONS else GuideBackAction.NAVIGATE_BACK
+
 @Composable
 fun GuideScreen(
     store: RecordStore,
@@ -114,10 +123,9 @@ fun GuideScreen(
             sectionEverToggled = true
         }
         BackHandler {
-            if (sectionEverToggled && sectionOpen.values.any { it }) {
-                sectionOpen.keys.toList().forEach { sectionOpen[it] = false }
-            } else {
-                onBack()
+            when (decideGuideBackAction(sectionEverToggled, sectionOpen)) {
+                GuideBackAction.CLOSE_SECTIONS -> sectionOpen.keys.toList().forEach { sectionOpen[it] = false }
+                GuideBackAction.NAVIGATE_BACK -> onBack()
             }
         }
 

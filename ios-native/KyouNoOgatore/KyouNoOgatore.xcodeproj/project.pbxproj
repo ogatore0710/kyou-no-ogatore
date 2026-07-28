@@ -7,19 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2581D91462CC9B81C007EA87 /* WidgetSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD3BFB2A3454F6C7FF4334E /* WidgetSummary.swift */; };
 		4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5818E1CC197288CC2CC64AF6 /* CardCore */; };
 		5656707DCF8EE465F7D9CEF1 /* chara-congrats.png in Resources */ = {isa = PBXBuildFile; fileRef = BAA8A556CF2AA315E596EF36 /* chara-congrats.png */; };
 		5D07CDF387E775DC6FB4BFCA /* WidgetSummaryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F326A22BF1187D0D45DEECB /* WidgetSummaryReader.swift */; };
 		6D9193F5E2CF91AEE8F3B8F7 /* KyonoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		703384C65F499F44FBD5E831 /* chara-crown.png in Resources */ = {isa = PBXBuildFile; fileRef = 59B49D0CB02844CD0C0AB536 /* chara-crown.png */; };
 		79E37473C90A47E0D8ACDB0E /* chara-cheer.png in Resources */ = {isa = PBXBuildFile; fileRef = 4314DCE6A1F9E6AA843BC423 /* chara-cheer.png */; };
+		8060C5186B013FBAF46B2F57 /* WidgetCore in Frameworks */ = {isa = PBXBuildFile; productRef = F950F73057DD7CC53A67D1F5 /* WidgetCore */; };
 		89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */ = {isa = PBXBuildFile; productRef = DCABFED709CFEEF540C7D4CE /* SafetyCore */; };
 		8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 470554BE76139B65EDACBBF6 /* RecordCore */; };
 		922FEE346086542AA7EF8FAE /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 708A826FFF9926D92160FF47 /* RecordCore */; };
-		B5F9AF1C3C34A8630D449A50 /* WidgetSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD3BFB2A3454F6C7FF4334E /* WidgetSummary.swift */; };
 		C4D917BDD08FBC986489BD28 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBE743BE096F7B13A3A7B4AD /* Foundation.framework */; };
-		D903B7BCD45A8080ABCEDE9C /* WidgetStateCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE69A9A5B4BB98D64B8CFAF /* WidgetStateCalculator.swift */; };
+		C64ABFC4C0F7F8C212C2A299 /* WidgetCore in Frameworks */ = {isa = PBXBuildFile; productRef = 1B8ACD031CE49505474CD483 /* WidgetCore */; };
 		D9B39E65C905184139D8DB3C /* KyonoWidgetExtensionBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */; };
 		E28354E7183E8993F0C8CE5B /* chara-good.png in Resources */ = {isa = PBXBuildFile; fileRef = BDB406D2AAFCD3D0FE67AACB /* chara-good.png */; };
 		EEA1E308136EA717C274B088 /* chara-kaikyaku.png in Resources */ = {isa = PBXBuildFile; fileRef = F699ADE1064458FDC263229C /* chara-kaikyaku.png */; };
@@ -52,11 +51,9 @@
 
 /* Begin PBXFileReference section */
 		12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KyonoWidgetExtensionBundle.swift; sourceTree = "<group>"; };
-		2DD3BFB2A3454F6C7FF4334E /* WidgetSummary.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetSummary.swift; sourceTree = "<group>"; };
 		4314DCE6A1F9E6AA843BC423 /* chara-cheer.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-cheer.png"; sourceTree = "<group>"; };
 		5187B9F13014B06500013565 /* KyouNoOgatore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KyouNoOgatore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		59B49D0CB02844CD0C0AB536 /* chara-crown.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-crown.png"; sourceTree = "<group>"; };
-		6DE69A9A5B4BB98D64B8CFAF /* WidgetStateCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetStateCalculator.swift; sourceTree = "<group>"; };
 		9F326A22BF1187D0D45DEECB /* WidgetSummaryReader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetSummaryReader.swift; sourceTree = "<group>"; };
 		9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KyonoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BAA8A556CF2AA315E596EF36 /* chara-congrats.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-congrats.png"; sourceTree = "<group>"; };
@@ -84,6 +81,7 @@
 			files = (
 				C4D917BDD08FBC986489BD28 /* Foundation.framework in Frameworks */,
 				922FEE346086542AA7EF8FAE /* RecordCore in Frameworks */,
+				8060C5186B013FBAF46B2F57 /* WidgetCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,6 +92,7 @@
 				89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */,
 				8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */,
 				4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */,
+				C64ABFC4C0F7F8C212C2A299 /* WidgetCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,8 +153,6 @@
 				12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */,
 				D3352044F6C350112CE7A976 /* Info.plist */,
 				51FFD0691D529719696E3E78 /* CharaArt */,
-				2DD3BFB2A3454F6C7FF4334E /* WidgetSummary.swift */,
-				6DE69A9A5B4BB98D64B8CFAF /* WidgetStateCalculator.swift */,
 				9F326A22BF1187D0D45DEECB /* WidgetSummaryReader.swift */,
 			);
 			path = KyonoWidgetExtension;
@@ -186,6 +183,7 @@
 				DCABFED709CFEEF540C7D4CE /* SafetyCore */,
 				470554BE76139B65EDACBBF6 /* RecordCore */,
 				5818E1CC197288CC2CC64AF6 /* CardCore */,
+				1B8ACD031CE49505474CD483 /* WidgetCore */,
 			);
 			productName = KyouNoOgatore;
 			productReference = 5187B9F13014B06500013565 /* KyouNoOgatore.app */;
@@ -206,6 +204,7 @@
 			name = KyonoWidgetExtension;
 			packageProductDependencies = (
 				708A826FFF9926D92160FF47 /* RecordCore */,
+				F950F73057DD7CC53A67D1F5 /* WidgetCore */,
 			);
 			productName = KyonoWidgetExtension;
 			productReference = 9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */;
@@ -239,6 +238,7 @@
 				F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */,
 				AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */,
 				099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */,
+				17CEA8D75C3DC8BA7F0CD555 /* XCLocalSwiftPackageReference "WidgetCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5187B9F23014B06500013565 /* Products */;
@@ -280,8 +280,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9B39E65C905184139D8DB3C /* KyonoWidgetExtensionBundle.swift in Sources */,
-				2581D91462CC9B81C007EA87 /* WidgetSummary.swift in Sources */,
-				D903B7BCD45A8080ABCEDE9C /* WidgetStateCalculator.swift in Sources */,
 				5D07CDF387E775DC6FB4BFCA /* WidgetSummaryReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -290,7 +288,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5F9AF1C3C34A8630D449A50 /* WidgetSummary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -585,6 +582,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = CardCore;
 		};
+		17CEA8D75C3DC8BA7F0CD555 /* XCLocalSwiftPackageReference "WidgetCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = WidgetCore;
+		};
 		AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = RecordCore;
@@ -596,6 +597,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1B8ACD031CE49505474CD483 /* WidgetCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 17CEA8D75C3DC8BA7F0CD555 /* XCLocalSwiftPackageReference "WidgetCore" */;
+			productName = WidgetCore;
+		};
 		470554BE76139B65EDACBBF6 /* RecordCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */;
@@ -615,6 +621,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F466E38F2897ECCC1212BAFA /* XCLocalSwiftPackageReference "SafetyCore" */;
 			productName = SafetyCore;
+		};
+		F950F73057DD7CC53A67D1F5 /* WidgetCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 17CEA8D75C3DC8BA7F0CD555 /* XCLocalSwiftPackageReference "WidgetCore" */;
+			productName = WidgetCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

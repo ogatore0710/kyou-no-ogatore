@@ -3,10 +3,12 @@
 //  KyonoWidgetExtension
 //
 //  GO-H1(ホーム画面ウィジェット): App Group共有コンテナのミラーJSONを読むだけの拡張専用ロジック。
-//  構造体自体(WidgetSummary)はWidgetSummary.swiftへ分離し、アプリ本体ターゲットとも共有する。
+//  構造体自体(WidgetSummary)はFable監査GO-14でWidgetCore Swift Packageへ移設した
+//  (アプリ本体ターゲットともWidgetCoreを介して共有する)。
 //
 
 import Foundation
+import WidgetCore
 
 enum WidgetSummaryReader {
     static let appGroupId = "group.jp.ogatore.kyouno"

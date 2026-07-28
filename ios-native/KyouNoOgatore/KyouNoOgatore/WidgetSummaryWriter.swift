@@ -6,15 +6,16 @@
 //  RecordStore本体(Documents配下)は一切動かさず、表示専用の小さなサマリJSONだけを片道で
 //  App Groupの共有コンテナへ書き出す(ミラー方式)。ウィジェット拡張はこのJSONしか読まない。
 //
-//  WidgetSummary構造体自体はKyonoWidgetExtension/WidgetSummary.swiftに定義されており、この
-//  1ファイルをアプリ本体ターゲットのCompile Sourcesにも所属させることで両ターゲットが同じ
-//  定義を共有する(Fable監査GO-5・以前は手で複製し「フィールドを変えるときは両方揃えること」
-//  という運用ルール任せだった)。
+//  WidgetSummary構造体自体はFable監査GO-14でWidgetCore Swift Package(RecordCore等と同じ
+//  ローカルパッケージ)へ移設した。アプリ本体・拡張の両ターゲットがWidgetCoreをimportして
+//  同じ定義を共有する(以前は手で複製し「フィールドを変えるときは両方揃えること」という
+//  運用ルール任せだった)。
 //
 
 import Foundation
 import RecordCore
 import CardCore
+import WidgetCore
 
 enum WidgetSummaryWriter {
     static let appGroupId = "group.jp.ogatore.kyouno"

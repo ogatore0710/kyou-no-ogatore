@@ -1,0 +1,27 @@
+{
+  "object" : {
+    "artifacts" : [
+
+    ],
+    "dependencies" : [
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "recordcore",
+          "kind" : "fileSystem",
+          "location" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore",
+          "name" : "RecordCore"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/ryunosuke/Claude/kyou-no-ogatore/ios-native/KyouNoOgatore/RecordCore"
+        },
+        "subpath" : "recordcore"
+      }
+    ],
+    "prebuilts" : [
+
+    ]
+  },
+  "version" : 7
+}
