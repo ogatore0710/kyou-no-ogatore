@@ -23,6 +23,26 @@ struct KyonoCharaImage: View {
     }
 }
 
+// index.html:91-94,592-598 .logo(chara.png 52x52+タイトル+サブタイトル)の1:1移植。Web版はこの
+// 要素がセクション切り替えの外側にある単一のグローバルヘッダーで、home/history/search/guideの
+// 4タブすべての先頭に共通で出る。UI/UXパリティ監査GO-5(2026-07-28): ネイティブはホーム画面にしか
+// 実装が無く、他3タブ(マイ記録・動画を探す・使い方)には出ていなかった欠落の修正。4画面とも
+// このコンポーネント1つを呼ぶことで、以後のズレを構造的に防ぐ(seasonal mark<id="logoMark">は
+// ネイティブ側に対応する仕組みが元々無く、このタスクのスコープ外)。
+struct KyonoAppHeader: View {
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            KyonoCharaImage(name: "chara").frame(width: 52, height: 52)
+            VStack(alignment: .leading, spacing: 1) {
+                KyonoSectionTitle("#きょうのオガトレ", size: 22)
+                KyonoBodyText("みんなで一緒にストレッチを習慣化")
+            }
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 // TASK-C2-2026-07-27-fd-guide-ui-branch.md: index.html:216 fdBob(1.4s ease-in-out infinite・
 // translateY 0↔5px)の1:1移植。はじめの1本ガイドの指差しヒント「👇 ここを押してみて」用。
 struct FdBobText: View {

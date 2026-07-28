@@ -272,6 +272,9 @@ private struct MyRecordContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植。マイ記録タブに
+                // 共通ヘッダーが無かった欠落の修正。
+                KyonoAppHeader()
                 // マイ記録タブ進捗カード欠落修正タスク(TASK-C2-2026-07-26-myrecord-progress-card.md):
                 // index.html:752-763 renderHistory()の「続けた記録」カードの1:1移植(msNote/msBar/
                 // 通算・いま連続ミニ表示/おやすみ券説明文)。MSはCardCoreから参照するだけで新規定義しない。

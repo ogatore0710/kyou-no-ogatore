@@ -194,7 +194,11 @@ private struct SearchContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
-            Text("動画を探す").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94,945 Web版の#search節には
+            // 独自タイトルが無く、セクション切り替えの外にある共通ヘッダー(.logo)だけで構成されている。
+            // 「動画を探す」という単独タイトルはネイティブ独自の代替であり、共通ヘッダーへ置き換える。
+            KyonoAppHeader()
+            Spacer().frame(height: 8)
             // GO-G14(5視点ワンループ): 文言・スタイルはホーム版(HomeView.swift)と完全に同じにする。
             if networkMonitor.isOffline {
                 Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")

@@ -212,17 +212,9 @@ struct HomeView: View {
         ScrollViewReader { proxy in
         ScrollView {
         VStack(spacing: 16) {
-            // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
-            // §2 キャラクター画像: index.html:91-94 .logo(chara.png 52x52+タイトル+サブタイトル)の1:1移植。
-            HStack(alignment: .center, spacing: 10) {
-                KyonoCharaImage(name: "chara").frame(width: 52, height: 52)
-                VStack(alignment: .leading, spacing: 1) {
-                    KyonoSectionTitle("#きょうのオガトレ", size: 22)
-                    KyonoBodyText("みんなで一緒にストレッチを習慣化")
-                }
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植をKyonoAppHeaderへ
+            // 共通化(マイ記録/動画を探す/使い方の3タブにも同じ部品を展開する)。
+            KyonoAppHeader()
 
             // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:602-603
             // .qbubble(カードの外・chara-hitokoto.pngアバター+日替わりひとこと)の1:1移植。
