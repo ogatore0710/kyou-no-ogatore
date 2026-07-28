@@ -33,6 +33,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -258,8 +259,12 @@ class MainActivity : ComponentActivity() {
                                     AnimatedContent(
                                         targetState = mainScreen,
                                         transitionSpec = {
+                                            // UI/UXパリティ監査2巡目A7(2026-07-29): 退出がAndroidだけ
+                                            // 160ms/fadeのみでiOS(220ms/fade+slide)と食い違っていた
+                                            // (Web版に基準値の無い追加演出のため「揃える」ことが目的。
+                                            // 入退で対称なiOS側の値に寄せる)。
                                             (fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 20 })
-                                                .togetherWith(fadeOut(tween(160)))
+                                                .togetherWith(fadeOut(tween(220)) + slideOutHorizontally(tween(220)) { it / 20 })
                                         },
                                         label = "screenTransition",
                                     ) { s ->
