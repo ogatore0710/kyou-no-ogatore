@@ -2,6 +2,35 @@
 
 最終更新: 2026-07-28
 
+## ✅ 完了: 保留から3件並列(2026-07-28・`TASK-C2-2026-07-28-hold-parallel-3.md`)
+本人GOで保留9件のうち触るファイルが完全に別の3件だけをサブエージェント3体で並列実施。
+- **①iOSエッジスワイプで戻る**: `EdgeSwipeBack.swift`(新規ViewModifier)を検索/再生リスト/図鑑/
+  せんぱいの声/じまん/にっき/通信/使い方/設定の9画面に適用。`DragGesture(minimumDistance:8)`を
+  `.simultaneousGesture`(スクロールの`.gesture`と競合しない)で付与し、開始位置が左端14pt以内・
+  横方向優勢(dx > |dy|*1.5)のときだけ`onBack`を発火。使い方タブはAndroid D1と同じ「セクションが
+  開いていれば先に閉じる」semanticsを`sectionEverToggled`込みで移植。相談室は`.sheet()`の標準
+  下スワイプ既存のため変更なし(判断済み)。
+- **②動画サムネのディスクキャッシュ**: 新規ライブラリ依存なし。`ThumbnailCache.kt`/`.swift`
+  (Foundation/標準APIのみ)を新設し、`KyonoAsyncImage`の読み込み経路に読み書きを挟んだ。
+  保存先はAndroid `context.cacheDir/thumbnails/`・iOS `Caches/thumbnails/`(記録データの
+  filesDir/Documentsとは別)。キー=YouTube動画ID(サムネURLの`/vi/<id>/`部分を抽出・一致しない
+  URLはFNV-1aハッシュへフォールバック)。上限50MB・超過時は最終更新日時が古い順に削除。
+  **コーディネータ自身がAndroidエミュレータで実機検証**: 検索画面でサムネイル表示後、
+  `adb shell svc wifi/data disable`+`settings put global airplane_mode_on 1`で機内モード化し
+  アプリを強制終了→再起動→検索タブへ遷移したスクリーンショットで、オフラインバナー
+  表示中でも直前に見たサムネイルが正しく描画されることを確認(iOSはSimulatorがホストと
+  ネットワークスタックを共有するため同種の機内モード隔離ができず、標準swiftcドライバで
+  本番`ThumbnailCache.swift`のread/write/evictionを直接検証する方式で代替)。
+  Androidユニットテスト6件・iOS standalone swiftc検証11アサーション、全green。
+- **③吹き出し増加の読み上げ**: Android(`OnboardingScreens.kt`/`SoudanSheet.kt`)は個々の
+  吹き出しTextに`Modifier.semantics { liveRegion = LiveRegionMode.Polite }`を直接付与
+  (共有コンテナには付けない・Composeの位置メモ化により既存の吹き出しは再合成されず
+  再読み上げされない)。iOS(`OnboardingViews.swift`/`SoudanSheetView.swift`)は
+  `UIAccessibility.post(.announcement, argument:)`を追加のたびに1回だけ命令的に呼ぶ方式
+  (ビュー領域に依存しないため全文再読み上げが構造的に起こり得ない)。
+- 3件とも両OSビルド成功・Android全テストgreen(--rerun-tasks)。3件は互いのファイルへ手を
+  出していないことを確認済み(git diffで相互スコープ外への変更なしを確認)。
+
 ## ✅ 完了: H1 ホーム画面ウィジェット(Duolingo式・本人GO 2026-07-28。D1〜D4差し戻し対応まで完了)
 
 発注書: `TASK-C2-2026-07-28-home-widget.md`。Phase1=表示専用(RecordStoreへ書き込まない・
