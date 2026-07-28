@@ -326,6 +326,13 @@ private struct MyRecordContentView: View {
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                 }
 
+                // UI/UXパリティ監査GO-9(2026-07-28): Web順(続けた記録→カード図鑑→カレンダー→
+                // とどくメーター→お楽しみ機能→続ける設定)に合わせ、カード図鑑をカレンダーより前へ
+                // 移動する(以前はカレンダー→カード図鑑の順で入れ替わっていた。Android版と同一修正)。
+                // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
+                // dexBannerCard(カード図鑑バナー)相当。
+                DexBannerCardView(store: store, streak: streak, onOpenDex: onOpenDex)
+
                 KyonoCard {
                     KyonoSectionHeader(icon: .calendarCheck, title: "マイ記録", fill: colors.pinkSoft, accent: colors.pink)
                     Spacer().frame(height: 12)
@@ -395,29 +402,8 @@ private struct MyRecordContentView: View {
                     }
                 }
 
-                // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
-                // dexBannerCard(カード図鑑バナー)相当。
-                // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771
-                // renderDexBanner()の1:1移植(got/totalバッジ+記念/季節/レア/ノーマル各1枚の見本4枚)。
-                // 以前はプレーンカード+別文言で「あと何枚」の収集フックが欠落していた
-                // (Android版MyRecordScreenと同一構成)。
-                DexBannerCardView(store: store, streak: streak, onOpenDex: onOpenDex)
-
-                KyonoCard {
-                    Text("🎫 おやすみ券").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
-                    Spacer().frame(height: 6)
-                    Text(verbatim: "おやすみ券 のこり\(freezeLeft)枚").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
-                    Spacer().frame(height: 8)
-                    // index.html:414-415 .bar/.bar>div(teal系グラデーションの進捗バー)の1:1移植。
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(colors.line)
-                            Capsule().fill(colors.teal)
-                                .frame(width: geo.size.width * min(1, max(0, CGFloat(freezeLeft) / 3)))
-                        }
-                    }
-                    .frame(height: 14)
-                }
+                // UI/UXパリティ監査GO-9(2026-07-28): 独立した「おやすみ券」カードはWeb側に対応が
+                // 無い重複表示だったため削除する(続けた記録カード内の説明文で既に触れている)。
 
                 KyonoCard {
                     KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター（前屈チェック）", fill: colors.yellowSoft)
