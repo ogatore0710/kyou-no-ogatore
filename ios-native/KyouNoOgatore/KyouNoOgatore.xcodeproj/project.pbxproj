@@ -67,8 +67,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5187B9F33014B06500013565 /* KyouNoOgatore */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = KyouNoOgatore;
 			sourceTree = "<group>";
 		};
@@ -433,6 +431,7 @@
 				DEVELOPMENT_TEAM = R47FY8GH3R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -467,6 +466,7 @@
 				DEVELOPMENT_TEAM = R47FY8GH3R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
