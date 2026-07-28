@@ -687,6 +687,9 @@ fun ResultScreen(
     onOpenSoudan: (String?) -> Unit,
     onStartTour: () -> Unit,
 ) {
+    // Fable監査GO-2(視点B): 結果画面にBackHandlerが無く、システム「もどる」が即アプリ終了
+    // していた。既存の「ホームへ」導線と同じonDoneへ揃える。
+    BackHandler(onBack = onDone)
     val info = QUIZ_TYPES[typeKey] ?: TypeInfo(typeKey, "", "", "", "")
     // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
     // app-quiz.js:238-255 currentRx()の1:1移植呼び出し。日付のみで決まる(乱数不使用)。

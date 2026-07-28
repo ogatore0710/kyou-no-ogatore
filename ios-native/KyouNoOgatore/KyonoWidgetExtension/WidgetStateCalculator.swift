@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import RecordCore
 
 enum CharaAsset: String {
     case cheer = "chara-cheer"
@@ -28,14 +29,6 @@ struct WidgetDisplayState {
 }
 
 enum WidgetStateCalculator {
-    private static func isoDate(_ date: Date) -> String {
-        let f = DateFormatter()
-        f.calendar = Calendar(identifier: .gregorian)
-        f.timeZone = .current
-        f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: date)
-    }
-
     static func compute(summary: WidgetSummary?, at date: Date) -> WidgetDisplayState {
         guard let summary else {
             return WidgetDisplayState(
@@ -44,7 +37,12 @@ enum WidgetStateCalculator {
             )
         }
 
-        let today = isoDate(date)
+        // GO-H1 監査GO-1(Fable視点A/C): 「今日」は必ずRecordLogic.todayStr(-3h境界)経由で
+        // 計算する。以前はここだけCalendar+.currentの深夜0時境界で自前計算しており、
+        // WidgetSummaryWriter側(todayStr経由・-3h境界)と定義がズレていた
+        // (深夜0:30に記録した直後に「ねる前に1本」が出る・streakBreaksOnDateの判定が
+        // 3時間早まる、の2つの実害があった)。
+        let today = RecordLogic.todayStr(now: date)
         // GO-H1§2-1(最重要): 生のsummary.streakをそのまま出さない。streakBreaksOnDateを過ぎて
         // いれば0扱いにする(effectiveStreakCountをアプリ再起動なしで再現するための仕組み)。
         var effStreak = summary.streak

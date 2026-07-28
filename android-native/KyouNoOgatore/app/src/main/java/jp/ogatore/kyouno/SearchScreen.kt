@@ -5,6 +5,7 @@ package jp.ogatore.kyouno
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -169,6 +170,10 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
 // index.html #search / app-search.js の1:1移植。カテゴリタブ→タグチップ→自由入力の3段絞り込み。
 @Composable
 fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
+    // Fable監査GO-2(視点B): 下タブ5枚のうち動画を探す/再生リスト/マイ記録にBackHandlerが
+    // 無く、システム「もどる」が即アプリ終了していた。onBack自体は呼び出し元で既に
+    // screen=Home配線済みなので、他の副画面(DexScreen等)と同じ単純な形で拾うだけでよい。
+    BackHandler(onBack = onBack)
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
@@ -473,6 +478,8 @@ private fun PlaylistRow(item: jp.ogatore.kyouno.catalog.PlaylistItem, openUrl: (
 // LazyColumnがそのまま仮想化するため検索画面のようなsearchLimit方式のページングは不要。
 @Composable
 fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
+    // Fable監査GO-2(視点B): SearchScreenと同じ理由でBackHandler不在だった。
+    BackHandler(onBack = onBack)
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current

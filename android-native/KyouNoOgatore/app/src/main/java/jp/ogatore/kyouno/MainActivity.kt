@@ -1384,6 +1384,9 @@ fun MyRecordScreen(
     onOpenSettings: () -> Unit,
 ) {
     val context = LocalContext.current
+    // Fable監査GO-2(視点B): 下タブ5枚のうちマイ記録にBackHandlerが無く、システム「もどる」が
+    // 即アプリ終了していた。onBackは呼び出し元でscreen=Home配線済みなので拾うだけでよい。
+    BackHandler(onBack = onBack)
     // GO-G7(5視点ワンループ): とどくメーター記録に「きょうやった！」と同じ軽いハプティクスを追加。
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val themeSetting = store.get("theme", "auto")

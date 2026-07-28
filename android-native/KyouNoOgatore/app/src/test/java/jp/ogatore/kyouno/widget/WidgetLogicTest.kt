@@ -30,7 +30,12 @@ class WidgetLogicTest {
     }
 
     @Test
-    fun activeStreakUsesEffectiveCountNotRawCount() {
+    fun activeStreakStillLiveUsesEffectiveCountEqualToRawCount() {
+        // 連続がまだ生きている(gap<2)ケース。ここではeffectiveCountと生countが一致するため、
+        // 下のactiveStreakGoneUsesEffectiveCountNotRawCountとセットで初めて「本当に
+        // effectiveStreakCount経由か」を検知できる(このテスト単体では生countへの先祖返りを
+        // 検知できないことに注意。以前は下のテストが無く、これ1本で「effectiveStreakCount経由が
+        // 固定された」と誤って評価していた)。
         val store = RecordStore.inMemory()
         var t = Instant.parse("2026-07-01T09:00:00Z")
         repeat(5) {
@@ -39,6 +44,29 @@ class WidgetLogicTest {
         }
         val state = WidgetLogic.compute(store, t.minusSeconds(3600), zone)
         assertEquals(5, state.streakCount)
+    }
+
+    // GO-H1 監査GO-7(alan5差し戻し2026-07-28・141条案件): 上のテストは「生のcountに戻しても
+    // 通ってしまう」ことが判明した(effectiveCount==raw countが偶然一致する入力だったため)。
+    // alan5指定の再現条件どおり、count=12・最終記録7日前(券を使っても橋渡しできない=
+    // 上限3を超える6日分の穴)で、生カウントとeffectiveStreakCountが実際に食い違う入力に
+    // 差し替える。WidgetLogic.compute()がeffCountではなくstreak.countを直読みするよう
+    // 壊すと、このテストは12を返して確実に落ちる。
+    @Test
+    fun activeStreakGoneUsesEffectiveCountNotRawCount() {
+        val store = RecordStore.inMemory()
+        var t = Instant.parse("2026-07-01T09:00:00Z")
+        repeat(12) {
+            RecordLogic.markDone(store, t, zone)
+            t = t.plusSeconds(86400)
+        }
+        // 最終記録(2026-07-12)から7日後。gap=7日は券3枚(上限)でも埋められない。
+        val now = Instant.parse("2026-07-19T09:00:00Z")
+
+        val state = WidgetLogic.compute(store, now, zone)
+
+        assertEquals(12, RecordLogic.loadStreak(store).count) // 生のcountは12のまま(壊れていない)
+        assertEquals(0, state.streakCount) // ウィジェットはeffectiveStreakCount経由で0を見せる
     }
 
     @Test

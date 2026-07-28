@@ -15,7 +15,6 @@
 		79E37473C90A47E0D8ACDB0E /* chara-cheer.png in Resources */ = {isa = PBXBuildFile; fileRef = 4314DCE6A1F9E6AA843BC423 /* chara-cheer.png */; };
 		89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */ = {isa = PBXBuildFile; productRef = DCABFED709CFEEF540C7D4CE /* SafetyCore */; };
 		8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 470554BE76139B65EDACBBF6 /* RecordCore */; };
-		922FEE346086542AA7EF8FAE /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 708A826FFF9926D92160FF47 /* RecordCore */; };
 		C4D917BDD08FBC986489BD28 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBE743BE096F7B13A3A7B4AD /* Foundation.framework */; };
 		D903B7BCD45A8080ABCEDE9C /* WidgetStateCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE69A9A5B4BB98D64B8CFAF /* WidgetStateCalculator.swift */; };
 		D9B39E65C905184139D8DB3C /* KyonoWidgetExtensionBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */; };
@@ -67,8 +66,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5187B9F33014B06500013565 /* KyouNoOgatore */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = KyouNoOgatore;
 			sourceTree = "<group>";
 		};
@@ -80,7 +77,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C4D917BDD08FBC986489BD28 /* Foundation.framework in Frameworks */,
-				922FEE346086542AA7EF8FAE /* RecordCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,9 +196,6 @@
 			dependencies = (
 			);
 			name = KyonoWidgetExtension;
-			packageProductDependencies = (
-				708A826FFF9926D92160FF47 /* RecordCore */,
-			);
 			productName = KyonoWidgetExtension;
 			productReference = 9FD1289A9A8A9C346362541A /* KyonoWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -599,11 +592,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 099DE4CF9304ABF06D5A7B76 /* XCLocalSwiftPackageReference "CardCore" */;
 			productName = CardCore;
-		};
-		708A826FFF9926D92160FF47 /* RecordCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AB8DA4337144A57F4E29EC19 /* XCLocalSwiftPackageReference "RecordCore" */;
-			productName = RecordCore;
 		};
 		DCABFED709CFEEF540C7D4CE /* SafetyCore */ = {
 			isa = XCSwiftPackageProductDependency;
