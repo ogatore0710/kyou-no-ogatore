@@ -68,4 +68,10 @@ dependencies {
     // 実行する。Java2D/AWT代替実装で済ませてしまうと実機コードと別物になり後で丸ごと書き直しになるため、
     // 最初から実機と同じandroid.graphics APIをテストする方針にした。
     testImplementation("org.robolectric:robolectric:4.13")
+
+    // GO-H1(ホーム画面ウィジェット)・alan5指示の手段C: runGlanceAppWidgetUnitTestでComposeの
+    // 実際の描画結果(どのImage/Textが出たか)までJVM単体テストで検証する。WidgetLogicTestが
+    // 「どの状態が選ばれるか」を検証するのに対し、こちらは「その状態が実際に正しく描画されるか」
+    // を検証する(実機配置の代替エビデンス)。
+    testImplementation("androidx.glance:glance-appwidget-testing:1.1.0")
 }

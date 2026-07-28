@@ -86,7 +86,7 @@ class KyonoWidget : GlanceAppWidget() {
 }
 
 @Composable
-private fun SmallWidgetContent(state: WidgetState) {
+internal fun SmallWidgetContent(state: WidgetState) {
     Column(
         modifier = GlanceModifier.fillMaxSize().padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -108,7 +108,7 @@ private fun SmallWidgetContent(state: WidgetState) {
 }
 
 @Composable
-private fun WideWidgetContent(state: WidgetState) {
+internal fun WideWidgetContent(state: WidgetState) {
     Row(
         modifier = GlanceModifier.fillMaxSize().padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
