@@ -201,7 +201,9 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
 
         val hits = remember(debouncedQuery, activeTag, selectedYear) { searchCatalog(catalog, debouncedQuery, activeTag, selectedYear) }
 
-        Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
+        // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}の
+        // 1:1移植。この画面だけ全辺16dpだった欠落を、共通定数KyonoScreenPaddingへ統一する。
+        Column(Modifier.fillMaxSize().background(colors.bg).padding(KyonoScreenPadding)) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94,945 Web版の#search節には

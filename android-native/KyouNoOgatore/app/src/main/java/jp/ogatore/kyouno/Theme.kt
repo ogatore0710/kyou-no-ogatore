@@ -116,6 +116,14 @@ val KyonoDarkColors = KyonoColors(
 val KyonoRadius = 22.dp
 val KyonoButtonRadius = 18.dp
 
+// index.html:82 body{...padding:20px 18px 180px;...}の1:1移植。Web版はbody1箇所の共通padding
+// なので、どのタブ(home/history/search/guide)も本来まったく同じ値になるはずだが、ネイティブは
+// 画面ごとに16dp/18dp/20dpとバラバラに実装されていた(UI/UXパリティ監査GO-9・G6 2026-07-28)。
+// 4画面ともこの1つの定数を使うことで、以後のズレを構造的に防ぐ。
+val KyonoScreenPadding = androidx.compose.foundation.layout.PaddingValues(
+    start = 18.dp, top = 20.dp, end = 18.dp, bottom = 180.dp,
+)
+
 val LocalKyonoColors = compositionLocalOf { KyonoLightColors }
 
 // GO-G12(5視点ワンループ): bigtext ON時に最小文字階層(10sp/11sp、既存の1.18倍スケールでも

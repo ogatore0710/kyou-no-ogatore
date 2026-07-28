@@ -156,7 +156,9 @@ fun GuideScreen(
                 .background(colors.bg)
                 .onGloballyPositioned { coords -> guideColumnY = coords.positionInRoot().y }
                 .verticalScroll(guideScrollState)
-                .padding(16.dp),
+                // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}
+                // の1:1移植。この画面だけ全辺16dpだった欠落を、共通定数KyonoScreenPaddingへ統一する。
+                .padding(KyonoScreenPadding),
         ) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。

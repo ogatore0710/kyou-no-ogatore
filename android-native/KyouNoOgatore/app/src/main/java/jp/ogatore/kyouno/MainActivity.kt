@@ -891,7 +891,7 @@ fun HomeScreen(
                 // 近い状態でscrollToの目標値がmaxValueを超えクランプされ、中央に届かないまま
                 // 見た目上「動いていない」ように見えるバグの根本原因だった。均一20dpのままだと
                 // 再現する)。
-                .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = 180.dp),
+                .padding(KyonoScreenPadding),
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -1564,7 +1564,10 @@ fun MyRecordScreen(
         var reachMsg by remember { mutableStateOf<androidx.compose.ui.text.AnnotatedString?>(null) }
         val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, Instant.now()) }
 
-        Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+        // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}の
+        // 1:1移植。この画面だけ左右20dp/下20dpとバラバラだった欠落を、共通定数KyonoScreenPaddingへ
+        // 統一する(ホームと同じ値)。
+        Column(modifier = Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(KyonoScreenPadding)) {
             // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植。マイ記録タブに
             // 共通ヘッダーが無かった欠落の修正。
             KyonoAppHeader()

@@ -66,8 +66,20 @@ fun KyonoAppHeader() {
         KyonoCharaImage("chara", Modifier.size(52.dp))
         Spacer(Modifier.width(10.dp))
         Column {
-            Text("#きょうのオガトレ", color = colors.ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
-            Text("みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black)
+            // UI/UXパリティ監査GO-11(2026-07-28・前倒し): index.html:88-89 h1{font-size:20px;
+            // white-space:nowrap}の1:1移植。Web側は「22px→20pxへ意図的に縮小のうえnowrap」と
+            // 明記されたコメントが残っており、マイ記録タブでG6(左右余白統一)前の幅ではこの
+            // タイトルが実機で2行に折り返す実害が確認された。22spのままmaxLines無指定だった
+            // 欠落を修正する。
+            Text(
+                "#きょうのオガトレ", color = colors.ink, fontSize = 20.sp, fontWeight = FontWeight.Black,
+                maxLines = 1, softWrap = false,
+            )
+            // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
+            Text(
+                "みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black,
+                maxLines = 1, softWrap = false,
+            )
         }
     }
 }
