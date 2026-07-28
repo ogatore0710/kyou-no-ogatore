@@ -1397,6 +1397,9 @@ fun HomeScreen(
                     ) { Text("保存・シェアする") }
                 },
                 text = {
+                    // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の
+                    // Window開閉アニメーションを消す(KyonoInstantDialogAnimations参照)。
+                    KyonoInstantDialogAnimations()
                     Column {
                         Image(
                             bitmap = bmp.asImageBitmap(),
@@ -2051,6 +2054,9 @@ fun MyRecordScreen(
                     ) { Text("保存・シェアする") }
                 },
                 text = {
+                    // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の
+                    // Window開閉アニメーションを消す(KyonoInstantDialogAnimations参照)。
+                    KyonoInstantDialogAnimations()
                     Column {
                         Image(bitmap = bmp.asImageBitmap(), contentDescription = "記録カード", modifier = Modifier.fillMaxWidth().testTag("dayCardImage"))
                         // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783

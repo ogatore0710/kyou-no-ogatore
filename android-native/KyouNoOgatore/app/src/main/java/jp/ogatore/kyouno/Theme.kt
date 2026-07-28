@@ -279,6 +279,20 @@ fun KyonoTheme(themeSetting: String, bigText: Boolean = true, content: @Composab
     )
 }
 
+// UI/UXパリティ監査2巡目A6(2026-07-29): index.html(display:none瞬時切替)・iOS版
+// (KyonoCardModalOverlayはwithAnimationで包んでおらず実質瞬時)と違い、AndroidのAlertDialog/Dialogは
+// プラットフォーム既定のWindow開閉アニメーションがそのまま乗ってしまう。記録カード・カレンダー日別
+// カード・じまんカード・オガトレ通信プレビューは毎日1回は必ず通る導線のため、Web/iOSに合わせて
+// 瞬時にする。AlertDialog/Dialogはどちらも内部でandroidx.compose.ui.window.Dialogの別Windowを
+// 生成するため、そのWindowにsetWindowAnimations(0)を当てる(Activity本体のWindowではない)。
+@Composable
+fun KyonoInstantDialogAnimations() {
+    val view = LocalView.current
+    SideEffect {
+        (view.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window?.setWindowAnimations(0)
+    }
+}
+
 // TASK-C2-2026-07-27-behavior-parity-audit.md §D: index.html:3051 sdReduced()/4145
 // obReducedMotion()(prefers-reduced-motion: reduce)の1:1移植。Android版は開発者向け設定に
 // 見えるANIMATOR_DURATION_SCALE(実体は設定アプリの「ユーザー補助>アニメーションを削除」から

@@ -206,6 +206,9 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                     ) { Text("保存・シェアする") }
                 },
                 text = {
+                    // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の
+                    // Window開閉アニメーションを消す(KyonoInstantDialogAnimations参照)。
+                    KyonoInstantDialogAnimations()
                     Image(
                         bitmap = bmp.asImageBitmap(),
                         contentDescription = "じまんカード",

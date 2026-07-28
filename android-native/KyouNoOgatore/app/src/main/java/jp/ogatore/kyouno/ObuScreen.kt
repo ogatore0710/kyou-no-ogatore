@@ -262,6 +262,9 @@ fun ObuPreviewPopup(onClose: () -> Unit, onViewArchive: () -> Unit) {
     // text/photo/radioの3件が揃うと「もっと見る」リンクと✕ボタンが画面外に出て操作不能になり得た欠落。
     val maxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.8f
     Dialog(onDismissRequest = onClose) {
+        // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の
+        // Window開閉アニメーションを消す(KyonoInstantDialogAnimations参照)。
+        KyonoInstantDialogAnimations()
         Column(
             Modifier.fillMaxWidth().heightIn(max = maxHeight)
                 .background(colors.card, RoundedCornerShape(20.dp)).testTag("obuModal"),
