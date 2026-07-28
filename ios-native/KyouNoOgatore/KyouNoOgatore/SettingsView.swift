@@ -61,6 +61,11 @@ struct SettingsView: View {
     @State private var icsMinute: Int
     @State private var icsMessage: String?
     @State private var notifEnabled: Bool
+    // GO-G9(5視点ワンループ): 「よみこむ」実行前の状態を1件だけプロセス内メモリに退避し、実行直後の
+    // 一定時間だけ「さっきの状態にもどす」を出す(永続化はしない・RecordLogicの計算には一切触れない
+    // コピー退避のみ)。
+    @State private var preImportSnapshot: [String: String]?
+    @State private var showImportUndo = false
 
     init(store: RecordStore, onBack: @escaping () -> Void) {
         self.store = store
@@ -225,6 +230,7 @@ struct SettingsView: View {
                                 .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
                         }
+                        .accessibilityLabel("時を選ぶ、現在\(String(format: "%02d", icsHour))時")
                         Menu {
                             ForEach(Self.minuteOptions, id: \.self) { m in
                                 Button("\(String(format: "%02d", m))分") {
@@ -240,6 +246,7 @@ struct SettingsView: View {
                                 .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
                         }
+                        .accessibilityLabel("分を選ぶ、現在\(String(format: "%02d", icsMinute))分")
                     }
                     Spacer().frame(height: 10)
                     KyonoLineButton("📅 Appleカレンダーに入れる") {
@@ -266,6 +273,11 @@ struct SettingsView: View {
                                 .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
                         }
                         Spacer()
+                        // GO-G10(5視点ワンループ): 他の設定は文字つきセグメントで状態を伝えているのに、
+                        // ここだけ色と位置だけだった。「オン/オフ」の文字を併記する。
+                        Text(notifEnabled ? "オン" : "オフ")
+                            .kyonoFont(.black900, size: 13)
+                            .foregroundColor(notifEnabled ? colors.tealInk : .secondary)
                         Toggle("", isOn: Binding(
                             get: { notifEnabled },
                             set: { on in
@@ -345,6 +357,22 @@ struct SettingsView: View {
                         Spacer().frame(height: 8)
                         Text(importMessage).kyonoFont(.bold700, size: 15)
                     }
+                    // GO-G9(5視点ワンループ): 「よみこむ」実行直後だけ出る取り消し導線。
+                    if showImportUndo {
+                        Spacer().frame(height: 6)
+                        KyonoLineButton("さっきの状態にもどす") {
+                            if let snapshot = preImportSnapshot {
+                                let current = store.allRawKyonoEntries
+                                for k in current.keys where snapshot[k] == nil { store.removeRaw(k) }
+                                for (k, v) in snapshot { store.setRaw(k, v) }
+                                theme = store.get("theme", default: "auto")
+                                bigtext = store.get("bigtext", default: true)
+                            }
+                            importMessage = "さっきの状態にもどしました"
+                            showImportUndo = false
+                            preImportSnapshot = nil
+                        }
+                    }
                 }
             }
             .padding(20)
@@ -353,10 +381,18 @@ struct SettingsView: View {
         .alert("いまの記録の上に書きかえるよ", isPresented: $confirmImport) {
             Button("書きかえる") {
                 do {
+                    // GO-G9(5視点ワンループ): 上書き前の状態を1件だけ退避してからimportする。
+                    let snapshot = store.allRawKyonoEntries
                     try KyonoTransfer.importString(importInput.trimmingCharacters(in: .whitespacesAndNewlines), into: store)
                     theme = store.get("theme", default: "auto")
                     bigtext = store.get("bigtext", default: true)
                     importMessage = "よみこみました！"
+                    preImportSnapshot = snapshot
+                    showImportUndo = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 15_000_000_000)
+                        showImportUndo = false
+                    }
                 } catch {
                     importMessage = "読みこめませんでした（文字列が壊れているかも）"
                 }

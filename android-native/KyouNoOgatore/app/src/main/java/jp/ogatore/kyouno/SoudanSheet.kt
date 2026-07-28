@@ -59,6 +59,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -310,7 +312,8 @@ fun SoudanSheet(
                 // GO-G3(5視点ワンループ): index.html:464 .sd-closeの視覚サイズ(40px)は変えず、
                 // タップ領域だけ44dp相当に広げる(外側Boxがヒットエリア・内側Boxが従来どおりの見た目)。
                 Box(
-                    modifier = Modifier.size(44.dp).clickable { onClose() }.testTag("soudanCloseBtn"),
+                    modifier = Modifier.size(44.dp).clickable { onClose() }.testTag("soudanCloseBtn")
+                        .semantics { contentDescription = "とじる" },
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(

@@ -340,6 +340,7 @@ private struct SoudanContentView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("とじる")
             }
             .padding(.horizontal, 16).padding(.vertical, 12)
             .background(colors.card)

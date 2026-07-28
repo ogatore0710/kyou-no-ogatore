@@ -154,6 +154,8 @@ private struct BragContentView: View {
                         let resolved = ResolvedTheme(name: theme.name, bg: theme.bg, main: theme.main, deco: theme.deco)
                         let png = BragCardRenderer.render(ds: ds, days: days, theme: resolved, favoriteTitle: picked?.t, thumbnail: thumbnail)
                         cardImage = UIImage(data: png)
+                        // GO-G7(5視点ワンループ): カード獲得(生成完了)に「きょうやった！」と同じ軽いハプティクスを追加。
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         makingCard = false
                     }
                 }

@@ -330,6 +330,7 @@ private struct MyRecordContentView: View {
                     HStack {
                         KyonoGhostButton("◀") { if month == 1 { month = 12; year -= 1 } else { month -= 1 } }
                             .frame(maxWidth: 60)
+                            .accessibilityLabel("前の月")
                         Spacer()
                         // Text(verbatim:)必須: 素朴なText("\(year)年...")はLocalizedStringKeyの
                         // 数値補間経由でロケール依存の桁区切り(2,026年のような表記)が入ってしまうため
@@ -338,6 +339,7 @@ private struct MyRecordContentView: View {
                         Spacer()
                         KyonoGhostButton("▶") { if month == 12 { month = 1; year += 1 } else { month += 1 } }
                             .frame(maxWidth: 60)
+                            .accessibilityLabel("次の月")
                     }
                     Spacer().frame(height: 8)
                     HStack {
@@ -458,6 +460,8 @@ private struct MyRecordContentView: View {
                                 .cornerRadius(12)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
+                                    // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                     // TASK-C2-2026-07-27-reach-meter-messages.md: app-record.js:238-243
                                     // setReach()のメッセージ3分岐の1:1移植。bestはタップ前の自己ベスト
                                     // (setReach呼び出しでstoreが更新される前に必ず算出すること)。

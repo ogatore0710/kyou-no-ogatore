@@ -45,6 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +56,8 @@ import androidx.compose.ui.unit.sp
 import jp.ogatore.kyouno.record.KyonoTransfer
 import jp.ogatore.kyouno.record.KyonoTransferException
 import jp.ogatore.kyouno.record.RecordStore
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // 設定画面「やるタイミング」欠落修正タスク(TASK-C2-2026-07-26-settings-missing-items.md):
 // index.html:1974-1979 ANCHORSの1:1移植(ラベル+カレンダー通知の既定時刻)。キー(asa/furo/neru/free)
@@ -101,6 +105,12 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         var importInput by remember { mutableStateOf("") }
         var importMessage by remember { mutableStateOf<String?>(null) }
         var confirmImport by remember { mutableStateOf(false) }
+        // GO-G9(5視点ワンループ): 「よみこむ」実行前の状態を1件だけプロセス内メモリに退避し、実行直後の
+        // 一定時間だけ「さっきの状態にもどす」を出す(永続化はしない・RecordLogicの計算には一切触れない
+        // コピー退避のみ)。
+        var preImportSnapshot by remember { mutableStateOf<Map<String, String>?>(null) }
+        var showImportUndo by remember { mutableStateOf(false) }
+        val importScope = androidx.compose.runtime.rememberCoroutineScope()
 
         // 設定画面「やるタイミング」「カレンダーのおしらせ時間」欠落修正タスク
         // (TASK-C2-2026-07-26-settings-missing-items.md): index.html:800,809-816の1:1移植。
@@ -259,7 +269,8 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                                 .border(2.dp, colors.line, RoundedCornerShape(12.dp))
                                 .clickable { showHourMenu = true }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
-                                .testTag("icsHourBtn"),
+                                .testTag("icsHourBtn")
+                                .semantics { contentDescription = "時を選ぶ、現在%02d時".format(icsHour) },
                         )
                         DropdownMenu(showHourMenu, { showHourMenu = false }) {
                             (0..23).forEach { h ->
@@ -286,7 +297,8 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                                 .border(2.dp, colors.line, RoundedCornerShape(12.dp))
                                 .clickable { showMinuteMenu = true }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
-                                .testTag("icsMinuteBtn"),
+                                .testTag("icsMinuteBtn")
+                                .semantics { contentDescription = "分を選ぶ、現在%02d分".format(icsMinute) },
                         )
                         DropdownMenu(showMinuteMenu, { showMinuteMenu = false }) {
                             listOf(0, 15, 30, 45).forEach { m ->
@@ -336,6 +348,15 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                             color = colors.sub, fontSize = 12.sp,
                         )
                     }
+                    // GO-G10(5視点ワンループ): 他の設定は文字つきセグメントで状態を伝えているのに、
+                    // ここだけ色と位置だけだった。「オン/オフ」の文字を併記する。
+                    Text(
+                        if (notifEnabled) "オン" else "オフ",
+                        color = if (notifEnabled) colors.tealInk else colors.sub,
+                        fontSize = 13.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.testTag("notifEnabledLabel"),
+                    )
+                    Spacer(Modifier.width(6.dp))
                     Switch(
                         checked = notifEnabled,
                         onCheckedChange = { on -> if (on) enableNotifications() else disableNotifications() },
@@ -435,6 +456,26 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
                     Text(it, color = colors.ink, modifier = Modifier.testTag("importMsg"))
                 }
+                // GO-G9(5視点ワンループ): 「よみこむ」実行直後だけ出る取り消し導線。
+                if (showImportUndo) {
+                    Spacer(Modifier.height(6.dp))
+                    KyonoLineButton(
+                        "さっきの状態にもどす",
+                        {
+                            preImportSnapshot?.let { snapshot ->
+                                val current = store.allRawKyonoEntries
+                                for (k in current.keys) if (k !in snapshot) store.removeRaw(k)
+                                for ((k, v) in snapshot) store.setRaw(k, v)
+                                theme = store.get("theme", "auto")
+                                bigtext = store.get("bigtext", true)
+                            }
+                            importMessage = "さっきの状態にもどしました"
+                            showImportUndo = false
+                            preImportSnapshot = null
+                        },
+                        Modifier.testTag("importUndoBtn"),
+                    )
+                }
             }
         }
 
@@ -448,10 +489,18 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         onClick = {
                             confirmImport = false
                             try {
+                                // GO-G9(5視点ワンループ): 上書き前の状態を1件だけ退避してからimportする。
+                                val snapshot = store.allRawKyonoEntries
                                 KyonoTransfer.importString(importInput.trim(), store)
                                 theme = store.get("theme", "auto")
                                 bigtext = store.get("bigtext", true)
                                 importMessage = "よみこみました！"
+                                preImportSnapshot = snapshot
+                                showImportUndo = true
+                                importScope.launch {
+                                    delay(15000)
+                                    showImportUndo = false
+                                }
                             } catch (e: KyonoTransferException) {
                                 importMessage = "読みこめませんでした（文字列が壊れているかも）"
                             }

@@ -92,6 +92,8 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -1484,12 +1486,20 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(12.dp))
                 // ---- カレンダー(index.html:renderCal相当。§6 Step5b検収基準1) ----
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    KyonoGhostButton("◀", { if (month == 1) { month = 12; year -= 1 } else { month -= 1 } }, Modifier.testTag("calPrevBtn").weight(0.5f))
+                    KyonoGhostButton(
+                        "◀",
+                        { if (month == 1) { month = 12; year -= 1 } else { month -= 1 } },
+                        Modifier.testTag("calPrevBtn").weight(0.5f).semantics { contentDescription = "前の月" },
+                    )
                     Text(
                         "${year}年${month}月", color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
                         modifier = Modifier.weight(1.5f), textAlign = TextAlign.Center,
                     )
-                    KyonoGhostButton("▶", { if (month == 12) { month = 1; year += 1 } else { month += 1 } }, Modifier.testTag("calNextBtn").weight(0.5f))
+                    KyonoGhostButton(
+                        "▶",
+                        { if (month == 12) { month = 1; year += 1 } else { month += 1 } },
+                        Modifier.testTag("calNextBtn").weight(0.5f).semantics { contentDescription = "次の月" },
+                    )
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth()) {
