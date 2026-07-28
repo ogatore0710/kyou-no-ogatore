@@ -26,6 +26,9 @@ struct WidgetSummary: Codable {
     let last7: [String]
     let milestone: Bool
     let milestoneBig: Bool
+    // GO-H1§2-4「記録した直後〜当日」vs「翌日以降に見たとき」の区別用(congrats→goodへの
+    // 切り替え)。この時刻(epoch秒)まではcongrats、以降はgoodをウィジェット側が選ぶ。
+    let celebrateUntil: TimeInterval?
 }
 
 enum WidgetSummaryWriter {
@@ -83,7 +86,8 @@ enum WidgetSummaryWriter {
             streakBreaksOnDate: breaksOnDate,
             last7: last7,
             milestone: isMilestoneToday,
-            milestoneBig: isBig
+            milestoneBig: isBig,
+            celebrateUntil: doneToday ? now.addingTimeInterval(4 * 3600).timeIntervalSince1970 : nil
         )
 
         guard let encoded = try? JSONEncoder().encode(summary) else { return }
