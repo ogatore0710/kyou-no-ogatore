@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
@@ -47,13 +48,30 @@ import androidx.compose.ui.unit.sp
 // インラインSVG(d属性)をCompose Path/Canvasで直接再現する(手描き風の意匠を保つ)。
 enum class KyonoTab { Guide, MyRecord, Home, Catalog, Search }
 
+// index.html:389-391 .tabbar{...background:rgba(255,255,255,.97);backdrop-filter:blur(8px);
+// border-top:1.5px solid var(--line)}/121 body.dark .tabbar{background:rgba(33,30,25,.97);
+// border-top-color:#3D382F}の1:1移植。UI/UXパリティ監査GO-7(2026-07-28): 半透明・上部境界線とも
+// 欠落し不透明単色だった。backdrop-filter(スクロールしてくるコンテンツ自体をぼかす)は素の
+// Jetpack Composeには対応するAPIが無く(RenderEffectでの自前実装は追加ライブラリ相当の作り込みが
+// 必要なためスコープ外とする)、半透明+上部境界線のみ1:1移植する。
 @Composable
 fun KyonoTabBar(current: KyonoTab?, onSelect: (KyonoTab) -> Unit) {
     val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
+    val tabbarBg = (if (dark) Color(0xFF211E19) else Color(0xFFFFFFFF)).copy(alpha = 0.97f)
+    val borderTopColor = colors.line
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colors.card)
+            .background(tabbarBg)
+            .drawBehind {
+                drawLine(
+                    color = borderTopColor,
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, 0f),
+                    strokeWidth = 1.5.dp.toPx(),
+                )
+            }
             .padding(horizontal = 4.dp, vertical = 6.dp),
     ) {
         TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Guide, "使い方") { onSelect(KyonoTab.Guide) }

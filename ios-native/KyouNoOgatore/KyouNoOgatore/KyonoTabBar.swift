@@ -21,6 +21,8 @@ struct KyonoTabBar: View {
     let current: KyonoTab?
     let onSelect: (KyonoTab) -> Void
 
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+
     var body: some View {
         HStack(spacing: 0) {
             tabItem(.guide, "使い方") { GuideIcon(fill: $0, stroke: $1) }
@@ -30,7 +32,20 @@ struct KyonoTabBar: View {
             tabItem(.search, "動画を探す") { SearchIcon(fill: $0, stroke: $1) }
         }
         .padding(.horizontal, 4).padding(.vertical, 6)
-        .background(colors.card)
+        // index.html:389-391 .tabbar{...background:rgba(255,255,255,.97);backdrop-filter:blur(8px);
+        // border-top:1.5px solid var(--line)}/121 body.dark .tabbar{background:rgba(33,30,25,.97);
+        // border-top-color:#3D382F}の1:1移植。UI/UXパリティ監査GO-7(2026-07-28): 半透明・
+        // backdrop-blur・上部境界線とも欠落し不透明単色だった。SwiftUIのMaterialでbackdrop-filter
+        // 相当のぼかしを実現し、その上に.97相当のほぼ不透明なティントを重ねる。
+        .background {
+            ZStack {
+                Rectangle().fill(.regularMaterial)
+                Rectangle().fill(dark ? Color(hex: 0x211E19) : Color.white).opacity(0.97)
+            }
+        }
+        .overlay(alignment: .top) {
+            Rectangle().fill(colors.line).frame(height: 1.5)
+        }
     }
 
     private func tabItem(_ tab: KyonoTab, _ label: String, @ViewBuilder icon: @escaping (Color, Color) -> some View) -> some View {
