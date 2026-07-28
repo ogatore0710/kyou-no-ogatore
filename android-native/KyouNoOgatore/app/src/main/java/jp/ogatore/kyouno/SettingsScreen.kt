@@ -352,9 +352,13 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     },
                     Modifier.testTag("exportBtn"),
                 )
+                // GO-G2(5視点ワンループ): index.html:840,837 .hint{color:var(--sub)}の1:1移植。以前は
+                // subFaintを使っていたが実測コントラスト不足(3.87:1)であり、Web版でもこの種の一度しか
+                // 出ない確認・案内文はvar(--sub)であってsubFaintの用途ではなかった(subFaintの正しい
+                // 用途はオガトレ通信の30日超の古い投稿日付のみ)。
                 exportText?.let {
                     Spacer(Modifier.height(8.dp))
-                    Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:", color = colors.subFaint, fontSize = 12.sp)
+                    Text("クリップボードにコピーしました。下のテキストは長押しでも選択できます:", color = colors.sub, fontSize = 12.sp)
                     OutlinedTextField(
                         value = it,
                         onValueChange = {},
@@ -367,7 +371,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 Spacer(Modifier.height(6.dp))
                 Text(
                     "コピーした文字はLINEの「じぶん専用トーク」やメモアプリに貼っておくと安心です",
-                    color = colors.subFaint, fontSize = 12.sp, modifier = Modifier.testTag("exportSaveHint"),
+                    color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("exportSaveHint"),
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -393,7 +397,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     Modifier.testTag("importClipboardBtn"),
                 )
                 Spacer(Modifier.height(6.dp))
-                Text("うまくいかないときは 下のわくに手で貼り付けてね", color = colors.subFaint, fontSize = 12.sp)
+                Text("うまくいかないときは 下のわくに手で貼り付けてね", color = colors.sub, fontSize = 12.sp)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = importInput,
@@ -421,7 +425,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 Spacer(Modifier.height(6.dp))
                 Text(
                     "機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「よみこむ」",
-                    color = colors.subFaint, fontSize = 12.sp, modifier = Modifier.testTag("machineChangeHint"),
+                    color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("machineChangeHint"),
                 )
                 importMessage?.let {
                     Spacer(Modifier.height(8.dp))

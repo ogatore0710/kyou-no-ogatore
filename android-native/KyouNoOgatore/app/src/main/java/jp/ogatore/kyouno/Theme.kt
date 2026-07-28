@@ -65,7 +65,10 @@ val KyonoLightColors = KyonoColors(
     ink = Color(0xFF3A3A35),
     sub = Color(0xFF6E6B5F),
     sub2 = Color(0xFF6B6857),
-    subFaint = Color(0xFF827F72),
+    // GO-G2(5視点ワンループ): index.html --sub-faint:#827F72 は背景(--bg:#FFFAF3)に対し実測
+    // 3.87:1でWCAG AA(4.5:1)未達だった(ダーク側の#8C8676は背景#211E19に対し4.58:1で元々AA達成
+    // 済み・変更なし)。#757267へ底上げし4.64:1を確保(色味は保ったまま明度のみ下げた)。
+    subFaint = Color(0xFF757267),
     teal = Color(0xFF2BB3A3),
     tealStrong = Color(0xFF1E7B70),
     tealSoft = Color(0xFFDFF5F2),

@@ -56,17 +56,17 @@ fun KyonoTabBar(current: KyonoTab?, onSelect: (KyonoTab) -> Unit) {
             .background(colors.card)
             .padding(horizontal = 4.dp, vertical = 6.dp),
     ) {
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, current == KyonoTab.Guide, "使い方") { onSelect(KyonoTab.Guide) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, current == KyonoTab.MyRecord, "マイ記録") { onSelect(KyonoTab.MyRecord) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, current == KyonoTab.Home, "ホーム") { onSelect(KyonoTab.Home) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, current == KyonoTab.Catalog, "再生リスト") { onSelect(KyonoTab.Catalog) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, current == KyonoTab.Search, "動画を探す") { onSelect(KyonoTab.Search) }
+        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Guide, "使い方") { onSelect(KyonoTab.Guide) }
+        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.MyRecord, "マイ記録") { onSelect(KyonoTab.MyRecord) }
+        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Home, "ホーム") { onSelect(KyonoTab.Home) }
+        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Catalog, "再生リスト") { onSelect(KyonoTab.Catalog) }
+        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Search, "動画を探す") { onSelect(KyonoTab.Search) }
     }
 }
 
 @Composable
 private fun RowScope.TabItem(
-    iconOff: Color, iconOn: Color, labelOn: Color, labelOff: Color,
+    iconOff: Color, iconOn: Color, labelOn: Color, labelOff: Color, strokeOff: Color,
     selected: Boolean, label: String, onClick: () -> Unit,
 ) {
     // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 下部タブバー5項目にTalkBack読み上げ
@@ -86,22 +86,27 @@ private fun RowScope.TabItem(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val fill = if (selected) iconOn else iconOff
+        // GO-G1: index.html:397,123 .tabbar button.on{color:var(--ink)}の1:1移植。輪郭線(stroke)は
+        // 選択時=ink・非選択時=tabbarStrokeOff(テーマ別)。
+        val stroke = if (selected) labelOn else strokeOff
         when (label) {
-            "使い方" -> GuideIcon(fill)
-            "マイ記録" -> MyRecordIcon(fill)
-            "ホーム" -> HomeIcon(fill)
-            "再生リスト" -> CatalogIcon(fill)
-            "動画を探す" -> SearchIcon(fill)
+            "使い方" -> GuideIcon(fill, stroke)
+            "マイ記録" -> MyRecordIcon(fill, stroke)
+            "ホーム" -> HomeIcon(fill, stroke)
+            "再生リスト" -> CatalogIcon(fill, stroke)
+            "動画を探す" -> SearchIcon(fill, stroke)
         }
         Text(label, fontSize = 12.sp, fontWeight = FontWeight.Black, color = if (selected) labelOn else labelOff)
     }
 }
 
-private val strokeColor = Color(0xFF3A3A35)
+// GO-G1(5視点ワンループ): 輪郭線(stroke)を呼び出し元(TabItem)から渡されたテーマ別の色にする
+// (以前はColor(0xFF3A3A35)固定でダーク背景に対しコントラスト比1.0〜1.45だった欠落。詳細はTheme.kt
+// tabbarStrokeOffのコメント参照)。
 
 // index.html:1159 使い方(開いた本)
 @Composable
-private fun GuideIcon(fill: Color) {
+private fun GuideIcon(fill: Color, stroke: Color) {
     Canvas(Modifier.size(24.dp)) {
         val s = size.width / 24f
         val path = Path().apply {
@@ -114,33 +119,33 @@ private fun GuideIcon(fill: Color) {
             close()
         }
         drawPath(path, color = fill, style = androidx.compose.ui.graphics.drawscope.Fill)
-        drawPath(path, color = strokeColor, style = Stroke(width = 1.6f * s))
-        drawLine(strokeColor, Offset(12 * s, 5.5f * s), Offset(12 * s, 19 * s), strokeWidth = 1.6f * s)
+        drawPath(path, color = stroke, style = Stroke(width = 1.6f * s))
+        drawLine(stroke, Offset(12 * s, 5.5f * s), Offset(12 * s, 19 * s), strokeWidth = 1.6f * s)
     }
 }
 
 // index.html:1160 マイ記録(カレンダー+チェック)
 @Composable
-private fun MyRecordIcon(fill: Color) {
+private fun MyRecordIcon(fill: Color, stroke: Color) {
     Canvas(Modifier.size(24.dp)) {
         val s = size.width / 24f
         drawRoundRect(fill, topLeft = Offset(3 * s, 5 * s), size = androidx.compose.ui.geometry.Size(18 * s, 16 * s), cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.5f * s))
-        drawRoundRect(strokeColor, topLeft = Offset(3 * s, 5 * s), size = androidx.compose.ui.geometry.Size(18 * s, 16 * s), cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.5f * s), style = Stroke(width = 1.6f * s))
-        drawLine(strokeColor, Offset(3 * s, 9.5f * s), Offset(21 * s, 9.5f * s), strokeWidth = 1.6f * s)
-        drawLine(strokeColor, Offset(8 * s, 3 * s), Offset(8 * s, 7 * s), strokeWidth = 1.6f * s)
-        drawLine(strokeColor, Offset(16 * s, 3 * s), Offset(16 * s, 7 * s), strokeWidth = 1.6f * s)
+        drawRoundRect(stroke, topLeft = Offset(3 * s, 5 * s), size = androidx.compose.ui.geometry.Size(18 * s, 16 * s), cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.5f * s), style = Stroke(width = 1.6f * s))
+        drawLine(stroke, Offset(3 * s, 9.5f * s), Offset(21 * s, 9.5f * s), strokeWidth = 1.6f * s)
+        drawLine(stroke, Offset(8 * s, 3 * s), Offset(8 * s, 7 * s), strokeWidth = 1.6f * s)
+        drawLine(stroke, Offset(16 * s, 3 * s), Offset(16 * s, 7 * s), strokeWidth = 1.6f * s)
         val check = Path().apply {
             moveTo(8.5f * s, 14.5f * s)
             lineTo(11 * s, 17 * s)
             lineTo(15.5f * s, 12 * s)
         }
-        drawPath(check, color = strokeColor, style = Stroke(width = 1.8f * s, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawPath(check, color = stroke, style = Stroke(width = 1.8f * s, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
     }
 }
 
 // index.html:1161 ホーム(家)
 @Composable
-private fun HomeIcon(fill: Color) {
+private fun HomeIcon(fill: Color, stroke: Color) {
     val doorColor = LocalKyonoColors.current.card
     Canvas(Modifier.size(24.dp)) {
         val s = size.width / 24f
@@ -154,38 +159,38 @@ private fun HomeIcon(fill: Color) {
         }
         path.fillType = PathFillType.NonZero
         drawPath(path, color = fill)
-        drawPath(path, color = strokeColor, style = Stroke(width = 1.6f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawPath(path, color = stroke, style = Stroke(width = 1.6f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
         drawRect(doorColor, topLeft = Offset(9.5f * s, 15 * s), size = androidx.compose.ui.geometry.Size(5 * s, 6 * s))
-        drawRect(strokeColor, topLeft = Offset(9.5f * s, 15 * s), size = androidx.compose.ui.geometry.Size(5 * s, 6 * s), style = Stroke(width = 1.4f * s))
+        drawRect(stroke, topLeft = Offset(9.5f * s, 15 * s), size = androidx.compose.ui.geometry.Size(5 * s, 6 * s), style = Stroke(width = 1.4f * s))
     }
 }
 
 // index.html:1162 再生リスト
 @Composable
-private fun CatalogIcon(fill: Color) {
+private fun CatalogIcon(fill: Color, stroke: Color) {
     Canvas(Modifier.size(24.dp)) {
         val s = size.width / 24f
-        drawLine(strokeColor, Offset(6.5f * s, 4.5f * s), Offset(17.5f * s, 4.5f * s), strokeWidth = 1.6f * s, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        drawLine(stroke, Offset(6.5f * s, 4.5f * s), Offset(17.5f * s, 4.5f * s), strokeWidth = 1.6f * s, cap = androidx.compose.ui.graphics.StrokeCap.Round)
         drawRoundRect(fill, topLeft = Offset(3 * s, 7 * s), size = androidx.compose.ui.geometry.Size(14 * s, 13 * s), cornerRadius = androidx.compose.ui.geometry.CornerRadius(3 * s))
-        drawRoundRect(strokeColor, topLeft = Offset(3 * s, 7 * s), size = androidx.compose.ui.geometry.Size(14 * s, 13 * s), cornerRadius = androidx.compose.ui.geometry.CornerRadius(3 * s), style = Stroke(width = 1.6f * s))
+        drawRoundRect(stroke, topLeft = Offset(3 * s, 7 * s), size = androidx.compose.ui.geometry.Size(14 * s, 13 * s), cornerRadius = androidx.compose.ui.geometry.CornerRadius(3 * s), style = Stroke(width = 1.6f * s))
         val play = Path().apply {
             moveTo(8.5f * s, 12 * s)
             lineTo(8.5f * s, 17 * s)
             lineTo(12.5f * s, 14.5f * s)
             close()
         }
-        drawPath(play, color = strokeColor)
+        drawPath(play, color = stroke)
     }
 }
 
 // index.html:1163 動画を探す(虫眼鏡)
 @Composable
-private fun SearchIcon(fill: Color) {
+private fun SearchIcon(fill: Color, stroke: Color) {
     Canvas(Modifier.size(24.dp)) {
         val s = size.width / 24f
         drawCircle(fill, radius = 6.5f * s, center = Offset(10.5f * s, 10.5f * s))
-        drawCircle(strokeColor, radius = 6.5f * s, center = Offset(10.5f * s, 10.5f * s), style = Stroke(width = 1.7f * s))
-        drawLine(strokeColor, Offset(15.5f * s, 15.5f * s), Offset(20 * s, 20 * s), strokeWidth = 1.9f * s, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        drawCircle(stroke, radius = 6.5f * s, center = Offset(10.5f * s, 10.5f * s), style = Stroke(width = 1.7f * s))
+        drawLine(stroke, Offset(15.5f * s, 15.5f * s), Offset(20 * s, 20 * s), strokeWidth = 1.9f * s, cap = androidx.compose.ui.graphics.StrokeCap.Round)
     }
 }
 

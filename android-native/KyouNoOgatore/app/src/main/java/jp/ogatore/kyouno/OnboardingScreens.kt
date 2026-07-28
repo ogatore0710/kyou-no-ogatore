@@ -873,8 +873,12 @@ fun ResultScreen(
                     }
                     // index.html:740 #rRotateNoteの1:1移植。
                     Spacer(Modifier.height(4.dp))
+                    // GO-G2(5視点ワンループ): index.html:740 .rotate-note{color:var(--sub)}の1:1移植。
+                    // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
+                    // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
+                    // 30日超の古い投稿日付のみ・index.html:277-278)。
                     Text(
-                        "おすすめは3日ごとに自動で入れ替わります", color = colors.subFaint, fontSize = 12.sp,
+                        "おすすめは3日ごとに自動で入れ替わります", color = colors.sub, fontSize = 12.sp,
                         modifier = Modifier.testTag("rRotateNote"),
                     )
                 }
@@ -892,9 +896,10 @@ fun ResultScreen(
                         color = colors.sub, fontSize = 14.sp, lineHeight = 24.sp,
                     )
                     Spacer(Modifier.height(8.dp))
+                    // GO-G2: index.html:742 .hint{color:var(--sub)}の1:1移植。
                     Text(
                         "※効果には個人差があります 痛みが強いときは中止して医療機関へ",
-                        color = colors.subFaint, fontSize = 12.sp,
+                        color = colors.sub, fontSize = 12.sp,
                     )
                     // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
                     SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->

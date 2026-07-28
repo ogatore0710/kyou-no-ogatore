@@ -16,8 +16,6 @@ enum KyonoTab {
     case guide, myRecord, home, catalog, search
 }
 
-private let strokeColor = Color(hex: 0x3A3A35)
-
 struct KyonoTabBar: View {
     @Environment(\.kyonoColors) private var colors
     let current: KyonoTab?
@@ -25,21 +23,24 @@ struct KyonoTabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            tabItem(.guide, "使い方") { GuideIcon(fill: $0) }
-            tabItem(.myRecord, "マイ記録") { MyRecordIcon(fill: $0) }
-            tabItem(.home, "ホーム") { HomeIcon(fill: $0) }
-            tabItem(.catalog, "再生リスト") { CatalogIcon(fill: $0) }
-            tabItem(.search, "動画を探す") { SearchIcon(fill: $0) }
+            tabItem(.guide, "使い方") { GuideIcon(fill: $0, stroke: $1) }
+            tabItem(.myRecord, "マイ記録") { MyRecordIcon(fill: $0, stroke: $1) }
+            tabItem(.home, "ホーム") { HomeIcon(fill: $0, stroke: $1) }
+            tabItem(.catalog, "再生リスト") { CatalogIcon(fill: $0, stroke: $1) }
+            tabItem(.search, "動画を探す") { SearchIcon(fill: $0, stroke: $1) }
         }
         .padding(.horizontal, 4).padding(.vertical, 6)
         .background(colors.card)
     }
 
-    private func tabItem(_ tab: KyonoTab, _ label: String, @ViewBuilder icon: @escaping (Color) -> some View) -> some View {
+    private func tabItem(_ tab: KyonoTab, _ label: String, @ViewBuilder icon: @escaping (Color, Color) -> some View) -> some View {
         let selected = current == tab
+        // GO-G1: index.html:397,123 .tabbar button.on{color:var(--ink)}の1:1移植。輪郭線(stroke)は
+        // 選択時=ink・非選択時=tabbarStrokeOff(テーマ別)。
+        let stroke = selected ? colors.ink : colors.tabbarStrokeOff
         return Button(action: { onSelect(tab) }) {
             VStack(spacing: 2) {
-                icon(selected ? colors.yellow : colors.tabbarIconOff).frame(width: 24, height: 24)
+                icon(selected ? colors.yellow : colors.tabbarIconOff, stroke).frame(width: 24, height: 24)
                 Text(label).kyonoFont(.black900, size: 12).foregroundColor(selected ? colors.ink : colors.sub)
             }
             .frame(maxWidth: .infinity)
@@ -53,9 +54,14 @@ struct KyonoTabBar: View {
     }
 }
 
+// GO-G1(5視点ワンループ): 輪郭線(stroke)を呼び出し元(tabItem)から渡されたテーマ別の色にする
+// (以前はColor(hex: 0x3A3A35)固定でダーク背景に対しコントラスト比1.0〜1.45だった欠落。詳細は
+// Theme.swift tabbarStrokeOffのコメント参照)。
+
 // index.html:1159 使い方(開いた本)
 private struct GuideIcon: View {
     let fill: Color
+    let stroke: Color
     var body: some View {
         Canvas { ctx, size in
             let s = size.width / 24
@@ -68,11 +74,11 @@ private struct GuideIcon: View {
             path.addQuadCurve(to: CGPoint(x: 4 * s, y: 19 * s), control: CGPoint(x: 8 * s, y: 17 * s))
             path.closeSubpath()
             ctx.fill(path, with: .color(fill))
-            ctx.stroke(path, with: .color(strokeColor), lineWidth: 1.6 * s)
+            ctx.stroke(path, with: .color(stroke), lineWidth: 1.6 * s)
             var spine = Path()
             spine.move(to: CGPoint(x: 12 * s, y: 5.5 * s))
             spine.addLine(to: CGPoint(x: 12 * s, y: 19 * s))
-            ctx.stroke(spine, with: .color(strokeColor), lineWidth: 1.6 * s)
+            ctx.stroke(spine, with: .color(stroke), lineWidth: 1.6 * s)
         }
     }
 }
@@ -80,23 +86,24 @@ private struct GuideIcon: View {
 // index.html:1160 マイ記録(カレンダー+チェック)
 private struct MyRecordIcon: View {
     let fill: Color
+    let stroke: Color
     var body: some View {
         Canvas { ctx, size in
             let s = size.width / 24
             let rect = CGRect(x: 3 * s, y: 5 * s, width: 18 * s, height: 16 * s)
             let rounded = Path(roundedRect: rect, cornerRadius: 3.5 * s)
             ctx.fill(rounded, with: .color(fill))
-            ctx.stroke(rounded, with: .color(strokeColor), lineWidth: 1.6 * s)
+            ctx.stroke(rounded, with: .color(stroke), lineWidth: 1.6 * s)
             var lines = Path()
             lines.move(to: CGPoint(x: 3 * s, y: 9.5 * s)); lines.addLine(to: CGPoint(x: 21 * s, y: 9.5 * s))
             lines.move(to: CGPoint(x: 8 * s, y: 3 * s)); lines.addLine(to: CGPoint(x: 8 * s, y: 7 * s))
             lines.move(to: CGPoint(x: 16 * s, y: 3 * s)); lines.addLine(to: CGPoint(x: 16 * s, y: 7 * s))
-            ctx.stroke(lines, with: .color(strokeColor), lineWidth: 1.6 * s)
+            ctx.stroke(lines, with: .color(stroke), lineWidth: 1.6 * s)
             var check = Path()
             check.move(to: CGPoint(x: 8.5 * s, y: 14.5 * s))
             check.addLine(to: CGPoint(x: 11 * s, y: 17 * s))
             check.addLine(to: CGPoint(x: 15.5 * s, y: 12 * s))
-            ctx.stroke(check, with: .color(strokeColor), style: StrokeStyle(lineWidth: 1.8 * s, lineCap: .round, lineJoin: .round))
+            ctx.stroke(check, with: .color(stroke), style: StrokeStyle(lineWidth: 1.8 * s, lineCap: .round, lineJoin: .round))
         }
     }
 }
@@ -104,6 +111,7 @@ private struct MyRecordIcon: View {
 // index.html:1161 ホーム(家)
 private struct HomeIcon: View {
     let fill: Color
+    let stroke: Color
     @Environment(\.kyonoColors) private var colors
     var body: some View {
         Canvas { ctx, size in
@@ -116,10 +124,10 @@ private struct HomeIcon: View {
             path.addLine(to: CGPoint(x: 4 * s, y: 20 * s))
             path.closeSubpath()
             ctx.fill(path, with: .color(fill))
-            ctx.stroke(path, with: .color(strokeColor), style: StrokeStyle(lineWidth: 1.6 * s, lineJoin: .round))
+            ctx.stroke(path, with: .color(stroke), style: StrokeStyle(lineWidth: 1.6 * s, lineJoin: .round))
             let door = CGRect(x: 9.5 * s, y: 15 * s, width: 5 * s, height: 6 * s)
             ctx.fill(Path(door), with: .color(colors.card))
-            ctx.stroke(Path(door), with: .color(strokeColor), lineWidth: 1.4 * s)
+            ctx.stroke(Path(door), with: .color(stroke), lineWidth: 1.4 * s)
         }
     }
 }
@@ -127,21 +135,22 @@ private struct HomeIcon: View {
 // index.html:1162 再生リスト
 private struct CatalogIcon: View {
     let fill: Color
+    let stroke: Color
     var body: some View {
         Canvas { ctx, size in
             let s = size.width / 24
             var handle = Path()
             handle.move(to: CGPoint(x: 6.5 * s, y: 4.5 * s)); handle.addLine(to: CGPoint(x: 17.5 * s, y: 4.5 * s))
-            ctx.stroke(handle, with: .color(strokeColor), style: StrokeStyle(lineWidth: 1.6 * s, lineCap: .round))
+            ctx.stroke(handle, with: .color(stroke), style: StrokeStyle(lineWidth: 1.6 * s, lineCap: .round))
             let rect = Path(roundedRect: CGRect(x: 3 * s, y: 7 * s, width: 14 * s, height: 13 * s), cornerRadius: 3 * s)
             ctx.fill(rect, with: .color(fill))
-            ctx.stroke(rect, with: .color(strokeColor), lineWidth: 1.6 * s)
+            ctx.stroke(rect, with: .color(stroke), lineWidth: 1.6 * s)
             var play = Path()
             play.move(to: CGPoint(x: 8.5 * s, y: 12 * s))
             play.addLine(to: CGPoint(x: 8.5 * s, y: 17 * s))
             play.addLine(to: CGPoint(x: 12.5 * s, y: 14.5 * s))
             play.closeSubpath()
-            ctx.fill(play, with: .color(strokeColor))
+            ctx.fill(play, with: .color(stroke))
         }
     }
 }
@@ -149,15 +158,16 @@ private struct CatalogIcon: View {
 // index.html:1163 動画を探す(虫眼鏡)
 private struct SearchIcon: View {
     let fill: Color
+    let stroke: Color
     var body: some View {
         Canvas { ctx, size in
             let s = size.width / 24
             let circle = Path(ellipseIn: CGRect(x: 4 * s, y: 4 * s, width: 13 * s, height: 13 * s))
             ctx.fill(circle, with: .color(fill))
-            ctx.stroke(circle, with: .color(strokeColor), lineWidth: 1.7 * s)
+            ctx.stroke(circle, with: .color(stroke), lineWidth: 1.7 * s)
             var handle = Path()
             handle.move(to: CGPoint(x: 15.5 * s, y: 15.5 * s)); handle.addLine(to: CGPoint(x: 20 * s, y: 20 * s))
-            ctx.stroke(handle, with: .color(strokeColor), style: StrokeStyle(lineWidth: 1.9 * s, lineCap: .round))
+            ctx.stroke(handle, with: .color(stroke), style: StrokeStyle(lineWidth: 1.9 * s, lineCap: .round))
         }
     }
 }

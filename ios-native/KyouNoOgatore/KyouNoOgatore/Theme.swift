@@ -31,6 +31,13 @@ struct KyonoColors {
     let line: Color
     let btnPrimaryShadow: Color
     let tabbarIconOff: Color
+    // GO-G1(5視点ワンループ): index.html:392,121 .tabbar button{color:var(--sub)}/
+    // body.dark .tabbar button{color:#847D6C}の1:1移植。タブバーのアイコン輪郭線(SVGの
+    // stroke="currentColor")はボタンのtext colorを継承しており、ダークモードでは--sub
+    // (通常の二次テキスト色)ではなくこの専用の控えめな色に上書きされる。以前はこの輪郭線が
+    // 全テーマ固定のColor(hex: 0x3A3A35)になっており、ダーク背景に対しコントラスト比1.0〜1.45
+    // (実測)でほぼ見えなくなっていた欠落。
+    let tabbarStrokeOff: Color
 }
 
 extension Color {
@@ -44,12 +51,17 @@ extension Color {
 
 let kyonoLightColors = KyonoColors(
     yellow: Color(hex: 0xFFD93B), yellowSoft: Color(hex: 0xFFF3C4), ink: Color(hex: 0x3A3A35),
-    sub: Color(hex: 0x6E6B5F), sub2: Color(hex: 0x6B6857), subFaint: Color(hex: 0x827F72),
+    sub: Color(hex: 0x6E6B5F), sub2: Color(hex: 0x6B6857),
+    // GO-G2(5視点ワンループ): index.html --sub-faint:#827F72 は背景(--bg:#FFFAF3)に対し実測
+    // 3.87:1でWCAG AA(4.5:1)未達だった(ダーク側の#8C8676は背景#211E19に対し4.58:1で元々AA達成
+    // 済み・変更なし)。#757267へ底上げし4.64:1を確保(色味は保ったまま明度のみ下げた)。
+    subFaint: Color(hex: 0x757267),
     teal: Color(hex: 0x2BB3A3), tealStrong: Color(hex: 0x1E7B70), tealSoft: Color(hex: 0xDFF5F2),
     tealInk: Color(hex: 0x177065), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0xFFE8E2),
     pink: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0xFFEDF3),
     bg: Color(hex: 0xFFFAF3), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xF2EADB),
-    btnPrimaryShadow: Color(hex: 0xE8BE1E), tabbarIconOff: Color(hex: 0xC4BDA9)
+    btnPrimaryShadow: Color(hex: 0xE8BE1E), tabbarIconOff: Color(hex: 0xC4BDA9),
+    tabbarStrokeOff: Color(hex: 0x6E6B5F)
 )
 
 let kyonoDarkColors = KyonoColors(
@@ -59,7 +71,8 @@ let kyonoDarkColors = KyonoColors(
     tealInk: Color(hex: 0x7BD0C4), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0x3A2A24),
     pink: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0x3A2730),
     bg: Color(hex: 0x211E19), card: Color(hex: 0x2C2822), line: Color(hex: 0x3D382F),
-    btnPrimaryShadow: Color(hex: 0x8A6D00), tabbarIconOff: Color(hex: 0x3D382F)
+    btnPrimaryShadow: Color(hex: 0x8A6D00), tabbarIconOff: Color(hex: 0x3D382F),
+    tabbarStrokeOff: Color(hex: 0x847D6C)
 )
 
 // index.html:95 .card{border-radius:var(--radius)}・--radius:22px の1:1移植。
