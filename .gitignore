@@ -24,3 +24,6 @@ ios-native/*/CardCore/.swiftpm/
 # 2026-07-28時点で19回ぶんの無意味なコミットを生んでいた。バイナリなのでマージできず、
 # 2台のMacでeven-syncが同時に拾うと衝突してリポジトリ全体の同期が止まる危険がある。
 ios-native/**/xcuserdata/
+
+# UI/UX比較用のスクショ出力(バイナリ・毎回撮り直すもの)
+.uiux-compare/
