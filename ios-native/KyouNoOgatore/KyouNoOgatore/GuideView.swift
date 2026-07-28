@@ -387,7 +387,9 @@ private struct GuideContentView: View {
                         }
                     }
                 }
-                .padding(16)
+                // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}
+                // の1:1移植。この画面だけ全辺16ptだった欠落を、共通のkyonoScreenPadding()へ統一する。
+                .kyonoScreenPadding()
             }
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())

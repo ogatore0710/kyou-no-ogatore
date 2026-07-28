@@ -79,6 +79,26 @@ let kyonoDarkColors = KyonoColors(
 let kyonoRadius: CGFloat = 22
 let kyonoButtonRadius: CGFloat = 18
 
+// index.html:82 body{...padding:20px 18px 180px;...}の1:1移植。Web版はbody1箇所の共通padding
+// なので、どのタブ(home/history/search/guide)も本来まったく同じ値になるはずだが、ネイティブは
+// 画面ごとに16pt/18pt/20ptとバラバラに実装されていた(UI/UXパリティ監査GO-9・G6 2026-07-28)。
+// 4画面ともこの1つのViewModifierを使うことで、以後のズレを構造的に防ぐ(Android版
+// KyonoScreenPaddingと同一設計)。
+private struct KyonoScreenPaddingModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 18)
+            .padding(.top, 20)
+            .padding(.bottom, 180)
+    }
+}
+
+extension View {
+    func kyonoScreenPadding() -> some View {
+        modifier(KyonoScreenPaddingModifier())
+    }
+}
+
 // TASK-C2-2026-07-27-auto-theme-time-rule.md: app-env.js applyTheme()の時刻判定
 // (h>=19||h<5)の1:1移植。端末のローカル時刻(Web版のnew Date().getHours()と同じ)で判定する。
 private func isAutoThemeDarkByTime() -> Bool {

@@ -555,10 +555,8 @@ struct HomeView: View {
         // 要素でも実際に中央まで届くための余白(TASK-C2-2026-07-28: ページ末尾に近い状態だと
         // ScrollViewの実コンテンツ高さが足りずanchor:.centerが効かないまま見た目上
         // 「動いていない」ように見えるバグの根本原因だった。Android版MainActivity.ktの
-        // HomeScreen Columnと同じ修正)。
-        .padding(.horizontal, 18)
-        .padding(.top, 20)
-        .padding(.bottom, 180)
+        // HomeScreen Columnと同じ修正)。UI/UXパリティ監査GO-9・G6(2026-07-28)で共通定数化。
+        .kyonoScreenPadding()
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
         // app-env.js:60 refreshDay相当。visibilitychangeの代わりにscenePhaseの.active復帰で

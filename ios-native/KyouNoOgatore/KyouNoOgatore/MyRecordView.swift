@@ -566,7 +566,9 @@ private struct MyRecordContentView: View {
                 // 時に右下固定FABと重なることを実機で確認したため、末尾に余白を足して回避する。
                 Spacer().frame(height: 100)
             }
-            .padding(20)
+            // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}の
+            // 1:1移植。この画面だけ全辺20ptだった欠落を、共通のkyonoScreenPadding()へ統一する。
+            .kyonoScreenPadding()
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
