@@ -146,8 +146,10 @@ struct SettingsView: View {
                         (Text("やるタイミング: ")
                             + Text(settingsAnchors.first { $0.key == anchor }?.label ?? "未設定").fontWeight(.black))
                             .kyonoFont(.bold700, size: 15).foregroundColor(.primary)
+                        // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
                         Text("変える")
                             .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                            .padding(.vertical, 12)
                             .onTapGesture { showAnchorPicker.toggle() }
                     }
                     if showAnchorPicker {

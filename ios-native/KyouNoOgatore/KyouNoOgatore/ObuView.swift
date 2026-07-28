@@ -257,10 +257,16 @@ struct ObuPreviewPopupView: View {
                     HStack {
                         Text("オガトレ通信").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer()
+                        // GO-G3(5視点ワンループ): 視覚サイズ(40px)は変えず、タップ領域だけ44pt相当に広げる。
                         Button(action: onClose) {
-                            Text("✕").kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
-                                .frame(width: 40, height: 40)
-                                .background(Circle().fill(colors.line))
+                            Color.clear
+                                .frame(width: 44, height: 44)
+                                .overlay(
+                                    Text("✕").kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
+                                        .frame(width: 40, height: 40)
+                                        .background(Circle().fill(colors.line))
+                                )
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                     }

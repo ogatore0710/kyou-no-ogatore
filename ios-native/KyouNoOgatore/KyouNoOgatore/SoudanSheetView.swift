@@ -327,10 +327,17 @@ private struct SoudanContentView: View {
             HStack {
                 KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
                 Spacer()
+                // GO-G3(5視点ワンループ): index.html:464の視覚サイズ(40px)は変えず、タップ領域だけ
+                // 44pt相当に広げる(透明な44x44の外枠の中に従来どおりの見た目の40x40円を重ねる)。
                 Button(action: onClose) {
-                    Text("✕").kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
-                        .frame(width: 40, height: 40)
-                        .background(Circle().fill(colors.line))
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Text("✕").kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
+                                .frame(width: 40, height: 40)
+                                .background(Circle().fill(colors.line))
+                        )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }

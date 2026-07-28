@@ -121,9 +121,10 @@ struct MyRecordView: View {
                             onOpenSettings()
                         }
                     }
-                    HStack {
-                        Button("とじる") { self.dayCardResult = nil }
-                        Button("保存・シェアする") { ShareImage.share(uiImage: dayCardResult.image, text: "#きょうのオガトレ") }
+                    // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一。
+                    HStack(spacing: 12) {
+                        KyonoGhostButton("とじる") { self.dayCardResult = nil }
+                        KyonoPrimaryButton("保存・シェアする") { ShareImage.share(uiImage: dayCardResult.image, text: "#きょうのオガトレ") }
                     }
                 }
                 .padding()
@@ -359,8 +360,10 @@ private struct MyRecordContentView: View {
                             let log = RecordLogic.loadDaylog(store)[ds]
                             let memo = RecordLogic.loadMemos(store)[ds]
                             if let log, !log.v.isEmpty {
+                                // GO-G3: 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
                                 Text("▶ この日の動画をYouTubeでチェックする")
                                     .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                                    .padding(.vertical, 12)
                                     .onTapGesture {
                                         if let url = URL(string: "https://www.youtube.com/watch?v=\(log.v)") { UIApplication.shared.open(url) }
                                     }
@@ -371,8 +374,10 @@ private struct MyRecordContentView: View {
                             if log == nil && (memo?.isEmpty ?? true) {
                                 Text("この日は「やった！」の印だけ残っています").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                             }
+                            // GO-G3: 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
                             Text("🖼 この日の記録カードを見る")
                                 .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                                .padding(.vertical, 12)
                                 .onTapGesture { onShowDayCard(ds) }
                         }
                         .padding(14)

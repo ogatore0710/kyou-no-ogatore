@@ -1116,6 +1116,8 @@ fun HomeScreen(
                     plateauText?.let {
                         Spacer(Modifier.height(8.dp))
                         if (streak.total in 12..16) {
+                            // GO-G3: 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張。
+                            // 2行分の高さで既に44dp超だが、1行に収まる画面幅では不足しうるため念のため追加)。
                             Text(
                                 buildAnnotatedString {
                                     append("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
@@ -1123,7 +1125,7 @@ fun HomeScreen(
                                     append("で確かめてみて")
                                 },
                                 color = colors.sub, fontSize = 14.sp, lineHeight = 22.sp,
-                                modifier = Modifier.testTag("plateauNote").clickable { onOpenMyRecord() },
+                                modifier = Modifier.testTag("plateauNote").clickable { onOpenMyRecord() }.padding(vertical = 6.dp),
                             )
                         } else {
                             Text(it, color = colors.sub, fontSize = 14.sp, lineHeight = 22.sp, modifier = Modifier.testTag("plateauNote"))
@@ -1263,9 +1265,10 @@ private fun CkCard(full: Boolean, typeResult: QuizTypeResult?, onStartQuiz: () -
             Spacer(Modifier.height(6.dp))
             typeResult?.let { tr ->
                 val name = QUIZ_TYPES[tr.key]?.name ?: tr.key
+                // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
                 Text(
                     "前回の結果: $name", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                    modifier = Modifier.clickable { onShowResult(tr.key) }.testTag("lastTypeName"),
+                    modifier = Modifier.clickable { onShowResult(tr.key) }.padding(vertical = 12.dp).testTag("lastTypeName"),
                 )
                 Spacer(Modifier.height(10.dp))
             }
@@ -1512,9 +1515,10 @@ fun MyRecordScreen(
                         val memo = RecordLogic.loadMemos(store)[ds]
                         if (log != null && log.v.isNotEmpty()) {
                             Spacer(Modifier.height(6.dp))
+                            // GO-G3: 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
                             Text(
                                 "▶ この日の動画をYouTubeでチェックする", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                                modifier = Modifier.clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=${log.v}"))) }.testTag("dayVideoLink"),
+                                modifier = Modifier.clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=${log.v}"))) }.padding(vertical = 12.dp).testTag("dayVideoLink"),
                             )
                         }
                         if (memo != null && memo.isNotEmpty()) {
@@ -1526,9 +1530,10 @@ fun MyRecordScreen(
                             Text("この日は「やった！」の印だけ残っています", color = colors.sub, fontSize = 14.sp)
                         }
                         Spacer(Modifier.height(8.dp))
+                        // GO-G3: 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
                         Text(
                             "🖼 この日の記録カードを見る", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                            modifier = Modifier.clickable { dayCardResult = renderTodayCard(store, streak, ds, context) }.testTag("dayCardLink"),
+                            modifier = Modifier.clickable { dayCardResult = renderTodayCard(store, streak, ds, context) }.padding(vertical = 12.dp).testTag("dayCardLink"),
                         )
                     }
                 }

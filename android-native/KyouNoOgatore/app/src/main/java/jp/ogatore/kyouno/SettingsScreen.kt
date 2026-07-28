@@ -183,9 +183,10 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("anchorNowText"),
                     )
                     Spacer(Modifier.width(8.dp))
+                    // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
                     Text(
                         "変える", color = colors.tealInk, fontWeight = FontWeight.Black, fontSize = 14.sp,
-                        modifier = Modifier.clickable { showAnchorPicker = !showAnchorPicker }.testTag("anchorChangeBtn"),
+                        modifier = Modifier.clickable { showAnchorPicker = !showAnchorPicker }.padding(vertical = 12.dp).testTag("anchorChangeBtn"),
                     )
                 }
                 if (showAnchorPicker) {

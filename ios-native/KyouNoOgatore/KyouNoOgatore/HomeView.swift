@@ -514,10 +514,13 @@ struct HomeView: View {
                             onOpenSettings()
                         }
                     }
-                    HStack {
-                        Button("とじる", action: closeCardAndMaybeStartTour)
+                    // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一
+                    // (タップ領域・見た目ともアプリの基準コンポーネントに揃える)。あわせて2ボタンが
+                    // 隙間なく隣接していた点を余白で解消。
+                    HStack(spacing: 12) {
+                        KyonoGhostButton("とじる", action: closeCardAndMaybeStartTour)
                         // index.html shareCard()相当(Step7bで新規実装)。
-                        Button("保存・シェアする") {
+                        KyonoPrimaryButton("保存・シェアする") {
                             ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
                         }
                     }
@@ -617,8 +620,10 @@ private struct CkCard: View {
             } else {
                 Spacer().frame(height: 6)
                 if let tr = typeResult, let name = quizTypes[tr.key]?.name {
+                    // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
                     Text("前回の結果: \(name)")
                         .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                        .padding(.vertical, 12)
                         .onTapGesture { onShowResult(tr.key) }
                     Spacer().frame(height: 10)
                 }

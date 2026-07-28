@@ -904,9 +904,10 @@ fun ResultScreen(
                     // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
                     SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->
                         Spacer(Modifier.height(10.dp))
+                        // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
                         Text(
                             "💬 この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                            modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.testTag("resultSoudanLink"),
+                            modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.padding(vertical = 12.dp).testTag("resultSoudanLink"),
                             textAlign = TextAlign.Center,
                         )
                     }

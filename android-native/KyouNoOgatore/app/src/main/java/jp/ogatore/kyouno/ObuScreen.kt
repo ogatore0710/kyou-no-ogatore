@@ -268,10 +268,17 @@ fun ObuPreviewPopup(onClose: () -> Unit, onViewArchive: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("オガトレ通信", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                // GO-G3(5視点ワンループ): index.html:1181の視覚サイズ(40px)は変えず、タップ領域だけ
+                // 44dp相当に広げる(外側Boxがヒットエリア・内側Boxが従来どおりの見た目)。
                 Box(
-                    Modifier.size(40.dp).background(colors.line, CircleShape).clickable(onClick = onClose).testTag("obuPopupCloseBtn"),
+                    Modifier.size(44.dp).clickable(onClick = onClose).testTag("obuPopupCloseBtn"),
                     contentAlignment = Alignment.Center,
-                ) { Text("✕", color = colors.ink, fontWeight = FontWeight.Black) }
+                ) {
+                    Box(
+                        Modifier.size(40.dp).background(colors.line, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("✕", color = colors.ink, fontWeight = FontWeight.Black) }
+                }
             }
             Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(18.dp, 12.dp, 18.dp, 0.dp)) {
                 if (items.isEmpty()) {

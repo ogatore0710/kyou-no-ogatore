@@ -307,14 +307,17 @@ fun SoudanSheet(
                 modifier = Modifier.fillMaxWidth().background(colors.card).padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 KyonoSectionHeader(KyonoIcon.SoudanBubble, "オガトレ相談室", fill = colors.tealSoft, accent = colors.teal, modifier = Modifier.weight(1f))
+                // GO-G3(5視点ワンループ): index.html:464 .sd-closeの視覚サイズ(40px)は変えず、
+                // タップ領域だけ44dp相当に広げる(外側Boxがヒットエリア・内側Boxが従来どおりの見た目)。
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(colors.line, androidx.compose.foundation.shape.CircleShape)
-                        .clickable { onClose() }
-                        .testTag("soudanCloseBtn"),
+                    modifier = Modifier.size(44.dp).clickable { onClose() }.testTag("soudanCloseBtn"),
                     contentAlignment = Alignment.Center,
-                ) { Text("✕", color = colors.ink, fontWeight = FontWeight.Black) }
+                ) {
+                    Box(
+                        modifier = Modifier.size(40.dp).background(colors.line, androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("✕", color = colors.ink, fontWeight = FontWeight.Black) }
+                }
             }
             // index.html:1223 .sd-disc(2行・2行目後半は太字強調)
             Text(

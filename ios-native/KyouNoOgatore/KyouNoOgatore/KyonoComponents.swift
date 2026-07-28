@@ -373,3 +373,31 @@ struct FadingChipRow<Content: View>: View {
         .animation(.easeOut(duration: 0.2), value: hasMore)
     }
 }
+
+// GO-G5(5視点ワンループ): ObuPreviewPopupView(ObuView.swift)のスクリム+タップで閉じるパターンを
+// 記録カード各モーダル(HomeView/MyRecordView/BragView)へ横展開するための共通コンテナ。
+// 以前は.sheet()(下からのシート・スワイプでしか閉じられない)を使っており、背景タップでは
+// 閉じられなかった欠落。isPresentedがtrueの間だけ、暗いスクリム+タップで閉じる領域の上に
+// contentを角丸カードとして重ねて表示する。
+struct KyonoCardModalOverlay<Content: View>: View {
+    @Environment(\.kyonoColors) private var colors
+    let isPresented: Bool
+    let onClose: () -> Void
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        if isPresented {
+            ZStack {
+                Color.black.opacity(0.55).ignoresSafeArea()
+                    .onTapGesture { onClose() }
+                ScrollView {
+                    content()
+                        .padding()
+                }
+                .background(RoundedRectangle(cornerRadius: 20).fill(colors.card))
+                .padding(24)
+            }
+            .transition(.opacity)
+        }
+    }
+}

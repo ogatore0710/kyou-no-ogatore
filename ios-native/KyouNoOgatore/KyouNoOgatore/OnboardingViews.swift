@@ -878,8 +878,12 @@ private struct ResultContentView: View {
                         }
                         // index.html:740 #rRotateNoteの1:1移植。
                         Spacer().frame(height: 4)
+                        // GO-G2(5視点ワンループ): index.html:740 .rotate-note{color:var(--sub)}の1:1移植。
+                        // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
+                        // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
+                        // 30日超の古い投稿日付のみ・index.html:277-278)。
                         Text("おすすめは3日ごとに自動で入れ替わります")
-                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.subFaint)
+                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     }
                 }
                 // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rPace/rSoudanLinkもガイド中は隠す
@@ -892,14 +896,17 @@ private struct ResultContentView: View {
                         Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                         Spacer().frame(height: 8)
+                        // GO-G2: index.html:742 .hint{color:var(--sub)}の1:1移植。
                         Text("※効果には個人差があります 痛みが強いときは中止して医療機関へ")
-                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.subFaint)
+                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
                         if let intentId = soudanTypeIntent[typeKey] {
                             Spacer().frame(height: 10)
+                            // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
                             Text("💬 この悩み、相談室で聞いてみる")
                                 .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                                 .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.vertical, 12)
                                 .onTapGesture { onOpenSoudan(intentId) }
                         }
                     }
