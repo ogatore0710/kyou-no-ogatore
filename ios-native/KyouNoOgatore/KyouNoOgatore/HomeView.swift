@@ -580,6 +580,8 @@ private struct HomeMemoRow: View {
                 set: { text = String($0.prefix(30)); saved = false }
             )).textFieldStyle(.roundedBorder)
             KyonoLineButton(saved ? "のこしました ✓" : "メモをのこす", enabled: !saved) {
+                // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 RecordLogic.saveMemo(store, today: today, text: text)
                 savedNote = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                     ? "メモを消しました" : "メモをのこしました✍️ 記録カードにも入ります"

@@ -1,5 +1,6 @@
 package jp.ogatore.kyouno
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,8 @@ import jp.ogatore.kyouno.record.RecordStore
 // index.html:884 #fun内「ひとことにっき」カードの1:1移植(見出しアイコンは既存KyonoIcon.Notesを流用)。
 @Composable
 fun DiaryScreen(store: RecordStore, onBack: () -> Unit) {
+    // GO-G6(5視点ワンループ): システム「もどる」を拾い、既存の「◀ もどる」ボタンと同じonBackへ。
+    BackHandler(onBack = onBack)
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current

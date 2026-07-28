@@ -1,6 +1,7 @@
 package jp.ogatore.kyouno
 
 import android.media.MediaPlayer
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,6 +68,8 @@ import kotlinx.coroutines.delay
 // 30日超の控えめ表示を追加(以前は「見た目のみの範囲を超える」として生ISO表示のまま見送っていた)。
 @Composable
 fun ObuScreen(store: RecordStore, onBack: () -> Unit) {
+    // GO-G6(5視点ワンループ): システム「もどる」を拾い、既存の「◀ もどる」ボタンと同じonBackへ。
+    BackHandler(onBack = onBack)
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current

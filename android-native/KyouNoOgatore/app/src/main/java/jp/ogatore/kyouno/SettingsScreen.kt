@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -87,6 +88,8 @@ fun icsTimeFor(store: RecordStore): Pair<Int, Int> {
 // Phase 3: KyonoTheme/KyonoCard/KyonoSectionHeader(Clockアイコン)/KyonoSegmentedControlへ作り替え。
 @Composable
 fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
+    // GO-G6(5視点ワンループ): システム「もどる」を拾い、既存の「◀ もどる」ボタンと同じonBackへ。
+    BackHandler(onBack = onBack)
     val context = LocalContext.current
     val themeSetting = store.get("theme", "auto")
 

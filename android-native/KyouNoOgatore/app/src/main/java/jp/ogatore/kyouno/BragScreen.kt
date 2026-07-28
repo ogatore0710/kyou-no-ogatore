@@ -1,5 +1,6 @@
 package jp.ogatore.kyouno
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -55,10 +56,14 @@ import java.time.Instant
 // Phase 3: index.html:850-866,340 #brag .card/.lbl/.hint/sec-head(Heartアイコン)の1:1移植。
 @Composable
 fun BragScreen(store: RecordStore, onBack: () -> Unit) {
+    // GO-G6(5視点ワンループ): システム「もどる」を拾い、既存の「◀ もどる」ボタンと同じonBackへ。
+    BackHandler(onBack = onBack)
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val context = LocalContext.current
+        // GO-G7(5視点ワンループ): カード獲得(生成完了)に「きょうやった！」と同じ軽いハプティクスを追加。
+        val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
         val catalog = remember { CatalogLoader.shared }
         val streak = remember { RecordLogic.loadStreak(store) }
         // index.html:2724-2730 openBrag()の1:1移植: 「つづいている日数」はcount(いま連続)から
@@ -167,6 +172,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                             val theme = data.CARD_THEMES[dateIdx % data.CARD_THEMES.size]
                             val resolved = ResolvedTheme(theme.name, theme.bg, theme.main, theme.deco)
                             cardBitmap = BragCardRenderer.render(ds, days, resolved, picked?.t, context, thumbnail)
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             makingCard = false
                         }
                     },

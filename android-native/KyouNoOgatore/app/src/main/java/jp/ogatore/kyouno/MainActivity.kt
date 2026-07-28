@@ -1131,6 +1131,8 @@ fun HomeScreen(
                         KyonoLineButton(
                             if (memoSaved) "のこしました ✓" else "メモをのこす",
                             {
+                                // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 RecordLogic.saveMemo(store, today, memoText)
                                 memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました✍️ 記録カードにも入ります"
                                 memoSaved = true
@@ -1378,6 +1380,8 @@ fun MyRecordScreen(
     onOpenSettings: () -> Unit,
 ) {
     val context = LocalContext.current
+    // GO-G7(5視点ワンループ): とどくメーター記録に「きょうやった！」と同じ軽いハプティクスを追加。
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
@@ -1676,6 +1680,8 @@ fun MyRecordScreen(
                                 .background(if (on) colors.tealStrong else colors.card, RoundedCornerShape(12.dp))
                                 .border(2.dp, if (on) colors.tealStrong else colors.line, RoundedCornerShape(12.dp))
                                 .clickable {
+                                    // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                     // TASK-C2-2026-07-27-reach-meter-messages.md: app-record.js:238-243
                                     // setReach()のメッセージ3分岐の1:1移植。bestはタップ前の自己ベスト
                                     // (setReach呼び出しでstoreが更新される前に必ず算出すること)。

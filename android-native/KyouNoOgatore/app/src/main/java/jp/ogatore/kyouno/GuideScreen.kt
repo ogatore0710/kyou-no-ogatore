@@ -2,6 +2,7 @@
 
 package jp.ogatore.kyouno
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -77,6 +78,9 @@ fun GuideScreen(
     onOpenSettings: () -> Unit,
     onOpenMyRecord: () -> Unit,
 ) {
+    // GO-G6(5視点ワンループ): システム「もどる」を拾いHomeへ戻す(onBackはこれまで未使用の
+    // 死んだパラメータだったが、この対応で初めて呼ばれるようになる)。
+    BackHandler(onBack = onBack)
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
