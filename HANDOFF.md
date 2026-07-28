@@ -2,6 +2,36 @@
 
 最終更新: 2026-07-28
 
+## 🚧 進行中: H1 ホーム画面ウィジェット(Duolingo式・本人GO 2026-07-28)
+
+発注書: `TASK-C2-2026-07-28-home-widget.md`。Phase1=表示専用(RecordStoreへ書き込まない・
+ウィジェットからの記録操作は作らない)。
+
+**Android: 完了。** `widget/`パッケージ新設。
+- `WidgetLogic.kt`: 純粋関数。`RecordLogic.effectiveStreakCount`経由を徹底(生の`streak.count`は
+  読まない)。連続0のときは「また1日め🌱」・使用可6枚のみ(chara_cheer/kaikyaku/congrats/good/
+  crown/cracker)・禁止4枚(chara/chara_3/chara_hitokoto。chara_2は元々未移植)はcharaResId()の
+  when式に存在しないため参照不可能。節目の大小区分(30日以上=大=王冠・未満=小=クラッカー)は
+  既存コードに無かったためappdev判断で新設(要alan5確認)。「記録直後(congrats)」判定はサマリに
+  タイムスタンプを持たせない設計のため、専用SharedPreferences(kyono-store.jsonとは別ファイル・
+  「最後に記録した日」だけ保持)で「記録した日と同じ日か」を見る方式。
+- `KyonoWidget.kt`(Glance AppWidget・SizeMode.Responsiveで2×2〜4×2を1個のウィジェットとして提供)・
+  `KyonoWidgetReceiver.kt`・`WidgetUpdater.kt`(markDone直後にupdateAll()で即時更新)。
+- **実機確認**(pin-10/14/17/19のスクショ): 朝(cheer)→夕夜(kaikyaku、`am broadcast`で強制更新して
+  確認)→記録直後(congrats、「きょうやった！」タップで即時反映を確認)→連続0(cheer+
+  「また1日め」で「0日」表記なしを確認)。
+- **検証手段のメモ**: Pixel Launcherのウィジェット一覧UIがadb合成タッチに反応せず(他アプリの
+  ウィジェットは反応するため本アプリ固有の何かが原因と推定・未特定)、`AppWidgetManager.
+  requestPinAppWidget()`を呼ぶデバッグ専用ボタン(設定画面最下部・`ApplicationInfo.
+  FLAG_DEBUGGABLE`で判定しリリースビルドには出ない)を新設して回避した。このボタンは今後の
+  検証にも使えるため残置。
+- テスト: `WidgetLogicTest`(5件・状態選択ロジック)+`KyonoWidgetRenderTest`(3件・
+  `androidx.glance.appwidget.testing`の`runGlanceAppWidgetUnitTest`で実際の描画結果を検証)。
+  Android全体で231件・失敗0(`--rerun-tasks`で強制実行・XML集計で確認)。
+
+**iOS: 着手中。** App Group `group.jp.ogatore.kyouno`・WidgetKit Extension新設・RecordStore本体は
+Documents配下のまま(引っ越さない)・ミラー用サマリJSONを共有コンテナへ書き出す方式(発注書§3)。
+
 ## ✅ 完了: 5視点ワンループ GO16件(2026-07-28)
 夜間監査4件完了後に実施した「5視点(圏外／老眼・低視力／デジタル弱者／小柄・片手／運動直後)
 Fableアイデア出しワンループ」の実装フェーズ。alan5がGO16/REJECT7/HOLD9に仕分け、GO16件のみを
