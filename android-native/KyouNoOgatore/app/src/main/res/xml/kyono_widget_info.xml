@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GO-H1(ホーム画面ウィジェット・Duolingo式・本人GO 2026-07-28): Phase1=表示専用。
+     2x2(minWidth/Height=110dp)〜4x2(maxResizeWidth=250dp)の範囲でリサイズ可能な
+     1個のウィジェットとして提供する(KyonoWidget.kt側でSizeMode.Responsiveにより
+     幅に応じてレイアウトを出し分ける)。 -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:maxResizeWidth="250dp"
+    android:maxResizeHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/kyono_widget_loading"
+    android:updatePeriodMillis="1800000" />

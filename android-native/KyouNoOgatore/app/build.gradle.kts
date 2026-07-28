@@ -50,6 +50,11 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.material3:material3")
 
+    // GO-H1(ホーム画面ウィジェット・Duolingo式・本人GO 2026-07-28): Glance AppWidget。
+    // 同一プロセス/パッケージ内なので、既存のfilesDir/kyono-store.jsonを直読みできる
+    // (App Group相当の共有コンテナ新設は不要)。
+    implementation("androidx.glance:glance-appwidget:1.1.0")
+
     // 安全系判定(SafetyGate/SafetyKB)のJSONデコード用。Android SDK同梱のorg.json(実機/インストゥルメンテッド
     // テスト専用のスタブでJVM単体テストでは動かない)と衝突するため使わず、kotlinx.serializationを使う。
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")

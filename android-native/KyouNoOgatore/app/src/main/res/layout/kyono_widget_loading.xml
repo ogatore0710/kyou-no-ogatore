@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GO-H1(ホーム画面ウィジェット): AppWidgetProviderInfo.initialLayoutの必須プレースホルダー。
+     実際の表示は全てGlanceAppWidget(KyonoWidget.kt)がComposeで描画するため、これは
+     初回配置直後の一瞬だけ見える最小限のローディング表示。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFAF3">
+    <ProgressBar
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center" />
+</FrameLayout>
