@@ -1,5 +1,21 @@
+import CoreGraphics
+import ImageIO
 import XCTest
 @testable import CardCore
+
+// F1(TASK-C2-2026-07-29-inspection-upgrade.md)向けのダミー画像生成。中身の見た目は問わず、
+// 「本当にCGImageとして描画に反映されるか」だけを確かめたいので単色の小さな正方形で十分。
+private func makeDummyCGImage() -> CGImage {
+    let size = 10
+    let colorSpace = CGColorSpaceCreateDeviceRGB()
+    let ctx = CGContext(
+        data: nil, width: size, height: size, bitsPerComponent: 8, bytesPerRow: 0,
+        space: colorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+    )!
+    ctx.setFillColor(red: 1, green: 0, blue: 0, alpha: 1)
+    ctx.fill(CGRect(x: 0, y: 0, width: size, height: size))
+    return ctx.makeImage()!
+}
 
 // ネイティブ移植 Step 4(マスタープラン§6 Step4検収基準4): 「同一日付での再描画が同一出力」を
 // ビットマップ(PNGバイト列)比較で確認する。CardRendererは現在時刻・乱数を一切読まない設計

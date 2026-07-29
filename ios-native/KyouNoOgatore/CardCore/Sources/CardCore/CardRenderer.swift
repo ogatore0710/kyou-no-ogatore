@@ -415,12 +415,18 @@ public enum CardRenderer {
         drawLeftText(fmsg, in: ctx, x: bx1 + 28, baselineY: 900 + 37 + (ffs * 0.36).rounded(), fontSize: ffs, weight: .w800, color: color(theme.main))
     }
 
-    // DexView.loadCardArt(Step7a)と同じBundle.mainパターン(サブディレクトリ指定なし。ヘッダコメント参照)。
-    static func loadBundleImage(_ name: String) -> CGImage? {
+    // F1(TASK-C2-2026-07-29-inspection-upgrade.md): テストから画像解決を差し替えられる入口。
+    // 実行時はBundle.main経由の実装(下)を使うが、swift test環境ではBundle.mainがアプリ本体を
+    // 指さないため常にnilになる(=タイプアイコンの有無を画像到達性だけでは検査できない)。
+    // テストはこのimageLoaderを差し替えて「アイコンが実際に描画結果へ反映されるか」を確認する。
+    static var imageLoader: (String) -> CGImage? = { name in
+        // DexView.loadCardArt(Step7a)と同じBundle.mainパターン(サブディレクトリ指定なし。ヘッダコメント参照)。
         guard let url = Bundle.main.url(forResource: name, withExtension: "png"),
               let src = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
         return CGImageSourceCreateImageAtIndex(src, 0, nil)
     }
+
+    static func loadBundleImage(_ name: String) -> CGImage? { imageLoader(name) }
 
     // card-data.json(手写しではなくgen-card-data.mjsでJSから機械抽出済み・§1-2「手写し禁止」原則どおり)の
     // file値("assets/chara-good.png"形式のWeb側パス)を、バンドル内画像名("chara-good")へ変換する純関数。
