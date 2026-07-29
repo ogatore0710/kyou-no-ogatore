@@ -26,6 +26,9 @@ enum KyonoIcon {
     // (📦記録をコピーする/📋自動で読みこむ/📥よみこむ)は隣接して並ぶため、判断①(3つとも
     // 別の絵にする)のとおり、意味が近くても見分けがつく3種類を個別に描く。
     case exportBox, clipboardPaste, importTray
+    // アイコン方針(I) 新規描き起こしバッチ2(2026-07-30): 「お楽しみ・ごほうび」系3種
+    // (👑節目ゴールドカード/🎉お楽しみ機能/🎫おやすみ券)を同じテーマでまとめて描く。
+    case crownBadge, confettiBurst, ticketStub
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -231,6 +234,34 @@ struct KyonoIconGlyph: View {
                 var head = Path()
                 head.move(to: pt(8, 8)); head.addLine(to: pt(12, 12)); head.addLine(to: pt(16, 8))
                 ctx.stroke(head, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, lineJoin: .round))
+            case .crownBadge:
+                var crown = Path()
+                crown.move(to: pt(4, 17)); crown.addLine(to: pt(4, 8)); crown.addLine(to: pt(8, 13))
+                crown.addLine(to: pt(12, 6)); crown.addLine(to: pt(16, 13)); crown.addLine(to: pt(20, 8))
+                crown.addLine(to: pt(20, 17)); crown.closeSubpath()
+                ctx.fill(crown, with: .color(fill))
+                ctx.stroke(crown, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+                var band = Path()
+                band.move(to: pt(4, 17)); band.addLine(to: pt(20, 17))
+                ctx.stroke(band, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+                ctx.fill(Path(ellipseIn: CGRect(x: 10.7 * s, y: 4.7 * s, width: 2.6 * s, height: 2.6 * s)), with: .color(accent))
+            case .confettiBurst:
+                var horn = Path()
+                horn.move(to: pt(5, 20)); horn.addLine(to: pt(9, 9)); horn.addLine(to: pt(15, 13)); horn.closeSubpath()
+                ctx.fill(horn, with: .color(fill))
+                ctx.stroke(horn, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+                var dots = Path()
+                dots.addEllipse(in: CGRect(x: 16 * s, y: 5 * s, width: 2 * s, height: 2 * s))
+                dots.addEllipse(in: CGRect(x: 20 * s, y: 9 * s, width: 2 * s, height: 2 * s))
+                dots.addEllipse(in: CGRect(x: 12 * s, y: 4 * s, width: 2 * s, height: 2 * s))
+                ctx.fill(dots, with: .color(accent))
+            case .ticketStub:
+                let rect = Path(roundedRect: CGRect(x: 3 * s, y: 6 * s, width: 18 * s, height: 12 * s), cornerRadius: 3 * s)
+                ctx.fill(rect, with: .color(fill))
+                ctx.stroke(rect, with: .color(inkColor), lineWidth: 2.2 * s)
+                var perf = Path()
+                perf.move(to: pt(12, 7)); perf.addLine(to: pt(12, 17))
+                ctx.stroke(perf, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, dash: [2.2 * s, 2.4 * s]))
             }
         }
     }

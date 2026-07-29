@@ -2162,7 +2162,7 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(8.dp))
                 Text("じまんカードやせんぱいの声をチェック", color = colors.sub)
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("🎉 じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
+                KyonoGhostButton("じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
                 Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("💬 せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"))
                 Spacer(Modifier.height(8.dp))

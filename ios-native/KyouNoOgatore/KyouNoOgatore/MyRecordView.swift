@@ -531,7 +531,7 @@ private struct MyRecordContentView: View {
                     Spacer().frame(height: 8)
                     Text("じまんカードやせんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
-                    KyonoGhostButton("🎉 じまんカード", action: onOpenBrag)
+                    KyonoGhostButton("じまんカード", action: onOpenBrag)
                     Spacer().frame(height: 8)
                     KyonoGhostButton("💬 せんぱいの声", action: onOpenVoices)
                     Spacer().frame(height: 8)

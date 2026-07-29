@@ -42,6 +42,9 @@ enum class KyonoIcon {
     // (📦記録をコピーする/📋自動で読みこむ/📥よみこむ)は隣接して並ぶため、判断①(3つとも
     // 別の絵にする)のとおり、意味が近くても見分けがつく3種類を個別に描く。
     ExportBox, ClipboardPaste, ImportTray,
+    // アイコン方針(I) 新規描き起こしバッチ2(2026-07-30): 「お楽しみ・ごほうび」系3種
+    // (👑節目ゴールドカード/🎉お楽しみ機能/🎫おやすみ券)を同じテーマでまとめて描く。
+    CrownBadge, ConfettiBurst, TicketStub,
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -276,6 +279,36 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     moveTo(pt(8f, 8f).x, pt(8f, 8f).y); lineTo(pt(12f, 12f).x, pt(12f, 12f).y); lineTo(pt(16f, 8f).x, pt(16f, 8f).y)
                 }
                 drawPath(head, accent, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+            KyonoIcon.CrownBadge -> {
+                val crown = Path().apply {
+                    moveTo(pt(4f, 17f).x, pt(4f, 17f).y); lineTo(pt(4f, 8f).x, pt(4f, 8f).y); lineTo(pt(8f, 13f).x, pt(8f, 13f).y)
+                    lineTo(pt(12f, 6f).x, pt(12f, 6f).y); lineTo(pt(16f, 13f).x, pt(16f, 13f).y); lineTo(pt(20f, 8f).x, pt(20f, 8f).y)
+                    lineTo(pt(20f, 17f).x, pt(20f, 17f).y); close()
+                }
+                drawPath(crown, fill, style = Fill)
+                drawPath(crown, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawLine(ink, pt(4f, 17f), pt(20f, 17f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                drawCircle(accent, radius = 1.3f * s, center = pt(12f, 6f))
+            }
+            KyonoIcon.ConfettiBurst -> {
+                val horn = Path().apply {
+                    moveTo(pt(5f, 20f).x, pt(5f, 20f).y); lineTo(pt(9f, 9f).x, pt(9f, 9f).y); lineTo(pt(15f, 13f).x, pt(15f, 13f).y); close()
+                }
+                drawPath(horn, fill, style = Fill)
+                drawPath(horn, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawCircle(accent, radius = 1f * s, center = pt(16f, 5f))
+                drawCircle(accent, radius = 1f * s, center = pt(20f, 9f))
+                drawCircle(accent, radius = 1f * s, center = pt(12f, 4f))
+            }
+            KyonoIcon.TicketStub -> {
+                val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(3f * s, 6f * s, 21f * s, 18f * s, CornerRadius(3f * s))) }
+                drawPath(rect, fill, style = Fill)
+                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawLine(
+                    accent, pt(12f, 7f), pt(12f, 17f), strokeWidth = 2.2f * s, cap = StrokeCap.Round,
+                    pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(2.2f * s, 2.4f * s)),
+                )
             }
         }
     }
