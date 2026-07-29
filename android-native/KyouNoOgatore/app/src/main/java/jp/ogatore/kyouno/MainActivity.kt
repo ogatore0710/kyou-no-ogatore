@@ -1382,16 +1382,6 @@ fun HomeScreen(
                 KyonoConfetti(count = confettiCount, modifier = Modifier.matchParentSize())
             }
         }
-        // E1DEBUG-TEMP: 6タイプ全部の実機描画確認用。確認後に削除する。
-        androidx.compose.foundation.layout.Row(
-            Modifier
-                .background(androidx.compose.ui.graphics.Color.White)
-                .horizontalScroll(androidx.compose.foundation.rememberScrollState()),
-        ) {
-            for (key in listOf("momo", "kenko", "yawara", "koka", "ashi", "robot")) {
-                KyonoTypeArt(key)
-            }
-        }
         }
 
         cardResult?.let { result ->
