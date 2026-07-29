@@ -187,6 +187,9 @@ struct KyonoPrimaryButton: View {
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
     let text: String
+    // TASK-C2-2026-07-30-icon-system.md(I): 見出し・ボタンの絵文字をKyonoIconGlyph(タブバーと
+    // 同じ手描き風Canvas意匠)へ置き換えるための差し込み口。nilなら従来どおりテキストのみ。
+    var icon: KyonoIcon? = nil
     let action: () -> Void
     var enabled: Bool = true
     // index.html:382 .done-btn.did{background:var(--line);color:var(--sub);box-shadow:none;
@@ -197,8 +200,8 @@ struct KyonoPrimaryButton: View {
     var flatWhenDisabled = false
     @State private var pressed = false
 
-    init(_ text: String, enabled: Bool = true, flatWhenDisabled: Bool = false, action: @escaping () -> Void) {
-        self.text = text; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.action = action
+    init(_ text: String, icon: KyonoIcon? = nil, enabled: Bool = true, flatWhenDisabled: Bool = false, action: @escaping () -> Void) {
+        self.text = text; self.icon = icon; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.action = action
     }
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
@@ -227,7 +230,17 @@ struct KyonoPrimaryButton: View {
                     .accessibilityHidden(true)
                 // B1(2026-07-29): 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値
                 // 固定)を使う。ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
-                Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.yellowInk)
+                HStack(spacing: 6 * zoom) {
+                    if let icon {
+                        // 黄色背景の上に乗るアイコンなので、塗り(fill)は無し(背景の黄色がそのまま
+                        // 透ける)にして、線(stroke・タブバーと同じinkColor固定)とアクセント
+                        // (yellowInk)だけで形を見せる。
+                        KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.yellowInk)
+                            .frame(width: 20 * zoom, height: 20 * zoom)
+                    }
+                    Text(text)
+                }
+                .kyonoFont(.black900, size: 20).foregroundColor(colors.yellowInk)
                     .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                     .frame(maxWidth: .infinity)
                     .background(colors.yellow.opacity(alpha))

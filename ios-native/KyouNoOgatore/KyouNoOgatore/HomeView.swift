@@ -847,7 +847,9 @@ private struct SoudanCard: View {
                             KyonoCharaImage(name: "chara-hitokoto").frame(width: 64 * zoom, height: 64 * zoom)
                         }
                         Spacer().frame(height: 10 * zoom)
-                        KyonoPrimaryButton("💬 相談する") { onOpenSoudan(nil) }
+                        // TASK-C2-2026-07-30-icon-system.md(I) 試作1件目: 💬→ふきだしアイコン
+                        // (KyonoIcon.soudanBubble・タブバーと同じCanvas意匠を流用)。
+                        KyonoPrimaryButton("相談する", icon: .soudanBubble) { onOpenSoudan(nil) }
                         Spacer().frame(height: 10 * zoom)
                         Text("👇 タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         Spacer().frame(height: 6 * zoom)
