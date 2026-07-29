@@ -45,12 +45,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -422,8 +424,35 @@ fun SoudanSheet(
             // (最後の短い行)ときはscrollTo/animateScrollToが自動でmaxValueにクランプする
             // ため、index.html:3069のMath.min(...)クランプと同じ効果になる(特別扱い不要)。
             val sdScrollState = rememberScrollState()
-            val sdCoroutineScope = rememberCoroutineScope()
-            var sdLastScrolledFor by remember { mutableStateOf<SdBubble?>(null) }
+            // B5バグ修正(2026-07-29・実機ログで発見): 当初はonGloballyPositioned内で
+            // 「自分がmessages.lastIndexと一致するか」「前回スクロール済みインスタンスと
+            // 参照が違うか」を判定していたが2つの理由で機能していなかった。
+            // (1) SdBubble.Typingはobject(シングルトン)のため、一度スクロール済みと
+            //     記録すると以降すべてのTyping出現が「同じ参照」判定され二度と発火しない。
+            // (2) 実メッセージが積まれた直後に次のTypingが即追加されるため、そのメッセージの
+            //     onGloballyPositioned発火時には既にmessages.lastIndexが1つ先へ進んでおり
+            //     「自分が最後」判定に失敗する(競合)。
+            // 結果、最初のTyping出現時の1回しかスクロールが発火せず、それ以降(mitate本文・
+            // video note・keizoku)は一切スクロールしていなかった。
+            // 修正: 各行の位置はindexキーで無条件に記録し続け、「どこへスクロールするか」は
+            // messages.sizeの変化を捉えるLaunchedEffectで都度「そのときのmessages.lastIndex」を
+            // 再評価する。sizeが連続で変わればLaunchedEffectの自動キャンセルにより古い狙いは
+            // 破棄され、常に最新の「今の最後の行」だけへ届く。
+            val sdRowPositions = remember { mutableStateMapOf<Int, Float>() }
+            LaunchedEffect(messages.size) {
+                val idx = messages.lastIndex
+                if (idx < 0) return@LaunchedEffect
+                val isUser = messages[idx] is SdBubble.User
+                var y = sdRowPositions[idx]
+                var tries = 0
+                while (y == null && tries < 10) {
+                    withFrameNanos {}
+                    y = sdRowPositions[idx]
+                    tries++
+                }
+                val target = if (isUser) sdScrollState.maxValue else (y?.roundToInt() ?: sdScrollState.maxValue)
+                if (sdReducedMotion) sdScrollState.scrollTo(target) else sdScrollState.animateScrollTo(target)
+            }
             Column(
                 Modifier.weight(1f).fillMaxWidth().verticalScroll(sdScrollState)
                     .padding(16.dp).testTag("sdLog"),
@@ -446,21 +475,9 @@ fun SoudanSheet(
                             fadeIn(tween(180, easing = KyonoEaseOut)) +
                                 slideInVertically(tween(180, easing = KyonoEaseOut)) { with(bubblePopDensity) { 4.dp.roundToPx() } }
                         },
-                        // B5: 最後の行の実レイアウト位置が確定した時点(=タイピングドット→
-                        // 本文への差し替え後の高さも含む)で、そのメッセージへ初めてスクロール
-                        // する。sdLastScrolledForで「同じメッセージには2回スクロールしない」
-                        // ことを保証する(参照比較=新しいインスタンスが積まれた時だけ動く)。
+                        // B5: 全行の位置を無条件で記録するだけ(スクロール判断はLaunchedEffect側)。
                         modifier = Modifier.onGloballyPositioned { coords ->
-                            android.util.Log.d("SD_DEBUG", "onGloballyPositioned index=$index last=${messages.lastIndex} m=$m alreadyScrolled=${sdLastScrolledFor === m}")
-                            if (index != messages.lastIndex || sdLastScrolledFor === m) return@onGloballyPositioned
-                            sdLastScrolledFor = m
-                            val targetTop = coords.positionInParent().y.roundToInt()
-                            android.util.Log.d("SD_DEBUG", "SCROLL targetTop=$targetTop maxValue=${sdScrollState.maxValue} isUser=${m is SdBubble.User}")
-                            sdCoroutineScope.launch {
-                                val target = if (m is SdBubble.User) sdScrollState.maxValue else targetTop
-                                if (sdReducedMotion) sdScrollState.scrollTo(target) else sdScrollState.animateScrollTo(target)
-                                android.util.Log.d("SD_DEBUG", "SCROLL done target=$target actual=${sdScrollState.value}")
-                            }
+                            sdRowPositions[index] = coords.positionInParent().y
                         },
                     ) {
                     when (m) {
