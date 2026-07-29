@@ -31,6 +31,11 @@ private val ink = Color(0xFF3A3A35)
 enum class KyonoIcon {
     Clock, Question, QuizCheck, SoudanBubble, ObuBubble, Play, CalendarCheck,
     DexBook, Heart, Envelope, Notes, MountainCheck, ShieldCheck, Star,
+    // アイコン方針(TASK-C2-2026-07-30-icon-system.md)既存アイコン適用バッチ: タブバーの
+    // 「動画を探す」(虫眼鏡)・「使い方」(開いた本)を他画面でも再利用できるよう、
+    // KyonoTabBar.ktのSearchIcon/GuideIconと同じ形状をここに複製する(タブバー本体は
+    // 既存のまま・privateなComposableも変更しない)。
+    Search, GuideBook,
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -219,6 +224,26 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                 }
                 drawPath(star, fill, style = Fill)
                 drawPath(star, ink, style = Stroke(1.6f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+            KyonoIcon.Search -> {
+                drawCircle(fill, radius = 6.5f * s, center = pt(10.5f, 10.5f))
+                drawCircle(ink, radius = 6.5f * s, center = pt(10.5f, 10.5f), style = Stroke(2.2f * s))
+                val handle = Path().apply { moveTo(pt(15.5f, 15.5f).x, pt(15.5f, 15.5f).y); lineTo(pt(20f, 20f).x, pt(20f, 20f).y) }
+                drawPath(handle, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+            }
+            KyonoIcon.GuideBook -> {
+                val path = Path().apply {
+                    moveTo(pt(4f, 5.5f).x, pt(4f, 5.5f).y)
+                    quadraticBezierTo(pt(8f, 3.5f).x, pt(8f, 3.5f).y, pt(12f, 5.5f).x, pt(12f, 5.5f).y)
+                    quadraticBezierTo(pt(16f, 3.5f).x, pt(16f, 3.5f).y, pt(20f, 5.5f).x, pt(20f, 5.5f).y)
+                    lineTo(pt(20f, 19f).x, pt(20f, 19f).y)
+                    quadraticBezierTo(pt(16f, 17f).x, pt(16f, 17f).y, pt(12f, 19f).x, pt(12f, 19f).y)
+                    quadraticBezierTo(pt(8f, 17f).x, pt(8f, 17f).y, pt(4f, 19f).x, pt(4f, 19f).y)
+                    close()
+                }
+                drawPath(path, fill, style = Fill)
+                drawPath(path, ink, style = Stroke(2.2f * s))
+                drawLine(ink, pt(12f, 5.5f), pt(12f, 19f), strokeWidth = 2.2f * s)
             }
         }
     }
