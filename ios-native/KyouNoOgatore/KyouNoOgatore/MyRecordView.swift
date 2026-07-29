@@ -124,10 +124,14 @@ struct MyRecordView: View {
                                 onOpenSettings()
                             }
                         }
-                        // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一。
-                        HStack(spacing: 12) {
-                            KyonoGhostButton("とじる") { self.dayCardResult = nil }
-                            KyonoPrimaryButton("保存・シェアする") { ShareImage.share(uiImage: dayCardResult.image, text: "#きょうのオガトレ") }
+                        // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
+                        // (btn-primary「📤 保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
+                        // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った
+                        // 「保存・シェアする」だけが2行に折り返し、1行の「とじる」と高さ・上端が
+                        // 揃わなかった。
+                        VStack(spacing: 12) {
+                            KyonoPrimaryButton("📤 保存・シェアする") { ShareImage.share(uiImage: dayCardResult.image, text: "#きょうのオガトレ") }
+                            KyonoLineButton("とじる") { self.dayCardResult = nil }
                         }
                     }
                 }

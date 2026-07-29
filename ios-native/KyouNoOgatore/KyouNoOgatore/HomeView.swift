@@ -596,15 +596,17 @@ struct HomeView: View {
                                 onOpenSettings()
                             }
                         }
-                        // GO-G4(5視点ワンループ): 素のButtonをKyonoGhostButton/KyonoPrimaryButtonに統一
-                        // (タップ領域・見た目ともアプリの基準コンポーネントに揃える)。あわせて2ボタンが
-                        // 隙間なく隣接していた点を余白で解消。
-                        HStack(spacing: 12 * zoom) {
-                            KyonoGhostButton("とじる", action: closeCardAndMaybeStartTour)
+                        // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
+                        // (btn-primary「📤 保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
+                        // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った
+                        // 「保存・シェアする」だけが2行に折り返し、1行の「とじる」と高さ・上端が
+                        // 揃わなかった。
+                        VStack(spacing: 12 * zoom) {
                             // index.html shareCard()相当(Step7bで新規実装)。
-                            KyonoPrimaryButton("保存・シェアする") {
+                            KyonoPrimaryButton("📤 保存・シェアする") {
                                 ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
                             }
+                            KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
                         }
                     }
                 }

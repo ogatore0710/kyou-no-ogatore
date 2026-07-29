@@ -506,11 +506,18 @@ struct KyonoCardModalOverlay<Content: View>: View {
             ZStack {
                 Color.black.opacity(0.55).ignoresSafeArea()
                     .onTapGesture { onClose() }
+                // TestFlight実機フィードバックD3(2026-07-29): index.html:1191 #cardModalBox
+                // (padding:18px・高さ指定なし=内容ぴったり)の1:1移植。以前は.background()を
+                // ScrollView自体に付けていたため、ScrollViewが(親のZStackがColor.black...
+                // ignoresSafeArea()で画面いっぱいになる影響で)画面ほぼ全高まで広がり、実際の
+                // 内容(画像+ボタン)より下に大きな空白ができていた。.background()をcontent()側に
+                // 付け替え、カードの見た目の大きさを内容の実寸に戻す(ScrollView自体はオーバー
+                // フロー時の保険としてそのまま残す)。
                 ScrollView {
                     content()
                         .padding()
+                        .background(RoundedRectangle(cornerRadius: 20).fill(colors.card))
                 }
-                .background(RoundedRectangle(cornerRadius: 20).fill(colors.card))
                 .padding(24)
             }
             .transition(.opacity)
