@@ -376,6 +376,14 @@ private struct SoudanContentView: View {
     // チップを押しても画面が動かず「押せたか分からない」体験になっていた。
     private static let bottomAnchorID = "sdBottomAnchor"
 
+    // TestFlight実機フィードバックD5(2026-07-29): キーボードを出すと会話エリアの高さが0になる
+    // 不具合。ヘッダー・注意書き2行・カテゴリタブ+チップ行・「とじる」という縮まない固定物が
+    // 場所を取り切ってしまうのが原因(C2と同じ「固定物が場所を取り切る」系統だが、あちらは器の
+    // 構造そのものが壊れていたのに対し、こちらは「キーボード表示中に何を残すかを決めていない」
+    // だけ)。alan5の指示どおり、高さを稼ぐのではなく打っている間だけ不要なものを畳む方針にする。
+    // 入力欄が編集中かどうかをFocusStateで直接見て、会話・入力欄・送信の3つだけを残す。
+    @FocusState private var inputFocused: Bool
+
     var body: some View {
         ScrollViewReader { proxy in
         VStack(spacing: 0) {
@@ -400,16 +408,20 @@ private struct SoudanContentView: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 12)
             .background(colors.card)
-            // index.html:1223 .sd-disc(2行・2行目後半は太字強調)。Text連結(+)はText型のみ許容する
-            // ため、ここだけ.kyonoFont(ViewModifier)ではなく.font(.kyono(...))を直接使う
-            // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
-            (Text("※回答はオガトレ監修のパターン集から選んでいます\n※目安をつかむ相談室です ")
-                .font(.kyono(.bold700, size: 13))
-                + Text("強い痛み・しびれがあるときは医療機関へ").font(.kyono(.black900, size: 13)))
-                .foregroundColor(colors.sub).multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16).padding(.vertical, 6)
-                .background(colors.card)
+            // D5: キーボード表示中は打っている人に要らないものを畳む(注意書き2行)。
+            if !inputFocused {
+                // index.html:1223 .sd-disc(2行・2行目後半は太字強調)。Text連結(+)はText型のみ許容する
+                // ため、ここだけ.kyonoFont(ViewModifier)ではなく.font(.kyono(...))を直接使う
+                // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
+                (Text("※回答はオガトレ監修のパターン集から選んでいます\n※目安をつかむ相談室です ")
+                    .font(.kyono(.bold700, size: 13))
+                    + Text("強い痛み・しびれがあるときは医療機関へ").font(.kyono(.black900, size: 13)))
+                    .foregroundColor(colors.sub).multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16).padding(.vertical, 6)
+                    .background(colors.card)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
             Divider()
 
             ScrollView {
@@ -453,6 +465,7 @@ private struct SoudanContentView: View {
 
             chipsView
         }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: inputFocused)
         .background(colors.bg)
         }
     }
@@ -552,6 +565,9 @@ private struct SoudanContentView: View {
     @ViewBuilder
     private var chipsView: some View {
         VStack(alignment: .leading, spacing: 6) {
+            // D5: キーボード表示中はカテゴリタブ・チップ行を畳む。打ち始めた時点でタグ選びは
+            // 終わっているという判断(alan5の指示どおり)。
+            if !inputFocused {
             switch chipsMode {
             case .none:
                 EmptyView() // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
@@ -609,15 +625,20 @@ private struct SoudanContentView: View {
                         KyonoChip(label: "べつの悩みをそうだん") { onCatSelect("body") }
                 }
             }
+            }
 
             HStack {
                 TextField("気になることを入力", text: $input).textFieldStyle(.roundedBorder)
+                    .focused($inputFocused)
                 KyonoPrimaryButton("送信", enabled: !sdPending, action: onSend).frame(width: 90)
             }
             // GO-G16(5視点ワンループ): 高さ92%のシートで✕が最上部右端40×40だけだったため、
             // 入力欄の下にも「とじる」を1つ追加する。
-            Spacer().frame(height: 8)
-            KyonoLineButton("とじる", action: onClose)
+            // D5: キーボード表示中は畳む(閉じるは右上の✕が既にあるため無くても困らない)。
+            if !inputFocused {
+                Spacer().frame(height: 8)
+                KyonoLineButton("とじる", action: onClose)
+            }
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         .background(colors.card)
