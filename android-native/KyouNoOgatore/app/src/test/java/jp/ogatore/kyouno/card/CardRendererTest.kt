@@ -93,6 +93,38 @@ class CardRendererTest {
         assertFalse("タグピル行(かたさタイプ/メモ)の有無で出力が変わっていない", pixels(withoutTags).contentEquals(pixels(withTags)))
     }
 
+    // F1(TASK-C2-2026-07-29-inspection-upgrade.md): E1(koka/ashi/robotのアイコン欠落)の再発防止。
+    // 既存のsameInputWithRealAssetsProducesIdenticalPixelsTwiceはmomo 1キーしか試しておらず、
+    // TYPE_IMGが3体のままでも6体でも通ってしまっていた(alan5の指摘どおり)。ここでは6キー全部を
+    // ループし、「アイコンありの描画結果とアイコンなしの描画結果が異なること」を直接確認する。
+    // @GraphicsMode(NATIVE)+実contextにより、iOSと違いスタブ無しでres/drawable-nodpi/の実画像を
+    // そのまま検査できる(TYPE_IMGから1体でも欠けると、そのタイプだけ両者が一致して赤くなる)。
+    @Test
+    fun allSixTypeIconsAreActuallyDrawnIntoTheCard() {
+        val data = CardDataLoader.shared
+        val ds = "2026-07-25"
+        val di = CardLottery.dateIdx(ds)
+        val context = RuntimeEnvironment.getApplication()
+        val noIcon = pixels(
+            CardRenderer.render(
+                ds, 12, sampleTheme(), false, null, di, data.CARD_THEMES_V2_FROM,
+                context = context, typeName = "テストタイプ", typeIconKey = null,
+            ),
+        )
+        for (key in listOf("momo", "kenko", "yawara", "koka", "ashi", "robot")) {
+            val withIcon = pixels(
+                CardRenderer.render(
+                    ds, 12, sampleTheme(), false, null, di, data.CARD_THEMES_V2_FROM,
+                    context = context, typeName = "テストタイプ", typeIconKey = key,
+                ),
+            )
+            assertFalse(
+                "typeIconKey=${key} のときアイコンが描画結果に反映されていない(TYPE_IMGに${key}が無い疑い)",
+                withIcon.contentEquals(noIcon),
+            )
+        }
+    }
+
     @Test
     fun sameDateIdxAlwaysPicksSameCharacter() {
         // dateIdx駆動のキャラ選定(Web版のdayIndex()=現在時刻依存とは意図的に差をつけている・

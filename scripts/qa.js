@@ -2223,6 +2223,180 @@ function checkPythonScripts() {
   assert("python scripts: syntax", result.status === 0, (result.stderr || result.stdout || `${scripts.length} files`).trim());
 }
 
+// F3(TASK-C2-2026-07-29-inspection-upgrade.md「検査の底上げ」): 「テストは緑なのに実機では
+// 欠陥」というB4/D2/B6/E1型の事故を、静的な突き合わせで機械的に検出する。alan5の独立監査により
+// 「ゴールデンテストに画像を届かせる」案は6欠陥中2つしか捕まらないと分かり、この静的突き合わせ
+// (npm testの層)＋F1(CardCoreのアイコン判定)に差し替えられた。
+
+// F3-① 必須Info.plistキーの固定: 無いと機能が黙って消えるキーをリスト化し、pbxprojに実在するかを
+// 検査する。D2(NSPhotoLibraryAddUsageDescriptionが無く「写真に保存」が共有シートから消えていた)
+// と同じ形の事故を、次に同じキーが誤って消されたときに捕まえる。
+const REQUIRED_IOS_INFOPLIST_KEYS = [
+  // D2: 無いと共有シートから「写真に保存」系のアクティビティが黙って除外される。
+  { key: "INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription", why: "D2(共有シートの「写真に保存」が消える)" },
+  // カレンダー登録(記録カード/使い方タブ)が黙って失敗する。
+  { key: "INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription", why: "カレンダーへの登録が失敗する" },
+  // B7: 無いとアプリの表示名がバンドル名(英語)にフォールバックする。
+  { key: "INFOPLIST_KEY_CFBundleDisplayName", why: "B7(表示名が英語のバンドル名に戻る)" },
+];
+function checkNativeRequiredInfoPlistKeys() {
+  const rel = "ios-native/KyouNoOgatore/KyouNoOgatore.xcodeproj/project.pbxproj";
+  if (!exists(rel)) {
+    fail("iOS pbxproj: 必須Info.plistキー", "project.pbxprojが見つからない");
+    return;
+  }
+  const pbxproj = read(rel);
+  for (const { key, why } of REQUIRED_IOS_INFOPLIST_KEYS) {
+    // Debug/Release両方のビルド設定に無いと片方の構成だけ機能が消えるため、2箇所以上を要求する
+    // (このプロジェクトのpbxprojは常にDebug/Release2箇所の並び。B4/D2はこの片側/両側欠落の実例)。
+    const count = pbxproj.split(key).length - 1;
+    assert(`iOS pbxproj: ${key} がDebug/Release両方にある`, count >= 2, `${count} occurrence(s) — 無いと${why}`);
+  }
+}
+
+// Swift/Kotlinの辞書リテラルから {key: value} の組を機械抽出する(手で写した表は使わない・
+// §1-2「手写し禁止」原則と同じ考え方)。宣言名の位置から最初の"["/"{"〜対応する"]"/"}"までを
+// 1階層のみ切り出す(ネストした[]/{}が無い前提の単純な辞書リテラルのみを対象にする)。
+function extractDictBody(source, declName, openChar, closeChar) {
+  const declIdx = source.indexOf(declName);
+  if (declIdx < 0) return null;
+  // Swiftの型注釈([String: String]等)がリテラル本体より先に同じopenCharで現れることがあるため、
+  // 宣言の"="以降だけを探索範囲にする(型注釈のみのケース。"="が無い呼び出しはdeclIdx以降そのまま)。
+  const eqIdx = source.indexOf("=", declIdx);
+  const searchFrom = eqIdx >= 0 && eqIdx < declIdx + 200 ? eqIdx : declIdx;
+  const openIdx = source.indexOf(openChar, searchFrom);
+  if (openIdx < 0) return null;
+  const closeIdx = source.indexOf(closeChar, openIdx);
+  if (closeIdx < 0) return null;
+  return source.slice(openIdx + 1, closeIdx);
+}
+function extractSwiftDictPairs(source, declName) {
+  const body = extractDictBody(source, declName, "[", "]");
+  if (body === null) return null;
+  const pairs = [];
+  const re = /"([a-zA-Z0-9_]+)"\s*:\s*"([a-zA-Z0-9_-]+)"/g;
+  let m;
+  while ((m = re.exec(body))) pairs.push([m[1], m[2]]);
+  return pairs;
+}
+function extractKotlinMapPairs(source, declName) {
+  const body = extractDictBody(source, declName, "(", ")");
+  if (body === null) return null;
+  const pairs = [];
+  const re = /"([a-zA-Z0-9_]+)"\s+to\s+"([a-zA-Z0-9_-]+)"/g;
+  let m;
+  while ((m = re.exec(body))) pairs.push([m[1], m[2]]);
+  return pairs;
+}
+// CharaAsset(WidgetCore)は `case xxx = "chara-xxx"` という enum rawValue 形式なので専用の抽出。
+function extractSwiftEnumRawValues(source, declName) {
+  const declIdx = source.indexOf(declName);
+  if (declIdx < 0) return null;
+  const openIdx = source.indexOf("{", declIdx);
+  const closeIdx = source.indexOf("}", openIdx);
+  const body = source.slice(openIdx + 1, closeIdx);
+  const values = [];
+  const re = /case\s+\w+\s*=\s*"([a-zA-Z0-9_-]+)"/g;
+  let m;
+  while ((m = re.exec(body))) values.push(m[1]);
+  return values;
+}
+
+// F3-② リソース参照の突き合わせ: コードが名前で参照している画像が、実ファイルとして存在するかを
+// 突き合わせる。B6(ウィジェットのキャラ画像)・E1(タイプ画像の欠番)はこれで捕まる。
+function checkNativeResourceReferencesExist() {
+  const targets = [
+    {
+      label: "iOS CardCore TYPE_IMG_NAMES",
+      file: "ios-native/KyouNoOgatore/CardCore/Sources/CardCore/CardRenderer.swift",
+      extract: (src) => extractSwiftDictPairs(src, "public let TYPE_IMG_NAMES"),
+      resolveDir: "ios-native/KyouNoOgatore/KyouNoOgatore/TypeArt",
+      ext: ".png",
+    },
+    {
+      label: "iOS KyonoTypeArt.swift typeImgNames",
+      file: "ios-native/KyouNoOgatore/KyouNoOgatore/KyonoTypeArt.swift",
+      extract: (src) => extractSwiftDictPairs(src, "private let typeImgNames"),
+      resolveDir: "ios-native/KyouNoOgatore/KyouNoOgatore/TypeArt",
+      ext: ".png",
+    },
+    {
+      label: "iOS WidgetCore CharaAsset",
+      file: "ios-native/KyouNoOgatore/WidgetCore/Sources/WidgetCore/WidgetStateCalculator.swift",
+      extract: (src) => (extractSwiftEnumRawValues(src, "public enum CharaAsset") || []).map((v) => [v, v]),
+      resolveDir: "ios-native/KyouNoOgatore/KyonoWidgetExtension/CharaArt",
+      ext: ".png",
+    },
+    {
+      label: "Android card.CardRenderer TYPE_IMG",
+      file: "android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/card/CardRenderer.kt",
+      extract: (src) => extractKotlinMapPairs(src, "internal val TYPE_IMG "),
+      resolveDir: "android-native/KyouNoOgatore/app/src/main/res/drawable-nodpi",
+      ext: ".png",
+    },
+    {
+      label: "Android KyonoTypeArt.kt TYPE_IMG_RES",
+      file: "android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/KyonoTypeArt.kt",
+      extract: (src) => extractKotlinMapPairs(src, "private val TYPE_IMG_RES"),
+      resolveDir: "android-native/KyouNoOgatore/app/src/main/res/drawable-nodpi",
+      ext: ".png",
+    },
+  ];
+  for (const t of targets) {
+    if (!exists(t.file)) {
+      fail(`${t.label}: リソース突き合わせ`, `${t.file} が見つからない`);
+      continue;
+    }
+    const pairs = t.extract(read(t.file));
+    if (pairs === null || pairs.length === 0) {
+      fail(`${t.label}: リソース突き合わせ`, "辞書の機械抽出に失敗(宣言の書式が変わった可能性)");
+      continue;
+    }
+    const missing = pairs
+      .filter(([, value]) => !exists(path.join(t.resolveDir, `${value}${t.ext}`)))
+      .map(([key, value]) => `${key}→${value}${t.ext}`);
+    assert(`${t.label}: 参照する画像が全部実在する`, missing.length === 0, missing.length ? missing.join(", ") : `${pairs.length} keys checked`);
+  }
+}
+
+// F3-③ Web版とネイティブの辞書突き合わせ: Web版が絵を出すキーの集合(index.htmlのTYPE_IMG ∪
+// app-quiz.jsのTYPE_ART)を機械抽出して、ネイティブの各辞書のキー集合と突き合わせる。E1のような
+// 「Web版は6体対応済みなのにネイティブが3体のまま」というズレを、次に同じ形で起きたときに
+// 検出する(手で写した表がずれていく問題が構造的に消える)。
+function checkWebNativeTypeIconKeyParity() {
+  const html = read("index.html");
+  const quizScript = read("app-quiz.js");
+
+  const typeImgBody = extractDictBody(html, "const TYPE_IMG = {", "{", "}");
+  const typeArtBody = extractDictBody(quizScript, "const TYPE_ART = {", "{", "}");
+  if (typeImgBody === null || typeArtBody === null) {
+    fail("Web/ネイティブ タイプアイコン キー突き合わせ", "index.html TYPE_IMGまたはapp-quiz.js TYPE_ARTの抽出に失敗");
+    return;
+  }
+  const webKeys = new Set();
+  for (const re of [/(\w+)\s*:\s*"assets\/type-[\w-]+\.png"/g, /^\s*(\w+)\s*:/gm]) {
+    let m;
+    const target = re.source.includes("assets") ? typeImgBody : typeArtBody;
+    while ((m = re.exec(target))) webKeys.add(m[1]);
+  }
+  assert("Web版 TYPE_IMG∪TYPE_ART: 6キー抽出できている", webKeys.size === 6, [...webKeys].sort().join(","));
+
+  const nativeTargets = [
+    { label: "iOS CardCore TYPE_IMG_NAMES", file: "ios-native/KyouNoOgatore/CardCore/Sources/CardCore/CardRenderer.swift", extract: (src) => extractSwiftDictPairs(src, "public let TYPE_IMG_NAMES") },
+    { label: "iOS KyonoTypeArt.swift typeImgNames", file: "ios-native/KyouNoOgatore/KyouNoOgatore/KyonoTypeArt.swift", extract: (src) => extractSwiftDictPairs(src, "private let typeImgNames") },
+    { label: "Android card.CardRenderer TYPE_IMG", file: "android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/card/CardRenderer.kt", extract: (src) => extractKotlinMapPairs(src, "internal val TYPE_IMG ") },
+    { label: "Android KyonoTypeArt.kt TYPE_IMG_RES", file: "android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/KyonoTypeArt.kt", extract: (src) => extractKotlinMapPairs(src, "private val TYPE_IMG_RES") },
+  ];
+  for (const t of nativeTargets) {
+    if (!exists(t.file)) { fail(`${t.label}: Web版とのキー突き合わせ`, `${t.file} が見つからない`); continue; }
+    const pairs = t.extract(read(t.file));
+    if (pairs === null) { fail(`${t.label}: Web版とのキー突き合わせ`, "辞書の機械抽出に失敗"); continue; }
+    const nativeKeys = new Set(pairs.map(([k]) => k));
+    const missing = [...webKeys].filter((k) => !nativeKeys.has(k));
+    assert(`${t.label}: Web版のキー集合と一致(不足なし)`, missing.length === 0, missing.length ? `不足: ${missing.join(",")}` : `${nativeKeys.size} keys`);
+  }
+}
+
 // 一時検証コードの取り残し検知（2026-07-27 追加・PRINCIPLES 70条「教訓は機械チェックに昇格させる」）
 // 事件: iOSの目視確認のため起動画面を相談室に固定する仮コードを入れたところ、even-syncの10分ごとの
 // 自動コミットに巻き込まれてorigin/mainへpushされた(コミット2bfd59e)。今回はネイティブ(未配布)で
@@ -2317,6 +2491,9 @@ function main() {
   checkVerification20260720Fixes(html, mainScript);
   checkQuotesCoverage(mainScript);
   checkPythonScripts();
+  checkNativeRequiredInfoPlistKeys();
+  checkNativeResourceReferencesExist();
+  checkWebNativeTypeIconKeyParity();
   checkNoTempMarkers();
 
   if (failures.length) {

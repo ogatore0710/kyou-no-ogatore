@@ -106,4 +106,39 @@ final class CardRendererTests: XCTestCase {
         XCTAssertEqual(pngs[0], pngs[1], "同じ日付なのにキャラクター選定(dateIdx駆動)が再現しない")
         XCTAssertEqual(pngs[1], pngs[2], "同じ日付なのにキャラクター選定(dateIdx駆動)が再現しない")
     }
+
+    // ---- F1(TASK-C2-2026-07-29-inspection-upgrade.md): E1(koka/ashi/robotのアイコン欠落)の
+    // 再発防止。card-golden(CardLotteryTests)は抽選ロジックのみを見ており描画は一切見ていない、
+    // このファイルの既存テストも「同じ入力→同じ出力」の自己一致でしかなく、TYPE_IMG_NAMESが
+    // 3体のままでも6体でも通ってしまっていた(alan5の指摘どおり)。ここでは
+    // 「タイプごとに、アイコンありの描画結果とアイコンなしの描画結果が異なること」を直接確認する。
+    // TYPE_IMG_NAMESから1体でも欠けると、そのタイプだけ両者が一致してしまい赤くなる。
+    func testAllSixTypeIconsAreActuallyDrawnIntoTheCard() {
+        let originalLoader = CardRenderer.imageLoader
+        defer { CardRenderer.imageLoader = originalLoader }
+        // Bundle.mainはswift test環境ではアプリ本体を指さず常にnilになるため、実在するダミー画像を
+        // 返すスタブに差し替える(F1の主旨どおり「画像到達性」ではなく「辞書に載っているか」を見る)。
+        let dummy = makeDummyCGImage()
+        CardRenderer.imageLoader = { _ in dummy }
+
+        let data = CardDataLoader.shared
+        let ds = "2026-07-25"
+        let di = CardLottery.dateIdx(ds)
+        let noIcon = CardRenderer.render(
+            ds: ds, effTotal: 12, theme: sampleTheme(), milestone: false, milestoneTitle: nil,
+            dateIdx: di, cardThemesV2From: data.CARD_THEMES_V2_FROM,
+            typeName: "テストタイプ", typeIconKey: nil
+        )
+        for key in ["momo", "kenko", "yawara", "koka", "ashi", "robot"] {
+            let withIcon = CardRenderer.render(
+                ds: ds, effTotal: 12, theme: sampleTheme(), milestone: false, milestoneTitle: nil,
+                dateIdx: di, cardThemesV2From: data.CARD_THEMES_V2_FROM,
+                typeName: "テストタイプ", typeIconKey: key
+            )
+            XCTAssertNotEqual(
+                withIcon, noIcon,
+                "typeIconKey=\(key) のときアイコンが描画結果に反映されていない(TYPE_IMG_NAMESに\(key)が無い疑い)"
+            )
+        }
+    }
 }
