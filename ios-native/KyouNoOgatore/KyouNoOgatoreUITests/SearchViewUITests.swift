@@ -66,9 +66,36 @@ final class SearchViewUITests: XCTestCase {
     // F2(TASK-C2-2026-07-29-inspection-upgrade.md): C1(タブバー下端の黒い帯・ignoresSafeArea漏れ)の
     // 再発防止。新しいライブラリは使わず、XCUIScreen.main.screenshot()のCGImageを直接ピクセル標本
     // 抽出する。画面最下端(セーフエリア外)の帯がタブバーの背景色まで届いていれば黒くならないはず。
+    //
+    // 本人の元の報告はダークモードだった(タブバーのダーク背景色#211E19より「もっと黒い」という
+    // 言葉が根拠)。実測したところ、ライトモードでは画面本体側の背景(KyonoBackgroundColor)が
+    // 既にその領域まで塗られているため黒く見えず、この検査はダークモードでないと同じ欠陥を
+    // 再現できない。シミュレータのOS設定(simctl ui appearance)には検査プロセスからは触れない
+    // (サンドボックスされた別プロセス)ため、アプリ自身の設定画面(続ける設定→画面のみため→
+    // 「暗い」)を実際に操作して切り替える。production側のコードは一切触らない。
     func testNoBlackBarAtBottomOfScreen() throws {
         let app = XCUIApplication()
         app.launch()
+
+        let myRecordTab = app.buttons["マイ記録"]
+        XCTAssertTrue(myRecordTab.waitForExistence(timeout: 10), "タブバーに「マイ記録」が見つからない")
+        myRecordTab.tap()
+
+        let settingsBtn = app.descendants(matching: .any)["⚙️ 設定をひらく"]
+        let scrollView = app.scrollViews.firstMatch
+        for _ in 0..<15 where !settingsBtn.exists {
+            scrollView.swipeUp(velocity: .fast)
+        }
+        XCTAssertTrue(settingsBtn.waitForExistence(timeout: 5), "「⚙️ 設定をひらく」が見つからない")
+        settingsBtn.tap()
+
+        let darkOption = app.descendants(matching: .any)["暗い"]
+        XCTAssertTrue(darkOption.waitForExistence(timeout: 5), "設定に「暗い」の選択肢が見つからない")
+        darkOption.tap()
+        sleep(1) // テーマ切り替えの反映を待つ
+
+        let backBtn = app.descendants(matching: .any)["◀ もどる"]
+        if backBtn.waitForExistence(timeout: 3) { backBtn.tap() }
 
         let searchTab = app.buttons["動画を探す"]
         XCTAssertTrue(searchTab.waitForExistence(timeout: 10), "タブバーに「動画を探す」が見つからない")
