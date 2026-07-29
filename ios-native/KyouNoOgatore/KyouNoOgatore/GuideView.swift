@@ -339,7 +339,12 @@ private struct GuideContentView: View {
                     KyonoSectionHeader(icon: .question, title: "よくあるしつもん", fill: colors.coralSoft)
                     Text("しつもんをタップすると こたえがひらきます").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     // index.html:426-429 .searchbox
-                    TextField("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
+                    // アイコン方針(TASK-C2-2026-07-30-icon-system.md)判断: 検索欄の虫めがねを
+                    // 左側へ実際に差し込む(alan5判断・2026-07-30。SearchView.swiftと同じ扱い)。
+                    HStack(spacing: 6) {
+                        KyonoIconGlyph(icon: .search, fill: .clear, accent: colors.sub).frame(width: 18, height: 18)
+                        TextField("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
+                    }
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))

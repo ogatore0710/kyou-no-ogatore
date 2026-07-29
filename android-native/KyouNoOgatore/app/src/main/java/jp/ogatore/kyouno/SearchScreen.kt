@@ -250,6 +250,14 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 onValueChange = { query = it; searchLimit = 24 },
                 modifier = Modifier.fillMaxWidth().testTag("searchInput"),
                 placeholder = { Text("例: 肩こり／朝／むくみ", color = colors.subFaint) },
+                // アイコン方針(TASK-C2-2026-07-30-icon-system.md)判断: 検索欄の虫めがねは
+                // この年齢層にとっていちばん通じる目印なので、プレースホルダー内の絵文字を
+                // 削除するだけでなく、タブバーと同じ.searchアイコンを実際に左側(leadingIcon)へ
+                // 差し込む(alan5判断・2026-07-30)。右のG4消去ボタン(trailingIcon)とは反対側
+                // なので場所は競合しない。
+                leadingIcon = {
+                    KyonoIconGlyph(KyonoIcon.Search, fill = Color.Transparent, accent = colors.sub, modifier = Modifier.size(18.dp))
+                },
                 trailingIcon = if (query.isNotEmpty()) {
                     {
                         Box(

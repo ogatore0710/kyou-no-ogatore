@@ -16,10 +16,12 @@ enum KyonoIcon {
     case clock, question, quizCheck, soudanBubble, obuBubble, play, calendarCheck
     case dexBook, heart, envelope, notes, mountainCheck, shieldCheck, star
     // アイコン方針(TASK-C2-2026-07-30-icon-system.md)既存アイコン適用バッチ: タブバーの
-    // 「動画を探す」(虫眼鏡)・「使い方」(開いた本)を他画面でも再利用できるよう、
-    // KyonoTabBar.swiftのSearchIcon/GuideIconと同じ形状をここに複製する(タブバー本体は
-    // 既存のまま・private structも変更しない)。
-    case search, guideBook
+    // 「動画を探す」(虫眼鏡)を検索欄の目印として再利用するため、KyonoTabBar.swiftの
+    // SearchIconと同じ形状をここに複製する(タブバー本体は既存のまま・private structも
+    // 変更しない)。「使い方」(開いた本)は`.guideBook`として一度追加したが、実際に見出しとして
+    // 使う場所が無く(図鑑自体の見出しは既に`.dexBook`が担当)、未使用のenumケースを残すと
+    // 混乱を招くため削除した(alan5判断・2026-07-30)。
+    case search
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -193,20 +195,6 @@ struct KyonoIconGlyph: View {
                 var handle = Path()
                 handle.move(to: pt(15.5, 15.5)); handle.addLine(to: pt(20, 20))
                 ctx.stroke(handle, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
-            case .guideBook:
-                var path = Path()
-                path.move(to: pt(4, 5.5))
-                path.addQuadCurve(to: pt(12, 5.5), control: pt(8, 3.5))
-                path.addQuadCurve(to: pt(20, 5.5), control: pt(16, 3.5))
-                path.addLine(to: pt(20, 19))
-                path.addQuadCurve(to: pt(12, 19), control: pt(16, 17))
-                path.addQuadCurve(to: pt(4, 19), control: pt(8, 17))
-                path.closeSubpath()
-                ctx.fill(path, with: .color(fill))
-                ctx.stroke(path, with: .color(inkColor), lineWidth: 2.2 * s)
-                var spine = Path()
-                spine.move(to: pt(12, 5.5)); spine.addLine(to: pt(12, 19))
-                ctx.stroke(spine, with: .color(inkColor), lineWidth: 2.2 * s)
             }
         }
     }

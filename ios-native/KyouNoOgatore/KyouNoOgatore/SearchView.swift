@@ -234,6 +234,12 @@ private struct SearchContentView: View {
             // では最初からTextField標準の消去アイコンが無いため二重化の懸念自体が無い)と違い、
             // これだけが唯一の消去手段になる。
             HStack(spacing: 6) {
+                // アイコン方針(TASK-C2-2026-07-30-icon-system.md)判断: 検索欄の虫めがねは
+                // この年齢層にとっていちばん通じる目印なので、プレースホルダー内の絵文字を
+                // 削除するだけでなく、タブバーと同じ`.search`アイコンを実際に左側へ差し込む
+                // (alan5判断・2026-07-30)。右のG4消去ボタンとは反対側なので場所は競合しない。
+                KyonoIconGlyph(icon: .search, fill: .clear, accent: colors.sub)
+                    .frame(width: 18 * zoom, height: 18 * zoom)
                 TextField("例: 肩こり／朝／むくみ", text: $query)
                 if !query.isEmpty {
                     Button {
