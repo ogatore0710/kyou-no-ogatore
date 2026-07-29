@@ -16,6 +16,11 @@ struct FaqItem {
 
 struct FaqGroup {
     let title: String
+    // アイコン方針(TASK-C2-2026-07-30-icon-system.md)既存アイコン適用バッチ: 既存KyonoIconで
+    // 意味が一致するグループだけicon+絵文字なしtitleにする。まだ対応する既存アイコンが無い
+    // グループ(きほんのき・見ため/その他)は、見出しを絵の無いまま浮かせないよう絵文字入り
+    // titleのまま・icon=nilで残す(新規に描くバッチで対応)。
+    var icon: KyonoIcon? = nil
     let items: [FaqItem]
 }
 
@@ -40,7 +45,7 @@ let faqGroups: [FaqGroup] = [
             hidden: true
         ),
     ]),
-    FaqGroup(title: "📅 記録・続けるについて", items: [
+    FaqGroup(title: "記録・続けるについて", icon: .calendarCheck, items: [
         FaqItem(q: "記録はどこに保存されてるの？", a: "ぜんぶあなたのスマホの中だけ サーバーには何も送りません"),
         FaqItem(q: "きのうの分を押し忘れた！", a: "さかのぼって記録はできません でもおやすみ券が自動でつかわれて連続はつながります きょうの分からまたどうぞ"),
         FaqItem(q: "おやすみ券ってなに？", a: "毎月3枚もらえる「お休みしてもいい券」🎫 休んだ日に自動でつかわれて連続がつながります 使い切っても通算日数はぜったい消えません"),
@@ -56,7 +61,7 @@ let faqGroups: [FaqGroup] = [
         FaqItem(q: "ホーム画面のアイコンを消したら記録は？", a: "消えてしまいます 消す前に「記録をコピー」でひかえを取っておくと安心です", hidden: true),
         FaqItem(q: "家族と同じスマホで使える？", a: "記録が1人分しか持てないので まざってしまいます 1人1台がおすすめです"),
     ]),
-    FaqGroup(title: "💬 きょうの1本・相談室", items: [
+    FaqGroup(title: "きょうの1本・相談室", icon: .soudanBubble, items: [
         FaqItem(
             q: "ストレッチ中に痛かったら？",
             a: "目安は「イタ気持ちいい」まで\nすぐに中止して医療機関に相談してほしいサイン:\n・ビリッとした鋭い痛みやしびれが出た\n・力が入らない・まひしたように感じる\n・安静にしていても痛む/夜眠れないほど痛む\n・熱っぽい、または腫れがある\n迷ったら無理せず「オガトレ相談室」で症状を伝えてもらっても大丈夫です"

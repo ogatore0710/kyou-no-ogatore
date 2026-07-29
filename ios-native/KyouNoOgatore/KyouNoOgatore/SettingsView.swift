@@ -251,13 +251,13 @@ struct SettingsView: View {
                         .accessibilityLabel("分を選ぶ、現在\(String(format: "%02d", icsMinute))分")
                     }
                     Spacer().frame(height: 10)
-                    KyonoLineButton("📅 Appleカレンダーに入れる") {
+                    KyonoLineButton("Appleカレンダーに入れる") {
                         addToAppleCalendar(hour: icsHour, minute: icsMinute) { ok in
                             icsMessage = ok ? nil : "カレンダーへの追加が許可されませんでした"
                         }
                     }
                     Spacer().frame(height: 8)
-                    KyonoLineButton("📅 Googleカレンダーに入れる") { openGoogleCalendar(hour: icsHour, minute: icsMinute) }
+                    KyonoLineButton("Googleカレンダーに入れる") { openGoogleCalendar(hour: icsHour, minute: icsMinute) }
                     Spacer().frame(height: 6)
                     Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
                     if let icsMessage {

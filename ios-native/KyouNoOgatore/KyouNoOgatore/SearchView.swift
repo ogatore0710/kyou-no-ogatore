@@ -234,7 +234,7 @@ private struct SearchContentView: View {
             // では最初からTextField標準の消去アイコンが無いため二重化の懸念自体が無い)と違い、
             // これだけが唯一の消去手段になる。
             HStack(spacing: 6) {
-                TextField("🔍 例: 肩こり／朝／むくみ", text: $query)
+                TextField("例: 肩こり／朝／むくみ", text: $query)
                 if !query.isEmpty {
                     Button {
                         query = ""

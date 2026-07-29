@@ -335,13 +335,13 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     // CalendarContract Intent(端末標準カレンダー)であり、Android端末にAppleカレンダーは
                     // 無いため誤ったラベルだった(Web版は両OS向けの共通コードのため"Apple/Google"併記が
                     // 正しいが、ネイティブAndroidでは意味が通らない)。
-                    "📅 カレンダーに入れる",
+                    "カレンダーに入れる",
                     { openCalendarIntent(context, icsHour, icsMinute) },
                     Modifier.testTag("icsAppleBtn"),
                 )
                 Spacer(Modifier.height(8.dp))
                 KyonoLineButton(
-                    "📅 Googleカレンダーに入れる",
+                    "Googleカレンダーに入れる",
                     { openGoogleCalendarIntent(context, icsHour, icsMinute) },
                     Modifier.testTag("icsGoogleBtn"),
                 )

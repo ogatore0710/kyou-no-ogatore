@@ -17,7 +17,11 @@ package jp.ogatore.kyouno
 // ネイティブでも有効な内容のため、削除・非表示にせずそのまま残す(hideは「まるごと消す」為の手段であり
 // 文言の部分編集はしない=「削除しない」の原則)。
 data class FaqItem(val q: String, val a: String, val hidden: Boolean = false)
-data class FaqGroup(val title: String, val items: List<FaqItem>)
+// アイコン方針(TASK-C2-2026-07-30-icon-system.md)既存アイコン適用バッチ: 既存KyonoIconで意味が
+// 一致するグループだけicon+絵文字なしtitleにする。まだ対応する既存アイコンが無いグループ
+// (きほんのき・見ため/その他)は、見出しを絵の無いまま浮かせないよう絵文字入りtitleのまま・
+// icon=nullで残す(新規に描くバッチで対応)。
+data class FaqGroup(val title: String, val items: List<FaqItem>, val icon: KyonoIcon? = null)
 
 val FAQ_GROUPS = listOf(
     FaqGroup(
@@ -44,8 +48,9 @@ val FAQ_GROUPS = listOf(
         ),
     ),
     FaqGroup(
-        "📅 記録・続けるについて",
-        listOf(
+        "記録・続けるについて",
+        icon = KyonoIcon.CalendarCheck,
+        items = listOf(
             FaqItem("記録はどこに保存されてるの？", "ぜんぶあなたのスマホの中だけ サーバーには何も送りません"),
             FaqItem("きのうの分を押し忘れた！", "さかのぼって記録はできません でもおやすみ券が自動でつかわれて連続はつながります きょうの分からまたどうぞ"),
             FaqItem("おやすみ券ってなに？", "毎月3枚もらえる「お休みしてもいい券」🎫 休んだ日に自動でつかわれて連続がつながります 使い切っても通算日数はぜったい消えません"),
@@ -63,8 +68,9 @@ val FAQ_GROUPS = listOf(
         ),
     ),
     FaqGroup(
-        "💬 きょうの1本・相談室",
-        listOf(
+        "きょうの1本・相談室",
+        icon = KyonoIcon.SoudanBubble,
+        items = listOf(
             FaqItem(
                 "ストレッチ中に痛かったら？",
                 "目安は「イタ気持ちいい」まで\nすぐに中止して医療機関に相談してほしいサイン:\n・ビリッとした鋭い痛みやしびれが出た\n・力が入らない・まひしたように感じる\n・安静にしていても痛む/夜眠れないほど痛む\n・熱っぽい、または腫れがある\n迷ったら無理せず「オガトレ相談室」で症状を伝えてもらっても大丈夫です",

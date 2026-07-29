@@ -219,7 +219,7 @@ private struct DexBannerCardView: View {
                 Spacer(minLength: 0)
             }
             Spacer().frame(height: 10)
-            KyonoGhostButton("📖 図鑑をひらく", action: onOpenDex)
+            KyonoGhostButton("図鑑をひらく", action: onOpenDex)
         }
     }
 }
@@ -538,7 +538,7 @@ private struct MyRecordContentView: View {
                     // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
                     // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
                     // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
-                    KyonoGhostButton("📔 ひとことにっき", action: onOpenDiary)
+                    KyonoGhostButton("ひとことにっき", action: onOpenDiary)
                 }
 
                 // index.html:792-800 続ける設定カード相当。画面の中身(SettingsView)はPhase 3実装済みのため
@@ -546,10 +546,10 @@ private struct MyRecordContentView: View {
                 KyonoCard {
                     KyonoSectionHeader(icon: .clock, title: "続ける設定", fill: colors.tealSoft)
                     Spacer().frame(height: 10)
-                    KyonoGhostButton("⚙️ 設定をひらく", action: onOpenSettings)
+                    KyonoGhostButton("設定をひらく", action: onOpenSettings)
                 }
 
-                KyonoLineButton("📅 カレンダーに登録する") {
+                KyonoLineButton("カレンダーに登録する") {
                     onConnectCalendar { ok in
                         calendarMsg = ok ? "カレンダーに追加しました" : "カレンダーへの追加が許可されませんでした"
                     }

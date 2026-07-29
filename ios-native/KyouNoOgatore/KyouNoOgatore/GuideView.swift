@@ -77,14 +77,17 @@ struct GuideView: View {
 // 「❓ よくあるしつもん」チップが欠けていた(gd-help以外の6項目のみ)。id="gd-faq"はdetailsでは
 // ない(常時カード)ためjumpToSectionのsectionOpen設定は無害な未使用エントリになるだけで、
 // 実際のスクロール先はgd-faq-anchor(既存のFAQジャンプ用アンカー)へ差し替える。
+// アイコン方針(TASK-C2-2026-07-30-icon-system.md): このチップ自体は見出しではなく、対応する
+// 実際の見出し(gd-start等)へジャンプするだけのナビゲーションボタン。ジャンプ先の見出しは
+// KyonoSectionHeaderで既にアイコン付きのため、絵文字はここでは単純に削除する(削除でよい方の分類)。
 private let gtocChips: [(label: String, id: String)] = [
-    ("🆘 困ったときは", "gd-help"),
-    ("🌅 はじめての日", "gd-start"),
-    ("▶ まいにちの流れ", "gd-daily"),
-    ("🛡 記録を守る", "gd-mamori"),
-    ("🎫 つづくしくみ", "gd-tsuzuku"),
-    ("📅 マイ記録", "gd-myrec"),
-    ("❓ よくあるしつもん", "gd-faq"),
+    ("困ったときは", "gd-help"),
+    ("はじめての日", "gd-start"),
+    ("まいにちの流れ", "gd-daily"),
+    ("記録を守る", "gd-mamori"),
+    ("つづくしくみ", "gd-tsuzuku"),
+    ("マイ記録", "gd-myrec"),
+    ("よくあるしつもん", "gd-faq"),
 ]
 
 private struct GuideContentView: View {
@@ -222,9 +225,9 @@ private struct GuideContentView: View {
                             // LINE内ブラウザ/Safari間のストレージ分離というPWA固有の前提の回答で、
                             // GuideData.swiftでも同じ理由(§2-2に準ずる判断)でhidden=trueにされ非表示。
                             // ジャンプ先をネイティブでも有効な同グループの「連続が切れちゃった…」に読み替えた。
-                            KyonoGhostButton("📅 記録が消えた・0日にもどってる") { jumpToFaq(proxy, groupTitle: "📅 記録・続けるについて", itemQ: "連続が切れちゃった…") }
+                            KyonoGhostButton("📅 記録が消えた・0日にもどってる") { jumpToFaq(proxy, groupTitle: "記録・続けるについて", itemQ: "連続が切れちゃった…") }
                             KyonoGhostButton("📱 機種変更したい", action: onOpenSettings)
-                            KyonoGhostButton("🩹 ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "💬 きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
+                            KyonoGhostButton("🩹 ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
                             KyonoGhostButton("🔔 通知・リマインダーについて") { jumpToFaq(proxy, groupTitle: "📱 きほんのき", itemQ: "通知はこないの？") }
                         }
                     }
@@ -243,7 +246,7 @@ private struct GuideContentView: View {
                         }
                         GStep(marker: "2", title: "あなたの「かたさタイプ」が出ます", body: "タイプに合わせた おすすめ3本つき")
                         GStep(marker: "3", title: "まず1本 動画をやってみる", body: "おわったらホームの「きょうやった！」を押す")
-                        GStep(marker: "💬", title: "オガトレ相談室", body: "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
+                        GStep(marker: "💬", icon: .soudanBubble, title: "オガトレ相談室", body: "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
                         GStep(marker: "🎯", title: "2週間プラン", body: "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
                         Spacer().frame(height: 4)
                         KyonoPrimaryButton("チェックをはじめる", action: onOpenQuiz)
@@ -266,7 +269,7 @@ private struct GuideContentView: View {
                         Text("おわったら✍️ ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 14)
-                        GStep(marker: "💬", title: "オガトレ通信", body: "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
+                        GStep(marker: "💬", icon: .obuBubble, title: "オガトレ通信", body: "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
                     }
 
                     // ---- 4. 記録が消えない3つの守り(index.html:1029-1045。ステップ1のA2HS手順のみ
@@ -319,11 +322,11 @@ private struct GuideContentView: View {
                         open: sectionOpen["gd-myrec"] ?? false, onToggle: { toggleSection("gd-myrec") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
-                        GStep(marker: "📅", title: "カレンダー", body: "やった日に印がつく（×はつきません）")
-                        GStep(marker: "📏", title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+                        GStep(marker: "📅", icon: .calendarCheck, title: "カレンダー", body: "やった日に印がつく（×はつきません）")
+                        GStep(marker: "📏", icon: .mountainCheck, title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
                         GStep(marker: "🎉", title: "お楽しみ機能", body: "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                        GStep(marker: "⚙️", title: "続ける設定", body: "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
-                        GStep(marker: "🎬", title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
+                        GStep(marker: "⚙️", icon: .clock, title: "続ける設定", body: "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+                        GStep(marker: "🎬", icon: .play, title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
                         Spacer().frame(height: 4)
                         KyonoGhostButton("マイ記録タブをひらく", action: onOpenMyRecord)
                     }
@@ -336,7 +339,7 @@ private struct GuideContentView: View {
                     KyonoSectionHeader(icon: .question, title: "よくあるしつもん", fill: colors.coralSoft)
                     Text("しつもんをタップすると こたえがひらきます").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     // index.html:426-429 .searchbox
-                    TextField("🔍 キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
+                    TextField("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
@@ -352,6 +355,9 @@ private struct GuideContentView: View {
                                 let isOpen = openGroups.contains(group.title) || !nq.isEmpty
                                 // index.html:180-183 .faq-g(グループ見出し・開閉矢印)
                                 HStack {
+                                    if let icon = group.icon {
+                                        KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.sub).frame(width: 16, height: 16)
+                                    }
                                     Text(group.title).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                                     Spacer()
                                     Text(isOpen ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
@@ -460,20 +466,29 @@ private struct GdFoldSection<Content: View>: View {
 private struct GStep<Extra: View>: View {
     @Environment(\.kyonoColors) private var colors
     let marker: String
+    // アイコン方針(TASK-C2-2026-07-30-icon-system.md)既存アイコン適用バッチ: markerが絵文字の
+    // ステップは、既存KyonoIconで意味が一致するものがあればここに指定し、黄丸バッジの中身を
+    // 絵文字からアイコンに差し替える(nilのときは従来どおりmarkerを文字表示・数字の1/2/3や
+    // まだ対応する既存アイコンが無い絵文字はこのまま)。
+    var icon: KyonoIcon? = nil
     let title: String
     let body_: String
     let extra: (() -> Extra)?
 
-    init(marker: String, title: String, body: String, @ViewBuilder extra: @escaping () -> Extra) {
-        self.marker = marker; self.title = title; self.body_ = body; self.extra = extra
+    init(marker: String, icon: KyonoIcon? = nil, title: String, body: String, @ViewBuilder extra: @escaping () -> Extra) {
+        self.marker = marker; self.icon = icon; self.title = title; self.body_ = body; self.extra = extra
     }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle().fill(colors.yellow)
-                // B1(2026-07-29): 黄色背景マーカーの文字はcolors.yellowInk(ライト値固定)を使う。
-                Text(marker).kyonoFont(.black900, size: 13).foregroundColor(colors.yellowInk)
+                if let icon {
+                    KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.yellowInk).frame(width: 18, height: 18)
+                } else {
+                    // B1(2026-07-29): 黄色背景マーカーの文字はcolors.yellowInk(ライト値固定)を使う。
+                    Text(marker).kyonoFont(.black900, size: 13).foregroundColor(colors.yellowInk)
+                }
             }
             .frame(width: 30, height: 30)
             VStack(alignment: .leading, spacing: 2) {
@@ -492,8 +507,8 @@ private struct GStep<Extra: View>: View {
 }
 
 extension GStep where Extra == EmptyView {
-    init(marker: String, title: String, body: String) {
-        self.init(marker: marker, title: title, body: body, extra: { EmptyView() })
+    init(marker: String, icon: KyonoIcon? = nil, title: String, body: String) {
+        self.init(marker: marker, icon: icon, title: title, body: body, extra: { EmptyView() })
     }
 }
 

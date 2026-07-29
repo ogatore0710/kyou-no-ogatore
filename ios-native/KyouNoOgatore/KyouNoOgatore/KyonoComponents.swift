@@ -142,9 +142,18 @@ struct KyonoSectionTitle: View {
     @Environment(\.kyonoColors) private var colors
     let text: String
     let size: CGFloat
-    init(_ text: String, size: CGFloat = 16) { self.text = text; self.size = size }
+    // アイコン方針(TASK-C2-2026-07-30-icon-system.md)既存アイコン適用バッチ: KyonoSectionHeaderとは
+    // 別に存在するこの軽量見出しにも、既存KyonoIconで意味が一致する呼び出し元だけアイコンを足す
+    // (見出しは削除しない・付けられる先だけ付ける)。
+    var icon: KyonoIcon? = nil
+    init(_ text: String, size: CGFloat = 16, icon: KyonoIcon? = nil) { self.text = text; self.size = size; self.icon = icon }
     var body: some View {
-        Text(text).kyonoFont(.black900, size: size).foregroundColor(colors.ink)
+        HStack(spacing: 6) {
+            if let icon {
+                KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.pink).frame(width: size + 2, height: size + 2)
+            }
+            Text(text).kyonoFont(.black900, size: size).foregroundColor(colors.ink)
+        }
     }
 }
 

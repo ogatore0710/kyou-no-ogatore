@@ -382,7 +382,7 @@ fun SoudanSheet(
     fun planChipTap(id: String) {
         val intent = kb.intents.find { it.id == id } ?: return
         val replacing = plan != null && plan?.intentId != id
-        messages = messages + SdBubble.User("📅 この悩みを2週間プランにする") +
+        messages = messages + SdBubble.User("この悩みを2週間プランにする") +
             SdBubble.PlanConfirm(intentId = id, label = intent.chip, replacing = replacing)
     }
 
@@ -639,7 +639,7 @@ fun SoudanSheet(
                                 // 持つ)にliveRegionだけ足す。ボタン自体のcontentDescription/クリック
                                 // 動作はKyonoGhostButton内部の実装のまま変えない。
                                 KyonoGhostButton(
-                                    "📮 この悩み、オガトレに届ける",
+                                    "この悩み、オガトレに届ける",
                                     {
                                         val subject = "【相談室リクエスト】きょうのオガトレ"
                                         val body = "相談した内容:\n${m.rawUserText}\n---\n送信元: きょうのオガトレ「オガトレ相談室」"
@@ -661,7 +661,7 @@ fun SoudanSheet(
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    "🔍 動画を探すタブでさがしてみる",
+                                    "動画を探すタブでさがしてみる",
                                     color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
                                     modifier = Modifier.clickable { onOpenSearch() }.testTag("sdFallbackSearchBtn"),
                                 )
@@ -735,7 +735,7 @@ fun SoudanSheet(
                         FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "sdChips") {
                             if (showPlanChip && intent != null) {
                                 item {
-                                    KyonoChip("📅 この悩みを2週間プランにする", { planChipTap(intent.id) }, Modifier.padding(end = 8.dp).testTag("sdPlanChip"))
+                                    KyonoChip("この悩みを2週間プランにする", { planChipTap(intent.id) }, Modifier.padding(end = 8.dp).testTag("sdPlanChip"))
                                 }
                             }
                             items(intent?.followups.orEmpty()) { fid ->
@@ -862,7 +862,7 @@ fun PlanProgressCard(store: RecordStore, plan: SdPlanData, onCleared: () -> Unit
     KyonoCard(Modifier.testTag("planCard")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "📅 ${plan.label}プラン $dayNum/${plan.days}日", color = colors.ink, fontWeight = FontWeight.Black,
+                "${plan.label}プラン $dayNum/${plan.days}日", color = colors.ink, fontWeight = FontWeight.Black,
                 modifier = Modifier.weight(1f).testTag("planTitle"),
             )
             Text(

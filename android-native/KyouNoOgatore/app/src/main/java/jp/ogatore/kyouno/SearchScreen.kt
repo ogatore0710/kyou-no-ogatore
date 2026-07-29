@@ -249,7 +249,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 value = query,
                 onValueChange = { query = it; searchLimit = 24 },
                 modifier = Modifier.fillMaxWidth().testTag("searchInput"),
-                placeholder = { Text("🔍 例: 肩こり／朝／むくみ", color = colors.subFaint) },
+                placeholder = { Text("例: 肩こり／朝／むくみ", color = colors.subFaint) },
                 trailingIcon = if (query.isNotEmpty()) {
                     {
                         Box(

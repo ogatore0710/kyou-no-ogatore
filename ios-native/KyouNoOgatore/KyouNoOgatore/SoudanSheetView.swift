@@ -324,7 +324,7 @@ struct SoudanSheetView: View {
     private func planChipTap(_ id: String) {
         guard let intent = kb.intents.first(where: { $0.id == id }) else { return }
         let replacing = plan != nil && plan?.intentId != id
-        let userBubble = SdBubble.user(text: "📅 この悩みを2週間プランにする")
+        let userBubble = SdBubble.user(text: "この悩みを2週間プランにする")
         let confirmBubble = SdBubble.planConfirm(intentId: id, label: intent.chip, replacing: replacing)
         messages.append(SdMessage(bubble: userBubble))
         announceBubble(userBubble)
@@ -660,7 +660,7 @@ private struct SoudanContentView: View {
                     intent?.id != planExcludeIntent && plan?.intentId != intent?.id
                 FadingChipRow {
                         if showPlanChip, let intent {
-                            KyonoChip(label: "📅 この悩みを2週間プランにする") { onPlanChip(intent.id) }
+                            KyonoChip(label: "この悩みを2週間プランにする") { onPlanChip(intent.id) }
                         }
                         ForEach(intent?.followups ?? [], id: \.self) { fid in
                             if let f = kb.commonFollowups.first(where: { $0.id == fid }) {
@@ -746,7 +746,7 @@ private struct FallbackLinksView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            KyonoGhostButton("📮 この悩み、オガトレに届ける") {
+            KyonoGhostButton("この悩み、オガトレに届ける") {
                 let subject = "【相談室リクエスト】きょうのオガトレ"
                 let body = "相談した内容:\n\(rawUserText)\n---\n送信元: きょうのオガトレ「オガトレ相談室」"
                 openMailTo(to: sdMail, subject: subject, body: body)
@@ -761,7 +761,7 @@ private struct FallbackLinksView: View {
                         copied = false
                     }
                 }
-            Text("🔍 動画を探すタブでさがしてみる")
+            Text("動画を探すタブでさがしてみる")
                 .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                 .onTapGesture { onOpenSearch() }
         }
@@ -851,7 +851,7 @@ struct PlanProgressCardView: View {
             } else {
                 KyonoCard {
                     HStack(alignment: .firstTextBaseline) {
-                        Text("📅 \(plan.label)プラン \(dayNum)/\(plan.days)日")
+                        Text("\(plan.label)プラン \(dayNum)/\(plan.days)日")
                             .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer()
                         Text("やめる")

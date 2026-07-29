@@ -336,7 +336,7 @@ struct HomeView: View {
                 KyonoGradientCard(gradient: .mint) {
                     Text("チェックから2週間たったよ🌱\n前屈 どこまで届くようになった？")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
-                    KyonoPrimaryButton("📏 とどくメーターで測ってみる") { goRecheck() }
+                    KyonoPrimaryButton("とどくメーターで測ってみる") { goRecheck() }
                     KyonoGhostButton("あとで") { dismissRecheck() }
                 }
             }
@@ -352,7 +352,7 @@ struct HomeView: View {
             // 注記どおり第2段へ送る=いまは自動選出のみ)。
             if !fdFocusOn {
                 KyonoCard {
-                    KyonoSectionTitle("▶️ きょうの1本")
+                    KyonoSectionTitle("きょうの1本", icon: .play)
                     TodayVideoSection(plan: plan, typeResult: typeResult, onVideoTap: openTodayVideo)
                 }
                 // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
@@ -393,7 +393,7 @@ struct HomeView: View {
 
             // index.html:686 #streakCard(続けた日数・通算)相当。
             KyonoCard {
-                KyonoSectionTitle("📅 続けた日数（通算）")
+                KyonoSectionTitle("続けた日数（通算）", icon: .calendarCheck)
                 KyonoStreakText(streak.total, streakCount: streak.count, brokenNow: streakBrokenNow)
                 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home):
                 // index.html:693 #fdDoneStaticNudge(はじめの1本ガイド中・未記録のときだけ出す常時案内)の
@@ -570,7 +570,7 @@ struct HomeView: View {
                         }
                         if !CardDataLoader.shared.MILESTONE_MSG_VIDEO.isEmpty {
                             Spacer().frame(height: 10 * zoom)
-                            KyonoGhostButton("🎬 尾形さんからお祝いメッセージ") {
+                            KyonoGhostButton("尾形さんからお祝いメッセージ") {
                                 if let url = URL(string: "https://www.youtube.com/watch?v=\(CardDataLoader.shared.MILESTONE_MSG_VIDEO)") {
                                     UIApplication.shared.open(url)
                                 }

@@ -1116,7 +1116,7 @@ fun HomeScreen(
                         color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                     )
                     Spacer(Modifier.height(10.dp))
-                    KyonoPrimaryButton("📏 とどくメーターで測ってみる", { goRecheck() })
+                    KyonoPrimaryButton("とどくメーターで測ってみる", { goRecheck() })
                     Spacer(Modifier.height(8.dp))
                     KyonoGhostButton("あとで", { dismissRecheck() })
                 }
@@ -1143,7 +1143,11 @@ fun HomeScreen(
                         .testTag("todayCard")
                         .onGloballyPositioned { coords -> todayCardY = coords.positionInParent().y },
                 ) {
-                    Text("▶️ きょうの1本", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        KyonoIconGlyph(KyonoIcon.Play, fill = Color.Transparent, accent = colors.pink, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("きょうの1本", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    }
                     Spacer(Modifier.height(10.dp))
                     TodayVideoSection(
                         plan = plan,
@@ -1194,7 +1198,11 @@ fun HomeScreen(
 
             // index.html:686 #streakCard(続けた日数・通算)相当。
             KyonoCard(Modifier.testTag("streakCard")) {
-                Text("📅 続けた日数（通算）", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    KyonoIconGlyph(KyonoIcon.CalendarCheck, fill = Color.Transparent, accent = colors.pink, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("続けた日数（通算）", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(
                     "通算 ${streak.total} 日" + when {
@@ -1399,7 +1407,7 @@ fun HomeScreen(
                             if (CardDataLoader.shared.MILESTONE_MSG_VIDEO.isNotEmpty()) {
                                 Spacer(Modifier.height(10.dp))
                                 KyonoGhostButton(
-                                    "🎬 尾形さんからお祝いメッセージ",
+                                    "尾形さんからお祝いメッセージ",
                                     { openUrl("https://www.youtube.com/watch?v=${CardDataLoader.shared.MILESTONE_MSG_VIDEO}") },
                                     Modifier.testTag("milestoneMsgVideoBtn"),
                                 )
@@ -1859,7 +1867,7 @@ fun MyRecordScreen(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("📖 図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
+                KyonoGhostButton("図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
             }
 
             Spacer(Modifier.height(16.dp))
@@ -2161,7 +2169,7 @@ fun MyRecordScreen(
                 // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
                 // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
                 // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
-                KyonoGhostButton("📔 ひとことにっき", onOpenDiary, Modifier.testTag("diaryBtn"))
+                KyonoGhostButton("ひとことにっき", onOpenDiary, Modifier.testTag("diaryBtn"))
             }
 
             // index.html:792-800 続ける設定カード相当。画面の中身(SettingsScreen)はPhase 3実装済みのため
@@ -2170,13 +2178,13 @@ fun MyRecordScreen(
             KyonoCard(Modifier.testTag("settingsBannerCard")) {
                 KyonoSectionHeader(KyonoIcon.Clock, "続ける設定", fill = colors.tealSoft)
                 Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("⚙️ 設定をひらく", onOpenSettings, Modifier.testTag("settingsBtn"))
+                KyonoGhostButton("設定をひらく", onOpenSettings, Modifier.testTag("settingsBtn"))
             }
 
             Spacer(Modifier.height(16.dp))
             var calendarMsg by remember { mutableStateOf<String?>(null) }
             KyonoLineButton(
-                "📅 カレンダーに登録する",
+                "カレンダーに登録する",
                 {
                     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020
                     // renderIcs()の1:1移植。以前は引数なし(常にhour=20,minute=0)で、設定画面の

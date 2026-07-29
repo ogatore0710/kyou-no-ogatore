@@ -237,15 +237,19 @@ fun GuideScreen(
             // display:flex;flex-wrap:wrap;justify-content:centerの1:1移植。横一列(旧LazyRow)だと
             // 7個中3個しか見えず「❓ よくあるしつもん」等が隠れていたため、FlowRowで折り返して
             // 全項目を常に見せる。
+            // アイコン方針(TASK-C2-2026-07-30-icon-system.md): このチップ自体は見出しではなく、
+            // 対応する実際の見出し(gd-start等)へジャンプするだけのナビゲーションボタン。ジャンプ先の
+            // 見出しはKyonoSectionHeaderで既にアイコン付きのため、絵文字はここでは単純に削除する
+            // (削除でよい方の分類)。
             GuideTocChipsFlow(
                 listOf(
-                    "🆘 困ったときは" to "gd-help",
-                    "🌅 はじめての日" to "gd-start",
-                    "▶ まいにちの流れ" to "gd-daily",
-                    "🛡 記録を守る" to "gd-mamori",
-                    "🎫 つづくしくみ" to "gd-tsuzuku",
-                    "📅 マイ記録" to "gd-myrec",
-                    "❓ よくあるしつもん" to "gd-faq",
+                    "困ったときは" to "gd-help",
+                    "はじめての日" to "gd-start",
+                    "まいにちの流れ" to "gd-daily",
+                    "記録を守る" to "gd-mamori",
+                    "つづくしくみ" to "gd-tsuzuku",
+                    "マイ記録" to "gd-myrec",
+                    "よくあるしつもん" to "gd-faq",
                 ),
                 // gd-faqはdetailsではない(常時カード)ため、sectionOpen["gd-faq"]=trueは無害な未使用
                 // エントリになるだけ(他の6項目と同じjumpToSectionを使い回してよい)。
@@ -274,9 +278,9 @@ fun GuideScreen(
                     // ブラウザ/Safari間のストレージ分離というPWA固有の前提の回答で、GuideData.ktでも
                     // 同じ理由(§2-2に準ずる判断)でhidden=trueにされ表示されていない。ジャンプ先を
                     // ネイティブでも有効な同グループの「連続が切れちゃった…」に読み替えた。
-                    KyonoLineButton("📅 記録が消えた・0日にもどってる", { jumpToFaq("📅 記録・続けるについて", "連続が切れちゃった…") }, Modifier.testTag("gdHelpMissing"))
+                    KyonoLineButton("📅 記録が消えた・0日にもどってる", { jumpToFaq("記録・続けるについて", "連続が切れちゃった…") }, Modifier.testTag("gdHelpMissing"))
                     KyonoLineButton("📱 機種変更したい", onOpenSettings, Modifier.testTag("gdHelpDevice"))
-                    KyonoLineButton("🩹 ストレッチ中に痛かった", { jumpToFaq("💬 きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
+                    KyonoLineButton("🩹 ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
                     KyonoLineButton("🔔 通知・リマインダーについて", { jumpToFaq("📱 きほんのき", "通知はこないの？") }, Modifier.testTag("gdHelpNotify"))
                 }
             }
@@ -296,7 +300,7 @@ fun GuideScreen(
                 }
                 GStep("2", "あなたの「かたさタイプ」が出ます", "タイプに合わせた おすすめ3本つき")
                 GStep("3", "まず1本 動画をやってみる", "おわったらホームの「きょうやった！」を押す")
-                GStep("💬", "オガトレ相談室", "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
+                GStep("💬", icon = KyonoIcon.SoudanBubble, title = "オガトレ相談室", body = "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
                 GStep("🎯", "2週間プラン", "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
                 Spacer(Modifier.height(4.dp))
                 KyonoPrimaryButton("チェックをはじめる", onOpenQuiz, Modifier.testTag("gdStartQuizBtn"))
@@ -327,7 +331,7 @@ fun GuideScreen(
                     color = colors.ink, fontSize = 14.sp, lineHeight = 25.sp,
                 )
                 Spacer(Modifier.height(14.dp))
-                GStep("💬", "オガトレ通信", "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
+                GStep("💬", icon = KyonoIcon.ObuBubble, title = "オガトレ通信", body = "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
             }
             Spacer(Modifier.height(16.dp))
 
@@ -391,11 +395,11 @@ fun GuideScreen(
                 open = sectionOpen["gd-myrec"] == true, onToggle = { toggleSection("gd-myrec") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
-                GStep("📅", "カレンダー", "やった日に印がつく（×はつきません）")
-                GStep("📏", "とどくメーター", "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+                GStep("📅", icon = KyonoIcon.CalendarCheck, title = "カレンダー", body = "やった日に印がつく（×はつきません）")
+                GStep("📏", icon = KyonoIcon.MountainCheck, title = "とどくメーター", body = "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
                 GStep("🎉", "お楽しみ機能", "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                GStep("⚙️", "続ける設定", "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
-                GStep("🎬", "（こちらは下のタブ）「再生リスト」タブ", "連続再生できるまとめ 流しっぱなしでOK")
+                GStep("⚙️", icon = KyonoIcon.Clock, title = "続ける設定", body = "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+                GStep("🎬", icon = KyonoIcon.Play, title = "（こちらは下のタブ）「再生リスト」タブ", body = "連続再生できるまとめ 流しっぱなしでOK")
                 Spacer(Modifier.height(4.dp))
                 KyonoGhostButton("マイ記録タブをひらく", onOpenMyRecord, Modifier.testTag("gdMyrecOpenBtn"))
             }
@@ -422,7 +426,7 @@ fun GuideScreen(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth().testTag("faqSearch"),
-                placeholder = { Text("🔍 キーワードでさがす（例: 記録 / 機種変更 / 痛い）", color = colors.subFaint) },
+                placeholder = { Text("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", color = colors.subFaint) },
                 shape = RoundedCornerShape(16.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
@@ -448,7 +452,13 @@ fun GuideScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(group.title, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (group.icon != null) {
+                                KyonoIconGlyph(group.icon, fill = Color.Transparent, accent = colors.sub, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                            }
+                            Text(group.title, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                        }
                         Text(if (isOpen) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
                     }
                     if (openGroups[group.title] == true || nq.isNotEmpty()) {
@@ -561,13 +571,21 @@ private fun GdFoldSection(
 }
 
 // index.html:163-165 .stepn/.gstep(丸番号バッジ+太字見出し+本文)の1:1移植。
+// アイコン方針(TASK-C2-2026-07-30-icon-system.md)既存アイコン適用バッチ: markerが絵文字の
+// ステップは、既存KyonoIconで意味が一致するものがあればiconに指定し、黄丸バッジの中身を
+// 絵文字からアイコンに差し替える(nullのときは従来どおりmarkerを文字表示・数字の1/2/3や
+// まだ対応する既存アイコンが無い絵文字はこのまま)。
 @Composable
-private fun GStep(marker: String, title: String, body: String, extra: (@Composable () -> Unit)? = null) {
+private fun GStep(marker: String, icon: KyonoIcon? = null, title: String, body: String, extra: (@Composable () -> Unit)? = null) {
     val colors = LocalKyonoColors.current
     Row(Modifier.fillMaxWidth().padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(30.dp).background(colors.yellow, CircleShape), contentAlignment = Alignment.Center) {
-            // B1(2026-07-29): 黄色背景マーカーの文字はcolors.yellowInk(ライト値固定)を使う。
-            Text(marker, color = colors.yellowInk, fontWeight = FontWeight.Black, fontSize = 13.sp)
+            if (icon != null) {
+                KyonoIconGlyph(icon, fill = Color.Transparent, accent = colors.yellowInk, modifier = Modifier.size(18.dp))
+            } else {
+                // B1(2026-07-29): 黄色背景マーカーの文字はcolors.yellowInk(ライト値固定)を使う。
+                Text(marker, color = colors.yellowInk, fontWeight = FontWeight.Black, fontSize = 13.sp)
+            }
         }
         Column(Modifier.weight(1f)) {
             Text(title, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black, lineHeight = 22.sp)
