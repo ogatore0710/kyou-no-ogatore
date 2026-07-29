@@ -743,7 +743,9 @@ fun SoudanSheet(
                         value = input,
                         onValueChange = { input = it },
                         modifier = Modifier.weight(1f).testTag("sdInput"),
-                        placeholder = { Text("気になることを入力") },
+                        // TASK-C2-2026-07-29-ux-audit-G.md G5: index.html:1230 placeholder="例: 肩がこる／
+                        // 前屈できない"の1:1移植。何を打てばいいかの手本が消えていた欠落。
+                        placeholder = { Text("例: 肩がこる／前屈できない") },
                     )
                     Spacer(Modifier.width(8.dp))
                     KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"), enabled = !sdPending)

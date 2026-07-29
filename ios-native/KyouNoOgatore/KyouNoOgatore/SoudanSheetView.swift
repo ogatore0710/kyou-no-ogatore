@@ -637,7 +637,10 @@ private struct SoudanContentView: View {
             }
 
             HStack {
-                TextField("気になることを入力", text: $input).textFieldStyle(.roundedBorder)
+                // TASK-C2-2026-07-29-ux-audit-G.md G5: index.html:1230 placeholder="例: 肩がこる／
+                // 前屈できない"の1:1移植。何を打てばいいかの手本が消えていた欠落(自由入力欄の前で
+                // 固まるのを防ぐための例文)。
+                TextField("例: 肩がこる／前屈できない", text: $input).textFieldStyle(.roundedBorder)
                     .focused($inputFocused)
                 KyonoPrimaryButton("送信", enabled: !sdPending, action: onSend).frame(width: 90)
             }

@@ -878,11 +878,42 @@ fun HomeScreen(
     var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }
     var fd by remember { mutableStateOf(store.get("fd", null as String?)) }
     var fdday by remember { mutableStateOf(store.get("fdday", null as String?)) }
+    // TASK-C2-2026-07-29-ux-audit-G.md G2: index.html:2028 welcomeCheck()のwb_seen・
+    // index.html:2043 renderRecheck()のrecheck_seenの1:1移植(どちらも「1回見せたら消える」永続フラグ)。
+    var wbSeen by remember { mutableStateOf(store.get("wb_seen", "")) }
+    var recheckSeen by remember { mutableStateOf(store.get("recheck_seen", "")) }
     val today = RecordLogic.todayStr(Instant.now())
     val did = streak.dates.contains(today)
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:48の1:1移植。
     // 数日あいて券でもつなげない時は、古い連続を見せない(押した瞬間に消えたと誤解させない)。
     val streakBrokenNow = !did && RecordLogic.streakBrokenNow(store, streak, Instant.now())
+    // index.html:2028 welcomeCheck()の1:1移植。streak.datesは記録順に追記されるだけで並べ替えない
+    // (Web版のst.dates[st.dates.length-1]と同じ前提)ため、最後の要素をそのまま最終記録日として使う。
+    val showWelcomeBack = !streak.dates.isEmpty() && !did && streak.dates.lastOrNull()?.let {
+        RecordLogic.daysBetween(it, today) >= 3
+    } == true && wbSeen != today
+    fun closeWelcomeBack() {
+        wbSeen = today
+        store.set("wb_seen", today)
+    }
+    // index.html:2043 renderRecheck()の1:1移植。
+    val typeResult = remember(streak) { store.get<QuizTypeResult?>("type", null) }
+    val checked = typeResult != null && QUIZ_TYPES.containsKey(typeResult.key)
+    val showRecheck = typeResult?.at?.let { at ->
+        RecordLogic.daysBetween(at, today) >= 14 && recheckSeen != at
+    } == true
+    fun dismissRecheck() {
+        typeResult?.at?.let { at ->
+            recheckSeen = at
+            store.set("recheck_seen", at)
+        }
+    }
+    // index.html:2049 goRecheck()の1:1移植。Web版のnavTo('reach')相当は、ネイティブでは「とどく
+    // メーター」がMyRecordタブ内にインライン移植済みのため、独立画面へは遷移させずMyRecordを開く。
+    fun goRecheck() {
+        dismissRecheck()
+        onOpenMyRecord()
+    }
 
     // app-env.js:60 refreshDay相当。visibilitychangeの代わりにonResumeで日付またぎ・pendingNudgeを確認する
     fun checkRefreshDay() {
@@ -1051,8 +1082,46 @@ fun HomeScreen(
             }
             Spacer(Modifier.height(14.dp))
 
-            val typeResult = remember(streak) { store.get<QuizTypeResult?>("type", null) }
-            val checked = typeResult != null && QUIZ_TYPES.containsKey(typeResult.key)
+            // TASK-C2-2026-07-29-ux-audit-G.md G2: index.html:606-611 #welcomeBack(welcomeCheck())の
+            // 1:1移植。既存の`showDoneNudge`(動画から戻った直後の「おかえりなさい」)とは別物
+            // (あちらはqbubbleの見出し差し替えのみ・こちらは3日以上あいた復帰を祝う専用カード)。
+            if (showWelcomeBack) {
+                KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("welcomeBackCard")) {
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        KyonoCharaImage("chara", Modifier.size(84.dp))
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Black, fontSize = 17.sp)) { append("おかえりなさい！また会えてうれしいです🌱") }
+                            append("\n\n休んでも習慣はこわれません\n体は数日で取り返せます\n")
+                            withStyle(SpanStyle(fontWeight = FontWeight.Black)) { append("通算${streak.total}日は残っています") }
+                        },
+                        color = colors.ink, fontSize = 15.sp,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    KyonoPrimaryButton("ゆるっと再開する", { closeWelcomeBack() })
+                    Spacer(Modifier.height(8.dp))
+                    KyonoGhostButton("いまの体でかたさチェック", { closeWelcomeBack(); onOpenQuiz() })
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+            // index.html:612-615 #recheckCard(renderRecheck())の1:1移植。かたさチェックから14日後に
+            // 「とどくメーター」での再測定に誘う(ネイティブに独立したreach画面は無く、Web版navTo('reach')
+            // 相当はMyRecordタブ内にインライン移植済みのため、そちらへ遷移させる)。
+            if (showRecheck) {
+                KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("recheckCard")) {
+                    Text(
+                        "チェックから2週間たったよ🌱\n前屈 どこまで届くようになった？",
+                        color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    KyonoPrimaryButton("📏 とどくメーターで測ってみる", { goRecheck() })
+                    Spacer(Modifier.height(8.dp))
+                    KyonoGhostButton("あとで", { dismissRecheck() })
+                }
+                Spacer(Modifier.height(16.dp))
+            }
 
             // index.html:2929-2937 renderHome()のckCard/soudanCard移動ロジックの1:1移植:
             // 未チェックのときはckCard(フル)+soudanCardがtodayCardの直前、チェック済みのときは

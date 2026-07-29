@@ -99,6 +99,10 @@ struct HomeView: View {
     @State private var fdday: String?
     @State private var plan: SdPlanData?
     @State private var typeResult: QuizTypeResult?
+    // TASK-C2-2026-07-29-ux-audit-G.md G2: index.html:2028 welcomeCheck()のwb_seen・
+    // index.html:2043 renderRecheck()のrecheck_seenの1:1移植(どちらも「1回見せたら消える」永続フラグ)。
+    @State private var wbSeen: String
+    @State private var recheckSeen: String
     // 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
     // index.html:1757-1759 planFinishedCache/planCelebratedの1:1移植(プロセス内メモリのみ・§2-3)。
     @State private var planFinishedCache: PlanFinishedCache?
@@ -156,10 +160,39 @@ struct HomeView: View {
         _lastDay = State(initialValue: RecordLogic.todayStr(now: Date()))
         _plan = State(initialValue: store.get("plan", default: nil))
         _typeResult = State(initialValue: store.get("type", default: nil))
+        _wbSeen = State(initialValue: store.get("wb_seen", default: ""))
+        _recheckSeen = State(initialValue: store.get("recheck_seen", default: ""))
     }
 
     private var today: String { RecordLogic.todayStr(now: Date()) }
     private var did: Bool { streak.dates.contains(today) }
+    // index.html:2028 welcomeCheck()の1:1移植。streak.datesは記録順に追記されるだけで並べ替えない
+    // (Web版のst.dates[st.dates.length-1]と同じ前提)ため、最後の要素をそのまま最終記録日として使う。
+    private var showWelcomeBack: Bool {
+        guard !streak.dates.isEmpty, !did, let last = streak.dates.last else { return false }
+        return RecordLogic.daysBetween(last, today) >= 3 && wbSeen != today
+    }
+    private func closeWelcomeBack() {
+        wbSeen = today
+        store.set("wb_seen", today)
+    }
+    // index.html:2043 renderRecheck()の1:1移植。
+    private var showRecheck: Bool {
+        guard let at = typeResult?.at else { return false }
+        return RecordLogic.daysBetween(at, today) >= 14 && recheckSeen != at
+    }
+    private func dismissRecheck() {
+        guard let at = typeResult?.at else { return }
+        recheckSeen = at
+        store.set("recheck_seen", at)
+    }
+    // index.html:2049 goRecheck()の1:1移植。Web版のnavTo('reach')相当は、ネイティブでは「とどく
+    // メーター」がMyRecordタブ内にインライン移植済み(KyouNoOgatoreApp.swift参照)のため、
+    // 独立画面へは遷移させずMyRecordを開く。
+    private func goRecheck() {
+        dismissRecheck()
+        onOpenMyRecord()
+    }
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:48の1:1移植。
     private var streakBrokenNow: Bool { !did && RecordLogic.streakBrokenNow(store, streak, now: Date()) }
     private var fdFocusOn: Bool { HomeLogic.fdFocusHomeActive(fd: fd, streakTotal: streak.total, fdday: fdday, today: today) }
@@ -277,6 +310,35 @@ struct HomeView: View {
                         RoundedRectangle(cornerRadius: 14 * zoom).fill(colors.yellowSoft)
                             .overlay(RoundedRectangle(cornerRadius: 14 * zoom).stroke(colors.yellow, lineWidth: 1.5 * zoom))
                     )
+            }
+
+            // TASK-C2-2026-07-29-ux-audit-G.md G2: index.html:606-611 #welcomeBack(welcomeCheck())の
+            // 1:1移植。HomeView既存の`showDoneNudge`(動画から戻った直後の「おかえりなさい」)とは別物
+            // (あちらはqbubbleの見出し差し替えのみ・こちらは3日以上あいた復帰を祝う専用カード)。
+            if showWelcomeBack {
+                KyonoGradientCard(gradient: .mint) {
+                    KyonoCharaImage(name: "chara").frame(width: 84, height: 84)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
+                    // (HomeView.swift既存の停滞期はげまし文言と同じ理由)。
+                    (Text("おかえりなさい！また会えてうれしいです🌱").font(.kyono(.black900, size: 17))
+                        + Text("\n\n休んでも習慣はこわれません\n体は数日で取り返せます\n").font(.kyono(.bold700, size: 15))
+                        + Text("通算\(streak.total)日は残っています").font(.kyono(.black900, size: 15)))
+                        .foregroundColor(colors.ink)
+                    KyonoPrimaryButton("ゆるっと再開する") { closeWelcomeBack() }
+                    KyonoGhostButton("いまの体でかたさチェック") { closeWelcomeBack(); onOpenQuiz() }
+                }
+            }
+            // index.html:612-615 #recheckCard(renderRecheck())の1:1移植。かたさチェックから14日後に
+            // 「とどくメーター」での再測定に誘う(ネイティブに独立したreach画面は無く、Web版navTo('reach')
+            // 相当はMyRecordタブ内にインライン移植済みのため、そちらへ遷移させる)。
+            if showRecheck {
+                KyonoGradientCard(gradient: .mint) {
+                    Text("チェックから2週間たったよ🌱\n前屈 どこまで届くようになった？")
+                        .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
+                    KyonoPrimaryButton("📏 とどくメーターで測ってみる") { goRecheck() }
+                    KyonoGhostButton("あとで") { dismissRecheck() }
+                }
             }
 
             if !checked {
