@@ -576,7 +576,7 @@ private fun GdFoldSection(
 // 絵文字からアイコンに差し替える(nullのときは従来どおりmarkerを文字表示・数字の1/2/3や
 // まだ対応する既存アイコンが無い絵文字はこのまま)。
 @Composable
-private fun GStep(marker: String, icon: KyonoIcon? = null, title: String, body: String, extra: (@Composable () -> Unit)? = null) {
+private fun GStep(marker: String, title: String, body: String, icon: KyonoIcon? = null, extra: (@Composable () -> Unit)? = null) {
     val colors = LocalKyonoColors.current
     Row(Modifier.fillMaxWidth().padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(30.dp).background(colors.yellow, CircleShape), contentAlignment = Alignment.Center) {
