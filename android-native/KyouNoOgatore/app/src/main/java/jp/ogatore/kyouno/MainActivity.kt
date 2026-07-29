@@ -1673,7 +1673,7 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
             KyonoCharaImage("chara_hitokoto", Modifier.size(64.dp))
         }
         Spacer(Modifier.height(10.dp))
-        KyonoPrimaryButton("💬 相談する", { onOpenSoudan(null) }, Modifier.testTag("soudanBtn"))
+        KyonoPrimaryButton("相談する", { onOpenSoudan(null) }, Modifier.testTag("soudanBtn"), icon = KyonoIcon.SoudanBubble)
         Spacer(Modifier.height(10.dp))
         Text("👇 タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
         Spacer(Modifier.height(6.dp))

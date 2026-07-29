@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +46,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -378,10 +380,16 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 }
 
                 Spacer(Modifier.height(20.dp))
-                Text("📦 記録のひっこし", color = colors.ink, fontSize = 16.sp)
+                // アイコン方針(I) 新規描き起こしバッチ1(2026-07-30): この見出しと直下のボタンは
+                // 同じ📦だったため、同じExportBoxを再利用する(見出しは削除しない・付ける)。
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    KyonoIconGlyph(KyonoIcon.ExportBox, fill = Color.Transparent, accent = colors.pink, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("記録のひっこし", color = colors.ink, fontSize = 16.sp)
+                }
                 Spacer(Modifier.height(10.dp))
                 KyonoLineButton(
-                    "📦 記録をコピーする",
+                    "記録をコピーする",
                     {
                         val str = KyonoTransfer.buildExportString(store)
                         exportText = str
@@ -389,6 +397,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         cm.setPrimaryClip(ClipData.newPlainText("kyono-export", str))
                     },
                     Modifier.testTag("exportBtn"),
+                    icon = KyonoIcon.ExportBox,
                 )
                 // GO-G2(5視点ワンループ): index.html:840,837 .hint{color:var(--sub)}の1:1移植。以前は
                 // subFaintを使っていたが実測コントラスト不足(3.87:1)であり、Web版でもこの種の一度しか
@@ -424,7 +433,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // 貼り付けという操作をボタン1つで完結させる(2026-07-19 Fableレビュー対応と同じ意図)。
                 // 読み取れない/空のときはWeb版と同趣旨のメッセージで下の手動欄へフォールバックする。
                 KyonoPrimaryButton(
-                    "📋 コピーした記録を自動で読みこむ",
+                    "コピーした記録を自動で読みこむ",
                     {
                         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = cm.primaryClip
@@ -437,6 +446,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         }
                     },
                     Modifier.testTag("importClipboardBtn"),
+                    icon = KyonoIcon.ClipboardPaste,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text("うまくいかないときは 下のわくに手で貼り付けてね", color = colors.sub, fontSize = 12.sp)
@@ -449,7 +459,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 )
                 Spacer(Modifier.height(8.dp))
                 KyonoLineButton(
-                    "📥 よみこむ",
+                    "よみこむ",
                     {
                         // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: index.html:2082-2084
                         // importData()の空欄チェックの1:1移植。以前は空欄でも確認ダイアログへ進み、
@@ -462,6 +472,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         }
                     },
                     Modifier.testTag("importBtn"),
+                    icon = KyonoIcon.ImportTray,
                 )
                 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:843の1:1移植。
                 Spacer(Modifier.height(6.dp))

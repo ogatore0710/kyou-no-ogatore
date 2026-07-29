@@ -214,9 +214,15 @@ fun KyonoPrimaryButton(
                 .padding(16.dp, 18.dp),
             contentAlignment = Alignment.Center,
         ) {
-            // B1: 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値固定)を使う。
-            // ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
-            Text(text, color = colors.yellowInk, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (icon != null) {
+                    KyonoIconGlyph(icon, fill = Color.Transparent, accent = colors.yellowInk, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(6.dp))
+                }
+                // B1: 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値固定)を使う。
+                // ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
+                Text(text, color = colors.yellowInk, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
         }
     }
 }
@@ -256,7 +262,7 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 // index.html:104,105,143 .btn-line:active{transform:translateY(1px);opacity:.85}の1:1移植。
 // UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
 @Composable
-fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     val borderColor = if (dark) Color(0xFF4A443A) else Color(0xFFE0D5BE)
@@ -273,7 +279,13 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, color = colors.sub2.copy(alpha = if (enabled) 1f else 0.5f), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                KyonoIconGlyph(icon, fill = Color.Transparent, accent = colors.sub2, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(6.dp))
+            }
+            Text(text, color = colors.sub2.copy(alpha = if (enabled) 1f else 0.5f), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+        }
     }
 }
 

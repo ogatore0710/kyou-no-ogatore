@@ -38,6 +38,10 @@ enum class KyonoIcon {
     // (図鑑自体の見出しは既に`DexBook`が担当)、未使用のenumケースを残すと混乱を招くため
     // 削除した(alan5判断・2026-07-30)。
     Search,
+    // アイコン方針(I) 新規描き起こしバッチ1(2026-07-30): 「記録のひっこし」の3ボタン
+    // (📦記録をコピーする/📋自動で読みこむ/📥よみこむ)は隣接して並ぶため、判断①(3つとも
+    // 別の絵にする)のとおり、意味が近くても見分けがつく3種類を個別に描く。
+    ExportBox, ClipboardPaste, ImportTray,
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -232,6 +236,46 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                 drawCircle(ink, radius = 6.5f * s, center = pt(10.5f, 10.5f), style = Stroke(2.2f * s))
                 val handle = Path().apply { moveTo(pt(15.5f, 15.5f).x, pt(15.5f, 15.5f).y); lineTo(pt(20f, 20f).x, pt(20f, 20f).y) }
                 drawPath(handle, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+            }
+            KyonoIcon.ExportBox -> {
+                val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(4f * s, 9f * s, 20f * s, 21f * s, CornerRadius(1.5f * s))) }
+                drawPath(rect, fill, style = Fill)
+                drawPath(rect, ink, style = Stroke(2.2f * s))
+                val flap = Path().apply {
+                    moveTo(pt(4f, 9f).x, pt(4f, 9f).y); lineTo(pt(12f, 4.5f).x, pt(12f, 4.5f).y); lineTo(pt(20f, 9f).x, pt(20f, 9f).y)
+                }
+                drawPath(flap, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                val tape = Path().apply {
+                    moveTo(pt(12f, 9f).x, pt(12f, 9f).y); lineTo(pt(12f, 21f).x, pt(12f, 21f).y)
+                    moveTo(pt(4f, 15f).x, pt(4f, 15f).y); lineTo(pt(20f, 15f).x, pt(20f, 15f).y)
+                }
+                drawPath(tape, accent, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+            }
+            KyonoIcon.ClipboardPaste -> {
+                val board = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(4f * s, 5.5f * s, 20f * s, 21f * s, CornerRadius(2f * s))) }
+                drawPath(board, fill, style = Fill)
+                drawPath(board, ink, style = Stroke(2.2f * s))
+                val clip = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(9f * s, 3f * s, 15f * s, 6f * s, CornerRadius(1.2f * s))) }
+                drawPath(clip, ink, style = Fill)
+                val lines = Path().apply {
+                    moveTo(pt(7f, 11f).x, pt(7f, 11f).y); lineTo(pt(17f, 11f).x, pt(17f, 11f).y)
+                    moveTo(pt(7f, 14.5f).x, pt(7f, 14.5f).y); lineTo(pt(15f, 14.5f).x, pt(15f, 14.5f).y)
+                }
+                drawPath(lines, accent, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+            }
+            KyonoIcon.ImportTray -> {
+                val tray = Path().apply {
+                    moveTo(pt(3f, 14f).x, pt(3f, 14f).y); lineTo(pt(21f, 14f).x, pt(21f, 14f).y)
+                    lineTo(pt(17.5f, 20f).x, pt(17.5f, 20f).y); lineTo(pt(6.5f, 20f).x, pt(6.5f, 20f).y); close()
+                }
+                drawPath(tray, fill, style = Fill)
+                drawPath(tray, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                val shaft = Path().apply { moveTo(pt(12f, 3f).x, pt(12f, 3f).y); lineTo(pt(12f, 12f).x, pt(12f, 12f).y) }
+                drawPath(shaft, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                val head = Path().apply {
+                    moveTo(pt(8f, 8f).x, pt(8f, 8f).y); lineTo(pt(12f, 12f).x, pt(12f, 12f).y); lineTo(pt(16f, 8f).x, pt(16f, 8f).y)
+                }
+                drawPath(head, accent, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
             }
         }
     }
