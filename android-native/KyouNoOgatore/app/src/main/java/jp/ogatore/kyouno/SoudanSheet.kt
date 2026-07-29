@@ -405,8 +405,20 @@ fun SoudanSheet(
             )
             androidx.compose.material3.HorizontalDivider(color = colors.line)
 
+            // TestFlight実機フィードバックB5(2026-07-29): 新しい発言が増えても自動で下へ
+            // スクロールしなかった(index.html:3056 sdScrollEnd()/3061 sdScrollToTop()相当の
+            // 実装が丸ごと欠落)。チップを押しても画面が動かず「押せたか分からない」体験に
+            // なっていたため、messages.sizeの変化を追って最下部へスクロールする。
+            val sdScrollState = rememberScrollState()
+            LaunchedEffect(messages.size) {
+                if (sdReducedMotion) {
+                    sdScrollState.scrollTo(sdScrollState.maxValue)
+                } else {
+                    sdScrollState.animateScrollTo(sdScrollState.maxValue)
+                }
+            }
             Column(
-                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
+                Modifier.weight(1f).fillMaxWidth().verticalScroll(sdScrollState)
                     .padding(16.dp).testTag("sdLog"),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {

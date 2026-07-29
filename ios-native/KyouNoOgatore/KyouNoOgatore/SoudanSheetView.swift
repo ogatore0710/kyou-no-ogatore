@@ -371,7 +371,13 @@ private struct SoudanContentView: View {
     let onOpenSearch: () -> Void
     let onOpenQuiz: () -> Void
 
+    // TestFlight実機フィードバックB5(2026-07-29): 新しい発言が増えても自動で下へスクロール
+    // しなかった(index.html:3056 sdScrollEnd()/3061 sdScrollToTop()相当の実装が丸ごと欠落)。
+    // チップを押しても画面が動かず「押せたか分からない」体験になっていた。
+    private static let bottomAnchorID = "sdBottomAnchor"
+
     var body: some View {
+        ScrollViewReader { proxy in
         VStack(spacing: 0) {
             // index.html:461-465 .sd-head(ヘッダー・円形×クローズボタン)
             HStack {
@@ -414,14 +420,32 @@ private struct SoudanContentView: View {
                 // 囲む代わりに、ここ1箇所でまとめて対応)。
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(messages) { m in bubbleView(m.bubble).transition(.sdPop) }
+                    // B5: scrollTo(anchor:.bottom)の着地点。見えない1ptのマーカーで、
+                    // 最後の吹き出しがチップ行の直上ぎりぎりで止まらず余白を持って収まる。
+                    Color.clear.frame(height: 1).id(Self.bottomAnchorID)
                 }
                 .padding(16)
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: messages.count)
+            }
+            .onChange(of: messages.count) { _, _ in
+                // index.html:3056 sdScrollEnd()/3061 sdScrollToTop()相当。Web版は新規bot行ごとに
+                // 「行の頭」へ、ユーザー発言時は最下部へ、と細かく使い分けているが、ここでは
+                // 「新しい発言が増えたら最下部へ」という指示どおりの単純な形にする。
+                if reduceMotion {
+                    proxy.scrollTo(Self.bottomAnchorID, anchor: .bottom)
+                } else {
+                    withAnimation { proxy.scrollTo(Self.bottomAnchorID, anchor: .bottom) }
+                }
+            }
+            .onAppear {
+                // index.html:3460 「再オープン時もログ最下部から」の1:1移植。
+                proxy.scrollTo(Self.bottomAnchorID, anchor: .bottom)
             }
 
             chipsView
         }
         .background(colors.bg)
+        }
     }
 
     @ViewBuilder
