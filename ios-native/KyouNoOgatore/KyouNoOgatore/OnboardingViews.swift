@@ -1045,47 +1045,67 @@ private struct TourContentView: View {
     let onDone: () -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                if si < obTourSlides.count {
-                    let slide = obTourSlides[si]
-                    Text(slide.title).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
-                    // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
-                    KyonoTourMockup(slideIndex: si)
-                    Text(slide.desc).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(11)
-                        .padding(.horizontal, 14).padding(.vertical, 10)
-                        .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
-                } else {
-                    // index.html:4276 OB_TOUR_CLOSING(chara-congrats.png 110x110・中央表示)の1:1移植。
-                    VStack(spacing: 8) {
-                        KyonoCharaImage(name: "chara-congrats").frame(width: 110, height: 110)
-                        Text(obTourClosingTitle).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
-                        Text(obTourClosingDesc).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
-                            .multilineTextAlignment(.center)
+        // TestFlight実機フィードバックD6(2026-07-29): ステップごとに本文の量が違い、その下に
+        // 置かれた「つぎへ」の位置が毎回上下に動いていた(押した指を置き直す必要があった)。
+        // index.html:524 #obLog{flex:1;max-height:52vh;overflow-y:auto}/528 #obChips(ボタン専用の
+        // 別要素)の1:1移植で、内容(#obLog相当)とボタン列(#obChips相当)を別の非スクロール領域に
+        // 分ける。ボタン列を外側のVStackに出し、内容側だけをScrollViewにすることで、内容の
+        // 長さに関わらずボタンの位置が1ptも動かなくなる(あふれるステップだけ中でスクロール)。
+        VStack(spacing: 0) {
+            ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    Color.clear.frame(height: 0).id("obTop")
+                    if si < obTourSlides.count {
+                        let slide = obTourSlides[si]
+                        Text(slide.title).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
+                        // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
+                        KyonoTourMockup(slideIndex: si)
+                        Text(slide.desc).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(11)
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
+                    } else {
+                        // index.html:4276 OB_TOUR_CLOSING(chara-congrats.png 110x110・中央表示)の1:1移植。
+                        VStack(spacing: 8) {
+                            KyonoCharaImage(name: "chara-congrats").frame(width: 110, height: 110)
+                            Text(obTourClosingTitle).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
+                            Text(obTourClosingDesc).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
-                }
-                // index.html:313-315 .dots/.dot/.dot.on
-                HStack(spacing: 6) {
-                    ForEach(0..<totalSlides, id: \.self) { i in
-                        Circle().fill(i <= si ? colors.pink : colors.line).frame(width: 9, height: 9)
+                    // index.html:313-315 .dots/.dot/.dot.on
+                    HStack(spacing: 6) {
+                        ForEach(0..<totalSlides, id: \.self) { i in
+                            Circle().fill(i <= si ? colors.pink : colors.line).frame(width: 9, height: 9)
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 4)
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top, 4)
-                Spacer().frame(height: 10)
+                .padding(20)
+            }
+            // index.html:4308 log.scrollTop=0の1:1移植。内容側だけが独立してスクロールする
+            // ようになったため、ステップが変わるたびに先頭へ戻さないと前のステップのスクロール
+            // 位置が持ち越されて見える(Web版はそれが起きないようステップ描画のたびに毎回0へ戻す)。
+            .onChange(of: si) { _, _ in proxy.scrollTo("obTop", anchor: .top) }
+            }
+            // D6: ボタン列は内容のスクロールに関わらず画面下端に固定。
+            VStack(spacing: 10) {
                 if si > 0 {
                     KyonoLineButton("◀ もどる") { si -= 1 }
                 }
-                KyonoPrimaryButton(si < totalSlides - 1 ? "つぎへ ➡️（\(si + 1)/\(totalSlides)）" : "おわる") {
+                // D6: ボタン文言から絵文字を外す(D7と同じ理由)。ドット進捗が既に上にあるため、
+                // 文字側の「(N/9)」は重複と判断して落とす(ドットのほうを残す)。
+                KyonoPrimaryButton(si < totalSlides - 1 ? "つぎへ" : "おわる") {
                     if si < totalSlides - 1 { si += 1 } else { onDone() }
                 }
                 if si < totalSlides - 1 {
                     KyonoGhostButton("ツアーをとばす", action: onDone)
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 20)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }

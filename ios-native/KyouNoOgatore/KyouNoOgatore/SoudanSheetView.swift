@@ -408,8 +408,17 @@ private struct SoudanContentView: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 12)
             .background(colors.card)
-            // D5: キーボード表示中は打っている人に要らないものを畳む(注意書き2行)。
-            if !inputFocused {
+            // D5訂正(alan5・2026-07-29): 「強い痛み・しびれがあるときは医療機関へ」は体裁の文言では
+            // なく安全のための一文なので、キーボード表示中も畳まずに残す。畳むのは前の2文
+            // (パターン集から選んでいます/目安をつかむ相談室です)だけ。
+            if inputFocused {
+                Text("強い痛み・しびれがあるときは医療機関へ")
+                    .font(.kyono(.black900, size: 13))
+                    .foregroundColor(colors.sub).multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16).padding(.vertical, 6)
+                    .background(colors.card)
+            } else {
                 // index.html:1223 .sd-disc(2行・2行目後半は太字強調)。Text連結(+)はText型のみ許容する
                 // ため、ここだけ.kyonoFont(ViewModifier)ではなく.font(.kyono(...))を直接使う
                 // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。

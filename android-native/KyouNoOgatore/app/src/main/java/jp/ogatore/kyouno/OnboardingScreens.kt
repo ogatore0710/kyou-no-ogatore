@@ -1072,7 +1072,18 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
     KyonoTheme(store.get("theme", "auto"), bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
-        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+        // TestFlight実機フィードバックD6(2026-07-29、iOS向けだがAndroidにも同じ穴があった):
+        // ステップごとに本文の量が違い、その下に置かれた「つぎへ」の位置が毎回上下に動いていた。
+        // index.html:524 #obLog{flex:1;max-height:52vh;overflow-y:auto}/528 #obChips(ボタン専用の
+        // 別要素)の1:1移植で、内容とボタン列を別のColumnに分ける。ボタン列を外側のColumnに出し
+        // 内容側だけweight(1f)+verticalScrollにすることで、内容の長さに関わらずボタンの位置が
+        // 1dpも動かなくなる(あふれるステップだけ中でスクロール)。
+        val scrollState = rememberScrollState()
+        LaunchedEffect(si) { scrollState.scrollTo(0) } // index.html:4308 log.scrollTop=0の1:1移植
+        Column(Modifier.fillMaxSize().background(colors.bg)) {
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState).padding(20.dp),
+        ) {
             if (si < OB_TOUR_SLIDES.size) {
                 val slide = OB_TOUR_SLIDES[si]
                 Text(slide.title, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
@@ -1110,13 +1121,17 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
                     )
                 }
             }
-            Spacer(Modifier.height(20.dp))
+        }
+        // D6: ボタン列は内容のスクロールに関わらず画面下端に固定。
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 20.dp)) {
             if (si > 0) {
                 KyonoLineButton("◀ もどる", { si-- }, Modifier.testTag("tourPrevBtn"))
                 Spacer(Modifier.height(8.dp))
             }
+            // D6: ボタン文言から絵文字を外す(D7と同じ理由)。ドット進捗が既に上にあるため、
+            // 文字側の「(N/9)」は重複と判断して落とす(ドットのほうを残す・iOSと同じ判断)。
             KyonoPrimaryButton(
-                if (si < totalSlides - 1) "つぎへ ➡️（${si + 1}/${totalSlides}）" else "おわる",
+                if (si < totalSlides - 1) "つぎへ" else "おわる",
                 { if (si < totalSlides - 1) si++ else onDone() },
                 Modifier.testTag("tourNextBtn"),
             )
@@ -1124,6 +1139,7 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("ツアーをとばす", onDone, Modifier.testTag("tourSkipBtn"))
             }
+        }
         }
     }
 }
