@@ -25,8 +25,9 @@ data class FaqGroup(val title: String, val items: List<FaqItem>, val icon: Kyono
 
 val FAQ_GROUPS = listOf(
     FaqGroup(
-        "📱 きほんのき",
-        listOf(
+        "きほんのき",
+        icon = KyonoIcon.PhoneDevice,
+        items = listOf(
             FaqItem("料金はかかるの？", "ぜんぶ無料です！会員登録もログインもいりません"),
             // UI/UXパリティ監査 参考指摘(2026-07-28): Web版はPWAの制約で通知を送れないため
             // 「きません」が正しい回答だが、ネイティブはTASK-C2-2026-07-27-local-notifications.mdで
@@ -82,8 +83,9 @@ val FAQ_GROUPS = listOf(
         ),
     ),
     FaqGroup(
-        "🎨 見ため・その他",
-        listOf(
+        "見ため・その他",
+        icon = KyonoIcon.PaletteArt,
+        items = listOf(
             FaqItem("文字の大きさは変えられる？", "マイ記録→続ける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠"),
             FaqItem("画面を暗くしたい（ダークモード）", "マイ記録→続ける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙"),
             FaqItem("じまんカードが見つからない", "マイ記録の「🎉お楽しみ機能」を開くと出てきます💗"),

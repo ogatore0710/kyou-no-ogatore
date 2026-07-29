@@ -13,6 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -45,6 +46,11 @@ enum class KyonoIcon {
     // アイコン方針(I) 新規描き起こしバッチ2(2026-07-30): 「お楽しみ・ごほうび」系3種
     // (👑節目ゴールドカード/🎉お楽しみ機能/🎫おやすみ券)を同じテーマでまとめて描く。
     CrownBadge, ConfettiBurst, TicketStub,
+    // アイコン方針(I) 新規描き起こしバッチ3・残り5種(2026-07-30): 🎯は当初「的(同心円)」を
+    // 想定していたが、alan5指摘のとおり`Clock`/`Question`と同じ「丸+中身」の構図になり
+    // 見分けが怪しくなるため、同心円をやめて旗(ゴールを立てる)に変更した。同じ理由で⏱も
+    // 円形の腕時計ではなく砂時計(三角×2)にし、丸い意匠が増えすぎないようにする。
+    GoalFlag, Sprout, HourglassTime, PhoneDevice, PaletteArt,
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -331,6 +337,66 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     accent, pt(12f, 7f), pt(12f, 17f), strokeWidth = 2.2f * s, cap = StrokeCap.Round,
                     pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(2.2f * s, 2.4f * s)),
                 )
+            }
+            KyonoIcon.GoalFlag -> {
+                drawLine(ink, pt(6f, 20f), pt(6f, 4f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                val flag = Path().apply {
+                    moveTo(pt(6f, 4f).x, pt(6f, 4f).y); lineTo(pt(18f, 7.5f).x, pt(18f, 7.5f).y); lineTo(pt(6f, 11f).x, pt(6f, 11f).y); close()
+                }
+                drawPath(flag, accent, style = Fill)
+                drawPath(flag, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+            KyonoIcon.Sprout -> {
+                drawLine(ink, pt(12f, 20f), pt(12f, 12f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                val leftLeaf = Path().apply {
+                    moveTo(pt(12f, 14f).x, pt(12f, 14f).y)
+                    quadraticBezierTo(pt(6f, 14f).x, pt(6f, 14f).y, pt(6f, 10f).x, pt(6f, 10f).y)
+                    quadraticBezierTo(pt(9f, 9f).x, pt(9f, 9f).y, pt(12f, 12f).x, pt(12f, 12f).y)
+                    close()
+                }
+                drawPath(leftLeaf, fill, style = Fill)
+                drawPath(leftLeaf, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                val rightLeaf = Path().apply {
+                    moveTo(pt(12f, 12f).x, pt(12f, 12f).y)
+                    quadraticBezierTo(pt(18f, 12f).x, pt(18f, 12f).y, pt(18f, 8f).x, pt(18f, 8f).y)
+                    quadraticBezierTo(pt(15f, 7f).x, pt(15f, 7f).y, pt(12f, 10f).x, pt(12f, 10f).y)
+                    close()
+                }
+                drawPath(rightLeaf, accent, style = Fill)
+                drawPath(rightLeaf, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+            KyonoIcon.HourglassTime -> {
+                val top = Path().apply {
+                    moveTo(pt(6f, 4f).x, pt(6f, 4f).y); lineTo(pt(18f, 4f).x, pt(18f, 4f).y); lineTo(pt(12f, 11f).x, pt(12f, 11f).y); close()
+                }
+                drawPath(top, fill, style = Fill)
+                drawPath(top, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                val bottom = Path().apply {
+                    moveTo(pt(6f, 20f).x, pt(6f, 20f).y); lineTo(pt(18f, 20f).x, pt(18f, 20f).y); lineTo(pt(12f, 13f).x, pt(12f, 13f).y); close()
+                }
+                drawPath(bottom, fill, style = Fill)
+                drawPath(bottom, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawCircle(accent, radius = 1.2f * s, center = pt(12f, 12.4f))
+            }
+            KyonoIcon.PhoneDevice -> {
+                val body = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(7f * s, 3f * s, 17f * s, 21f * s, CornerRadius(2f * s))) }
+                drawPath(body, fill, style = Fill)
+                drawPath(body, ink, style = Stroke(2.2f * s))
+                drawLine(ink, pt(10f, 5.5f), pt(14f, 5.5f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                drawLine(accent, pt(10f, 18.5f), pt(14f, 18.5f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+            }
+            KyonoIcon.PaletteArt -> {
+                val punch = Path().apply {
+                    addOval(androidx.compose.ui.geometry.Rect(3f * s, 6f * s, 19f * s, 18f * s))
+                    addOval(androidx.compose.ui.geometry.Rect(5.2f * s, 13.2f * s, 8.8f * s, 16.8f * s))
+                    fillType = PathFillType.EvenOdd
+                }
+                drawPath(punch, fill, style = Fill)
+                drawOval(ink, topLeft = pt(3f, 6f), size = androidx.compose.ui.geometry.Size(16f * s, 12f * s), style = Stroke(2.2f * s))
+                drawOval(ink, topLeft = pt(5.2f, 13.2f), size = androidx.compose.ui.geometry.Size(3.6f * s, 3.6f * s), style = Stroke(2.2f * s))
+                drawCircle(accent, radius = 1.3f * s, center = pt(16.3f, 8.8f))
+                drawCircle(accent, radius = 1.3f * s, center = pt(18.8f, 12.8f))
+                drawCircle(accent, radius = 1.3f * s, center = pt(13.8f, 15.8f))
             }
         }
     }

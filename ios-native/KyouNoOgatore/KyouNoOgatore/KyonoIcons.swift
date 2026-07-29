@@ -29,6 +29,11 @@ enum KyonoIcon {
     // アイコン方針(I) 新規描き起こしバッチ2(2026-07-30): 「お楽しみ・ごほうび」系3種
     // (👑節目ゴールドカード/🎉お楽しみ機能/🎫おやすみ券)を同じテーマでまとめて描く。
     case crownBadge, confettiBurst, ticketStub
+    // アイコン方針(I) 新規描き起こしバッチ3・残り5種(2026-07-30): 🎯は当初「的(同心円)」を
+    // 想定していたが、alan5指摘のとおり`.clock`/`.question`と同じ「丸+中身」の構図になり
+    // 見分けが怪しくなるため、同心円をやめて旗(ゴールを立てる)に変更した。同じ理由で⏱も
+    // 円形の腕時計ではなく砂時計(三角×2)にし、丸い意匠が増えすぎないようにする。
+    case goalFlag, sprout, hourglassTime, phoneDevice, paletteArt
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -284,6 +289,64 @@ struct KyonoIconGlyph: View {
                 var perf = Path()
                 perf.move(to: pt(12, 7)); perf.addLine(to: pt(12, 17))
                 ctx.stroke(perf, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, dash: [2.2 * s, 2.4 * s]))
+            case .goalFlag:
+                var pole = Path()
+                pole.move(to: pt(6, 20)); pole.addLine(to: pt(6, 4))
+                ctx.stroke(pole, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+                var flag = Path()
+                flag.move(to: pt(6, 4)); flag.addLine(to: pt(18, 7.5)); flag.addLine(to: pt(6, 11)); flag.closeSubpath()
+                ctx.fill(flag, with: .color(accent))
+                ctx.stroke(flag, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+            case .sprout:
+                var stem = Path()
+                stem.move(to: pt(12, 20)); stem.addLine(to: pt(12, 12))
+                ctx.stroke(stem, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+                var leftLeaf = Path()
+                leftLeaf.move(to: pt(12, 14))
+                leftLeaf.addQuadCurve(to: pt(6, 10), control: pt(6, 14))
+                leftLeaf.addQuadCurve(to: pt(12, 12), control: pt(9, 9))
+                leftLeaf.closeSubpath()
+                ctx.fill(leftLeaf, with: .color(fill))
+                ctx.stroke(leftLeaf, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+                var rightLeaf = Path()
+                rightLeaf.move(to: pt(12, 12))
+                rightLeaf.addQuadCurve(to: pt(18, 8), control: pt(18, 12))
+                rightLeaf.addQuadCurve(to: pt(12, 10), control: pt(15, 7))
+                rightLeaf.closeSubpath()
+                ctx.fill(rightLeaf, with: .color(accent))
+                ctx.stroke(rightLeaf, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+            case .hourglassTime:
+                var top = Path()
+                top.move(to: pt(6, 4)); top.addLine(to: pt(18, 4)); top.addLine(to: pt(12, 11)); top.closeSubpath()
+                ctx.fill(top, with: .color(fill))
+                ctx.stroke(top, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+                var bottom = Path()
+                bottom.move(to: pt(6, 20)); bottom.addLine(to: pt(18, 20)); bottom.addLine(to: pt(12, 13)); bottom.closeSubpath()
+                ctx.fill(bottom, with: .color(fill))
+                ctx.stroke(bottom, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+                ctx.fill(Path(ellipseIn: CGRect(x: 10.8 * s, y: 11.2 * s, width: 2.4 * s, height: 2.4 * s)), with: .color(accent))
+            case .phoneDevice:
+                let body = Path(roundedRect: CGRect(x: 7 * s, y: 3 * s, width: 10 * s, height: 18 * s), cornerRadius: 2 * s)
+                ctx.fill(body, with: .color(fill))
+                ctx.stroke(body, with: .color(inkColor), lineWidth: 2.2 * s)
+                var speaker = Path()
+                speaker.move(to: pt(10, 5.5)); speaker.addLine(to: pt(14, 5.5))
+                ctx.stroke(speaker, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+                var homeLine = Path()
+                homeLine.move(to: pt(10, 18.5)); homeLine.addLine(to: pt(14, 18.5))
+                ctx.stroke(homeLine, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+            case .paletteArt:
+                var punch = Path()
+                punch.addEllipse(in: CGRect(x: 3 * s, y: 6 * s, width: 16 * s, height: 12 * s))
+                punch.addEllipse(in: CGRect(x: 5.2 * s, y: 13.2 * s, width: 3.6 * s, height: 3.6 * s))
+                ctx.fill(punch, with: .color(fill), style: FillStyle(eoFill: true))
+                ctx.stroke(Path(ellipseIn: CGRect(x: 3 * s, y: 6 * s, width: 16 * s, height: 12 * s)), with: .color(inkColor), lineWidth: 2.2 * s)
+                ctx.stroke(Path(ellipseIn: CGRect(x: 5.2 * s, y: 13.2 * s, width: 3.6 * s, height: 3.6 * s)), with: .color(inkColor), lineWidth: 2.2 * s)
+                var dots = Path()
+                dots.addEllipse(in: CGRect(x: 15 * s, y: 7.5 * s, width: 2.6 * s, height: 2.6 * s))
+                dots.addEllipse(in: CGRect(x: 17.5 * s, y: 11.5 * s, width: 2.6 * s, height: 2.6 * s))
+                dots.addEllipse(in: CGRect(x: 12.5 * s, y: 14.5 * s, width: 2.6 * s, height: 2.6 * s))
+                ctx.fill(dots, with: .color(accent))
             }
         }
     }

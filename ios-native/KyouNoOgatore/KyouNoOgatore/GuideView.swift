@@ -228,7 +228,7 @@ private struct GuideContentView: View {
                             KyonoGhostButton("📅 記録が消えた・0日にもどってる") { jumpToFaq(proxy, groupTitle: "記録・続けるについて", itemQ: "連続が切れちゃった…") }
                             KyonoGhostButton("📱 機種変更したい", action: onOpenSettings)
                             KyonoGhostButton("🩹 ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
-                            KyonoGhostButton("🔔 通知・リマインダーについて") { jumpToFaq(proxy, groupTitle: "📱 きほんのき", itemQ: "通知はこないの？") }
+                            KyonoGhostButton("🔔 通知・リマインダーについて") { jumpToFaq(proxy, groupTitle: "きほんのき", itemQ: "通知はこないの？") }
                         }
                     }
                     .id("gd-help")
@@ -247,7 +247,7 @@ private struct GuideContentView: View {
                         GStep(marker: "2", title: "あなたの「かたさタイプ」が出ます", body: "タイプに合わせた おすすめ3本つき")
                         GStep(marker: "3", title: "まず1本 動画をやってみる", body: "おわったらホームの「きょうやった！」を押す")
                         GStep(marker: "💬", icon: .soudanBubble, title: "オガトレ相談室", body: "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
-                        GStep(marker: "🎯", title: "2週間プラン", body: "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+                        GStep(marker: "🎯", icon: .goalFlag, title: "2週間プラン", body: "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
                         Spacer().frame(height: 4)
                         KyonoPrimaryButton("チェックをはじめる", action: onOpenQuiz)
                     }
@@ -312,8 +312,8 @@ private struct GuideContentView: View {
                         Text("記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「🎉お楽しみ機能」の中にあるカード図鑑📖でいつでも見返せます")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
-                        GStep(marker: "🌱", title: "サボっても だいじょうぶ", body: "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
-                        GStep(marker: "⏱", title: "時間がない日は30秒の1本でもOK", body: "「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です")
+                        GStep(marker: "🌱", icon: .sprout, title: "サボっても だいじょうぶ", body: "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+                        GStep(marker: "⏱", icon: .hourglassTime, title: "時間がない日は30秒の1本でもOK", body: "「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です")
                     }
 
                     // ---- 6. 「マイ記録」タブでできること(index.html:1061-1070) ----

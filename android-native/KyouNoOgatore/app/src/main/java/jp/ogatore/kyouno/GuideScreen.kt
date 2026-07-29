@@ -301,7 +301,7 @@ fun GuideScreen(
                 GStep("2", "あなたの「かたさタイプ」が出ます", "タイプに合わせた おすすめ3本つき")
                 GStep("3", "まず1本 動画をやってみる", "おわったらホームの「きょうやった！」を押す")
                 GStep("💬", icon = KyonoIcon.SoudanBubble, title = "オガトレ相談室", body = "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
-                GStep("🎯", "2週間プラン", "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+                GStep("🎯", icon = KyonoIcon.GoalFlag, title = "2週間プラン", body = "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
                 Spacer(Modifier.height(4.dp))
                 KyonoPrimaryButton("チェックをはじめる", onOpenQuiz, Modifier.testTag("gdStartQuizBtn"))
             }
@@ -384,8 +384,8 @@ fun GuideScreen(
                     color = colors.ink, fontSize = 14.sp, lineHeight = 25.sp,
                 )
                 Spacer(Modifier.height(10.dp))
-                GStep("🌱", "サボっても だいじょうぶ", "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
-                GStep("⏱", "時間がない日は30秒の1本でもOK", "「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です")
+                GStep("🌱", icon = KyonoIcon.Sprout, title = "サボっても だいじょうぶ", body = "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+                GStep("⏱", icon = KyonoIcon.HourglassTime, title = "時間がない日は30秒の1本でもOK", body = "「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です")
             }
             Spacer(Modifier.height(16.dp))
 

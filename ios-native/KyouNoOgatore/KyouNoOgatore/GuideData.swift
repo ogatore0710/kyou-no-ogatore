@@ -25,7 +25,7 @@ struct FaqGroup {
 }
 
 let faqGroups: [FaqGroup] = [
-    FaqGroup(title: "📱 きほんのき", items: [
+    FaqGroup(title: "きほんのき", icon: .phoneDevice, items: [
         FaqItem(q: "料金はかかるの？", a: "ぜんぶ無料です！会員登録もログインもいりません"),
         // UI/UXパリティ監査 参考指摘(2026-07-28): Web版はPWAの制約で通知を送れないため
         // 「きません」が正しい回答だが、ネイティブはTASK-C2-2026-07-27-local-notifications.mdで
@@ -71,7 +71,7 @@ let faqGroups: [FaqGroup] = [
         FaqItem(q: "2週間プランはやめられる？", a: "ホームのプランのカードにある「やめる」からいつでもやめられます 続けた日数の記録はそのまま残ります"),
         FaqItem(q: "やりたいストレッチが見つからない", a: "「動画を探す」のいちばん下からリクエストを送れます📮 相談室で悩みを打ってみるのも近道です"),
     ]),
-    FaqGroup(title: "🎨 見ため・その他", items: [
+    FaqGroup(title: "見ため・その他", icon: .paletteArt, items: [
         FaqItem(q: "文字の大きさは変えられる？", a: "マイ記録→続ける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠"),
         FaqItem(q: "画面を暗くしたい（ダークモード）", a: "マイ記録→続ける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙"),
         FaqItem(q: "じまんカードが見つからない", a: "マイ記録の「🎉お楽しみ機能」を開くと出てきます💗"),
