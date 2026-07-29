@@ -65,11 +65,47 @@ FAQ見出し、設定「記録のひっこし」の3ボタン）／相談室の�
    **「確認済み」と書けるのは、動くかどうかまで見たときだけ**（文字列を見ただけで
    書いてG6を外した）。
 
-### モニタは張っていない（意図的）
+### 張り直すMonitor（1本ある。⚠️ここは一度間違えた）
 
-代替わり前の時点で常設Monitorは無し。**appdevのcommitを1件ずつ実況しないのが本人の
-指示**（メモリ`feedback-batch-reports-not-narrate`）なので、auto-sync監視の常設Monitorは
-**張り直さない**。必要になったらそのとき単発で。
+**最初にこのメモを書いたとき「Monitorは張っていない」と書いたが、間違いだった。**
+`TaskList`にはMonitorが出ない（あれはtodoリスト）ため「無い」と決めつけ、その直後に
+当該Monitorが自分のcommitで発火して誤りが露呈した。**代替わり後の自分への教訓としてそのまま
+残す: 「無いことの確認」は、無いと言える道具で確認したときだけ書ける。**
+（`TaskGet`でもMonitorは引けない。取り出せたのはセッションtranscriptをgrepしたから）
+
+**再張り付けはこれ**（`persistent: true` / `timeout_ms: 3600000`、
+description=`appdev commits + even-sync conflict warnings on kyou-no-ogatore`）:
+
+```bash
+cd /Users/ryunosuke/Claude/kyou-no-ogatore
+prev=$(git rev-parse HEAD)
+LOGF="$HOME/.config/even-terminal/even-sync.log"
+LOGSIZE_SEEN=$(stat -f %z "$LOGF" 2>/dev/null || echo 0)
+while true; do
+  git fetch -q 2>/dev/null || true
+  git pull -q --rebase 2>/dev/null || true
+  cur=$(git rev-parse HEAD)
+  if [ "$cur" != "$prev" ]; then
+    git log --oneline "$prev".."$cur"
+    prev=$cur
+  fi
+  if [ -f "$LOGF" ]; then
+    newsize=$(stat -f %z "$LOGF" 2>/dev/null || echo 0)
+    if [ "$newsize" -gt "$LOGSIZE_SEEN" ]; then
+      tail -c $((newsize - LOGSIZE_SEEN)) "$LOGF" | grep "kyou-no-ogatore" | grep -E "⚠|衝突|失敗" && echo "!!! even-sync warning detected for kyou-no-ogatore !!!"
+      LOGSIZE_SEEN=$newsize
+    fi
+  fi
+  sleep 45
+done
+```
+
+**張るのは正しい。ただし発火しても黙っていること。** メモリ
+`feedback-batch-reports-not-narrate`は**「通知が来たら中身は見る。ただし条件に当たらなければ
+黙って次へ」**であって、見張るのをやめろとは言っていない。**報告してよいのは3つだけ:**
+本人に判断してほしいとき／実機で触ってほしいとき／危ないことが起きたとき。
+**even-syncの衝突警告は3つ目に当たる**ので、`!!!`の行が出たら即座に本人へ上げる。
+自分のcommitやappdevの途中commitは**見るだけで黙る。**
 
 ### 触ってはいけないもの（会話が消えても効き続ける制約）
 
