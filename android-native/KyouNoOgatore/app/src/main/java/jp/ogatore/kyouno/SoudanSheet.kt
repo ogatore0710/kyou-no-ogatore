@@ -78,6 +78,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import jp.ogatore.kyouno.catalog.CatalogLoader
+import jp.ogatore.kyouno.catalog.CatalogVideo
 import jp.ogatore.kyouno.record.RecordStore
 import jp.ogatore.kyouno.safety.SafetyKBLoader
 import jp.ogatore.kyouno.safety.SoudanEngine
@@ -284,6 +286,9 @@ fun SoudanSheet(
     var input by rememberSaveable { mutableStateOf("") }
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
     val hasType = store.get<QuizTypeResult?>("type", null) != null // index.html:3024 sdHasType()の1:1移植
+    // TASK-C2-2026-07-29-soudan-video-card.md(H1): OnboardingScreens.kt ResultScreenのcatalogById
+    // と同じ形(結果画面のおすすめ動画3本と同じカタログを再利用するため、そちらとロジックを分岐させない)。
+    val sdCatalogById = remember { CatalogLoader.shared.associateBy { it.id } }
     val scope = rememberCoroutineScope()
     // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3096 sdPending(応答演出中は次の
     // チップタップ/送信を受け付けない)の1:1移植。演出中の吹き出し順序が入り乱れるのを防ぐ。
