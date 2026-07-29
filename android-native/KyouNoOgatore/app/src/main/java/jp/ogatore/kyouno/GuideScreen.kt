@@ -566,7 +566,8 @@ private fun GStep(marker: String, title: String, body: String, extra: (@Composab
     val colors = LocalKyonoColors.current
     Row(Modifier.fillMaxWidth().padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(30.dp).background(colors.yellow, CircleShape), contentAlignment = Alignment.Center) {
-            Text(marker, color = colors.ink, fontWeight = FontWeight.Black, fontSize = 13.sp)
+            // B1(2026-07-29): 黄色背景マーカーの文字はcolors.yellowInk(ライト値固定)を使う。
+            Text(marker, color = colors.yellowInk, fontWeight = FontWeight.Black, fontSize = 13.sp)
         }
         Column(Modifier.weight(1f)) {
             Text(title, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black, lineHeight = 22.sp)

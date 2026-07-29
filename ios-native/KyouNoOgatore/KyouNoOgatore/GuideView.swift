@@ -472,7 +472,8 @@ private struct GStep<Extra: View>: View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle().fill(colors.yellow)
-                Text(marker).kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                // B1(2026-07-29): 黄色背景マーカーの文字はcolors.yellowInk(ライト値固定)を使う。
+                Text(marker).kyonoFont(.black900, size: 13).foregroundColor(colors.yellowInk)
             }
             .frame(width: 30, height: 30)
             VStack(alignment: .leading, spacing: 2) {

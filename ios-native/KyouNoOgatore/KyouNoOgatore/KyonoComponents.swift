@@ -225,7 +225,9 @@ struct KyonoPrimaryButton: View {
                     .cornerRadius(kyonoButtonRadius * zoom)
                     .offset(y: shadowOffset)
                     .accessibilityHidden(true)
-                Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.ink)
+                // B1(2026-07-29): 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値
+                // 固定)を使う。ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
+                Text(text).kyonoFont(.black900, size: 20).foregroundColor(colors.yellowInk)
                     .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                     .frame(maxWidth: .infinity)
                     .background(colors.yellow.opacity(alpha))

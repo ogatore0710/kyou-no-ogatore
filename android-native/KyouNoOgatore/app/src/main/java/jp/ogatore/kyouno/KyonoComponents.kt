@@ -210,7 +210,9 @@ fun KyonoPrimaryButton(
                 .padding(16.dp, 18.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text, color = colors.ink, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            // B1: 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値固定)を使う。
+            // ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
+            Text(text, color = colors.yellowInk, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }

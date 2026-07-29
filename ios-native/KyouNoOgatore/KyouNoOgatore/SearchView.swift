@@ -225,7 +225,9 @@ private struct SearchContentView: View {
             FadingChipRow(spacing: 6) {
                 ForEach(tagCats, id: \.key) { cat in
                     let on = cat.key == activeCat
-                    Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.ink : colors.sub)
+                    // B1(2026-07-29): 選択中(on=true)は黄色背景になるため、colors.inkではなく
+                    // colors.yellowInk(ライト値固定)を使う。
+                    Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.yellowInk : colors.sub)
                         .padding(.horizontal, 13 * zoom).padding(.vertical, 10 * zoom)
                         .background(RoundedRectangle(cornerRadius: 12 * zoom).fill(on ? colors.yellow : colors.line))
                         .onTapGesture { activeCat = cat.key; activeTag = nil }

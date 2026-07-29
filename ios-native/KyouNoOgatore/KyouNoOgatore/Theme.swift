@@ -14,6 +14,11 @@ import SwiftUI
 struct KyonoColors {
     let yellow: Color
     let yellowSoft: Color
+    // TestFlight実機フィードバックB1(2026-07-29): index.html:99 .btn{color:var(--ink)}が
+    // ダークモードで--ink(#F2EDE1)に反転する一方、--yellow(#FFD93B)自体は上書きされないため、
+    // 黄色背景の上で文字がほぼ読めなくなる欠陥(Web版から受け継いだもの・コントラスト比約1.2:1)。
+    // 黄色背景専用に、ライト・ダーク問わず常にinkのライト値で固定した色を用意する。
+    let yellowInk: Color
     let ink: Color
     let sub: Color
     let sub2: Color
@@ -50,7 +55,8 @@ extension Color {
 }
 
 let kyonoLightColors = KyonoColors(
-    yellow: Color(hex: 0xFFD93B), yellowSoft: Color(hex: 0xFFF3C4), ink: Color(hex: 0x3A3A35),
+    yellow: Color(hex: 0xFFD93B), yellowSoft: Color(hex: 0xFFF3C4), yellowInk: Color(hex: 0x3A3A35),
+    ink: Color(hex: 0x3A3A35),
     sub: Color(hex: 0x6E6B5F), sub2: Color(hex: 0x6B6857),
     // GO-G2(5視点ワンループ): index.html --sub-faint:#827F72 は背景(--bg:#FFFAF3)に対し実測
     // 3.87:1でWCAG AA(4.5:1)未達だった(ダーク側の#8C8676は背景#211E19に対し4.58:1で元々AA達成
@@ -65,7 +71,8 @@ let kyonoLightColors = KyonoColors(
 )
 
 let kyonoDarkColors = KyonoColors(
-    yellow: Color(hex: 0xFFD93B), yellowSoft: Color(hex: 0x3A3423), ink: Color(hex: 0xF2EDE1),
+    yellow: Color(hex: 0xFFD93B), yellowSoft: Color(hex: 0x3A3423), yellowInk: Color(hex: 0x3A3A35),
+    ink: Color(hex: 0xF2EDE1),
     sub: Color(hex: 0xB9B2A0), sub2: Color(hex: 0xC6BFAE), subFaint: Color(hex: 0x8C8676),
     teal: Color(hex: 0x2BB3A3), tealStrong: Color(hex: 0x1E7B70), tealSoft: Color(hex: 0x22403B),
     tealInk: Color(hex: 0x7BD0C4), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0x3A2A24),

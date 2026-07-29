@@ -244,8 +244,10 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "searchCatRow") {
                 items(TAG_CATS) { cat ->
                     val on = cat.key == activeCat
+                    // B1(2026-07-29): 選択中(on=true)は黄色背景になるため、colors.inkではなく
+                    // colors.yellowInk(ライト値固定)を使う。
                     Text(
-                        cat.name, color = if (on) colors.ink else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        cat.name, color = if (on) colors.yellowInk else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
                         lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier
                             .background(if (on) colors.yellow else colors.line, RoundedCornerShape(12.dp))

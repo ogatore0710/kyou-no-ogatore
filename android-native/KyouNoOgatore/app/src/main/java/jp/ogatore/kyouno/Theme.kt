@@ -37,6 +37,12 @@ import java.time.LocalTime
 data class KyonoColors(
     val yellow: Color,
     val yellowSoft: Color,
+    // TestFlight実機フィードバックB1(2026-07-29): index.html:99 .btn{color:var(--ink)}が
+    // ダークモードで--ink(#F2EDE1)に反転する一方、--yellow(#FFD93B)自体は上書きされないため、
+    // 黄色背景の上で文字がほぼ読めなくなる欠陥(Web版から受け継いだもの・コントラスト比約1.2:1)。
+    // 黄色背景専用に、ライト・ダーク問わず常にink のライト値で固定した色を用意する
+    // (KyonoCatButton等で既に個別にハードコードされていた正しいパターンを共通化)。
+    val yellowInk: Color,
     val ink: Color,
     val sub: Color,
     val sub2: Color,
@@ -66,6 +72,7 @@ data class KyonoColors(
 val KyonoLightColors = KyonoColors(
     yellow = Color(0xFFFFD93B),
     yellowSoft = Color(0xFFFFF3C4),
+    yellowInk = Color(0xFF3A3A35),
     ink = Color(0xFF3A3A35),
     sub = Color(0xFF6E6B5F),
     sub2 = Color(0xFF6B6857),
@@ -92,6 +99,7 @@ val KyonoLightColors = KyonoColors(
 val KyonoDarkColors = KyonoColors(
     yellow = Color(0xFFFFD93B),
     yellowSoft = Color(0xFF3A3423),
+    yellowInk = Color(0xFF3A3A35),
     ink = Color(0xFFF2EDE1),
     sub = Color(0xFFB9B2A0),
     sub2 = Color(0xFFC6BFAE),
