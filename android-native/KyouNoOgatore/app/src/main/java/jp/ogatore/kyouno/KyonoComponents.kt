@@ -158,6 +158,10 @@ fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, co
 fun KyonoPrimaryButton(
     text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true,
     flatWhenDisabled: Boolean = false,
+    // TASK-C2-2026-07-30-icon-system.md(I): iOS版KyonoPrimaryButtonと同じ差し込み口
+    // (37ee548で試作したiOS版のこの引数がAndroid側には未移植だったため、ここで揃える)。
+    // nullなら従来どおりテキストのみ。影層(透明複製)には付けず、面(前景)層にだけ足す。
+    icon: KyonoIcon? = null,
 ) {
     val colors = LocalKyonoColors.current
     val interactionSource = remember { MutableInteractionSource() }

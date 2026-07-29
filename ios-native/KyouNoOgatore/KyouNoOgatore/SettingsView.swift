@@ -301,9 +301,14 @@ struct SettingsView: View {
                     }
 
                     Spacer().frame(height: 20)
-                    Text("📦 記録のひっこし").kyonoFont(.black900, size: 16)
+                    // アイコン方針(I) 新規描き起こしバッチ1(2026-07-30): この見出しと直下のボタンは
+                    // 同じ📦だったため、同じ`.exportBox`を再利用する(見出しは削除しない・付ける)。
+                    HStack(spacing: 6) {
+                        KyonoIconGlyph(icon: .exportBox, fill: .clear, accent: colors.pink).frame(width: 18, height: 18)
+                        Text("記録のひっこし").kyonoFont(.black900, size: 16)
+                    }
                     Spacer().frame(height: 10)
-                    KyonoLineButton("📦 記録をコピーする") {
+                    KyonoLineButton("記録をコピーする", icon: .exportBox) {
                         let str = KyonoTransfer.buildExportString(store)
                         exportText = str
                         UIPasteboard.general.string = str
@@ -330,7 +335,7 @@ struct SettingsView: View {
                     // importFromClipboard()の1:1移植。高齢者・デジタル機器が苦手な方向けに、長押しコピー→
                     // 貼り付けという操作をボタン1つで完結させる(2026-07-19 Fableレビュー対応と同じ意図)。
                     // 読み取れない/空のときはWeb版と同趣旨のメッセージで下の手動欄へフォールバックする。
-                    KyonoPrimaryButton("📋 コピーした記録を自動で読みこむ") {
+                    KyonoPrimaryButton("コピーした記録を自動で読みこむ", icon: .clipboardPaste) {
                         let text = UIPasteboard.general.string ?? ""
                         if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             importMessage = "クリップボードが空みたい\nコピーできているか確認してね"
@@ -344,7 +349,7 @@ struct SettingsView: View {
                     Spacer().frame(height: 8)
                     TextField("KYONO1:... をここに貼りつけ", text: $importInput).textFieldStyle(.roundedBorder)
                     Spacer().frame(height: 8)
-                    KyonoLineButton("📥 よみこむ") {
+                    KyonoLineButton("よみこむ", icon: .importTray) {
                         // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: index.html:2082-2084
                         // importData()の空欄チェックの1:1移植。以前は空欄でも確認ダイアログへ進み、
                         // base64/prefixエラーの「文字列が壊れているかも」という誤解を招くメッセージが

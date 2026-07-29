@@ -22,6 +22,10 @@ enum KyonoIcon {
     // 使う場所が無く(図鑑自体の見出しは既に`.dexBook`が担当)、未使用のenumケースを残すと
     // 混乱を招くため削除した(alan5判断・2026-07-30)。
     case search
+    // アイコン方針(I) 新規描き起こしバッチ1(2026-07-30): 「記録のひっこし」の3ボタン
+    // (📦記録をコピーする/📋自動で読みこむ/📥よみこむ)は隣接して並ぶため、判断①(3つとも
+    // 別の絵にする)のとおり、意味が近くても見分けがつく3種類を個別に描く。
+    case exportBox, clipboardPaste, importTray
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -195,6 +199,38 @@ struct KyonoIconGlyph: View {
                 var handle = Path()
                 handle.move(to: pt(15.5, 15.5)); handle.addLine(to: pt(20, 20))
                 ctx.stroke(handle, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+            case .exportBox:
+                let rect = Path(roundedRect: CGRect(x: 4 * s, y: 9 * s, width: 16 * s, height: 12 * s), cornerRadius: 1.5 * s)
+                ctx.fill(rect, with: .color(fill))
+                ctx.stroke(rect, with: .color(inkColor), lineWidth: 2.2 * s)
+                var flap = Path()
+                flap.move(to: pt(4, 9)); flap.addLine(to: pt(12, 4.5)); flap.addLine(to: pt(20, 9))
+                ctx.stroke(flap, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, lineJoin: .round))
+                var tape = Path()
+                tape.move(to: pt(12, 9)); tape.addLine(to: pt(12, 21))
+                tape.move(to: pt(4, 15)); tape.addLine(to: pt(20, 15))
+                ctx.stroke(tape, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+            case .clipboardPaste:
+                let board = Path(roundedRect: CGRect(x: 4 * s, y: 5.5 * s, width: 16 * s, height: 15.5 * s), cornerRadius: 2 * s)
+                ctx.fill(board, with: .color(fill))
+                ctx.stroke(board, with: .color(inkColor), lineWidth: 2.2 * s)
+                let clip = Path(roundedRect: CGRect(x: 9 * s, y: 3 * s, width: 6 * s, height: 3 * s), cornerRadius: 1.2 * s)
+                ctx.fill(clip, with: .color(inkColor))
+                var lines = Path()
+                lines.move(to: pt(7, 11)); lines.addLine(to: pt(17, 11))
+                lines.move(to: pt(7, 14.5)); lines.addLine(to: pt(15, 14.5))
+                ctx.stroke(lines, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+            case .importTray:
+                var tray = Path()
+                tray.move(to: pt(3, 14)); tray.addLine(to: pt(21, 14)); tray.addLine(to: pt(17.5, 20)); tray.addLine(to: pt(6.5, 20)); tray.closeSubpath()
+                ctx.fill(tray, with: .color(fill))
+                ctx.stroke(tray, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+                var shaft = Path()
+                shaft.move(to: pt(12, 3)); shaft.addLine(to: pt(12, 12))
+                ctx.stroke(shaft, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+                var head = Path()
+                head.move(to: pt(8, 8)); head.addLine(to: pt(12, 12)); head.addLine(to: pt(16, 8))
+                ctx.stroke(head, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, lineJoin: .round))
             }
         }
     }

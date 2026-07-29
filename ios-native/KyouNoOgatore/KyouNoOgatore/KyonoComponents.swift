@@ -339,11 +339,14 @@ struct KyonoLineButton: View {
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
     let text: String
+    // TASK-C2-2026-07-30-icon-system.md(I): KyonoPrimaryButtonと同じ差し込み口。nilなら従来どおり
+    // テキストのみ。
+    var icon: KyonoIcon? = nil
     var enabled: Bool = true
     let action: () -> Void
 
-    init(_ text: String, enabled: Bool = true, action: @escaping () -> Void) {
-        self.text = text; self.enabled = enabled; self.action = action
+    init(_ text: String, icon: KyonoIcon? = nil, enabled: Bool = true, action: @escaping () -> Void) {
+        self.text = text; self.icon = icon; self.enabled = enabled; self.action = action
     }
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
@@ -353,7 +356,12 @@ struct KyonoLineButton: View {
     // index.html:104,105,143 .btn-line + .btn-line:active{transform:translateY(1px);opacity:.85}の
     // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
     var body: some View {
-        Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
+        HStack(spacing: 6 * zoom) {
+            if let icon {
+                KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.sub2).frame(width: 20 * zoom, height: 20 * zoom)
+            }
+            Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
+        }
             .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
             .frame(maxWidth: .infinity)
             .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2 * zoom))
