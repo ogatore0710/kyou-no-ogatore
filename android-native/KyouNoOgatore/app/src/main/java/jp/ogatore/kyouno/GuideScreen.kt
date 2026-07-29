@@ -281,7 +281,7 @@ fun GuideScreen(
                     KyonoLineButton("📅 記録が消えた・0日にもどってる", { jumpToFaq("記録・続けるについて", "連続が切れちゃった…") }, Modifier.testTag("gdHelpMissing"))
                     KyonoLineButton("📱 機種変更したい", onOpenSettings, Modifier.testTag("gdHelpDevice"))
                     KyonoLineButton("🩹 ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
-                    KyonoLineButton("🔔 通知・リマインダーについて", { jumpToFaq("📱 きほんのき", "通知はこないの？") }, Modifier.testTag("gdHelpNotify"))
+                    KyonoLineButton("🔔 通知・リマインダーについて", { jumpToFaq("きほんのき", "通知はこないの？") }, Modifier.testTag("gdHelpNotify"))
                 }
             }
             Spacer(Modifier.height(16.dp))
