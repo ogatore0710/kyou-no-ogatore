@@ -194,6 +194,21 @@ private struct SearchContentView: View {
     @StateObject private var networkMonitor = NetworkMonitor()
 
     var body: some View {
+        // TestFlight実機フィードバックC2(2026-07-29): 「動画を探す」でhits.countは454件正しく
+        // 入っているのに、カードが1枚しか描画されず「もっと見る」も出ない欠陥があった。
+        // index.html:945-963を確認すると、Web版の#searchはsearchbox/catrow/chips/vlist/moreBtn/
+        // reqBoxが全部同じ<section>の中の兄弟要素で、ページ全体が1つのスクロール領域になっている
+        // (検索結果だけを独立スクロール領域にする構造はWeb版に存在しない)。
+        // 従来の実装はこれと逆に、「非スクロールのVStack(検索欄・チップ)」の中に
+        // 「結果だけを囲むScrollView」をネストし、その外側のVStack全体に
+        // kyonoScreenPadding()(padding(.bottom,180*zoom)を含む)を当てていた。ScrollViewが
+        // 高さの手がかりを持たないVStackの中に置かれ、かつ外側に大きな下パディングが乗ることで
+        // ScrollViewの実効ビューポート高さの計算が壊れ、LazyVStackが最初の1件しか実体化しない
+        // 状態になっていた(SwiftUIの既知の落とし穴: ScrollViewをフレーム不定のVStackへ
+        // ネストすると、LazyVStackが「表示範囲」を正しく認識できないことがある)。
+        // HomeView.swift(既に正しく動いている画面)と同じ「ScrollViewを最外殻にし、内側の
+        // VStackへkyonoScreenPadding()を当てる」形に合わせて直す(Web版の1枚スクロールとも一致)。
+        ScrollView {
         VStack(alignment: .leading, spacing: 8) {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
@@ -266,23 +281,25 @@ private struct SearchContentView: View {
                 // 「件見つかりました」は動詞つきの事務的な文体で、Web版のカジュアルな単位表現とは別物だった。
                 Text(verbatim: "\(hits.count)本").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
             }
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 6) {
-                    ForEach(Array(hits.prefix(searchLimit)), id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
-                    if hits.count > searchLimit {
-                        KyonoGhostButton("もっと見る") { searchLimit += 48 }
-                    }
-                    // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
-                    // index.html:960-963 #reqBox(app-search.js drawResults()のreqMsg/reqBtn組み立て・
-                    // index.html copyMailAddr()の1:1移植)。検索ロジック自体は変更していない。
-                    let kwText = [query.trimmingCharacters(in: .whitespacesAndNewlines), activeTag].compactMap { $0?.isEmpty == false ? $0 : nil }.joined(separator: " ")
-                    ReqBox(shown: !hits.isEmpty, kwText: kwText)
+            // C2修正(2026-07-29): 以前はここに独立したScrollViewがあり、結果一覧だけを
+            // 別スクロール領域に囲っていた。外側を1枚のScrollViewにしたのでここは
+            // 素のLazyVStackのままでよい(遅延読み込み自体はScrollViewが親にあれば機能する)。
+            LazyVStack(alignment: .leading, spacing: 6) {
+                ForEach(Array(hits.prefix(searchLimit)), id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
+                if hits.count > searchLimit {
+                    KyonoGhostButton("もっと見る") { searchLimit += 48 }
                 }
+                // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
+                // index.html:960-963 #reqBox(app-search.js drawResults()のreqMsg/reqBtn組み立て・
+                // index.html copyMailAddr()の1:1移植)。検索ロジック自体は変更していない。
+                let kwText = [query.trimmingCharacters(in: .whitespacesAndNewlines), activeTag].compactMap { $0?.isEmpty == false ? $0 : nil }.joined(separator: " ")
+                ReqBox(shown: !hits.isEmpty, kwText: kwText)
             }
         }
         // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}の
         // 1:1移植。この画面だけ全辺16ptだった欠落を、共通のkyonoScreenPadding()へ統一する。
         .kyonoScreenPadding()
+        }
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
