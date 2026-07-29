@@ -184,12 +184,14 @@ private struct BragContentView: View {
             KyonoCardModalOverlay(isPresented: cardImage != nil, onClose: { cardImage = nil }) {
                 if let cardImage {
                     // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
-                    // (btn-primary「📤 保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
+                    // (btn-primary「保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
                     // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った「保存・シェアする」
                     // (フォントサイズ20)だけが2行に折り返し、1行の「とじる」と高さ・上端が揃わなかった。
+                    // 絵文字(Web版📤)は本人の新ガイドライン(ボタン・タブ・見出しにはOS絵文字を
+                    // 使わない・アイコンはデザイン生成のものを使う)により持ち込まない。
                     VStack(spacing: 12) {
                         Image(uiImage: cardImage).resizable().scaledToFit()
-                        KyonoPrimaryButton("📤 保存・シェアする") {
+                        KyonoPrimaryButton("保存・シェアする") {
                             let days = BragCardRenderer.clampDays(Int(daysText) ?? 1)
                             ShareImage.share(uiImage: cardImage, text: "#きょうのオガトレ \(days)日つづいてる！")
                         }

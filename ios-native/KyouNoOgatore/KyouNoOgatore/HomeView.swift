@@ -597,13 +597,14 @@ struct HomeView: View {
                             }
                         }
                         // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
-                        // (btn-primary「📤 保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
+                        // (btn-primary「保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
                         // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った
                         // 「保存・シェアする」だけが2行に折り返し、1行の「とじる」と高さ・上端が
-                        // 揃わなかった。
+                        // 揃わなかった。絵文字(Web版📤)は本人の新ガイドライン(ボタン・タブ・見出しには
+                        // OS絵文字を使わない・アイコンはデザイン生成のものを使う)により持ち込まない。
                         VStack(spacing: 12 * zoom) {
                             // index.html shareCard()相当(Step7bで新規実装)。
-                            KyonoPrimaryButton("📤 保存・シェアする") {
+                            KyonoPrimaryButton("保存・シェアする") {
                                 ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
                             }
                             KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
