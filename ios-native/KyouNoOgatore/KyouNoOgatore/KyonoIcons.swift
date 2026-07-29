@@ -246,19 +246,41 @@ struct KyonoIconGlyph: View {
                 ctx.stroke(band, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
                 ctx.fill(Path(ellipseIn: CGRect(x: 10.7 * s, y: 4.7 * s, width: 2.6 * s, height: 2.6 * s)), with: .color(accent))
             case .confettiBurst:
-                var horn = Path()
-                horn.move(to: pt(5, 20)); horn.addLine(to: pt(9, 9)); horn.addLine(to: pt(15, 13)); horn.closeSubpath()
-                ctx.fill(horn, with: .color(fill))
-                ctx.stroke(horn, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
-                var dots = Path()
-                dots.addEllipse(in: CGRect(x: 16 * s, y: 5 * s, width: 2 * s, height: 2 * s))
-                dots.addEllipse(in: CGRect(x: 20 * s, y: 9 * s, width: 2 * s, height: 2 * s))
-                dots.addEllipse(in: CGRect(x: 12 * s, y: 4 * s, width: 2 * s, height: 2 * s))
-                ctx.fill(dots, with: .color(accent))
+                // alan5差し戻し(2026-07-30): 閉じた三角+点3つは「再生ボタン」に読める
+                // (.playの三角と衝突)ため、筒の口を閉じずに開けた形に描き直す。
+                // fill用は閉じたPath、stroke用は口側(遠い辺)を結ばない2本の別Pathにすることで、
+                // 塗りは筒の形のまま・線は開いた口に見えるようにする。
+                var hornFill = Path()
+                hornFill.move(to: pt(5, 19)); hornFill.addLine(to: pt(9, 8)); hornFill.addLine(to: pt(17, 12)); hornFill.closeSubpath()
+                ctx.fill(hornFill, with: .color(fill))
+                var hornStroke = Path()
+                hornStroke.move(to: pt(5, 19)); hornStroke.addLine(to: pt(9, 8))
+                hornStroke.move(to: pt(5, 19)); hornStroke.addLine(to: pt(17, 12))
+                ctx.stroke(hornStroke, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, lineJoin: .round))
+                var confettiDots = Path()
+                confettiDots.addEllipse(in: CGRect(x: 10 * s, y: 2 * s, width: 2 * s, height: 2 * s))
+                confettiDots.addEllipse(in: CGRect(x: 20 * s, y: 7 * s, width: 2 * s, height: 2 * s))
+                ctx.fill(confettiDots, with: .color(accent))
+                var confettiLine = Path()
+                confettiLine.move(to: pt(17, 3)); confettiLine.addLine(to: pt(19, 5))
+                ctx.stroke(confettiLine, with: .color(accent), style: StrokeStyle(lineWidth: 1.8 * s, lineCap: .round))
             case .ticketStub:
-                let rect = Path(roundedRect: CGRect(x: 3 * s, y: 6 * s, width: 18 * s, height: 12 * s), cornerRadius: 3 * s)
-                ctx.fill(rect, with: .color(fill))
-                ctx.stroke(rect, with: .color(inkColor), lineWidth: 2.2 * s)
+                // alan5相談(2026-07-30): 左右のヘコミ(切り取り線)を試す。単純な丸角長方形+
+                // 円の別パスによる打ち抜きではなく、外周パス自体に凹アーチを組み込む
+                // (addQuadCurveで中心へ引き寄せる)ことで、通常のfill/strokeだけで
+                // 背景色に依存せず正しく描ける。
+                var ticket = Path()
+                ticket.move(to: pt(3, 6))
+                ticket.addLine(to: pt(21, 6))
+                ticket.addLine(to: pt(21, 10))
+                ticket.addQuadCurve(to: pt(21, 14), control: pt(18.5, 12))
+                ticket.addLine(to: pt(21, 18))
+                ticket.addLine(to: pt(3, 18))
+                ticket.addLine(to: pt(3, 14))
+                ticket.addQuadCurve(to: pt(3, 10), control: pt(5.5, 12))
+                ticket.closeSubpath()
+                ctx.fill(ticket, with: .color(fill))
+                ctx.stroke(ticket, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
                 var perf = Path()
                 perf.move(to: pt(12, 7)); perf.addLine(to: pt(12, 17))
                 ctx.stroke(perf, with: .color(accent), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, dash: [2.2 * s, 2.4 * s]))

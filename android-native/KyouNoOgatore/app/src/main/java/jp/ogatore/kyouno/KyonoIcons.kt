@@ -292,19 +292,41 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                 drawCircle(accent, radius = 1.3f * s, center = pt(12f, 6f))
             }
             KyonoIcon.ConfettiBurst -> {
-                val horn = Path().apply {
-                    moveTo(pt(5f, 20f).x, pt(5f, 20f).y); lineTo(pt(9f, 9f).x, pt(9f, 9f).y); lineTo(pt(15f, 13f).x, pt(15f, 13f).y); close()
+                // alan5差し戻し(2026-07-30): 閉じた三角+点3つは「再生ボタン」に読める
+                // (.playの三角と衝突)ため、筒の口を閉じずに開けた形に描き直す。
+                // fill用は閉じたPath、stroke用は口側(遠い辺)を結ばない2本の別Pathにすることで、
+                // 塗りは筒の形のまま・線は開いた口に見えるようにする。
+                val hornFill = Path().apply {
+                    moveTo(pt(5f, 19f).x, pt(5f, 19f).y); lineTo(pt(9f, 8f).x, pt(9f, 8f).y); lineTo(pt(17f, 12f).x, pt(17f, 12f).y); close()
                 }
-                drawPath(horn, fill, style = Fill)
-                drawPath(horn, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
-                drawCircle(accent, radius = 1f * s, center = pt(16f, 5f))
-                drawCircle(accent, radius = 1f * s, center = pt(20f, 9f))
-                drawCircle(accent, radius = 1f * s, center = pt(12f, 4f))
+                drawPath(hornFill, fill, style = Fill)
+                val hornStroke = Path().apply {
+                    moveTo(pt(5f, 19f).x, pt(5f, 19f).y); lineTo(pt(9f, 8f).x, pt(9f, 8f).y)
+                    moveTo(pt(5f, 19f).x, pt(5f, 19f).y); lineTo(pt(17f, 12f).x, pt(17f, 12f).y)
+                }
+                drawPath(hornStroke, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawCircle(accent, radius = 1f * s, center = pt(11f, 3f))
+                drawCircle(accent, radius = 1f * s, center = pt(21f, 8f))
+                drawLine(accent, pt(17f, 3f), pt(19f, 5f), strokeWidth = 1.8f * s, cap = StrokeCap.Round)
             }
             KyonoIcon.TicketStub -> {
-                val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(3f * s, 6f * s, 21f * s, 18f * s, CornerRadius(3f * s))) }
-                drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                // alan5相談(2026-07-30): 左右のヘコミ(切り取り線)を試す。単純な丸角長方形+
+                // 円の別パスによる打ち抜きではなく、外周パス自体に凹アーチを組み込む
+                // (quadraticBezierToで中心へ引き寄せる)ことで、通常のfill/strokeだけで
+                // 背景色に依存せず正しく描ける。
+                val ticket = Path().apply {
+                    moveTo(pt(3f, 6f).x, pt(3f, 6f).y)
+                    lineTo(pt(21f, 6f).x, pt(21f, 6f).y)
+                    lineTo(pt(21f, 10f).x, pt(21f, 10f).y)
+                    quadraticBezierTo(pt(18.5f, 12f).x, pt(18.5f, 12f).y, pt(21f, 14f).x, pt(21f, 14f).y)
+                    lineTo(pt(21f, 18f).x, pt(21f, 18f).y)
+                    lineTo(pt(3f, 18f).x, pt(3f, 18f).y)
+                    lineTo(pt(3f, 14f).x, pt(3f, 14f).y)
+                    quadraticBezierTo(pt(5.5f, 12f).x, pt(5.5f, 12f).y, pt(3f, 10f).x, pt(3f, 10f).y)
+                    close()
+                }
+                drawPath(ticket, fill, style = Fill)
+                drawPath(ticket, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 drawLine(
                     accent, pt(12f, 7f), pt(12f, 17f), strokeWidth = 2.2f * s, cap = StrokeCap.Round,
                     pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(2.2f * s, 2.4f * s)),
