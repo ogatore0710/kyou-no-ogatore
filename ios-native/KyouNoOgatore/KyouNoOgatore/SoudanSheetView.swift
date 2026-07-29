@@ -427,14 +427,23 @@ private struct SoudanContentView: View {
                 .padding(16)
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: messages.count)
             }
-            .onChange(of: messages.count) { _, _ in
-                // index.html:3056 sdScrollEnd()/3061 sdScrollToTop()相当。Web版は新規bot行ごとに
-                // 「行の頭」へ、ユーザー発言時は最下部へ、と細かく使い分けているが、ここでは
-                // 「新しい発言が増えたら最下部へ」という指示どおりの単純な形にする。
+            .onChange(of: messages.last?.id) { _, _ in
+                // B5差し戻し(2026-07-29): 常に最下部へ送ると、長いbot返信の1行目が画面外に
+                // 押し出されて読み始められないことがある(相談室はチップ行+入力欄で下が
+                // ふさがっており見える高さが狭いため)。index.html:3057-3060の実測コメントの
+                // とおり、Web版は「下端合わせ一辺倒」を2026-07-15に捨てている:
+                // 新規bot発言はその行の「頭」(.top)へ、ユーザー自身の発言(index.html:3136
+                // sdUserBubble→sdScrollEnd)だけ最下部(.bottom)へ、と使い分ける。
+                // 行の下に読む余地が無い(最後の短い行)ときにanchor:.topが自動でスクロール
+                // 可能域いっぱいまでしか動かない=事実上下端に寄るのは、ScrollViewの通常の
+                // クランプ挙動でありindex.html:3069のMath.min(...)クランプと同じ効果になる。
+                guard let last = messages.last else { return }
+                let anchor: UnitPoint
+                if case .user = last.bubble { anchor = .bottom } else { anchor = .top }
                 if reduceMotion {
-                    proxy.scrollTo(Self.bottomAnchorID, anchor: .bottom)
+                    proxy.scrollTo(last.id, anchor: anchor)
                 } else {
-                    withAnimation { proxy.scrollTo(Self.bottomAnchorID, anchor: .bottom) }
+                    withAnimation { proxy.scrollTo(last.id, anchor: anchor) }
                 }
             }
             .onAppear {

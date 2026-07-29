@@ -57,6 +57,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -79,6 +81,7 @@ import jp.ogatore.kyouno.safety.SafetyKBLoader
 import jp.ogatore.kyouno.safety.SoudanEngine
 import jp.ogatore.kyouno.safety.SoudanResponse
 import jp.ogatore.kyouno.safety.SoudanVerdict
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 import kotlinx.coroutines.delay
@@ -408,15 +411,19 @@ fun SoudanSheet(
             // TestFlight実機フィードバックB5(2026-07-29): 新しい発言が増えても自動で下へ
             // スクロールしなかった(index.html:3056 sdScrollEnd()/3061 sdScrollToTop()相当の
             // 実装が丸ごと欠落)。チップを押しても画面が動かず「押せたか分からない」体験に
-            // なっていたため、messages.sizeの変化を追って最下部へスクロールする。
+            // なっていた。
+            //
+            // B5差し戻し(2026-07-29): 最初の実装は常に最下部へ送っていたが、それだと長いbot
+            // 返信の1行目が画面外に押し出されて読み始められないことがある(相談室はチップ行+
+            // 入力欄で下がふさがっており見える高さが狭いため)。index.html:3057-3060の実測
+            // コメントのとおり、Web版は「下端合わせ一辺倒」を2026-07-15に捨てている:
+            // 新規bot発言はその行の「頭」へ、ユーザー自身の発言(index.html:3136
+            // sdUserBubble→sdScrollEnd)だけ最下部へ、と使い分ける。行の下に読む余地が無い
+            // (最後の短い行)ときはscrollTo/animateScrollToが自動でmaxValueにクランプする
+            // ため、index.html:3069のMath.min(...)クランプと同じ効果になる(特別扱い不要)。
             val sdScrollState = rememberScrollState()
-            LaunchedEffect(messages.size) {
-                if (sdReducedMotion) {
-                    sdScrollState.scrollTo(sdScrollState.maxValue)
-                } else {
-                    sdScrollState.animateScrollTo(sdScrollState.maxValue)
-                }
-            }
+            val sdCoroutineScope = rememberCoroutineScope()
+            var sdLastScrolledFor by remember { mutableStateOf<SdBubble?>(null) }
             Column(
                 Modifier.weight(1f).fillMaxWidth().verticalScroll(sdScrollState)
                     .padding(16.dp).testTag("sdLog"),
@@ -427,7 +434,7 @@ fun SoudanSheet(
                 // 洩れていた分(index.html:497は.sd-sheetと.sd-popの2つを指しており、後者は今回まで
                 // 未実装だった)。reduced-motion時は無演出即表示にする。
                 val bubblePopDensity = LocalDensity.current
-                for (m in messages) {
+                messages.forEachIndexed { index, m ->
                     AnimatedVisibility(
                         visible = true,
                         // UI/UXパリティ監査GO-13(2026-07-28・SUSPECTED): index.html:489 .sd-pop
@@ -438,6 +445,19 @@ fun SoudanSheet(
                         } else {
                             fadeIn(tween(180, easing = KyonoEaseOut)) +
                                 slideInVertically(tween(180, easing = KyonoEaseOut)) { with(bubblePopDensity) { 4.dp.roundToPx() } }
+                        },
+                        // B5: 最後の行の実レイアウト位置が確定した時点(=タイピングドット→
+                        // 本文への差し替え後の高さも含む)で、そのメッセージへ初めてスクロール
+                        // する。sdLastScrolledForで「同じメッセージには2回スクロールしない」
+                        // ことを保証する(参照比較=新しいインスタンスが積まれた時だけ動く)。
+                        modifier = Modifier.onGloballyPositioned { coords ->
+                            if (index != messages.lastIndex || sdLastScrolledFor === m) return@onGloballyPositioned
+                            sdLastScrolledFor = m
+                            val targetTop = coords.positionInParent().y.roundToInt()
+                            sdCoroutineScope.launch {
+                                val target = if (m is SdBubble.User) sdScrollState.maxValue else targetTop
+                                if (sdReducedMotion) sdScrollState.scrollTo(target) else sdScrollState.animateScrollTo(target)
+                            }
                         },
                     ) {
                     when (m) {
