@@ -40,9 +40,10 @@ TYPES = {
                                    "sitting upright, greyish-brown and cream fur"),
     "koka":   ("開かずのトビラ",   "a small stubby wooden door with a round knob, shut tight, "
                                    "warm brown wood grain, standing upright"),
-    "kenko":  ("飛べないダチョウ", "a very round chubby baby ostrich with a SHORT thick neck and a big round "
-                                   "head, tiny useless wings, sandy beige feathers and a small orange beak, "
-                                   "same chibi proportions as IMAGE 1"),
+    # 首は長いままにする(2026-07-29本人決定)。丸いチビ体型に描き直したところ、6体の並びは
+    # そろったがヒヨコに見えてダチョウらしさが消えたため、前案の長い首を採用。
+    "kenko":  ("飛べないダチョウ", "a round chubby ostrich with a long neck and very tiny useless wings, "
+                                   "sandy beige feathers and an orange beak"),
     "ashi":   ("棒立ちペンギン",   "a penguin standing perfectly stiff and straight with flippers pressed "
                                    "to its sides, black and white with orange feet"),
     "robot":  ("ガチガチロボット", "a small boxy retro robot standing stiffly, rounded square head and body, "

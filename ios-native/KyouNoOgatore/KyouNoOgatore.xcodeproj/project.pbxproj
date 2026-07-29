@@ -15,6 +15,7 @@
 		703384C65F499F44FBD5E831 /* chara-crown.png in Resources */ = {isa = PBXBuildFile; fileRef = 59B49D0CB02844CD0C0AB536 /* chara-crown.png */; };
 		79E37473C90A47E0D8ACDB0E /* chara-cheer.png in Resources */ = {isa = PBXBuildFile; fileRef = 4314DCE6A1F9E6AA843BC423 /* chara-cheer.png */; };
 		8060C5186B013FBAF46B2F57 /* WidgetCore in Frameworks */ = {isa = PBXBuildFile; productRef = F950F73057DD7CC53A67D1F5 /* WidgetCore */; };
+		87FEFDF059513D39391663ED /* D2TempShareSaveUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22D644B174A12E98B33BFF7 /* D2TempShareSaveUITests.swift */; };
 		89A07CD3119E34F6BFCB68C9 /* SafetyCore in Frameworks */ = {isa = PBXBuildFile; productRef = DCABFED709CFEEF540C7D4CE /* SafetyCore */; };
 		8D00F822AF9872B02B55B119 /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 470554BE76139B65EDACBBF6 /* RecordCore */; };
 		922FEE346086542AA7EF8FAE /* RecordCore in Frameworks */ = {isa = PBXBuildFile; productRef = 708A826FFF9926D92160FF47 /* RecordCore */; };
@@ -70,6 +71,7 @@
 		BDB406D2AAFCD3D0FE67AACB /* chara-good.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-good.png"; sourceTree = "<group>"; };
 		C46132710479193E86203285 /* SearchViewUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SearchViewUITests.swift; path = KyouNoOgatoreUITests/SearchViewUITests.swift; sourceTree = "<group>"; };
 		CBE743BE096F7B13A3A7B4AD /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		D22D644B174A12E98B33BFF7 /* D2TempShareSaveUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = D2TempShareSaveUITests.swift; path = KyouNoOgatoreUITests/D2TempShareSaveUITests.swift; sourceTree = "<group>"; };
 		D3352044F6C350112CE7A976 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F580755EE5B3160657F65AB6 /* chara-cracker.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-cracker.png"; sourceTree = "<group>"; };
 		F699ADE1064458FDC263229C /* chara-kaikyaku.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-kaikyaku.png"; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				C46132710479193E86203285 /* SearchViewUITests.swift */,
+				D22D644B174A12E98B33BFF7 /* D2TempShareSaveUITests.swift */,
 			);
 			name = KyouNoOgatoreUITests;
 			sourceTree = SOURCE_ROOT;
@@ -335,6 +338,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				25F2D027FEC15A1FC4195062 /* SearchViewUITests.swift in Sources */,
+				87FEFDF059513D39391663ED /* D2TempShareSaveUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -522,6 +526,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "きょうのオガトレ";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "つくった記録カードを写真フォルダに保存するときに使います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -558,6 +563,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "きょうのオガトレ";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "つくった記録カードを写真フォルダに保存するときに使います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
