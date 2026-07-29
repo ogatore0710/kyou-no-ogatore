@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -240,12 +242,29 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 )
                 Spacer(Modifier.height(10.dp))
             }
-            // index.html:945-949 .searchbox
+            // index.html:945-949 .searchbox。TASK-C2-2026-07-29-ux-audit-G.md G4(消去ボタン):
+            // index.html:430「#qClear: 検索クリア✕: 文字があるときだけ表示。50-60代向けに指で
+            // 押せる大きさ」の1:1移植。
             TextField(
                 value = query,
                 onValueChange = { query = it; searchLimit = 24 },
                 modifier = Modifier.fillMaxWidth().testTag("searchInput"),
                 placeholder = { Text("🔍 例: 肩こり／朝／むくみ", color = colors.subFaint) },
+                trailingIcon = if (query.isNotEmpty()) {
+                    {
+                        Box(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .background(colors.line, androidx.compose.foundation.shape.CircleShape)
+                                .clickable { query = ""; searchLimit = 24 }
+                                .semantics { contentDescription = "入力をけす" }
+                                .testTag("searchClearBtn"),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("✕", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                        }
+                    }
+                } else null,
                 shape = RoundedCornerShape(16.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
@@ -302,6 +321,24 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                             .padding(horizontal = 12.dp, vertical = 10.dp)
                             .testTag("searchTag_$tag"),
                     )
+                }
+            }
+            // index.html:952 #filterNowの1:1移植。TASK-C2-2026-07-29-ux-audit-G.md G4(ピル・最優先):
+            // 監査の指摘「タグで絞り込み中だと分からないまま、なぜか11本しか出ない状態から抜けられ
+            // なくなる」に対応。
+            activeTag?.let { tag ->
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                    Text(
+                        "$tag ✕", color = cc.onText, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(cc.onBg, RoundedCornerShape(50))
+                            .border(2.dp, cc.onBorder, RoundedCornerShape(50))
+                            .clickable { activeTag = null; searchLimit = 24 }
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .testTag("searchFilterPill"),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("タップで解除", color = colors.sub, fontSize = 13.sp)
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -364,12 +401,32 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             Spacer(Modifier.height(6.dp))
         }
         }
+        // index.html:958 #vlistの0件時分岐(app-search.js:68)の1:1移植。TASK-C2-2026-07-29-
+        // ux-audit-G.md G4: 0件のときにここが完全に空になり、下のReqBox(文言のみ)しか
+        // 出ないため「検索結果欄そのものが沈黙する」ように見えていた。
+        if (hits.isEmpty()) {
+            item {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(colors.card, RoundedCornerShape(16.dp))
+                        .padding(vertical = 20.dp)
+                        .testTag("searchEmptyCard"),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    KyonoCharaImage("chara_2", Modifier.size(84.dp))
+                    Spacer(Modifier.height(6.dp))
+                    Text("この条件のストレッチはまだないみたい…", color = colors.sub, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
         // C2修正: 動画行だけを引き続きitems()で遅延読み込みする(外側LazyColumnの直下)。
         items(hits.take(searchLimit)) { v -> VideoRow(v, openUrl) }
         if (hits.size > searchLimit) {
             item {
                 Spacer(Modifier.height(6.dp))
-                KyonoGhostButton("もっと見る", { searchLimit += 48 }, Modifier.testTag("searchMoreBtn"))
+                // index.html:71 app-search.js drawResults()「さらに表示（あと${残り}本）」の1:1移植。
+                KyonoGhostButton("さらに表示（あと${hits.size - searchLimit}本）", { searchLimit += 48 }, Modifier.testTag("searchMoreBtn"))
             }
         }
         // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):

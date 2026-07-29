@@ -228,8 +228,25 @@ private struct SearchContentView: View {
                             .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.yellow, lineWidth: 1.5))
                     )
             }
-            // index.html:945-949 .searchbox
-            TextField("🔍 例: 肩こり／朝／むくみ", text: $query)
+            // index.html:945-949 .searchbox。TASK-C2-2026-07-29-ux-audit-G.md G4(消去ボタン):
+            // index.html:430「#qClear: 検索クリア✕: 文字があるときだけ表示。50-60代向けに指で
+            // 押せる大きさ・searchboxの高さは増やさない」の1:1移植。WebKit標準の小さい✕(native
+            // では最初からTextField標準の消去アイコンが無いため二重化の懸念自体が無い)と違い、
+            // これだけが唯一の消去手段になる。
+            HStack(spacing: 6) {
+                TextField("🔍 例: 肩こり／朝／むくみ", text: $query)
+                if !query.isEmpty {
+                    Button {
+                        query = ""
+                    } label: {
+                        Text("✕").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                            .frame(width: 30 * zoom, height: 30 * zoom)
+                            .background(Circle().fill(colors.line))
+                    }
+                    .accessibilityLabel("入力をけす")
+                    .accessibilityIdentifier("searchClearBtn")
+                }
+            }
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
@@ -263,6 +280,21 @@ private struct SearchContentView: View {
                         .onTapGesture { activeTag = (activeTag == tag) ? nil : tag; searchLimit = 24 }
                 }
             }
+            // index.html:952 #filterNowの1:1移植。TASK-C2-2026-07-29-ux-audit-G.md G4(ピル・最優先):
+            // 監査の指摘「タグで絞り込み中だと分からないまま、なぜか11本しか出ない状態から抜けられ
+            // なくなる」に対応。チップ自体の.on表示だけでは絞り込み中であることの手がかりが弱く、
+            // 解除手段も「もう一度同じチップを探してタップ」しかなかった。
+            if let activeTag {
+                HStack(spacing: 8) {
+                    Text("\(activeTag) ✕").kyonoFont(.bold700, size: 14).foregroundColor(cc.onText)
+                        .padding(.horizontal, 16 * zoom).padding(.vertical, 10 * zoom)
+                        .background(Capsule().fill(cc.onBg))
+                        .overlay(Capsule().stroke(cc.onBorder, lineWidth: 2 * zoom))
+                        .onTapGesture { self.activeTag = nil; searchLimit = 24 }
+                        .accessibilityIdentifier("searchFilterPill")
+                    Text("タップで解除").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                }
+            }
             HStack {
                 Menu {
                     Button("すべての年") { selectedYear = nil; searchLimit = 24 }
@@ -285,10 +317,26 @@ private struct SearchContentView: View {
             // 別スクロール領域に囲っていた。外側を1枚のScrollViewにしたのでここは
             // 素のLazyVStackのままでよい(遅延読み込み自体はScrollViewが親にあれば機能する)。
             LazyVStack(alignment: .leading, spacing: 6) {
-                ForEach(Array(hits.prefix(searchLimit)), id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
-                    .accessibilityIdentifier("searchResultRow")
+                // index.html:958 #vlistの0件時分岐(app-search.js:68)の1:1移植。TASK-C2-2026-07-29-
+                // ux-audit-G.md G4: 0件のときにここが完全に空になり、下のReqBox(文言のみ)しか
+                // 出ないため「検索結果欄そのものが沈黙する」ように見えていた。
+                if hits.isEmpty {
+                    VStack(spacing: 6) {
+                        KyonoCharaImage(name: "chara-2").frame(width: 84, height: 84)
+                        Text("この条件のストレッチはまだないみたい…")
+                            .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+                    .accessibilityIdentifier("searchEmptyCard")
+                } else {
+                    ForEach(Array(hits.prefix(searchLimit)), id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
+                        .accessibilityIdentifier("searchResultRow")
+                }
                 if hits.count > searchLimit {
-                    KyonoGhostButton("もっと見る") { searchLimit += 48 }
+                    // index.html:71 app-search.js drawResults()「さらに表示（あと${残り}本）」の1:1移植。
+                    KyonoGhostButton("さらに表示（あと\(hits.count - searchLimit)本）") { searchLimit += 48 }
                         .accessibilityIdentifier("searchMoreBtn")
                 }
                 // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
