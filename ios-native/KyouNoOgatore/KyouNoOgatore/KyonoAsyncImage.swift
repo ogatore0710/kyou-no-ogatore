@@ -11,6 +11,13 @@
 //  差し込めないため)。Cachesディレクトリ配下のthumbnails/に保存し、Documentsディレクトリ
 //  (kyono-store.json=記録データ本体)とは完全に分離する。書き込み済みならネットワーク状況に
 //  関わらず常にキャッシュを優先してよい(サムネイルURLはvideoId+size単位で不変)。
+//
+//  TASK-C2-2026-07-29-testflight-feedback-d.md D1: 実機でサムネイルが1枚も出ない不具合。
+//  NSLogでの実測(検索結果24行・全行 `.task` 発火ゼロ)で確定: bodyが`Group { if let uiImage {...} }`
+//  のとき、uiImage==nilの間はGroupの中身が完全に空になり、その空Groupに付けた`.task`が
+//  一度も発火しない(SwiftUIが中身の無いGroupをレンダーツリーにmountしない)。`Color.clear`を
+//  常に実体のあるアンカーにして`.overlay`で条件付き内容を載せる形に変えたところ、同じ実測で
+//  全行の`.task`発火・画像取得(200 OK)を確認した。
 
 import SwiftUI
 import UIKit
@@ -28,17 +35,18 @@ struct KyonoAsyncImage: View {
     }()
 
     var body: some View {
-        Group {
-            if let uiImage {
-                Image(uiImage: uiImage).resizable().aspectRatio(contentMode: contentMode)
+        Color.clear
+            .overlay {
+                if let uiImage {
+                    Image(uiImage: uiImage).resizable().aspectRatio(contentMode: contentMode)
+                }
             }
-        }
-        .task(id: url) {
-            // produceState(key1=url)相当: urlが変わったら古い画像を即座に消してから読み込み直す
-            // (画面再利用時に別動画の古いサムネイルが一瞬見えるのを防ぐ)。
-            uiImage = nil
-            uiImage = await Self.loadImage(urlString: url)
-        }
+            .task(id: url) {
+                // produceState(key1=url)相当: urlが変わったら古い画像を即座に消してから読み込み直す
+                // (画面再利用時に別動画の古いサムネイルが一瞬見えるのを防ぐ)。
+                uiImage = nil
+                uiImage = await Self.loadImage(urlString: url)
+            }
     }
 
     private static func loadImage(urlString: String) async -> UIImage? {
