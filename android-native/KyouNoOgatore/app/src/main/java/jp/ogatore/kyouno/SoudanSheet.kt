@@ -451,12 +451,15 @@ fun SoudanSheet(
                         // する。sdLastScrolledForで「同じメッセージには2回スクロールしない」
                         // ことを保証する(参照比較=新しいインスタンスが積まれた時だけ動く)。
                         modifier = Modifier.onGloballyPositioned { coords ->
+                            android.util.Log.d("SD_DEBUG", "onGloballyPositioned index=$index last=${messages.lastIndex} m=$m alreadyScrolled=${sdLastScrolledFor === m}")
                             if (index != messages.lastIndex || sdLastScrolledFor === m) return@onGloballyPositioned
                             sdLastScrolledFor = m
                             val targetTop = coords.positionInParent().y.roundToInt()
+                            android.util.Log.d("SD_DEBUG", "SCROLL targetTop=$targetTop maxValue=${sdScrollState.maxValue} isUser=${m is SdBubble.User}")
                             sdCoroutineScope.launch {
                                 val target = if (m is SdBubble.User) sdScrollState.maxValue else targetTop
                                 if (sdReducedMotion) sdScrollState.scrollTo(target) else sdScrollState.animateScrollTo(target)
+                                android.util.Log.d("SD_DEBUG", "SCROLL done target=$target actual=${sdScrollState.value}")
                             }
                         },
                     ) {
