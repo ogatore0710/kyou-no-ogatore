@@ -2,6 +2,24 @@
 
 最終更新: 2026-07-29
 
+## ⚠️ 既知の潜在リスク: Android CatalogListScreen(再生リスト)がC2と同型の構造
+
+TestFlight実機フィードバックC2(2026-07-29・`REPORT-C2-2026-07-29-testflight-feedback-c.md`)で、
+`SearchScreen.kt`が非スクロールの`Column(Modifier.fillMaxSize())`の中に`LazyColumn(weight(1f))`を
+直接ネストしており、上の固定コンテンツ(タグ行4行分)が画面の残り高さを使い切ると
+`weight(1f)`に配られる高さが0になって結果が丸ごと描画されない欠陥を修正した。
+
+**`CatalogListScreen`(同じ`SearchScreen.kt`内・「再生リスト」タブ本体)は同じ型
+(`Column(fillMaxSize)`の中に`LazyColumn(weight(1f))`)のままである。** 意図的に直していない
+(alan5の支持を得た判断)。理由: 現時点ではヘッダーがタイトル1行+任意のオフライン帯だけで軽く、
+実機(エミュレータ)で複数件が正しくスクロール表示されることを確認済みだから。**壊れていない
+コードへの不要な変更は避ける方針どおり。**
+
+**ただし将来ヘッダーに何か足したら同じ壊れ方をする。** 次にこの画面のヘッダー部分(タイトルの
+下・LazyColumnの上)に要素を追加するときは、必ず実機(エミュレータ)で複数件描画されることを
+確認すること。危うい兆候が出たら、`SearchScreen`本体で採用した「ヘッダーもLazyColumnの
+`item{}`として統合し画面全体を1つのスクロール領域にする」形へ同様に直すこと。
+
 ## ✅ 完了(alan5検収OK) / 🚧 残作業あり: UI/UXパリティ監査2巡目(2026-07-29・
 `REPORT-C2-2026-07-29-uiux-audit2.md`・`REPORT-C2-2026-07-29-uiux-audit2-goitems-complete.md`)
 alan5仕分け「GO 9件・保留1件・却下1件」のうちGO9件(A1〜A9)は実装完了・順にpush済み・alan5検収OK
