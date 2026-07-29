@@ -2,6 +2,30 @@
 
 最終更新: 2026-07-29
 
+## ⚠️ 既知の潜在リスク: C1(タブバー下端の黒い帯)の自動検査はダークモード限定・既定のCI実行では効かない(F2・2026-07-29)
+
+`KyouNoOgatoreUITests/SearchViewUITests.testNoBlackBarAtBottomOfScreen`はC1(タブバー下の
+黒い帯・ignoresSafeArea漏れ)の再発防止として追加したが、**実測の結果ダークモードでしか
+この欠陥を再現できない**ことが分かった。
+
+- ライトモードでは画面本体側の背景(`KyonoBackgroundColor`)が既に安全領域の下まで塗られて
+  おり、タブバー自身の`ignoresSafeArea`漏れがあっても黒く見えない
+- アプリ内の「続ける設定→暗い」を切り替えても`KyonoTheme`は`.preferredColorScheme`を
+  設定していないため、システムのtrait(`.regularMaterial`等のシステム描画に効く)は変わらず
+  再現しない。システムレベルのダークモード(`xcrun simctl ui <device> appearance dark`)が
+  必要
+- UIテストのプロセス自体はシミュレータ内でサンドボックスされており、テストコードから
+  `simctl`は呼べない(host側=xcodebuildを起動するmacOS側のプロセスからしか呼べない)
+
+**つまり既定のCI実行(シミュレータは既定でライトモード)では、この検査はC1の再発を
+一度も捕まえられない。** 実際にわざと壊してダークモードで赤くなる・直して緑に戻ることは
+確認済み(実行前に手動で`xcrun simctl ui <device> appearance dark`が必要)。
+
+**How to apply:** この検査を本当に機能させたい場合は、CIのシミュレータをダークモードで
+起動する設定を追加するか、host側スクリプトで`simctl ui appearance dark`→`xcodebuild test`→
+`appearance light`を束ねるラッパーを用意すること。それまでは「ダークモードで手動確認した
+ときだけ効く」検査として扱う(既定実行では見張れていないと認識しておく)。
+
 ## ⚠️ 既知の潜在リスク: 記録カードのタイプアイコンはどの自動テストにも見張られていない(E1・2026-07-29)
 
 E1でiOS `CardCore`・Android `card/CardRenderer.kt`とも、記録カードの「かたさタイプ」
