@@ -394,9 +394,12 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                 drawPath(punch, fill, style = Fill)
                 drawOval(ink, topLeft = pt(3f, 6f), size = androidx.compose.ui.geometry.Size(16f * s, 12f * s), style = Stroke(2.2f * s))
                 drawOval(ink, topLeft = pt(5.2f, 13.2f), size = androidx.compose.ui.geometry.Size(3.6f * s, 3.6f * s), style = Stroke(2.2f * s))
-                drawCircle(accent, radius = 1.3f * s, center = pt(16.3f, 8.8f))
-                drawCircle(accent, radius = 1.3f * s, center = pt(18.8f, 12.8f))
-                drawCircle(accent, radius = 1.3f * s, center = pt(13.8f, 15.8f))
+                // alan5差し戻し(2026-07-30): 前回の3点はパレット本体の楕円からはみ出して
+                // いた(右端に寄せるほど楕円は細くなるため)。中心寄りに置き直し、親指の穴
+                // (center 7,15・半径1.8)とも重ならない位置を選ぶ。
+                drawCircle(accent, radius = 1.3f * s, center = pt(13f, 9f))
+                drawCircle(accent, radius = 1.3f * s, center = pt(14.5f, 13f))
+                drawCircle(accent, radius = 1.3f * s, center = pt(13f, 16f))
             }
         }
     }

@@ -342,10 +342,13 @@ struct KyonoIconGlyph: View {
                 ctx.fill(punch, with: .color(fill), style: FillStyle(eoFill: true))
                 ctx.stroke(Path(ellipseIn: CGRect(x: 3 * s, y: 6 * s, width: 16 * s, height: 12 * s)), with: .color(inkColor), lineWidth: 2.2 * s)
                 ctx.stroke(Path(ellipseIn: CGRect(x: 5.2 * s, y: 13.2 * s, width: 3.6 * s, height: 3.6 * s)), with: .color(inkColor), lineWidth: 2.2 * s)
+                // alan5差し戻し(2026-07-30): 前回の3点(x=17.5/15始点)はパレット本体の
+                // 楕円からはみ出していた(右端に寄せるほど楕円は細くなるため)。中心寄りに
+                // 置き直し、親指の穴(center 7,15・半径1.8)とも重ならない位置を選ぶ。
                 var dots = Path()
-                dots.addEllipse(in: CGRect(x: 15 * s, y: 7.5 * s, width: 2.6 * s, height: 2.6 * s))
-                dots.addEllipse(in: CGRect(x: 17.5 * s, y: 11.5 * s, width: 2.6 * s, height: 2.6 * s))
-                dots.addEllipse(in: CGRect(x: 12.5 * s, y: 14.5 * s, width: 2.6 * s, height: 2.6 * s))
+                dots.addEllipse(in: CGRect(x: 11.7 * s, y: 7.7 * s, width: 2.6 * s, height: 2.6 * s))
+                dots.addEllipse(in: CGRect(x: 13.2 * s, y: 11.7 * s, width: 2.6 * s, height: 2.6 * s))
+                dots.addEllipse(in: CGRect(x: 11.7 * s, y: 14.7 * s, width: 2.6 * s, height: 2.6 * s))
                 ctx.fill(dots, with: .color(accent))
             }
         }
