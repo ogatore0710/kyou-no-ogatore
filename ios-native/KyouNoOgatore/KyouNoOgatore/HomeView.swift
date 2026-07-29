@@ -57,6 +57,19 @@ private func dayIndex(_ now: Date) -> Int {
     Int((now.timeIntervalSince1970 * 1000 + 6 * 3600 * 1000) / 86400000)
 }
 
+// TASK-C2-2026-07-29-ux-audit-G.md G1: index.html:1528-1529 TODAY_ASA/TODAY_YORUの1:1移植
+// (「きょうの1本」がタイプ未判定・プラン非実行時に日替わりで出す既定10本)。キーはV(index.html:1460)の
+// キーであり、quizVideoKeyToId(OnboardingViews.swift・診断結果の3本おすすめで既に移植済み)を
+// 再利用してYouTube動画IDへ変換する(同じ変換表を二重に持たない)。
+private let TODAY_ASA = ["asa10", "asaGachi5", "asa9shi", "asaBaki9", "asa10kesen", "ogaRadio6", "asa5", "asa3", "honki9", "nagomi7"]
+private let TODAY_YORU = ["yoru9umi", "yoru9ice", "yoru12kai", "jukusui9", "yoru15", "jiritsu10", "neochi10", "ofuro20", "ofuro6", "ashisuki"]
+
+// index.html:1690 autoMode()の1:1移植(4時〜17時未満はあさ、それ以外はよる)。
+private func autoTodayMode(_ now: Date) -> String {
+    let hour = Calendar.current.component(.hour, from: now)
+    return (4..<17).contains(hour) ? "asa" : "yoru"
+}
+
 struct HomeView: View {
     private let store: RecordStore
     let onStartTour: (Bool) -> Void
@@ -169,6 +182,15 @@ struct HomeView: View {
         pendingNudgeDate = nil
     }
 
+    // TASK-C2-2026-07-29-ux-audit-G.md G1: 動画タップ時の共通処理(旧・仮実装のボタンにあった
+    // pendingNudge復帰導線をそのまま引き継ぐ)。
+    private func openTodayVideo(_ urlString: String) {
+        pendingNudgeDate = RecordLogic.todayStr(now: Date())
+        if let url = URL(string: urlString) {
+            UIApplication.shared.open(url)
+        }
+    }
+
     private let dayTicker = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:2718
@@ -262,17 +284,14 @@ struct HomeView: View {
                 SoudanCard(onOpenSoudan: onOpenSoudan)
             }
 
-            // index.html:654 #todayCard(きょうの1本)相当。動画カタログ本体はStep7aの範囲のためここでは
-            // pendingNudge復帰導線の実タップ確認用に、実際に外部へ遷移するリンクだけを用意する。
+            // index.html:654-664 #todayCard(きょうの1本)相当。TASK-C2-2026-07-29-ux-audit-G.md G1:
+            // 「押すとYouTubeのトップページが開くだけ」の仮実装を、renderToday()の1:1移植へ差し替える
+            // (プラン優先→タイプ判定→あさ/よる自動判定の順。セグメント切替UIは「最低ライン」の
+            // 注記どおり第2段へ送る=いまは自動選出のみ)。
             if !fdFocusOn {
                 KyonoCard {
                     KyonoSectionTitle("▶️ きょうの1本")
-                    KyonoPrimaryButton("きょうの1本を見る") {
-                        pendingNudgeDate = RecordLogic.todayStr(now: Date())
-                        if let url = URL(string: "https://www.youtube.com/") {
-                            UIApplication.shared.open(url)
-                        }
-                    }
+                    TodayVideoSection(plan: plan, typeResult: typeResult, onVideoTap: openTodayVideo)
                 }
                 // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
                 // scrollIntoView(todayVideo)のスクロール先識別子。
