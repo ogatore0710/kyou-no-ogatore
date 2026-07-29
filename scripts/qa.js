@@ -2397,6 +2397,37 @@ function checkWebNativeTypeIconKeyParity() {
   }
 }
 
+// F3d(alan5指摘・2026-07-29): F3-②(checkNativeResourceReferencesExist)は`exists()`しか見ておらず、
+// 「ファイルはあるが中身が古い」を素通りする。実際に起きた事故: `assets/type-momo.png`を再デザインで
+// 差し替えたのに、iOS(TypeArt/type-momo.png)とAndroid(drawable-nodpi/type_momo.png)の手動コピーは
+// 旧デザインのまま残り、本人の実機で「キャラが変わっていない」になった(momo/kenko/yawaraの3体)。
+// 存在チェックは3体とも「ある」と判定するため、この欠陥だけは中身のバイト比較でしか捕まえられない。
+function checkTypeArtAssetsByteMatchNativeCopies() {
+  const keys = ["momo", "kenko", "yawara", "koka", "ashi", "robot"];
+  const targets = [
+    { label: "iOS TypeArt", dir: "ios-native/KyouNoOgatore/KyouNoOgatore/TypeArt", name: (k) => `type-${k}.png` },
+    { label: "Android drawable-nodpi", dir: "android-native/KyouNoOgatore/app/src/main/res/drawable-nodpi", name: (k) => `type_${k}.png` },
+  ];
+  for (const t of targets) {
+    const mismatches = [];
+    let checked = 0;
+    for (const k of keys) {
+      const srcRel = path.join("assets", `type-${k}.png`);
+      const dstRel = path.join(t.dir, t.name(k));
+      if (!exists(srcRel) || !exists(dstRel)) { mismatches.push(`${k}(片方または両方が存在しない)`); continue; }
+      const srcBuf = fs.readFileSync(path.join(ROOT, srcRel));
+      const dstBuf = fs.readFileSync(path.join(ROOT, dstRel));
+      checked++;
+      if (!srcBuf.equals(dstBuf)) mismatches.push(k);
+    }
+    assert(
+      `${t.label}: assets/type-*.pngと1バイト単位で一致している`,
+      mismatches.length === 0,
+      mismatches.length ? `不一致: ${mismatches.join(", ")}` : `${checked} types checked`,
+    );
+  }
+}
+
 // F4(TASK-C2-2026-07-29-inspection-upgrade.md「入口で禁止する」): 本来はSwiftLintのカスタム
 // ルールにする指示だったが、この環境にはHomebrewが無く`swiftlint`バイナリを導入できない
 // (過去のセッションでも確認済み)。SwiftLint導入(SPMビルドツールプラグインとしてXcode
@@ -2466,7 +2497,10 @@ function checkNoTempMarkers() {
   ];
   const dirs = [
     "android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno",
+    "android-native/KyouNoOgatore/app/src/test/java/jp/ogatore/kyouno",
     "ios-native/KyouNoOgatore/KyouNoOgatore",
+    "ios-native/KyouNoOgatore/KyouNoOgatoreUITests",
+    "ios-native/KyouNoOgatore/KyonoWidgetExtension",
     "scripts",
   ];
   const targets = roots.filter((rel) => exists(rel));
@@ -2549,6 +2583,7 @@ function main() {
   checkNativeRequiredInfoPlistKeys();
   checkNativeResourceReferencesExist();
   checkWebNativeTypeIconKeyParity();
+  checkTypeArtAssetsByteMatchNativeCopies();
   checkNoGroupIfLetTaskPattern();
   checkNoTempMarkers();
 

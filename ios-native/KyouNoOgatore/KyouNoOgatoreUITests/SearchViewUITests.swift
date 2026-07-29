@@ -121,18 +121,4 @@ final class SearchViewUITests: XCTestCase {
         XCTAssertGreaterThan(sampled, 0, "ピクセル標本抽出に失敗(0点)")
         XCTAssertEqual(blackCount, 0, "画面下端に黒い帯を検出した(\(blackCount)/\(sampled)点が黒・C1と同じ疑い)")
     }
-
-    // 一時検証専用(TASK-C2-2026-07-29-ux-audit-G.md G1の目視確認用)。DO-NOT-COMMIT/TEMP-TEST。
-    func testTempCaptureHomeTodayCard() throws {
-        let app = XCUIApplication()
-        app.launch()
-        let scroll = app.scrollViews.firstMatch
-        XCTAssertTrue(scroll.waitForExistence(timeout: 10))
-        scroll.swipeUp()
-        sleep(1)
-        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        attachment.lifetime = .keepAlways
-        attachment.name = "g1-today-card"
-        add(attachment)
-    }
 }
