@@ -115,6 +115,8 @@ import jp.ogatore.kyouno.card.DexItem
 import jp.ogatore.kyouno.card.DexLogic
 import jp.ogatore.kyouno.card.ResolvedTheme
 import jp.ogatore.kyouno.card.TYPE_IMG
+import jp.ogatore.kyouno.catalog.CatalogLoader
+import jp.ogatore.kyouno.catalog.CatalogVideo
 import jp.ogatore.kyouno.record.CalendarLogic
 import jp.ogatore.kyouno.record.HomeLogic
 import jp.ogatore.kyouno.record.RecordLogic
@@ -700,10 +702,83 @@ private val QUOTES = listOf(
 // index.html:1708 dayIndex()の1:1移植(現在時刻+6時間オフセットの日数カウンタ)。
 private fun dayIndex(now: Instant): Long = (now.toEpochMilli() + 6L * 3600 * 1000) / 86400000L
 
+// TASK-C2-2026-07-29-ux-audit-G.md G1: index.html:1528-1529 TODAY_ASA/TODAY_YORUの1:1移植
+// (「きょうの1本」がタイプ未判定・プラン非実行時に日替わりで出す既定10本)。キーはQUIZ_VIDEO_KEY_TO_ID
+// (OnboardingScreens.kt・診断結果の3本おすすめで既に移植済み)でYouTube動画IDへ変換する。
+private val TODAY_ASA = listOf("asa10", "asaGachi5", "asa9shi", "asaBaki9", "asa10kesen", "ogaRadio6", "asa5", "asa3", "honki9", "nagomi7")
+private val TODAY_YORU = listOf("yoru9umi", "yoru9ice", "yoru12kai", "jukusui9", "yoru15", "jiritsu10", "neochi10", "ofuro20", "ofuro6", "ashisuki")
+
+// index.html:1690 autoMode()の1:1移植(4時〜17時未満はあさ、それ以外はよる)。
+private fun autoTodayMode(now: Instant): String {
+    val hour = java.time.ZonedDateTime.ofInstant(now, java.time.ZoneId.systemDefault()).hour
+    return if (hour in 4..16) "asa" else "yoru"
+}
+
 // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md): index.html:1971
 // REACH_LV(段位名。0番目は未使用)の1:1移植。OnboardingScreens.kt(ResultScreen)からも参照するため
 // module-internal(既定可視性)にする(全画面完全性監査タスク #result)。
 val REACH_LV = listOf("", "ひざまで", "すねまで", "足首まで", "つま先タッチ", "ゆかにベタッ")
+
+// TASK-C2-2026-07-29-ux-audit-G.md G1: index.html:1711-1753 renderToday()の1:1移植。
+// 優先順位はプラン実行中→タイプ判定済み→あさ/よる自動判定(Web版のstate.mode未設定時の既定と同じ)。
+// セグメント切替(あなた用/あさ/よるの手動タブ)は「最低ライン」注記により第2段へ送るため、
+// ここでは自動選出のみを行う。
+@Composable
+private fun TodayVideoSection(plan: SdPlanData?, typeResult: QuizTypeResult?, onVideoTap: (String) -> Unit) {
+    val colors = LocalKyonoColors.current
+    // OnboardingScreens.kt(ResultScreen)のcatalogById/lookupVideoと同じ形(結果画面のおすすめ動画3本と
+    // 同じ変換表・カタログを再利用するため、そちらとロジックを分岐させない)。
+    val catalogById = remember { CatalogLoader.shared.associateBy { it.id } }
+    fun lookupVideoById(id: String): CatalogVideo? = catalogById[id]
+    fun lookupVideoByKey(key: String): CatalogVideo? = QUIZ_VIDEO_KEY_TO_ID[key]?.let { catalogById[it] }
+
+    val now = Instant.now()
+    val today = RecordLogic.todayStr(now)
+    // index.html:1771 planCurrent()の1:1移植(未完走のみ「実行中」とみなす)。完走判定の式自体は
+    // PlanProgressCard(既存)と同じにする(二重定義で式がずれるのを防ぐ)。
+    val planDayNum = plan?.let { (RecordLogic.daysBetween(it.start, today) + 1).coerceAtLeast(1) }
+    if (plan != null && plan.videos.isNotEmpty() && planDayNum != null && planDayNum <= plan.days) {
+        // index.html:1745-1748 m==="mine"&&plan分岐(planVideoHTML)の1:1移植。
+        val idx = (((dayIndex(now) % plan.videos.size) + plan.videos.size) % plan.videos.size).toInt()
+        lookupVideoById(plan.videos[idx])?.let { v ->
+            VideoRow(v, onVideoTap, badge = "プラン${planDayNum}日目/${plan.days}日: ${plan.label}")
+            Text(
+                "相談室でつくった2週間プランの1本だよ🌱", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp), textAlign = TextAlign.Center,
+            )
+        }
+    } else if (typeResult != null && QUIZ_TYPES.containsKey(typeResult.key)) {
+        // index.html:1749-1755 m==="mine"&&typed分岐(fdGuide時の①だけ表示は、この画面自体が
+        // fdFocusOnのときは丸ごと非表示になる既存の分岐(HomeScreen呼び出し側参照)と重複するため
+        // ここでは扱わない)。
+        val rx = remember(typeResult.key) { currentRx(typeResult.key, now) }
+        Text("きょうのあなた用", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
+        rx.forEach { key -> lookupVideoByKey(key)?.let { v -> VideoRow(v, onVideoTap) } }
+        if (rx.isNotEmpty()) {
+            Spacer(Modifier.height(4.dp))
+            KyonoGhostButton(
+                "▶ あなたへの3本 連続再生はこちら",
+                {
+                    val ids = rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")
+                    onVideoTap("https://www.youtube.com/watch_videos?video_ids=$ids")
+                },
+            )
+        }
+    } else {
+        // index.html:1756-1758 それ以外(asa/yoru自動判定)分岐の1:1移植。
+        val mode = autoTodayMode(now)
+        val list = if (mode == "asa") TODAY_ASA else TODAY_YORU
+        val idx = (((dayIndex(now) % list.size) + list.size) % list.size).toInt()
+        lookupVideoByKey(list[idx])?.let { v ->
+            VideoRow(v, onVideoTap, badge = if (mode == "asa") "きょうのあさ" else "きょうのよる")
+        }
+    }
+    Text(
+        "動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね✅",
+        color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp), textAlign = TextAlign.Center,
+    )
+}
 
 @Composable
 fun HomeScreen(
@@ -989,8 +1064,10 @@ fun HomeScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            // index.html:654 #todayCard(きょうの1本)相当。動画カタログ本体はStep7aの範囲のためここでは
-            // pendingNudge復帰導線の実タップ確認用に、実際に外部へ遷移するリンクだけを用意する。
+            // index.html:654-664 #todayCard(きょうの1本)相当。TASK-C2-2026-07-29-ux-audit-G.md G1:
+            // 「押すとYouTubeのトップページが開くだけ」の仮実装を、renderToday()の1:1移植へ差し替える
+            // (プラン優先→タイプ判定→あさ/よる自動判定の順。セグメント切替UIは「最低ライン」の
+            // 注記どおり第2段へ送る=いまは自動選出のみ)。
             if (!fdFocusOn) {
                 KyonoCard(
                     Modifier
@@ -999,13 +1076,13 @@ fun HomeScreen(
                 ) {
                     Text("▶️ きょうの1本", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(10.dp))
-                    KyonoPrimaryButton(
-                        "きょうの1本を見る",
-                        {
+                    TodayVideoSection(
+                        plan = plan,
+                        typeResult = typeResult,
+                        onVideoTap = { url ->
                             pendingNudgeDate = RecordLogic.todayStr(Instant.now())
-                            openUrl("https://www.youtube.com/")
+                            openUrl(url)
                         },
-                        Modifier.testTag("todayVideoBtn"),
                     )
                 }
                 Spacer(Modifier.height(16.dp))

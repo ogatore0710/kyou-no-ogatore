@@ -796,6 +796,77 @@ private struct SoudanCard: View {
     }
 }
 
+// TASK-C2-2026-07-29-ux-audit-G.md G1: index.html:1711-1753 renderToday()の1:1移植。
+// 優先順位はプラン実行中→タイプ判定済み→あさ/よる自動判定(Web版のstate.mode未設定時の既定と同じ)。
+// セグメント切替(あなた用/あさ/よるの手動タブ)は「最低ライン」注記により第2段へ送るため、
+// ここでは自動選出のみを行う(手動でmineを選んでいてもいなくても、使える条件ならmineが既定)。
+private struct TodayVideoSection: View {
+    @Environment(\.kyonoColors) private var colors
+    let plan: SdPlanData?
+    let typeResult: QuizTypeResult?
+    let onVideoTap: (String) -> Void
+
+    // OnboardingViews.swift ResultContentView.catalogById/lookupVideoと同じ形(結果画面のおすすめ
+    // 動画3本と同じ変換表・カタログを再利用するため、そちらとロジックを分岐させない)。
+    private var catalogById: [String: CatalogVideo] {
+        Dictionary(uniqueKeysWithValues: CatalogLoader.shared.map { ($0.id, $0) })
+    }
+    private func lookupVideoById(_ id: String) -> CatalogVideo? { catalogById[id] }
+    private func lookupVideoByKey(_ key: String) -> CatalogVideo? {
+        quizVideoKeyToId[key].flatMap { catalogById[$0] }
+    }
+
+    // index.html:1771 planCurrent()の1:1移植(未完走のみ「実行中」とみなす)。完走判定の式自体は
+    // PlanProgressCardView(既存)と同じにする(二重定義で式がずれるのを防ぐ)。
+    private func planDayNum(_ p: SdPlanData, today: String) -> Int {
+        max(1, RecordLogic.daysBetween(p.start, today) + 1)
+    }
+
+    var body: some View {
+        let now = Date()
+        let today = RecordLogic.todayStr(now: now)
+        if let plan, !plan.videos.isEmpty, planDayNum(plan, today: today) <= plan.days {
+            // index.html:1745-1748 m==="mine"&&plan分岐(planVideoHTML)の1:1移植。
+            let dayNum = planDayNum(plan, today: today)
+            let idx = ((dayIndex(now) % plan.videos.count) + plan.videos.count) % plan.videos.count
+            if let v = lookupVideoById(plan.videos[idx]) {
+                VideoRow(v: v, openUrl: onVideoTap, badge: "プラン\(dayNum)日目/\(plan.days)日: \(plan.label)")
+                Text("相談室でつくった2週間プランの1本だよ🌱")
+                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                    .frame(maxWidth: .infinity, alignment: .center).padding(.top, 6)
+            }
+        } else if let typeResult, quizTypes[typeResult.key] != nil {
+            // index.html:1749-1755 m==="mine"&&typed分岐(fdGuide時の①だけ表示は、この画面自体が
+            // fdFocusOnのときは丸ごと非表示になる既存の分岐(HomeView.body参照)と重複するため
+            // ここでは扱わない)。
+            let rx = currentRx(typeResult.key, now: now)
+            Text("きょうのあなた用").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
+            ForEach(rx, id: \.self) { key in
+                if let v = lookupVideoByKey(key) {
+                    VideoRow(v: v, openUrl: onVideoTap)
+                }
+            }
+            if !rx.isEmpty {
+                KyonoGhostButton("▶ あなたへの3本 連続再生はこちら") {
+                    let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
+                    onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
+                }
+            }
+        } else {
+            // index.html:1756-1758 それ以外(asa/yoru自動判定)分岐の1:1移植。
+            let mode = autoTodayMode(now)
+            let list = mode == "asa" ? TODAY_ASA : TODAY_YORU
+            let idx = ((dayIndex(now) % list.count) + list.count) % list.count
+            if let v = lookupVideoByKey(list[idx]) {
+                VideoRow(v: v, openUrl: onVideoTap, badge: mode == "asa" ? "きょうのあさ" : "きょうのよる")
+            }
+        }
+        Text("動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね✅")
+            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+            .frame(maxWidth: .infinity, alignment: .center).multilineTextAlignment(.center).padding(.top, 8)
+    }
+}
+
 // index.html:440 .chip(丸ピル・line枠・card背景)の1:1移植。SoudanSheetView.swiftのKyonoChipは
 // 同名衝突とfile-private境界を避けるためここに複製せず別名で用意する(見た目は同一)。
 private struct HomeSoudanChip: View {
