@@ -40,11 +40,16 @@ struct KyonoTabBar: View {
         // border-top-color:#3D382F}の1:1移植。UI/UXパリティ監査GO-7(2026-07-28): 半透明・
         // backdrop-blur・上部境界線とも欠落し不透明単色だった。SwiftUIのMaterialでbackdrop-filter
         // 相当のぼかしを実現し、その上に.97相当のほぼ不透明なティントを重ねる。
+        // TestFlight実機フィードバックC1(2026-07-29): この背景にignoresSafeAreaが無く、
+        // ホームインジケータ領域(下の安全領域)まで背景が伸びずに後ろが透けて黒い帯に見えていた
+        // (G7で単色の不透明背景からMaterial+ティントへ差し替えた際の副作用)。背景だけ下端まで
+        // 伸ばし、ボタン・文字(HStack本体のpadding/内容)は安全領域の内側のまま変えない。
         .background {
             ZStack {
                 Rectangle().fill(.regularMaterial)
                 Rectangle().fill(dark ? Color(hex: 0x211E19) : Color.white).opacity(0.97)
             }
+            .ignoresSafeArea(edges: .bottom)
         }
         .overlay(alignment: .top) {
             Rectangle().fill(colors.line).frame(height: 1.5 * zoom)
