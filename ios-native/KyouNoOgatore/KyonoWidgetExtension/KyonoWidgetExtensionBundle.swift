@@ -10,7 +10,21 @@
 
 import WidgetKit
 import SwiftUI
+import UIKit
 import WidgetCore
+
+// TestFlight実機フィードバックB6(2026-07-29): CharaArt/配下の6枚はAssets.xcassetsに
+// 入っていない素のPNGとしてResourcesビルドフェーズにだけ入っており(project.pbxproj
+// 687E0762...)、名前引きのImage(_:)はアセットカタログ経由でしか解決できないため、
+// ウィジェット(別プロセスがホストするWidgetKit)実機では描画されていなかった
+// (シミュレータのプレビューでは見えることがあり気づきにくい)。アセットカタログ新設は
+// project.pbxprojの手編集を伴いリスクが高いため、alan5の代替案どおりBundle.mainから
+// パスで読みImage(uiImage:)へ渡す形に落とす(既存のResourcesビルドフェーズ所属は
+// そのまま活かせる=ビルド設定の変更は不要)。
+private func charaUIImage(_ name: String) -> UIImage? {
+    guard let url = Bundle.main.url(forResource: name, withExtension: "png") else { return nil }
+    return UIImage(contentsOfFile: url.path)
+}
 
 @main
 struct KyonoWidgetExtensionBundle: WidgetBundle {
@@ -115,10 +129,12 @@ struct KyonoSmallView: View {
     var body: some View {
         VStack(spacing: 4) {
             Spacer()
-            Image(state.chara.rawValue)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 64)
+            if let uiImage = charaUIImage(state.chara.rawValue) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 64)
+            }
             Text(streakLabel(state))
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(inkColor)
@@ -133,10 +149,12 @@ struct KyonoWideView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(state.chara.rawValue)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 72, height: 72)
+            if let uiImage = charaUIImage(state.chara.rawValue) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 72, height: 72)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(state.message)
                     .font(.system(size: 14, weight: .bold))
