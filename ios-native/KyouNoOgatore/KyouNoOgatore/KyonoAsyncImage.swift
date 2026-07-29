@@ -38,7 +38,12 @@ struct KyonoAsyncImage: View {
         Color.clear
             .overlay {
                 if let uiImage {
+                    // F2(TASK-C2-2026-07-29-inspection-upgrade.md): D1(サムネイル全滅)は行数だけを
+                    // 見るテストでは素通りしていた(画像が1枚も無くても行は描画されるため)。画像が
+                    // 実際に読み込めて描画されたときにだけ付く識別子を用意し、UIテスト側で
+                    // 「行が存在する」だけでなく「その中に画像が実在する」ことまで確認できるようにする。
                     Image(uiImage: uiImage).resizable().aspectRatio(contentMode: contentMode)
+                        .accessibilityIdentifier("kyonoThumbnailLoaded")
                 }
             }
             .task(id: url) {

@@ -43,6 +43,13 @@ final class SearchViewUITests: XCTestCase {
         let rowCount = app.buttons.matching(identifier: "searchResultRow").count
         XCTAssertGreaterThanOrEqual(rowCount, 2, "検索結果が2件以上描画されていない(実際: \(rowCount)件) — C2と同じ「器」の欠陥の疑い")
 
+        // F2(TASK-C2-2026-07-29-inspection-upgrade.md): D1(サムネイル全滅)は行数だけを数える
+        // このテストでは素通りしていた(画像が1枚も無くても行自体は描画されるため)。
+        // KyonoAsyncImageは画像が実際に読み込めたときだけ"kyonoThumbnailLoaded"識別子を持つ
+        // Imageを描画する(D1修正時に追加)。ネットワーク読み込みを待つため少し余裕を持たせる。
+        let loadedThumbnail = app.images["kyonoThumbnailLoaded"].firstMatch
+        XCTAssertTrue(loadedThumbnail.waitForExistence(timeout: 10), "サムネイル画像が1枚も読み込まれていない(D1と同じ「全滅」の疑い)")
+
         // 未フィルタなのでcatalog全件(454件、catalog.json時点)がヒットし、searchLimit=24を
         // 超えるため「もっと見る」が出るはず。ただしLazyVStackは可視域付近しか実体化しないため、
         // ボタンが24件目の下にある間はaccessibilityツリーにまだ現れない。スクロールで近づける。
@@ -54,5 +61,54 @@ final class SearchViewUITests: XCTestCase {
             scrollView.swipeUp(velocity: .fast)
         }
         XCTAssertTrue(moreButton.waitForExistence(timeout: 5), "「もっと見る」ボタンが見つからない(最後までスクロールしても出現しない)")
+    }
+
+    // F2(TASK-C2-2026-07-29-inspection-upgrade.md): C1(タブバー下端の黒い帯・ignoresSafeArea漏れ)の
+    // 再発防止。新しいライブラリは使わず、XCUIScreen.main.screenshot()のCGImageを直接ピクセル標本
+    // 抽出する。画面最下端(セーフエリア外)の帯がタブバーの背景色まで届いていれば黒くならないはず。
+    func testNoBlackBarAtBottomOfScreen() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        let searchTab = app.buttons["動画を探す"]
+        XCTAssertTrue(searchTab.waitForExistence(timeout: 10), "タブバーに「動画を探す」が見つからない")
+        searchTab.tap()
+        sleep(1) // タブ切り替えの遷移アニメーションが収まるのを待つ
+
+        let screenshot = XCUIScreen.main.screenshot()
+        guard let cgImage = screenshot.image.cgImage else {
+            XCTFail("スクリーンショットのCGImageが取得できない")
+            return
+        }
+        guard let data = cgImage.dataProvider?.data, let ptr = CFDataGetBytePtr(data) else {
+            XCTFail("スクリーンショットのピクセルデータが取得できない")
+            return
+        }
+        let width = cgImage.width
+        let bytesPerPixel = max(1, cgImage.bitsPerPixel / 8)
+        let bytesPerRow = cgImage.bytesPerRow
+        let dataLength = CFDataGetLength(data)
+        // 画面いちばん下(セーフエリア外)の帯を標本抽出する。左右の端は角丸/ノッチ由来で暗いことが
+        // あるため、中央寄りだけを見る。
+        let sampleY = cgImage.height - 2
+        var blackCount = 0
+        var sampled = 0
+        var xs: [Int] = []
+        var x = width / 5
+        while x < width - width / 5 {
+            xs.append(x)
+            x += max(1, width / 20)
+        }
+        for sx in xs {
+            let offset = sampleY * bytesPerRow + sx * bytesPerPixel
+            guard offset + 2 < dataLength else { continue }
+            let r = ptr[offset], g = ptr[offset + 1], b = ptr[offset + 2]
+            sampled += 1
+            // C1の黒い帯は文字どおり黒(RGBほぼ0)だった。テーマ色(クリーム/ダーク)とは
+            // 十分離れたしきい値なので、ライト/ダーク両テーマで誤検知しない。
+            if r < 20 && g < 20 && b < 20 { blackCount += 1 }
+        }
+        XCTAssertGreaterThan(sampled, 0, "ピクセル標本抽出に失敗(0点)")
+        XCTAssertEqual(blackCount, 0, "画面下端に黒い帯を検出した(\(blackCount)/\(sampled)点が黒・C1と同じ疑い)")
     }
 }

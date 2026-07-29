@@ -49,7 +49,7 @@ struct KyonoTabBar: View {
                 Rectangle().fill(.regularMaterial)
                 Rectangle().fill(dark ? Color(hex: 0x211E19) : Color.white).opacity(0.97)
             }
-            .ignoresSafeArea(edges: .bottom)
+            // F2検証用に一時的にC1のバグ(ignoresSafeArea無し)へ戻す。TEMP-VERIFY-ONLY。
         }
         .overlay(alignment: .top) {
             Rectangle().fill(colors.line).frame(height: 1.5 * zoom)
