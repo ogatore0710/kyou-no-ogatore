@@ -45,8 +45,14 @@ internal fun charaDrawableName(webPath: String): String =
     webPath.removePrefix("assets/").removeSuffix(".png").replace("-", "_")
 internal const val CHARA_CROWN = "chara_crown"
 
-// index.html:1437 TYPE_IMGの1:1移植(アイコン画像があるのはこの3タイプのみ・他は非表示でよい)。
-internal val TYPE_IMG = mapOf("momo" to "type_momo", "kenko" to "type_kenko", "yawara" to "type_yawara")
+// TestFlight実機フィードバックE1(2026-07-29): 当初は「アイコン画像があるのはこの3タイプのみ」
+// だったが、6体ぶんのPNGが揃った(res/drawable-nodpi/type_{koka,ashi,robot}.png)ため6体とも
+// 対象に含める。iOS CardCoreと同じ穴(この地図に無いタイプはアイコンなしで描画されていた)が
+// こちらにもあり、koka/ashi/robotが実際に欠けていた。
+internal val TYPE_IMG = mapOf(
+    "momo" to "type_momo", "kenko" to "type_kenko", "yawara" to "type_yawara",
+    "koka" to "type_koka", "ashi" to "type_ashi", "robot" to "type_robot",
+)
 
 internal enum class CardFontWeight { W700, W800, W900, BANANA }
 
