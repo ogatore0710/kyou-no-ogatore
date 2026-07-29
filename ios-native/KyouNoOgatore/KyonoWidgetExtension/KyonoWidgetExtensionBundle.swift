@@ -22,8 +22,14 @@ import WidgetCore
 // パスで読みImage(uiImage:)へ渡す形に落とす(既存のResourcesビルドフェーズ所属は
 // そのまま活かせる=ビルド設定の変更は不要)。
 private func charaUIImage(_ name: String) -> UIImage? {
-    guard let url = Bundle.main.url(forResource: name, withExtension: "png") else { return nil }
-    return UIImage(contentsOfFile: url.path)
+    guard let url = Bundle.main.url(forResource: name, withExtension: "png"),
+          let image = UIImage(contentsOfFile: url.path) else {
+        // alan5指摘(2026-07-29): if let で握りつぶすと「空白のまま気づけない」という今回の症状と
+        // 同じ形になる。本番の見た目は汚さず、DEBUGビルドでだけ即座に気づけるようにする。
+        assertionFailure("charaUIImage: 画像を読み込めませんでした name=\(name)")
+        return nil
+    }
+    return image
 }
 
 @main
