@@ -201,9 +201,24 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
 
         val hits = remember(debouncedQuery, activeTag, selectedYear) { searchCatalog(catalog, debouncedQuery, activeTag, selectedYear) }
 
-        // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}の
-        // 1:1移植。この画面だけ全辺16dpだった欠落を、共通定数KyonoScreenPaddingへ統一する。
-        Column(Modifier.fillMaxSize().background(colors.bg).padding(KyonoScreenPadding)) {
+        // TestFlight実機フィードバックC2(2026-07-29): 「動画を探す」でhits.sizeは正しく計算されて
+        // いるのに(catalog.size=454を確認済み)、結果が1件も画面に出ない欠陥があった(logcatで
+        // hits.size自体は正しい値になっているのに描画されないことを確認・検索ロジックは無罪)。
+        // 原因: 従来は非スクロールのColumn(Modifier.fillMaxSize())の中にLazyColumn(weight(1f))を
+        // 直接ネストしていた。「からだの場所」のように4行に折り返すタグ行が多い状態だと、
+        // bigtext 1.18倍込みでヘッダー・検索欄・チップ行だけで画面の残り高さを使い切ってしまい、
+        // weight(1f)のLazyColumnに割り当てられる高さが0になって結果が丸ごと描画されなかった
+        // (それより上の「N本」表示すら画面外に押し出されていた)。
+        // 直し方: ヘッダー・検索欄・チップ行・年セレクタもすべて1つのLazyColumnのitemとして
+        // 積み、画面全体を1枚のスクロール領域にする(Web版index.html:945-963の#search、および
+        // 既に正しく動いているMainActivity.kt HomeScreen・SearchView.swift修正後と同じ構造)。
+        // 動画行(hits.take(searchLimit)、最大でも数十件)はitems()で引き続き遅延読み込みのまま。
+        LazyColumn(
+            Modifier.fillMaxSize().background(colors.bg).testTag("searchResults"),
+            contentPadding = KyonoScreenPadding,
+        ) {
+        item {
+        Column {
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除。
             // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94,945 Web版の#search節には
@@ -347,23 +362,24 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 Text("${hits.size}本", color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("searchHitCount"))
             }
             Spacer(Modifier.height(6.dp))
-            LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("searchResults")) {
-                items(hits.take(searchLimit)) { v -> VideoRow(v, openUrl) }
-                if (hits.size > searchLimit) {
-                    item {
-                        Spacer(Modifier.height(6.dp))
-                        KyonoGhostButton("もっと見る", { searchLimit += 48 }, Modifier.testTag("searchMoreBtn"))
-                    }
-                }
-                // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
-                // index.html:960-963 #reqBox(app-search.js drawResults()のreqMsg/reqBtn組み立て・
-                // index.html copyMailAddr()の1:1移植)。検索ロジック自体は変更していない。
-                item {
-                    Spacer(Modifier.height(10.dp))
-                    val kwText = listOfNotNull(query.trim().ifBlank { null }, activeTag).joinToString(" ")
-                    ReqBox(context = context, store = store, shown = hits.isNotEmpty(), kwText = kwText)
-                }
+        }
+        }
+        // C2修正: 動画行だけを引き続きitems()で遅延読み込みする(外側LazyColumnの直下)。
+        items(hits.take(searchLimit)) { v -> VideoRow(v, openUrl) }
+        if (hits.size > searchLimit) {
+            item {
+                Spacer(Modifier.height(6.dp))
+                KyonoGhostButton("もっと見る", { searchLimit += 48 }, Modifier.testTag("searchMoreBtn"))
             }
+        }
+        // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
+        // index.html:960-963 #reqBox(app-search.js drawResults()のreqMsg/reqBtn組み立て・
+        // index.html copyMailAddr()の1:1移植)。検索ロジック自体は変更していない。
+        item {
+            Spacer(Modifier.height(10.dp))
+            val kwText = listOfNotNull(query.trim().ifBlank { null }, activeTag).joinToString(" ")
+            ReqBox(context = context, store = store, shown = hits.isNotEmpty(), kwText = kwText)
+        }
         }
     }
 }
