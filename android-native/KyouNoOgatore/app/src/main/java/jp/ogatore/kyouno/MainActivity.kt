@@ -1500,16 +1500,23 @@ fun HomeScreen(
                 } else {
                     1f
                 }
+                // TASK-C2-2026-07-29-ux-audit-G.md G3: index.html:703のボタン名「記録カードを画像でのこす」
+                // の1:1移植。ツアーSlide3・使い方タブの案内はどちらもこの文言で「◯◯を押す」と約束しており、
+                // ボタン名が「記録カードを見る」のままだとツアーを真面目に読む人ほど存在しないボタンを探す。
                 KyonoGhostButton(
-                    "記録カードを見る", { cardResult = renderTodayCard(store, streak, today, context) },
+                    "記録カードを画像でのこす", { cardResult = renderTodayCard(store, streak, today, context) },
                     Modifier.scale(makeCardBtnScale).testTag("makeCardBtn"),
                 )
                 // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "カード画像を保存かシェアでのこしてね📤", color = colors.sub, fontSize = 13.sp,
-                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().testTag("cardHint"),
-                )
+                // TASK-C2-2026-07-29-ux-audit-G.md G3(引き算): 未記録(!did)の間は「保存かシェアでのこしてね」
+                // が存在しないカードの操作を約束してしまうため、その間だけ非表示にする(iOSと同じ判断)。
+                if (did) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "カード画像を保存かシェアでのこしてね📤", color = colors.sub, fontSize = 13.sp,
+                        textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().testTag("cardHint"),
+                    )
+                }
             }
 
             // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。

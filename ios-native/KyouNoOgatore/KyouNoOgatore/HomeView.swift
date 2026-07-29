@@ -608,7 +608,11 @@ struct HomeView: View {
                         .kyonoFont(.black900, size: 14).foregroundColor(colors.pink)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
-                KyonoGhostButton("記録カードを見る") {
+                // TASK-C2-2026-07-29-ux-audit-G.md G3: index.html:703のボタン名「記録カードを画像でのこす」
+                // の1:1移植。ツアーSlide3(OnboardingViews.swift)と使い方タブ(GuideView.swift)の案内は
+                // どちらもこの文言で「◯◯を押す」と約束しており、ボタン名が「記録カードを見る」のままだと
+                // ツアーを真面目に読む人ほど存在しないボタンを探すことになっていた。
+                KyonoGhostButton("記録カードを画像でのこす") {
                     cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                 }
                 .opacity(did ? 1 : 0.5)
@@ -627,9 +631,15 @@ struct HomeView: View {
                     }
                 }
                 // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
-                Text("カード画像を保存かシェアでのこしてね📤")
-                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                    .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                // TASK-C2-2026-07-29-ux-audit-G.md G3(引き算): 未記録(!did)の間はボタン自体が無効化
+                // されており、「保存かシェアでのこしてね」は存在しないカードの操作を約束してしまう
+                // ため、その間だけ非表示にする(Web版はボタンの有効/無効と連動していないが、
+                // ここはWebとの1:1パリティより実際の操作可能性に合わせる、という明示の指示)。
+                if did {
+                    Text("カード画像を保存かシェアでのこしてね📤")
+                        .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                        .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                }
             }
 
             // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。
