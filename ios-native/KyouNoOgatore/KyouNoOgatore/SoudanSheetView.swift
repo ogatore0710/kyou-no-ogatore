@@ -60,8 +60,44 @@ func sdCatIntentIds(_ cat: SdCatDef, _ intents: [SafetyKB.Intent]) -> [String] {
     return intents[i0...i1].map { $0.id }
 }
 
+// TASK-C2-2026-07-29-soudan-video-card.md(H1): index.html:2978 SOUDAN_TYPE_INTENT(タイプ→複数
+// intentId)の1:1移植。OnboardingViews.swiftのsoudanTypeIntent(タイプ→単一intentId・診断結果
+// 画面の「相談する」導線専用・「最初の1件のみ使う」設計)とは別物で、こちらはsdTypeBoost専用の
+// 全件配列。
+private let soudanTypeIntentList: [String: [String]] = [
+    "momo": ["zenkutsu", "kaikyaku"],
+    "koka": ["kokansetsu", "kaikyaku"],
+    "kenko": ["katakori", "nekoze"],
+    "ashi": ["ashikubi"],
+    "robot": ["zenshin"],
+    "yawara": [],
+]
+
+// index.html:3033 sdTypeBoost()の1:1移植。かたさチェックの結果と相談室のおすすめ動画が
+// つながっていることを示す「あなたのタイプの定番」バッジを出すかどうかの判定。
+private func soudanTypeBoost(intentId: String?, videoId: String, typeResult: QuizTypeResult?) -> Bool {
+    guard let intentId, let typeResult, quizTypes[typeResult.key] != nil else { return false }
+    guard let intent = SafetyKBLoader.shared.intents.first(where: { $0.id == intentId }), intent.safety != true else { return false }
+    guard (soudanTypeIntentList[typeResult.key] ?? []).contains(intentId) else { return false }
+    guard let pool = typeRxPool[typeResult.key] else { return false }
+    let keys = pool.rx + pool.pool
+    return keys.contains { quizVideoKeyToId[$0] == videoId }
+}
+
+// index.html:3041 sdVideoHTML()のバッジ部分(note+sdTypeBoost連結)の1:1移植。
+func soudanVideoBadge(note: String, intentId: String?, videoId: String, typeResult: QuizTypeResult?) -> String? {
+    var n = note
+    if soudanTypeBoost(intentId: intentId, videoId: videoId, typeResult: typeResult) {
+        n = n.isEmpty ? "あなたのタイプの定番" : n + "・あなたのタイプの定番"
+    }
+    return n.isEmpty ? nil : n
+}
+
 enum SdBubble {
-    case bot(text: String, red: Bool, videoId: String?, fallbackCaution: Bool = false)
+    // TASK-C2-2026-07-29-soudan-video-card.md(H1): index.html:3041 sdVideoHTML()のバッジ(note+
+    // sdTypeBoost)を運ぶvideoBadgeを追加。動画つきのbotメッセージはWeb版(index.html:3289)と同じく
+    // 「地の文なし・カードのみ」にするため、この場合textは空文字を渡す。
+    case bot(text: String, red: Bool, videoId: String?, videoBadge: String? = nil, fallbackCaution: Bool = false)
     case user(text: String)
     case planConfirm(intentId: String, label: String, replacing: Bool)
     // index.html:3323-3330 sdAnswerFallback内の2通目(逃げ道リンク3つ)の1:1移植。rawUserTextはmailto本文用。
@@ -89,7 +125,9 @@ private func sdMsgLen(_ text: String) -> Int {
 // タグを除いた文字数を使うため、動画注記込みの吹き出しもその見出しテキストで近似する。
 private func sdBubbleLen(_ b: SdBubble) -> Int {
     switch b {
-    case let .bot(text, _, _, _): return sdMsgLen(text)
+    // H1(2026-07-29): 動画つきの吹き出しはtextが空文字になった(カードのみ表示に変更したため)。
+    // videoBadgeを合算して代表テキストとする(Web版sdMsgLen()がHTML全体の文字数を見るのと同じ考え方)。
+    case let .bot(text, _, _, videoBadge, _): return sdMsgLen(text + (videoBadge ?? ""))
     case .fallbackLinks: return sdMsgLen("この悩み、オガトレに届けるメールがひらかない方はアドレスをコピー動画を探すタブでさがしてみる")
     default: return 0
     }
@@ -103,8 +141,10 @@ private func sdBubbleAnnounceText(_ b: SdBubble) -> String? {
     switch b {
     case let .user(text):
         return text
-    case let .bot(text, _, _, _):
-        return text.isEmpty ? nil : text
+    case let .bot(text, _, videoId, videoBadge, _):
+        if !text.isEmpty { return text }
+        // H1(2026-07-29): カードのみの吹き出し(text=="")では、バッジ(あれば)+固定の案内文を読み上げる。
+        return videoId != nil ? (videoBadge.map { "\($0)。動画のおすすめが届きました" } ?? "動画のおすすめが届きました") : nil
     case let .planConfirm(_, label, replacing):
         return replacing
             ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"
@@ -221,7 +261,10 @@ struct SoudanSheetView: View {
         if !r.empathy.isEmpty { botMsgs.append(.bot(text: r.empathy, red: red, videoId: nil)) }
         if !r.message.isEmpty { botMsgs.append(.bot(text: r.message, red: red, videoId: nil, fallbackCaution: r.isFallback)) }
         if let v = r.video {
-            botMsgs.append(.bot(text: v.note.isEmpty ? "おすすめの1本" : v.note, red: false, videoId: v.videoId))
+            // index.html:3289 sdVideoHTML()のみのメッセージ(地の文なし・カードのみ)の1:1移植。
+            let typeResult: QuizTypeResult? = store.get("type", default: nil)
+            let badge = soudanVideoBadge(note: v.note, intentId: r.intentId, videoId: v.videoId, typeResult: typeResult)
+            botMsgs.append(.bot(text: "", red: false, videoId: v.videoId, videoBadge: badge))
             if !shownVideoIds.contains(v.videoId) { shownVideoIds.append(v.videoId) }
         }
         if !r.keizoku.isEmpty { botMsgs.append(.bot(text: r.keizoku, red: false, videoId: nil)) }
@@ -371,6 +414,12 @@ private struct SoudanContentView: View {
     let onOpenSearch: () -> Void
     let onOpenQuiz: () -> Void
 
+    // TASK-C2-2026-07-29-soudan-video-card.md(H1): OnboardingViews.swift ResultContentView.catalogById
+    // と同じ形(結果画面のおすすめ動画3本と同じカタログを再利用するため、そちらとロジックを分岐させない)。
+    private var catalogById: [String: CatalogVideo] {
+        Dictionary(uniqueKeysWithValues: CatalogLoader.shared.map { ($0.id, $0) })
+    }
+
     // TestFlight実機フィードバックB5(2026-07-29): 新しい発言が増えても自動で下へスクロール
     // しなかった(index.html:3056 sdScrollEnd()/3061 sdScrollToTop()相当の実装が丸ごと欠落)。
     // チップを押しても画面が動かず「押せたか分からない」体験になっていた。
@@ -495,7 +544,7 @@ private struct SoudanContentView: View {
             }
         // index.html:481,488,3080 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)/
         // .sd-ava(chara-hitokoto.pngアバター・botメッセージのみ)の1:1移植。
-        case let .bot(text, red, videoId, fallbackCaution):
+        case let .bot(text, red, videoId, videoBadge, fallbackCaution):
             let bg = red ? colors.coralSoft : colors.card
             let border = red ? colors.coral : colors.line
             HStack(alignment: .bottom) {
@@ -509,8 +558,13 @@ private struct SoudanContentView: View {
                         Text("※つらい症状（強い痛み・胸の苦しさ・熱など）があるときは、メールより先に医療機関に相談してね")
                             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     }
+                    // TASK-C2-2026-07-29-soudan-video-card.md(H1): index.html:3041 sdVideoHTML()の
+                    // 1:1移植。検索結果・きょうの1本と同じVideoRowをそのまま再利用する(新規に
+                    // 部品を作らない、という指示どおり)。カタログに無いID(想定外)のときはWeb版と
+                    // 同じフォールバック文言で合成のCatalogVideoを作る。
                     if let videoId {
-                        KyonoGhostButton("▶ 動画を見る") { openUrl("https://www.youtube.com/watch?v=\(videoId)") }
+                        let video = catalogById[videoId] ?? CatalogVideo(id: videoId, t: "おすすめの1本（YouTubeでひらきます）", y: 0, s: "", tags: nil)
+                        VideoRow(v: video, openUrl: openUrl, badge: videoBadge)
                     }
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)

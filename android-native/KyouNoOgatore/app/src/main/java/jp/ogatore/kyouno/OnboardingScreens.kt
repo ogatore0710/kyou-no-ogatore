@@ -492,6 +492,14 @@ fun currentRx(typeKey: String, now: Instant): List<String> {
     return t.rx + picks
 }
 
+// TASK-C2-2026-07-29-soudan-video-card.md(H1): SoudanSheet.ktのsdTypeBoost相当が「そのタイプの
+// rx+pool全件」を必要とするため公開する(TYPE_RX_POOL自体はfile-privateのまま。currentRx()と
+// 同じ「非公開テーブルを公開関数越しに使わせる」形)。
+fun typeRxPoolAllKeys(typeKey: String): List<String> {
+    val t = TYPE_RX_POOL[typeKey] ?: return emptyList()
+    return t.rx + t.pool
+}
+
 @Serializable
 data class QuizTypeResult(val key: String, val worry: String?, val at: String)
 

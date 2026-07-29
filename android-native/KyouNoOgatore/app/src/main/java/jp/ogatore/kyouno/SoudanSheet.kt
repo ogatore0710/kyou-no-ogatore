@@ -136,8 +136,40 @@ fun sdCatIntentIds(cat: SdCatDef): List<String> {
     return intents.subList(i0, i1 + 1).map { it.id }
 }
 
+// TASK-C2-2026-07-29-soudan-video-card.md(H1): index.html:2978 SOUDAN_TYPE_INTENT(タイプ→複数
+// intentId)の1:1移植。OnboardingScreens.ktのSOUDAN_TYPE_INTENT(タイプ→単一intentId・診断結果
+// 画面の「相談する」導線専用・「最初の1件のみ使う」設計)とは別物で、こちらはsdTypeBoost専用の全件配列。
+private val SOUDAN_TYPE_INTENT_LIST = mapOf(
+    "momo" to listOf("zenkutsu", "kaikyaku"),
+    "koka" to listOf("kokansetsu", "kaikyaku"),
+    "kenko" to listOf("katakori", "nekoze"),
+    "ashi" to listOf("ashikubi"),
+    "robot" to listOf("zenshin"),
+    "yawara" to emptyList(),
+)
+
+// index.html:3033 sdTypeBoost()の1:1移植。かたさチェックの結果と相談室のおすすめ動画がつながって
+// いることを示す「あなたのタイプの定番」バッジを出すかどうかの判定。
+private fun soudanTypeBoost(intentId: String?, videoId: String, typeResult: QuizTypeResult?): Boolean {
+    if (intentId == null || typeResult == null || !QUIZ_TYPES.containsKey(typeResult.key)) return false
+    val intent = SafetyKBLoader.shared.intents.firstOrNull { it.id == intentId } ?: return false
+    if (intent.safety) return false
+    if (intentId !in (SOUDAN_TYPE_INTENT_LIST[typeResult.key] ?: emptyList())) return false
+    val keys = typeRxPoolAllKeys(typeResult.key)
+    return keys.any { QUIZ_VIDEO_KEY_TO_ID[it] == videoId }
+}
+
+// index.html:3041 sdVideoHTML()のバッジ部分(note+sdTypeBoost連結)の1:1移植。
+fun soudanVideoBadge(note: String, intentId: String?, videoId: String, typeResult: QuizTypeResult?): String? {
+    var n = note
+    if (soudanTypeBoost(intentId, videoId, typeResult)) {
+        n = if (n.isEmpty()) "あなたのタイプの定番" else "$n・あなたのタイプの定番"
+    }
+    return n.ifEmpty { null }
+}
+
 sealed class SdBubble {
-    data class Bot(val text: String, val red: Boolean = false, val videoId: String? = null, val fallbackCaution: Boolean = false) : SdBubble()
+    data class Bot(val text: String, val red: Boolean = false, val videoId: String? = null, val videoBadge: String? = null, val fallbackCaution: Boolean = false) : SdBubble()
     data class User(val text: String) : SdBubble()
     data class PlanConfirm(val intentId: String, val label: String, val replacing: Boolean, var answered: Boolean = false) : SdBubble()
     // index.html:3323-3330 sdAnswerFallback内の2通目(逃げ道リンク3つ)の1:1移植。rawUserTextはmailto本文用。
@@ -152,7 +184,9 @@ private fun sdMsgLen(text: String) = text.replace(Regex("\\s+"), "").length
 // タイピング待ち時間計算のために各吹き出しから代表テキストを取り出す。Web版はHTML文字列全体から
 // タグを除いた文字数を使うため、動画注記込みの吹き出しもその見出しテキストで近似する。
 private fun sdBubbleLen(b: SdBubble): Int = when (b) {
-    is SdBubble.Bot -> sdMsgLen(b.text)
+    // H1(2026-07-29): 動画つきの吹き出しはtextが空文字になった(カードのみ表示に変更したため)。
+    // videoBadgeを合算して代表テキストとする(Web版sdMsgLen()がHTML全体の文字数を見るのと同じ考え方)。
+    is SdBubble.Bot -> sdMsgLen(b.text + (b.videoBadge ?: ""))
     is SdBubble.FallbackLinks -> sdMsgLen("この悩み、オガトレに届けるメールがひらかない方はアドレスをコピー動画を探すタブでさがしてみる")
     else -> 0
 }
@@ -170,7 +204,7 @@ sealed class SdChipsMode {
 // MainActivity.ktのScreenSaverと同じ「Bundle互換の入れ子ArrayListへ手で平坦化する」方式で
 // 会話そのものをrememberSaveableに載せる。
 internal fun encodeSdBubble(b: SdBubble): ArrayList<Any?> = when (b) {
-    is SdBubble.Bot -> arrayListOf("Bot", b.text, b.red, b.videoId, b.fallbackCaution)
+    is SdBubble.Bot -> arrayListOf("Bot", b.text, b.red, b.videoId, b.videoBadge, b.fallbackCaution)
     is SdBubble.User -> arrayListOf("User", b.text)
     is SdBubble.PlanConfirm -> arrayListOf("PlanConfirm", b.intentId, b.label, b.replacing, b.answered)
     is SdBubble.FallbackLinks -> arrayListOf("FallbackLinks", b.rawUserText)
@@ -185,7 +219,8 @@ internal fun decodeSdBubble(saved: Any?): SdBubble {
             text = list.getOrNull(1) as? String ?: "",
             red = list.getOrNull(2) as? Boolean ?: false,
             videoId = list.getOrNull(3) as? String,
-            fallbackCaution = list.getOrNull(4) as? Boolean ?: false,
+            videoBadge = list.getOrNull(4) as? String,
+            fallbackCaution = list.getOrNull(5) as? Boolean ?: false,
         )
         "User" -> SdBubble.User(list.getOrNull(1) as? String ?: "")
         "PlanConfirm" -> SdBubble.PlanConfirm(
@@ -286,7 +321,10 @@ fun SoudanSheet(
         if (r.empathy.isNotEmpty()) botMsgs.add(SdBubble.Bot(r.empathy, red))
         if (r.message.isNotEmpty()) botMsgs.add(SdBubble.Bot(r.message, red, fallbackCaution = r.isFallback))
         r.video?.let { v ->
-            botMsgs.add(SdBubble.Bot(v.note.ifEmpty { "おすすめの1本" }, videoId = v.videoId))
+            // index.html:3289 sdVideoHTML()のみのメッセージ(地の文なし・カードのみ)の1:1移植。
+            val typeResult = store.get<QuizTypeResult?>("type", null)
+            val badge = soudanVideoBadge(v.note, r.intentId, v.videoId, typeResult)
+            botMsgs.add(SdBubble.Bot("", videoId = v.videoId, videoBadge = badge))
             if (shownVideoIds.none { it == v.videoId }) shownVideoIds.add(v.videoId)
         }
         if (r.keizoku.isNotEmpty()) botMsgs.add(SdBubble.Bot(r.keizoku))
@@ -534,13 +572,16 @@ fun SoudanSheet(
                                         modifier = Modifier.testTag("sdFallbackCaution"),
                                     )
                                 }
+                                // TASK-C2-2026-07-29-soudan-video-card.md(H1): index.html:3041
+                                // sdVideoHTML()の1:1移植。検索結果・きょうの1本と同じVideoRowを
+                                // そのまま再利用する(新規に部品を作らない、という指示どおり)。
+                                // カタログに無いID(想定外)のときはWeb版と同じフォールバック文言で
+                                // 合成のCatalogVideoを作る。
                                 if (m.videoId != null) {
                                     Spacer(Modifier.height(6.dp))
-                                    KyonoGhostButton(
-                                        "▶ 動画を見る",
-                                        { openUrl("https://www.youtube.com/watch?v=${m.videoId}") },
-                                        Modifier.testTag("sdVideoBtn_${m.videoId}"),
-                                    )
+                                    val video = sdCatalogById[m.videoId]
+                                        ?: CatalogVideo(m.videoId, "おすすめの1本（YouTubeでひらきます）", 0, "", emptyList())
+                                    VideoRow(video, openUrl, badge = m.videoBadge)
                                 }
                             }
                         }
