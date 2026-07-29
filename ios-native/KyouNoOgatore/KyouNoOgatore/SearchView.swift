@@ -286,8 +286,10 @@ private struct SearchContentView: View {
             // 素のLazyVStackのままでよい(遅延読み込み自体はScrollViewが親にあれば機能する)。
             LazyVStack(alignment: .leading, spacing: 6) {
                 ForEach(Array(hits.prefix(searchLimit)), id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
+                    .accessibilityIdentifier("searchResultRow")
                 if hits.count > searchLimit {
                     KyonoGhostButton("もっと見る") { searchLimit += 48 }
+                        .accessibilityIdentifier("searchMoreBtn")
                 }
                 // 動画を探す画面のリクエスト導線欠落修正タスク(TASK-C2-2026-07-26-search-request-box.md):
                 // index.html:960-963 #reqBox(app-search.js drawResults()のreqMsg/reqBtn組み立て・
