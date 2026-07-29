@@ -2489,6 +2489,12 @@ function checkNoGroupIfLetTaskPattern() {
 // 無害だったが、同じ経路で本番配信のindex.htmlに乗れば実害になる(同日朝の衝突マーカー事故が実例)。
 // ソース中に検証用マーカーが残っていたら落とす。ドキュメント(.md)は事故の記録として文字列を
 // 引用するため対象外にする。
+//
+// G1検証中の追記(2026-07-29自己発見): KyouNoOgatoreUITests/(UIテスト対象)がdirsに入っておらず、
+// このディレクトリに残した一時検証コードはこの検査をすり抜けることに気づいた(実際に自分の
+// 一時テストで再現・qa.jsは緑のままだった)。even-syncはUIテスト対象のファイルも同じ扱いで
+// pushするため、リスクの前提はproduction側と変わらない。同じ理由でKyonoWidgetExtension
+// (配布されるビルド本体)・Android側のunit test対象も追加する。
 const TEMP_MARKERS = ["DO-NOT-COMMIT", "DO NOT COMMIT", "TEMP-TEST"];
 function checkNoTempMarkers() {
   const roots = [
