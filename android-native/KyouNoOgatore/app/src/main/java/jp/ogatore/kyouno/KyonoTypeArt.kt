@@ -22,22 +22,31 @@ import androidx.compose.ui.unit.dp
 // §3 かたさタイプの画像: app-quiz.js:3-7 TYPE_ART(koka/ashi/robotのインラインSVG)・
 // index.html:1437 TYPE_IMG(momo/kenko/yawaraのPNG)の1:1移植。診断結果画面のタイプ名上部
 // (Web版 .type-illust、104x104)に表示する。既存のKyonoIcons.ktと同じ要領でSVGはCanvas直書き。
+//
+// TestFlight実機フィードバックE1(2026-07-29): 6体ぶんのPNGが揃ったため、koka/ashi/robotも
+// PNG優先の対象に含めた。Canvas描画(下のelse節)はコードとしては残し、辞書のキーに無いタイプ・
+// またはdrawable解決に失敗した(resId==0)ときの保険として使う(index.html:2624 TYPE_IMG[key]?
+// PNG:SVGと同じPNG優先・SVGフォールバックの考え方)。iOS側と同じ理由(ウィジェット・検索
+// サムネイルで画像が実機で静かに読み込めなくなる欠陥を経験済み)でフォールバックを残す判断。
 private val TYPE_IMG_RES = mapOf(
     "momo" to "type_momo",
     "kenko" to "type_kenko",
     "yawara" to "type_yawara",
+    "koka" to "type_koka",
+    "ashi" to "type_ashi",
+    "robot" to "type_robot",
 )
 
 @Composable
 fun KyonoTypeArt(typeKey: String, modifier: Modifier = Modifier) {
     val resName = TYPE_IMG_RES[typeKey]
-    if (resName != null) {
-        val context = LocalContext.current
-        val resId = remember(resName) { context.resources.getIdentifier(resName, "drawable", context.packageName) }
-        if (resId != 0) {
-            Image(painter = painterResource(id = resId), contentDescription = typeKey, modifier = modifier.size(104.dp))
-        }
+    val context = LocalContext.current
+    val resId = if (resName != null) remember(resName) { context.resources.getIdentifier(resName, "drawable", context.packageName) } else 0
+    if (resId != 0) {
+        Image(painter = painterResource(id = resId), contentDescription = typeKey, modifier = modifier.size(104.dp))
     } else {
+        // resNameが無い(辞書未登録のタイプ)、またはdrawable解決に失敗した(resId==0)場合の
+        // どちらもここに来る。PNG優先・Canvasフォールバックを徹底する(上のコメント参照)。
         Canvas(modifier.size(104.dp)) {
             val s = size.width / 96f
             fun pt(x: Float, y: Float) = Offset(x * s, y * s)

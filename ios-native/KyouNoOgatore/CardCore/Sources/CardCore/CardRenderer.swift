@@ -38,8 +38,15 @@ public struct ResolvedTheme {
     }
 }
 
-// index.html:1437 TYPE_IMGの1:1移植(アイコン画像があるのはこの3タイプのみ・他は非表示でよい)。
-public let TYPE_IMG_NAMES: [String: String] = ["momo": "type-momo", "kenko": "type-kenko", "yawara": "type-yawara"]
+// TestFlight実機フィードバックE1(2026-07-29): 当初は「アイコン画像があるのはこの3タイプのみ」
+// だったが、6体ぶんのPNGが揃った(assets/type-{koka,ashi,robot}.png)ため6体とも対象に含める。
+// 記録カードは既存のKyonoTypeArt.swiftと違いCanvas相当のフォールバック描画を持たないため、
+// この辞書に無いタイプは今までアイコンなしで描画されていた(koka/ashi/robotがまさにこれで、
+// alan5の指摘どおり実際に欠けていた)。
+public let TYPE_IMG_NAMES: [String: String] = [
+    "momo": "type-momo", "kenko": "type-kenko", "yawara": "type-yawara",
+    "koka": "type-koka", "ashi": "type-ashi", "robot": "type-robot",
+]
 private let CHARA_CROWN = "chara-crown"
 
 enum CardFontWeight: Hashable {

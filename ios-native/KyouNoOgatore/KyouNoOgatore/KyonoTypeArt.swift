@@ -6,13 +6,29 @@
 //  §3 かたさタイプの画像: app-quiz.js:3-7 TYPE_ART(koka/ashi/robotのインラインSVG)・
 //  index.html:1437 TYPE_IMG(momo/kenko/yawaraのPNG)の1:1移植。診断結果画面のタイプ名上部
 //  (Web版 .type-illust、104x104)に表示する。既存のKyonoIcons.swiftと同じ要領でSVGはCanvas直書き。
+//
+//  TestFlight実機フィードバックE1(2026-07-29): 6体ぶんのPNGが揃ったため、koka/ashi/robotも
+//  PNG優先の対象に含めた。Canvas描画(下のGroup else節)はコードとしては残し、辞書のキーに無い
+//  タイプが来たとき、またはPNG読み込み自体が失敗したとき(index.html:2624 TYPE_IMG[key]?PNG:SVG
+//  と同じPNG優先・SVGフォールバックの考え方)の保険として使う。このプロジェクトはウィジェット
+//  (B6)・検索サムネイル(D1)と、バンドル画像が実機で静かに読み込めなくなる欠陥を2度経験して
+//  いるため、Canvas描画を消して二重管理を無くすより、フォールバックとして残す判断にした
+//  (alan5の「消す」提案とは異なる判断・理由はここに明記)。
 
 import SwiftUI
 
+// TestFlight実機フィードバックE1(2026-07-29): alan5の当初の見立て(「koka/ashi/robotは
+// 表示側が無い」)は誤りで、実際にはこの下のCanvas描画として既に実装済みだった。本当の作業は
+// 「無いものを足す」ではなく「PNGが揃った(assets/type-{koka,ashi,robot}.png、承認済みコミット
+// c32bf1f)ので、既存のPNG優先ロジックの対象に6体とも含める」こと。辞書に無いキーはCanvas描画
+// にフォールバックする既存の分岐(下のGroup参照)を使うため、ここに追加するだけで済む。
 private let typeImgNames: [String: String] = [
     "momo": "type-momo",
     "kenko": "type-kenko",
     "yawara": "type-yawara",
+    "koka": "type-koka",
+    "ashi": "type-ashi",
+    "robot": "type-robot",
 ]
 
 struct KyonoTypeArt: View {
