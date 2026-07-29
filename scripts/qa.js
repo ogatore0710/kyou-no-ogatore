@@ -2397,6 +2397,61 @@ function checkWebNativeTypeIconKeyParity() {
   }
 }
 
+// F4(TASK-C2-2026-07-29-inspection-upgrade.md「入口で禁止する」): 本来はSwiftLintのカスタム
+// ルールにする指示だったが、この環境にはHomebrewが無く`swiftlint`バイナリを導入できない
+// (過去のセッションでも確認済み)。SwiftLint導入(SPMビルドツールプラグインとしてXcode
+// プロジェクトへ追加する等)はpbxproj編集を伴いリスクが高いため、F3と同じ静的走査の枠組みで
+// 同じ効果を代替する(alan5の指示は「SwiftLintで」だったが、狙いは「同じ形を書いた瞬間に
+// 気づけること」であり、手段はSwiftLintに限定されないと判断)。
+//
+// D1(サムネイル全滅)の原因は`Group { if let uiImage {...} } .task(id:) {...}`という組み合わせ
+// だった。uiImageがnilの間はGroupの中身が完全に空になり、その空Groupに付けた.taskが
+// 一度も発火しない、というSwiftUIの落とし穴。粗いルールで構わない(alan5の指示どおり)ため、
+// 「.task(の直前ある程度の範囲にGroup{とif letが両方ある」という大まかな一致で検出する。
+function checkNoGroupIfLetTaskPattern() {
+  const dirs = [
+    "ios-native/KyouNoOgatore/KyouNoOgatore",
+    "ios-native/KyouNoOgatore/KyonoWidgetExtension",
+  ];
+  const hits = [];
+  let filesScanned = 0;
+  for (const dir of dirs) {
+    const abs = path.join(ROOT, dir);
+    if (!fs.existsSync(abs)) continue;
+    const walk = (cur) => {
+      for (const entry of fs.readdirSync(cur, { withFileTypes: true })) {
+        const full = path.join(cur, entry.name);
+        if (entry.isDirectory()) { walk(full); continue; }
+        if (!entry.name.endsWith(".swift")) continue;
+        const rel = path.relative(ROOT, full);
+        filesScanned += 1;
+        const src = read(rel);
+        const taskRe = /\.task\s*\(/g;
+        let m;
+        while ((m = taskRe.exec(src))) {
+          const windowStart = Math.max(0, m.index - 400);
+          const before = src.slice(windowStart, m.index);
+          const lastGroupIdx = before.lastIndexOf("Group");
+          if (lastGroupIdx < 0) continue;
+          const segment = before.slice(lastGroupIdx);
+          // 直近のGroup{以降、.taskに届くまでの間に別の}で閉じていないか(=Groupの外に出ていないか)を
+          // 大まかに見る。ネストの完全な追跡はしない(粗いルールで構わないという指示どおり)。
+          if (/if\s+let/.test(segment)) {
+            const line = src.slice(0, m.index).split("\n").length;
+            hits.push(`${rel}:${line}`);
+          }
+        }
+      }
+    };
+    walk(abs);
+  }
+  assert(
+    "F4: Group{if let...}に.taskを付ける形(D1と同じ落とし穴)が無い",
+    hits.length === 0,
+    hits.length ? hits.join(", ") : `${filesScanned} files scanned`
+  );
+}
+
 // 一時検証コードの取り残し検知（2026-07-27 追加・PRINCIPLES 70条「教訓は機械チェックに昇格させる」）
 // 事件: iOSの目視確認のため起動画面を相談室に固定する仮コードを入れたところ、even-syncの10分ごとの
 // 自動コミットに巻き込まれてorigin/mainへpushされた(コミット2bfd59e)。今回はネイティブ(未配布)で
@@ -2494,6 +2549,7 @@ function main() {
   checkNativeRequiredInfoPlistKeys();
   checkNativeResourceReferencesExist();
   checkWebNativeTypeIconKeyParity();
+  checkNoGroupIfLetTaskPattern();
   checkNoTempMarkers();
 
   if (failures.length) {

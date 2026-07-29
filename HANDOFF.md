@@ -2,7 +2,7 @@
 
 最終更新: 2026-07-29
 
-## ⚠️ 既知の潜在リスク: C1(タブバー下端の黒い帯)の自動検査はダークモード限定・既定のCI実行では効かない(F2・2026-07-29)
+## ⚠️ 既知の潜在リスク: C1(タブバー下端の黒い帯)の自動検査はダークモード限定・既定の`xcodebuild test`では効かない(F2/F2b・2026-07-29)
 
 `KyouNoOgatoreUITests/SearchViewUITests.testNoBlackBarAtBottomOfScreen`はC1(タブバー下の
 黒い帯・ignoresSafeArea漏れ)の再発防止として追加したが、**実測の結果ダークモードでしか
@@ -17,14 +17,14 @@
 - UIテストのプロセス自体はシミュレータ内でサンドボックスされており、テストコードから
   `simctl`は呼べない(host側=xcodebuildを起動するmacOS側のプロセスからしか呼べない)
 
-**つまり既定のCI実行(シミュレータは既定でライトモード)では、この検査はC1の再発を
-一度も捕まえられない。** 実際にわざと壊してダークモードで赤くなる・直して緑に戻ることは
-確認済み(実行前に手動で`xcrun simctl ui <device> appearance dark`が必要)。
+**普通に`xcodebuild test`(既定=ライトモード)を実行しても、この検査はC1の再発を
+一度も捕まえられない。**
 
-**How to apply:** この検査を本当に機能させたい場合は、CIのシミュレータをダークモードで
-起動する設定を追加するか、host側スクリプトで`simctl ui appearance dark`→`xcodebuild test`→
-`appearance light`を束ねるラッパーを用意すること。それまでは「ダークモードで手動確認した
-ときだけ効く」検査として扱う(既定実行では見張れていないと認識しておく)。
+**この検査でC1を見張りたいときは `scripts/run-darkmode-uitest.sh` を使うこと。**
+`simctl ui appearance dark`→`xcodebuild test`(黒帯検査のみ)→`appearance light`を束ねた
+host側ラッパーで、テストが失敗した場合でも(`trap ... EXIT`で)必ずlightへ戻す。わざと
+`KyonoTabBar.swift`の`.ignoresSafeArea(edges: .bottom)`を外して赤くなること・直して緑に
+戻ること・失敗時もlightへ戻ることを実測済み。
 
 ## ⚠️ 既知の潜在リスク: 記録カードのタイプアイコンはどの自動テストにも見張られていない(E1・2026-07-29)
 
