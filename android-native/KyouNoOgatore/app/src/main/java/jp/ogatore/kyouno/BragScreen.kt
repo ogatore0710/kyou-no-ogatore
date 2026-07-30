@@ -78,12 +78,14 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
 
         val hits = remember(query) { if (query.isBlank()) emptyList() else searchCatalog(catalog, query, null, null).take(20) }
 
-        // TASK-C2-2026-07-27-brag-card-thumbnail.md検証時に発覚した既存バグの修正: 検索結果
+        // TASK-C2-2026-07-27-brag-card-thumbnail.md検証時に発覚した既存バグの修正の経緯: 検索結果
         // LazyColumn(旧Modifier.weight(1f))が、非スクロールの外側Columnの中では固定要素群との
         // 高さ配分の関係で実質0pxになり、検索結果自体は正しく計算されている(hits.size>0)のに
         // 一切見えなくなっていた(実機でクエリ「10」=379件ヒットするはずが表示0件になる不具合を
-        // デバッグ表示で確認して特定)。iOS版(.frame(maxHeight:240))と同じ「固定高さ+外側は
-        // スクロール」の形に直す。
+        // デバッグ表示で確認して特定)。当時は「固定高さ+外側はスクロール」で直したが、それが
+        // UX13案・案11(2026-07-30)の入れ子スクロール(ページを撫でるつもりが内側だけ動く/その逆)の
+        // 原因だった。外側が既にverticalScroll済みのため、検索結果は内側スクロールをやめて
+        // ページフローへ直接並べる(hitsは既に20件で頭打ちのため「さらに表示」は不要)。
         Column(
             Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(16.dp),
         ) {

@@ -76,6 +76,13 @@ private struct DiaryContentView: View {
                                 .frame(height: 1 * zoom)
                         }
                     }
+                    // UX13案・案10(2026-07-30): 表示は新しい順に最大7件(index.html:269と同じ)だが、
+                    // 8件目以降も消えたわけではなく、マイ記録のカレンダー日タップ(dayInfo)で読める。
+                    // その接続を知る手がかりがゼロだったため、G15と同格のトーンで1行案内する
+                    // (機能追加はゼロ・既存経路の案内のみ)。
+                    Spacer().frame(height: 8 * zoom)
+                    Text("まえのメモは マイ記録のカレンダーで日にちをタップすると見られます")
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 }
             }
             Spacer()

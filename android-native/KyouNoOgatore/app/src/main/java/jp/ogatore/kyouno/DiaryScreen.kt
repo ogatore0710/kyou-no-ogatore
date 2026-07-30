@@ -66,6 +66,15 @@ fun DiaryScreen(store: RecordStore, onBack: () -> Unit) {
                             // Web版は全行(最終行含む)に付くため、除外条件は付けない。
                             DashedDivider(colors.line)
                         }
+                        // UX13案・案10(2026-07-30): 表示は新しい順に最大7件(index.html:269と同じ)だが、
+                        // 8件目以降も消えたわけではなく、マイ記録のカレンダー日タップ(dayInfo)で読める。
+                        // その接続を知る手がかりがゼロだったため、G15と同格のトーンで1行案内する
+                        // (機能追加はゼロ・既存経路の案内のみ)。
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "まえのメモは マイ記録のカレンダーで日にちをタップすると見られます",
+                            color = colors.sub, fontWeight = FontWeight.Black, fontSize = 12.sp,
+                        )
                     }
                 }
             }

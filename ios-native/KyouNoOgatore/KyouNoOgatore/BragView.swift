@@ -124,21 +124,23 @@ private struct BragContentView: View {
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
 
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 6) {
-                        ForEach(hits, id: \.id) { v in
-                            Text(v.t)
-                                .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(12)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(colors.bg))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
-                                .contentShape(Rectangle())
-                                .onTapGesture { picked = v }
-                        }
+                // UX13案・案11(2026-07-30): A5でページ全体がScrollViewになった結果、検索結果だけが
+                // 内側ScrollView(maxHeight:240)の入れ子になっていた(ページを撫でるつもりが内側だけ
+                // 動く/その逆というスクロール衝突)。検索タブ(SearchView.swift)と同じく、内側
+                // ScrollViewをやめてページフローへ直接並べる(既にhitsは20件で頭打ちのため
+                // 「さらに表示」ボタンは不要・引き算の範囲)。
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(hits, id: \.id) { v in
+                        Text(v.t)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(colors.bg))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
+                            .contentShape(Rectangle())
+                            .onTapGesture { picked = v }
                     }
                 }
-                .frame(maxHeight: 240)
 
                 Spacer().frame(height: 8)
                 Text("えらんだ1本").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
