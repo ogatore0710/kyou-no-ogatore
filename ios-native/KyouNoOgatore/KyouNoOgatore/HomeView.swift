@@ -122,6 +122,9 @@ struct HomeView: View {
     // tomorrowMsPreviewは節目でないとき(ms==nil)だけ、guide/normal分岐の末尾に付く。
     @State private var noteText: String?
     @State private var tomorrowMsPreview: String?
+    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:117-123の1:1移植。「きょうの1本」
+    // タップ時に動画IDを控え、markDone時にrecordDaylogへ渡す(過去日ぶんは遡らない=配線した日以降だけ)。
+    @State private var pendingTapVideoId: String?
     // UI/UXパリティ監査GO-1(2026-07-28): app-record.js:133-139 節目カードの中身(ms!=nil分岐)。
     // 部品(CardDataLoader.shared.MSのd/t/m/q・KyonoConfetti)はあったが、ホーム画面のmarkDone
     // ハンドラから一度も接続されていなかった欠落を修正する(Android版HomeScreenと同一設計)。
@@ -226,8 +229,43 @@ struct HomeView: View {
     // pendingNudge復帰導線をそのまま引き継ぐ)。
     private func openTodayVideo(_ urlString: String) {
         pendingNudgeDate = RecordLogic.todayStr(now: Date())
+        // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:120-122の1:1移植(sessionStorage
+        // のpendingNudgeVideoに相当)。連続再生の watch_videos URL(複数ID)は対象外(単一動画でないため)。
+        if let range = urlString.range(of: #"[?&]v=([\w-]{11})"#, options: .regularExpression) {
+            let match = urlString[range]
+            pendingTapVideoId = match.split(separator: "=").last.map(String.init)
+        }
         if let url = URL(string: urlString) {
             UIApplication.shared.open(url)
+        }
+    }
+
+    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:118,123 currentTodayId()の
+    // 1:1移植(タップ捕捉が無い/一致しない場合のフォールバック)。TodayVideoSectionの3分岐
+    // (プラン/タイプ判定済み/自動あさよる)と同じ選出式を使う(表示中の「きょうの1本」と必ず一致させる)。
+    private func todayVideoIdAndTitle() -> (id: String, title: String)? {
+        let now = Date()
+        if let vid = pendingTapVideoId, let v = CatalogLoader.shared.first(where: { $0.id == vid }) {
+            return (v.id, v.t)
+        }
+        let today = RecordLogic.todayStr(now: now)
+        if let plan, !plan.videos.isEmpty, max(1, RecordLogic.daysBetween(plan.start, today) + 1) <= plan.days {
+            let idx = ((dayIndex(now) % plan.videos.count) + plan.videos.count) % plan.videos.count
+            let vid = plan.videos[idx]
+            if let v = CatalogLoader.shared.first(where: { $0.id == vid }) { return (v.id, v.t) }
+            return (vid, "")
+        } else if let typeResult, quizTypes[typeResult.key] != nil {
+            let rx = currentRx(typeResult.key, now: now)
+            guard !rx.isEmpty else { return nil }
+            let idx = ((dayIndex(now) % rx.count) + rx.count) % rx.count
+            guard let vid = quizVideoKeyToId[rx[idx]], let v = CatalogLoader.shared.first(where: { $0.id == vid }) else { return nil }
+            return (v.id, v.t)
+        } else {
+            let mode = autoTodayMode(now)
+            let list = mode == "asa" ? TODAY_ASA : TODAY_YORU
+            let idx = ((dayIndex(now) % list.count) + list.count) % list.count
+            guard let vid = quizVideoKeyToId[list[idx]], let v = CatalogLoader.shared.first(where: { $0.id == vid }) else { return nil }
+            return (v.id, v.t)
         }
     }
 
@@ -437,6 +475,13 @@ struct HomeView: View {
                     // 即時更新する(発注書§4)。RecordStore本体には触れない片道の書き出しのみ。
                     WidgetSummaryWriter.write(store: store)
                     WidgetCenter.shared.reloadAllTimelines()
+                    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:114-127の1:1移植。
+                    // マイ記録の「▶この日の動画」表示コードは実装済みだったが、書き込み側の
+                    // recordDaylogが両OSとも一度も呼ばれておらず表示コードが死んでいた欠落を修正。
+                    if let (vid, vtitle) = todayVideoIdAndTitle() {
+                        RecordLogic.recordDaylog(store, today: today, videoId: vid, videoTitle: vtitle, count: streak.count)
+                    }
+                    pendingTapVideoId = nil
                     let ms = CardDataLoader.shared.MS.first { $0.d == streak.total }
                     // app-record.js:86,113 noteの1:1移植。おやすみ券を使った日/新しい章が始まった日
                     // だけ1行添える(通常は空)。ms/guide/normalの3分岐すべての先頭に前置(Web版と同じ)。

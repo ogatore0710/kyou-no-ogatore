@@ -812,8 +812,17 @@ fun HomeScreen(
     // ---- プロセス内メモリ状態(§2-3: sessionStorage相当。永続化しない) ----
     var lastDay by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
     var pendingNudgeDate by remember { mutableStateOf<String?>(null) }
+    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:117-123の1:1移植。「きょうの1本」
+    // タップ時に動画IDを控え、markDone時にrecordDaylogへ渡す(過去日ぶんは遡らない=配線した日以降だけ)。
+    var pendingTapVideoId by remember { mutableStateOf<String?>(null) }
     var showDoneNudge by remember { mutableStateOf(false) }
     var cheerText by remember { mutableStateOf<String?>(null) }
+    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: app-record.js:72-151のnote/tomorrowMsPreviewの
+    // 1:1移植。MarkDoneOutcome(usedFreezeCount/newChapter/chapters)は既に返っていたのに、これまで
+    // ホーム側が受け取って捨てていた。noteはfdCelebration/cheerText/milestoneInfoの3分岐すべての
+    // 先頭に前置(Web版と同じ)。tomorrowMsPreviewは節目でないとき(ms==null)だけ末尾に付く。
+    var noteText by remember { mutableStateOf<String?>(null) }
+    var tomorrowMsPreview by remember { mutableStateOf<String?>(null) }
     // UI/UXパリティ監査GO-1(2026-07-28): app-record.js:120-131 節目カードの中身(ms!=null分岐)。
     // 部品(CardDataLoader.shared.MSのd/t/m/q・KyonoConfetti)はあったが、ホーム画面のmarkDone
     // ハンドラから一度も接続されていなかった欠落を修正する。
@@ -960,6 +969,33 @@ fun HomeScreen(
     // index.html:1757-1759 planFinishedCache/planCelebratedの1:1移植(プロセス内メモリのみ・§2-3)。
     var planFinishedCache by remember { mutableStateOf<PlanFinishedCache?>(null) }
     var planCelebrated by remember { mutableStateOf(false) }
+    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:118,123 currentTodayId()の
+    // 1:1移植(タップ捕捉が無い/一致しない場合のフォールバック)。TodayVideoSectionの3分岐
+    // (プラン/タイプ判定済み/自動あさよる)と同じ選出式を使う(表示中の「きょうの1本」と必ず一致させる)。
+    val catalogByIdForDaylog = remember { CatalogLoader.shared.associateBy { it.id } }
+    fun todayVideoIdAndTitle(): Pair<String, String>? {
+        pendingTapVideoId?.let { vid -> catalogByIdForDaylog[vid]?.let { return it.id to it.t } }
+        val now = Instant.now()
+        val todayStr = RecordLogic.todayStr(now)
+        val p = plan
+        return if (p != null && p.videos.isNotEmpty() && (RecordLogic.daysBetween(p.start, todayStr) + 1).coerceAtLeast(1) <= p.days) {
+            val idx = (((dayIndex(now) % p.videos.size) + p.videos.size) % p.videos.size).toInt()
+            val vid = p.videos[idx]
+            catalogByIdForDaylog[vid]?.let { it.id to it.t } ?: (vid to "")
+        } else if (typeResult != null && QUIZ_TYPES[typeResult.key] != null) {
+            val rx = currentRx(typeResult.key, now)
+            if (rx.isEmpty()) return null
+            val idx = (((dayIndex(now) % rx.size) + rx.size) % rx.size).toInt()
+            val vid = QUIZ_VIDEO_KEY_TO_ID[rx[idx]] ?: return null
+            catalogByIdForDaylog[vid]?.let { it.id to it.t }
+        } else {
+            val mode = autoTodayMode(now)
+            val list = if (mode == "asa") TODAY_ASA else TODAY_YORU
+            val idx = (((dayIndex(now) % list.size) + list.size) % list.size).toInt()
+            val vid = QUIZ_VIDEO_KEY_TO_ID[list[idx]] ?: return null
+            catalogByIdForDaylog[vid]?.let { it.id to it.t }
+        }
+    }
     val themeSetting = store.get("theme", "auto")
 
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
@@ -1166,6 +1202,11 @@ fun HomeScreen(
                         typeResult = typeResult,
                         onVideoTap = { url ->
                             pendingNudgeDate = RecordLogic.todayStr(Instant.now())
+                            // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:120-122の
+                            // 1:1移植。連続再生のwatch_videos URL(複数ID)は対象外(単一動画でないため)。
+                            Regex("""[?&]v=([\w-]{11})""").find(url)?.groupValues?.get(1)?.let {
+                                pendingTapVideoId = it
+                            }
                             openUrl(url)
                         },
                     )
@@ -1256,11 +1297,27 @@ fun HomeScreen(
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             // app-record.js:100-102 guide判定(fdフラグを1へ立てる前に読む)の1:1移植。
                             val wasGuide = fd == "go"
-                            RecordLogic.markDone(store, Instant.now())
+                            // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: 戻り値(MarkDoneOutcome)を
+                            // これまで捨てていた欠落を修正。usedFreezeCount/newChapter/chaptersを実際に使う。
+                            val outcome = RecordLogic.markDone(store, Instant.now())
                             streak = RecordLogic.loadStreak(store)
                             // GO-H1(ホーム画面ウィジェット): 記録した瞬間にウィジェットを更新する。
                             scope.launch { jp.ogatore.kyouno.widget.WidgetUpdater.notifyRecorded(context) }
                             val ms = CardDataLoader.shared.MS.find { it.d == streak.total }
+                            // app-record.js:86,113 noteの1:1移植。おやすみ券を使った日/新しい章が
+                            // 始まった日だけ1行添える(通常はnull)。
+                            noteText = when {
+                                (outcome.usedFreezeCount ?: 0) > 0 ->
+                                    "おやすみ券を${outcome.usedFreezeCount}枚つかったので連続はつながっています"
+                                outcome.newChapter ->
+                                    "第${outcome.chapters}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨"
+                                else -> null
+                            }
+                            // app-record.js:131 tomorrowMsPreviewの1:1移植。きょうが節目でない(ms==null)
+                            // ときだけ、通算+1が明日ちょうど節目に乗るなら1行予告する(節目名は出さない)。
+                            tomorrowMsPreview = if (ms == null && CardDataLoader.shared.MILESTONES.contains(streak.total + 1)) {
+                                "あしたで ${streak.total + 1}日目🎉 おたのしみに！"
+                            } else null
                             // app-record.js:103-105: 節目とは重ならない前提(通算1日目=guideの
                             // 唯一の発生タイミングはMSの最小値3より前)だが、念のため節目表示を
                             // 優先する構造にしてある(このelse ifは節目でないときだけ通る)。
@@ -1327,6 +1384,20 @@ fun HomeScreen(
                 // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
                 // ポップイン)の1:1移植。§D: index.html:214-220 fd-cardpopはprefers-reduced-motion:
                 // no-preference時のみ発火するので、reduced-motion時はバウンドなしで即表示する。
+                // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: app-record.js:86,113,134,143,151の
+                // note(おやすみ券/第N章)の1:1移植。fdCelebration/cheerText/milestoneInfoの3分岐
+                // どれが有効でもその先頭に前置される(Web版と同じ位置)。
+                AnimatedVisibility(
+                    visible = noteText != null,
+                    enter = fadeIn(tween(300, easing = KyonoEaseOut), initialAlpha = 0.4f) + scaleIn(tween(300, easing = KyonoEaseOut), initialScale = 0.85f),
+                ) {
+                    noteText?.let {
+                        Column {
+                            Spacer(Modifier.height(10.dp))
+                            Text(it, color = colors.teal, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.testTag("markDoneNote"))
+                        }
+                    }
+                }
                 val fdReducedMotion = rememberReducedMotion()
                 AnimatedVisibility(
                     visible = fdCelebrationVisible,
@@ -1439,6 +1510,12 @@ fun HomeScreen(
                             }
                         }
                     }
+                }
+                // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: app-record.js:131の
+                // tomorrowMsPreviewの1:1移植。milestoneInfoがある(=きょうが節目)ときはnullになる
+                // 計算のため、ここに1箇所書くだけでWeb版と同じ「節目でないときだけ」表示になる。
+                tomorrowMsPreview?.let {
+                    Text(it, color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.testTag("tomorrowMsPreview").padding(top = 6.dp))
                 }
                 // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
                 // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する
