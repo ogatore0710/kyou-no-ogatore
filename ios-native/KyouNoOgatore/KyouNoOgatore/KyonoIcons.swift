@@ -34,6 +34,10 @@ enum KyonoIcon {
     // 見分けが怪しくなるため、同心円をやめて旗(ゴールを立てる)に変更した。同じ理由で⏱も
     // 円形の腕時計ではなく砂時計(三角×2)にし、丸い意匠が増えすぎないようにする。
     case goalFlag, sprout, hourglassTime, phoneDevice, paletteArt
+    // UX13案・案6(2026-07-30): index.html:656-659 セグメント(あなた用/あさ/よる)の3アイコン。
+    // `.heart`は角丸カード背景+小さいハート(見出し用の合成アイコン)なのでそのまま使えず、
+    // Web版のsegMine(単体のハートだけ・背景なし)に相当する専用ケースを新設する。
+    case segHeart, segSun, segMoon
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -350,6 +354,40 @@ struct KyonoIconGlyph: View {
                 dots.addEllipse(in: CGRect(x: 13.2 * s, y: 11.7 * s, width: 2.6 * s, height: 2.6 * s))
                 dots.addEllipse(in: CGRect(x: 11.7 * s, y: 14.7 * s, width: 2.6 * s, height: 2.6 * s))
                 ctx.fill(dots, with: .color(accent))
+            // UX13案・案6(2026-07-30): index.html:656 segMineの1:1移植(単体のハート・
+            // fill #FFEDF3/stroke #E56A9A・背景カードなし)。
+            case .segHeart:
+                var heart = Path()
+                heart.move(to: pt(12, 21))
+                heart.addCurve(to: pt(4.8, 10.6), control1: pt(7, 17.5), control2: pt(4, 14))
+                heart.addCurve(to: pt(9.8, 7.6), control1: pt(5.47, 8.2), control2: pt(8.13, 7.87))
+                heart.addCurve(to: pt(12, 10), control1: pt(10.6, 7.87), control2: pt(11.4, 8.53))
+                heart.addCurve(to: pt(14.2, 7.6), control1: pt(12.6, 8.53), control2: pt(13.4, 7.87))
+                heart.addCurve(to: pt(19.2, 10.6), control1: pt(15.87, 7.87), control2: pt(18.53, 8.2))
+                heart.addCurve(to: pt(12, 21), control1: pt(20, 14), control2: pt(17, 17.5))
+                heart.closeSubpath()
+                ctx.fill(heart, with: .color(fill))
+                ctx.stroke(heart, with: .color(Color(hex: 0xE56A9A)), style: StrokeStyle(lineWidth: 2.2 * s, lineJoin: .round))
+            // index.html:657 segAsaの1:1移植(太陽・光線4本)。
+            case .segSun:
+                let sun = Path(ellipseIn: CGRect(x: 7.5 * s, y: 8.5 * s, width: 9 * s, height: 9 * s))
+                ctx.fill(sun, with: .color(Color(hex: 0xFFD93B)))
+                var rays = Path()
+                rays.move(to: pt(12, 3.5)); rays.addLine(to: pt(12, 6))
+                rays.move(to: pt(4, 13)); rays.addLine(to: pt(2, 13))
+                rays.move(to: pt(22, 13)); rays.addLine(to: pt(20, 13))
+                rays.move(to: pt(5.5, 6.5)); rays.addLine(to: pt(7.3, 8.3))
+                rays.move(to: pt(18.5, 6.5)); rays.addLine(to: pt(16.7, 8.3))
+                ctx.stroke(rays, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
+            // index.html:658 segYoruの近似移植(三日月・大円から右上の円を欠き取る)。Web版は
+            // 2本のアーク(A8 8...)で三日月の輪郭線そのものを描いているが、SwiftUI PathでSVGの
+            // 楕円弧コマンドを1:1変換すると中心角の計算が煩雑になるため、eoFillで2円の差分
+            // シルエットを塗る近似に置き換える(縁取り線は二重円の輪郭が出てしまうため省略)。
+            case .segMoon:
+                var moon = Path()
+                moon.addEllipse(in: CGRect(x: 4 * s, y: 2.5 * s, width: 16 * s, height: 16 * s))
+                moon.addEllipse(in: CGRect(x: 9 * s, y: 1.5 * s, width: 14 * s, height: 14 * s))
+                ctx.fill(moon, with: .color(Color(hex: 0xB8A9F0)), style: FillStyle(eoFill: true))
             }
         }
     }
