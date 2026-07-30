@@ -22,12 +22,17 @@ OUT_DIR = os.path.expanduser("~/Claude/kyou-no-ogatore/.art-staging")
 
 # タブバー5つの実物(太めの丸みストローク・フラットな幾何形・単色寄り+選択中だけ塗り)を
 # そのままトーンの正本として説明する。gen-type-art.pyのSTYLE節と同じ考え方。
+# alan5差し戻し(2026-07-30): 1回目は輪郭が細い波線・塗りが有機的なブロブでタブバーと質感が
+# 揃わなかった。線の太さを均一にし、幾何学図形(角丸長方形・円)だけで構成するよう明示的に指定する。
 STYLE = (
-    "A simple flat minimalist line icon in exactly the same visual style as the tab bar icons "
-    "shown in IMAGE 1: thick rounded stroke outlines, flat minimal geometric shapes, friendly "
-    "and simple (not medical or anatomical, not a 3D toy or plush character), a single soft "
-    "accent color fill, fully transparent background, no cast shadow, no ground, no text, "
-    "no watermark, single icon, centred, generous empty margin on all four sides."
+    "A minimalist icon using ONLY simple flat geometric shapes — rounded rectangles and circles, "
+    "like a pictogram — in exactly the same visual style as the tab bar icons shown in IMAGE 1: "
+    "a UNIFORM thick stroke width identical throughout (never thin, never tapering, never wavy or "
+    "organic freehand contour lines), rounded corners, a single flat accent color fill on one part "
+    "(matching IMAGE 1's single-color-fill convention, e.g. its solid yellow house icon), no "
+    "gradients, no soft blob shapes, no 3D toy or plush character, not medical or anatomical, "
+    "fully transparent background, no cast shadow, no ground, no text, no watermark, single icon, "
+    "centred, generous empty margin on all four sides."
 )
 
 # 部位・時間帯の対象4箇所(worry/anchorチップ)。ラベルはOnboardingViews.swift/.ktの定義と一致。
@@ -39,7 +44,12 @@ SUBJECTS = {
 
 WHAT = {
     "kata": "a simple icon of shoulder and neck stiffness — a person's shoulders and neck with small tension lines",
-    "koshi": "a simple icon of a lower back / waist area — a person's torso seen from the side with the lower back highlighted",
+    "koshi": (
+        "a simple geometric pictogram of a person's lower back: build the figure out of a small "
+        "circle for the head and one tall rounded rectangle for the torso (same construction as "
+        "IMAGE 1's simple shapes), with a horizontal rounded-rectangle band across the lower third "
+        "of the torso filled in the single accent color to mark the lower-back/waist area"
+    ),
     "zenkutsu": "a simple icon of a person bending forward reaching toward their toes but stopping short",
     "nemuri": "a simple icon of a crescent moon with a small sleeping zzz",
     "toku": "a simple icon of a small calm checkmark or dot (nothing in particular)",

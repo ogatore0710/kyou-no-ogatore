@@ -713,6 +713,17 @@ struct HomeView: View {
                             KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
                         }
                     }
+                    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子3: 特別tier(記念日・
+                    // 季節・レア)だけ、既存の節目ポップインカーブ(:505-510と同じ
+                    // .timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))を軽く流用して「性格の違い」
+                    // 程度の入場差を付ける。ノーマルは.identity(親のKyonoCardModalOverlayが持つ
+                    // .transition(.opacity)フェードのみ・大当たり感を出さない)。
+                    .transition(
+                        cardResult.isSpecialTier
+                            ? .scale(scale: 0.85).combined(with: .opacity)
+                                .animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))
+                            : .identity
+                    )
                 }
             }
         }
@@ -977,6 +988,11 @@ private struct HomeSoudanChip: View {
 struct TodayCardResult {
     let image: UIImage
     let isMilestone: Bool
+    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子3: tier(記念日・季節・レア)は
+    // 「性格の違い」程度の入場差だけを持たせる対象。isMilestone(節目=記念日の一種)に加え、
+    // CardLottery.cardPatternForが返すtier("toku"=記念日固有絵/"season"/"rare")も特別tierとする。
+    // "normal"(ローテーション抽選のノーマル枠)は対象外。
+    let isSpecialTier: Bool
 }
 
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果patから実際に描画するテーマへの
@@ -1023,7 +1039,8 @@ func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: Str
         pat: pat, typeName: typeName, typeIconKey: typeIconKey, memoText: memos[ds], streakCount: streak.count
     )
     guard let image = UIImage(data: png) else { return nil }
-    return TodayCardResult(image: image, isMilestone: milestone)
+    let specialTier = milestone || pat?.tier == "toku" || pat?.tier == "season" || pat?.tier == "rare"
+    return TodayCardResult(image: image, isMilestone: milestone, isSpecialTier: specialTier)
 }
 
 #Preview {

@@ -2383,7 +2383,9 @@ fun openCalendarIntent(context: Context, hour: Int = 20, minute: Int = 0): Boole
 
 // TASK-C2-2026-07-27-milestone-card-export-nudge.md: 記録カードモーダルの節目促し表示可否を
 // 呼び出し元(HomeScreen)が判定できるよう、描画結果と一緒にmilestone判定も返す。
-data class TodayCardResult(val bitmap: android.graphics.Bitmap, val isMilestone: Boolean)
+// TASK-C2-2026-07-30-completion-moment-redesign.md 骨子3: isSpecialTierはtier(記念日・季節・レア)
+// だけ「性格の違い」程度の入場差を付けるためのフラグ(iOS版TodayCardResultと同じ考え方)。
+data class TodayCardResult(val bitmap: android.graphics.Bitmap, val isMilestone: Boolean, val isSpecialTier: Boolean)
 
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果 pat から実際に描画するテーマへの
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
@@ -2419,5 +2421,6 @@ private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, 
         context = context, pat = pat, typeName = typeName, typeIconKey = typeIconKey,
         memoText = memoText, streakCount = streak.count,
     )
-    return TodayCardResult(bitmap, milestone)
+    val specialTier = milestone || pat?.tier == "toku" || pat?.tier == "season" || pat?.tier == "rare"
+    return TodayCardResult(bitmap, milestone, specialTier)
 }
