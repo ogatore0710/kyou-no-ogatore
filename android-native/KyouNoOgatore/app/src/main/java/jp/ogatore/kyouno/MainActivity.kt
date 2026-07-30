@@ -1303,6 +1303,13 @@ fun HomeScreen(
                             streak = RecordLogic.loadStreak(store)
                             // GO-H1(ホーム画面ウィジェット): 記録した瞬間にウィジェットを更新する。
                             scope.launch { jp.ogatore.kyouno.widget.WidgetUpdater.notifyRecorded(context) }
+                            // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案3: app-record.js:114-127の
+                            // 1:1移植。マイ記録の「▶この日の動画」表示コードは実装済みだったが、書き込み側の
+                            // recordDaylogが両OSとも一度も呼ばれておらず表示コードが死んでいた欠落を修正。
+                            todayVideoIdAndTitle()?.let { (vid, vtitle) ->
+                                RecordLogic.recordDaylog(store, today, vid, vtitle, streak.count)
+                            }
+                            pendingTapVideoId = null
                             val ms = CardDataLoader.shared.MS.find { it.d == streak.total }
                             // app-record.js:86,113 noteの1:1移植。おやすみ券を使った日/新しい章が
                             // 始まった日だけ1行添える(通常はnull)。
