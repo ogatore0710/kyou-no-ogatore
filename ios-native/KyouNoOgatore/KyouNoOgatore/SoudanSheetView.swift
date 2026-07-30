@@ -93,7 +93,10 @@ func soudanVideoBadge(note: String, intentId: String?, videoId: String, typeResu
     return n.isEmpty ? nil : n
 }
 
-enum SdBubble {
+// TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): 再起動をまたぐ10分記憶の保存形式に
+// JSON文字列化(既存の二重JSONエンコード規約)が要るためCodableを、ルート階層での
+// .onChange(of: sdMessages)による変化検知にEquatableを付ける。
+enum SdBubble: Codable, Equatable {
     // TASK-C2-2026-07-29-soudan-video-card.md(H1): index.html:3041 sdVideoHTML()のバッジ(note+
     // sdTypeBoost)を運ぶvideoBadgeを追加。動画つきのbotメッセージはWeb版(index.html:3289)と同じく
     // 「地の文なし・カードのみ」にするため、この場合textは空文字を渡す。
@@ -111,9 +114,13 @@ enum SdBubble {
 // ForEachの差分更新が壊れ、再描画のたびに全要素のViewが破棄・再生成されていた(段階表示の
 // タイピングドットアニメーションが`.onAppear`の再発火で潰され続ける症状として顕在化)。
 // 生成時に1回だけ確定するidを持つラッパーに差し替えて安定させる。
-struct SdMessage: Identifiable {
-    let id = UUID()
+struct SdMessage: Identifiable, Codable, Equatable {
+    let id: UUID
     let bubble: SdBubble
+    init(bubble: SdBubble) {
+        self.id = UUID()
+        self.bubble = bubble
+    }
 }
 
 // index.html:3053 sdMsgLen()の1:1移植(タイピング待ち時間の計算専用。空白を除いた文字数)。
@@ -170,7 +177,16 @@ private let soudanBodyIntents: Set<String> = ["katakori", "youtsuu", "zenkutsu",
 // index.html:2946 SD_MAIL の1:1移植(検索タブのリクエスト導線と同じ宛先)。
 private let sdMail = "kyou-no@ogatore.jp"
 
-enum SdChipsMode: Equatable {
+// TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): 再起動をまたいだ10分記憶の保存形式。
+// store保存前に直近30件へトリミングしてから使う(呼び出し側の責務・肥大化防止)。
+struct SoudanMemory: Codable {
+    let messages: [SdMessage]
+    let chipsMode: SdChipsMode
+    let lastIntentId: String?
+    let lastActivity: Date
+}
+
+enum SdChipsMode: Equatable, Codable {
     case none
     case intents(activeCat: String)
     case followups(intentId: String, nextBestId: String?)

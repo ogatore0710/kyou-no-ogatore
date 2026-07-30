@@ -121,4 +121,19 @@ final class SearchViewUITests: XCTestCase {
         XCTAssertGreaterThan(sampled, 0, "ピクセル標本抽出に失敗(0点)")
         XCTAssertEqual(blackCount, 0, "画面下端に黒い帯を検出した(\(blackCount)/\(sampled)点が黒・C1と同じ疑い)")
     }
+
+    // TEMP-TEST(DO NOT COMMIT): 案7b(10分記憶)検証用。相談室でチップをタップして会話を作る。
+    // 検証後は削除する。
+    func testTempSoudanSeedConversation() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let soudanBtn = app.buttons["相談する"].firstMatch
+        XCTAssertTrue(soudanBtn.waitForExistence(timeout: 10))
+        soudanBtn.tap()
+        sleep(1)
+        let chip = app.buttons["肩こり・首こり"].firstMatch
+        XCTAssertTrue(chip.waitForExistence(timeout: 5))
+        chip.tap()
+        sleep(3)
+    }
 }

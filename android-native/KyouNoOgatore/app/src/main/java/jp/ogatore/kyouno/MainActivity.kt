@@ -192,18 +192,47 @@ class MainActivity : ComponentActivity() {
             // (Home側とは独立管理・既存設計どおり)からHome側のshowDoneNudgeへ、scrollToTodayPendingと
             // 同じ「ルートで保持→Home側で消費」の橋渡しで伝える。
             var pendingDoneNudge by remember { mutableStateOf(false) }
+            // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): アプリ再起動をまたいでも
+            // 「最後のやり取りから10分以内」ならmessages/chipsMode/lastIntentIdを復元する
+            // (Web版に無いネイティブ独自のパリティ例外・HANDOFF.md参照)。判定はここ(初回の
+            // remember評価時)だけで行い、タイマー・バックグラウンド処理は作らない。超えていれば
+            // store側の記憶も破棄する。
+            val sdRestoredMemory = remember {
+                val mem = store.get("soudan_memory", null as SoudanMemory?)
+                val fresh = mem != null && (Instant.now().epochSecond - mem.lastActivityEpochSeconds) <= 600L
+                if (!fresh && mem != null) store.set("soudan_memory", null as SoudanMemory?)
+                if (fresh) mem else null
+            }
             // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3479 sdGreeted(モジュール
             // レベル変数)の1:1移植。相談室シートは開閉のたびに再合成されるため、「このセッションで
             // 初回オープンかどうか」をSoudanSheet自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
-            var sdGreeted by remember { mutableStateOf(false) }
+            // 案7b: 復元できた(かつ会話が1件以上ある)ときは、既に挨拶済みとして扱う(復元した会話に
+            // 重ねて「こんにちは」を追加させない)。
+            var sdGreeted by remember { mutableStateOf(sdRestoredMemory?.messages?.isNotEmpty() == true) }
             // UX13案・案7(2026-07-30): 相談室の会話状態(messages/chipsMode/lastIntentId/input)を
             // sdGreetedと同じ理由でルート階層へ持ち上げる(以前はSoudanSheet自身が開閉のたびに
             // 破棄・再合成され、誤タップ1回で会話が全損した)。Fable監査D5-1/D5-2の
             // rememberSaveable+専用Saverは回転耐性のためそのままここへ引き継ぐ。
-            val sdMessagesState = rememberSaveable(stateSaver = SdMessagesSaver) { mutableStateOf(listOf<SdBubble>()) }
-            val sdChipsModeState = rememberSaveable(stateSaver = SdChipsModeSaver) { mutableStateOf<SdChipsMode>(SdChipsMode.Intents("body")) }
-            val sdLastIntentIdState = rememberSaveable { mutableStateOf<String?>(null) }
+            val sdMessagesState = rememberSaveable(stateSaver = SdMessagesSaver) { mutableStateOf(sdRestoredMemory?.messages ?: listOf()) }
+            val sdChipsModeState = rememberSaveable(stateSaver = SdChipsModeSaver) { mutableStateOf(sdRestoredMemory?.chipsMode ?: SdChipsMode.Intents("body")) }
+            val sdLastIntentIdState = rememberSaveable { mutableStateOf(sdRestoredMemory?.lastIntentId) }
             val sdInputState = rememberSaveable { mutableStateOf("") }
+            // 案7b: 変化のたびにstoreへ書き戻す(直近30件へトリミングしてから保存・肥大化防止)。
+            // messagesが空(会話がまだ始まっていない)のときは書かない(相談室に触れずアプリを
+            // 開いただけで毎回タイムスタンプが更新され続けるのを防ぐ)。
+            LaunchedEffect(sdMessagesState.value, sdChipsModeState.value, sdLastIntentIdState.value) {
+                if (sdMessagesState.value.isNotEmpty()) {
+                    store.set(
+                        "soudan_memory",
+                        SoudanMemory(
+                            messages = sdMessagesState.value.takeLast(30),
+                            chipsMode = sdChipsModeState.value,
+                            lastIntentId = sdLastIntentIdState.value,
+                            lastActivityEpochSeconds = Instant.now().epochSecond,
+                        ),
+                    )
+                }
+            }
             // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 openObuの1:1移植。
             // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
             var obuPopupOpen by remember { mutableStateOf(false) }

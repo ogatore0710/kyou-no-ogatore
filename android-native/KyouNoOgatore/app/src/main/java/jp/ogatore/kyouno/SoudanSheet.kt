@@ -171,13 +171,22 @@ fun soudanVideoBadge(note: String, intentId: String?, videoId: String, typeResul
     return n.ifEmpty { null }
 }
 
+// TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): 再起動をまたぐ10分記憶の保存形式に
+// JSON文字列化(既存の二重JSONエンコード規約)が要るため@Serializableを付ける
+// (Fable監査D5の回転耐性用rememberSaveable+専用Saverとは別経路)。
+@Serializable
 sealed class SdBubble {
+    @Serializable
     data class Bot(val text: String, val red: Boolean = false, val videoId: String? = null, val videoBadge: String? = null, val fallbackCaution: Boolean = false) : SdBubble()
+    @Serializable
     data class User(val text: String) : SdBubble()
+    @Serializable
     data class PlanConfirm(val intentId: String, val label: String, val replacing: Boolean, var answered: Boolean = false) : SdBubble()
     // index.html:3323-3330 sdAnswerFallback内の2通目(逃げ道リンク3つ)の1:1移植。rawUserTextはmailto本文用。
+    @Serializable
     data class FallbackLinks(val rawUserText: String) : SdBubble()
     // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の1:1移植。
+    @Serializable
     object Typing : SdBubble()
 }
 
@@ -194,12 +203,28 @@ private fun sdBubbleLen(b: SdBubble): Int = when (b) {
     else -> 0
 }
 
+@Serializable
 sealed class SdChipsMode {
+    @Serializable
     object None : SdChipsMode()
+    @Serializable
     data class Intents(val activeCat: String) : SdChipsMode()
+    @Serializable
     data class Followups(val intentId: String, val nextBestId: String?) : SdChipsMode()
+    @Serializable
     data class Nearmiss(val ids: List<String>) : SdChipsMode()
 }
+
+// TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): 再起動をまたいだ10分記憶の保存形式。
+// store保存前に直近30件へトリミングしてから使う(呼び出し側の責務・肥大化防止)。lastActivityは
+// エポック秒(Long)で持つ(kotlinx.serializationがInstantを標準サポートしないため)。
+@Serializable
+data class SoudanMemory(
+    val messages: List<SdBubble>,
+    val chipsMode: SdChipsMode,
+    val lastIntentId: String?,
+    val lastActivityEpochSeconds: Long,
+)
 
 // Fable監査D5-1/D5-2(alan5差し戻し2026-07-28): 回転でActivity再生成されると、相談室の会話
 // (messages/chipsMode/lastIntentId/input)が素の`remember`のまま消え、シートは開き直っても

@@ -138,6 +138,11 @@ struct RootView: View {
     @State private var sdChipsMode: SdChipsMode = .intents(activeCat: "body")
     @State private var sdLastIntentId: String?
     @State private var sdInput = ""
+    // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): アプリ再起動をまたいでも
+    // 「最後のやり取りから10分以内」なら会話を復元する。Web版に無いネイティブ独自のパリティ例外
+    // (本人GO済み・HANDOFF.md参照)。
+    private static let soudanMemoryTTL: TimeInterval = 6 // TEMP-TEST(DO NOT COMMIT): 検証用に短縮。検証後600に戻す
+    private static let soudanMemoryMaxMessages = 30
     // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 openObuの1:1移植。
     // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
     @State private var obuPopupOpen = false
@@ -152,6 +157,27 @@ struct RootView: View {
         let onboarded: Bool = store.get("onboarded", default: false)
         _screen = State(initialValue: onboarded ? .home : .onboarding)
         _obuSeen = State(initialValue: store.get("obu_seen", default: nil))
+        // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b): 判定は復元時のみ(タイマー・
+        // バックグラウンド処理は作らない)。最後のやり取りから10分以内ならmessages/chipsMode/
+        // lastIntentIdを復元し、既に挨拶済み(sdGreeted)として扱う(復元した会話に重ねて
+        // 「こんにちは」を追加させない)。超えていればstore側の記憶も破棄する。
+        if let memory: SoudanMemory = store.get("soudan_memory", default: nil),
+           Date().timeIntervalSince(memory.lastActivity) <= Self.soudanMemoryTTL {
+            _sdMessages = State(initialValue: memory.messages)
+            _sdChipsMode = State(initialValue: memory.chipsMode)
+            _sdLastIntentId = State(initialValue: memory.lastIntentId)
+            _sdGreeted = State(initialValue: !memory.messages.isEmpty)
+        } else {
+            store.set("soudan_memory", nil as SoudanMemory?)
+        }
+    }
+
+    // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b): 変化のたびにstoreへ書き戻す
+    // (直近30件へトリミングしてから保存・肥大化防止)。
+    private func persistSoudanMemory() {
+        guard !sdMessages.isEmpty else { return }
+        let trimmed = Array(sdMessages.suffix(Self.soudanMemoryMaxMessages))
+        store.set("soudan_memory", SoudanMemory(messages: trimmed, chipsMode: sdChipsMode, lastIntentId: sdLastIntentId, lastActivity: Date()))
     }
 
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §2: index.html:4283-4295 fdTourMaybeStart()の
@@ -311,6 +337,11 @@ struct RootView: View {
         .onChange(of: screen) { _, newValue in
             if case let .soudan(id) = newValue { soudanPresetIntentId = id }
         }
+        // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b): 変化のたびに保存(タイマーは作らない・
+        // 「判定は復元時のみ」の指示どおり書き込みは都度でよい)。
+        .onChange(of: sdMessages) { _, _ in persistSoudanMemory() }
+        .onChange(of: sdChipsMode) { _, _ in persistSoudanMemory() }
+        .onChange(of: sdLastIntentId) { _, _ in persistSoudanMemory() }
         .sheet(isPresented: Binding(
             get: { if case .soudan = screen { return true } else { return false } },
             set: { if !$0 { screen = .home } }
