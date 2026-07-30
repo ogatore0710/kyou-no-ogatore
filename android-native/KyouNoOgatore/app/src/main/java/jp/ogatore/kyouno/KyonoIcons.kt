@@ -14,6 +14,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -434,17 +435,20 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                 }
                 drawPath(rays, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
             }
-            // index.html:658 segYoruの近似移植(三日月・大円から右上の円を欠き取る)。Web版は
-            // 2本のアーク(A8 8...)で三日月の輪郭線そのものを描いているが、Compose Pathで
-            // SVGの楕円弧コマンドを1:1変換すると中心角の計算が煩雑になるため、evenOddで2円の
-            // 差分シルエットを塗る近似に置き換える(縁取り線は二重円の輪郭が出てしまうため省略)。
+            // index.html:658 segYoruの1:1移植(三日月・大円から小円を欠き取る)。
+            // alan5差し戻し(2026-07-30): 旧実装はevenOddで2円の「XOR」領域を塗っていたため、
+            // 小円が大円からはみ出た部分(右上)まで余計に塗られ、縁取りも二重円の輪郭がそのまま
+            // 出ていた(evenOddは小円が大円に完全に内包される場合しか正しい「差分」にならない・
+            // 三日月は小円が意図的にはみ出る形のため不成立)。Path.combine(Difference)で本当に
+            // 「大円から小円をくり抜いた」1本の輪郭パスを作り、それを塗り・縁取りの両方に使う
+            // (結果パスの輪郭がそのまま三日月の外側/内側の弧になるため、Web版と同じ二重弧の
+            // 縁取りも自然に再現できる)。
             KyonoIcon.SegMoon -> {
-                val moon = Path().apply {
-                    addOval(androidx.compose.ui.geometry.Rect(4f * s, 2.5f * s, 20f * s, 18.5f * s))
-                    addOval(androidx.compose.ui.geometry.Rect(9f * s, 1.5f * s, 23f * s, 15.5f * s))
-                    fillType = PathFillType.EvenOdd
-                }
+                val big = Path().apply { addOval(androidx.compose.ui.geometry.Rect(4f * s, 2.5f * s, 20f * s, 18.5f * s)) }
+                val small = Path().apply { addOval(androidx.compose.ui.geometry.Rect(9f * s, 1.5f * s, 23f * s, 15.5f * s)) }
+                val moon = Path.combine(PathOperation.Difference, big, small)
                 drawPath(moon, Color(0xFFB8A9F0), style = Fill)
+                drawPath(moon, ink, style = Stroke(2.2f * s))
             }
         }
     }

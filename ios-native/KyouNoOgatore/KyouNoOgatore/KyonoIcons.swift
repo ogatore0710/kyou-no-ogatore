@@ -379,15 +379,36 @@ struct KyonoIconGlyph: View {
                 rays.move(to: pt(5.5, 6.5)); rays.addLine(to: pt(7.3, 8.3))
                 rays.move(to: pt(18.5, 6.5)); rays.addLine(to: pt(16.7, 8.3))
                 ctx.stroke(rays, with: .color(inkColor), style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round))
-            // index.html:658 segYoruの近似移植(三日月・大円から右上の円を欠き取る)。Web版は
-            // 2本のアーク(A8 8...)で三日月の輪郭線そのものを描いているが、SwiftUI PathでSVGの
-            // 楕円弧コマンドを1:1変換すると中心角の計算が煩雑になるため、eoFillで2円の差分
-            // シルエットを塗る近似に置き換える(縁取り線は二重円の輪郭が出てしまうため省略)。
+            // index.html:658 segYoruの近似移植(三日月・大円から右上の円を欠き取る)。
+            // alan5差し戻し(2026-07-30): 旧実装はFillStyle(eoFill:true)で2円の「XOR」領域を
+            // 塗っていたため、小円が大円からはみ出た部分(右上)まで余計に塗られてしまい、
+            // 縁取りも二重円の輪郭がそのまま出ていた(eoFillは小円が大円に完全に内包される
+            // 場合しか正しい「差分」にならない・三日月は小円が意図的にはみ出る形のため不成立)。
+            // drawLayer+blendMode(.destinationOut)で「大円を小円の形に本当にくり抜く」処理に
+            // 差し替える(はみ出た部分は元々何も描かれていないためdestinationOutで消えない)。
+            // 縁取りも同様に、外側の弧(大円のうち小円に食われていない部分)と内側の弧
+            // (小円のうち大円の内側にある部分)を別レイヤーで作り、Web版と同じ二重弧の
+            // 輪郭線を再現する。
             case .segMoon:
-                var moon = Path()
-                moon.addEllipse(in: CGRect(x: 4 * s, y: 2.5 * s, width: 16 * s, height: 16 * s))
-                moon.addEllipse(in: CGRect(x: 9 * s, y: 1.5 * s, width: 14 * s, height: 14 * s))
-                ctx.fill(moon, with: .color(Color(hex: 0xB8A9F0)), style: FillStyle(eoFill: true))
+                let big = Path(ellipseIn: CGRect(x: 4 * s, y: 2.5 * s, width: 16 * s, height: 16 * s))
+                let small = Path(ellipseIn: CGRect(x: 9 * s, y: 1.5 * s, width: 14 * s, height: 14 * s))
+                // 塗り: 大円を塗ってから小円の形でくり抜く。
+                ctx.drawLayer { layer in
+                    layer.fill(big, with: .color(Color(hex: 0xB8A9F0)))
+                    layer.blendMode = .destinationOut
+                    layer.fill(small, with: .color(.black))
+                }
+                // 縁取り(外側の弧): 大円の輪郭線を描いてから、小円の内側にある部分をくり抜く。
+                ctx.drawLayer { layer in
+                    layer.stroke(big, with: .color(inkColor), lineWidth: 2.2 * s)
+                    layer.blendMode = .destinationOut
+                    layer.fill(small, with: .color(.black))
+                }
+                // 縁取り(内側の弧): 大円の内側だけにクリップしてから、小円の輪郭線を描く。
+                ctx.drawLayer { layer in
+                    layer.clip(to: big)
+                    layer.stroke(small, with: .color(inkColor), lineWidth: 2.2 * s)
+                }
             }
         }
     }
