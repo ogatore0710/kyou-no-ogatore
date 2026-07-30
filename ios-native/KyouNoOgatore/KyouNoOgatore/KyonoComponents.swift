@@ -190,7 +190,11 @@ struct KyonoBackgroundColor: View {
 
 // index.html:99-102 .btn/.btn-primary(黄色背景+太字20px+下方向の立体シャドウ)の1:1移植。
 // box-shadow:0 4px 0 #E8BE1E(ぼかし無しのオフセット矩形)をSwiftUI上でZStack二重描画により再現。
-// :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、DragGesture(minimumDistance:0)で押下検知する。
+// :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、押下状態を検知する。
+// TASK-C2-2026-07-30-button-standard-migration.md(診断の案A・本人GO): DragGesture(minimumDistance:0)は
+// 指をボタン外へずらしてから離してもaction()が発火してしまう欠陥(診断2)があったため、標準Button+
+// ButtonStyle(configuration.isPressedで押下検知、外して離せば標準どおりキャンセルされる)へ移行。
+// 押下時の見た目変化には.easeOut(duration:0.1)を付与(診断3・reduceMotion時は無演出)。
 struct KyonoPrimaryButton: View {
     @Environment(\.kyonoColors) private var colors
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
@@ -207,7 +211,6 @@ struct KyonoPrimaryButton: View {
     // 欠落。「きょうやった!」ボタンだけtrueを渡し、完了後はグレー1枚のフラット表示に切り替える
     // (他の呼び出し元=相談室の送信ボタン等は従来どおりの半透明ディムのままでよいため既定false)。
     var flatWhenDisabled = false
-    @State private var pressed = false
 
     init(_ text: String, icon: KyonoIcon? = nil, enabled: Bool = true, flatWhenDisabled: Bool = false, action: @escaping () -> Void) {
         self.text = text; self.icon = icon; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.action = action
@@ -223,22 +226,8 @@ struct KyonoPrimaryButton: View {
                 .background(colors.line)
                 .cornerRadius(kyonoButtonRadius * zoom)
         } else {
-            let shadowOffset: CGFloat = (pressed ? 1 : 4) * zoom
-            let faceOffset: CGFloat = (pressed ? 3 : 0) * zoom
             let alpha: Double = enabled ? 1 : 0.5
-            ZStack {
-                // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このTextは見た目上の高さ調整だけの
-                // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
-                // VoiceOverが同じラベルを2回読み上げてしまっていた)。
-                Text(text).kyonoFont(.black900, size: 20).foregroundColor(.clear)
-                    .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-                    .frame(maxWidth: .infinity)
-                    .background(colors.btnPrimaryShadow.opacity(alpha))
-                    .cornerRadius(kyonoButtonRadius * zoom)
-                    .offset(y: shadowOffset)
-                    .accessibilityHidden(true)
-                // B1(2026-07-29): 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値
-                // 固定)を使う。ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
+            Button(action: action) {
                 HStack(spacing: 6 * zoom) {
                     if let icon {
                         // 黄色背景の上に乗るアイコンなので、塗り(fill)は無し(背景の黄色がそのまま
@@ -249,37 +238,61 @@ struct KyonoPrimaryButton: View {
                     }
                     Text(text)
                 }
+                // B1(2026-07-29): 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値
+                // 固定)を使う。ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
                 .kyonoFont(.black900, size: 20).foregroundColor(colors.yellowInk)
-                    .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-                    .frame(maxWidth: .infinity)
-                    .background(colors.yellow.opacity(alpha))
-                    .cornerRadius(kyonoButtonRadius * zoom)
-                    .offset(y: faceOffset)
             }
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in if enabled { pressed = true } }
-                    .onEnded { _ in
-                        if enabled { pressed = false; action() }
-                    }
-            )
+            .buttonStyle(KyonoPrimaryButtonStyle(colors: colors, zoom: zoom, alpha: alpha))
+            .disabled(!enabled)
         }
+    }
+}
+
+private struct KyonoPrimaryButtonStyle: ButtonStyle {
+    let colors: KyonoColors
+    let zoom: CGFloat
+    let alpha: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        let shadowOffset: CGFloat = (pressed ? 1 : 4) * zoom
+        let faceOffset: CGFloat = (pressed ? 3 : 0) * zoom
+        ZStack {
+            // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このラベルは見た目上の高さ調整だけの
+            // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
+            // VoiceOverが同じラベルを2回読み上げてしまっていた)。
+            configuration.label.foregroundColor(.clear)
+                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
+                .frame(maxWidth: .infinity)
+                .background(colors.btnPrimaryShadow.opacity(alpha))
+                .cornerRadius(kyonoButtonRadius * zoom)
+                .offset(y: shadowOffset)
+                .accessibilityHidden(true)
+            configuration.label
+                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
+                .frame(maxWidth: .infinity)
+                .background(colors.yellow.opacity(alpha))
+                .cornerRadius(kyonoButtonRadius * zoom)
+                .offset(y: faceOffset)
+        }
+        .contentShape(Rectangle())
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
     }
 }
 
 // index.html:103,105 .btn-ghost{background:var(--teal-soft);color:var(--tealink);font-size:15px}
 // / .btn-ghost:active{transform:translateY(1px);opacity:.85}の1:1移植。
 // UI/UXパリティ監査GO-2(2026-07-28): .buttonStyle(.plain)がSwiftUI既定の押下ディムを消したまま
-// 代替を入れていなかった(タップしても無反応に見える欠落)。KyonoPrimaryButtonと同じ
-// DragGesture+@State pressedの手法をここにも展開する。
+// 代替を入れていなかった(タップしても無反応に見える欠落)。
+// TASK-C2-2026-07-30-button-standard-migration.md: DragGesture+@State pressed方式は指を外して
+// 離してもaction()が発火する欠陥(診断2)があったため、標準Button+ButtonStyleへ移行。
 struct KyonoGhostButton: View {
     @Environment(\.kyonoColors) private var colors
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
     let text: String
     let action: () -> Void
-    @State private var pressed = false
 
     init(_ text: String, action: @escaping () -> Void) {
         self.text = text; self.action = action
@@ -288,19 +301,29 @@ struct KyonoGhostButton: View {
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
 
     var body: some View {
-        Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+        Button(action: action) {
+            Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+        }
+        .buttonStyle(KyonoGhostButtonStyle(background: colors.tealSoft, zoom: zoom))
+    }
+}
+
+private struct KyonoGhostButtonStyle: ButtonStyle {
+    let background: Color
+    let zoom: CGFloat
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
             .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
             .frame(maxWidth: .infinity)
-            .background(colors.tealSoft)
+            .background(background)
             .cornerRadius(kyonoButtonRadius * zoom)
             .opacity(pressed ? 0.85 : 1)
             .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in pressed = true }
-                    .onEnded { _ in pressed = false; action() }
-            )
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
     }
 }
 
@@ -351,29 +374,40 @@ struct KyonoLineButton: View {
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
-    @State private var pressed = false
 
     // index.html:104,105,143 .btn-line + .btn-line:active{transform:translateY(1px);opacity:.85}の
     // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
+    // TASK-C2-2026-07-30-button-standard-migration.md: 標準Button+ButtonStyleへ移行(理由はKyonoPrimaryButton参照)。
     var body: some View {
-        HStack(spacing: 6 * zoom) {
-            if let icon {
-                KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.sub2).frame(width: 20 * zoom, height: 20 * zoom)
+        Button(action: action) {
+            HStack(spacing: 6 * zoom) {
+                if let icon {
+                    KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.sub2).frame(width: 20 * zoom, height: 20 * zoom)
+                }
+                Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
             }
-            Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
         }
+        .buttonStyle(KyonoLineButtonStyle(borderColor: Color(hex: dark ? 0x4A443A : 0xE0D5BE), zoom: zoom, enabled: enabled))
+        .disabled(!enabled)
+    }
+}
+
+private struct KyonoLineButtonStyle: ButtonStyle {
+    let borderColor: Color
+    let zoom: CGFloat
+    let enabled: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
             .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
             .frame(maxWidth: .infinity)
-            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(Color(hex: dark ? 0x4A443A : 0xE0D5BE), lineWidth: 2 * zoom))
+            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: 2 * zoom))
             .opacity(enabled ? (pressed ? 0.85 : 1) : 0.5)
             .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())
-            .disabled(!enabled)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in if enabled { pressed = true } }
-                    .onEnded { _ in if enabled { pressed = false; action() } }
-            )
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
     }
 }
 
@@ -405,27 +439,36 @@ struct KyonoSegmentedControl<T: Equatable>: View {
     }
 }
 
+// TASK-C2-2026-07-30-button-standard-migration.md: 標準Button+ButtonStyleへ移行(理由はKyonoPrimaryButton参照)。
 private struct SegmentedOptionButton: View {
     let label: String
     let on: Bool
     let colors: KyonoColors
     let zoom: CGFloat
     let action: () -> Void
-    @State private var pressed = false
 
     var body: some View {
-        Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 13 * zoom)
-            .background(on ? colors.card : Color.clear)
-            .cornerRadius(12 * zoom)
+        Button(action: action) {
+            Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13 * zoom)
+                .background(on ? colors.card : Color.clear)
+                .cornerRadius(12 * zoom)
+        }
+        .buttonStyle(KyonoSegmentedOptionButtonStyle(on: on))
+    }
+}
+
+private struct KyonoSegmentedOptionButtonStyle: ButtonStyle {
+    let on: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
             .opacity(!on && pressed ? 0.6 : 1)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in pressed = true }
-                    .onEnded { _ in pressed = false; action() }
-            )
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
     }
 }
 
