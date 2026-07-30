@@ -19,18 +19,6 @@ final class SearchViewUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    // DO-NOT-COMMIT/TEMP-TEST: TASK-C2-2026-07-30-completion-moment-redesign.mdの一拍演出
-    // (労い→confetti→カード)のタイミングを実機で確認するための一時検証。動画録画と併用し、
-    // 検証後に削除する。
-    func testTempCompletionMoment() throws {
-        let app = XCUIApplication()
-        app.launch()
-        let doneBtn = app.staticTexts["きょうやった！"].firstMatch
-        XCTAssertTrue(doneBtn.waitForExistence(timeout: 10), "きょうやった！ボタンが見つからない(既に本日分完了済みかも)")
-        doneBtn.tap()
-        Thread.sleep(forTimeInterval: 3.0)
-    }
-
     func testSearchResultsRenderMultipleRowsAndMoreButton() throws {
         let app = XCUIApplication()
         app.launch()
