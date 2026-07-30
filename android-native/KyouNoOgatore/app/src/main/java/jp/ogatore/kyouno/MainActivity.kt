@@ -2405,7 +2405,9 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(10.dp))
                 KyonoGhostButton("じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
                 Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("💬 せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"))
+                // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
+                // 自身の見出しアイコン(Envelope)と揃える。
+                KyonoGhostButton("せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"), icon = KyonoIcon.Envelope)
                 Spacer(Modifier.height(8.dp))
                 // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
                 // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の

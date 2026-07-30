@@ -387,8 +387,14 @@ private struct ReqBox: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .multilineTextAlignment(.center)
             Spacer().frame(height: 4)
-            Text(copied ? "コピーしました✅" : "📋 アドレスをコピー")
-                .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
+            // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.clipboardPaste)。
+            HStack(spacing: 4) {
+                if !copied {
+                    KyonoIconGlyph(icon: .clipboardPaste, fill: .clear, accent: colors.tealInk).frame(width: 14, height: 14)
+                }
+                Text(copied ? "コピーしました✅" : "アドレスをコピー")
+                    .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
+            }
                 .frame(maxWidth: .infinity, alignment: .center)
                 .onTapGesture {
                     UIPasteboard.general.string = "kyou-no@ogatore.jp"

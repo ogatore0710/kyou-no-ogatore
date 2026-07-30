@@ -162,8 +162,11 @@ private struct GuideContentView: View {
                     // display:flex;flex-wrap:wrapの1:1移植。幅が足りないときはラベルが割れるのではなく
                     // ボタンごと下の行に落ちるようHStackからFlowLayoutへ変更。
                     FlowLayout(spacing: 10, lineSpacing: 8, alignment: .center) {
-                        Text("🌱 はじめてガイド")
-                            .kyonoFont(.extraBold800, size: 14).foregroundColor(colors.tealInk)
+                        // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.sprout)。
+                        HStack(spacing: 4) {
+                            KyonoIconGlyph(icon: .sprout, fill: .clear, accent: colors.tealInk).frame(width: 16, height: 16)
+                            Text("はじめてガイド").kyonoFont(.extraBold800, size: 14).foregroundColor(colors.tealInk)
+                        }
                             .padding(.horizontal, 16).padding(.vertical, 9)
                             .background(Capsule().fill(colors.tealSoft))
                             .onTapGesture(perform: onReenterOnboarding)
@@ -225,10 +228,13 @@ private struct GuideContentView: View {
                             // LINE内ブラウザ/Safari間のストレージ分離というPWA固有の前提の回答で、
                             // GuideData.swiftでも同じ理由(§2-2に準ずる判断)でhidden=trueにされ非表示。
                             // ジャンプ先をネイティブでも有効な同グループの「連続が切れちゃった…」に読み替えた。
-                            KyonoGhostButton("📅 記録が消えた・0日にもどってる") { jumpToFaq(proxy, groupTitle: "記録・続けるについて", itemQ: "連続が切れちゃった…") }
-                            KyonoGhostButton("📱 機種変更したい", action: onOpenSettings)
+                            // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。
+                            // 🩹(ストレッチ中に痛かった)は対応するアイコンが無いため、絵文字のまま
+                            // 残す(報告書に新規アイコン要としてリストアップ済み)。
+                            KyonoGhostButton("記録が消えた・0日にもどってる", icon: .calendarCheck) { jumpToFaq(proxy, groupTitle: "記録・続けるについて", itemQ: "連続が切れちゃった…") }
+                            KyonoGhostButton("機種変更したい", icon: .phoneDevice, action: onOpenSettings)
                             KyonoGhostButton("🩹 ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
-                            KyonoGhostButton("🔔 通知・リマインダーについて") { jumpToFaq(proxy, groupTitle: "きほんのき", itemQ: "通知はこないの？") }
+                            KyonoGhostButton("通知・リマインダーについて", icon: .clock) { jumpToFaq(proxy, groupTitle: "きほんのき", itemQ: "通知はこないの？") }
                         }
                     }
                     .id("gd-help")

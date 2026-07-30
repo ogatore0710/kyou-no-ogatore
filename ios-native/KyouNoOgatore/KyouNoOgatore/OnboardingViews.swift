@@ -996,8 +996,12 @@ private struct ResultContentView: View {
                         if let intentId = soudanTypeIntent[typeKey] {
                             Spacer().frame(height: 10)
                             // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
-                            Text("💬 この悩み、相談室で聞いてみる")
-                                .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                            // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.soudanBubble)。
+                            HStack(spacing: 4) {
+                                KyonoIconGlyph(icon: .soudanBubble, fill: .clear, accent: colors.tealInk).frame(width: 16, height: 16)
+                                Text("この悩み、相談室で聞いてみる")
+                                    .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                            }
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.vertical, 12)
                                 .onTapGesture { onOpenSoudan(intentId) }

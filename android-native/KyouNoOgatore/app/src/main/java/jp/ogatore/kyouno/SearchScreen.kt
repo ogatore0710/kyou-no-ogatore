@@ -481,10 +481,9 @@ private fun ReqBox(context: Context, store: RecordStore, shown: Boolean, kwText:
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(4.dp))
-        Text(
-            if (copied) "コピーしました✅" else "📋 アドレスをコピー",
-            color = colors.tealInk, fontSize = 12.sp, fontWeight = FontWeight.Black,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(ClipboardPaste)。
+        Row(
+            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
                 .clickable {
                     clipboard.setText(AnnotatedString("kyou-no@ogatore.jp"))
@@ -492,7 +491,16 @@ private fun ReqBox(context: Context, store: RecordStore, shown: Boolean, kwText:
                     scope.launch { delay(kyonoTransientMessageMillis(store)); copied = false }
                 }
                 .testTag("copyMailAddrBtn"),
-        )
+        ) {
+            if (!copied) {
+                KyonoIconGlyph(KyonoIcon.ClipboardPaste, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+            }
+            Text(
+                if (copied) "コピーしました✅" else "アドレスをコピー",
+                color = colors.tealInk, fontSize = 12.sp, fontWeight = FontWeight.Black,
+            )
+        }
     }
 }
 

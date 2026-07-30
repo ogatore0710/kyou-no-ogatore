@@ -234,7 +234,7 @@ fun KyonoPrimaryButton(
 // 透明度低下)とは別の質感だった欠落。KyonoPrimaryButtonと同じinteractionSource.
 // collectIsPressedAsState()の手法をここにも展開する。
 @Composable
-fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null) {
     val colors = LocalKyonoColors.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -252,7 +252,15 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, color = colors.tealInk, fontSize = 15.sp, fontWeight = FontWeight.Black)
+        // UX13案・案8(2026-07-30): KyonoLineButtonと同じ差し込み口。ボタン用途の残存絵文字を
+        // Canvasアイコンへ置き換えるための穴。
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                KyonoIconGlyph(icon, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+            }
+            Text(text, color = colors.tealInk, fontSize = 15.sp, fontWeight = FontWeight.Black)
+        }
     }
 }
 

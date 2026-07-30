@@ -179,6 +179,11 @@ private struct BragContentView: View {
         }
         .padding(16)
         }
+        // UX13案・案13(2026-07-30): 数字キーボード(.numberPad)はiOS標準の「完了」ボタンが無く、
+        // キーボード表示中は指を離しても閉じる手段がなかった。ページをドラッグしはじめた時点で
+        // 閉じるようにする(.interactivelyだと指の動きに追従する分ゆっくりのドラッグが必要になり、
+        // 「閉じられない」という体感が残りうるため、確実さを優先して.immediatelyにした)。
+        .scrollDismissesKeyboard(.immediately)
         .background(KyonoBackgroundColor().ignoresSafeArea())
         // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
         // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。

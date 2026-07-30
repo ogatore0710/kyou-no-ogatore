@@ -1079,11 +1079,15 @@ fun ResultScreen(
                     SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->
                         Spacer(Modifier.height(10.dp))
                         // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
-                        Text(
-                            "💬 この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(SoudanBubble)。
+                        Row(
+                            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.padding(vertical = 12.dp).testTag("resultSoudanLink"),
-                            textAlign = TextAlign.Center,
-                        )
+                        ) {
+                            KyonoIconGlyph(KyonoIcon.SoudanBubble, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                        }
                     }
                 }
             }

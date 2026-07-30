@@ -533,7 +533,9 @@ private struct MyRecordContentView: View {
                     Spacer().frame(height: 10)
                     KyonoGhostButton("じまんカード", action: onOpenBrag)
                     Spacer().frame(height: 8)
-                    KyonoGhostButton("💬 せんぱいの声", action: onOpenVoices)
+                    // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
+                    // 自身の見出しアイコン(.envelope)と揃える。
+                    KyonoGhostButton("せんぱいの声", icon: .envelope, action: onOpenVoices)
                     Spacer().frame(height: 8)
                     // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
                     // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の

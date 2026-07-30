@@ -292,17 +292,25 @@ struct KyonoGhostButton: View {
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
     let text: String
+    // UX13案・案8(2026-07-30): KyonoLineButtonと同じ差し込み口。ボタン用途の残存絵文字を
+    // Canvasアイコンへ置き換えるための穴。nilなら従来どおりテキストのみ。
+    var icon: KyonoIcon? = nil
     let action: () -> Void
 
-    init(_ text: String, action: @escaping () -> Void) {
-        self.text = text; self.action = action
+    init(_ text: String, icon: KyonoIcon? = nil, action: @escaping () -> Void) {
+        self.text = text; self.icon = icon; self.action = action
     }
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
 
     var body: some View {
         Button(action: action) {
-            Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+            HStack(spacing: 6 * zoom) {
+                if let icon {
+                    KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.tealInk).frame(width: 18 * zoom, height: 18 * zoom)
+                }
+                Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+            }
         }
         .buttonStyle(KyonoGhostButtonStyle(background: colors.tealSoft, zoom: zoom))
     }

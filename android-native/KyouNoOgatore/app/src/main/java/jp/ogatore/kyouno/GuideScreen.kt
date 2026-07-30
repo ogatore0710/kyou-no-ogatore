@@ -184,15 +184,22 @@ fun GuideScreen(
                 // 実機(エミュレータ)で確認したところ、この修正だけでは縦積み(保留項目#10)は
                 // 解消しなかった——#10は行送りではなく横幅側の別要因と見られる。#10は指示どおり
                 // 保留のまま・ここでは行送り超過の補正のみを目的として適用する。
-                Text(
-                    "🌱 はじめてガイド", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 14.sp, style = KyonoTightLineTextStyle,
+                // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.Sprout)。
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .background(colors.tealSoft, RoundedCornerShape(50))
                         .clickable(onClick = onReenterOnboarding)
                         .padding(horizontal = 16.dp, vertical = 9.dp)
                         .testTag("obReenterLink"),
-                )
+                ) {
+                    KyonoIconGlyph(KyonoIcon.Sprout, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        "はじめてガイド", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 14.sp, style = KyonoTightLineTextStyle,
+                    )
+                }
                 Text(
                     "📖 使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                     lineHeight = 14.sp, style = KyonoTightLineTextStyle,
@@ -278,10 +285,13 @@ fun GuideScreen(
                     // ブラウザ/Safari間のストレージ分離というPWA固有の前提の回答で、GuideData.ktでも
                     // 同じ理由(§2-2に準ずる判断)でhidden=trueにされ表示されていない。ジャンプ先を
                     // ネイティブでも有効な同グループの「連続が切れちゃった…」に読み替えた。
-                    KyonoLineButton("📅 記録が消えた・0日にもどってる", { jumpToFaq("記録・続けるについて", "連続が切れちゃった…") }, Modifier.testTag("gdHelpMissing"))
-                    KyonoLineButton("📱 機種変更したい", onOpenSettings, Modifier.testTag("gdHelpDevice"))
+                    // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。
+                    // 🩹(ストレッチ中に痛かった)は対応するアイコンが無いため、絵文字のまま
+                    // 残す(報告書に新規アイコン要としてリストアップ済み)。
+                    KyonoLineButton("記録が消えた・0日にもどってる", { jumpToFaq("記録・続けるについて", "連続が切れちゃった…") }, Modifier.testTag("gdHelpMissing"), icon = KyonoIcon.CalendarCheck)
+                    KyonoLineButton("機種変更したい", onOpenSettings, Modifier.testTag("gdHelpDevice"), icon = KyonoIcon.PhoneDevice)
                     KyonoLineButton("🩹 ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
-                    KyonoLineButton("🔔 通知・リマインダーについて", { jumpToFaq("きほんのき", "通知はこないの？") }, Modifier.testTag("gdHelpNotify"))
+                    KyonoLineButton("通知・リマインダーについて", { jumpToFaq("きほんのき", "通知はこないの？") }, Modifier.testTag("gdHelpNotify"), icon = KyonoIcon.Clock)
                 }
             }
             Spacer(Modifier.height(16.dp))

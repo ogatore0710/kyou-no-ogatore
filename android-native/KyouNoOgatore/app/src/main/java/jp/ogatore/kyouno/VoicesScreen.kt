@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,7 +52,9 @@ fun VoicesScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
         val todays = remember { VoicesLogic.pickDaily(today) }
         val openState = remember { mutableStateMapOf<Int, Boolean>() }
 
-        Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
+        Column(
+            Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(16.dp),
+        ) {
             KyonoLineButton("◀ もどる", onBack, Modifier.testTag("voicesBackBtn"))
             Spacer(Modifier.height(12.dp))
             KyonoCard {
@@ -69,8 +71,8 @@ fun VoicesScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 )
             }
             Spacer(Modifier.height(12.dp))
-            LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("voiceList")) {
-                items(todays.size) { i ->
+            Column(Modifier.fillMaxWidth().testTag("voiceList")) {
+                for (i in todays.indices) {
                     val v = todays[i]
                     val open = openState[i] ?: false
                     VoiceCard(v, open, onToggle = { openState[i] = !open }, openUrl = openUrl, index = i)

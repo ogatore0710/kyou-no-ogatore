@@ -48,19 +48,19 @@ private struct VoicesContentView: View {
     let openUrl: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            KyonoLineButton("◀ もどる", action: onBack)
-            KyonoCard {
-                KyonoSectionHeader(icon: .envelope, title: "せんぱいの声", fill: colors.pinkSoft)
-                Spacer().frame(height: 8)
-                Text("まえを歩くせんぱいたちの ほんとうの声です🌱\nカードをタップするとめくれます")
-                    .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
-                Spacer().frame(height: 4)
-                Text("※YouTubeコメントの原文のまま（お名前は出ません）\n※個人の感想です 症状があるときは医療機関へ")
-                    .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-            }
-            ScrollView {
-                LazyVStack(spacing: 10) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                KyonoLineButton("◀ もどる", action: onBack)
+                KyonoCard {
+                    KyonoSectionHeader(icon: .envelope, title: "せんぱいの声", fill: colors.pinkSoft)
+                    Spacer().frame(height: 8)
+                    Text("まえを歩くせんぱいたちの ほんとうの声です🌱\nカードをタップするとめくれます")
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+                    Spacer().frame(height: 4)
+                    Text("※YouTubeコメントの原文のまま（お名前は出ません）\n※個人の感想です 症状があるときは医療機関へ")
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                }
+                VStack(spacing: 10) {
                     ForEach(Array(todays.enumerated()), id: \.offset) { i, v in
                         VoiceCardView(
                             voice: v,
@@ -74,8 +74,8 @@ private struct VoicesContentView: View {
                     }
                 }
             }
+            .padding(16)
         }
-        .padding(16)
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }

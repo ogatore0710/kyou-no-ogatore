@@ -776,8 +776,14 @@ private struct FallbackLinksView: View {
                 let body = "相談した内容:\n\(rawUserText)\n---\n送信元: きょうのオガトレ「オガトレ相談室」"
                 openMailTo(to: sdMail, subject: subject, body: body)
             }
-            Text(copied ? "コピーしました✅" : "📋 メールがひらかない方はアドレスをコピー")
-                .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+            // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.clipboardPaste)。
+            HStack(spacing: 4) {
+                if !copied {
+                    KyonoIconGlyph(icon: .clipboardPaste, fill: .clear, accent: colors.tealInk).frame(width: 16, height: 16)
+                }
+                Text(copied ? "コピーしました✅" : "メールがひらかない方はアドレスをコピー")
+                    .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+            }
                 .onTapGesture {
                     UIPasteboard.general.string = sdMail
                     copied = true
@@ -953,9 +959,10 @@ struct PlanDoneCardView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, alignment: .center)
                 Spacer().frame(height: 12)
-                KyonoPrimaryButton("💪 もう2週間続ける", action: onPlanAgain)
+                // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。
+                KyonoPrimaryButton("もう2週間続ける", icon: .goalFlag, action: onPlanAgain)
                 Spacer().frame(height: 8)
-                KyonoGhostButton("📏 かたさチェックで変化をみる", action: onStartQuiz)
+                KyonoGhostButton("かたさチェックで変化をみる", icon: .quizCheck, action: onStartQuiz)
                 Spacer().frame(height: 8)
                 KyonoLineButton("とじる", action: onClose)
             }

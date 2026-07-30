@@ -961,9 +961,10 @@ fun PlanDoneCard(
                 modifier = Modifier.fillMaxWidth().testTag("planDoneText"),
             )
             Spacer(Modifier.height(12.dp))
-            KyonoPrimaryButton("💪 もう2週間続ける", onPlanAgain, Modifier.testTag("planAgainBtn"))
+            // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。
+            KyonoPrimaryButton("もう2週間続ける", onPlanAgain, Modifier.testTag("planAgainBtn"), icon = KyonoIcon.GoalFlag)
             Spacer(Modifier.height(8.dp))
-            KyonoGhostButton("📏 かたさチェックで変化をみる", onStartQuiz, Modifier.testTag("planQuizBtn"))
+            KyonoGhostButton("かたさチェックで変化をみる", onStartQuiz, Modifier.testTag("planQuizBtn"), icon = KyonoIcon.QuizCheck)
             Spacer(Modifier.height(8.dp))
             KyonoLineButton("とじる", onClose, Modifier.testTag("planDoneCloseBtn"))
         }
