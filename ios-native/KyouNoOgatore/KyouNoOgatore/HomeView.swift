@@ -460,7 +460,19 @@ struct HomeView: View {
                         store.set("tourpend", true)
                         fdCardNudgeVisible = true
                     }
-                    cardResult = renderTodayCard(store: store, streak: streak, ds: today)
+                    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子1-2: 労い(cheerText/
+                    // fdCelebrationVisible/milestoneInfo)とconfettiが主役の間を作ってから
+                    // カードを入場させる(同時発火をやめる)。KyonoCardModalOverlayの
+                    // .transition(.opacity)は状態変化がwithAnimationで包まれて初めて発火するため、
+                    // ここでも包む(骨子2: 死んだtransitionの是正)。reduceMotion時は即時・無演出。
+                    let newCard = renderTodayCard(store: store, streak: streak, ds: today)
+                    if reduceMotion {
+                        cardResult = newCard
+                    } else {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                            withAnimation(.easeOut(duration: 0.35)) { cardResult = newCard }
+                        }
+                    }
                 }
                 .scaleEffect(doneBtnScale)
                 .id("doneBtn")
