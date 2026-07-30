@@ -111,17 +111,27 @@ trial1報告で「👇の適用もその後です」と後回しを明言し、�
 （`TaskGet`でもMonitorは引けない。取り出せたのはセッションtranscriptをgrepしたから）
 
 **再張り付けはこれ**（`persistent: true` / `timeout_ms: 3600000`、
-description=`appdev commits + even-sync conflict warnings on kyou-no-ogatore`）:
+description=`appdev commits (read-only fetch) + even-sync conflict warnings on kyou-no-ogatore`）:
+
+⚠️ **2026-07-30夕方に読み取り専用へ改訂した。** 旧版はループ内で`git pull --rebase`を
+打っていて、even-syncの10分ごとのpullと**同じ`.git/FETCH_HEAD`を取り合い**、実際に
+even-sync側で「fatal: Cannot rebase onto multiple branches」の衝突警告を1回起こした
+（実害なし・even-syncは設計どおり見送っただけ。混ざった瞬間の再現は不可能なので機序は
+推定だが、書き込み競合そのものは`FETCH_HEAD`の足跡＝引数なしpullの多行形式で確認済み）。
+**見張りに書き込み権はいらない。** 新版は`--no-write-fetch-head`＋明示refspecで
+`origin/main`だけ進め、作業木もindexもFETCH_HEADも触らない（git 2.29+必須・
+このMacは2.50.1）。**作業木は自動更新されなくなった**ので、appdevのcommitを検分する
+ときは読む直前に手動で1回`git pull --rebase`する（even-syncと同じ処理を単発で打つのは
+許容。常設ループに入れるのが駄目）。
 
 ```bash
 cd /Users/ryunosuke/Claude/kyou-no-ogatore
-prev=$(git rev-parse HEAD)
+prev=$(git rev-parse origin/main)
 LOGF="$HOME/.config/even-terminal/even-sync.log"
 LOGSIZE_SEEN=$(stat -f %z "$LOGF" 2>/dev/null || echo 0)
 while true; do
-  git fetch -q 2>/dev/null || true
-  git pull -q --rebase 2>/dev/null || true
-  cur=$(git rev-parse HEAD)
+  git fetch -q --no-write-fetch-head origin +refs/heads/main:refs/remotes/origin/main 2>/dev/null || true
+  cur=$(git rev-parse origin/main)
   if [ "$cur" != "$prev" ]; then
     git log --oneline "$prev".."$cur"
     prev=$cur
