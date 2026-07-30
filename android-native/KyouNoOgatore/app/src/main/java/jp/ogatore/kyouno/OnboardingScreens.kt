@@ -328,15 +328,28 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 val palette = obgColors(dark)
                 q.chips.forEachIndexed { i, chip ->
                     val c = palette[i % 4]
-                    Text(
-                        chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                    // TASK-C2-2026-07-30-icon-system-addendum-chips.md: サンプル1枚(「腰」=youtsuu)。
+                    // alan5のOKが出るまでこの1箇所だけ・残りのチップは従来どおり文字のみ。
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
                             .background(c.bg, RoundedCornerShape(16.dp))
                             .border(2.dp, c.border, RoundedCornerShape(16.dp))
                             .clickable { pickChannel.trySend(chip) }
                             .padding(horizontal = 18.dp, vertical = 14.dp)
                             .testTag("obChip_${q.key}_${chip.v}"),
-                    )
+                    ) {
+                        if (chip.v == "youtsuu") {
+                            Image(
+                                painter = painterResource(R.drawable.chip_youtsuu),
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                            )
+                            Spacer(Modifier.width(10.dp))
+                        }
+                        Text(chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    }
                 }
             }
         }

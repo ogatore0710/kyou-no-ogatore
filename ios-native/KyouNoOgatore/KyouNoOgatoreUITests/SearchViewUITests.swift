@@ -19,22 +19,6 @@ final class SearchViewUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    // DO-NOT-COMMIT/TEMP-TEST: TASK-C2-2026-07-30-icon-system-addendum-chips.mdのサンプル1枚
-    // (「腰」)を実画面に置いて確認するための一時検証。確認後に削除する。
-    func testTempWorryChipSample() throws {
-        let app = XCUIApplication()
-        app.launch()
-        let big = app.staticTexts["大きめ（いまのまま）"].firstMatch
-        XCTAssertTrue(big.waitForExistence(timeout: 10))
-        big.tap()
-        let hard = app.staticTexts["ガチガチかも"].firstMatch
-        XCTAssertTrue(hard.waitForExistence(timeout: 5))
-        hard.tap()
-        let koshi = app.staticTexts["腰"].firstMatch
-        XCTAssertTrue(koshi.waitForExistence(timeout: 5))
-        Thread.sleep(forTimeInterval: 1.0)
-    }
-
     func testSearchResultsRenderMultipleRowsAndMoreButton() throws {
         let app = XCUIApplication()
         app.launch()
