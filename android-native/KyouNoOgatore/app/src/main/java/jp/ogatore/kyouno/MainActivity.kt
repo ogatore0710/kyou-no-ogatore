@@ -85,6 +85,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -1602,12 +1603,25 @@ fun HomeScreen(
                     // ときだけ本文をフェードインさせる(iOS版KyonoCardModalOverlayの
                     // .transition(.opacity)相当)。AlertDialog自体のWindowアニメーションはA6どおり
                     // 消したまま(上のKyonoInstantDialogAnimations)なので、フェードは本文の
-                    // アルファだけで表現する。
+                    // アルファだけで表現する。骨子3: 特別tierだけ、fdCelebrationVisible(:1331)と
+                    // 同じポップインカーブ(CubicBezierEasing(0.34,1.56,0.64,1)・500ms)で
+                    // スケールも軽く付ける(「性格の違い」程度・normalはアルファのみ)。
                     val contentAlpha = remember(result) { Animatable(if (cardEnterAnimated) 0f else 1f) }
+                    val contentScale = remember(result) { Animatable(if (cardEnterAnimated && result.isSpecialTier) 0.85f else 1f) }
                     LaunchedEffect(result) {
-                        if (cardEnterAnimated) contentAlpha.animateTo(1f, tween(350))
+                        if (cardEnterAnimated) {
+                            if (result.isSpecialTier) {
+                                launch {
+                                    contentScale.animateTo(
+                                        1f,
+                                        tween(500, easing = androidx.compose.animation.core.CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)),
+                                    )
+                                }
+                            }
+                            contentAlpha.animateTo(1f, tween(350))
+                        }
                     }
-                    Column(Modifier.alpha(contentAlpha.value)) {
+                    Column(Modifier.graphicsLayer { scaleX = contentScale.value; scaleY = contentScale.value; alpha = contentAlpha.value }) {
                         Image(
                             bitmap = bmp.asImageBitmap(),
                             contentDescription = "記録カード",
