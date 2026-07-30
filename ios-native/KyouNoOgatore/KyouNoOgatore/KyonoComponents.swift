@@ -188,12 +188,49 @@ struct KyonoBackgroundColor: View {
     var body: some View { colors.bg }
 }
 
+// TASK-C2-2026-07-30-button-standard-migration.md 実装中の検証で判明: 標準Button+ButtonStyle
+// (configuration.isPressed)へ移行しただけでは、ScrollView内(=このアプリのボタンはほぼ全部)に
+// 置かれたボタンは診断2(押してから外へずらして離す)がキャンセルされず、指示書どおりの
+// ButtonStyleでは発火し続けることをXCUITestで確認した(タブバー=ScrollView外のButtonは
+// 標準どおりキャンセルされるので、ScrollView内であることが原因と特定)。そのため実装は
+// PrimitiveButtonStyle採用に変更: configuration.isPressedに頼らず、自前でDragGesture
+// (minimumDistance:0)の押下追跡を持ちつつ、リリース位置がラベルの矩形内かどうかを判定してから
+// のみconfiguration.trigger()を呼ぶ(標準Buttonの「外して離すとキャンセル」相当をScrollView内でも
+// 成立させる・下記KyonoPressTrackingBody参照)。APIは変更前と同一のまま。
+private struct KyonoPressTrackingBody<Content: View>: View {
+    let trigger: () -> Void
+    @ViewBuilder let content: (Bool) -> Content
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var pressed = false
+    @State private var size: CGSize = .zero
+
+    var body: some View {
+        let _ = NSLog("DEBUG_BODY_EVAL pressed=%@", "\(pressed)")
+        content(pressed)
+            .background(
+                GeometryReader { proxy in
+                    Color.clear
+                        .onAppear { size = proxy.size }
+                        .onChange(of: proxy.size) { _, newValue in size = newValue }
+                }
+            )
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in NSLog("DEBUG_CHANGED %@", "\(value.location)"); if isEnabled { pressed = true } }
+                    .onEnded { value in
+                        let inBounds = value.location.x >= 0 && value.location.x <= size.width
+                            && value.location.y >= 0 && value.location.y <= size.height
+                        NSLog("DEBUG_DRAGEND loc=%@ start=%@ size=%@ inBounds=%@", "\(value.location)", "\(value.startLocation)", "\(size)", "\(inBounds)")
+                        pressed = false
+                        if isEnabled && inBounds { trigger() }
+                    }
+            )
+    }
+}
+
 // index.html:99-102 .btn/.btn-primary(黄色背景+太字20px+下方向の立体シャドウ)の1:1移植。
 // box-shadow:0 4px 0 #E8BE1E(ぼかし無しのオフセット矩形)をSwiftUI上でZStack二重描画により再現。
 // :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、押下状態を検知する。
-// TASK-C2-2026-07-30-button-standard-migration.md(診断の案A・本人GO): DragGesture(minimumDistance:0)は
-// 指をボタン外へずらしてから離してもaction()が発火してしまう欠陥(診断2)があったため、標準Button+
-// ButtonStyle(configuration.isPressedで押下検知、外して離せば標準どおりキャンセルされる)へ移行。
 // 押下時の見た目変化には.easeOut(duration:0.1)を付与(診断3・reduceMotion時は無演出)。
 struct KyonoPrimaryButton: View {
     @Environment(\.kyonoColors) private var colors
@@ -248,36 +285,37 @@ struct KyonoPrimaryButton: View {
     }
 }
 
-private struct KyonoPrimaryButtonStyle: ButtonStyle {
+private struct KyonoPrimaryButtonStyle: PrimitiveButtonStyle {
     let colors: KyonoColors
     let zoom: CGFloat
     let alpha: Double
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
-        let pressed = configuration.isPressed
-        let shadowOffset: CGFloat = (pressed ? 1 : 4) * zoom
-        let faceOffset: CGFloat = (pressed ? 3 : 0) * zoom
-        ZStack {
-            // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このラベルは見た目上の高さ調整だけの
-            // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
-            // VoiceOverが同じラベルを2回読み上げてしまっていた)。
-            configuration.label.foregroundColor(.clear)
-                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-                .frame(maxWidth: .infinity)
-                .background(colors.btnPrimaryShadow.opacity(alpha))
-                .cornerRadius(kyonoButtonRadius * zoom)
-                .offset(y: shadowOffset)
-                .accessibilityHidden(true)
-            configuration.label
-                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-                .frame(maxWidth: .infinity)
-                .background(colors.yellow.opacity(alpha))
-                .cornerRadius(kyonoButtonRadius * zoom)
-                .offset(y: faceOffset)
+        KyonoPressTrackingBody(trigger: configuration.trigger) { pressed in
+            let shadowOffset: CGFloat = (pressed ? 1 : 4) * zoom
+            let faceOffset: CGFloat = (pressed ? 3 : 0) * zoom
+            ZStack {
+                // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: このラベルは見た目上の高さ調整だけの
+                // 複製で本文と同一内容のため、.accessibilityHidden(true)で読み上げ対象から外す(無いと
+                // VoiceOverが同じラベルを2回読み上げてしまっていた)。
+                configuration.label.foregroundColor(.clear)
+                    .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
+                    .frame(maxWidth: .infinity)
+                    .background(colors.btnPrimaryShadow.opacity(alpha))
+                    .cornerRadius(kyonoButtonRadius * zoom)
+                    .offset(y: shadowOffset)
+                    .accessibilityHidden(true)
+                configuration.label
+                    .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
+                    .frame(maxWidth: .infinity)
+                    .background(colors.yellow.opacity(alpha))
+                    .cornerRadius(kyonoButtonRadius * zoom)
+                    .offset(y: faceOffset)
+            }
+            .contentShape(Rectangle())
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
         }
-        .contentShape(Rectangle())
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
     }
 }
 
@@ -308,22 +346,23 @@ struct KyonoGhostButton: View {
     }
 }
 
-private struct KyonoGhostButtonStyle: ButtonStyle {
+private struct KyonoGhostButtonStyle: PrimitiveButtonStyle {
     let background: Color
     let zoom: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
-        let pressed = configuration.isPressed
-        configuration.label
-            .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-            .frame(maxWidth: .infinity)
-            .background(background)
-            .cornerRadius(kyonoButtonRadius * zoom)
-            .opacity(pressed ? 0.85 : 1)
-            .offset(y: pressed ? 1 * zoom : 0)
-            .contentShape(Rectangle())
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+        KyonoPressTrackingBody(trigger: configuration.trigger) { pressed in
+            configuration.label
+                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
+                .frame(maxWidth: .infinity)
+                .background(background)
+                .cornerRadius(kyonoButtonRadius * zoom)
+                .opacity(pressed ? 0.85 : 1)
+                .offset(y: pressed ? 1 * zoom : 0)
+                .contentShape(Rectangle())
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+        }
     }
 }
 
@@ -392,22 +431,23 @@ struct KyonoLineButton: View {
     }
 }
 
-private struct KyonoLineButtonStyle: ButtonStyle {
+private struct KyonoLineButtonStyle: PrimitiveButtonStyle {
     let borderColor: Color
     let zoom: CGFloat
     let enabled: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
-        let pressed = configuration.isPressed
-        configuration.label
-            .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-            .frame(maxWidth: .infinity)
-            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: 2 * zoom))
-            .opacity(enabled ? (pressed ? 0.85 : 1) : 0.5)
-            .offset(y: pressed ? 1 * zoom : 0)
-            .contentShape(Rectangle())
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+        KyonoPressTrackingBody(trigger: configuration.trigger) { pressed in
+            configuration.label
+                .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
+                .frame(maxWidth: .infinity)
+                .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: 2 * zoom))
+                .opacity(enabled ? (pressed ? 0.85 : 1) : 0.5)
+                .offset(y: pressed ? 1 * zoom : 0)
+                .contentShape(Rectangle())
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+        }
     }
 }
 
@@ -459,16 +499,17 @@ private struct SegmentedOptionButton: View {
     }
 }
 
-private struct KyonoSegmentedOptionButtonStyle: ButtonStyle {
+private struct KyonoSegmentedOptionButtonStyle: PrimitiveButtonStyle {
     let on: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
-        let pressed = configuration.isPressed
-        configuration.label
-            .opacity(!on && pressed ? 0.6 : 1)
-            .contentShape(Rectangle())
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+        KyonoPressTrackingBody(trigger: configuration.trigger) { pressed in
+            configuration.label
+                .opacity(!on && pressed ? 0.6 : 1)
+                .contentShape(Rectangle())
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+        }
     }
 }
 
