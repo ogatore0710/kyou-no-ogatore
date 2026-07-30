@@ -84,6 +84,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -823,6 +824,11 @@ fun HomeScreen(
     var confettiCount by remember { mutableStateOf(70) }
     val confettiReducedMotion = rememberReducedMotion()
     var cardResult by remember { mutableStateOf<TodayCardResult?>(null) }
+    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子1-2: markDone直後だけ、労い(cheerText/
+    // fdCelebrationVisible/milestoneInfo)+confettiが主役の間を作ってからカードを入場させる
+    // (同時発火をやめる)。trueのときだけカード本文をフェードインさせる(骨子2: 死んだ入場演出の是正)。
+    // 「記録カードを画像でのこす」からの手動オープンはfalseのまま=A6どおり瞬時。
+    var cardEnterAnimated by remember { mutableStateOf(false) }
     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge/fd-breatheの
     // 1:1移植。markDoneでtourpend=trueになった瞬間に出し、fdTourMaybeStart相当(カード閉じ時の
     // ツアー自動起動)が消費した瞬間に片付ける(Web版と同じ寿命)。
@@ -1283,7 +1289,20 @@ fun HomeScreen(
                                 store.set("tourpend", true)
                                 fdCardNudgeVisible = true
                             }
-                            cardResult = renderTodayCard(store, streak, today, context)
+                            // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子1: 同時発火を
+                            // やめ、労い+confettiの一拍(0.7秒)のあとにカードを入場させる。
+                            // reduceMotion時は即時・無フェード(A6の瞬時方針どおり)。
+                            val newCard = renderTodayCard(store, streak, today, context)
+                            if (confettiReducedMotion) {
+                                cardEnterAnimated = false
+                                cardResult = newCard
+                            } else {
+                                scope.launch {
+                                    delay(700)
+                                    cardEnterAnimated = true
+                                    cardResult = newCard
+                                }
+                            }
                         }
                     },
                     Modifier
@@ -1512,7 +1531,12 @@ fun HomeScreen(
                 // の1:1移植。ツアーSlide3・使い方タブの案内はどちらもこの文言で「◯◯を押す」と約束しており、
                 // ボタン名が「記録カードを見る」のままだとツアーを真面目に読む人ほど存在しないボタンを探す。
                 KyonoGhostButton(
-                    "記録カードを画像でのこす", { cardResult = renderTodayCard(store, streak, today, context) },
+                    "記録カードを画像でのこす",
+                    {
+                        // 完了の瞬間の一拍演出とは無関係の手動オープンなので、A6どおり瞬時のまま。
+                        cardEnterAnimated = false
+                        cardResult = renderTodayCard(store, streak, today, context)
+                    },
                     Modifier.scale(makeCardBtnScale).testTag("makeCardBtn"),
                 )
                 // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
@@ -1574,7 +1598,16 @@ fun HomeScreen(
                     // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の
                     // Window開閉アニメーションを消す(KyonoInstantDialogAnimations参照)。
                     KyonoInstantDialogAnimations()
-                    Column {
+                    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子2: cardEnterAnimatedの
+                    // ときだけ本文をフェードインさせる(iOS版KyonoCardModalOverlayの
+                    // .transition(.opacity)相当)。AlertDialog自体のWindowアニメーションはA6どおり
+                    // 消したまま(上のKyonoInstantDialogAnimations)なので、フェードは本文の
+                    // アルファだけで表現する。
+                    val contentAlpha = remember(result) { Animatable(if (cardEnterAnimated) 0f else 1f) }
+                    LaunchedEffect(result) {
+                        if (cardEnterAnimated) contentAlpha.animateTo(1f, tween(350))
+                    }
+                    Column(Modifier.alpha(contentAlpha.value)) {
                         Image(
                             bitmap = bmp.asImageBitmap(),
                             contentDescription = "記録カード",
