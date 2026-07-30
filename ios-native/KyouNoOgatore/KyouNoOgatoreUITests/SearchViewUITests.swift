@@ -19,52 +19,6 @@ final class SearchViewUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    // DO-NOT-COMMIT/TEMP-TEST: TASK-C2-2026-07-30-ux-batch-13.md ボタン押下感の診断(調査のみ・実装なし)。
-    // 「設定をひらく」(KyonoGhostButton、MyRecordのScrollView内)を対象に、押してから遠くへ
-    // ドラッグして離した場合にaction()が発火するか(=キャンセル挙動の有無)を確認する。
-    func testTempButtonDragAway() throws {
-        let app = XCUIApplication()
-        app.launch()
-        let myRecordTab = app.buttons["マイ記録"].firstMatch
-        XCTAssertTrue(myRecordTab.waitForExistence(timeout: 10))
-        myRecordTab.tap()
-        let scrollView = app.scrollViews.firstMatch
-        let openSettings = app.staticTexts["設定をひらく"].firstMatch
-        // .existsは非LazyなScrollView内では画面外でもtrueになりうるため、実際に画面内へスクロール
-        // されたことが分かる.isHittableで判定する。
-        for _ in 0..<20 where !openSettings.isHittable {
-            scrollView.swipeUp()
-        }
-        XCTAssertTrue(openSettings.isHittable, "設定をひらくボタンが画面内にスクロールされていない")
-        Thread.sleep(forTimeInterval: 1.0)
-        // 画面端(コントロールセンター等のシステムジェスチャー領域)を避け、コンテンツ内で完結する
-        // 移動先にする(前回はdy:0.05が画面最上部に寄りすぎてシステムジェスチャーを誘発した疑いがある)。
-        let start = openSettings.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
-        start.press(forDuration: 0.3, thenDragTo: end)
-        Thread.sleep(forTimeInterval: 4.0)
-    }
-
-    // DO-NOT-COMMIT/TEMP-TEST: 押下中の見た目(pressed状態)を確認するため長押し中にスクリーンショットが
-    // 撮れるよう保持する。
-    func testTempButtonHoldVisual() throws {
-        let app = XCUIApplication()
-        app.launch()
-        let myRecordTab = app.buttons["マイ記録"].firstMatch
-        XCTAssertTrue(myRecordTab.waitForExistence(timeout: 10))
-        myRecordTab.tap()
-        let scrollView = app.scrollViews.firstMatch
-        for _ in 0..<20 where !app.staticTexts["設定をひらく"].exists {
-            scrollView.swipeUp()
-        }
-        let openSettings = app.staticTexts["設定をひらく"].firstMatch
-        XCTAssertTrue(openSettings.waitForExistence(timeout: 5))
-        Thread.sleep(forTimeInterval: 1.0)
-        let point = openSettings.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        point.press(forDuration: 2.5)
-        Thread.sleep(forTimeInterval: 1.0)
-    }
-
     func testSearchResultsRenderMultipleRowsAndMoreButton() throws {
         let app = XCUIApplication()
         app.launch()
