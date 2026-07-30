@@ -157,6 +157,22 @@ private val OBG_DARK = listOf(
 )
 private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
 
+// TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの生成イラスト
+// (硬さチェック6タイプ=KyonoTypeArtはこの対象外)。ObChip.vの値と1:1対応させる
+// (SettingsScreen.ktのやるタイミング「変える」もasa/furo/neruキーを共有するため再利用できる)。
+fun obChipIconRes(v: String): Int? = when (v) {
+    "katakori" -> R.drawable.chip_katakori
+    "youtsuu" -> R.drawable.chip_youtsuu
+    "zenkutsu" -> R.drawable.chip_zenkutsu
+    "nemuri" -> R.drawable.chip_nemuri
+    "none" -> R.drawable.chip_none
+    "asa" -> R.drawable.chip_asa
+    "furo" -> R.drawable.chip_furo
+    "neru" -> R.drawable.chip_neru
+    "free" -> R.drawable.chip_free
+    else -> null
+}
+
 data class ChatBubble(val text: String, val fromUser: Boolean)
 
 // index.html:4211 「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
@@ -328,8 +344,8 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 val palette = obgColors(dark)
                 q.chips.forEachIndexed { i, chip ->
                     val c = palette[i % 4]
-                    // TASK-C2-2026-07-30-icon-system-addendum-chips.md: サンプル1枚(「腰」=youtsuu)。
-                    // alan5のOKが出るまでこの1箇所だけ・残りのチップは従来どおり文字のみ。
+                    // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
+                    // 生成イラスト(硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
@@ -340,9 +356,10 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                             .padding(horizontal = 18.dp, vertical = 14.dp)
                             .testTag("obChip_${q.key}_${chip.v}"),
                     ) {
-                        if (chip.v == "youtsuu") {
+                        val chipIconRes = obChipIconRes(chip.v)
+                        if (chipIconRes != null) {
                             Image(
-                                painter = painterResource(R.drawable.chip_youtsuu),
+                                painter = painterResource(chipIconRes),
                                 contentDescription = null,
                                 modifier = Modifier.size(32.dp),
                             )

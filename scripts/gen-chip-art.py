@@ -6,6 +6,8 @@
 ショットから切り出した実物(icon-anchor-tabbar.png)。
 
 出力は staging ディレクトリ。assets/ への反映は目視確認を通してから別途行う。
+IDはOnboardingViews.swift/OnboardingScreens.ktのObChip.v(実際の値)と一致させる
+(iOS側ファイル名"chip-<id>.png"・Android側"chip_<id>.png"の元ネタになるため)。
 
   python3 gen-chip-art.py <id> [<id> ...]
   python3 gen-chip-art.py all
@@ -24,6 +26,7 @@ OUT_DIR = os.path.expanduser("~/Claude/kyou-no-ogatore/.art-staging")
 # そのままトーンの正本として説明する。gen-type-art.pyのSTYLE節と同じ考え方。
 # alan5差し戻し(2026-07-30): 1回目は輪郭が細い波線・塗りが有機的なブロブでタブバーと質感が
 # 揃わなかった。線の太さを均一にし、幾何学図形(角丸長方形・円)だけで構成するよう明示的に指定する。
+# v2(腰=youtsuu)がOKになったので、以降の8種も同じ指定・同じ構成手法で描く。
 STYLE = (
     "A minimalist icon using ONLY simple flat geometric shapes — rounded rectangles and circles, "
     "like a pictogram — in exactly the same visual style as the tab bar icons shown in IMAGE 1: "
@@ -35,28 +38,64 @@ STYLE = (
     "centred, generous empty margin on all four sides."
 )
 
-# 部位・時間帯の対象4箇所(worry/anchorチップ)。ラベルはOnboardingViews.swift/.ktの定義と一致。
+# ラベルはOnboardingViews.swift/.ktの定義と一致。キーはObChip.vの実際の値。
 SUBJECTS = {
-    "kata":  "肩こり・首", "koshi": "腰", "zenkutsu": "前屈できない",
-    "nemuri": "眠り", "toku": "とくにない",
-    "asa": "朝おきて", "furo": "おふろ上がり", "neru": "寝るまえ", "kimetenai": "きめてない",
+    "katakori": "肩こり・首", "youtsuu": "腰", "zenkutsu": "前屈できない",
+    "nemuri": "眠り", "none": "とくにない",
+    "asa": "朝おきて", "furo": "おふろ上がり", "neru": "寝るまえ", "free": "きめてない",
 }
 
+# 「腰」(youtsuu)と同じ人型構成(円の頭+角丸長方形の胴)を体パーツ系(katakori/zenkutsu)は
+# 踏襲し、アクセントの位置だけ変えてシリーズとして揃える。時間帯系(asa/furo/neru/free)は
+# タブバーの家/虫眼鏡と同じ「単純な幾何学図形1つ+ワンポイント」の構成にする。
 WHAT = {
-    "kata": "a simple icon of shoulder and neck stiffness — a person's shoulders and neck with small tension lines",
-    "koshi": (
+    "youtsuu": (
         "a simple geometric pictogram of a person's lower back: build the figure out of a small "
         "circle for the head and one tall rounded rectangle for the torso (same construction as "
-        "IMAGE 1's simple shapes), with a horizontal rounded-rectangle band across the lower third "
+        "IMAGE 1's simple shapes), with a horizontal rounded-rectangle band across the LOWER THIRD "
         "of the torso filled in the single accent color to mark the lower-back/waist area"
     ),
-    "zenkutsu": "a simple icon of a person bending forward reaching toward their toes but stopping short",
-    "nemuri": "a simple icon of a crescent moon with a small sleeping zzz",
-    "toku": "a simple icon of a small calm checkmark or dot (nothing in particular)",
-    "asa": "a simple icon of a sunrise — a sun peeking over a horizon line",
-    "furo": "a simple icon of a bathtub with a small steam wisp above it",
-    "neru": "a simple icon of a crescent moon and a small star",
-    "kimetenai": "a simple icon of a small clock or question mark, undecided",
+    "katakori": (
+        "a simple geometric pictogram of shoulder/neck stiffness: the exact same figure "
+        "construction as IMAGE 2 (small circle head, one tall rounded-rectangle torso), but with "
+        "the horizontal accent-color rounded-rectangle band placed across the TOP of the torso at "
+        "shoulder height instead of the lower back, plus two short thick rounded-rectangle tick "
+        "marks pointing outward from each shoulder to suggest tension"
+    ),
+    "zenkutsu": (
+        "a simple geometric pictogram of a person bending forward: the same small-circle-head + "
+        "rounded-rectangle-torso construction as IMAGE 2, but the torso rounded rectangle is bent "
+        "forward at roughly 90 degrees (an L-shaped rounded rectangle) over a short rounded-"
+        "rectangle 'legs' base, with a small accent-color rounded-rectangle mark at the reaching "
+        "hand end to show effort, and a small gap between the hand end and a thin horizontal "
+        "ground line below to show it does not quite reach"
+    ),
+    "nemuri": (
+        "a simple geometric pictogram of a pillow: one wide rounded rectangle with a smaller "
+        "rounded-rectangle indent/fold on top, filled in the single accent color"
+    ),
+    "none": (
+        "a simple geometric pictogram meaning 'nothing in particular': a plain circle outline "
+        "with one smaller solid accent-color circle centred inside it, like a simple target dot"
+    ),
+    "asa": (
+        "a simple geometric pictogram of a sunrise: one accent-color filled circle (the sun) "
+        "with a single straight horizontal rounded-rectangle bar beneath it (the horizon), and "
+        "three short thick rounded-rectangle rays fanned out above the circle"
+    ),
+    "furo": (
+        "a simple geometric pictogram of a bathtub: one wide rounded rectangle (the tub) with a "
+        "small accent-color filled rounded-rectangle wisp shape floating just above it (steam)"
+    ),
+    "neru": (
+        "a simple geometric pictogram of night-time: one accent-color filled crescent-moon shape "
+        "(a large circle with a smaller circle cut out of one side) with one small accent-color "
+        "filled rounded four-point star beside it"
+    ),
+    "free": (
+        "a simple geometric pictogram of 'undecided': a circle outline with a bold rounded "
+        "question-mark shape centred inside it, the question mark filled in the single accent color"
+    ),
 }
 
 
@@ -70,13 +109,19 @@ def gen(chip_id):
     if chip_id not in WHAT:
         sys.exit(f"不明なID: {chip_id}")
     what = WHAT[chip_id]
+    images = ["-F", f"image[]=@{ANCHOR}"]
+    existing_youtsuu = os.path.join(OUT_DIR, "chip-youtsuu.png")
+    # katakori/zenkutsuは「腰」と同じ人型構成を踏襲するため、既存のyoutsuu画像もIMAGE 2として渡す
+    # (プロンプト内の「IMAGE 2」参照とインデックスを一致させる)。
+    if chip_id in ("katakori", "zenkutsu") and os.path.exists(existing_youtsuu):
+        images += ["-F", f"image[]=@{existing_youtsuu}"]
     prompt = f"Draw {what}. " + STYLE
     os.makedirs(OUT_DIR, exist_ok=True)
     out_path = os.path.join(OUT_DIR, f"chip-{chip_id}.png")
     res = subprocess.run(
         ["curl", "-sS", "https://api.openai.com/v1/images/edits",
          "-H", f"Authorization: Bearer {load_key()}",
-         "-F", "model=gpt-image-1", "-F", f"image[]=@{ANCHOR}",
+         "-F", "model=gpt-image-1", *images,
          "-F", f"prompt={prompt}",
          "-F", "size=1024x1024", "-F", "quality=medium", "-F", "background=transparent"],
         capture_output=True, text=True, timeout=300,

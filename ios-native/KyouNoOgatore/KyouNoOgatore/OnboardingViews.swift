@@ -288,11 +288,11 @@ private struct OnboardingContentView: View {
                 let palette = obgColors(dark: dark)
                 ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
                     let c = palette[i % 4]
-                    // TASK-C2-2026-07-30-icon-system-addendum-chips.md: サンプル1枚(「腰」=youtsuu)。
-                    // alan5のOKが出るまでこの1箇所だけ・残りのチップは従来どおり文字のみ。
+                    // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
+                    // 生成イラスト。ChipArt/chip-<v>.pngが存在するものだけ表示する
+                    // (硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。
                     HStack(spacing: 10) {
-                        if chip.v == "youtsuu",
-                           let url = Bundle.main.url(forResource: "chip-youtsuu", withExtension: "png"),
+                        if let url = Bundle.main.url(forResource: "chip-\(chip.v)", withExtension: "png"),
                            let uiImage = UIImage(contentsOfFile: url.path) {
                             Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 32, height: 32)
                         }

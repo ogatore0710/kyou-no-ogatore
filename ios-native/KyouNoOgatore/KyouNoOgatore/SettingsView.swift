@@ -163,7 +163,24 @@ struct SettingsView: View {
                         Spacer().frame(height: 8)
                         VStack(spacing: 6) {
                             ForEach(settingsAnchors, id: \.key) { info in
-                                KyonoGhostButton(info.label) {
+                                // TASK-C2-2026-07-30-icon-system-addendum-chips.md ③: オンボの
+                                // anchor質問(asa/furo/neru/free)と同じキー・同じ絵を再利用する
+                                // (この画面用に新しく描き起こさない)。KyonoGhostButtonはアイコン
+                                // 引数を持たないため、同じ見た目(colors.tealSoft/tealInk・
+                                // kyonoButtonRadius)をこの場でだけ組む。
+                                HStack(spacing: 10) {
+                                    if let url = Bundle.main.url(forResource: "chip-\(info.key)", withExtension: "png"),
+                                       let uiImage = UIImage(contentsOfFile: url.path) {
+                                        Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 28, height: 28)
+                                    }
+                                    Text(info.label).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+                                }
+                                .padding(.horizontal, 18).padding(.vertical, 16)
+                                .frame(maxWidth: .infinity)
+                                .background(colors.tealSoft)
+                                .cornerRadius(kyonoButtonRadius)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
                                     store.set("anchor", info.key)
                                     anchor = info.key
                                     showAnchorPicker = false

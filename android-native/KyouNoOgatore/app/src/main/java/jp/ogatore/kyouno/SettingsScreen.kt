@@ -12,6 +12,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -221,15 +223,36 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         ANCHORS.forEach { info ->
-                            KyonoGhostButton(
-                                info.label,
-                                {
-                                    store.set("anchor", info.key)
-                                    anchor = info.key
-                                    showAnchorPicker = false
-                                },
-                                Modifier.testTag("anchorOpt_${info.key}"),
-                            )
+                            // TASK-C2-2026-07-30-icon-system-addendum-chips.md ③: オンボの
+                            // anchor質問(asa/furo/neru/free)と同じキー・同じ絵を再利用する
+                            // (この画面用に新しく描き起こさない)。KyonoGhostButtonはアイコン
+                            // 引数を持たないため、同じ見た目(colors.tealSoft/tealInk・
+                            // KyonoButtonShape)をこの場でだけ組む。
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(colors.tealSoft, KyonoButtonShape)
+                                    .clickable {
+                                        store.set("anchor", info.key)
+                                        anchor = info.key
+                                        showAnchorPicker = false
+                                    }
+                                    .padding(16.dp, 18.dp)
+                                    .testTag("anchorOpt_${info.key}"),
+                            ) {
+                                val iconRes = obChipIconRes(info.key)
+                                if (iconRes != null) {
+                                    Image(
+                                        painter = painterResource(iconRes),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp),
+                                    )
+                                    Spacer(Modifier.width(10.dp))
+                                }
+                                Text(info.label, color = colors.tealInk, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                            }
                         }
                     }
                 }
