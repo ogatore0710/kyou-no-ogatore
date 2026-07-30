@@ -235,6 +235,10 @@ private struct OnboardingContentView: View {
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
     var body: some View {
+        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourContentView(D6)と同じ構造。
+        // 選択肢・CTAボタンを本文と同じScrollViewから外し、外側VStackの固定フッターにする。
+        // これでCTAは常に画面内の同じ位置にあり、本文の長さに関わらず動かない。
+        VStack(spacing: 0) {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
@@ -259,22 +263,6 @@ private struct OnboardingContentView: View {
                     }
                     .transition(.sdPop)
                 }
-                if let q = activeQuestion {
-                    Text("👇 タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-                    let palette = obgColors(dark: dark)
-                    ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
-                        let c = palette[i % 4]
-                        Text(chip.label).kyonoFont(.bold700, size: 16).foregroundColor(colors.ink)
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, 18).padding(.vertical, 14)
-                            .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
-                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
-                            .onTapGesture { onChipTap(chip) }
-                    }
-                }
-                if let cta = routeCta {
-                    KyonoPrimaryButton(cta.btn, action: onCtaTap)
-                }
                 Color.clear.frame(height: 1).id("obBottom")
             }
             .padding(20)
@@ -282,19 +270,40 @@ private struct OnboardingContentView: View {
             // (opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。reduced-motion時は無演出即表示。
             .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: bubbles.count)
         }
-        .background(KyonoBackgroundColor().ignoresSafeArea())
         // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A1: 固定60ms delay後に1回だけ
-        // scrollToする実装だと、バブル/選択肢のポップイン(180ms)と競合し、レイアウト確定前に
-        // 着地することがあった(スクロールが上がりきらない)。SoudanSheetView.swift:500-518の
-        // 手法を移植: delayを使わず、状態変化のたびに即座に(同じフレーム内で)scrollTo(anchor:)を
-        // 呼ぶ。SwiftUIはwithAnimationで包まれたレイアウト変化とscrollTo自体を同じ
-        // アニメーションとして解決するため、事前に「レイアウトが確定するのを待つ」猶予は不要。
-        // オンボは相談室と違って全部ユーザー操作起点の追加のため、bot発言用の.top/ユーザー発言用
-        // .bottomという使い分けは不要で、常に.bottomでよい。
+        // scrollToする実装だと、バブルのポップイン(180ms)と競合し、レイアウト確定前に着地する
+        // ことがあった(スクロールが上がりきらない)。SoudanSheetView.swift:500-518の手法を移植:
+        // delayを使わず、状態変化のたびに即座に(同じフレーム内で)scrollTo(anchor:)を呼ぶ。
+        // SwiftUIはwithAnimationで包まれたレイアウト変化とscrollTo自体を同じアニメーションとして
+        // 解決するため、事前に「レイアウトが確定するのを待つ」猶予は不要。オンボは相談室と違って
+        // 全部ユーザー操作起点の追加のため、bot発言用の.top/ユーザー発言用.bottomという使い分けは
+        // 不要で、常に.bottomでよい。選択肢・CTAはA2でスクロール領域の外(固定フッター)に出た
+        // ため、ここでスクロール対象にする必要があるのはbubblesの増減だけになった。
         .onChange(of: bubbles.count) { _, _ in scrollToBottom(proxy) }
-        .onChange(of: activeQuestion?.key) { _, _ in scrollToBottom(proxy) }
-        .onChange(of: routeCta?.btn) { _, _ in scrollToBottom(proxy) }
         }
+        // A2: 選択肢・CTAは固定フッター(スクロールしない)。
+        if let q = activeQuestion {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("👇 タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                let palette = obgColors(dark: dark)
+                ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
+                    let c = palette[i % 4]
+                    Text(chip.label).kyonoFont(.bold700, size: 16).foregroundColor(colors.ink)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 18).padding(.vertical, 14)
+                        .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
+                        .onTapGesture { onChipTap(chip) }
+                }
+            }
+            .padding(.horizontal, 20).padding(.bottom, 20)
+        }
+        if let cta = routeCta {
+            KyonoPrimaryButton(cta.btn, action: onCtaTap)
+                .padding(.horizontal, 20).padding(.bottom, 20)
+        }
+        }
+        .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 
     private func scrollToBottom(_ proxy: ScrollViewProxy) {
@@ -622,6 +631,11 @@ private struct QuizContentView: View {
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
     var body: some View {
+        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourContentView(D6)と同じ構造。
+        // 「まえの質問へ」「ホームにもどる」を本文と同じScrollViewから外し、外側VStackの
+        // 固定フッターにする。これでCTAは常に画面内の同じ位置にあり、本文の長さ(選択肢の
+        // note文の折返し行数など)に関わらず動かない。
+        VStack(spacing: 0) {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 Text("かたさチェック").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
@@ -676,16 +690,26 @@ private struct QuizContentView: View {
                         ) { if !answering { onOptTap(q, opt) } }
                     }
                 }
-                // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。
-                if qi > 0 {
-                    Spacer().frame(height: 2)
-                    KyonoLineButton("← まえの質問へ", action: onBack)
-                }
-                // 全画面完全性監査タスク #quiz: index.html:721 「ホームにもどる」ボタンの1:1移植。
-                Spacer().frame(height: 2)
-                KyonoLineButton("ホームにもどる", action: onGoHomeTap)
             }
             .padding(20)
+        }
+        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A3: 「まえの質問へ」(前の設問に戻る)と
+        // 「ホームにもどる」(診断を中断してホームに戻る=破壊的操作)が同じKyonoLineButton(枠線のみ)
+        // スタイルで並んでいて見分けにくかった。「まえの質問へ」は枠線ボタンのまま残し、
+        // 「ホームにもどる」はSettingsView.swift:157-160の「変える」リンクと同じ見た目(文字だけ・
+        // 控えめな色)に格下げして、機能差を視覚的に出す。
+        VStack(spacing: 8) {
+            // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。
+            if qi > 0 {
+                KyonoLineButton("← まえの質問へ", action: onBack)
+            }
+            // 全画面完全性監査タスク #quiz: index.html:721 「ホームにもどる」ボタンの1:1移植。
+            Text("ホームにもどる")
+                .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                .padding(.vertical, 10)
+                .onTapGesture { onGoHomeTap() }
+        }
+        .padding(.horizontal, 20).padding(.bottom, 20)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
@@ -884,7 +908,11 @@ private struct ResultContentView: View {
                         HStack(alignment: .bottom, spacing: 8) {
                             KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("ここからは練習だよ🏫 ①を試しにタップ→YouTubeがひらいたら すぐ戻ってきてね（ぜんぶ見るのは あとでゆっくりでOK）")
+                                // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md B1: 直前の見出し
+                                // 「きょうはこの1本だけでOK！」で"練習/1本だけ"の意図は既に伝わっている。
+                                // 「ぜんぶ見るのはあとでOK」は下の「あと2本〜あしたから見られるよ」と
+                                // 重複するため削る。
+                                Text("①をタップ！ YouTubeが開くよ🏫")
                                     .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                                 Text("🔙 見おわったら 画面ひだり上に出る「◀」か YouTubeをとじると この画面にもどれるよ")
                                     .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)

@@ -162,11 +162,6 @@ data class ChatBubble(val text: String, val fromUser: Boolean)
 // index.html:4211 「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
 private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ記録」タブの「続ける設定」でいつでも変更できるよ！"
 
-// TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A1: bubbles(実際のList)のindexとは
-// 衝突しない負数を、チップ行・CTAボタン行の位置トラッキング専用キーとして使う。
-private const val OB_CHIPS_ROW_KEY = -1000
-private const val OB_CTA_ROW_KEY = -1001
-
 // index.html:4395-4434 obOpen/obAskQ/obPick/obGoの1:1移植。「welcome」専用画面は無く、この会話UI自体が
 // あいさつ(greet)を最初の3吹き出しとして描画することでwelcome相当を兼ねる(index.html:4405)。
 //
@@ -246,19 +241,15 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         // 選択肢が常に見える・押せる位置に来るようにする。
         val obScrollState = rememberScrollState()
         // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A1: 固定delay(60)後に1回だけ
-        // scrollする実装だと、バブル/選択肢のポップイン(180ms)と競合し、レイアウト確定前に
-        // 着地することがあった。SoudanSheet.kt:485-497のフレーム単位リトライ方式を移植:
-        // 「いま増えた行」の位置がonGloballyPositionedで記録されるまで最大10フレーム待って
-        // からスクロールする。bubbles・チップ行・CTAボタン行のどれが最後に増えたかで
-        // 追う対象キーを切り替える(専用の負数キーでチップ/CTAを区別)。
+        // scrollする実装だと、バブルのポップイン(180ms)と競合し、レイアウト確定前に着地する
+        // ことがあった。SoudanSheet.kt:485-497のフレーム単位リトライ方式を移植: 「いま増えた
+        // バブル」の位置がonGloballyPositionedで記録されるまで最大10フレーム待ってから
+        // スクロールする。選択肢・CTAはA2でスクロール領域の外(固定フッター)に出たため、
+        // ここでスクロール対象にする必要があるのはbubblesの増減だけになった。
         val obRowPositions = remember { mutableStateMapOf<Int, Float>() }
-        LaunchedEffect(bubbles.size, activeQuestion, routeCta) {
-            val targetKey = when {
-                routeCta != null -> OB_CTA_ROW_KEY
-                activeQuestion != null -> OB_CHIPS_ROW_KEY
-                bubbles.isNotEmpty() -> bubbles.lastIndex
-                else -> return@LaunchedEffect
-            }
+        LaunchedEffect(bubbles.size) {
+            val targetKey = bubbles.lastIndex
+            if (targetKey < 0) return@LaunchedEffect
             var y = obRowPositions[targetKey]
             var tries = 0
             while (y == null && tries < 10) {
@@ -268,7 +259,13 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             }
             if (obReducedMotion) obScrollState.scrollTo(obScrollState.maxValue) else obScrollState.animateScrollTo(obScrollState.maxValue)
         }
-        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(obScrollState).padding(20.dp)) {
+        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourScreen(D6)と同じ構造。
+        // 選択肢・CTAボタンを本文と同じverticalScrollから外し、外側Columnの固定フッターにする。
+        // これでCTAは常に画面内の同じ位置にあり、本文の長さに関わらず動かない。
+        Column(Modifier.fillMaxSize().background(colors.bg)) {
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(obScrollState).padding(20.dp),
+        ) {
             Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
             Spacer(Modifier.height(12.dp))
             // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:4149 .sd-pop
@@ -321,34 +318,35 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 }
                 }
             }
-            val q = activeQuestion
-            if (q != null) {
-                Column(Modifier.onGloballyPositioned { coords -> obRowPositions[OB_CHIPS_ROW_KEY] = coords.positionInParent().y }) {
-                    Spacer(Modifier.height(8.dp))
-                    Text("👇 タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
-                    Spacer(Modifier.height(6.dp))
-                    val palette = obgColors(dark)
-                    q.chips.forEachIndexed { i, chip ->
-                        val c = palette[i % 4]
-                        Text(
-                            chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
-                                .background(c.bg, RoundedCornerShape(16.dp))
-                                .border(2.dp, c.border, RoundedCornerShape(16.dp))
-                                .clickable { pickChannel.trySend(chip) }
-                                .padding(horizontal = 18.dp, vertical = 14.dp)
-                                .testTag("obChip_${q.key}_${chip.v}"),
-                        )
-                    }
+        }
+        // A2: 選択肢・CTAは固定フッター(スクロールしない)。
+        val q = activeQuestion
+        if (q != null) {
+            Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
+                Text("👇 タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
+                Spacer(Modifier.height(6.dp))
+                val palette = obgColors(dark)
+                q.chips.forEachIndexed { i, chip ->
+                    val c = palette[i % 4]
+                    Text(
+                        chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
+                            .background(c.bg, RoundedCornerShape(16.dp))
+                            .border(2.dp, c.border, RoundedCornerShape(16.dp))
+                            .clickable { pickChannel.trySend(chip) }
+                            .padding(horizontal = 18.dp, vertical = 14.dp)
+                            .testTag("obChip_${q.key}_${chip.v}"),
+                    )
                 }
             }
-            val cta = routeCta
-            if (cta != null) {
-                Column(Modifier.onGloballyPositioned { coords -> obRowPositions[OB_CTA_ROW_KEY] = coords.positionInParent().y }) {
-                    Spacer(Modifier.height(8.dp))
-                    KyonoPrimaryButton(cta.btn, { ctaChannel.trySend(Unit) }, Modifier.fillMaxWidth().testTag("obRouteCtaBtn"))
-                }
-            }
+        }
+        val cta = routeCta
+        if (cta != null) {
+            KyonoPrimaryButton(
+                cta.btn, { ctaChannel.trySend(Unit) },
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 20.dp).testTag("obRouteCtaBtn"),
+            )
+        }
         }
     }
 }
@@ -643,7 +641,12 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
         val colors = LocalKyonoColors.current
         val dark = colors.bg == KyonoDarkColors.bg
         val q = activeQuestions.getOrNull(qi)
-        Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(rememberScrollState()).padding(20.dp)) {
+        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourScreen(D6)と同じ構造。
+        // 「まえの質問へ」「ホームにもどる」を本文と同じverticalScrollから外し、外側Columnの
+        // 固定フッターにする。これでCTAは常に画面内の同じ位置にあり、本文の長さ(選択肢のnote文の
+        // 折返し行数など)に関わらず動かない。
+        Column(Modifier.fillMaxSize().background(colors.bg)) {
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp)) {
             Text("かたさチェック", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(4.dp))
             Text("Q${qi + 1} / ${activeQuestions.size}", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizProgress"))
@@ -755,20 +758,30 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                         )
                     }
                 }
+            }
+        }
+        // A2: 「まえの質問へ」「ホームにもどる」は固定フッター(スクロールしない)。
+        if (q != null) {
+            Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
                 // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示・まえの質問へ戻る)の1:1移植。
                 if (qi > 0) {
-                    Spacer(Modifier.height(10.dp))
                     KyonoLineButton("← まえの質問へ", { qi-- }, Modifier.testTag("qBackBtn"))
+                    Spacer(Modifier.height(10.dp))
                 }
                 // 全画面完全性監査タスク #quiz: index.html:721 「ホームにもどる」ボタンの1:1移植。
                 // index.html:1649 quizGoHome(): 回答済み(qi>0)のときだけ確認ダイアログを出す。
-                Spacer(Modifier.height(10.dp))
-                KyonoLineButton(
-                    "ホームにもどる",
-                    { if (qi > 0) showGoHomeConfirm = true else onGoHome() },
-                    Modifier.testTag("quizGoHomeBtn"),
+                // A3(2026-07-30): 「まえの質問へ」(戻る)と機能が全く違う「ホームにもどる」
+                // (診断を中断=破壊的操作)が同じKyonoLineButtonスタイルで並び見分けにくかった。
+                // ホームにもどるだけ文字リンク(SettingsScreen.ktの「変える」相当・控えめな色)に
+                // 格下げして機能差を出す。
+                Text(
+                    "ホームにもどる", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 10.dp)
+                        .clickable { if (qi > 0) showGoHomeConfirm = true else onGoHome() }
+                        .testTag("quizGoHomeBtn"),
                 )
             }
+        }
         }
         if (showGoHomeConfirm) {
             AlertDialog(
@@ -923,11 +936,11 @@ fun ResultScreen(
                                     .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                             ) {
-                                Text(
-                                    "ここからは練習だよ🏫 ①を試しにタップ→YouTubeがひらいたら すぐ戻ってきてね" +
-                                        "（ぜんぶ見るのは あとでゆっくりでOK）",
-                                    color = colors.ink,
-                                )
+                                // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md B1: 直前の見出し
+                                // 「きょうはこの1本だけでOK！」で"練習/1本だけ"の意図は既に伝わっている。
+                                // 「ぜんぶ見るのはあとでOK」は下の「あと2本〜あしたから見られるよ」と
+                                // 重複するため削る。
+                                Text("①をタップ！ YouTubeが開くよ🏫", color = colors.ink)
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     "🔙 見おわったら スマホの「もどる」ボタン（◀）で この画面にもどれるよ",
