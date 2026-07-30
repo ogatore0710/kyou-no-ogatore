@@ -141,7 +141,7 @@ struct RootView: View {
     // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): アプリ再起動をまたいでも
     // 「最後のやり取りから10分以内」なら会話を復元する。Web版に無いネイティブ独自のパリティ例外
     // (本人GO済み・HANDOFF.md参照)。
-    private static let soudanMemoryTTL: TimeInterval = 6 // TEMP-TEST(DO NOT COMMIT): 検証用に短縮。検証後600に戻す
+    private static let soudanMemoryTTL: TimeInterval = 600
     private static let soudanMemoryMaxMessages = 30
     // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 openObuの1:1移植。
     // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
