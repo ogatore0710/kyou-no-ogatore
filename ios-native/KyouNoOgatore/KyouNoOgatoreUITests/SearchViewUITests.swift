@@ -136,10 +136,16 @@ final class SearchViewUITests: XCTestCase {
 
         let settingsBtn = app.descendants(matching: .any)["設定をひらく"].firstMatch
         XCTAssertTrue(settingsBtn.waitForExistence(timeout: 5), "「設定をひらく」が見つからない")
+        let scrollView = app.scrollViews.firstMatch
+        for _ in 0..<30 where !settingsBtn.isHittable {
+            scrollView.swipeUp()
+        }
+        XCTAssertTrue(settingsBtn.isHittable, "「設定をひらく」を画面内にスクロールできなかった")
+        print("DEBUG_FRAME=\(settingsBtn.frame) SCREEN=\(app.frame)")
 
         let dragStart = settingsBtn.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         let dragEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
-        dragStart.press(forDuration: 0.3, thenDragTo: dragEnd)
+        dragStart.press(forDuration: 0.3, thenDragTo: dragEnd, withVelocity: 50, thenHoldForDuration: 0.1)
 
         sleep(1)
         let settingsHeader = app.staticTexts["続ける設定"].firstMatch
@@ -181,6 +187,11 @@ final class SearchViewUITests: XCTestCase {
 
         let settingsBtn = app.descendants(matching: .any)["設定をひらく"].firstMatch
         XCTAssertTrue(settingsBtn.waitForExistence(timeout: 5), "「設定をひらく」が見つからない")
+        let scrollView2 = app.scrollViews.firstMatch
+        for _ in 0..<30 where !settingsBtn.isHittable {
+            scrollView2.swipeUp()
+        }
+        XCTAssertTrue(settingsBtn.isHittable, "「設定をひらく」を画面内にスクロールできなかった")
 
         let start = settingsBtn.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15))
