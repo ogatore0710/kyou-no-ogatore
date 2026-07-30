@@ -322,7 +322,7 @@ class MainActivity : ComponentActivity() {
                                             onOpenBrag = { screen = Screen.Brag },
                                             onOpenVoices = { screen = Screen.Voices },
                                             onOpenDiary = { screen = Screen.Diary },
-                                            onOpenSettings = { screen = Screen.Settings },
+                                            onOpenSettings = { screen = Screen.Settings(returnTo = screen) },
                                         )
                                         // mainScreenはSoudan中も常にHomeへ差し替え済みのため、この分岐は
                                         // 型の網羅性チェックのためだけに存在し実際には到達しない。
@@ -360,10 +360,10 @@ class MainActivity : ComponentActivity() {
                                             onReenterOnboarding = { screen = Screen.Onboarding },
                                             onReenterTour = { screen = Screen.Tour(false) },
                                             onOpenQuiz = { screen = Screen.Quiz(null) },
-                                            onOpenSettings = { screen = Screen.Settings },
+                                            onOpenSettings = { screen = Screen.Settings(returnTo = screen) },
                                             onOpenMyRecord = { screen = Screen.MyRecord },
                                         )
-                                        is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = Screen.Home })
+                                        is Screen.Settings -> SettingsScreen(store = store, onBack = { screen = s.returnTo })
                                         is Screen.Home -> HomeScreen(
                                             store = store,
                                             isForeground = screen == Screen.Home,
@@ -373,7 +373,7 @@ class MainActivity : ComponentActivity() {
                                             onShowResult = { typeKey -> screen = Screen.Result(typeKey) },
                                             onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
                                             onOpenMyRecord = { screen = Screen.MyRecord },
-                                            onOpenSettings = { screen = Screen.Settings },
+                                            onOpenSettings = { screen = Screen.Settings(returnTo = screen) },
                                             scrollToTodayPending = scrollToTodayPending,
                                             onScrolledToToday = { scrollToTodayPending = false },
                                             pendingDoneNudge = pendingDoneNudge,
@@ -616,7 +616,9 @@ sealed class Screen {
     // index.html:935 obuReturnTo(オガトレ通信をひらく前のタブへ戻る)の1:1移植。
     data class Obu(val returnTo: Screen = Home) : Screen()
     object Guide : Screen()
-    object Settings : Screen()
+    // UX13案・案4(2026-07-30): 図鑑・声・じまん・にっき(A2)と同じ「来た場所へ戻す」原則を
+    // 設定画面にも適用。以前は`Home`固定で、マイ記録→設定→もどる、でホームに放り出されていた。
+    data class Settings(val returnTo: Screen = Home) : Screen()
     data class Quiz(val presetWorry: String?) : Screen()
     data class Result(val typeKey: String, val autoReachLv: Int? = null) : Screen()
     data class Tour(val showClosing: Boolean) : Screen()
@@ -642,7 +644,7 @@ internal fun encodeScreen(screen: Screen): ArrayList<Any?> = when (screen) {
     is Screen.Diary -> arrayListOf("Diary")
     is Screen.Obu -> arrayListOf("Obu", encodeScreen(screen.returnTo))
     is Screen.Guide -> arrayListOf("Guide")
-    is Screen.Settings -> arrayListOf("Settings")
+    is Screen.Settings -> arrayListOf("Settings", encodeScreen(screen.returnTo))
     is Screen.Quiz -> arrayListOf("Quiz", screen.presetWorry)
     is Screen.Result -> arrayListOf("Result", screen.typeKey, screen.autoReachLv)
     is Screen.Tour -> arrayListOf("Tour", screen.showClosing)
@@ -663,7 +665,7 @@ internal fun decodeScreen(saved: Any?): Screen {
         "Diary" -> Screen.Diary
         "Obu" -> Screen.Obu(decodeScreen(list.getOrNull(1)))
         "Guide" -> Screen.Guide
-        "Settings" -> Screen.Settings
+        "Settings" -> Screen.Settings(decodeScreen(list.getOrNull(1)))
         "Quiz" -> Screen.Quiz(list.getOrNull(1) as? String)
         "Result" -> Screen.Result(list.getOrNull(1) as? String ?: "", list.getOrNull(2) as? Int)
         "Tour" -> Screen.Tour(list.getOrNull(1) as? Boolean ?: false)

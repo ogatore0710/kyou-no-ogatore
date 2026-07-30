@@ -73,7 +73,9 @@ private enum Screen: Equatable {
     // index.html:935 obuReturnTo(オガトレ通信をひらく前のタブへ戻る)の1:1移植。
     indirect case obu(returnTo: Screen = .home)
     case guide
-    case settings
+    // UX13案・案4(2026-07-30): 図鑑・声・じまん・にっき(A2)と同じ「来た場所へ戻す」原則を
+    // 設定画面にも適用。以前は`.home`固定で、マイ記録→設定→もどる、でホームに放り出されていた。
+    indirect case settings(returnTo: Screen = .home)
     case myRecord
 
     static func == (lhs: Screen, rhs: Screen) -> Bool {
@@ -81,12 +83,13 @@ private enum Screen: Equatable {
         case (.home, .home), (.onboarding, .onboarding),
              (.search, .search), (.catalog, .catalog), (.dex, .dex),
              (.voices, .voices), (.brag, .brag), (.diary, .diary), (.guide, .guide),
-             (.settings, .settings), (.myRecord, .myRecord): return true
+             (.myRecord, .myRecord): return true
         case let (.quiz(a), .quiz(b)): return a == b
         case let (.result(a, la), .result(b, lb)): return a == b && la == lb
         case let (.tour(a), .tour(b)): return a == b
         case let (.soudan(a), .soudan(b)): return a == b
         case let (.obu(a), .obu(b)): return a == b
+        case let (.settings(a), .settings(b)): return a == b
         default: return false
         }
     }
@@ -404,11 +407,11 @@ struct RootView: View {
                 onReenterOnboarding: { screen = .onboarding },
                 onReenterTour: { screen = .tour(showClosing: false) },
                 onOpenQuiz: { screen = .quiz(presetWorry: nil) },
-                onOpenSettings: { screen = .settings },
+                onOpenSettings: { screen = .settings(returnTo: screen) },
                 onOpenMyRecord: { screen = .myRecord }
             )
-        case .settings:
-            SettingsView(store: store, onBack: { screen = .home })
+        case let .settings(returnTo):
+            SettingsView(store: store, onBack: { screen = returnTo })
         case .myRecord:
             MyRecordView(
                 store: store,
@@ -416,7 +419,7 @@ struct RootView: View {
                 onOpenBrag: { screen = .brag },
                 onOpenVoices: { screen = .voices },
                 onOpenDiary: { screen = .diary },
-                onOpenSettings: { screen = .settings }
+                onOpenSettings: { screen = .settings(returnTo: screen) }
             )
         case .home:
             HomeView(
@@ -426,7 +429,7 @@ struct RootView: View {
                 onShowResult: { typeKey in screen = .result(typeKey: typeKey) },
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
                 onOpenMyRecord: { screen = .myRecord },
-                onOpenSettings: { screen = .settings },
+                onOpenSettings: { screen = .settings(returnTo: screen) },
                 scrollToTodayPending: $scrollToTodayPending,
                 pendingDoneNudge: $pendingDoneNudge
             )
