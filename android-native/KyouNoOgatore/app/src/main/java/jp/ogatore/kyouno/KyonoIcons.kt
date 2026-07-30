@@ -51,6 +51,10 @@ enum class KyonoIcon {
     // 見分けが怪しくなるため、同心円をやめて旗(ゴールを立てる)に変更した。同じ理由で⏱も
     // 円形の腕時計ではなく砂時計(三角×2)にし、丸い意匠が増えすぎないようにする。
     GoalFlag, Sprout, HourglassTime, PhoneDevice, PaletteArt,
+    // UX13案・案6(2026-07-30): index.html:656-658 セグメント(あなた用/あさ/よる)の3アイコン。
+    // `Heart`は角丸カード背景+小さいハート(見出し用の合成アイコン)なのでそのまま使えず、
+    // Web版のsegMine(単体のハートだけ・背景なし)に相当する専用ケースを新設する。
+    SegHeart, SegSun, SegMoon,
 }
 
 // UI/UXパリティ監査2巡目A3(2026-07-29): index.html:98 .sec-head svg{width:21px;height:21px}の
@@ -400,6 +404,47 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                 drawCircle(accent, radius = 1.3f * s, center = pt(13f, 9f))
                 drawCircle(accent, radius = 1.3f * s, center = pt(14.5f, 13f))
                 drawCircle(accent, radius = 1.3f * s, center = pt(13f, 16f))
+            }
+            // UX13案・案6(2026-07-30): index.html:656 segMineの1:1移植(単体のハート・
+            // fill #FFEDF3/stroke #E56A9A・背景カードなし)。`Heart`は角丸カード背景+小さいハート
+            // (見出し用の合成アイコン)なのでそのまま使えず、専用ケースを新設する。
+            KyonoIcon.SegHeart -> {
+                val heart = Path().apply {
+                    moveTo(pt(12f, 21f).x, pt(12f, 21f).y)
+                    cubicTo(pt(7f, 17.5f).x, pt(7f, 17.5f).y, pt(4f, 14f).x, pt(4f, 14f).y, pt(4.8f, 10.6f).x, pt(4.8f, 10.6f).y)
+                    cubicTo(pt(5.47f, 8.2f).x, pt(5.47f, 8.2f).y, pt(8.13f, 7.87f).x, pt(8.13f, 7.87f).y, pt(9.8f, 7.6f).x, pt(9.8f, 7.6f).y)
+                    cubicTo(pt(10.6f, 7.87f).x, pt(10.6f, 7.87f).y, pt(11.4f, 8.53f).x, pt(11.4f, 8.53f).y, pt(12f, 10f).x, pt(12f, 10f).y)
+                    cubicTo(pt(12.6f, 8.53f).x, pt(12.6f, 8.53f).y, pt(13.4f, 7.87f).x, pt(13.4f, 7.87f).y, pt(14.2f, 7.6f).x, pt(14.2f, 7.6f).y)
+                    cubicTo(pt(15.87f, 7.87f).x, pt(15.87f, 7.87f).y, pt(18.53f, 8.2f).x, pt(18.53f, 8.2f).y, pt(19.2f, 10.6f).x, pt(19.2f, 10.6f).y)
+                    cubicTo(pt(20f, 14f).x, pt(20f, 14f).y, pt(17f, 17.5f).x, pt(17f, 17.5f).y, pt(12f, 21f).x, pt(12f, 21f).y)
+                    close()
+                }
+                drawPath(heart, fill, style = Fill)
+                drawPath(heart, Color(0xFFE56A9A), style = Stroke(2.2f * s))
+            }
+            // index.html:657 segAsaの1:1移植(太陽・光線4本)。
+            KyonoIcon.SegSun -> {
+                drawOval(Color(0xFFFFD93B), topLeft = pt(7.5f, 8.5f), size = androidx.compose.ui.geometry.Size(9f * s, 9f * s), style = Fill)
+                val rays = Path().apply {
+                    moveTo(pt(12f, 3.5f).x, pt(12f, 3.5f).y); lineTo(pt(12f, 6f).x, pt(12f, 6f).y)
+                    moveTo(pt(4f, 13f).x, pt(4f, 13f).y); lineTo(pt(2f, 13f).x, pt(2f, 13f).y)
+                    moveTo(pt(22f, 13f).x, pt(22f, 13f).y); lineTo(pt(20f, 13f).x, pt(20f, 13f).y)
+                    moveTo(pt(5.5f, 6.5f).x, pt(5.5f, 6.5f).y); lineTo(pt(7.3f, 8.3f).x, pt(7.3f, 8.3f).y)
+                    moveTo(pt(18.5f, 6.5f).x, pt(18.5f, 6.5f).y); lineTo(pt(16.7f, 8.3f).x, pt(16.7f, 8.3f).y)
+                }
+                drawPath(rays, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+            }
+            // index.html:658 segYoruの近似移植(三日月・大円から右上の円を欠き取る)。Web版は
+            // 2本のアーク(A8 8...)で三日月の輪郭線そのものを描いているが、Compose Pathで
+            // SVGの楕円弧コマンドを1:1変換すると中心角の計算が煩雑になるため、evenOddで2円の
+            // 差分シルエットを塗る近似に置き換える(縁取り線は二重円の輪郭が出てしまうため省略)。
+            KyonoIcon.SegMoon -> {
+                val moon = Path().apply {
+                    addOval(androidx.compose.ui.geometry.Rect(4f * s, 2.5f * s, 20f * s, 18.5f * s))
+                    addOval(androidx.compose.ui.geometry.Rect(9f * s, 1.5f * s, 23f * s, 15.5f * s))
+                    fillType = PathFillType.EvenOdd
+                }
+                drawPath(moon, Color(0xFFB8A9F0), style = Fill)
             }
         }
     }

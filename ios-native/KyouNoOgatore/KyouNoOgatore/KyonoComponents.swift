@@ -420,6 +420,10 @@ struct KyonoSegmentedControl<T: Equatable>: View {
     let options: [(T, String)]
     let selected: T
     let onSelect: (T) -> Void
+    // UX13案・案6(2026-07-30): index.html:656-658 segMine/segAsa/segYoruのようにラベルの左に
+    // アイコンが付く呼び出し元向けの差し込み口。既定は無指定(既存の画面のみため/もじの大きさ等は
+    // 呼び出し側を変えずに済む)。
+    var icon: (T) -> KyonoIcon? = { _ in nil }
 
     var body: some View {
         let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
@@ -430,7 +434,7 @@ struct KyonoSegmentedControl<T: Equatable>: View {
                 // index.html:373,432(相当) .seg button:not(.on):active{opacity:.6}の1:1移植。
                 // UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButton/KyonoLineButtonと同じ欠落。
                 // 選択中(on)のセグメントはWeb版でも:active対象外(not(.on))なのでそのまま。
-                SegmentedOptionButton(label: label, on: on, colors: colors, zoom: zoom) { onSelect(value) }
+                SegmentedOptionButton(label: label, icon: icon(value), on: on, colors: colors, zoom: zoom) { onSelect(value) }
             }
         }
         .padding(4 * zoom)
@@ -442,6 +446,7 @@ struct KyonoSegmentedControl<T: Equatable>: View {
 // TASK-C2-2026-07-30-button-standard-migration.md: 標準Button+ButtonStyleへ移行(理由はKyonoPrimaryButton参照)。
 private struct SegmentedOptionButton: View {
     let label: String
+    var icon: KyonoIcon? = nil
     let on: Bool
     let colors: KyonoColors
     let zoom: CGFloat
@@ -449,7 +454,14 @@ private struct SegmentedOptionButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
+            HStack(spacing: 4 * zoom) {
+                if let icon {
+                    // segHeartのピンク薄塗り(fill #FFEDF3相当)以外は内部で色を固定描画するため、
+                    // ここで渡すfillはsegHeart用の値でよい。
+                    KyonoIconGlyph(icon: icon, fill: Color(hex: 0xFFEDF3)).frame(width: 16 * zoom, height: 16 * zoom)
+                }
+                Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
+            }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 13 * zoom)
                 .background(on ? colors.card : Color.clear)

@@ -126,6 +126,7 @@ import jp.ogatore.kyouno.record.RecordStore
 import jp.ogatore.kyouno.safety.SafetyKBLoader
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.serialization.Serializable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -730,17 +731,41 @@ private fun autoTodayMode(now: Instant): String {
     return if (hour in 4..16) "asa" else "yoru"
 }
 
+// TASK-C2-2026-07-30-ux-batch-13-amend-segment.md: index.html:1709 setMode()のmode_manual
+// ({m,d:todayStr()}・当日限り有効)の1:1移植。
+@Serializable
+data class ModeManual(val m: String, val d: String)
+
 // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md): index.html:1971
 // REACH_LV(段位名。0番目は未使用)の1:1移植。OnboardingScreens.kt(ResultScreen)からも参照するため
 // module-internal(既定可視性)にする(全画面完全性監査タスク #result)。
 val REACH_LV = listOf("", "ひざまで", "すねまで", "足首まで", "つま先タッチ", "ゆかにベタッ")
 
-// TASK-C2-2026-07-29-ux-audit-G.md G1: index.html:1711-1753 renderToday()の1:1移植。
-// 優先順位はプラン実行中→タイプ判定済み→あさ/よる自動判定(Web版のstate.mode未設定時の既定と同じ)。
-// セグメント切替(あなた用/あさ/よるの手動タブ)は「最低ライン」注記により第2段へ送るため、
-// ここでは自動選出のみを行う。
+// TASK-C2-2026-07-30-ux-batch-13-amend-segment.md: index.html:656-661 セグメント(あなた用/あさ/よる)の
+// 1:1移植。「あなた用」はmineAvail(タイプ判定済み or プラン実行中)のときだけ出す。
 @Composable
-private fun TodayVideoSection(plan: SdPlanData?, typeResult: QuizTypeResult?, onVideoTap: (String) -> Unit) {
+private fun TodaySegmentControl(mineAvail: Boolean, mode: String, onSelect: (String) -> Unit) {
+    val options = buildList {
+        if (mineAvail) add("mine" to "あなた用")
+        add("asa" to "あさ")
+        add("yoru" to "よる")
+    }
+    KyonoSegmentedControl(options, mode, onSelect) { m ->
+        when (m) {
+            "mine" -> KyonoIcon.SegHeart
+            "asa" -> KyonoIcon.SegSun
+            "yoru" -> KyonoIcon.SegMoon
+            else -> null
+        }
+    }
+}
+
+// TASK-C2-2026-07-29-ux-audit-G.md G1・TASK-C2-2026-07-30-ux-batch-13-amend-segment.md:
+// index.html:1711-1753 renderToday()の1:1移植。分岐はHomeScreenのeffectiveMode(セグメント手動選択→
+// 使える条件ならmine→あさ/よる自動判定)が解決した`mode`をそのまま使う(選出ロジック自体はここでは
+// 書き直さず、上にセグメントUIと手動上書きを足す形)。
+@Composable
+private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizTypeResult?, onVideoTap: (String) -> Unit) {
     val colors = LocalKyonoColors.current
     // OnboardingScreens.kt(ResultScreen)のcatalogById/lookupVideoと同じ形(結果画面のおすすめ動画3本と
     // 同じ変換表・カタログを再利用するため、そちらとロジックを分岐させない)。
@@ -753,7 +778,7 @@ private fun TodayVideoSection(plan: SdPlanData?, typeResult: QuizTypeResult?, on
     // index.html:1771 planCurrent()の1:1移植(未完走のみ「実行中」とみなす)。完走判定の式自体は
     // PlanProgressCard(既存)と同じにする(二重定義で式がずれるのを防ぐ)。
     val planDayNum = plan?.let { (RecordLogic.daysBetween(it.start, today) + 1).coerceAtLeast(1) }
-    if (plan != null && plan.videos.isNotEmpty() && planDayNum != null && planDayNum <= plan.days) {
+    if (mode == "mine" && plan != null && plan.videos.isNotEmpty() && planDayNum != null && planDayNum <= plan.days) {
         // index.html:1745-1748 m==="mine"&&plan分岐(planVideoHTML)の1:1移植。
         val idx = (((dayIndex(now) % plan.videos.size) + plan.videos.size) % plan.videos.size).toInt()
         lookupVideoById(plan.videos[idx])?.let { v ->
@@ -763,7 +788,7 @@ private fun TodayVideoSection(plan: SdPlanData?, typeResult: QuizTypeResult?, on
                 modifier = Modifier.fillMaxWidth().padding(top = 6.dp), textAlign = TextAlign.Center,
             )
         }
-    } else if (typeResult != null && QUIZ_TYPES.containsKey(typeResult.key)) {
+    } else if (mode == "mine" && typeResult != null && QUIZ_TYPES.containsKey(typeResult.key)) {
         // index.html:1749-1755 m==="mine"&&typed分岐(fdGuide時の①だけ表示は、この画面自体が
         // fdFocusOnのときは丸ごと非表示になる既存の分岐(HomeScreen呼び出し側参照)と重複するため
         // ここでは扱わない)。
@@ -781,12 +806,12 @@ private fun TodayVideoSection(plan: SdPlanData?, typeResult: QuizTypeResult?, on
             )
         }
     } else {
-        // index.html:1756-1758 それ以外(asa/yoru自動判定)分岐の1:1移植。
-        val mode = autoTodayMode(now)
-        val list = if (mode == "asa") TODAY_ASA else TODAY_YORU
+        // index.html:1756-1758 それ以外(あさ/よる・手動選択 or mine不成立時の救済後)の1:1移植。
+        val effectiveMode = if (mode == "mine") autoTodayMode(now) else mode
+        val list = if (effectiveMode == "asa") TODAY_ASA else TODAY_YORU
         val idx = (((dayIndex(now) % list.size) + list.size) % list.size).toInt()
         lookupVideoByKey(list[idx])?.let { v ->
-            VideoRow(v, onVideoTap, badge = if (mode == "asa") "きょうのあさ" else "きょうのよる")
+            VideoRow(v, onVideoTap, badge = if (effectiveMode == "asa") "きょうのあさ" else "きょうのよる")
         }
     }
     Text(
@@ -979,6 +1004,29 @@ fun HomeScreen(
 
     val fdFocusOn = HomeLogic.fdFocusHomeActive(fd, streak.total, fdday, today)
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
+    // TASK-C2-2026-07-30-ux-batch-13-amend-segment.md: index.html:1712 store.get("mode_manual")の
+    // 1:1移植。当日ぶんのみ有効(dayが今日と一致しなければ翌日には自動選出へ戻る)。
+    var modeManual by remember { mutableStateOf(store.get("mode_manual", null as ModeManual?)) }
+    // index.html:1714 planCurrent()(未完走のみ「実行中」)の1:1移植。TodayVideoSectionが内部で
+    // 個別に計算していた式と同じにする(二重定義で式がずれるのを防ぐ)。
+    val planRunning = plan?.let { p ->
+        p.videos.isNotEmpty() && (RecordLogic.daysBetween(p.start, today) + 1).coerceAtLeast(1) <= p.days
+    } == true
+    // index.html:1716 mineAvail(typed||プラン実行中)の1:1移植。
+    val mineAvail = checked || planRunning
+    // index.html:1722-1723 renderToday()のモード解決式の1:1移植。
+    val effectiveMode = run {
+        var m = modeManual?.takeIf { it.d == today }?.m
+        if (m == null) m = if (mineAvail) "mine" else autoTodayMode(Instant.now())
+        if (m == "mine" && !mineAvail) m = autoTodayMode(Instant.now()) // プラン終了直後などに残った手動mineの救済
+        m
+    }
+    // index.html:1709 setMode()の1:1移植。
+    fun setMode(m: String) {
+        val manual = ModeManual(m, today)
+        modeManual = manual
+        store.set("mode_manual", manual)
+    }
     // 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):
     // index.html:1757-1759 planFinishedCache/planCelebratedの1:1移植(プロセス内メモリのみ・§2-3)。
     var planFinishedCache by remember { mutableStateOf<PlanFinishedCache?>(null) }
@@ -992,18 +1040,21 @@ fun HomeScreen(
         val now = Instant.now()
         val todayStr = RecordLogic.todayStr(now)
         val p = plan
-        return if (p != null && p.videos.isNotEmpty() && (RecordLogic.daysBetween(p.start, todayStr) + 1).coerceAtLeast(1) <= p.days) {
+        // TASK-C2-2026-07-30-ux-batch-13-amend-segment.md: セグメント手動選択(effectiveMode)を
+        // 尊重する。あさ/よるへ手動切替中は、たとえプラン実行中/タイプ判定済みでも記録対象は
+        // あさ/よるの動画にする(表示中の「きょうの1本」と必ず一致させる)。
+        return if (effectiveMode == "mine" && p != null && p.videos.isNotEmpty() && (RecordLogic.daysBetween(p.start, todayStr) + 1).coerceAtLeast(1) <= p.days) {
             val idx = (((dayIndex(now) % p.videos.size) + p.videos.size) % p.videos.size).toInt()
             val vid = p.videos[idx]
             catalogByIdForDaylog[vid]?.let { it.id to it.t } ?: (vid to "")
-        } else if (typeResult != null && QUIZ_TYPES[typeResult.key] != null) {
+        } else if (effectiveMode == "mine" && typeResult != null && QUIZ_TYPES[typeResult.key] != null) {
             val rx = currentRx(typeResult.key, now)
             if (rx.isEmpty()) return null
             val idx = (((dayIndex(now) % rx.size) + rx.size) % rx.size).toInt()
             val vid = QUIZ_VIDEO_KEY_TO_ID[rx[idx]] ?: return null
             catalogByIdForDaylog[vid]?.let { it.id to it.t }
         } else {
-            val mode = autoTodayMode(now)
+            val mode = if (effectiveMode == "mine") autoTodayMode(now) else effectiveMode
             val list = if (mode == "asa") TODAY_ASA else TODAY_YORU
             val idx = (((dayIndex(now) % list.size) + list.size) % list.size).toInt()
             val vid = QUIZ_VIDEO_KEY_TO_ID[list[idx]] ?: return null
@@ -1195,10 +1246,10 @@ fun HomeScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            // index.html:654-664 #todayCard(きょうの1本)相当。TASK-C2-2026-07-29-ux-audit-G.md G1:
-            // 「押すとYouTubeのトップページが開くだけ」の仮実装を、renderToday()の1:1移植へ差し替える
-            // (プラン優先→タイプ判定→あさ/よる自動判定の順。セグメント切替UIは「最低ライン」の
-            // 注記どおり第2段へ送る=いまは自動選出のみ)。
+            // index.html:654-664 #todayCard(きょうの1本)相当。TASK-C2-2026-07-29-ux-audit-G.md G1で
+            // renderToday()の1:1移植へ差し替え(プラン優先→タイプ判定→あさ/よる自動判定の順)、
+            // TASK-C2-2026-07-30-ux-batch-13-amend-segment.mdでセグメント切替UI(あなた用/あさ/よる)+
+            // 当日限りの手動上書きを追加移植した。
             if (!fdFocusOn) {
                 KyonoCard(
                     Modifier
@@ -1211,7 +1262,18 @@ fun HomeScreen(
                         Text("きょうの1本", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                     }
                     Spacer(Modifier.height(10.dp))
+                    TodaySegmentControl(mineAvail = mineAvail, mode = effectiveMode, onSelect = ::setMode)
+                    // index.html:661 segMineHint(typedかつプラン非実行のときだけ)の1:1移植。
+                    if (checked && !planRunning) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "「あなた用」＝かたさチェックの結果に合わせたおすすめ3本です",
+                            color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                        )
+                    }
                     TodayVideoSection(
+                        mode = effectiveMode,
                         plan = plan,
                         typeResult = typeResult,
                         onVideoTap = { url ->

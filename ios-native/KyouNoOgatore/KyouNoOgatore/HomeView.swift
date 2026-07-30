@@ -1030,6 +1030,26 @@ private struct SoudanCard: View {
     }
 }
 
+// TASK-C2-2026-07-30-ux-batch-13-amend-segment.md: index.html:656-661 セグメント(あなた用/あさ/よる)の
+// 1:1移植。「あなた用」はmineAvail(タイプ判定済み or プラン実行中)のときだけ出す。
+private struct TodaySegmentControl: View {
+    let mineAvail: Bool
+    let mode: String
+    let onSelect: (String) -> Void
+
+    var body: some View {
+        let options: [(String, String)] = (mineAvail ? [("mine", "あなた用")] : []) + [("asa", "あさ"), ("yoru", "よる")]
+        KyonoSegmentedControl(options: options, selected: mode, onSelect: onSelect) { m in
+            switch m {
+            case "mine": return KyonoIcon.segHeart
+            case "asa": return KyonoIcon.segSun
+            case "yoru": return KyonoIcon.segMoon
+            default: return nil
+            }
+        }
+    }
+}
+
 // TASK-C2-2026-07-29-ux-audit-G.md G1・TASK-C2-2026-07-30-ux-batch-13-amend-segment.md:
 // index.html:1711-1753 renderToday()の1:1移植。分岐はHomeView.effectiveMode(セグメント手動選択→
 // 使える条件ならmine→あさ/よる自動判定)が解決した`mode`をそのまま使う(選出ロジック自体はここでは

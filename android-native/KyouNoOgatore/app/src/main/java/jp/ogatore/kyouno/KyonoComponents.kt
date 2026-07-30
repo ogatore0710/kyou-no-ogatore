@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -292,7 +293,16 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 // index.html:372-376 .seg/.seg button/.seg button.on(セグメントコントロール)の1:1移植。
 // 例: 設定画面の「画面のみため」「もじの大きさ」トグル。
 @Composable
-fun <T> KyonoSegmentedControl(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+fun <T> KyonoSegmentedControl(
+    options: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    // UX13案・案6(2026-07-30): index.html:656-658 segMine/segAsa/segYoruのようにラベルの左に
+    // アイコンが付く呼び出し元向けの差し込み口。既定は無指定(既存の画面のみため/もじの大きさ等は
+    // 呼び出し側を変えずに済む)。
+    icon: (T) -> KyonoIcon? = { null },
+) {
     val colors = LocalKyonoColors.current
     Row(
         modifier = modifier
@@ -307,15 +317,22 @@ fun <T> KyonoSegmentedControl(options: List<Pair<T, String>>, selected: T, onSel
             // 選択中(on)のセグメントはWeb版でも:active対象外(not(.on))なのでそのまま。
             val interactionSource = remember { MutableInteractionSource() }
             val pressed by interactionSource.collectIsPressedAsState()
-            Box(
+            Row(
                 modifier = Modifier
                     .weight(1f)
                     .alpha(if (!on && pressed) 0.6f else 1f)
                     .background(if (on) colors.card else Color.Transparent, RoundedCornerShape(12.dp))
                     .clickable(interactionSource = interactionSource, indication = null) { onSelect(value) }
                     .padding(vertical = 13.dp),
-                contentAlignment = Alignment.Center,
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
+                icon(value)?.let {
+                    // segHeartのピンク薄塗り(fill #FFEDF3相当)以外は内部で色を固定描画するため、
+                    // ここで渡すfillはsegHeart用の値でよい。
+                    KyonoIconGlyph(it, fill = Color(0xFFFFEDF3), modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                }
                 Text(label, color = if (on) colors.ink else colors.sub, fontSize = 15.sp, fontWeight = FontWeight.Black)
             }
         }
