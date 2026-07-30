@@ -283,10 +283,14 @@ private struct OnboardingContentView: View {
             .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: bubbles.count)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
-        // TASK-C2-2026-07-28-onboarding-sheet-tap-stolen.md: 新しい設問/選択肢が追加されても
-        // スクロール位置が追従しておらず、最新の選択肢がシートの可視領域の端(タップが背後の
-        // Homeへ抜ける位置)ぎりぎりに描画される欠落があった(Android側で実機再現・修正確認済み)。
-        // 追加のたびに最下部へ自動スクロールし、選択肢が常に見える・押せる位置に来るようにする。
+        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A1: 固定60ms delay後に1回だけ
+        // scrollToする実装だと、バブル/選択肢のポップイン(180ms)と競合し、レイアウト確定前に
+        // 着地することがあった(スクロールが上がりきらない)。SoudanSheetView.swift:500-518の
+        // 手法を移植: delayを使わず、状態変化のたびに即座に(同じフレーム内で)scrollTo(anchor:)を
+        // 呼ぶ。SwiftUIはwithAnimationで包まれたレイアウト変化とscrollTo自体を同じ
+        // アニメーションとして解決するため、事前に「レイアウトが確定するのを待つ」猶予は不要。
+        // オンボは相談室と違って全部ユーザー操作起点の追加のため、bot発言用の.top/ユーザー発言用
+        // .bottomという使い分けは不要で、常に.bottomでよい。
         .onChange(of: bubbles.count) { _, _ in scrollToBottom(proxy) }
         .onChange(of: activeQuestion?.key) { _, _ in scrollToBottom(proxy) }
         .onChange(of: routeCta?.btn) { _, _ in scrollToBottom(proxy) }
@@ -294,7 +298,9 @@ private struct OnboardingContentView: View {
     }
 
     private func scrollToBottom(_ proxy: ScrollViewProxy) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+        if reduceMotion {
+            proxy.scrollTo("obBottom", anchor: .bottom)
+        } else {
             withAnimation { proxy.scrollTo("obBottom", anchor: .bottom) }
         }
     }

@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -50,6 +51,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
@@ -159,6 +162,11 @@ data class ChatBubble(val text: String, val fromUser: Boolean)
 // index.html:4211 「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
 private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ記録」タブの「続ける設定」でいつでも変更できるよ！"
 
+// TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A1: bubbles(実際のList)のindexとは
+// 衝突しない負数を、チップ行・CTAボタン行の位置トラッキング専用キーとして使う。
+private const val OB_CHIPS_ROW_KEY = -1000
+private const val OB_CTA_ROW_KEY = -1001
+
 // index.html:4395-4434 obOpen/obAskQ/obPick/obGoの1:1移植。「welcome」専用画面は無く、この会話UI自体が
 // あいさつ(greet)を最初の3吹き出しとして描画することでwelcome相当を兼ねる(index.html:4405)。
 //
@@ -237,9 +245,28 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         // 効かない位置)ぎりぎりに描画される欠落があった。追加のたびに最下部へ自動スクロールし、
         // 選択肢が常に見える・押せる位置に来るようにする。
         val obScrollState = rememberScrollState()
+        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A1: 固定delay(60)後に1回だけ
+        // scrollする実装だと、バブル/選択肢のポップイン(180ms)と競合し、レイアウト確定前に
+        // 着地することがあった。SoudanSheet.kt:485-497のフレーム単位リトライ方式を移植:
+        // 「いま増えた行」の位置がonGloballyPositionedで記録されるまで最大10フレーム待って
+        // からスクロールする。bubbles・チップ行・CTAボタン行のどれが最後に増えたかで
+        // 追う対象キーを切り替える(専用の負数キーでチップ/CTAを区別)。
+        val obRowPositions = remember { mutableStateMapOf<Int, Float>() }
         LaunchedEffect(bubbles.size, activeQuestion, routeCta) {
-            delay(60) // 直前のレイアウト確定(新しい吹き出し/選択肢の高さ反映)を待つ猶予
-            obScrollState.animateScrollTo(obScrollState.maxValue)
+            val targetKey = when {
+                routeCta != null -> OB_CTA_ROW_KEY
+                activeQuestion != null -> OB_CHIPS_ROW_KEY
+                bubbles.isNotEmpty() -> bubbles.lastIndex
+                else -> return@LaunchedEffect
+            }
+            var y = obRowPositions[targetKey]
+            var tries = 0
+            while (y == null && tries < 10) {
+                withFrameNanos {}
+                y = obRowPositions[targetKey]
+                tries++
+            }
+            if (obReducedMotion) obScrollState.scrollTo(obScrollState.maxValue) else obScrollState.animateScrollTo(obScrollState.maxValue)
         }
         Column(Modifier.fillMaxSize().background(colors.bg).verticalScroll(obScrollState).padding(20.dp)) {
             Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
@@ -247,13 +274,17 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:4149 .sd-pop
             // (opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。reduced-motion時は無演出即表示。
             val obBubblePopDensity = LocalDensity.current
-            for (b in bubbles) {
+            bubbles.forEachIndexed { bIndex, b ->
                 AnimatedVisibility(
                     visible = true,
                     enter = if (obReducedMotion) {
                         fadeIn(tween(0))
                     } else {
                         fadeIn(tween(180)) + slideInVertically(tween(180)) { with(obBubblePopDensity) { 4.dp.roundToPx() } }
+                    },
+                    // A1: 全行の位置を無条件で記録するだけ(スクロール判断はLaunchedEffect側)。
+                    modifier = Modifier.onGloballyPositioned { coords ->
+                        obRowPositions[bIndex] = coords.positionInParent().y
                     },
                 ) {
                 // index.html:478-483,4150 .sd-row/.sd-b/.sd-ava(相談室と共用の吹き出しCSS・
@@ -292,27 +323,31 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             }
             val q = activeQuestion
             if (q != null) {
-                Spacer(Modifier.height(8.dp))
-                Text("👇 タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
-                Spacer(Modifier.height(6.dp))
-                val palette = obgColors(dark)
-                q.chips.forEachIndexed { i, chip ->
-                    val c = palette[i % 4]
-                    Text(
-                        chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
-                            .background(c.bg, RoundedCornerShape(16.dp))
-                            .border(2.dp, c.border, RoundedCornerShape(16.dp))
-                            .clickable { pickChannel.trySend(chip) }
-                            .padding(horizontal = 18.dp, vertical = 14.dp)
-                            .testTag("obChip_${q.key}_${chip.v}"),
-                    )
+                Column(Modifier.onGloballyPositioned { coords -> obRowPositions[OB_CHIPS_ROW_KEY] = coords.positionInParent().y }) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("👇 タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
+                    Spacer(Modifier.height(6.dp))
+                    val palette = obgColors(dark)
+                    q.chips.forEachIndexed { i, chip ->
+                        val c = palette[i % 4]
+                        Text(
+                            chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
+                                .background(c.bg, RoundedCornerShape(16.dp))
+                                .border(2.dp, c.border, RoundedCornerShape(16.dp))
+                                .clickable { pickChannel.trySend(chip) }
+                                .padding(horizontal = 18.dp, vertical = 14.dp)
+                                .testTag("obChip_${q.key}_${chip.v}"),
+                        )
+                    }
                 }
             }
             val cta = routeCta
             if (cta != null) {
-                Spacer(Modifier.height(8.dp))
-                KyonoPrimaryButton(cta.btn, { ctaChannel.trySend(Unit) }, Modifier.fillMaxWidth().testTag("obRouteCtaBtn"))
+                Column(Modifier.onGloballyPositioned { coords -> obRowPositions[OB_CTA_ROW_KEY] = coords.positionInParent().y }) {
+                    Spacer(Modifier.height(8.dp))
+                    KyonoPrimaryButton(cta.btn, { ctaChannel.trySend(Unit) }, Modifier.fillMaxWidth().testTag("obRouteCtaBtn"))
+                }
             }
         }
     }
