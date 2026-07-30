@@ -1034,6 +1034,11 @@ fun HomeScreen(
             // .qbubble(カードの外・chara-hitokoto.pngアバター+日替わりひとこと)の1:1移植。
             // pendingVideoReturnActive()相当(showDoneNudge)のときだけ「おかえりなさい」に差し替える
             // (旧来のdoneNudgeCardは廃止しqbubble1本に統合)。
+            // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案1: index.html:2130-2135
+            // pendingVideoReturnActive()は「きょう未記録か」を毎回導出に含めるが、showDoneNudgeは
+            // trueにセットされるだけでfalseに戻す経路が無かった(記録後も無効化されたボタンを指して
+            // 「押してね」と言い続ける矛盾)。Web版と同じく状態から導出する(&& !didを足すだけ)。
+            val showReturnNudge = showDoneNudge && !did
             Row(verticalAlignment = androidx.compose.ui.Alignment.Bottom, modifier = Modifier.testTag("qbubble")) {
                 Box(
                     Modifier.weight(1f)
@@ -1043,11 +1048,11 @@ fun HomeScreen(
                 ) {
                     Column {
                         Text(
-                            if (showDoneNudge) "おかえりなさい" else "きょうのひとこと",
+                            if (showReturnNudge) "おかえりなさい" else "きょうのひとこと",
                             color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black,
                         )
                         Text(
-                            if (showDoneNudge) "おわったら下の「きょうやった！」を押してね✅"
+                            if (showReturnNudge) "おわったら下の「きょうやった！」を押してね✅"
                             else "「${QUOTES[(dayIndex(Instant.now()) % QUOTES.size).toInt()]}」",
                             color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                             modifier = Modifier.testTag("qbubbleText"),

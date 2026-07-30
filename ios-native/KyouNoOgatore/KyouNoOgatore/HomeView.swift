@@ -115,6 +115,13 @@ struct HomeView: View {
     @State private var pendingNudgeDate: String?
     @State private var showDoneNudge = false
     @State private var cheerText: String?
+    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: app-record.js:72-151のnote/tomorrowMsPreviewの
+    // 1:1移植。MarkDoneOutcome(usedFreezeCount/newChapter/chapters)は既に返っていたのに、これまで
+    // ホーム側が受け取って捨てていた(呼び出しが`RecordLogic.markDone(store, now: Date())`のみで
+    // 戻り値未使用)。noteはmilestone/guide/normalの3分岐すべての先頭に前置(Web版と同じ)。
+    // tomorrowMsPreviewは節目でないとき(ms==nil)だけ、guide/normal分岐の末尾に付く。
+    @State private var noteText: String?
+    @State private var tomorrowMsPreview: String?
     // UI/UXパリティ監査GO-1(2026-07-28): app-record.js:133-139 節目カードの中身(ms!=nil分岐)。
     // 部品(CardDataLoader.shared.MSのd/t/m/q・KyonoConfetti)はあったが、ホーム画面のmarkDone
     // ハンドラから一度も接続されていなかった欠落を修正する(Android版HomeScreenと同一設計)。
@@ -280,11 +287,17 @@ struct HomeView: View {
             // .qbubble(カードの外・chara-hitokoto.pngアバター+日替わりひとこと)の1:1移植。
             // pendingVideoReturnActive()相当(showDoneNudge)のときだけ「おかえりなさい」に差し替える
             // (旧来の別カードdoneNudgeCardは廃止しqbubble1本に統合)。
+            // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案1: index.html:2130-2135
+            // pendingVideoReturnActive()は「きょう未記録か」を毎回導出に含めるが、ネイティブの
+            // showDoneNudgeはtrueにセットされるだけでfalseに戻す経路が無かった(記録後も
+            // 無効化されたボタンを指して「押してね」と言い続ける矛盾が残っていた欠落)。
+            // Web版と同じく状態から導出する(&& !didを足すだけ・showDoneNudge自体の寿命は変えない)。
+            let showReturnNudge = showDoneNudge && !did
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 4 * zoom) {
-                    Text(showDoneNudge ? "おかえりなさい" : "きょうのひとこと")
+                    Text(showReturnNudge ? "おかえりなさい" : "きょうのひとこと")
                         .kyonoFont(.black900, size: 11).foregroundColor(colors.sub)
-                    Text(showDoneNudge
+                    Text(showReturnNudge
                         ? "おわったら下の「きょうやった！」を押してね✅"
                         : "「\(QUOTES[((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count])」")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
@@ -413,7 +426,9 @@ struct HomeView: View {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     // app-record.js:100-102 guide判定(fdフラグを1へ立てる前に読む)の1:1移植。
                     let wasGuide = fd == "go"
-                    RecordLogic.markDone(store, now: Date())
+                    // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: 戻り値(MarkDoneOutcome)を
+                    // これまで捨てていた欠落を修正。usedFreezeCount/newChapter/chaptersを実際に使う。
+                    let outcome = RecordLogic.markDone(store, now: Date())
                     streak = RecordLogic.loadStreak(store)
                     // TASK-C2-2026-07-27-local-notifications.md: 記録のたびに次回通知を予約し直す
                     // (今日はもう記録済みなので、次は翌日以降の分に自動でずれる)。
@@ -423,6 +438,23 @@ struct HomeView: View {
                     WidgetSummaryWriter.write(store: store)
                     WidgetCenter.shared.reloadAllTimelines()
                     let ms = CardDataLoader.shared.MS.first { $0.d == streak.total }
+                    // app-record.js:86,113 noteの1:1移植。おやすみ券を使った日/新しい章が始まった日
+                    // だけ1行添える(通常は空)。ms/guide/normalの3分岐すべての先頭に前置(Web版と同じ)。
+                    let note: String?
+                    if let usedFreezeCount = outcome.usedFreezeCount, usedFreezeCount > 0 {
+                        note = "おやすみ券を\(usedFreezeCount)枚つかったので連続はつながっています"
+                    } else if outcome.newChapter {
+                        note = "第\(outcome.chapters)章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨"
+                    } else {
+                        note = nil
+                    }
+                    // app-record.js:131 tomorrowMsPreviewの1:1移植。きょうが節目でない(ms==nil)ときだけ、
+                    // 通算+1が明日ちょうど節目に乗るなら1行予告する(節目名は出さない=当日の新鮮味を保つ)。
+                    let tomorrowPreview: String? = (ms == nil && CardDataLoader.shared.MILESTONES.contains(streak.total + 1))
+                        ? "あしたで \(streak.total + 1)日目🎉 おたのしみに！"
+                        : nil
+                    noteText = note
+                    tomorrowMsPreview = tomorrowPreview
                     // §2-4許容箇所: markDoneのcheer選択のみ乱数OK。withAnimationはindex.html:311-312
                     // cpop(.3s ease-out)の1:1移植(下のtransitionと対で挿入時のポップ演出になる)。
                     // app-record.js:133-149: 節目とは重ならない前提(通算1日目=guideの唯一の発生
@@ -496,6 +528,13 @@ struct HomeView: View {
                             withAnimation { proxy.scrollTo("doneBtn", anchor: .center) }
                         }
                     }
+                }
+                // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: app-record.js:86,113,134,143,151の
+                // note(おやすみ券/第N章)の1:1移植。fdCelebration/cheerText/milestoneInfoの3分岐
+                // どれが有効でもその先頭に前置される(Web版と同じ位置)。
+                if let noteText {
+                    Text(noteText).kyonoFont(.extraBold800, size: 14).foregroundColor(colors.teal)
+                        .transition(.scale(scale: 0.85).combined(with: .opacity))
                 }
                 if fdCelebrationVisible {
                     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
@@ -590,6 +629,13 @@ struct HomeView: View {
                         }
                     }
                     .transition(.scale(scale: 0.85).combined(with: .opacity))
+                }
+                // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: app-record.js:131の
+                // tomorrowMsPreviewの1:1移植。milestoneInfoがある(=きょうが節目)ときはnilになる
+                // 計算のため、ここに1箇所書くだけでWeb版と同じ「節目でないときだけ」表示になる。
+                if let tomorrowMsPreview {
+                    Text(tomorrowMsPreview).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                        .padding(.top, 6 * zoom)
                 }
                 // 全画面完全性監査タスク #home: index.html:697-701 #memoRow(ひとことメモ入力欄)の1:1移植。
                 // きょう記録済みのときだけ表示し、RecordLogic.saveMemo(既存の純粋関数)を呼ぶだけに徹する
