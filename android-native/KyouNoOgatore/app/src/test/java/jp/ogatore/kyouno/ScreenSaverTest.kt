@@ -22,7 +22,15 @@ class ScreenSaverTest {
         assertEquals(Screen.Brag, roundTrip(Screen.Brag))
         assertEquals(Screen.Diary, roundTrip(Screen.Diary))
         assertEquals(Screen.Guide, roundTrip(Screen.Guide))
-        assertEquals(Screen.Settings, roundTrip(Screen.Settings))
+    }
+
+    // UX13案・案4(2026-07-30): Screen.Settingsが「来た場所へ戻す」ためobject→data class(returnTo)に
+    // 変わったため、Obuと同じ「入れ子のreturnTo」round-tripを確認する。
+    @Test
+    fun settingsRoundTripsWithNestedReturnTo() {
+        assertEquals(Screen.Settings(Screen.Home), roundTrip(Screen.Settings(Screen.Home)))
+        assertEquals(Screen.Settings(Screen.MyRecord), roundTrip(Screen.Settings(Screen.MyRecord)))
+        assertEquals(Screen.Settings(Screen.Guide), roundTrip(Screen.Settings(Screen.Guide)))
     }
 
     @Test
