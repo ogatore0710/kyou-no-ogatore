@@ -131,6 +131,13 @@ struct RootView: View {
     // 変数)の1:1移植。相談室シートは開閉のたびに再生成されるため、「このセッションで初回オープンか」
     // をSoudanSheetView自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
     @State private var sdGreeted = false
+    // UX13案・案7(2026-07-30): 相談室の会話状態(messages/chipsMode/lastIntentId/input)を
+    // sdGreetedと同じ理由でルート階層へ持ち上げる(シートは開閉のたびに再生成されるため、
+    // 以前はここに置かないと誤操作で✕やスワイプで閉じただけで会話が全損した)。
+    @State private var sdMessages: [SdMessage] = []
+    @State private var sdChipsMode: SdChipsMode = .intents(activeCat: "body")
+    @State private var sdLastIntentId: String?
+    @State private var sdInput = ""
     // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 openObuの1:1移植。
     // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
     @State private var obuPopupOpen = false
@@ -316,7 +323,8 @@ struct RootView: View {
                 greeted: sdGreeted,
                 onGreeted: { sdGreeted = true },
                 onOpenSearch: { screen = .search },
-                onOpenQuiz: { screen = .quiz(presetWorry: nil) }
+                onOpenQuiz: { screen = .quiz(presetWorry: nil) },
+                messages: $sdMessages, chipsMode: $sdChipsMode, lastIntentId: $sdLastIntentId, input: $sdInput
             )
             .presentationDetents([.fraction(0.92)])
             .presentationCornerRadius(20)

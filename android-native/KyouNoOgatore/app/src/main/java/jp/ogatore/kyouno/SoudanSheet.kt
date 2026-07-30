@@ -43,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -274,16 +275,22 @@ fun SoudanSheet(
     onGreeted: () -> Unit = {},
     onOpenSearch: () -> Unit = {},
     onOpenQuiz: () -> Unit = {},
+    // UX13案・案7(2026-07-30): 相談室シートはScreen.SoudanのAnimatedVisibilityが閉じるたびに
+    // 破棄・再合成される(Fable監査D5-1/D5-2のコメント参照)ため、rememberSaveableで回転には
+    // 耐えても、誤タップ1回で閉じるだけで会話ごと全損していた。sdGreetedと同じくルート階層
+    // (MainActivity.kt)へ状態を持ち上げ、MutableStateとして受け取る(呼び出し元でrememberSaveable
+    // しているため回転耐性はそのまま維持される)。
+    messagesState: MutableState<List<SdBubble>>,
+    chipsModeState: MutableState<SdChipsMode>,
+    lastIntentIdState: MutableState<String?>,
+    inputState: MutableState<String>,
 ) {
     val kb = remember { SafetyKBLoader.shared }
-    // Fable監査D5-1/D5-2(alan5差し戻し2026-07-28): 会話・チップの状態・直近の話題・入力途中の
-    // 文章は回転をまたいで保持する(rememberSaveable)。shownVideoIds(表示済み動画の重複防止)は
-    // 今回のD5対象外(alan5指示・「持っていない券を使ったように見える」ほどの実害ではない)。
-    var messages by rememberSaveable(stateSaver = SdMessagesSaver) { mutableStateOf(listOf<SdBubble>()) }
-    var chipsMode by rememberSaveable(stateSaver = SdChipsModeSaver) { mutableStateOf<SdChipsMode>(SdChipsMode.Intents("body")) }
-    var lastIntentId by rememberSaveable { mutableStateOf<String?>(null) }
+    var messages by messagesState
+    var chipsMode by chipsModeState
+    var lastIntentId by lastIntentIdState
+    var input by inputState
     val shownVideoIds = remember { mutableStateListOf<String>() } // index.html:2999 sdCtx.shownVideoIds相当(セッション内のみ)
-    var input by rememberSaveable { mutableStateOf("") }
     var plan by remember { mutableStateOf(store.get("plan", null as SdPlanData?)) }
     val hasType = store.get<QuizTypeResult?>("type", null) != null // index.html:3024 sdHasType()の1:1移植
     // TASK-C2-2026-07-29-soudan-video-card.md(H1): OnboardingScreens.kt ResultScreenのcatalogById

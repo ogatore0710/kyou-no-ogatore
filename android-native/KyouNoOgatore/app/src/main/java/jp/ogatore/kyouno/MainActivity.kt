@@ -195,6 +195,14 @@ class MainActivity : ComponentActivity() {
             // レベル変数)の1:1移植。相談室シートは開閉のたびに再合成されるため、「このセッションで
             // 初回オープンかどうか」をSoudanSheet自身ではなくルート階層で保持する(obTourDoneと同じ設計)。
             var sdGreeted by remember { mutableStateOf(false) }
+            // UX13案・案7(2026-07-30): 相談室の会話状態(messages/chipsMode/lastIntentId/input)を
+            // sdGreetedと同じ理由でルート階層へ持ち上げる(以前はSoudanSheet自身が開閉のたびに
+            // 破棄・再合成され、誤タップ1回で会話が全損した)。Fable監査D5-1/D5-2の
+            // rememberSaveable+専用Saverは回転耐性のためそのままここへ引き継ぐ。
+            val sdMessagesState = rememberSaveable(stateSaver = SdMessagesSaver) { mutableStateOf(listOf<SdBubble>()) }
+            val sdChipsModeState = rememberSaveable(stateSaver = SdChipsModeSaver) { mutableStateOf<SdChipsMode>(SdChipsMode.Intents("body")) }
+            val sdLastIntentIdState = rememberSaveable { mutableStateOf<String?>(null) }
+            val sdInputState = rememberSaveable { mutableStateOf("") }
             // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:1344-1358 openObuの1:1移植。
             // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
             var obuPopupOpen by remember { mutableStateOf(false) }
@@ -525,6 +533,10 @@ class MainActivity : ComponentActivity() {
                                             onGreeted = { sdGreeted = true },
                                             onOpenSearch = { screen = Screen.Search },
                                             onOpenQuiz = { screen = Screen.Quiz(null) },
+                                            messagesState = sdMessagesState,
+                                            chipsModeState = sdChipsModeState,
+                                            lastIntentIdState = sdLastIntentIdState,
+                                            inputState = sdInputState,
                                         )
                                     }
                                 }
