@@ -288,7 +288,16 @@ private struct OnboardingContentView: View {
                 let palette = obgColors(dark: dark)
                 ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
                     let c = palette[i % 4]
-                    Text(chip.label).kyonoFont(.bold700, size: 16).foregroundColor(colors.ink)
+                    // TASK-C2-2026-07-30-icon-system-addendum-chips.md: サンプル1枚(「腰」=youtsuu)。
+                    // alan5のOKが出るまでこの1箇所だけ・残りのチップは従来どおり文字のみ。
+                    HStack(spacing: 10) {
+                        if chip.v == "youtsuu",
+                           let url = Bundle.main.url(forResource: "chip-youtsuu", withExtension: "png"),
+                           let uiImage = UIImage(contentsOfFile: url.path) {
+                            Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 32, height: 32)
+                        }
+                        Text(chip.label).kyonoFont(.bold700, size: 16).foregroundColor(colors.ink)
+                    }
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 18).padding(.vertical, 14)
                         .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
