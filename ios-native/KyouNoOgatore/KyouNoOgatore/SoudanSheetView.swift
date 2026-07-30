@@ -189,11 +189,15 @@ struct SoudanSheetView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let kb = SafetyKBLoader.shared
-    @State private var messages: [SdMessage] = []
-    @State private var chipsMode: SdChipsMode = .intents(activeCat: "body")
-    @State private var lastIntentId: String?
+    // UX13案・案7(2026-07-30): 相談室シートは開閉のたびに再生成される(sdGreetedの
+    // コメント参照)ため、以前はmessages/chipsMode/lastIntentId/inputも毎回空から始まり、
+    // 誤操作で閉じただけで会話が全損した(Web版はDOMが残るためセッション内は続きから)。
+    // sdGreetedと同じくルート階層(KyouNoOgatoreApp.swift)へ状態を持ち上げ、Bindingで受け取る。
+    @Binding var messages: [SdMessage]
+    @Binding var chipsMode: SdChipsMode
+    @Binding var lastIntentId: String?
+    @Binding var input: String
     @State private var shownVideoIds: [String] = [] // index.html:2999 sdCtx.shownVideoIds相当(セッション内のみ)
-    @State private var input = ""
     @State private var plan: SdPlanData?
     // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3096 sdPending(応答演出中は次の
     // チップタップ/送信を受け付けない)の1:1移植。演出中の吹き出し順序が入り乱れるのを防ぐ。
@@ -202,7 +206,8 @@ struct SoudanSheetView: View {
 
     init(
         store: RecordStore, openUrl: @escaping (String) -> Void, onClose: @escaping () -> Void, presetIntentId: String? = nil,
-        greeted: Bool = false, onGreeted: @escaping () -> Void = {}, onOpenSearch: @escaping () -> Void = {}, onOpenQuiz: @escaping () -> Void = {}
+        greeted: Bool = false, onGreeted: @escaping () -> Void = {}, onOpenSearch: @escaping () -> Void = {}, onOpenQuiz: @escaping () -> Void = {},
+        messages: Binding<[SdMessage]>, chipsMode: Binding<SdChipsMode>, lastIntentId: Binding<String?>, input: Binding<String>
     ) {
         self.store = store
         self.openUrl = openUrl
@@ -212,6 +217,10 @@ struct SoudanSheetView: View {
         self.onGreeted = onGreeted
         self.onOpenSearch = onOpenSearch
         self.onOpenQuiz = onOpenQuiz
+        _messages = messages
+        _chipsMode = chipsMode
+        _lastIntentId = lastIntentId
+        _input = input
         _plan = State(initialValue: store.get("plan", default: nil))
     }
 

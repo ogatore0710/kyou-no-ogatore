@@ -152,7 +152,7 @@ struct SettingsView: View {
                     HStack(alignment: .lastTextBaseline, spacing: 8) {
                         (Text("やるタイミング: ")
                             + Text(settingsAnchors.first { $0.key == anchor }?.label ?? "未設定").fontWeight(.black))
-                            .kyonoFont(.bold700, size: 15).foregroundColor(.primary)
+                            .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                         // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
                         Text("変える")
                             .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
@@ -212,7 +212,7 @@ struct SettingsView: View {
                     // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:807の1:1移植。
                     Spacer().frame(height: 6)
                     Text("「じどう」は夜（19時〜朝5時）やスマホがダーク設定のとき暗くなります")
-                        .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
 
                     Spacer().frame(height: 12)
                     KyonoBodyText("もじの大きさ")
@@ -227,8 +227,12 @@ struct SettingsView: View {
                     // Shortcutsアプリの自動化案内)はPWAが通知を送れないことへのiOS限定の回避策で
                     // ネイティブには元から無関係な問題のため移植しない(タスク指示どおり)。マイ記録
                     // タブの既存「📅 カレンダーに登録する」(時刻指定なし・簡易版)とは別物として両方残す。
+                    // UX13案・案9(2026-07-30): 見出しが「カレンダーの」おしらせ時間を名乗りつつ、
+                    // 実際は通知機能とも共有する時刻だったため「おしらせの時間」に改め、時刻ピッカー→
+                    // 「毎日のおしらせ」トグル→カレンダー登録ボタンの順に並び替え(通知だけ使いたい人が
+                    // カレンダー連携の説明を挟まず自分の通知時刻にたどり着けるように)。要素の追加削除は無し。
                     Spacer().frame(height: 20)
-                    KyonoBodyText("カレンダーのおしらせ時間")
+                    KyonoBodyText("おしらせの時間")
                     Spacer().frame(height: 6)
                     // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを
                     // 15分刻み(:00/:15/:30/:45の4択)に変更。Android版のDropdownMenu2つ構成と
@@ -244,7 +248,7 @@ struct SettingsView: View {
                             }
                         } label: {
                             Text("\(String(format: "%02d", icsHour))時")
-                                .kyonoFont(.black900, size: 16).foregroundColor(.primary)
+                                .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
                                 .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
@@ -260,25 +264,12 @@ struct SettingsView: View {
                             }
                         } label: {
                             Text("\(String(format: "%02d", icsMinute))分")
-                                .kyonoFont(.black900, size: 16).foregroundColor(.primary)
+                                .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
                                 .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
                         }
                         .accessibilityLabel("分を選ぶ、現在\(String(format: "%02d", icsMinute))分")
-                    }
-                    Spacer().frame(height: 10)
-                    KyonoLineButton("Appleカレンダーに入れる") {
-                        addToAppleCalendar(hour: icsHour, minute: icsMinute) { ok in
-                            icsMessage = ok ? nil : "カレンダーへの追加が許可されませんでした"
-                        }
-                    }
-                    Spacer().frame(height: 8)
-                    KyonoLineButton("Googleカレンダーに入れる") { openGoogleCalendar(hour: icsHour, minute: icsMinute) }
-                    Spacer().frame(height: 6)
-                    Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
-                    if let icsMessage {
-                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(colors.pink)
                     }
 
                     // TASK-C2-2026-07-27-local-notifications.md: 「毎日のおしらせ」トグル。既定オフ・
@@ -287,16 +278,16 @@ struct SettingsView: View {
                     Spacer().frame(height: 20)
                     HStack(alignment: .center) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("毎日のおしらせ").kyonoFont(.bold700, size: 15).foregroundColor(.primary)
+                            Text("毎日のおしらせ").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                             Text("上の時間に、一言だけやわらかくお知らせします(その日すでに記録していれば出ません)")
-                                .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
+                                .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         }
                         Spacer()
                         // GO-G10(5視点ワンループ): 他の設定は文字つきセグメントで状態を伝えているのに、
                         // ここだけ色と位置だけだった。「オン/オフ」の文字を併記する。
                         Text(notifEnabled ? "オン" : "オフ")
                             .kyonoFont(.black900, size: 13)
-                            .foregroundColor(notifEnabled ? colors.tealInk : .secondary)
+                            .foregroundColor(notifEnabled ? colors.tealInk : colors.sub)
                         Toggle("", isOn: Binding(
                             get: { notifEnabled },
                             set: { on in
@@ -315,6 +306,20 @@ struct SettingsView: View {
                                 }
                             }
                         )).labelsHidden()
+                    }
+
+                    Spacer().frame(height: 20)
+                    KyonoLineButton("Appleカレンダーに入れる") {
+                        addToAppleCalendar(hour: icsHour, minute: icsMinute) { ok in
+                            icsMessage = ok ? nil : "カレンダーへの追加が許可されませんでした"
+                        }
+                    }
+                    Spacer().frame(height: 8)
+                    KyonoLineButton("Googleカレンダーに入れる") { openGoogleCalendar(hour: icsHour, minute: icsMinute) }
+                    Spacer().frame(height: 6)
+                    Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
+                    if let icsMessage {
+                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(colors.pink)
                     }
 
                     Spacer().frame(height: 20)
@@ -343,7 +348,7 @@ struct SettingsView: View {
                     // コピーして終わり→保存されないまま機種変、が起きないよう保存先を促す。
                     Spacer().frame(height: 6)
                     Text("コピーした文字はLINEの「じぶん専用トーク」やメモアプリに貼っておくと安心です")
-                        .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
 
                     Spacer().frame(height: 16)
                     Text("よみこみ").kyonoFont(.black900, size: 16)
@@ -362,7 +367,7 @@ struct SettingsView: View {
                         }
                     }
                     Spacer().frame(height: 6)
-                    Text("うまくいかないときは 下のわくに手で貼り付けてね").kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
+                    Text("うまくいかないときは 下のわくに手で貼り付けてね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     Spacer().frame(height: 8)
                     TextField("KYONO1:... をここに貼りつけ", text: $importInput).textFieldStyle(.roundedBorder)
                     Spacer().frame(height: 8)
@@ -380,7 +385,7 @@ struct SettingsView: View {
                     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:843の1:1移植。
                     Spacer().frame(height: 6)
                     Text("機種変更のときは 前のスマホで「コピー」→ 新しいスマホで「よみこむ」")
-                        .kyonoFont(.bold700, size: 12).foregroundColor(.secondary)
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     if let importMessage {
                         Spacer().frame(height: 8)
                         Text(importMessage).kyonoFont(.bold700, size: 15)

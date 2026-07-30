@@ -294,8 +294,11 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを
                 // 15分刻み(:00/:15/:30/:45の4択)に変更。標準のスピナーではなく時と分を並べて
                 // 選ぶ形にする(実装方式は任せる、との指示どおりドロップダウン2つで組む)。
+                // UX13案・案9(2026-07-30): 見出しが「カレンダーの」おしらせ時間を名乗りつつ、
+                // 実際は通知機能とも共有する時刻だったため「おしらせの時間」に改め、時刻ピッカー→
+                // 「毎日のおしらせ」トグル→カレンダー登録ボタンの順に並び替え(iOS版と同型)。
                 Spacer(Modifier.height(20.dp))
-                Text("カレンダーのおしらせ時間", color = colors.ink, fontSize = 15.sp)
+                Text("おしらせの時間", color = colors.ink, fontSize = 15.sp)
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     var showHourMenu by remember { mutableStateOf(false) }
@@ -354,24 +357,6 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         }
                     }
                 }
-                Spacer(Modifier.height(10.dp))
-                KyonoLineButton(
-                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: 実体はAndroidの
-                    // CalendarContract Intent(端末標準カレンダー)であり、Android端末にAppleカレンダーは
-                    // 無いため誤ったラベルだった(Web版は両OS向けの共通コードのため"Apple/Google"併記が
-                    // 正しいが、ネイティブAndroidでは意味が通らない)。
-                    "カレンダーに入れる",
-                    { openCalendarIntent(context, icsHour, icsMinute) },
-                    Modifier.testTag("icsAppleBtn"),
-                )
-                Spacer(Modifier.height(8.dp))
-                KyonoLineButton(
-                    "Googleカレンダーに入れる",
-                    { openGoogleCalendarIntent(context, icsHour, icsMinute) },
-                    Modifier.testTag("icsGoogleBtn"),
-                )
-                Spacer(Modifier.height(6.dp))
-                Text("スマホのカレンダーが毎日その時間に知らせてくれます", color = colors.sub, fontSize = 12.sp)
 
                 // TASK-C2-2026-07-27-local-notifications.md: 「毎日のおしらせ」トグル。既定オフ・
                 // オンにした瞬間だけ許可ダイアログを出す(1日目クリア時のインライン提案とは別経路。
@@ -401,6 +386,25 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         modifier = Modifier.testTag("notifEnabledSwitch"),
                     )
                 }
+
+                Spacer(Modifier.height(20.dp))
+                KyonoLineButton(
+                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: 実体はAndroidの
+                    // CalendarContract Intent(端末標準カレンダー)であり、Android端末にAppleカレンダーは
+                    // 無いため誤ったラベルだった(Web版は両OS向けの共通コードのため"Apple/Google"併記が
+                    // 正しいが、ネイティブAndroidでは意味が通らない)。
+                    "カレンダーに入れる",
+                    { openCalendarIntent(context, icsHour, icsMinute) },
+                    Modifier.testTag("icsAppleBtn"),
+                )
+                Spacer(Modifier.height(8.dp))
+                KyonoLineButton(
+                    "Googleカレンダーに入れる",
+                    { openGoogleCalendarIntent(context, icsHour, icsMinute) },
+                    Modifier.testTag("icsGoogleBtn"),
+                )
+                Spacer(Modifier.height(6.dp))
+                Text("スマホのカレンダーが毎日その時間に知らせてくれます", color = colors.sub, fontSize = 12.sp)
 
                 Spacer(Modifier.height(20.dp))
                 // アイコン方針(I) 新規描き起こしバッチ1(2026-07-30): この見出しと直下のボタンは
