@@ -167,17 +167,30 @@ WHAT = {
         "around it — no extra accent marks anywhere on the body, since this represents the whole "
         "body rather than one part"
     ),
+    # alan5差し戻し(2026-07-31): 「胴体+微妙な印」が敗因。塗り色を増やさず、印を大きく・
+    # その部位だけ色を変える(墨色で面ごと塗る)ことで22ptでも見分けられる強い目印にする。
+    # v2の帯位置指示(「その領域を塗れ」)は効かなかった(実測: ほぼ無印のまま生成された)。
+    # youtsuu/futomomoで実際に効いた言い回し(「太いdark ink帯を横断させる」の直接指示)に
+    # 揃えて再設計(v3)。
     "kata": (
-        "a simple pictogram of shoulder-blade tension, same solid-filled person construction as "
-        "IMAGE 2 (small circle head, tall rounded-rectangle torso), but with two short thick dark "
-        "ink diagonal tick marks placed side by side across the UPPER-BACK of the torso (shoulder "
-        "blade area) to mark that region — same dark ink color as the outline"
+        "a simple pictogram of shoulder tension: a small circle head and one tall "
+        "rounded-rectangle torso (same construction as IMAGE 2), the WHOLE figure filled solid in "
+        "the single warm accent color with the thick dark outline all around it, PLUS one extra "
+        "very thick dark ink horizontal band — as thick as one quarter of the torso's total height "
+        "— drawn across the very TOP of the torso spanning its FULL width from edge to edge, "
+        "immediately below the neck, to mark the shoulders. This band must be drawn the same way "
+        "as a chunky rounded-rectangle shape stamped on top of the torso, using the SAME dark ink "
+        "color as the outline, thick and bold enough to be obviously visible even shrunk to a tiny "
+        "icon."
     ),
     "kubi": (
-        "a simple pictogram of neck stiffness, same solid-filled person construction as IMAGE 2 "
-        "(small circle head, tall rounded-rectangle torso), but with one thick dark ink horizontal "
-        "stroke drawn right at the narrow neck junction between the head circle and the torso "
-        "rectangle, plus one small dark ink zigzag mark beside the neck to suggest tension"
+        "a simple pictogram of neck stiffness: a small circle head and one tall rounded-rectangle "
+        "torso (same construction as IMAGE 2), the WHOLE figure filled solid in the single warm "
+        "accent color with the thick dark outline all around it, PLUS the neck itself drawn as an "
+        "oversized thick rounded-rectangle block (wider and taller than a normal thin neck would "
+        "be, roughly as wide as the head) connecting the head to the torso, filled solid in the "
+        "SAME dark ink color as the outline — a big bold dark neck block that is obviously visible "
+        "even shrunk to a tiny icon. Nothing else on the figure is marked."
     ),
     "senaka": (
         "a simple pictogram of posture/back, same solid-filled person construction as IMAGE 2 "
@@ -186,10 +199,15 @@ WHAT = {
         "the spine/posture line"
     ),
     "kokansetsu": (
-        "a simple pictogram of the hip joints, same solid-filled person construction as IMAGE 2 "
-        "(small circle head, tall rounded-rectangle torso with two short rounded-rectangle legs), "
-        "but with two small solid dark ink dots marked at the LEFT and RIGHT points where the legs "
-        "join the torso (the hip joints)"
+        "a simple pictogram of the hip joints: a small circle head, one tall rounded-rectangle "
+        "torso, and two short rounded-rectangle legs (same construction as IMAGE 2), the WHOLE "
+        "figure filled solid in the single warm accent color with the thick dark outline all "
+        "around it, PLUS one extra very thick dark ink horizontal band — as thick as one quarter "
+        "of the torso's total height — drawn across the very BOTTOM of the torso spanning its FULL "
+        "width, exactly where the legs attach, to mark the hip joints. This band must be drawn the "
+        "same way as a chunky rounded-rectangle shape stamped across the torso/leg junction, using "
+        "the SAME dark ink color as the outline, thick and bold enough to be obviously visible even "
+        "shrunk to a tiny icon."
     ),
     "kaikyaku": (
         "a simple pictogram of doing the splits: the same solid-filled person construction as "
