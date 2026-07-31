@@ -26,10 +26,12 @@ SRC_DIR = os.path.expanduser("~/Claude/kyou-no-ogatore/.art-staging/bodypart-hig
 OUT_DIR = os.path.expanduser("~/Claude/kyou-no-ogatore/.art-staging/bodypart-closeup")
 
 # 見た目を確認しながら1枚ずつ手作業で追い込んだ座標(momoura/kubiは1回ずつ
-# 見づらさ・顔の写り込みを理由に再調整済み)。
+# 見づらさ・顔の写り込みを理由に再調整済み。kataはalan5差し戻し(2026-07-31
+# 「腕の曲線が羽のように見える」)を受けて、フィストの輪が閉じきる前(y<590)で
+# 切り、僧帽筋のラインに寄せて再クロップ)。
 CROPS = {
     "zenshin":    (170, 420, 720, 820),
-    "kata":       (140, 430, 720, 730),
+    "kata":       (170, 420, 690, 590),
     "kubi":       (200, 470, 750, 780),
     "senaka":     (160, 420, 800, 850),
     "kokansetsu": (140, 540, 800, 890),
