@@ -315,12 +315,17 @@ private struct OnboardingContentView: View {
                     // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
                     // 生成イラスト。ChipArt/chip-<v>.pngが存在するものだけ表示する
                     // (硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。
+                    // TASK-C2-2026-08-01-build13-round3.md ①: 「もじの大きさ」設問(key=="bigtext")は
+                    // 絵を一切付けない(バグ修正: chip.v="normal"がかたさ設問と衝突し、かたさ用の
+                    // 前屈絵が誤って出ていた欠落の根本対策)。代わりにボタン文字自身のサイズで
+                    // 「大きめ/ふつう」を実演する(自己実演型)。
                     HStack(spacing: 10) {
-                        if let url = Bundle.main.url(forResource: "chip-\(chip.v)", withExtension: "png"),
+                        if q.key != "bigtext",
+                           let url = Bundle.main.url(forResource: "chip-\(chip.v)", withExtension: "png"),
                            let uiImage = UIImage(contentsOfFile: url.path) {
                             Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 32, height: 32)
                         }
-                        Text(chip.label).kyonoFont(.bold700, size: 16).foregroundColor(colors.ink)
+                        Text(chip.label).kyonoFont(.bold700, size: (q.key == "bigtext" && chip.v == "big") ? 20 : 16).foregroundColor(colors.ink)
                     }
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 18).padding(.vertical, 14)

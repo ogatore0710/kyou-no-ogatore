@@ -168,7 +168,14 @@ private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
 // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの生成イラスト
 // (硬さチェック6タイプ=KyonoTypeArtはこの対象外)。ObChip.vの値と1:1対応させる
 // (SettingsScreen.ktのやるタイミング「変える」もasa/furo/neruキーを共有するため再利用できる)。
+// TASK-C2-2026-08-01-build13-round3.md ①: hard/normal/soft/unknown(かたさ設問用の前屈シルエット
+// 3種、build11で絵は追加済みだったが本マップ未配線でAndroidだけ無表示だった欠落を解消)。
+// 呼び出し側でq.key=="bigtext"のときはこのマップを一切参照しない(normalキー衝突対策)。
 fun obChipIconRes(v: String): Int? = when (v) {
+    "hard" -> R.drawable.chip_hard
+    "normal" -> R.drawable.chip_normal
+    "soft" -> R.drawable.chip_soft
+    "unknown" -> R.drawable.chip_unknown
     "katakori" -> R.drawable.chip_katakori
     "youtsuu" -> R.drawable.chip_youtsuu
     "zenkutsu" -> R.drawable.chip_zenkutsu
@@ -369,6 +376,10 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                     val c = palette[i % 4]
                     // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
                     // 生成イラスト(硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。
+                    // TASK-C2-2026-08-01-build13-round3.md ①: 「もじの大きさ」設問(key=="bigtext")は
+                    // 絵を一切付けない(バグ修正: chip.v="normal"がかたさ設問と衝突し、かたさ用の
+                    // 前屈絵が誤って出ていた欠落の根本対策)。代わりにボタン文字自身のサイズで
+                    // 「大きめ/ふつう」を実演する(自己実演型)。
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
@@ -379,7 +390,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                             .padding(horizontal = 18.dp, vertical = 14.dp)
                             .testTag("obChip_${q.key}_${chip.v}"),
                     ) {
-                        val chipIconRes = obChipIconRes(chip.v)
+                        val chipIconRes = if (q.key != "bigtext") obChipIconRes(chip.v) else null
                         if (chipIconRes != null) {
                             Image(
                                 painter = painterResource(chipIconRes),
@@ -388,7 +399,8 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                             )
                             Spacer(Modifier.width(10.dp))
                         }
-                        Text(chip.label, color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                        val labelSize = if (q.key == "bigtext" && chip.v == "big") 20.sp else 16.sp
+                        Text(chip.label, color = colors.ink, fontSize = labelSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     }
                 }
             }
