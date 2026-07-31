@@ -345,12 +345,13 @@ class MainActivity : ComponentActivity() {
                                                 onDoneFromNudge = { pendingDoneNudge = true; screen = Screen.Home },
                                                 onStartQuiz = { screen = Screen.Quiz(null) },
                                                 onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
-                                                onStartTour = { obTourAfterQuiz = false; screen = Screen.Tour(false) },
+                                                onStartTour = { obTourAfterQuiz = false; screen = Screen.Tour(false, isFirstRun = true) },
                                             )
                                         }
                                         is Screen.Tour -> TourScreen(
                                             store = store,
                                             showClosing = s.showClosing,
+                                            isFirstRun = s.isFirstRun,
                                             onDone = { obTourDone = true; screen = Screen.Home },
                                         )
                                         is Screen.MyRecord -> MyRecordScreen(
@@ -406,7 +407,7 @@ class MainActivity : ComponentActivity() {
                                             store = store,
                                             isForeground = screen == Screen.Home,
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
-                                            onStartTour = { showClosing -> screen = Screen.Tour(showClosing) },
+                                            onStartTour = { showClosing -> screen = Screen.Tour(showClosing, isFirstRun = true) },
                                             onOpenQuiz = { screen = Screen.Quiz(null) },
                                             onShowResult = { typeKey -> screen = Screen.Result(typeKey) },
                                             onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
@@ -423,7 +424,7 @@ class MainActivity : ComponentActivity() {
                                 if (showTabBar) {
                                     KyonoTabBar(current = currentTab) { tab ->
                                         // index.html:1562-1563 switchTab()先頭のfdTourMaybeStart()の1:1移植。
-                                        tryStartTour(store, rootScope) { screen = Screen.Tour(true) }
+                                        tryStartTour(store, rootScope) { screen = Screen.Tour(true, isFirstRun = true) }
                                         screen = when (tab) {
                                             KyonoTab.Guide -> Screen.Guide
                                             KyonoTab.MyRecord -> Screen.MyRecord
@@ -663,7 +664,10 @@ sealed class Screen {
     data class Settings(val returnTo: Screen = Home) : Screen()
     data class Quiz(val presetWorry: String?) : Screen()
     data class Result(val typeKey: String, val autoReachLv: Int? = null) : Screen()
-    data class Tour(val showClosing: Boolean) : Screen()
+    // TASK-C2-2026-08-01-build13-round3.md ③⑦: isFirstRunは「📖 使い方ツアー」見出しの
+    // 表示可否にのみ使う(バー自体は既存どおり誰でも表示)。tryStartTour経由/オンボ直後の
+    // クイズ経由のみtrueにし、使い方タブからの再入場(onReenterTour)では既存どおりfalseにする。
+    data class Tour(val showClosing: Boolean, val isFirstRun: Boolean = false) : Screen()
 }
 
 // Fable監査D5-1(alan5差し戻し2026-07-28): 端末回転(configChanges未指定のためActivity再生成)で
@@ -689,7 +693,7 @@ internal fun encodeScreen(screen: Screen): ArrayList<Any?> = when (screen) {
     is Screen.Settings -> arrayListOf("Settings", encodeScreen(screen.returnTo))
     is Screen.Quiz -> arrayListOf("Quiz", screen.presetWorry)
     is Screen.Result -> arrayListOf("Result", screen.typeKey, screen.autoReachLv)
-    is Screen.Tour -> arrayListOf("Tour", screen.showClosing)
+    is Screen.Tour -> arrayListOf("Tour", screen.showClosing, screen.isFirstRun)
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -710,7 +714,7 @@ internal fun decodeScreen(saved: Any?): Screen {
         "Settings" -> Screen.Settings(decodeScreen(list.getOrNull(1)))
         "Quiz" -> Screen.Quiz(list.getOrNull(1) as? String)
         "Result" -> Screen.Result(list.getOrNull(1) as? String ?: "", list.getOrNull(2) as? Int)
-        "Tour" -> Screen.Tour(list.getOrNull(1) as? Boolean ?: false)
+        "Tour" -> Screen.Tour(list.getOrNull(1) as? Boolean ?: false, list.getOrNull(2) as? Boolean ?: false)
         else -> Screen.Home
     }
 }

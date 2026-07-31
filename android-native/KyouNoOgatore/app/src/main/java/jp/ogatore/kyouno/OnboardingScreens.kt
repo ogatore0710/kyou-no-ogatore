@@ -723,7 +723,13 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
         Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().background(colors.bg)) {
         // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(verticalScrollの外)。
+        // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」をオンボチャットと
+        // 同じ見た目でバーの上に常設する(既存のfdGuideActive条件=初回ジャーニー中のみを維持)。
         if (fdGuideActive) {
+            Text(
+                "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp),
+            )
             KyonoJourneyBar(labels = KYONO_JOURNEY_STEPS, currentIndex = 0)
         }
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp)) {
@@ -1290,13 +1296,22 @@ fun ResultScreen(
                 KyonoConfetti(count = 70, modifier = Modifier.matchParentSize())
             }
         }
+        // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」をオンボチャットと
+        // 同じ見た目でバーの上に常設する(既存のfdGuideActive条件=初回ジャーニー中のみを維持)。
+        // 見出し+バーをColumnでまとめ、その合算高さをjourneyBarHeightPxとして計測する
+        // (本文側のtop paddingが見出し分も含めて重なりを避けられるようにするため)。
         if (fdGuideActive) {
-            KyonoJourneyBar(
-                labels = KYONO_JOURNEY_STEPS, currentIndex = journeyIndex,
+            Column(
                 modifier = Modifier.align(Alignment.TopCenter).onGloballyPositioned { coords ->
                     journeyBarHeightPx = coords.size.height
                 },
-            )
+            ) {
+                Text(
+                    "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp),
+                )
+                KyonoJourneyBar(labels = KYONO_JOURNEY_STEPS, currentIndex = journeyIndex)
+            }
         }
         }
         // D: MainActivity.kt:1774-1854のカードダイアログと同じ作法(結果画面版・節目分岐は日1目には
@@ -1362,7 +1377,7 @@ const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね🌱 きょうの�
 // テーマ・文字サイズを"auto"/trueに固定していたため、手動でライト設定にしている本人が
 // 夜に再訪するとツアー画面だけダークになる不具合があった。他画面と同じくstoreの実設定を使う。
 @Composable
-fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
+fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = false, onDone: () -> Unit) {
     var si by remember { mutableStateOf(0) }
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
     KyonoTheme(store.get("theme", "auto"), bigText = store.get("bigtext", true)) {
@@ -1379,6 +1394,14 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
         // TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モードと同じKyonoJourneyBarに
         // ドット表示を置き換え、画面上部に固定する(本人の明示要求=デザインの一貫性)。ラベルは
         // 番号だけで十分なため空文字列にする(circle内の数字/✓で進捗は伝わる)。
+        // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」を初回ジャーニー
+        // (isFirstRun)のときだけオンボチャットと同じ見た目でバーの上に常設する。
+        if (isFirstRun) {
+            Text(
+                "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp),
+            )
+        }
         KyonoJourneyBar(labels = List(totalSlides) { "" }, currentIndex = si)
         Column(
             Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState).padding(20.dp),

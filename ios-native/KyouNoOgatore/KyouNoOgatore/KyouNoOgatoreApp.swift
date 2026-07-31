@@ -62,7 +62,11 @@ private enum Screen: Equatable {
     case onboarding
     case quiz(presetWorry: String?)
     case result(typeKey: String, autoReachLv: Int? = nil)
-    case tour(showClosing: Bool)
+    // TASK-C2-2026-08-01-build13-round3.md ③⑦: isFirstRunは「📖 使い方ツアー」見出しの
+    // 表示可否にのみ使う(バー自体は既存どおり誰でも表示)。tryStartTour経由/onboarding直後の
+    // クイズ経由(obTourAfterQuiz)のみtrueにし、使い方タブからの再入場(onReenterTour)・
+    // ホームタブからの再入場では既存どおりfalseにする。
+    case tour(showClosing: Bool, isFirstRun: Bool = false)
     case soudan(presetIntentId: String? = nil)
     case search
     case catalog
@@ -231,7 +235,7 @@ struct RootView: View {
                 if screen.showsTabBar {
                     KyonoTabBar(current: screen.kyonoTab) { newTab in
                         // index.html:1562-1563 switchTab()先頭のfdTourMaybeStart()の1:1移植。
-                        tryStartTour { screen = .tour(showClosing: true) }
+                        tryStartTour { screen = .tour(showClosing: true, isFirstRun: true) }
                         switch newTab {
                         case .guide: screen = .guide
                         case .myRecord: screen = .myRecord
@@ -399,10 +403,10 @@ struct RootView: View {
                 onDoneFromNudge: { pendingDoneNudge = true; screen = .home },
                 onStartQuiz: { screen = .quiz(presetWorry: nil) },
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
-                onStartTour: { obTourAfterQuiz = false; screen = .tour(showClosing: false) }
+                onStartTour: { obTourAfterQuiz = false; screen = .tour(showClosing: false, isFirstRun: true) }
             )
-        case let .tour(showClosing):
-            TourView(store: store, showClosing: showClosing) { obTourDone = true; screen = .home }
+        case let .tour(showClosing, isFirstRun):
+            TourView(store: store, showClosing: showClosing, isFirstRun: isFirstRun) { obTourDone = true; screen = .home }
         case .soudan:
             // effectiveScreenは.soudanのときは常に.homeへ差し替え済みのため、この分岐は
             // switchの網羅性のためだけに存在し実際には到達しない(内容は.sheet()側で描画)。

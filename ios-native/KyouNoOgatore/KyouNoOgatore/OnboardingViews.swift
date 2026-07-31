@@ -688,7 +688,11 @@ private struct QuizContentView: View {
         ZStack(alignment: .topTrailing) {
         VStack(spacing: 0) {
         // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(ScrollViewの外)。
+        // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」をオンボチャットと
+        // 同じ見た目でバーの上に常設する(既存のfdGuideActive条件=初回ジャーニー中のみを維持)。
         if fdGuideActive {
+            Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                .padding(.horizontal, 20).padding(.top, 20)
             KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: 0)
         }
         ScrollView {
@@ -1018,7 +1022,11 @@ private struct ResultContentView: View {
         ScrollViewReader { proxy in
         VStack(spacing: 0) {
         // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(ScrollViewの外)。
+        // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」をオンボチャットと
+        // 同じ見た目でバーの上に常設する(既存のfdGuideActive条件=初回ジャーニー中のみを維持)。
         if fdGuideActive {
+            Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                .padding(.horizontal, 20).padding(.top, 20)
             KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: journeyIndex)
         }
         ZStack {
@@ -1299,6 +1307,10 @@ let obTourClosingDesc = "あしたも待ってるね🌱 きょうのぶんの�
 struct TourView: View {
     let store: RecordStore
     let showClosing: Bool
+    // TASK-C2-2026-08-01-build13-round3.md ③⑦: 「📖 使い方ツアー」見出しを初回ジャーニー中
+    // (tryStartTour経由/オンボ直後のクイズ経由)だけ表示するためのフラグ。デフォルトfalseは
+    // 使い方タブ・ホームタブからの再入場を意図している。
+    var isFirstRun: Bool = false
     let onDone: () -> Void
 
     @State private var si = 0
@@ -1307,7 +1319,7 @@ struct TourView: View {
 
     var body: some View {
         KyonoTheme(themeSetting: store.get("theme", default: "auto"), bigText: store.get("bigtext", default: true)) {
-            TourContentView(si: $si, totalSlides: totalSlides, showClosing: showClosing, onDone: onDone)
+            TourContentView(si: $si, totalSlides: totalSlides, showClosing: showClosing, isFirstRun: isFirstRun, onDone: onDone)
         }
     }
 }
@@ -1317,6 +1329,7 @@ private struct TourContentView: View {
     @Binding var si: Int
     let totalSlides: Int
     let showClosing: Bool
+    let isFirstRun: Bool
     let onDone: () -> Void
 
     var body: some View {
@@ -1331,6 +1344,12 @@ private struct TourContentView: View {
             // KyonoJourneyBarにドット表示を置き換え、画面上部に固定する(本人の明示要求=
             // デザインの一貫性)。ラベルは番号だけで十分なため空文字列にする(circle内の
             // 数字/✓で進捗は伝わる)。
+            // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」を初回ジャーニー
+            // (isFirstRun)のときだけオンボチャットと同じ見た目でバーの上に常設する。
+            if isFirstRun {
+                Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                    .padding(.horizontal, 20).padding(.top, 20)
+            }
             KyonoJourneyBar(labels: Array(repeating: "", count: totalSlides), currentIndex: si)
             ScrollViewReader { proxy in
             ScrollView {
