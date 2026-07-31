@@ -121,6 +121,10 @@ private let obBigtextAck = "OK！今後変えたくなったら「マイ記録�
 struct OnboardingView: View {
     let store: RecordStore
     let onComplete: (_ route: String, _ presetWorry: String?) -> Void
+    // TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-a: 初回起動(まだonboarded==falseの
+    // タイミング)だけ、見出しを「📖 使い方ツアー」+4点バーに差し替える。使い方タブ経由の再入場
+    // (onboarded==true済み)は既存の「🌱 はじめてガイド」・バーなしのまま。
+    let isFirstRun: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bubbles: [ChatBubble] = []
@@ -129,6 +133,12 @@ struct OnboardingView: View {
     @State private var answers: [String: String] = [:]
     @State private var pendingPick: CheckedContinuation<ObChip, Never>?
     @State private var pendingCta: CheckedContinuation<Void, Never>?
+
+    init(store: RecordStore, onComplete: @escaping (String, String?) -> Void) {
+        self.store = store
+        self.onComplete = onComplete
+        self.isFirstRun = !store.get("onboarded", default: false)
+    }
 
     private func finish() {
         // bigtext/anchorは実際の設定として即時反映(index.html:4218-4235 obPick)
@@ -210,6 +220,7 @@ struct OnboardingView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             OnboardingContentView(
                 bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
+                isFirstRun: isFirstRun, answeredCount: answers.count,
                 onChipTap: { chip in
                     pendingPick?.resume(returning: chip)
                     pendingPick = nil
@@ -230,6 +241,8 @@ private struct OnboardingContentView: View {
     let bubbles: [ChatBubble]
     let activeQuestion: ObQuestionDef?
     let routeCta: ObRouteInfo?
+    let isFirstRun: Bool
+    let answeredCount: Int
     let onChipTap: (ObChip) -> Void
     let onCtaTap: () -> Void
 
@@ -240,10 +253,20 @@ private struct OnboardingContentView: View {
         // 選択肢・CTAボタンを本文と同じScrollViewから外し、外側VStackの固定フッターにする。
         // これでCTAは常に画面内の同じ位置にあり、本文の長さに関わらず動かない。
         VStack(spacing: 0) {
+        // TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-a: 初回起動だけ見出しを
+        // ScrollView外の固定上部へ移し「📖 使い方ツアー」+4点バー(番号のみ・6段連結はしない)。
+        // 再入場(使い方タブ経由)は既存どおり本文内に「🌱 はじめてガイド」を出すのでここには出さない。
+        if isFirstRun {
+            Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                .padding(.horizontal, 20).padding(.top, 20)
+            KyonoJourneyBar(labels: ["", "", "", ""], currentIndex: answeredCount)
+        }
         ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("🌱 はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                if !isFirstRun {
+                    Text("🌱 はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                }
                 // index.html:478-483 .sd-row/.sd-b(相談室と共用の吹き出しCSSをオンボでも流用)の1:1移植。
                 // border-bottom-right-radius:6px(user)/border-bottom-left-radius:6px(bot)をUnevenRoundedRectangleで再現。
                 ForEach(bubbles) { b in
@@ -902,10 +925,11 @@ private struct ResultContentView: View {
     let onOpenSoudan: (String?) -> Void
     let onStartTour: () -> Void
 
-    // TASK-C2-2026-07-31-feedback-round2.md A-2: 診断結果画面(タイプカード)と練習ガイド
-    // (「きょうはこの1本だけでOK！」)が地続きで、モード切替が伝わらなかった。fdGuide中のみ
-    // 練習ブロックが見える前に1枚ポップを挟み、押すと練習ブロックへスクロールする。
-    @State private var showPracticePop = false
+    // TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-a: 練習開始ポップ(showPracticePop)は
+    // 削除(初回チャット画面に④点バーが出るようになり、結果画面での二重の「ここからは練習」案内が
+    // 冗長になったため)。代わりに「動画タップまで」タイプカードを見せ続け、タップした瞬間に
+    // どうが(③)へ進段させる。
+    @State private var videoTapped = false
     // A-3: YouTubeから戻ったあと「おかえりなさい」ブロックが画面外で気づけなかった。
     // HomeView.swift:600-621のパルス+スクロール作法をそのまま流用。
     @State private var doneNudgeScale: CGFloat = 1
@@ -929,7 +953,7 @@ private struct ResultContentView: View {
     private var journeyIndex: Int {
         if cardResult != nil { return 4 }
         if showDoneNudge { return 3 }
-        if !showPracticePop { return 2 }
+        if videoTapped { return 2 }
         return 1
     }
 
@@ -992,9 +1016,11 @@ private struct ResultContentView: View {
         ZStack {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // D(本丸): 「③どうが」以降(練習開始ポップを閉じたあと)はタイプカードを畳み、
-                // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。
-                if !fdGuideActive || showPracticePop {
+                // D(本丸)→W1-a修正: 「③どうが」(動画タップ後)はタイプカードを畳み、
+                // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。動画タップまでは
+                // タイプカードを表示し続ける(ポップ削除の結合修理: これが無いと初回ユーザーが
+                // タイプカードを一度も見られなくなる)。
+                if !fdGuideActive || !videoTapped {
                 KyonoGradientCard(gradient: .soft) {
                     Text("あなたのかたさタイプは…").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -1069,7 +1095,9 @@ private struct ResultContentView: View {
                         if let vk = rx.first, let v = lookupVideo(vk) {
                             // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:320
                             // videoCard(rx[0], "きょうはこれ1本でOK!")の1:1移植。badge:nilで欠落していた。
-                            VideoRow(v: v, openUrl: onVideoTap, badge: "きょうはこれ1本でOK！", hero: true)
+                            // W1-a結合修理: タップした瞬間にvideoTapped=trueへ(タイプカードが畳まれ
+                            // どうが(③)へ進段する)。
+                            VideoRow(v: v, openUrl: { url in videoTapped = true; onVideoTap(url) }, badge: "きょうはこれ1本でOK！", hero: true)
                         }
                         Spacer().frame(height: 6)
                         Text("あと2本とくわしい解説は あしたから見られるよ🌱")
@@ -1182,33 +1210,6 @@ private struct ResultContentView: View {
             .padding(20)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
-        // A-2: fdGuide中のみ、初回表示で練習ブロックが見える前にポップを挟む。
-        if fdGuideActive && showPracticePop {
-            Color.black.opacity(0.55).ignoresSafeArea()
-            VStack(spacing: 14) {
-                Text("ここからは練習だよ🏫")
-                    .kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
-                    .multilineTextAlignment(.center)
-                Text("きょうの1本を いっしょに ためしてみよう")
-                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
-                    .multilineTextAlignment(.center)
-                KyonoPrimaryButton("やってみる") {
-                    let dismiss = { showPracticePop = false }
-                    if reduceMotion { dismiss() } else { withAnimation(.easeOut(duration: 0.3), dismiss) }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        if reduceMotion {
-                            proxy.scrollTo("practiceBlock", anchor: .top)
-                        } else {
-                            withAnimation { proxy.scrollTo("practiceBlock", anchor: .top) }
-                        }
-                    }
-                }
-            }
-            .padding(20)
-            .background(RoundedRectangle(cornerRadius: 20).fill(colors.card))
-            .padding(24)
-            .transition(reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity))
-        }
         // D: HomeView.swift:342-346のKyonoConfettiと同じ作法(結果画面版)。
         if let confettiTrigger, !reduceMotion {
             KyonoConfetti(count: 70)
@@ -1232,14 +1233,6 @@ private struct ResultContentView: View {
                         }
                     }
                 }
-            }
-        }
-        .onAppear {
-            guard fdGuideActive else { return }
-            if reduceMotion {
-                showPracticePop = true
-            } else {
-                withAnimation(.easeOut(duration: 0.3)) { showPracticePop = true }
             }
         }
         // A-3: HomeView.swift:600-621と同じ作法(パルス+0.15s後にscrollTo)。復帰後に

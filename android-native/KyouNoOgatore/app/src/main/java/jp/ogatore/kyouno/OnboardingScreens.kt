@@ -195,6 +195,10 @@ private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ
 // const wait=obReducedMotion()?0:1500の1:1移植として、reduced-motion時は待機をなくす。
 @Composable
 fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry: String?) -> Unit) {
+    // TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-a: 初回起動(まだonboarded==falseの
+    // タイミング)だけ、見出しを「📖 使い方ツアー」+4点バーに差し替える。使い方タブ経由の再入場
+    // (onboarded==true済み)は既存の「🌱 はじめてガイド」・バーなしのまま。
+    val isFirstRun = remember { !store.get("onboarded", false) }
     var bubbles by remember { mutableStateOf(listOf<ChatBubble>()) }
     var activeQuestion by remember { mutableStateOf<ObQuestionDef?>(null) }
     var routeCta by remember { mutableStateOf<ObRouteInfo?>(null) }
@@ -287,10 +291,21 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         // 選択肢・CTAボタンを本文と同じverticalScrollから外し、外側Columnの固定フッターにする。
         // これでCTAは常に画面内の同じ位置にあり、本文の長さに関わらず動かない。
         Column(Modifier.fillMaxSize().background(colors.bg)) {
+        // W1-a: 初回起動だけ見出しをverticalScroll外の固定上部へ移し「📖 使い方ツアー」+4点バー
+        // (番号のみ・6段連結はしない)。再入場は既存どおり本文内に「🌱 はじめてガイド」を出す。
+        if (isFirstRun) {
+            Text(
+                "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                modifier = Modifier.testTag("obTitle").padding(horizontal = 20.dp, vertical = 20.dp),
+            )
+            KyonoJourneyBar(labels = listOf("", "", "", ""), currentIndex = answers.size)
+        }
         Column(
             Modifier.weight(1f).fillMaxWidth().verticalScroll(obScrollState).padding(20.dp),
         ) {
-            Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
+            if (!isFirstRun) {
+                Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
+            }
             Spacer(Modifier.height(12.dp))
             // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:4149 .sd-pop
             // (opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。reduced-motion時は無演出即表示。
@@ -906,25 +921,17 @@ fun ResultScreen(
     // (「きょうはこの1本だけでOK！」)が地続きでモード切替が伝わらなかった件(A-2)と、YouTubeから
     // 戻ったあと「おかえりなさい」ブロックが画面外で気づけなかった件(A-3)。MainActivity.kt
     // 1111-1129(doneNudge)/1389-1397(doneBtnScale)と同じ、positionInRoot手計算+パルスの作法を流用。
-    var showPracticePop by remember { mutableStateOf(false) }
-    var practicePopDismissedOnce by remember { mutableStateOf(false) }
+    // TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-a: 練習開始ポップ(showPracticePop)は
+    // 削除(初回チャット画面に④点バーが出るようになり、結果画面での二重の「ここからは練習」案内が
+    // 冗長になったため)。代わりに「動画タップまで」タイプカードを見せ続け、タップした瞬間に
+    // どうが(③)へ進段させる。
+    var videoTapped by remember { mutableStateOf(false) }
     val resultReducedMotion = rememberReducedMotion()
-    LaunchedEffect(Unit) {
-        if (fdGuideActive) showPracticePop = true
-    }
     val resultScrollState = rememberScrollState()
     var resultColumnPositionInRootY by remember { mutableStateOf(0f) }
     var resultViewportHeightPx by remember { mutableStateOf(0) }
-    var practiceBlockPositionInRootY by remember { mutableStateOf(0f) }
     var doneNudgeCardPositionInRootY by remember { mutableStateOf(0f) }
     var doneNudgeCardHeightPx by remember { mutableStateOf(0) }
-    LaunchedEffect(practicePopDismissedOnce) {
-        if (practicePopDismissedOnce) {
-            delay(50)
-            val target = (practiceBlockPositionInRootY - resultColumnPositionInRootY + resultScrollState.value).toInt()
-            if (resultReducedMotion) resultScrollState.scrollTo(target) else resultScrollState.animateScrollTo(target)
-        }
-    }
     val doneNudgeScale = remember { Animatable(1f) }
     LaunchedEffect(showDoneNudge) {
         if (showDoneNudge) {
@@ -956,7 +963,7 @@ fun ResultScreen(
     val journeyIndex = when {
         cardResult != null -> 4
         showDoneNudge -> 3
-        practicePopDismissedOnce -> 2
+        videoTapped -> 2
         else -> 1
     }
     val resultHaptic = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -1006,9 +1013,11 @@ fun ResultScreen(
                 .verticalScroll(resultScrollState)
                 .padding(20.dp),
         ) {
-            // D(本丸): 「③どうが」以降(練習開始ポップを閉じたあと)はタイプカードを畳み、
-            // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。
-            if (!fdGuideActive || showPracticePop) {
+            // D(本丸)→W1-a修正: 「③どうが」(動画タップ後)はタイプカードを畳み、
+            // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。動画タップまでは
+            // タイプカードを表示し続ける(ポップ削除の結合修理: これが無いと初回ユーザーが
+            // タイプカードを一度も見られなくなる)。
+            if (!fdGuideActive || !videoTapped) {
             KyonoGradientCard(KyonoGradient.Soft, Modifier.testTag("resultCard")) {
                 Text(
                     "あなたのかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
@@ -1067,8 +1076,7 @@ fun ResultScreen(
                 // 通常の3本リストではなく、①だけを練習させる専用UIに差し替える(2026-07-21 5視点
                 // 検証D・PO承認済み)。「タスクスイッチできない層がYouTubeから戻れないのが最初の
                 // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
-                // A-2: 練習開始ポップの「やってみる」がここへスクロールする際のアンカー。
-                KyonoCard(Modifier.onGloballyPositioned { coords -> practiceBlockPositionInRootY = coords.positionInRoot().y }) {
+                KyonoCard {
                     Text(
                         "きょうはこの1本だけでOK！", color = colors.ink, fontSize = 15.sp,
                         fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
@@ -1120,7 +1128,11 @@ fun ResultScreen(
                         rx.firstOrNull()?.let { vk ->
                             // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:320
                             // videoCard(rx[0], "きょうはこれ1本でOK!")の1:1移植。badge=nullで欠落していた。
-                            lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = "きょうはこれ1本でOK！", hero = true) }
+                            // W1-a結合修理: タップした瞬間にvideoTapped=trueへ(タイプカードが畳まれ
+                            // どうが(③)へ進段する)。
+                            lookupVideo(vk)?.let { v ->
+                                VideoRow(v, { url -> videoTapped = true; onVideoTap(url) }, badge = "きょうはこれ1本でOK！", hero = true)
+                            }
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -1255,49 +1267,6 @@ fun ResultScreen(
                 Spacer(Modifier.height(10.dp))
                 // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
                 KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("resultRecheckBtn"))
-            }
-        }
-        // A-2: fdGuide中のみ、初回表示で練習ブロックが見える前にポップを挟む。演出はMainActivity.kt
-        // 1567-1569のcpop(fadeIn+scaleIn 300ms・initialScale 0.85f)語彙をそのまま流用。
-        AnimatedVisibility(
-            visible = showPracticePop,
-            enter = if (resultReducedMotion) {
-                fadeIn(tween(0))
-            } else {
-                fadeIn(tween(300, easing = KyonoEaseOut), initialAlpha = 0.4f) + scaleIn(tween(300, easing = KyonoEaseOut), initialScale = 0.85f)
-            },
-        ) {
-            Box(
-                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .background(colors.card, RoundedCornerShape(20.dp))
-                        .padding(20.dp)
-                        .testTag("practiceStartPop"),
-                ) {
-                    Text(
-                        "ここからは練習だよ🏫", color = colors.ink, fontSize = 18.sp,
-                        fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "きょうの1本を いっしょに ためしてみよう", color = colors.sub, fontSize = 15.sp,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(14.dp))
-                    KyonoPrimaryButton(
-                        "やってみる",
-                        {
-                            showPracticePop = false
-                            practicePopDismissedOnce = true
-                        },
-                        Modifier.testTag("practiceStartPopBtn"),
-                    )
-                }
             }
         }
         // D: MainActivity.kt:1764-1771のKyonoConfettiと同じ作法(結果画面版)。
