@@ -326,7 +326,6 @@ class MainActivity : ComponentActivity() {
                                             store = store,
                                             presetWorry = s.presetWorry,
                                             onComplete = { typeKey, autoReachLv -> screen = Screen.Result(typeKey, autoReachLv) },
-                                            onGoHome = { screen = Screen.Home },
                                         )
                                         is Screen.Result -> {
                                             // app-quiz.js:262-266 showResult()の1:1移植: はじめの1本

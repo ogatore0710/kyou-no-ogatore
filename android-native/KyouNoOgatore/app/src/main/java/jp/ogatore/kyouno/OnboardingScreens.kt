@@ -644,7 +644,7 @@ internal val QuizPickedSaver: Saver<SnapshotStateMap<String, Any?>, Any> = Saver
 )
 
 @Composable
-fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit, onGoHome: () -> Unit) {
+fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit) {
     val activeQuestions = remember(presetWorry) {
         if (presetWorry != null) QUIZ_QUESTIONS.filter { it.key != "worry" } else QUIZ_QUESTIONS
     }
@@ -659,15 +659,13 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     // ダブルタップの癖がある人が多いため)。
     var answering by remember { mutableStateOf(false) }
     LaunchedEffect(qi) { answering = false }
-    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #quiz):
-    // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
-    var showGoHomeConfirm by remember { mutableStateOf(false) }
     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §6(Android限定): app-quiz.js:156-158の
     // history.pushState設計(戻るで1問ずつ遡れる)の1:1移植。BackHandlerが1つも無く、ハードウェア/
-    // ジェスチャーの「もどる」を押すと確認なしに回答が消えていた欠落。qi==0では既存の確認
-    // ダイアログ(showGoHomeConfirm)を通す。
-    BackHandler {
-        if (qi > 0) qi-- else showGoHomeConfirm = true
+    // ジェスチャーの「もどる」を押すと確認なしに回答が消えていた欠落。
+    // TASK-C2-2026-07-31-build11-renshu-journey.md C: qi==0のときは何もしない(「ホームにもどる」
+    // を削除し、練習モードの一貫ジャーニーとして出口を設けない設計に統一したため)。
+    BackHandler(enabled = qi > 0) {
+        qi--
     }
 
     val themeSetting = store.get("theme", "auto")
@@ -794,36 +792,15 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                 }
             }
         }
-        // A2: 「まえの質問へ」「ホームにもどる」は固定フッター(スクロールしない)。
-        if (q != null) {
+        // A2: 「まえの質問へ」は固定フッター(スクロールしない)。TASK-C2-2026-07-31-
+        // build11-renshu-journey.md C: 「ホームにもどる」は削除(練習モードの一貫ジャーニーの
+        // 一部として、出口を設けない設計に統一)。
+        if (q != null && qi > 0) {
             Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
                 // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示・まえの質問へ戻る)の1:1移植。
-                if (qi > 0) {
-                    KyonoLineButton("← まえの質問へ", { qi-- }, Modifier.testTag("qBackBtn"))
-                    Spacer(Modifier.height(10.dp))
-                }
-                // 全画面完全性監査タスク #quiz: index.html:721 「ホームにもどる」ボタンの1:1移植。
-                // index.html:1649 quizGoHome(): 回答済み(qi>0)のときだけ確認ダイアログを出す。
-                // A3(2026-07-30): 「まえの質問へ」(戻る)と機能が全く違う「ホームにもどる」
-                // (診断を中断=破壊的操作)が同じKyonoLineButtonスタイルで並び見分けにくかった。
-                // ホームにもどるだけ文字リンク(SettingsScreen.ktの「変える」相当・控えめな色)に
-                // 格下げして機能差を出す。
-                Text(
-                    "ホームにもどる", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 10.dp)
-                        .clickable { if (qi > 0) showGoHomeConfirm = true else onGoHome() }
-                        .testTag("quizGoHomeBtn"),
-                )
+                KyonoLineButton("← まえの質問へ", { qi-- }, Modifier.testTag("qBackBtn"))
             }
         }
-        }
-        if (showGoHomeConfirm) {
-            AlertDialog(
-                onDismissRequest = { showGoHomeConfirm = false },
-                title = { Text("回答を消してホームにもどる？") },
-                confirmButton = { Button(onClick = { showGoHomeConfirm = false; onGoHome() }) { Text("もどる") } },
-                dismissButton = { TextButton(onClick = { showGoHomeConfirm = false }) { Text("キャンセル") } },
-            )
         }
     }
 }

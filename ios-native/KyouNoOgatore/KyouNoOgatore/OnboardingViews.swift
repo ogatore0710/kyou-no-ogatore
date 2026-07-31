@@ -560,15 +560,11 @@ struct QuizView: View {
     let store: RecordStore
     let presetWorry: String?
     let onComplete: (_ typeKey: String, _ autoReachLv: Int?) -> Void
-    let onGoHome: () -> Void
 
     private let activeQuestions: [QuizQuestionDef]
     @State private var qi = 0
     @State private var scores: [String: Int] = [:]
     @State private var worry: String?
-    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #quiz):
-    // index.html:1649 quizGoHome()の「回答済みなら確認ダイアログ」の1:1移植。
-    @State private var showGoHomeConfirm = false
     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §2: app-quiz.js:180の1:1移植。回答タップ直後に
     // 選択肢を無効化し、次の設問が描画されるまで二度押しで判定の入力が汚れるのを防ぐ。
     @State private var answering = false
@@ -576,11 +572,10 @@ struct QuizView: View {
     // 「まえの質問へ」で戻ったとき前回選んだ選択肢が分かるよう、質問key→選択値(scoreまたはworryKey)を覚えておく。
     @State private var picked: [String: String] = [:]
 
-    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String, Int?) -> Void, onGoHome: @escaping () -> Void) {
+    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String, Int?) -> Void) {
         self.store = store
         self.presetWorry = presetWorry
         self.onComplete = onComplete
-        self.onGoHome = onGoHome
         self.activeQuestions = presetWorry != nil ? quizQuestions.filter { $0.key != "worry" } : quizQuestions
         _worry = State(initialValue: presetWorry)
     }
@@ -615,15 +610,10 @@ struct QuizView: View {
                         onComplete(typeKey, autoReachLv)
                     }
                 },
-                onBack: { if qi > 0 { qi -= 1 } },
-                onGoHomeTap: { if qi > 0 { showGoHomeConfirm = true } else { onGoHome() } }
+                onBack: { if qi > 0 { qi -= 1 } }
             )
         }
         .onChange(of: qi) { _, _ in answering = false }
-        .alert("回答を消してホームにもどる？", isPresented: $showGoHomeConfirm) {
-            Button("もどる", role: .destructive) { onGoHome() }
-            Button("キャンセル", role: .cancel) {}
-        }
     }
 }
 
@@ -635,15 +625,15 @@ private struct QuizContentView: View {
     let picked: [String: String]
     let onOptTap: (QuizQuestionDef, QuizOptDef) -> Void
     let onBack: () -> Void
-    let onGoHomeTap: () -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
     var body: some View {
         // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourContentView(D6)と同じ構造。
-        // 「まえの質問へ」「ホームにもどる」を本文と同じScrollViewから外し、外側VStackの
-        // 固定フッターにする。これでCTAは常に画面内の同じ位置にあり、本文の長さ(選択肢の
-        // note文の折返し行数など)に関わらず動かない。
+        // 「まえの質問へ」を本文と同じScrollViewから外し、外側VStackの固定フッターにする。
+        // これでCTAは常に画面内の同じ位置にあり、本文の長さ(選択肢のnote文の折返し行数など)に
+        // 関わらず動かない。TASK-C2-2026-07-31-build11-renshu-journey.md C: 「ホームにもどる」は
+        // 削除(練習モードの一貫ジャーニーの一部として、出口を設けない設計に統一)。
         VStack(spacing: 0) {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
@@ -702,23 +692,11 @@ private struct QuizContentView: View {
             }
             .padding(20)
         }
-        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A3: 「まえの質問へ」(前の設問に戻る)と
-        // 「ホームにもどる」(診断を中断してホームに戻る=破壊的操作)が同じKyonoLineButton(枠線のみ)
-        // スタイルで並んでいて見分けにくかった。「まえの質問へ」は枠線ボタンのまま残し、
-        // 「ホームにもどる」はSettingsView.swift:157-160の「変える」リンクと同じ見た目(文字だけ・
-        // 控えめな色)に格下げして、機能差を視覚的に出す。
-        VStack(spacing: 8) {
-            // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。
-            if qi > 0 {
-                KyonoLineButton("← まえの質問へ", action: onBack)
-            }
-            // 全画面完全性監査タスク #quiz: index.html:721 「ホームにもどる」ボタンの1:1移植。
-            Text("ホームにもどる")
-                .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
-                .padding(.vertical, 10)
-                .onTapGesture { onGoHomeTap() }
+        // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。
+        if qi > 0 {
+            KyonoLineButton("← まえの質問へ", action: onBack)
+                .padding(.horizontal, 20).padding(.bottom, 20)
         }
-        .padding(.horizontal, 20).padding(.bottom, 20)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
