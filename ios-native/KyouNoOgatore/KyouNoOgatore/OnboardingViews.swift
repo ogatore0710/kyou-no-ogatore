@@ -695,8 +695,10 @@ private struct QuizContentView: View {
                 .padding(.horizontal, 20).padding(.top, 20)
             KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: 0)
         }
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
+                Color.clear.frame(height: 0).id("quizTop")
                 Text("かたさチェック").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 Text("Q\(qi + 1) / \(activeQuestions.count)").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                 // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: index.html:719 .dots+
@@ -755,6 +757,12 @@ private struct QuizContentView: View {
                 }
             }
             .padding(20)
+            // TASK-C2-2026-08-01-build13-round3.md ⑤: 設問切替時に新旧の選択肢文字が重なって
+            // 見える(クロスフェード)対策。祖先(画面遷移全体)のアニメーションがこのサブツリーへ
+            // 伝播しないよう明示的に無効化し、即時差し替えにする(reduceMotion時と同じ挙動に統一)。
+            .transaction { $0.animation = nil }
+        }
+        .onChange(of: qi) { _, _ in proxy.scrollTo("quizTop", anchor: .top) }
         }
         // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示)の1:1移植。
         if qi > 0 {

@@ -732,7 +732,12 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
             )
             KyonoJourneyBar(labels = KYONO_JOURNEY_STEPS, currentIndex = 0)
         }
-        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp)) {
+        // TASK-C2-2026-08-01-build13-round3.md ⑤: 設問切替時に前の設問のスクロール位置のまま
+        // 新しい設問が描画され、旧選択肢と新選択肢が一瞬重なって見える不具合対策。TourScreenの
+        // LaunchedEffect(si){scrollTo(0)}と同じ作法でqi変化時に必ず先頭へ戻す。
+        val quizScrollState = rememberScrollState()
+        LaunchedEffect(qi) { quizScrollState.scrollTo(0) }
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(quizScrollState).padding(20.dp)) {
             Text("かたさチェック", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(4.dp))
             Text("Q${qi + 1} / ${activeQuestions.size}", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizProgress"))
