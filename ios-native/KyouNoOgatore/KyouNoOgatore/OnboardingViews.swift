@@ -725,8 +725,10 @@ private struct QuizContentView: View {
 }
 
 // UI/UXパリティ監査GO-2(2026-07-28): index.html:293-295 .opt/.opt:activeの1:1移植。
-// KyonoPrimaryButtonと同じDragGesture+@State pressedの手法で、押した瞬間だけ
-// background/borderをyellow-soft/yellowへ切り替える(transitionなし=CSS同様の瞬時切り替え)。
+// TASK-C2-2026-07-31-feedback-round2.md A-1: DragGesture(minimumDistance:0)+無条件onEndedは
+// 指をボタン外へずらしてから離してもaction()が発火してしまう欠陥(KyonoPrimaryButton等と同じ
+// 診断2)が残存していた唯一の箇所。標準Button+ButtonStyle(configuration.isPressedで押下検知、
+// 外して離せば標準どおりキャンセルされる)へ移行。
 private struct QuizOptionCard: View {
     let label: String
     let note: String
@@ -738,32 +740,48 @@ private struct QuizOptionCard: View {
     let action: () -> Void
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
-    @State private var pressed = false
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            // UI/UXパリティ監査2巡目A4(2026-07-29): index.html:294 .opt{font-size:18px}の1:1移植。
-            // 従来15ptで-16.7%小さく値がズレていた欠落を修正する。
-            Text(label).kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
-            // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:297 .opt .crit{line-height:1.5}の
-            // 1:1移植。前回G2は検索チップのみに適用していたカスタムフォント行送り超過補正をここにも展開する。
-            Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub).lineSpacing(7)
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 2) {
+                // UI/UXパリティ監査2巡目A4(2026-07-29): index.html:294 .opt{font-size:18px}の1:1移植。
+                // 従来15ptで-16.7%小さく値がズレていた欠落を修正する。
+                Text(label).kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
+                // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:297 .opt .crit{line-height:1.5}の
+                // 1:1移植。前回G2は検索チップのみに適用していたカスタムフォント行送り超過補正をここにも展開する。
+                Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub).lineSpacing(7)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16 * zoom).padding(.vertical, 14 * zoom)
-        .background(RoundedRectangle(cornerRadius: 16 * zoom).fill(pressed ? pressedBackground : background))
-        .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(pressed ? pressedBorderColor : borderColor, lineWidth: 2 * zoom))
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in pressed = true }
-                .onEnded { _ in pressed = false; action() }
-        )
+        .buttonStyle(QuizOptionCardStyle(
+            background: background, borderColor: borderColor,
+            pressedBackground: pressedBackground, pressedBorderColor: pressedBorderColor,
+            zoom: zoom
+        ))
         // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: 選択肢の見出し+補足説明を
         // 1回のVoiceOverスワイプで読める1つの単位にまとめる。
         .accessibilityElement(children: .combine)
+    }
+}
+
+private struct QuizOptionCardStyle: ButtonStyle {
+    let background: Color
+    let borderColor: Color
+    let pressedBackground: Color
+    let pressedBorderColor: Color
+    let zoom: CGFloat
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
+            .padding(.horizontal, 16 * zoom).padding(.vertical, 14 * zoom)
+            .background(RoundedRectangle(cornerRadius: 16 * zoom).fill(pressed ? pressedBackground : background))
+            .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(pressed ? pressedBorderColor : borderColor, lineWidth: 2 * zoom))
+            .contentShape(Rectangle())
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
     }
 }
 
@@ -839,6 +857,7 @@ struct ResultView: View {
 
 private struct ResultContentView: View {
     @Environment(\.kyonoColors) private var colors
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let info: TypeInfo
     let typeKey: String
     let autoReachLv: Int?
@@ -855,6 +874,14 @@ private struct ResultContentView: View {
     let onOpenSoudan: (String?) -> Void
     let onStartTour: () -> Void
 
+    // TASK-C2-2026-07-31-feedback-round2.md A-2: 診断結果画面(タイプカード)と練習ガイド
+    // (「きょうはこの1本だけでOK！」)が地続きで、モード切替が伝わらなかった。fdGuide中のみ
+    // 練習ブロックが見える前に1枚ポップを挟み、押すと練習ブロックへスクロールする。
+    @State private var showPracticePop = false
+    // A-3: YouTubeから戻ったあと「おかえりなさい」ブロックが画面外で気づけなかった。
+    // HomeView.swift:600-621のパルス+スクロール作法をそのまま流用。
+    @State private var doneNudgeScale: CGFloat = 1
+
     private var catalogById: [String: CatalogVideo] {
         Dictionary(uniqueKeysWithValues: CatalogLoader.shared.map { ($0.id, $0) })
     }
@@ -863,6 +890,8 @@ private struct ResultContentView: View {
     }
 
     var body: some View {
+        ScrollViewReader { proxy in
+        ZStack {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 KyonoGradientCard(gradient: .soft) {
@@ -914,6 +943,7 @@ private struct ResultContentView: View {
                             .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         // app-quiz.js:316-320 sd-row.oga相当の練習宣言吹き出し(相談室botバブルと同じ見た目)。
+                        // A-2: 練習開始ポップの「やってみる」がここへスクロールする際のアンカー。
                         HStack(alignment: .bottom, spacing: 8) {
                             KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                             VStack(alignment: .leading, spacing: 4) {
@@ -944,6 +974,7 @@ private struct ResultContentView: View {
                             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
+                    .id("practiceBlock")
                 } else {
                     // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
                     // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
@@ -1016,7 +1047,9 @@ private struct ResultContentView: View {
                         Text("おかえりなさい！✨ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         KyonoPrimaryButton(fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく", action: onDoneFromNudge)
+                            .scaleEffect(doneNudgeScale)
                     }
+                    .id("doneNudgeCard")
                 }
                 // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。
                 if showTourBtn {
@@ -1033,6 +1066,59 @@ private struct ResultContentView: View {
             .padding(20)
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
+        // A-2: fdGuide中のみ、初回表示で練習ブロックが見える前にポップを挟む。
+        if fdGuideActive && showPracticePop {
+            Color.black.opacity(0.55).ignoresSafeArea()
+            VStack(spacing: 14) {
+                Text("ここからは練習だよ🏫")
+                    .kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
+                    .multilineTextAlignment(.center)
+                Text("きょうの1本を いっしょに ためしてみよう")
+                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
+                    .multilineTextAlignment(.center)
+                KyonoPrimaryButton("やってみる") {
+                    let dismiss = { showPracticePop = false }
+                    if reduceMotion { dismiss() } else { withAnimation(.easeOut(duration: 0.3), dismiss) }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        if reduceMotion {
+                            proxy.scrollTo("practiceBlock", anchor: .top)
+                        } else {
+                            withAnimation { proxy.scrollTo("practiceBlock", anchor: .top) }
+                        }
+                    }
+                }
+            }
+            .padding(20)
+            .background(RoundedRectangle(cornerRadius: 20).fill(colors.card))
+            .padding(24)
+            .transition(reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity))
+        }
+        }
+        .onAppear {
+            guard fdGuideActive else { return }
+            if reduceMotion {
+                showPracticePop = true
+            } else {
+                withAnimation(.easeOut(duration: 0.3)) { showPracticePop = true }
+            }
+        }
+        // A-3: HomeView.swift:600-621と同じ作法(パルス+0.15s後にscrollTo)。復帰後に
+        // 「おかえりなさい」ブロックが画面外で気づけなかった欠落を解消する。
+        .onChange(of: showDoneNudge) { _, newValue in
+            guard newValue else { return }
+            withAnimation(.easeInOut(duration: 0.35)) { doneNudgeScale = 1.045 }
+            withAnimation(.easeInOut(duration: 0.35).delay(0.35)) { doneNudgeScale = 1 }
+            withAnimation(.easeInOut(duration: 0.35).delay(0.7)) { doneNudgeScale = 1.045 }
+            withAnimation(.easeInOut(duration: 0.35).delay(1.05)) { doneNudgeScale = 1 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                if reduceMotion {
+                    proxy.scrollTo("doneNudgeCard", anchor: .center)
+                } else {
+                    withAnimation { proxy.scrollTo("doneNudgeCard", anchor: .center) }
+                }
+            }
+        }
+        }
     }
 }
 

@@ -761,30 +761,37 @@ struct HomeView: View {
                 // の1:1移植。ツアーSlide3(OnboardingViews.swift)と使い方タブ(GuideView.swift)の案内は
                 // どちらもこの文言で「◯◯を押す」と約束しており、ボタン名が「記録カードを見る」のままだと
                 // ツアーを真面目に読む人ほど存在しないボタンを探すことになっていた。
-                KyonoGhostButton("記録カードを画像でのこす") {
-                    cardResult = renderTodayCard(store: store, streak: streak, ds: today)
-                }
-                .opacity(did ? 1 : 0.5)
-                .disabled(!did)
-                // app-record.js:196-208 fd-breathe(1.8s ease-in-out infinite・scale 1↔1.025)の1:1移植。
-                .scaleEffect(fdCardNudgeVisible ? makeCardBtnBreatheScale : 1)
-                .onAppear {
-                    guard fdCardNudgeVisible && !reduceMotion else { return }
-                    withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
-                }
-                .onChange(of: fdCardNudgeVisible) { _, newValue in
-                    if newValue && !reduceMotion {
-                        withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
-                    } else {
-                        makeCardBtnBreatheScale = 1
-                    }
-                }
-                // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
-                // TASK-C2-2026-07-29-ux-audit-G.md G3(引き算): 未記録(!did)の間はボタン自体が無効化
-                // されており、「保存かシェアでのこしてね」は存在しないカードの操作を約束してしまう
-                // ため、その間だけ非表示にする(Web版はボタンの有効/無効と連動していないが、
-                // ここはWebとの1:1パリティより実際の操作可能性に合わせる、という明示の指示)。
+                // TASK-C2-2026-07-31-feedback-round2.md A-4①(本人の言葉「きょうやったと下のボタン被って
+                // るし、同じ意味のボタンじゃないか」): 未記録のときは薄い無効表示のままボタンが
+                // 「きょうやった！」の直下に並んでおり、押せないボタンが意味の重複に見えていた欠落。
+                // 未記録の間はボタンごと非表示にする(引き算)。fdCardNudgeVisible(「つぎはここを
+                // 押してみて」の脈動ヒント)はmarkDone完了直後(=did成立後)にしか立たないため、
+                // did==falseの間は元々表示されない組み合わせであり、この非表示化と競合しない。
                 if did {
+                    // TASK-C2-2026-07-31-feedback-round2.md A-4②: index.html:703 #makeCardBtn
+                    // {margin-top:12px}の1:1移植。KyonoCardはVStack(spacing:0)のため、上の
+                    // 一連の演出テキストが何も表示されていない典型状態(同日に開き直しただけ)だと
+                    // 「きょうやった！」(いまは無効表示)とこのボタンが0px間隔で詰まって見えていた。
+                    Spacer().frame(height: 12 * zoom)
+                    KyonoGhostButton("記録カードを画像でのこす") {
+                        cardResult = renderTodayCard(store: store, streak: streak, ds: today)
+                    }
+                    // app-record.js:196-208 fd-breathe(1.8s ease-in-out infinite・scale 1↔1.025)の1:1移植。
+                    .scaleEffect(fdCardNudgeVisible ? makeCardBtnBreatheScale : 1)
+                    .onAppear {
+                        guard fdCardNudgeVisible && !reduceMotion else { return }
+                        withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
+                    }
+                    .onChange(of: fdCardNudgeVisible) { _, newValue in
+                        if newValue && !reduceMotion {
+                            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { makeCardBtnBreatheScale = 1.025 }
+                        } else {
+                            makeCardBtnBreatheScale = 1
+                        }
+                    }
+                    // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)。
+                    // .hint{margin-top:8px}の1:1移植(同じ理由でここも0px詰まりだった)。
+                    Spacer().frame(height: 8 * zoom)
                     Text("カード画像を保存かシェアでのこしてね📤")
                         .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)

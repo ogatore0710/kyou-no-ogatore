@@ -1725,19 +1725,27 @@ fun HomeScreen(
                 // TASK-C2-2026-07-29-ux-audit-G.md G3: index.html:703のボタン名「記録カードを画像でのこす」
                 // の1:1移植。ツアーSlide3・使い方タブの案内はどちらもこの文言で「◯◯を押す」と約束しており、
                 // ボタン名が「記録カードを見る」のままだとツアーを真面目に読む人ほど存在しないボタンを探す。
-                KyonoGhostButton(
-                    "記録カードを画像でのこす",
-                    {
-                        // 完了の瞬間の一拍演出とは無関係の手動オープンなので、A6どおり瞬時のまま。
-                        cardEnterAnimated = false
-                        cardResult = renderTodayCard(store, streak, today, context)
-                    },
-                    Modifier.scale(makeCardBtnScale).testTag("makeCardBtn"),
-                )
-                // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
-                // TASK-C2-2026-07-29-ux-audit-G.md G3(引き算): 未記録(!did)の間は「保存かシェアでのこしてね」
-                // が存在しないカードの操作を約束してしまうため、その間だけ非表示にする(iOSと同じ判断)。
+                // TASK-C2-2026-07-31-feedback-round2.md A-4①(本人の言葉「きょうやったと下のボタン被って
+                // るし、同じ意味のボタンじゃないか」): 未記録のときこのボタンが「きょうやった！」の
+                // 直下に並んでおり、意味の重複に見えていた欠落。未記録の間はボタンごと非表示にする
+                // (引き算・iOSと同じ判断)。fdCardNudgeVisibleはmarkDone完了直後(did成立後)にしか
+                // 立たないため、did==falseの間は元々表示されない組み合わせでありこの非表示化と競合しない。
                 if (did) {
+                    // TASK-C2-2026-07-31-feedback-round2.md A-4②: index.html:703 #makeCardBtn
+                    // {margin-top:12px}の1:1移植。演出テキストが何も表示されていない典型状態
+                    // (同日に開き直しただけ)だと「きょうやった！」(いまは無効表示)とこのボタンが
+                    // 0dp間隔で詰まって見えていた。
+                    Spacer(Modifier.height(12.dp))
+                    KyonoGhostButton(
+                        "記録カードを画像でのこす",
+                        {
+                            // 完了の瞬間の一拍演出とは無関係の手動オープンなので、A6どおり瞬時のまま。
+                            cardEnterAnimated = false
+                            cardResult = renderTodayCard(store, streak, today, context)
+                        },
+                        Modifier.scale(makeCardBtnScale).testTag("makeCardBtn"),
+                    )
+                    // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
                     Spacer(Modifier.height(6.dp))
                     Text(
                         "カード画像を保存かシェアでのこしてね📤", color = colors.sub, fontSize = 13.sp,

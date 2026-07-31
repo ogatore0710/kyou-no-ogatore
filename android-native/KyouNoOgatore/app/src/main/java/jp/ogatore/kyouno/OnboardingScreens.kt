@@ -3,7 +3,9 @@ package jp.ogatore.kyouno
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -50,9 +52,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
@@ -883,13 +887,58 @@ fun ResultScreen(
     val fdGuideActive = remember { HomeLogic.fdActive(store.get("fd", null as String?), RecordLogic.loadStreak(store).total) }
     // ResultScreenはRecordStoreを従来受け取らなかったが、rSoudanLink表示条件(既存のSafetyKBLoader
     // 読み込み有無)には依存しない前提で常時表示にする(ネイティブはKBを起動時に同期読み込み済み)。
+    // TASK-C2-2026-07-31-feedback-round2.md A-2/A-3: 診断結果画面(タイプカード)と練習ガイド
+    // (「きょうはこの1本だけでOK！」)が地続きでモード切替が伝わらなかった件(A-2)と、YouTubeから
+    // 戻ったあと「おかえりなさい」ブロックが画面外で気づけなかった件(A-3)。MainActivity.kt
+    // 1111-1129(doneNudge)/1389-1397(doneBtnScale)と同じ、positionInRoot手計算+パルスの作法を流用。
+    var showPracticePop by remember { mutableStateOf(false) }
+    var practicePopDismissedOnce by remember { mutableStateOf(false) }
+    val resultReducedMotion = rememberReducedMotion()
+    LaunchedEffect(Unit) {
+        if (fdGuideActive) showPracticePop = true
+    }
+    val resultScrollState = rememberScrollState()
+    var resultColumnPositionInRootY by remember { mutableStateOf(0f) }
+    var resultViewportHeightPx by remember { mutableStateOf(0) }
+    var practiceBlockPositionInRootY by remember { mutableStateOf(0f) }
+    var doneNudgeCardPositionInRootY by remember { mutableStateOf(0f) }
+    var doneNudgeCardHeightPx by remember { mutableStateOf(0) }
+    LaunchedEffect(practicePopDismissedOnce) {
+        if (practicePopDismissedOnce) {
+            delay(50)
+            val target = (practiceBlockPositionInRootY - resultColumnPositionInRootY + resultScrollState.value).toInt()
+            if (resultReducedMotion) resultScrollState.scrollTo(target) else resultScrollState.animateScrollTo(target)
+        }
+    }
+    val doneNudgeScale = remember { Animatable(1f) }
+    LaunchedEffect(showDoneNudge) {
+        if (showDoneNudge) {
+            repeat(2) {
+                doneNudgeScale.animateTo(1.045f, tween(350))
+                doneNudgeScale.animateTo(1f, tween(350))
+            }
+        }
+    }
+    LaunchedEffect(showDoneNudge) {
+        if (showDoneNudge) {
+            delay(150)
+            val contentY = doneNudgeCardPositionInRootY - resultColumnPositionInRootY + resultScrollState.value
+            val target = (contentY - resultViewportHeightPx / 2f + doneNudgeCardHeightPx / 2f).toInt()
+            if (resultReducedMotion) resultScrollState.scrollTo(target) else resultScrollState.animateScrollTo(target)
+        }
+    }
     KyonoTheme("auto", bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
+        Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
                 .fillMaxSize()
                 .background(colors.bg)
-                .verticalScroll(rememberScrollState())
+                .onGloballyPositioned { coords ->
+                    resultColumnPositionInRootY = coords.positionInRoot().y
+                    resultViewportHeightPx = coords.size.height
+                }
+                .verticalScroll(resultScrollState)
                 .padding(20.dp),
         ) {
             KyonoGradientCard(KyonoGradient.Soft, Modifier.testTag("resultCard")) {
@@ -949,7 +998,8 @@ fun ResultScreen(
                 // 通常の3本リストではなく、①だけを練習させる専用UIに差し替える(2026-07-21 5視点
                 // 検証D・PO承認済み)。「タスクスイッチできない層がYouTubeから戻れないのが最初の
                 // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
-                KyonoCard {
+                // A-2: 練習開始ポップの「やってみる」がここへスクロールする際のアンカー。
+                KyonoCard(Modifier.onGloballyPositioned { coords -> practiceBlockPositionInRootY = coords.positionInRoot().y }) {
                     Text(
                         "きょうはこの1本だけでOK！", color = colors.ink, fontSize = 15.sp,
                         fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
@@ -1096,13 +1146,19 @@ fun ResultScreen(
             // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
             if (showDoneNudge) {
                 Spacer(Modifier.height(16.dp))
-                KyonoCard(Modifier.testTag("rDoneNudge")) {
+                // A-3: HomeScreen(MainActivity.kt:1111-1129/1389-1397)と同じパルス+スクロール作法。
+                KyonoCard(
+                    Modifier.testTag("rDoneNudge").onGloballyPositioned { coords ->
+                        doneNudgeCardPositionInRootY = coords.positionInRoot().y
+                        doneNudgeCardHeightPx = coords.size.height
+                    },
+                ) {
                     Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(10.dp))
                     KyonoPrimaryButton(
                         if (fdGuideActive) "✅ 1日目の記録をつけにいく" else "✅ きょうの記録をつけにいく",
                         onDoneFromNudge,
-                        Modifier.testTag("rDoneNudgeBtn"),
+                        Modifier.testTag("rDoneNudgeBtn").scale(doneNudgeScale.value),
                     )
                 }
             }
@@ -1121,6 +1177,50 @@ fun ResultScreen(
                 // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
                 KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("resultRecheckBtn"))
             }
+        }
+        // A-2: fdGuide中のみ、初回表示で練習ブロックが見える前にポップを挟む。演出はMainActivity.kt
+        // 1567-1569のcpop(fadeIn+scaleIn 300ms・initialScale 0.85f)語彙をそのまま流用。
+        AnimatedVisibility(
+            visible = showPracticePop,
+            enter = if (resultReducedMotion) {
+                fadeIn(tween(0))
+            } else {
+                fadeIn(tween(300, easing = KyonoEaseOut), initialAlpha = 0.4f) + scaleIn(tween(300, easing = KyonoEaseOut), initialScale = 0.85f)
+            },
+        ) {
+            Box(
+                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .background(colors.card, RoundedCornerShape(20.dp))
+                        .padding(20.dp)
+                        .testTag("practiceStartPop"),
+                ) {
+                    Text(
+                        "ここからは練習だよ🏫", color = colors.ink, fontSize = 18.sp,
+                        fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "きょうの1本を いっしょに ためしてみよう", color = colors.sub, fontSize = 15.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    KyonoPrimaryButton(
+                        "やってみる",
+                        {
+                            showPracticePop = false
+                            practicePopDismissedOnce = true
+                        },
+                        Modifier.testTag("practiceStartPopBtn"),
+                    )
+                }
+            }
+        }
         }
     }
 }
