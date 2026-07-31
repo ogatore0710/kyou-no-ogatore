@@ -193,10 +193,14 @@ private struct SearchContentView: View {
     // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
     @StateObject private var networkMonitor = NetworkMonitor()
 
-    // TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」カテゴリ(key "b")の
-    // タグチップにChipArt/chip-<key>.pngのイラストを付ける。他3カテゴリ(a/c/d)は対象外なので、
-    // このカテゴリの11タグ限定の日本語ラベル→アセットキーの対応表を持つ(OnboardingViews.swift:
-    // 295-298のchip-\(chip.v)命名と同じ規則)。「腰」はオンボと同じchip-youtsuu.pngを再利用する。
+    // TASK-C2-2026-07-31-feedback-round2.md B-2 → bodypart-art-rollout: 「からだの場所」
+    // カテゴリ(key "b")のタグチップにChipArt/chip-<key>.pngのイラストを付ける。他3カテゴリ
+    // (a/c/d)は対象外なので、このカテゴリの11タグ限定の日本語ラベル→アセットキーの対応表を
+    // 持つ(OnboardingViews.swift:295-298のchip-\(chip.v)命名と同じ規則)。
+    // 「腰」はB-2時点ではオンボと同じchip-youtsuu.pngを再利用していたが、bodypart-art-rollout
+    // (記録カード風・本人選定トーン)でタグ側だけ絵を差し替えるにあたり、オンボのchip-youtsuu.png
+    // (かたさチェック「腰」ワーリーチップ)には触れない方針のため、専用キー"koshi"を新設して
+    // 分離した。
     private let bodyTagChipKey: [String: String] = [
         "全身": "zenshin",
         "肩・肩甲骨": "kata",
@@ -206,7 +210,7 @@ private struct SearchContentView: View {
         "開脚": "kaikyaku",
         "もも裏": "momoura",
         "太もも・お尻": "futomomo",
-        "腰": "youtsuu",
+        "腰": "koshi",
         "ひざ・O脚": "hiza",
         "足首・足うら": "ashikubi",
     ]

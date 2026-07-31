@@ -85,9 +85,13 @@ val TAG_CATS = listOf(
     TagCatDef("d", "その他", listOf("解説", "水族館ロケ", "古民家ロケ", "その他")),
 )
 
-// TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」(key "b")タグチップのみに
-// 部位アイコンを付ける(他3カテゴリは対象外)。日本語タグ名→drawable-nodpi/chip_<key>.pngの
-// キー対応。「腰」はオンボ(OnboardingScreens.kt obChipIconRes)と同じchip_youtsuu.pngを再利用。
+// TASK-C2-2026-07-31-feedback-round2.md B-2 → bodypart-art-rollout: 「からだの場所」
+// (key "b")タグチップのみに部位アイコンを付ける(他3カテゴリは対象外)。日本語タグ名→
+// drawable-nodpi/chip_<key>.pngのキー対応。
+// 「腰」はB-2時点ではオンボ(OnboardingScreens.kt obChipIconRes)と同じchip_youtsuu.pngを
+// 再利用していたが、bodypart-art-rollout(記録カード風・本人選定トーン)でタグ側だけ絵を
+// 差し替えるにあたり、オンボのchip_youtsuu.png(かたさチェック「腰」ワーリーチップ)には
+// 触れない方針のため、専用キー"koshi"を新設して分離した。
 private val bodyTagChipKey: Map<String, String> = mapOf(
     "全身" to "zenshin",
     "肩・肩甲骨" to "kata",
@@ -97,7 +101,7 @@ private val bodyTagChipKey: Map<String, String> = mapOf(
     "開脚" to "kaikyaku",
     "もも裏" to "momoura",
     "太もも・お尻" to "futomomo",
-    "腰" to "youtsuu",
+    "腰" to "koshi",
     "ひざ・O脚" to "hiza",
     "足首・足うら" to "ashikubi",
 )
