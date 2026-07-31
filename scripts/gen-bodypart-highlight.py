@@ -32,21 +32,30 @@ STYLE = (
     "a tiny 22x22 pixel icon. The patch can have a soft slightly-transparent glow edge but its "
     "core must be a solid, clearly saturated coral-pink. Keep the thick brown character "
     "outline visible on top of/around the patch so the character silhouette doesn't get lost. "
+    "\n\nCRITICAL PLACEMENT RULE (alan5差し戻し2026-07-31で確定): place the patch on the "
+    "spot a person would put their OWN HAND when THAT body part hurts — i.e. the patch marks "
+    "the body part itself, never the hand/paw that happens to be touching it. If a hand or "
+    "paw is resting on or near the target area, draw the patch UNDER/BEHIND that hand on the "
+    "body surface (torso, shoulder, joint, etc.), not on top of the hand or fingers — the "
+    "hand shape must stay the normal skin color. A patch that ends up looking like it's on "
+    "the hand itself (making the hand look injured instead of the body part) is a FAIL. "
     "Fully transparent background, no text, no watermark."
 )
 
-# 該当部位の当て色位置。既存11体の実際のポーズに合わせて指示する。
+# 該当部位の当て色位置。既存11体の実際のポーズに合わせて指示する。原則:
+# 「その部位が痛いとき、人が手を当てる場所」に置く(手そのものの上に乗せない)。
 REGION = {
-    "koshi": "the lower back/waist area where the character's hand is resting (the area it is stretching)",
-    "kata": "both shoulders (the area the character is shrugging/tensing)",
-    "kubi": "the neck/side of the neck that the character is rubbing with its hand",
-    "senaka": "the whole back/spine area of the character's torso (the area it is stretching upward)",
-    "kokansetsu": "the hip joint area on both sides where the legs meet the torso (the butterfly-stretch pose)",
-    "kaikyaku": "the inner thigh/groin area between the two spread-open legs",
-    "momoura": "the back of both thighs (the hamstring area, visible in the forward-bend pose)",
-    "futomomo": "the front of the thigh being pulled up/back (the standing leg's thigh)",
-    "hiza": "both knees (where the character's hands are resting)",
-    "ashikubi": "the foot/ankle that the character is holding and rubbing with both hands",
+    "koshi": "the lower back/waist surface itself (the torso skin under/around where the hand rests), NOT the hand",
+    "kata": "ONLY the small strip of torso surface that is directly visible between the chin/neck and the top of the hands, on both the left and right side — a narrow trapezius/shoulder-top strip. The hands themselves (their fist/paw shapes) must stay the completely normal skin color — do NOT tint, shade, or color the hands pink at all, even partially. Do NOT place any pink on the face or cheeks either. If in doubt, make the patch smaller and keep it strictly confined to the bare torso strip at the neck-shoulder junction, fully avoiding the hand shapes.",
+    "kubi": "the neck surface itself (the side/back of the neck skin), not the hand that is rubbing it",
+    "senaka": "the whole back/spine surface of the character's torso (the area it is stretching upward)",
+    "kokansetsu": "the hip-joint/leg-base surface on both sides, exactly where the legs attach to the torso",
+    "kaikyaku": "the inner thigh/groin surface between the two spread-open legs",
+    "momoura": "the back surface of both thighs (the hamstring area, visible in the forward-bend pose) — not the hands near the toes",
+    "futomomo": "the front surface of the thigh being pulled up/back (the standing leg's thigh itself), not the hand gripping the foot",
+    "hiza": "the kneecap surface itself (both knees), not the hands resting on them",
+    "ashikubi": "the ankle/sole surface itself, not the hands wrapped around it",
+    "zenshin": "a single moderate patch centred on the torso/chest, representing the whole body in general (not a specific joint)",
 }
 
 
