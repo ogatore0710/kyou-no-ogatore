@@ -565,6 +565,10 @@ struct QuizView: View {
     let store: RecordStore
     let presetWorry: String?
     let onComplete: (_ typeKey: String, _ autoReachLv: Int?) -> Void
+    // TASK-C2-2026-07-31-build11-renshu-journey.md 出荷前小修正(alan5 2026-07-31): fdGuide外
+    // (再チェック)で入ったときだけ、途中離脱できる✕を出す(「もう一回チェックする」→気が変わった→
+    // 出られない、という閉じ込めの解消)。fdGuide中(初回練習)は前進のみのまま変更しない。
+    let onClose: () -> Void
 
     private let activeQuestions: [QuizQuestionDef]
     @State private var qi = 0
@@ -577,10 +581,11 @@ struct QuizView: View {
     // 「まえの質問へ」で戻ったとき前回選んだ選択肢が分かるよう、質問key→選択値(scoreまたはworryKey)を覚えておく。
     @State private var picked: [String: String] = [:]
 
-    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String, Int?) -> Void) {
+    init(store: RecordStore, presetWorry: String?, onComplete: @escaping (String, Int?) -> Void, onClose: @escaping () -> Void) {
         self.store = store
         self.presetWorry = presetWorry
         self.onComplete = onComplete
+        self.onClose = onClose
         self.activeQuestions = presetWorry != nil ? quizQuestions.filter { $0.key != "worry" } : quizQuestions
         _worry = State(initialValue: presetWorry)
     }
@@ -622,7 +627,8 @@ struct QuizView: View {
                         onComplete(typeKey, autoReachLv)
                     }
                 },
-                onBack: { if qi > 0 { qi -= 1 } }
+                onBack: { if qi > 0 { qi -= 1 } },
+                onClose: onClose
             )
         }
         .onChange(of: qi) { _, _ in answering = false }
@@ -638,6 +644,7 @@ private struct QuizContentView: View {
     let fdGuideActive: Bool
     let onOptTap: (QuizQuestionDef, QuizOptDef) -> Void
     let onBack: () -> Void
+    let onClose: () -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
 
@@ -647,6 +654,7 @@ private struct QuizContentView: View {
         // これでCTAは常に画面内の同じ位置にあり、本文の長さ(選択肢のnote文の折返し行数など)に
         // 関わらず動かない。TASK-C2-2026-07-31-build11-renshu-journey.md C: 「ホームにもどる」は
         // 削除(練習モードの一貫ジャーニーの一部として、出口を設けない設計に統一)。
+        ZStack(alignment: .topTrailing) {
         VStack(spacing: 0) {
         // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(ScrollViewの外)。
         if fdGuideActive {
@@ -720,6 +728,25 @@ private struct QuizContentView: View {
         }
         }
         .background(KyonoBackgroundColor().ignoresSafeArea())
+        // 出荷前小修正(alan5 2026-07-31): fdGuide外(再チェック)で入ったときだけ、途中離脱できる
+        // ✕を出す。SoudanSheetView.swift:470-481の✕(44x44タップ域+40x40円)と同じ見た目。
+        // fdGuide中(初回練習)は前進のみのまま出さない。
+        if !fdGuideActive {
+            Button(action: onClose) {
+                Color.clear
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Text("✕").kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(colors.line))
+                    )
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("とじる")
+            .padding(.top, 4).padding(.trailing, 12)
+        }
+        }
     }
 }
 

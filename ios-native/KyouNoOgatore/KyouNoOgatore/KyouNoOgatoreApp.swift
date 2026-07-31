@@ -382,7 +382,8 @@ struct RootView: View {
         case let .quiz(presetWorry):
             QuizView(
                 store: store, presetWorry: presetWorry,
-                onComplete: { typeKey, autoReachLv in screen = .result(typeKey: typeKey, autoReachLv: autoReachLv) }
+                onComplete: { typeKey, autoReachLv in screen = .result(typeKey: typeKey, autoReachLv: autoReachLv) },
+                onClose: { screen = .home }
             )
         case let .result(typeKey, autoReachLv):
             // app-quiz.js:262-266 showResult()の1:1移植: はじめの1本ガイド中はrTourBtnを出さない

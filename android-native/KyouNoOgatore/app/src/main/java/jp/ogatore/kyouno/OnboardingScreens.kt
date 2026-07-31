@@ -64,6 +64,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -651,7 +652,7 @@ internal val QuizPickedSaver: Saver<SnapshotStateMap<String, Any?>, Any> = Saver
 val KYONO_JOURNEY_STEPS = listOf("チェック", "けっか", "どうが", "きろく", "カード")
 
 @Composable
-fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit) {
+fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit, onClose: () -> Unit) {
     val activeQuestions = remember(presetWorry) {
         if (presetWorry != null) QUIZ_QUESTIONS.filter { it.key != "worry" } else QUIZ_QUESTIONS
     }
@@ -669,14 +670,16 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §6(Android限定): app-quiz.js:156-158の
     // history.pushState設計(戻るで1問ずつ遡れる)の1:1移植。BackHandlerが1つも無く、ハードウェア/
     // ジェスチャーの「もどる」を押すと確認なしに回答が消えていた欠落。
-    // TASK-C2-2026-07-31-build11-renshu-journey.md C: qi==0のときは何もしない(「ホームにもどる」
-    // を削除し、練習モードの一貫ジャーニーとして出口を設けない設計に統一したため)。
-    BackHandler(enabled = qi > 0) {
-        qi--
-    }
     // TASK-C2-2026-07-31-build11-renshu-journey.md D: 練習モードジャーニーバーはfdGuide中
     // (はじめの1本ガイド・streakTotal==0)だけに出す。既存ユーザーの再チェックには一切出さない。
     val fdGuideActive = HomeLogic.fdActive(store.get("fd", null as String?), RecordLogic.loadStreak(store).total)
+    // TASK-C2-2026-07-31-build11-renshu-journey.md C: qi==0でfdGuide中は何もしない(「ホームに
+    // もどる」を削除し、練習モードの一貫ジャーニーとして出口を設けない設計に統一したため)。
+    // 出荷前小修正(alan5 2026-07-31): fdGuide外(再チェック)ではqi==0でも「もどる」でonCloseへ
+    // (「もう一回チェックする」→気が変わった→出られない、という閉じ込めの解消)。
+    BackHandler(enabled = qi > 0 || !fdGuideActive) {
+        if (qi > 0) qi-- else onClose()
+    }
 
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
@@ -687,6 +690,7 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
         // 「まえの質問へ」「ホームにもどる」を本文と同じverticalScrollから外し、外側Columnの
         // 固定フッターにする。これでCTAは常に画面内の同じ位置にあり、本文の長さ(選択肢のnote文の
         // 折返し行数など)に関わらず動かない。
+        Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().background(colors.bg)) {
         // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(verticalScrollの外)。
         if (fdGuideActive) {
@@ -817,6 +821,22 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
             Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
                 // 全画面完全性監査タスク #quiz: index.html:720 #qBackBtn(Q1以外で表示・まえの質問へ戻る)の1:1移植。
                 KyonoLineButton("← まえの質問へ", { qi-- }, Modifier.testTag("qBackBtn"))
+            }
+        }
+        }
+        // 出荷前小修正(alan5 2026-07-31): fdGuide外(再チェック)で入ったときだけ、途中離脱できる
+        // ✕を出す。SoudanSheet.kt:464-473の✕(44dpタップ域+40dp円)と同じ見た目。fdGuide中
+        // (初回練習)は前進のみのまま出さない。
+        if (!fdGuideActive) {
+            Box(
+                modifier = Modifier.align(Alignment.TopEnd).size(44.dp).clickable { onClose() }.testTag("quizCloseBtn")
+                    .semantics { contentDescription = "とじる" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier = Modifier.size(40.dp).background(colors.line, RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center,
+                ) { Text("✕", color = colors.ink, fontWeight = FontWeight.Black) }
             }
         }
         }
