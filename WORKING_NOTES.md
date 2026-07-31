@@ -157,9 +157,16 @@ done
 ### 触ってはいけないもの（会話が消えても効き続ける制約）
 
 - **Web版配信ファイルは変更禁止**: `index.html` `app-card.js` `app-env.js` `app-quiz.js`
-  `app-record.js` `app-search.js` `videos.js` `sw.js` `manifest.json` `soudan-kb.js`
-  `obu-feed.js`。読むのは可。※7/30に`index.html:1437`の`TYPE_IMG`定義1行だけ本人の
+  `app-record.js` `app-search.js` `videos.js` `sw.js` `manifest.json` `obu-feed.js`。
+  読むのは可。※7/30に`index.html:1437`の`TYPE_IMG`定義1行だけ本人の
   明示承認を得て編集した。**あの承認はあの1行限りで、以後には及ばない。**
+- **`soudan-kb.js`だけ例外ルール（2026-07-31本人決定・カードUIで確定）**: 相談室KBは
+  Web版が正本でネイティブが同期する構造のため、**KB正本の編集は可。ただしWeb版への
+  実配信（`sw.js`のキャッシュ版数上げ）は本人ゲート**——編集しても版数を上げない限り
+  Web実ユーザーには届かない、を安全弁として使う。経緯: 7/31のFable15艦隊による相談室
+  拡充がsoudan-kb.jsを編集（4bc2111・129行）→alan5が検収時に禁止リスト抵触を検知して
+  本人へ報告→「事後承認・公開は保留」の裁定。**redFlags/crisis/エンジンは引き続き
+  変更禁止**（同拡充でも無変更を検収済み）。
 - App Storeの公開メタデータ（`appStoreVersions`・スクショ・説明文・審査提出）に触らない
 - Apple Developer Portalの登録を消さない
 - **他艦のプロダクト（squeeze-hunter等）を直接編集しない。** パッチ＋説明を渡す
