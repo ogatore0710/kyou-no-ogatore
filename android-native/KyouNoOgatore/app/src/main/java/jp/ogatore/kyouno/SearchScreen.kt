@@ -85,6 +85,23 @@ val TAG_CATS = listOf(
     TagCatDef("d", "その他", listOf("解説", "水族館ロケ", "古民家ロケ", "その他")),
 )
 
+// TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」(key "b")タグチップのみに
+// 部位アイコンを付ける(他3カテゴリは対象外)。日本語タグ名→drawable-nodpi/chip_<key>.pngの
+// キー対応。「腰」はオンボ(OnboardingScreens.kt obChipIconRes)と同じchip_youtsuu.pngを再利用。
+private val bodyTagChipKey: Map<String, String> = mapOf(
+    "全身" to "zenshin",
+    "肩・肩甲骨" to "kata",
+    "首・肩こり" to "kubi",
+    "姿勢・背中" to "senaka",
+    "股関節" to "kokansetsu",
+    "開脚" to "kaikyaku",
+    "もも裏" to "momoura",
+    "太もも・お尻" to "futomomo",
+    "腰" to "youtsuu",
+    "ひざ・O脚" to "hiza",
+    "足首・足うら" to "ashikubi",
+)
+
 // index.html:441-449 .chip-a〜d(カテゴリ色)の1:1移植(ライト/ダーク)。
 private data class ChipColors(val bg: Color, val border: Color, val text: Color, val onBg: Color, val onBorder: Color, val onText: Color)
 
@@ -313,9 +330,19 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             ) {
                 activeCatTags.forEach { tag ->
                     val on = tag == activeTag
-                    Text(
-                        tag, color = if (on) cc.onText else cc.text, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                        lineHeight = 14.sp, style = KyonoTightLineTextStyle,
+                    // TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」(key "b")の
+                    // タグだけ左にアイコンを添える。OnboardingScreens.kt obChipIconResと同じ
+                    // 「resources.getIdentifier実行時解決」方式(KyonoTypeArt.kt/PlaylistThumb等
+                    // 本ファイル内でも既出のパターン)を使い、生成イラストがまだ届いていない
+                    // (drawable-nodpi/chip_*.pngが無い)キーはresId==0で単に描画しないだけにして
+                    // ビルドも実行時も落とさない。オンボは32.dpだが、こちらはチップ自体が小さく
+                    // 密集するため一回り小さい22.dpにする。
+                    val chipIconKey = if (activeCat == "b") bodyTagChipKey[tag] else null
+                    val chipIconResId = if (chipIconKey != null) {
+                        remember(chipIconKey) { context.resources.getIdentifier("chip_$chipIconKey", "drawable", context.packageName) }
+                    } else 0
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .background(if (on) cc.onBg else cc.bg, RoundedCornerShape(50))
                             .border(2.dp, if (on) cc.onBorder else cc.border, RoundedCornerShape(50))
@@ -328,7 +355,20 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                             // ギリギリ入らなかったため、余裕を持って12dpにする。
                             .padding(horizontal = 12.dp, vertical = 10.dp)
                             .testTag("searchTag_$tag"),
-                    )
+                    ) {
+                        if (chipIconResId != 0) {
+                            androidx.compose.foundation.Image(
+                                painter = androidx.compose.ui.res.painterResource(chipIconResId),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                            )
+                            Spacer(Modifier.width(4.dp))
+                        }
+                        Text(
+                            tag, color = if (on) cc.onText else cc.text, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                            lineHeight = 14.sp, style = KyonoTightLineTextStyle,
+                        )
+                    }
                 }
             }
             // index.html:952 #filterNowの1:1移植。TASK-C2-2026-07-29-ux-audit-G.md G4(ピル・最優先):

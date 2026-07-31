@@ -193,6 +193,24 @@ private struct SearchContentView: View {
     // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
     @StateObject private var networkMonitor = NetworkMonitor()
 
+    // TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」カテゴリ(key "b")の
+    // タグチップにChipArt/chip-<key>.pngのイラストを付ける。他3カテゴリ(a/c/d)は対象外なので、
+    // このカテゴリの11タグ限定の日本語ラベル→アセットキーの対応表を持つ(OnboardingViews.swift:
+    // 295-298のchip-\(chip.v)命名と同じ規則)。「腰」はオンボと同じchip-youtsuu.pngを再利用する。
+    private let bodyTagChipKey: [String: String] = [
+        "全身": "zenshin",
+        "肩・肩甲骨": "kata",
+        "首・肩こり": "kubi",
+        "姿勢・背中": "senaka",
+        "股関節": "kokansetsu",
+        "開脚": "kaikyaku",
+        "もも裏": "momoura",
+        "太もも・お尻": "futomomo",
+        "腰": "youtsuu",
+        "ひざ・O脚": "hiza",
+        "足首・足うら": "ashikubi",
+    ]
+
     var body: some View {
         // TestFlight実機フィードバックC2(2026-07-29): 「動画を探す」でhits.countは454件正しく
         // 入っているのに、カードが1枚しか描画されず「もっと見る」も出ない欠陥があった。
@@ -279,7 +297,17 @@ private struct SearchContentView: View {
             FlowLayout(spacing: 6, lineSpacing: 6, alignment: .leading) {
                 ForEach(activeCatTags, id: \.self) { tag in
                     let on = tag == activeTag
-                    Text(tag).kyonoFont(.bold700, size: 14).foregroundColor(on ? cc.onText : cc.text)
+                    HStack(spacing: 4) {
+                        // TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」(cat.key=="b")
+                        // のタグのみアイコン付与。他カテゴリのチップは対象外なので、bodyTagChipKeyに
+                        // 無いタグ(=このカテゴリ以外)はifが不成立になりアイコンなしのまま素通りする。
+                        if activeCat == "b", let key = bodyTagChipKey[tag],
+                           let url = Bundle.main.url(forResource: "chip-\(key)", withExtension: "png"),
+                           let uiImage = UIImage(contentsOfFile: url.path) {
+                            Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 22 * zoom, height: 22 * zoom)
+                        }
+                        Text(tag).kyonoFont(.bold700, size: 14).foregroundColor(on ? cc.onText : cc.text)
+                    }
                         .padding(.horizontal, 16 * zoom).padding(.vertical, 10 * zoom)
                         .background(Capsule().fill(on ? cc.onBg : cc.bg))
                         .overlay(Capsule().stroke(on ? cc.onBorder : cc.border, lineWidth: 2 * zoom))

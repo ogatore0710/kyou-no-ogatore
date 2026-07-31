@@ -52,18 +52,26 @@ STYLE = (
 )
 
 # ラベルはOnboardingViews.swift/.ktの定義と一致。キーはObChip.vの実際の値。
+# B-2(本生産)で追加: かたさチップ4種(hard/normal/soft/unknown)・からだの場所タグ10種
+# (11種のうちyoutsuu=腰は部位チップの絵を使い回すため新規生成しない・SearchView.swift/
+# SearchScreen.ktのFadingChipRow「からだの場所」行に適用)。からだの場所タグは元コードに
+# 短縮キーが無い(ラベル文字列そのものがid)ため、ファイル名用に短いローマ字キーを新設した。
 SUBJECTS = {
     "katakori": "肩こり・首", "youtsuu": "腰", "zenkutsu": "前屈できない",
     "nemuri": "眠り", "none": "とくにない",
     "asa": "朝おきて", "furo": "おふろ上がり", "neru": "寝るまえ", "free": "きめてない",
+    "hard": "ガチガチかも", "normal": "ふつう", "soft": "やわらかい", "unknown": "わからない",
+    "zenshin": "全身", "kata": "肩・肩甲骨", "kubi": "首・肩こり", "senaka": "姿勢・背中",
+    "kokansetsu": "股関節", "kaikyaku": "開脚", "momoura": "もも裏", "futomomo": "太もも・お尻",
+    "hiza": "ひざ・O脚", "ashikubi": "足首・足うら",
 }
 
-# 「腰」(youtsuu)と同じ人型構成(円の頭+角丸長方形の胴)を体パーツ系(katakori/zenkutsu)は
-# 踏襲し、アクセントの位置だけ変えてシリーズとして揃える。時間帯系(asa/furo/neru/free)は
-# タブバーの家/虫眼鏡と同じ「単純な幾何学図形1つ+ワンポイント」の構成にする。
-# B-0改定(2026-07-31): 「アクセント色の帯だけ塗り、残りは輪郭のみ」の旧構成をやめ、人型
-# シルエット全体を単色で塗りつぶした1枚絵にする。部位の目印(腰の帯・肩のはね等)は塗り色を
-# 増やさず、輪郭と同じ墨色の太いストロークで人物シルエットの上に描き足す(2色構成を維持)。
+# 「腰」(youtsuu)と同じ人型構成(円の頭+角丸長方形の胴)を体パーツ系は踏襲し、アクセントの
+# 位置・ポーズだけ変えてシリーズとして揃える。時間帯系(asa/furo/neru/free)とかたさ系
+# (hard/normal/soft)はタブバーの家/虫眼鏡と同じ「単純な幾何学図形1つ+ワンポイント」の構成。
+# B-0改定(2026-07-31): 「アクセント色の帯だけ塗り、残りは輪郭のみ」の旧構成をやめ、シルエット
+# 全体を単色で塗りつぶした1枚絵にする。部位の目印(腰の帯・肩のはね等)は塗り色を増やさず、
+# 輪郭と同じ墨色の太いストロークでシルエットの上に描き足す(2色構成を維持)。
 WHAT = {
     "youtsuu": (
         "a simple pictogram of a person's lower back: a small circle head and one tall "
@@ -74,46 +82,162 @@ WHAT = {
         "ink color as the outline, not a second fill color"
     ),
     "katakori": (
-        "a simple geometric pictogram of shoulder/neck stiffness: the exact same figure "
-        "construction as IMAGE 2 (small circle head, one tall rounded-rectangle torso), but with "
-        "the horizontal accent-color rounded-rectangle band placed across the TOP of the torso at "
-        "shoulder height instead of the lower back, plus two short thick rounded-rectangle tick "
-        "marks pointing outward from each shoulder to suggest tension"
+        "a simple pictogram of shoulder/neck stiffness, symmetric front-facing figure: a small "
+        "circle head centred on top of one tall rounded-rectangle torso with two arms (two short "
+        "vertical rounded-rectangle strokes, one along the left edge of the torso and one along the "
+        "right edge, both the SAME length), the WHOLE figure filled solid in the single warm accent "
+        "color with the thick dark outline all around it, exactly like IMAGE 2's construction. The "
+        "torso silhouette itself must be completely PLAIN below the neck — no belt line, no "
+        "horizontal stroke, no marking anywhere on the torso body at all. Add exactly two small "
+        "lightning-bolt zigzag strokes in dark ink FLOATING in the empty space beside the head, "
+        "outside the silhouette: one just to the upper-left of the head, one just to the upper-right "
+        "of the head, mirror images of each other, same size, same distance from the head on both "
+        "sides — like two small spark marks framing the head to suggest neck/shoulder tension. "
+        "Nothing else is marked on the figure."
     ),
     "zenkutsu": (
-        "a simple geometric pictogram of a person bending forward: the same small-circle-head + "
-        "rounded-rectangle-torso construction as IMAGE 2, but the torso rounded rectangle is bent "
-        "forward at roughly 90 degrees (an L-shaped rounded rectangle) over a short rounded-"
-        "rectangle 'legs' base, with a small accent-color rounded-rectangle mark at the reaching "
-        "hand end to show effort, and a small gap between the hand end and a thin horizontal "
-        "ground line below to show it does not quite reach"
+        "a simple pictogram of a person bending forward: the same small-circle-head + "
+        "rounded-rectangle-torso construction as IMAGE 2, but the torso is bent forward at roughly "
+        "90 degrees (an L-shaped rounded rectangle) over short rounded-rectangle legs, the WHOLE "
+        "bent figure filled solid in the single warm accent color with the thick dark outline all "
+        "around it — keep it to this one bent L-shape silhouette only, no extra small marks, hands, "
+        "or ground lines, so it stays readable as a big simple shape at tiny icon size"
     ),
     "nemuri": (
-        "a simple geometric pictogram of a pillow: one wide rounded rectangle with a smaller "
-        "rounded-rectangle indent/fold on top, filled in the single accent color"
+        "a simple pictogram of a pillow: one wide rounded rectangle with a smaller rounded "
+        "indent/fold across the top third, the WHOLE pillow filled solid in the single warm accent "
+        "color with the thick dark outline all around it and the fold line drawn as a dark ink "
+        "stroke"
     ),
     "none": (
-        "a simple geometric pictogram meaning 'nothing in particular': a plain circle outline "
-        "with one smaller solid accent-color circle centred inside it, like a simple target dot"
+        "a simple pictogram of a smiling face meaning 'nothing in particular, all good': a circle "
+        "filled solid in the single warm accent color with the thick dark outline, with two small "
+        "dark ink dot eyes and one thick dark ink curved smile stroke inside it — like a simple "
+        "smiley face icon, nothing else"
     ),
     "asa": (
-        "a simple geometric pictogram of a sunrise: one accent-color filled circle (the sun) "
-        "with a single straight horizontal rounded-rectangle bar beneath it (the horizon), and "
-        "three short thick rounded-rectangle rays fanned out above the circle"
+        "a simple pictogram of a sunrise: one circle (the sun) filled solid in the single warm "
+        "accent color with the thick dark outline, sitting on top of one thick dark ink horizontal "
+        "stroke (the horizon line), with three short thick dark ink rays fanned out above the circle"
     ),
     "furo": (
-        "a simple geometric pictogram of a bathtub: one wide rounded rectangle (the tub) with a "
-        "small accent-color filled rounded-rectangle wisp shape floating just above it (steam)"
+        "a simple pictogram of a bathtub with steam: one wide rounded-rectangle tub shape filled "
+        "solid in the single warm accent color with the thick dark outline, with two short thick "
+        "dark ink wavy steam strokes rising just above it"
     ),
     "neru": (
-        "a simple geometric pictogram of night-time: one accent-color filled crescent-moon shape "
-        "(a large circle with a smaller circle cut out of one side) with one small accent-color "
-        "filled rounded four-point star beside it"
+        "a simple pictogram of night-time: one crescent-moon shape (a circle with a smaller circle "
+        "cut out of one side) filled solid in the single warm accent color with the thick dark "
+        "outline, with one small solid four-point star of the same accent color (with dark outline) "
+        "beside it"
     ),
     "free": (
-        "a simple geometric pictogram of 'undecided': a circle outline with a bold rounded "
-        "question-mark shape centred inside it, the question mark filled in the single accent color"
+        "a simple pictogram of 'undecided': a circle filled solid in the single warm accent color "
+        "with the thick dark outline, with one bold thick dark ink question-mark stroke centred "
+        "inside it"
     ),
+    "hard": (
+        "a simple pictogram of a chunky, angular rock/boulder: one bold rounded-but-angular "
+        "boulder silhouette (a few flat facets, not a smooth circle) filled solid in the single "
+        "warm accent color with the thick dark outline, with two short straight dark ink facet "
+        "lines on the surface to suggest a hard rock texture — keep it to one big chunky shape, no "
+        "fine cracks or many small facets"
+    ),
+    "normal": (
+        "a simple pictogram meaning 'calm/balanced/normal': one gently rounded wave shape (a flat "
+        "rounded-rectangle band with one soft S-curve) filled solid in the single warm accent color "
+        "with the thick dark outline — a calm, symmetrical, unremarkable big shape"
+    ),
+    "soft": (
+        "a simple pictogram of a soft, droplet/slime blob: one big rounded droplet silhouette "
+        "(wide rounded bottom tapering to a soft rounded point on top, like a water drop) filled "
+        "solid in the single warm accent color with the thick dark outline, with one small "
+        "highlight-shaped dark ink curve near the top to suggest a soft squishy surface"
+    ),
+    # B-2指示どおり「わからない」は時間帯「きめてない」(free)と同モチーフの描き直しで統一。
+    "unknown": (
+        "a simple pictogram of 'undecided', IDENTICAL in construction to IMAGE 2: a circle filled "
+        "solid in the single warm accent color with the thick dark outline, with one bold thick "
+        "dark ink question-mark stroke centred inside it"
+    ),
+    "zenshin": (
+        "a simple pictogram of a whole person, head to toe: a small circle head, one tall "
+        "rounded-rectangle torso, and two short rounded-rectangle legs slightly apart, the WHOLE "
+        "figure filled solid in the single warm accent color with the thick dark outline all "
+        "around it — no extra accent marks anywhere on the body, since this represents the whole "
+        "body rather than one part"
+    ),
+    "kata": (
+        "a simple pictogram of shoulder-blade tension, same solid-filled person construction as "
+        "IMAGE 2 (small circle head, tall rounded-rectangle torso), but with two short thick dark "
+        "ink diagonal tick marks placed side by side across the UPPER-BACK of the torso (shoulder "
+        "blade area) to mark that region — same dark ink color as the outline"
+    ),
+    "kubi": (
+        "a simple pictogram of neck stiffness, same solid-filled person construction as IMAGE 2 "
+        "(small circle head, tall rounded-rectangle torso), but with one thick dark ink horizontal "
+        "stroke drawn right at the narrow neck junction between the head circle and the torso "
+        "rectangle, plus one small dark ink zigzag mark beside the neck to suggest tension"
+    ),
+    "senaka": (
+        "a simple pictogram of posture/back, same solid-filled person construction as IMAGE 2 "
+        "(small circle head, tall rounded-rectangle torso) shown from the side, but with one thick "
+        "dark ink curved stroke running down the full length of the back edge of the torso to show "
+        "the spine/posture line"
+    ),
+    "kokansetsu": (
+        "a simple pictogram of the hip joints, same solid-filled person construction as IMAGE 2 "
+        "(small circle head, tall rounded-rectangle torso with two short rounded-rectangle legs), "
+        "but with two small solid dark ink dots marked at the LEFT and RIGHT points where the legs "
+        "join the torso (the hip joints)"
+    ),
+    "kaikyaku": (
+        "a simple pictogram of doing the splits: the same solid-filled person construction as "
+        "IMAGE 2 (small circle head, rounded-rectangle torso), but with two long rounded-rectangle "
+        "legs spread WIDE apart into a horizontal V shape below the torso, the whole figure filled "
+        "solid in the single warm accent color with the thick dark outline all around it"
+    ),
+    "momoura": (
+        "a simple pictogram of the back of the thigh (hamstring), symmetric front-facing figure: a "
+        "small circle head centred on top of one tall rounded-rectangle torso with two short arms "
+        "(vertical rounded-rectangle strokes along each side of the torso) and two long "
+        "rounded-rectangle legs below the torso, separated by a thin gap down the middle, the WHOLE "
+        "figure filled solid in the single warm accent color with the thick dark outline all around "
+        "it, exactly like IMAGE 2's construction. The head, torso, and hip area must be completely "
+        "PLAIN — no belt line, no horizontal stroke, no marking anywhere above the legs at all. Add "
+        "exactly one marking to the figure: a bold thick dark ink horizontal stroke drawn straight "
+        "across BOTH legs together near the BOTTOM of the legs, just above the ankles (NOT near the "
+        "top of the legs, NOT near the hips), spanning the full width from the outer edge of the "
+        "left leg to the outer edge of the right leg as one single continuous large stroke crossing "
+        "the small gap between the legs too. This is the only mark anywhere on the figure."
+    ),
+    "futomomo": (
+        "a simple pictogram of the thigh/glutes area, same solid-filled person construction as "
+        "IMAGE 2 (small circle head, tall rounded-rectangle torso with two short rounded-rectangle "
+        "legs), but with one wide thick dark ink horizontal band marked across the TOP of both legs "
+        "where they meet the torso (hip/glute/thigh area)"
+    ),
+    "hiza": (
+        "a simple pictogram of bow-legged knees (O脚), same solid-filled person construction as "
+        "IMAGE 2 (small circle head, tall rounded-rectangle torso), but with two short "
+        "rounded-rectangle legs that bow OUTWARD at the knee (like a wide letter O between the "
+        "knees) and one small solid dark ink dot marked at each knee"
+    ),
+    "ashikubi": (
+        "a simple pictogram of the ankle/sole of the foot, same solid-filled person construction "
+        "as IMAGE 2 (small circle head, tall rounded-rectangle torso with two short "
+        "rounded-rectangle legs), but with one thick dark ink horizontal stroke marked across both "
+        "ankles near the bottom of the legs"
+    ),
+}
+
+# 人型構成の踏襲元(IMAGE 2として渡す既存参照画像)。腰(youtsuu)を基準にする体パーツ系と、
+# 「わからない」(unknown)は「きめてない」(free)を基準にする(B-2指示: 同モチーフの描き直し)。
+REFERENCE_IMAGE = {
+    "katakori": "youtsuu", "zenkutsu": "youtsuu", "kata": "youtsuu", "kubi": "youtsuu",
+    "senaka": "youtsuu", "kokansetsu": "youtsuu", "kaikyaku": "youtsuu", "momoura": "youtsuu",
+    "futomomo": "youtsuu", "hiza": "youtsuu", "ashikubi": "youtsuu", "zenshin": "youtsuu",
+    "unknown": "free",
 }
 
 
@@ -128,11 +252,15 @@ def gen(chip_id):
         sys.exit(f"不明なID: {chip_id}")
     what = WHAT[chip_id]
     images = ["-F", f"image[]=@{ANCHOR}"]
-    existing_youtsuu = os.path.join(OUT_DIR, "chip-youtsuu.png")
-    # katakori/zenkutsuは「腰」と同じ人型構成を踏襲するため、既存のyoutsuu画像もIMAGE 2として渡す
-    # (プロンプト内の「IMAGE 2」参照とインデックスを一致させる)。
-    if chip_id in ("katakori", "zenkutsu") and os.path.exists(existing_youtsuu):
-        images += ["-F", f"image[]=@{existing_youtsuu}"]
+    ref_id = REFERENCE_IMAGE.get(chip_id)
+    if ref_id:
+        ref_path = os.path.join(OUT_DIR, f"chip-{ref_id}.png")
+        # 参照元はこのスクリプトで既に新STYLEで再生成済みである前提(古いv2画像を参照に
+        # 使うと新旧の質感が混ざるため)。呼び出し順序に注意(youtsuu/freeを先に)。
+        if os.path.exists(ref_path):
+            images += ["-F", f"image[]=@{ref_path}"]
+        else:
+            sys.exit(f"参照元 {ref_id} が未生成です。先に生成してください: python3 {sys.argv[0]} {ref_id}")
     prompt = f"Draw {what}. " + STYLE
     os.makedirs(OUT_DIR, exist_ok=True)
     out_path = os.path.join(OUT_DIR, f"chip-{chip_id}.png")
