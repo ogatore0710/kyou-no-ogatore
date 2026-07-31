@@ -22,20 +22,33 @@ KEY_PATH = os.path.expanduser("~/.claude/secrets/openai-ogatore-manuals.key")
 ANCHOR = os.path.expanduser("~/Claude/kyou-no-ogatore/.art-staging/icon-anchor-tabbar.png")
 OUT_DIR = os.path.expanduser("~/Claude/kyou-no-ogatore/.art-staging")
 
-# タブバー5つの実物(太めの丸みストローク・フラットな幾何形・単色寄り+選択中だけ塗り)を
-# そのままトーンの正本として説明する。gen-type-art.pyのSTYLE節と同じ考え方。
-# alan5差し戻し(2026-07-30): 1回目は輪郭が細い波線・塗りが有機的なブロブでタブバーと質感が
-# 揃わなかった。線の太さを均一にし、幾何学図形(角丸長方形・円)だけで構成するよう明示的に指定する。
-# v2(腰=youtsuu)がOKになったので、以降の8種も同じ指定・同じ構成手法で描く。
+# タブバー5つの実物(太めの丸みストローク・フラットな幾何形)をトーンの正本として説明する。
+# gen-type-art.pyのSTYLE節と同じ考え方。
+# alan5差し戻し(2026-07-30・v1→v2): 1回目は輪郭が細い波線・塗りが有機的なブロブでタブバーと
+# 質感が揃わなかった。線の太さを均一にし、幾何学図形(角丸長方形・円)だけで構成するよう明示的に
+# 指定して解消(v2の腰=youtsuuでOK)。
+# B-0改定(TASK-C2-2026-07-31-feedback-round2.md・2026-07-31): 既存9種の実機ダークモード確認で
+# v2にも3つの敗因が見つかった。①塗りが白・薄色の部分が残っていて、ダークモードのチップ背景に
+# 対して「白だけ浮く」見え方になっていた ②32pt表示だと細部(二重線・小さい飾り等)が潰れて
+# 何を表しているか読めなくなっていた(特に「前屈できない」) ③意味の伝わらない抽象形
+# (「とくにない」の同心円=単なる的にしか見えない)。
+# 対策: 白/薄色塗りを全面禁止し、シルエット全体を暖色系のはっきりした単色で塗りつぶした上に
+# 墨色の太い輪郭を乗せる(2色構成に固定=どのテーマ背景でも同じ2色が乗るだけなので、背景色に
+# 溶けたり浮いたりしない)。モチーフも「大きな単純な形1つ」だけに絞り、32pxまで縮めても
+# シルエットで意味が分かることを唯一の判定基準にする。
 STYLE = (
-    "A minimalist icon using ONLY simple flat geometric shapes — rounded rectangles and circles, "
-    "like a pictogram — in exactly the same visual style as the tab bar icons shown in IMAGE 1: "
-    "a UNIFORM thick stroke width identical throughout (never thin, never tapering, never wavy or "
-    "organic freehand contour lines), rounded corners, a single flat accent color fill on one part "
-    "(matching IMAGE 1's single-color-fill convention, e.g. its solid yellow house icon), no "
-    "gradients, no soft blob shapes, no 3D toy or plush character, not medical or anatomical, "
-    "fully transparent background, no cast shadow, no ground, no text, no watermark, single icon, "
-    "centred, generous empty margin on all four sides."
+    "A minimalist flat sticker-style icon: render the ENTIRE subject as ONE big, bold, simple "
+    "silhouette filled completely with a single saturated WARM accent color such as terracotta, "
+    "coral-orange or amber (never white, never a pale/light tint, never left empty or unfilled — "
+    "every part of the shape must be solidly colored), outlined all around with a thick, perfectly "
+    "uniform-width dark ink stroke (a warm near-black charcoal, like #3A3A35 — never thin, never "
+    "tapering, never a wavy or organic freehand line), rounded corners throughout, constructed only "
+    "from simple geometric shapes (rounded rectangles and circles) in the same pictogram spirit as "
+    "the tab bar icons shown in IMAGE 1. The subject must read as ONE big recognizable shape even "
+    "shrunk down to a tiny 32x32 pixel icon — no fine internal details, no thin secondary lines, no "
+    "small decorative marks that would disappear at that size. No gradients, no glow, no drop "
+    "shadow, no 3D toy or plush character, not medical or anatomical, no text, no watermark, single "
+    "icon, centred, generous empty margin on all four sides, fully transparent background."
 )
 
 # ラベルはOnboardingViews.swift/.ktの定義と一致。キーはObChip.vの実際の値。
@@ -48,12 +61,17 @@ SUBJECTS = {
 # 「腰」(youtsuu)と同じ人型構成(円の頭+角丸長方形の胴)を体パーツ系(katakori/zenkutsu)は
 # 踏襲し、アクセントの位置だけ変えてシリーズとして揃える。時間帯系(asa/furo/neru/free)は
 # タブバーの家/虫眼鏡と同じ「単純な幾何学図形1つ+ワンポイント」の構成にする。
+# B-0改定(2026-07-31): 「アクセント色の帯だけ塗り、残りは輪郭のみ」の旧構成をやめ、人型
+# シルエット全体を単色で塗りつぶした1枚絵にする。部位の目印(腰の帯・肩のはね等)は塗り色を
+# 増やさず、輪郭と同じ墨色の太いストロークで人物シルエットの上に描き足す(2色構成を維持)。
 WHAT = {
     "youtsuu": (
-        "a simple geometric pictogram of a person's lower back: build the figure out of a small "
-        "circle for the head and one tall rounded rectangle for the torso (same construction as "
-        "IMAGE 1's simple shapes), with a horizontal rounded-rectangle band across the LOWER THIRD "
-        "of the torso filled in the single accent color to mark the lower-back/waist area"
+        "a simple pictogram of a person's lower back: a small circle head and one tall "
+        "rounded-rectangle torso (same construction as IMAGE 1's simple shapes), the WHOLE figure "
+        "filled solid in the single warm accent color with the thick dark outline all around it, "
+        "plus one extra thick dark ink horizontal stroke drawn across the LOWER THIRD of the torso "
+        "(like a belt line) to mark the lower-back/waist area — this marker line uses the SAME dark "
+        "ink color as the outline, not a second fill color"
     ),
     "katakori": (
         "a simple geometric pictogram of shoulder/neck stiffness: the exact same figure "
