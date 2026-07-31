@@ -361,10 +361,11 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                             .testTag("searchTag_$tag"),
                     ) {
                         if (chipIconResId != 0) {
+                            // TASK-C2-2026-07-31-bodypart-art-legibility.md: 老眼対応で22dp→28dpへ拡大。
                             androidx.compose.foundation.Image(
                                 painter = androidx.compose.ui.res.painterResource(chipIconResId),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
+                                modifier = Modifier.size(28.dp),
                             )
                             Spacer(Modifier.width(4.dp))
                         }

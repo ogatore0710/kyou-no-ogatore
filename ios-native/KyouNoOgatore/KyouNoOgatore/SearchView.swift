@@ -308,7 +308,8 @@ private struct SearchContentView: View {
                         if activeCat == "b", let key = bodyTagChipKey[tag],
                            let url = Bundle.main.url(forResource: "chip-\(key)", withExtension: "png"),
                            let uiImage = UIImage(contentsOfFile: url.path) {
-                            Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 22 * zoom, height: 22 * zoom)
+                            // TASK-C2-2026-07-31-bodypart-art-legibility.md: 老眼対応で22pt→28ptへ拡大。
+                            Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 28 * zoom, height: 28 * zoom)
                         }
                         Text(tag).kyonoFont(.bold700, size: 14).foregroundColor(on ? cc.onText : cc.text)
                     }
