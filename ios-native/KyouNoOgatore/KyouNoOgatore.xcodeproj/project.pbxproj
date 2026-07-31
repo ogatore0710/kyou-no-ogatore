@@ -196,6 +196,7 @@
 				5187B9EE3014B06500013565 /* Frameworks */,
 				5187B9EF3014B06500013565 /* Resources */,
 				60EBC3A94D1B311BED5A9391 /* Embed Foundation Extensions */,
+				A9B8C7D6E5F4A3B2C1D0E9F8 /* Patch Launch Screen Info.plist */,
 			);
 			buildRules = (
 			);
@@ -326,6 +327,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A9B8C7D6E5F4A3B2C1D0E9F8 /* Patch Launch Screen Info.plist */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Patch Launch Screen Info.plist";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "PLIST=\"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Delete :UILaunchScreen\" \"$PLIST\" 2>/dev/null\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen dict\" \"$PLIST\"\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen:UIColorName string LaunchBackground\" \"$PLIST\"\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen:UIImageName string LaunchChara\" \"$PLIST\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		031117A9A371726CB8151A30 /* Sources */ = {
@@ -523,6 +545,7 @@
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "つくった記録カードを写真フォルダに保存するときに使います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
@@ -560,6 +583,7 @@
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "つくった記録カードを写真フォルダに保存するときに使います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;

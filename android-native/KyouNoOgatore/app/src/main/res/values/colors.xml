@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-b item8: assets/icon-1024.png
+         自身の地色(Theme.ktのyellowトークンと同一)。ランチャーアイコンの背景レイヤーに使う。 -->
+    <color name="ic_launcher_background">#FFD93B</color>
+</resources>

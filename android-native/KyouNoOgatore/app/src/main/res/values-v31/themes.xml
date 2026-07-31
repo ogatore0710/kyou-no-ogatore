@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-b item7: Android 12+のSplashScreen
+     API。文字なし・演出なし(アイコンのみ)。ダーク対応はしない(ウィンドウ全体がライト固定の
+     現状=Theme.KyouNoOgatoreのandroid:windowBackground等と同じ方針に揃える)。 -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.KyouNoOgatore" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FFFAF3</item>
+        <item name="android:windowBackground">#FFFAF3</item>
+        <item name="android:navigationBarColor">#FFFAF3</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="android:windowSplashScreenBackground">#FFFAF3</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_chara</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#FFFAF3</item>
+    </style>
+</resources>
