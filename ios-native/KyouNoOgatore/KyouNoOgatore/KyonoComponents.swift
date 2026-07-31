@@ -220,7 +220,12 @@ struct KyonoPrimaryButton: View {
 
     var body: some View {
         if flatWhenDisabled && !enabled {
+            // TASK-C2-2026-07-31-feedback-round2.md追加1件: bigtext時にラベルが長いと
+            // (「✅ 1日目の記録をつけにいく」等)1行の幅に収まらず"…"で尻切れしていた欠落。
+            // 折り返しを許可する(文言は変えない・Web版との1:1パリティを保つ)。
             Text(text).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                 .frame(maxWidth: .infinity)
                 .background(colors.line)
@@ -236,7 +241,8 @@ struct KyonoPrimaryButton: View {
                         KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.yellowInk)
                             .frame(width: 20 * zoom, height: 20 * zoom)
                     }
-                    Text(text)
+                    // 同上: 折り返し許可(文言短縮ではなくレイアウト側で対応)。
+                    Text(text).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 }
                 // B1(2026-07-29): 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値
                 // 固定)を使う。ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
