@@ -2606,7 +2606,9 @@ data class TodayCardResult(val bitmap: android.graphics.Bitmap, val isMilestone:
 
 // index.html:136-140 drawCardのテーマ選択(記念>季節>抽選の解決結果 pat から実際に描画するテーマへの
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
-private fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, context: Context): TodayCardResult {
+// TASK-C2-2026-07-31-build11-renshu-journey.md D: ResultScreen(結果画面)の練習モードその場記録
+// からも呼べるようprivateを外す(純粋関数・隠れた状態は持たない)。
+fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, context: Context): TodayCardResult {
     val data = CardDataLoader.shared
     val effTotal = streak.total
     val dateIdx = CardLottery.dateIdx(ds)

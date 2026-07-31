@@ -18,6 +18,7 @@
 import SwiftUI
 import RecordCore
 import CardCore
+import WidgetKit
 
 // MARK: - オンボーディング
 
@@ -556,6 +557,10 @@ struct QuizTypeResult: Codable {
 // REACH_FROM_MOMO(Q1の回答index→とどくメーター段位への対応表)の1:1移植。
 private let reachFromMomo = [5, 4, 2, 1]
 
+// TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モード(かたさチェック開始〜初回
+// 記録カード表示まで)5段の共通ラベル。QuizView/ResultViewの両方から参照する。
+let kyonoJourneySteps = ["チェック", "けっか", "どうが", "きろく", "カード"]
+
 struct QuizView: View {
     let store: RecordStore
     let presetWorry: String?
@@ -581,11 +586,18 @@ struct QuizView: View {
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
+    // TASK-C2-2026-07-31-build11-renshu-journey.md D: 練習モードジャーニーバーはfdGuide中
+    // (はじめの1本ガイド・streakTotal==0)だけに出す。既存ユーザーの再チェックには一切出さない。
+    private var fdGuideActive: Bool {
+        let fd: String? = store.get("fd", default: nil)
+        return HomeLogic.fdActive(fd: fd, streakTotal: RecordLogic.loadStreak(store).total)
+    }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             QuizContentView(
                 activeQuestions: activeQuestions, qi: qi, answering: answering, picked: picked,
+                fdGuideActive: fdGuideActive,
                 onOptTap: { q, opt in
                     guard !answering else { return }
                     answering = true
@@ -623,6 +635,7 @@ private struct QuizContentView: View {
     let qi: Int
     let answering: Bool
     let picked: [String: String]
+    let fdGuideActive: Bool
     let onOptTap: (QuizQuestionDef, QuizOptDef) -> Void
     let onBack: () -> Void
 
@@ -635,16 +648,24 @@ private struct QuizContentView: View {
         // 関わらず動かない。TASK-C2-2026-07-31-build11-renshu-journey.md C: 「ホームにもどる」は
         // 削除(練習モードの一貫ジャーニーの一部として、出口を設けない設計に統一)。
         VStack(spacing: 0) {
+        // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(ScrollViewの外)。
+        if fdGuideActive {
+            KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: 0)
+        }
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 Text("かたさチェック").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 Text("Q\(qi + 1) / \(activeQuestions.count)").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                 // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: index.html:719 .dots+
                 // app-quiz.js:175-176の1:1移植。ツアー画面にはドットがあるのにクイズには無かった欠落。
+                // D: fdGuide中はジャーニーバー(①チェック)と二重表示になるため、このドット行は隠す
+                // (Q進捗自体は直上の「Q1/5」テキストで既に分かる)。
+                if !fdGuideActive {
                 HStack(spacing: 6) {
                     ForEach(activeQuestions.indices, id: \.self) { i in
                         Circle().fill(i <= qi ? colors.pink : colors.line).frame(width: 9, height: 9)
                     }
+                }
                 }
                 if qi < activeQuestions.count {
                     let q = activeQuestions[qi]
@@ -824,6 +845,7 @@ struct ResultView: View {
 
     private var content: some View {
         ResultContentView(
+            store: store,
             info: info, typeKey: typeKey, autoReachLv: autoReachLv, rx: rx, worry: worry,
             showDoneNudge: showDoneNudge, fdGuideActive: fdGuideActive, showTourBtn: showTourBtn,
             onVideoTap: { url in pendingNudgeDate = RecordLogic.todayStr(now: Date()); openUrl(url) },
@@ -836,6 +858,7 @@ struct ResultView: View {
 private struct ResultContentView: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let store: RecordStore
     let info: TypeInfo
     let typeKey: String
     let autoReachLv: Int?
@@ -859,6 +882,13 @@ private struct ResultContentView: View {
     // A-3: YouTubeから戻ったあと「おかえりなさい」ブロックが画面外で気づけなかった。
     // HomeView.swift:600-621のパルス+スクロール作法をそのまま流用。
     @State private var doneNudgeScale: CGFloat = 1
+    // TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): fdGuide中は「おかえりなさい」の
+    // 記録ボタンをその場(結果画面)で完結させる(ホームへ回り道させない)。HomeView.swiftの
+    // wasGuide分岐(markDone→労い→confetti→カード入場→tourpend遷移)をこの画面専用に再現する。
+    // 通常ユーザー(!fdGuideActive)の「おかえりなさい」は従来どおりonDoneFromNudge(ホームへ)を使う。
+    @State private var cardResult: TodayCardResult?
+    @State private var confettiTrigger: Int?
+    @State private var fdCelebrationVisible = false
 
     private var catalogById: [String: CatalogVideo] {
         Dictionary(uniqueKeysWithValues: CatalogLoader.shared.map { ($0.id, $0) })
@@ -867,11 +897,77 @@ private struct ResultContentView: View {
         quizVideoKeyToId[key].flatMap { catalogById[$0] }
     }
 
+    // D: 練習モードジャーニーバーの現在地(0-based)。①チェックはQuizViewが担当するため
+    // ここでは②〜⑤(index 1〜4)のみ動く。
+    private var journeyIndex: Int {
+        if cardResult != nil { return 4 }
+        if showDoneNudge { return 3 }
+        if !showPracticePop { return 2 }
+        return 1
+    }
+
+    // HomeView.swift:316-331 closeCardAndMaybeStartTourの1:1移植(結果画面版)。
+    private func closeCardAndMaybeStartTour() {
+        cardResult = nil
+        let tourpend: Bool = store.get("tourpend", default: false)
+        let tourseen: Bool = store.get("tourseen", default: false)
+        if tourpend && !tourseen {
+            store.set("tourpend", false)
+            store.set("tourseen", true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                onStartTour()
+            }
+        }
+    }
+
+    // HomeView.swift:505-599のwasGuide分岐だけを抜き出した版(日1目は必ずこの分岐を通る。
+    // 節目/通常cheerの分岐はfdGuide初日には到達しないため移植不要)。
+    private func performPracticeRecord() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        _ = RecordLogic.markDone(store, now: Date())
+        let streak = RecordLogic.loadStreak(store)
+        DailyNotifications.resync(store: store)
+        WidgetSummaryWriter.write(store: store)
+        WidgetCenter.shared.reloadAllTimelines()
+        let today = RecordLogic.todayStr(now: Date())
+        // 練習モードは「きょうはこれ1本でOK！」で示した動画がそのまま今日の1本なので、Home側の
+        // todayVideoIdAndTitle()より確実に特定できる。
+        if let vk = rx.first, let v = lookupVideo(vk) {
+            RecordLogic.recordDaylog(store, today: today, videoId: v.id, videoTitle: v.t, count: streak.count)
+        }
+        store.set("fd", "1")
+        store.set("tourpend", true)
+        if reduceMotion {
+            fdCelebrationVisible = true
+        } else {
+            withAnimation(.easeOut(duration: 0.5)) { fdCelebrationVisible = true }
+        }
+        if !reduceMotion {
+            confettiTrigger = (confettiTrigger ?? 0) + 1
+        }
+        let newCard = renderTodayCard(store: store, streak: streak, ds: today)
+        if reduceMotion {
+            cardResult = newCard
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                withAnimation(.easeOut(duration: 0.35)) { cardResult = newCard }
+            }
+        }
+    }
+
     var body: some View {
         ScrollViewReader { proxy in
+        VStack(spacing: 0) {
+        // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(ScrollViewの外)。
+        if fdGuideActive {
+            KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: journeyIndex)
+        }
         ZStack {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                // D(本丸): 「③どうが」以降(練習開始ポップを閉じたあと)はタイプカードを畳み、
+                // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。
+                if !fdGuideActive || showPracticePop {
                 KyonoGradientCard(gradient: .soft) {
                     Text("あなたのかたさタイプは…").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -910,6 +1006,7 @@ private struct ResultContentView: View {
                             .kyonoFont(.black900, size: 13).foregroundColor(colors.tealInk)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
+                }
                 }
                 if fdGuideActive {
                     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-quiz.js:300-322の1:1移植。ガイド中は
@@ -1020,14 +1117,28 @@ private struct ResultContentView: View {
                 // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
                 // はじめの1本ガイド中、結果画面を表示したまま動画を見に行って戻ってきたときに、
                 // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
-                if showDoneNudge {
+                if showDoneNudge && cardResult == nil {
                     KyonoCard {
                         Text("おかえりなさい！✨ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
-                        KyonoPrimaryButton(fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく", action: onDoneFromNudge)
-                            .scaleEffect(doneNudgeScale)
+                        // D(本丸): fdGuide中はその場(結果画面)で記録を完結させる。ホームへは飛ばさない。
+                        KyonoPrimaryButton(
+                            fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく",
+                            action: fdGuideActive ? performPracticeRecord : onDoneFromNudge
+                        )
+                        .scaleEffect(doneNudgeScale)
                     }
                     .id("doneNudgeCard")
+                }
+                if fdCelebrationVisible {
+                    // HomeView.swift:630-644 fdCelebrationVisibleの1:1移植(結果画面版)。
+                    KyonoCard {
+                        Text("🎉 1日目クリア！ナイスご自愛！")
+                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
+                        Spacer().frame(height: 6)
+                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+                    }
                 }
                 // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。
                 if showTourBtn {
@@ -1071,6 +1182,29 @@ private struct ResultContentView: View {
             .padding(24)
             .transition(reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity))
         }
+        // D: HomeView.swift:342-346のKyonoConfettiと同じ作法(結果画面版)。
+        if let confettiTrigger, !reduceMotion {
+            KyonoConfetti(count: 70)
+                .id(confettiTrigger)
+                .allowsHitTesting(false)
+        }
+        }
+        // D: HomeView.swift:830-872のカードモーダルと同じ作法(結果画面版・節目分岐は日1目には
+        // 到達しないため省略)。
+        .overlay {
+            KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour) {
+                if let cardResult {
+                    VStack {
+                        Image(uiImage: cardResult.image).resizable().scaledToFit()
+                        VStack(spacing: 12) {
+                            KyonoPrimaryButton("保存・シェアする") {
+                                ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ 1日目！")
+                            }
+                            KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
+                        }
+                    }
+                }
+            }
         }
         .onAppear {
             guard fdGuideActive else { return }
@@ -1095,6 +1229,7 @@ private struct ResultContentView: View {
                     withAnimation { proxy.scrollTo("doneNudgeCard", anchor: .center) }
                 }
             }
+        }
         }
         }
     }
@@ -1163,6 +1298,11 @@ private struct TourContentView: View {
         // 分ける。ボタン列を外側のVStackに出し、内容側だけをScrollViewにすることで、内容の
         // 長さに関わらずボタンの位置が1ptも動かなくなる(あふれるステップだけ中でスクロール)。
         VStack(spacing: 0) {
+            // TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モードと同じ
+            // KyonoJourneyBarにドット表示を置き換え、画面上部に固定する(本人の明示要求=
+            // デザインの一貫性)。ラベルは番号だけで十分なため空文字列にする(circle内の
+            // 数字/✓で進捗は伝わる)。
+            KyonoJourneyBar(labels: Array(repeating: "", count: totalSlides), currentIndex: si)
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
@@ -1186,14 +1326,6 @@ private struct TourContentView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    // index.html:313-315 .dots/.dot/.dot.on
-                    HStack(spacing: 6) {
-                        ForEach(0..<totalSlides, id: \.self) { i in
-                            Circle().fill(i <= si ? colors.pink : colors.line).frame(width: 9, height: 9)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, 4)
                 }
                 .padding(20)
             }

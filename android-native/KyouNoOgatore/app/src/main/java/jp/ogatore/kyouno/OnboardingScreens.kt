@@ -40,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -54,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
@@ -82,6 +84,7 @@ import jp.ogatore.kyouno.record.RecordLogic
 import jp.ogatore.kyouno.record.RecordStore
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
@@ -643,6 +646,10 @@ internal val QuizPickedSaver: Saver<SnapshotStateMap<String, Any?>, Any> = Saver
     },
 )
 
+// TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モード(かたさチェック開始〜初回
+// 記録カード表示まで)5段の共通ラベル。QuizScreen/ResultScreenの両方から参照する。
+val KYONO_JOURNEY_STEPS = listOf("チェック", "けっか", "どうが", "きろく", "カード")
+
 @Composable
 fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit) {
     val activeQuestions = remember(presetWorry) {
@@ -667,6 +674,9 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
     BackHandler(enabled = qi > 0) {
         qi--
     }
+    // TASK-C2-2026-07-31-build11-renshu-journey.md D: 練習モードジャーニーバーはfdGuide中
+    // (はじめの1本ガイド・streakTotal==0)だけに出す。既存ユーザーの再チェックには一切出さない。
+    val fdGuideActive = HomeLogic.fdActive(store.get("fd", null as String?), RecordLogic.loadStreak(store).total)
 
     val themeSetting = store.get("theme", "auto")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
@@ -678,12 +688,19 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
         // 固定フッターにする。これでCTAは常に画面内の同じ位置にあり、本文の長さ(選択肢のnote文の
         // 折返し行数など)に関わらず動かない。
         Column(Modifier.fillMaxSize().background(colors.bg)) {
+        // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(verticalScrollの外)。
+        if (fdGuideActive) {
+            KyonoJourneyBar(labels = KYONO_JOURNEY_STEPS, currentIndex = 0)
+        }
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp)) {
             Text("かたさチェック", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(4.dp))
             Text("Q${qi + 1} / ${activeQuestions.size}", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizProgress"))
             // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: index.html:719 .dots+app-quiz.js:175-176の
             // 1:1移植。ツアー画面にはドットがあるのにクイズには無かった欠落。
+            // D: fdGuide中はジャーニーバー(①チェック)と二重表示になるため、このドット行は隠す
+            // (Q進捗自体は直上の「Q1/5」テキストで既に分かる)。
+            if (!fdGuideActive) {
             Row(modifier = Modifier.padding(top = 6.dp).testTag("quizDots"), horizontalArrangement = Arrangement.Center) {
                 for (i in activeQuestions.indices) {
                     Box(
@@ -691,6 +708,7 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                             .background(if (i <= qi) colors.pink else colors.line, RoundedCornerShape(50)),
                     )
                 }
+            }
             }
             if (q != null) {
                 Spacer(Modifier.height(10.dp))
@@ -904,6 +922,55 @@ fun ResultScreen(
             if (resultReducedMotion) resultScrollState.scrollTo(target) else resultScrollState.animateScrollTo(target)
         }
     }
+    // TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): fdGuide中は「おかえりなさい」の
+    // 記録ボタンをその場(結果画面)で完結させる(ホームへ回り道させない)。MainActivity.ktの
+    // wasGuide分岐(markDone→労い→confetti→カード入場→tourpend遷移)をこの画面専用に再現する。
+    // 通常ユーザー(!fdGuideActive)の「おかえりなさい」は従来どおりonDoneFromNudge(ホームへ)を使う。
+    var cardResult by remember { mutableStateOf<TodayCardResult?>(null) }
+    var confettiTrigger by remember { mutableStateOf<Int?>(null) }
+    var fdCelebrationVisible by rememberSaveable { mutableStateOf(false) }
+    val resultContext = androidx.compose.ui.platform.LocalContext.current
+    val resultScope = androidx.compose.runtime.rememberCoroutineScope()
+    // D: 練習モードジャーニーバーの現在地(0-based)。①チェックはQuizScreenが担当するため
+    // ここでは②〜⑤(index 1〜4)のみ動く。
+    val journeyIndex = when {
+        cardResult != null -> 4
+        showDoneNudge -> 3
+        practicePopDismissedOnce -> 2
+        else -> 1
+    }
+    val resultHaptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    // MainActivity.kt:1400-1480のwasGuide分岐だけを抜き出した版(日1目は必ずこの分岐を通る。
+    // 節目/通常cheerの分岐はfdGuide初日には到達しないため移植不要)。
+    fun performPracticeRecord() {
+        resultHaptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+        RecordLogic.markDone(store, Instant.now())
+        val streak = RecordLogic.loadStreak(store)
+        resultScope.launch { jp.ogatore.kyouno.widget.WidgetUpdater.notifyRecorded(resultContext) }
+        // 練習モードは「きょうはこれ1本でOK！」で示した動画がそのまま今日の1本なので、
+        // MainActivity側のtodayVideoIdAndTitle()より確実に特定できる。
+        rx.firstOrNull()?.let { vk -> lookupVideo(vk)?.let { v -> RecordLogic.recordDaylog(store, today, v.id, v.t, streak.count) } }
+        store.set("fd", "1")
+        store.set("tourpend", true)
+        fdCelebrationVisible = true
+        if (!resultReducedMotion) {
+            confettiTrigger = (confettiTrigger ?: 0) + 1
+        }
+        val newCard = renderTodayCard(store, streak, today, resultContext)
+        if (resultReducedMotion) {
+            cardResult = newCard
+        } else {
+            resultScope.launch {
+                delay(700)
+                cardResult = newCard
+            }
+        }
+    }
+    // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(verticalScrollの外)。
+    // バーの実測高さぶん本文側にtop paddingを入れて重なりを避ける(Box内でColumnの兄弟として
+    // 置く方式。バーをColumnの子にするとAnimatedVisibility呼び出しがColumnScope拡張版と衝突する
+    // ため、あえてBox直下の兄弟構成にする)。
+    var journeyBarHeightPx by remember { mutableStateOf(0) }
     KyonoTheme("auto", bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         Box(Modifier.fillMaxSize()) {
@@ -915,9 +982,13 @@ fun ResultScreen(
                     resultColumnPositionInRootY = coords.positionInRoot().y
                     resultViewportHeightPx = coords.size.height
                 }
+                .padding(top = with(LocalDensity.current) { journeyBarHeightPx.toDp() })
                 .verticalScroll(resultScrollState)
                 .padding(20.dp),
         ) {
+            // D(本丸): 「③どうが」以降(練習開始ポップを閉じたあと)はタイプカードを畳み、
+            // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。
+            if (!fdGuideActive || showPracticePop) {
             KyonoGradientCard(KyonoGradient.Soft, Modifier.testTag("resultCard")) {
                 Text(
                     "あなたのかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
@@ -968,6 +1039,7 @@ fun ResultScreen(
                         modifier = Modifier.fillMaxWidth().testTag("resultReachNote"), textAlign = TextAlign.Center,
                     )
                 }
+            }
             }
             Spacer(Modifier.height(16.dp))
             if (fdGuideActive) {
@@ -1121,7 +1193,7 @@ fun ResultScreen(
             // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
             // はじめの1本ガイド中、結果画面を表示したまま動画を見に行って戻ってきたときに、
             // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
-            if (showDoneNudge) {
+            if (showDoneNudge && cardResult == null) {
                 Spacer(Modifier.height(16.dp))
                 // A-3: HomeScreen(MainActivity.kt:1111-1129/1389-1397)と同じパルス+スクロール作法。
                 KyonoCard(
@@ -1132,11 +1204,21 @@ fun ResultScreen(
                 ) {
                     Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(10.dp))
+                    // D(本丸): fdGuide中はその場(結果画面)で記録を完結させる。ホームへは飛ばさない。
                     KyonoPrimaryButton(
                         if (fdGuideActive) "✅ 1日目の記録をつけにいく" else "✅ きょうの記録をつけにいく",
-                        onDoneFromNudge,
+                        if (fdGuideActive) { { performPracticeRecord() } } else onDoneFromNudge,
                         Modifier.testTag("rDoneNudgeBtn").scale(doneNudgeScale.value),
                     )
+                }
+            }
+            if (fdCelebrationVisible) {
+                Spacer(Modifier.height(16.dp))
+                // MainActivity.kt:1522-1533 fdCelebrationVisibleの1:1移植(結果画面版)。
+                KyonoCard(Modifier.testTag("fdCelebration")) {
+                    Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(6.dp))
+                    Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖", color = colors.ink, fontSize = 14.sp)
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -1198,6 +1280,48 @@ fun ResultScreen(
                 }
             }
         }
+        // D: MainActivity.kt:1764-1771のKyonoConfettiと同じ作法(結果画面版)。
+        if (confettiTrigger != null) {
+            key(confettiTrigger) {
+                KyonoConfetti(count = 70, modifier = Modifier.matchParentSize())
+            }
+        }
+        if (fdGuideActive) {
+            KyonoJourneyBar(
+                labels = KYONO_JOURNEY_STEPS, currentIndex = journeyIndex,
+                modifier = Modifier.align(Alignment.TopCenter).onGloballyPositioned { coords ->
+                    journeyBarHeightPx = coords.size.height
+                },
+            )
+        }
+        }
+        // D: MainActivity.kt:1774-1854のカードダイアログと同じ作法(結果画面版・節目分岐は日1目には
+        // 到達しないため省略)。
+        cardResult?.let { result ->
+            val onCardClose = {
+                cardResult = null
+                tryStartTour(store, resultScope) { onStartTour() }
+            }
+            AlertDialog(
+                onDismissRequest = onCardClose,
+                confirmButton = {
+                    Button(onClick = onCardClose, modifier = Modifier.testTag("cardCloseBtn")) { Text("とじる") }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = { ShareImage.shareBitmap(resultContext, result.bitmap, "kyono-ogatore-$today.png", "#きょうのオガトレ 1日目！") },
+                        modifier = Modifier.testTag("cardShareBtn"),
+                    ) { Text("保存・シェアする") }
+                },
+                text = {
+                    KyonoInstantDialogAnimations()
+                    Image(
+                        bitmap = result.bitmap.asImageBitmap(),
+                        contentDescription = "記録カード",
+                        modifier = Modifier.fillMaxWidth().testTag("cardImage"),
+                    )
+                },
+            )
         }
     }
 }
@@ -1248,6 +1372,10 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
         val scrollState = rememberScrollState()
         LaunchedEffect(si) { scrollState.scrollTo(0) } // index.html:4308 log.scrollTop=0の1:1移植
         Column(Modifier.fillMaxSize().background(colors.bg)) {
+        // TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モードと同じKyonoJourneyBarに
+        // ドット表示を置き換え、画面上部に固定する(本人の明示要求=デザインの一貫性)。ラベルは
+        // 番号だけで十分なため空文字列にする(circle内の数字/✓で進捗は伝わる)。
+        KyonoJourneyBar(labels = List(totalSlides) { "" }, currentIndex = si)
         Column(
             Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState).padding(20.dp),
         ) {
@@ -1276,15 +1404,6 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, onDone: () -> Unit) {
                     Text(
                         OB_TOUR_CLOSING_DESC, color = colors.sub, fontSize = 14.sp, lineHeight = 22.sp,
                         textAlign = TextAlign.Center, modifier = Modifier.testTag("tourDesc"),
-                    )
-                }
-            }
-            // index.html:313-315 .dots/.dot/.dot.on
-            Row(modifier = Modifier.padding(top = 14.dp).testTag("tourDots"), horizontalArrangement = Arrangement.Center) {
-                for (i in 0 until totalSlides) {
-                    Box(
-                        Modifier.padding(horizontal = 3.dp).size(9.dp)
-                            .background(if (i <= si) colors.pink else colors.line, RoundedCornerShape(50)),
                     )
                 }
             }

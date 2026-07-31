@@ -396,3 +396,48 @@ fun FadingChipRow(modifier: Modifier = Modifier, testTag: String, content: andro
         }
     }
 }
+
+// TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モード(かたさチェック→けっか→
+// どうが→きろく→カード)と使い方ツアーが共通で使う進捗バー。呼び出し側が画面上部・
+// verticalScrollの外に置く前提(iOS版KyonoComponents.swift KyonoJourneyBarと同一ロジック)。
+@Composable
+fun KyonoJourneyBar(labels: List<String>, currentIndex: Int, modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    Row(
+        modifier = modifier.fillMaxWidth().background(colors.bg).padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        labels.forEachIndexed { i, label ->
+            val done = i < currentIndex
+            val current = i == currentIndex
+            Column(
+                modifier = if (i == labels.lastIndex) Modifier else Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    modifier = Modifier.size(20.dp).background(if (done || current) colors.pink else colors.line, RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (done) {
+                        Text("✓", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                    } else {
+                        Text("${i + 1}", color = if (current) Color.White else colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+                if (label.isNotEmpty()) {
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        label, color = if (current) colors.ink else colors.sub, fontSize = 10.sp,
+                        fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            if (i < labels.lastIndex) {
+                Box(
+                    modifier = Modifier.weight(1f).padding(top = 9.dp).height(2.dp)
+                        .background(if (done) colors.pink else colors.line),
+                )
+            }
+        }
+    }
+}

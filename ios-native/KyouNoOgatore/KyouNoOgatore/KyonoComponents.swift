@@ -623,3 +623,52 @@ struct KyonoCardModalOverlay<Content: View>: View {
         }
     }
 }
+
+// TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モード(かたさチェック→けっか→
+// どうが→きろく→カード)と使い方ツアーが共通で使う進捗バー。画面上部に固定表示する前提
+// (呼び出し側がScrollViewの外・VStackの先頭に置く)。既存のクイズ/ツアーの「ドット」表示を
+// この1部品に統一し、練習モードとツアーで見た目の一貫性を持たせる(本人の明示要求)。
+struct KyonoJourneyBar: View {
+    let labels: [String]
+    let currentIndex: Int
+    @Environment(\.kyonoColors) private var colors
+    @Environment(\.kyonoBigText) private var bigText
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            ForEach(labels.indices, id: \.self) { i in
+                let done = i < currentIndex
+                let current = i == currentIndex
+                VStack(spacing: 3 * zoom) {
+                    ZStack {
+                        Circle()
+                            .fill(done || current ? colors.pink : colors.line)
+                            .frame(width: 20 * zoom, height: 20 * zoom)
+                        if done {
+                            Text("✓").kyonoFont(.black900, size: 11).foregroundColor(.white)
+                        } else {
+                            Text("\(i + 1)").kyonoFont(.black900, size: 11)
+                                .foregroundColor(current ? .white : colors.sub)
+                        }
+                    }
+                    Text(labels[i]).kyonoFont(.black900, size: 10)
+                        .foregroundColor(current ? colors.ink : colors.sub)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                }
+                .frame(maxWidth: i == labels.count - 1 ? nil : .infinity)
+                if i < labels.count - 1 {
+                    Rectangle().fill(done ? colors.pink : colors.line)
+                        .frame(height: 2 * zoom)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 9 * zoom)
+                }
+            }
+        }
+        .padding(.horizontal, 16 * zoom).padding(.vertical, 10 * zoom)
+        .background(colors.bg)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: currentIndex)
+    }
+}
