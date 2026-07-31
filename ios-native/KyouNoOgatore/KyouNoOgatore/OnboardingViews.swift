@@ -97,9 +97,12 @@ private let obgLight: [ObgColor] = [
     ObgColor(bg: Color(hex: 0xEAF8F1), border: Color(hex: 0xBFE8DC)), ObgColor(bg: Color(hex: 0xFFF3CB), border: Color(hex: 0xF2DE8A)),
     ObgColor(bg: Color(hex: 0xFBE3C6), border: Color(hex: 0xE5BC85)), ObgColor(bg: Color(hex: 0xF2D7CD), border: Color(hex: 0xDCA894)),
 ]
+// TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
+// ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
+// 大きく振り、緑(154)・黄(48)・橙(28)・薔薇(320)へ色相を広く分散させた。
 private let obgDark: [ObgColor] = [
-    ObgColor(bg: Color(hex: 0x2A423B), border: Color(hex: 0x2E5A52)), ObgColor(bg: Color(hex: 0x3B3524), border: Color(hex: 0x5C4F1E)),
-    ObgColor(bg: Color(hex: 0x403322), border: Color(hex: 0x6A4A26)), ObgColor(bg: Color(hex: 0x402A28), border: Color(hex: 0x5E3A38)),
+    ObgColor(bg: Color(hex: 0x223D33), border: Color(hex: 0x2E5A48)), ObgColor(bg: Color(hex: 0x4A3D14), border: Color(hex: 0x6B5A1C)),
+    ObgColor(bg: Color(hex: 0x4D3018), border: Color(hex: 0x704620)), ObgColor(bg: Color(hex: 0x4A1F35), border: Color(hex: 0x6B2C4C)),
 ]
 func obgColors(dark: Bool) -> [ObgColor] { dark ? obgDark : obgLight }
 

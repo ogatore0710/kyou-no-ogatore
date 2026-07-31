@@ -159,9 +159,12 @@ private val OBG_LIGHT = listOf(
     ObgColor(Color(0xFFEAF8F1), Color(0xFFBFE8DC)), ObgColor(Color(0xFFFFF3CB), Color(0xFFF2DE8A)),
     ObgColor(Color(0xFFFBE3C6), Color(0xFFE5BC85)), ObgColor(Color(0xFFF2D7CD), Color(0xFFDCA894)),
 )
+// TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
+// ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
+// 大きく振り、緑(154)・黄(48)・橙(28)・薔薇(320)へ色相を広く分散させた。
 private val OBG_DARK = listOf(
-    ObgColor(Color(0xFF2A423B), Color(0xFF2E5A52)), ObgColor(Color(0xFF3B3524), Color(0xFF5C4F1E)),
-    ObgColor(Color(0xFF403322), Color(0xFF6A4A26)), ObgColor(Color(0xFF402A28), Color(0xFF5E3A38)),
+    ObgColor(Color(0xFF223D33), Color(0xFF2E5A48)), ObgColor(Color(0xFF4A3D14), Color(0xFF6B5A1C)),
+    ObgColor(Color(0xFF4D3018), Color(0xFF704620)), ObgColor(Color(0xFF4A1F35), Color(0xFF6B2C4C)),
 )
 private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
 
