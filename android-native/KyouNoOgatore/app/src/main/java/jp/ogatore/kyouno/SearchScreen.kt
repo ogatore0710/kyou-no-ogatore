@@ -86,24 +86,48 @@ val TAG_CATS = listOf(
 )
 
 // TASK-C2-2026-07-31-feedback-round2.md B-2 → bodypart-art-rollout: 「からだの場所」
-// (key "b")タグチップのみに部位アイコンを付ける(他3カテゴリは対象外)。日本語タグ名→
-// drawable-nodpi/chip_<key>.pngのキー対応。
-// 「腰」はB-2時点ではオンボ(OnboardingScreens.kt obChipIconRes)と同じchip_youtsuu.pngを
-// 再利用していたが、bodypart-art-rollout(記録カード風・本人選定トーン)でタグ側だけ絵を
-// 差し替えるにあたり、オンボのchip_youtsuu.png(かたさチェック「腰」ワーリーチップ)には
-// 触れない方針のため、専用キー"koshi"を新設して分離した。
-private val bodyTagChipKey: Map<String, String> = mapOf(
-    "全身" to "zenshin",
-    "肩・肩甲骨" to "kata",
-    "首・肩こり" to "kubi",
-    "姿勢・背中" to "senaka",
-    "股関節" to "kokansetsu",
-    "開脚" to "kaikyaku",
-    "もも裏" to "momoura",
-    "太もも・お尻" to "futomomo",
-    "腰" to "koshi",
-    "ひざ・O脚" to "hiza",
-    "足首・足うら" to "ashikubi",
+// (key "b")タグチップの部位アイコン対応表。日本語タグ名→drawable-nodpi/chip_<key>.pngの
+// キー対応。「腰」はB-2時点ではオンボ(OnboardingScreens.kt obChipIconRes)と同じ
+// chip_youtsuu.pngを再利用していたが、bodypart-art-rollout(記録カード風・本人選定トーン)
+// でタグ側だけ絵を差し替えるにあたり、オンボのchip_youtsuu.png(かたさチェック「腰」
+// ワーリーチップ)には触れない方針のため、専用キー"koshi"を新設して分離した。
+// TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W2-10: 残り3カテゴリ(a=時間・シーン・
+// c=目的・d=その他)にも新規生成15種を適用し、全4カテゴリのタグにアイコンが付くようにする。
+private val tagChipKey: Map<String, Map<String, String>> = mapOf(
+    "b" to mapOf(
+        "全身" to "zenshin",
+        "肩・肩甲骨" to "kata",
+        "首・肩こり" to "kubi",
+        "姿勢・背中" to "senaka",
+        "股関節" to "kokansetsu",
+        "開脚" to "kaikyaku",
+        "もも裏" to "momoura",
+        "太もも・お尻" to "futomomo",
+        "腰" to "koshi",
+        "ひざ・O脚" to "hiza",
+        "足首・足うら" to "ashikubi",
+    ),
+    "a" to mapOf(
+        "朝" to "toki_asa",
+        "夜・寝る前" to "toki_yoru",
+        "座ったまま" to "toki_suwaru",
+        "10分以内" to "toki_10pun",
+        "ショート" to "toki_short",
+    ),
+    "c" to mapOf(
+        "むくみ" to "mokuteki_mukumi",
+        "引き締め" to "mokuteki_hikishime",
+        "筋膜・マッサージ" to "mokuteki_massage",
+        "自律神経" to "mokuteki_jiritsu",
+        "スポーツ・運動前後" to "mokuteki_sports",
+        "生活・セルフケア" to "mokuteki_selfcare",
+    ),
+    "d" to mapOf(
+        "解説" to "sonota_kaisetsu",
+        "水族館ロケ" to "sonota_suizokukan",
+        "古民家ロケ" to "sonota_kominka",
+        "その他" to "sonota_sonota",
+    ),
 )
 
 // index.html:441-449 .chip-a〜d(カテゴリ色)の1:1移植(ライト/ダーク)。
@@ -334,14 +358,13 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             ) {
                 activeCatTags.forEach { tag ->
                     val on = tag == activeTag
-                    // TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」(key "b")の
-                    // タグだけ左にアイコンを添える。OnboardingScreens.kt obChipIconResと同じ
+                    // TASK-C2-2026-07-31-feedback-round2.md B-2→build12 W2-10: 4カテゴリ全部の
+                    // タグに左アイコンを添える。OnboardingScreens.kt obChipIconResと同じ
                     // 「resources.getIdentifier実行時解決」方式(KyonoTypeArt.kt/PlaylistThumb等
                     // 本ファイル内でも既出のパターン)を使い、生成イラストがまだ届いていない
                     // (drawable-nodpi/chip_*.pngが無い)キーはresId==0で単に描画しないだけにして
-                    // ビルドも実行時も落とさない。オンボは32.dpだが、こちらはチップ自体が小さく
-                    // 密集するため一回り小さい22.dpにする。
-                    val chipIconKey = if (activeCat == "b") bodyTagChipKey[tag] else null
+                    // ビルドも実行時も落とさない。
+                    val chipIconKey = tagChipKey[activeCat]?.get(tag)
                     val chipIconResId = if (chipIconKey != null) {
                         remember(chipIconKey) { context.resources.getIdentifier("chip_$chipIconKey", "drawable", context.packageName) }
                     } else 0

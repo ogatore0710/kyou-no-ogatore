@@ -194,25 +194,49 @@ private struct SearchContentView: View {
     @StateObject private var networkMonitor = NetworkMonitor()
 
     // TASK-C2-2026-07-31-feedback-round2.md B-2 → bodypart-art-rollout: 「からだの場所」
-    // カテゴリ(key "b")のタグチップにChipArt/chip-<key>.pngのイラストを付ける。他3カテゴリ
-    // (a/c/d)は対象外なので、このカテゴリの11タグ限定の日本語ラベル→アセットキーの対応表を
-    // 持つ(OnboardingViews.swift:295-298のchip-\(chip.v)命名と同じ規則)。
+    // カテゴリ(key "b")のタグチップにChipArt/chip-<key>.pngのイラストを付ける。日本語ラベル→
+    // アセットキーの対応表を持つ(OnboardingViews.swift:295-298のchip-\(chip.v)命名と同じ規則)。
     // 「腰」はB-2時点ではオンボと同じchip-youtsuu.pngを再利用していたが、bodypart-art-rollout
     // (記録カード風・本人選定トーン)でタグ側だけ絵を差し替えるにあたり、オンボのchip-youtsuu.png
     // (かたさチェック「腰」ワーリーチップ)には触れない方針のため、専用キー"koshi"を新設して
     // 分離した。
-    private let bodyTagChipKey: [String: String] = [
-        "全身": "zenshin",
-        "肩・肩甲骨": "kata",
-        "首・肩こり": "kubi",
-        "姿勢・背中": "senaka",
-        "股関節": "kokansetsu",
-        "開脚": "kaikyaku",
-        "もも裏": "momoura",
-        "太もも・お尻": "futomomo",
-        "腰": "koshi",
-        "ひざ・O脚": "hiza",
-        "足首・足うら": "ashikubi",
+    // TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W2-10: 残り3カテゴリ(a=時間・シーン・
+    // c=目的・d=その他)にも新規生成15種を適用し、全4カテゴリのタグにアイコンが付くようにする。
+    private let tagChipKey: [String: [String: String]] = [
+        "b": [
+            "全身": "zenshin",
+            "肩・肩甲骨": "kata",
+            "首・肩こり": "kubi",
+            "姿勢・背中": "senaka",
+            "股関節": "kokansetsu",
+            "開脚": "kaikyaku",
+            "もも裏": "momoura",
+            "太もも・お尻": "futomomo",
+            "腰": "koshi",
+            "ひざ・O脚": "hiza",
+            "足首・足うら": "ashikubi",
+        ],
+        "a": [
+            "朝": "toki_asa",
+            "夜・寝る前": "toki_yoru",
+            "座ったまま": "toki_suwaru",
+            "10分以内": "toki_10pun",
+            "ショート": "toki_short",
+        ],
+        "c": [
+            "むくみ": "mokuteki_mukumi",
+            "引き締め": "mokuteki_hikishime",
+            "筋膜・マッサージ": "mokuteki_massage",
+            "自律神経": "mokuteki_jiritsu",
+            "スポーツ・運動前後": "mokuteki_sports",
+            "生活・セルフケア": "mokuteki_selfcare",
+        ],
+        "d": [
+            "解説": "sonota_kaisetsu",
+            "水族館ロケ": "sonota_suizokukan",
+            "古民家ロケ": "sonota_kominka",
+            "その他": "sonota_sonota",
+        ],
     ]
 
     var body: some View {
@@ -302,10 +326,10 @@ private struct SearchContentView: View {
                 ForEach(activeCatTags, id: \.self) { tag in
                     let on = tag == activeTag
                     HStack(spacing: 4) {
-                        // TASK-C2-2026-07-31-feedback-round2.md B-2: 「からだの場所」(cat.key=="b")
-                        // のタグのみアイコン付与。他カテゴリのチップは対象外なので、bodyTagChipKeyに
-                        // 無いタグ(=このカテゴリ以外)はifが不成立になりアイコンなしのまま素通りする。
-                        if activeCat == "b", let key = bodyTagChipKey[tag],
+                        // TASK-C2-2026-07-31-feedback-round2.md B-2→build12 W2-10: 4カテゴリ全部の
+                        // タグにアイコン付与。対応表に無いタグはifが不成立になりアイコンなしのまま
+                        // 素通りする。
+                        if let key = tagChipKey[activeCat]?[tag],
                            let url = Bundle.main.url(forResource: "chip-\(key)", withExtension: "png"),
                            let uiImage = UIImage(contentsOfFile: url.path) {
                             // TASK-C2-2026-07-31-bodypart-art-legibility.md: 老眼対応で22pt→28ptへ拡大。
