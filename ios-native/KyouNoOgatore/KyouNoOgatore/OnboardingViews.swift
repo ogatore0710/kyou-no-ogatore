@@ -1196,6 +1196,7 @@ private struct ResultContentView: View {
                 if let cardResult {
                     VStack {
                         Image(uiImage: cardResult.image).resizable().scaledToFit()
+                            .accessibilityIdentifier("cardImage")
                         VStack(spacing: 12) {
                             KyonoPrimaryButton("保存・シェアする") {
                                 ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ 1日目！")
