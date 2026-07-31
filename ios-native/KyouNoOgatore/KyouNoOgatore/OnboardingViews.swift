@@ -1068,13 +1068,9 @@ private struct ResultContentView: View {
                                 .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                         }
                     }
-                    // 全画面完全性監査タスク #result: index.html:734 #rReachNote(Q1自動転記の一言)の1:1移植。
-                    if let lv = autoReachLv {
-                        Spacer().frame(height: 8)
-                        Text("📏 いまの前屈「\(reachLv[lv])」を とどくメーターにも記録したよ")
-                            .kyonoFont(.black900, size: 13).foregroundColor(colors.tealInk)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
+                    // TASK-C2-2026-08-01-build13-round3.md ④: 「とどくメーターにも記録したよ」の
+                    // 表示行を削除(自動転記=setReach(lv, silent: true)自体は既存どおり継続、
+                    // 表示だけを消す。alan5指摘: 結果画面が説明過多だった)。
                 }
                 }
                 if fdGuideActive {
@@ -1091,14 +1087,12 @@ private struct ResultContentView: View {
                         HStack(alignment: .bottom, spacing: 8) {
                             KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                             VStack(alignment: .leading, spacing: 4) {
-                                // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md B1: 直前の見出し
-                                // 「きょうはこの1本だけでOK！」で"練習/1本だけ"の意図は既に伝わっている。
-                                // 「ぜんぶ見るのはあとでOK」は下の「あと2本〜あしたから見られるよ」と
-                                // 重複するため削る。
-                                Text("①をタップ！ YouTubeが開くよ🏫")
+                                // TASK-C2-2026-08-01-build13-round3.md ④: 「①をタップ！YouTubeが開くよ」+
+                                // 🔙戻り方説明の2行を、1文「下の動画をタップして すぐこのアプリに
+                                // もどってきてみて」に差し替え(直前の見出し「きょうはこの1本だけでOK！」は
+                                // 維持したまま説明を簡潔にする、alan5指摘)。
+                                Text("下の動画をタップして すぐこのアプリに もどってきてみて")
                                     .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
-                                Text("🔙 見おわったら 画面ひだり上に出る「◀」か YouTubeをとじると この画面にもどれるよ")
-                                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             }
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))

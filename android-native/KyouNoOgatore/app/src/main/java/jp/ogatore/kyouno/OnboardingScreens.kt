@@ -1080,15 +1080,9 @@ fun ResultScreen(
                         )
                     }
                 }
-                // 全画面完全性監査タスク #result: index.html:734 #rReachNote(Q1自動転記の一言)の1:1移植。
-                autoReachLv?.let { lv ->
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "📏 いまの前屈「${REACH_LV[lv]}」を とどくメーターにも記録したよ",
-                        color = colors.tealInk, fontSize = 13.sp, fontWeight = FontWeight.Black,
-                        modifier = Modifier.fillMaxWidth().testTag("resultReachNote"), textAlign = TextAlign.Center,
-                    )
-                }
+                // TASK-C2-2026-08-01-build13-round3.md ④: 「とどくメーターにも記録したよ」の
+                // 表示行を削除(自動転記=setReach(lv, silent=true)自体は既存どおり継続、
+                // 表示だけを消す。alan5指摘: 結果画面が説明過多だった)。
             }
             }
             Spacer(Modifier.height(16.dp))
@@ -1114,16 +1108,11 @@ fun ResultScreen(
                                     .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                             ) {
-                                // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md B1: 直前の見出し
-                                // 「きょうはこの1本だけでOK！」で"練習/1本だけ"の意図は既に伝わっている。
-                                // 「ぜんぶ見るのはあとでOK」は下の「あと2本〜あしたから見られるよ」と
-                                // 重複するため削る。
-                                Text("①をタップ！ YouTubeが開くよ🏫", color = colors.ink)
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    "🔙 見おわったら スマホの「もどる」ボタン（◀）で この画面にもどれるよ",
-                                    color = colors.sub, fontSize = 13.sp,
-                                )
+                                // TASK-C2-2026-08-01-build13-round3.md ④: 「①をタップ！YouTubeが開くよ」+
+                                // 🔙戻り方説明の2行を、1文「下の動画をタップして すぐこのアプリに
+                                // もどってきてみて」に差し替え(直前の見出し「きょうはこの1本だけでOK！」は
+                                // 維持したまま説明を簡潔にする、alan5指摘)。
+                                Text("下の動画をタップして すぐこのアプリに もどってきてみて", color = colors.ink)
                             }
                         }
                         Spacer(Modifier.height(8.dp))
