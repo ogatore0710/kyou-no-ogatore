@@ -417,6 +417,126 @@ struct HomeView: View {
             // 共通化(マイ記録/動画を探す/使い方の3タブにも同じ部品を展開する)。
             KyonoAppHeader()
 
+            hitokotoSection
+
+            offlineBannerSection
+
+            if fdFocusOn {
+                // 初回ジャーニー(fdGuide)中は既存の並びのまま(このタスクのスコープ外・触らない)。
+                conditionalCardsSection
+                todayVideoSection
+                planSection
+                streakSection(proxy: proxy)
+                ckSoudanSection
+            } else {
+                // TASK-C2-2026-08-01-build15-subtraction9.md #10: 毎日の動線「見る→やる→きろく」を
+                // 上に。旧並び(条件もの/かたさチェック+相談室が「きょうの1本」より前に出ることが
+                // あった)から、きょうの1本→続けた日数→条件もの(小さく)→プラン→かたさチェック→
+                // 相談室の順に変更。
+                todayVideoSection
+                streakSection(proxy: proxy)
+                conditionalCardsSection
+                planSection
+                ckSoudanSection
+            }
+        }
+        // index.html:82 body{padding:20px 18px 180px}の1:1移植。下だけ180ptと大きいのは
+        // §C(scrollTo(doneBtn, anchor:.center)相当のdoneBtn中央寄せ)がページ末尾付近の
+        // 要素でも実際に中央まで届くための余白(TASK-C2-2026-07-28: ページ末尾に近い状態だと
+        // ScrollViewの実コンテンツ高さが足りずanchor:.centerが効かないまま見た目上
+        // 「動いていない」ように見えるバグの根本原因だった。Android版MainActivity.ktの
+        // HomeScreen Columnと同じ修正)。UI/UXパリティ監査GO-9・G6(2026-07-28)で共通定数化。
+        .kyonoScreenPadding()
+        }
+        .background(KyonoBackgroundColor().ignoresSafeArea())
+        // app-env.js:60 refreshDay相当。visibilitychangeの代わりにscenePhaseの.active復帰で
+        // 日付またぎ・pendingNudgeを確認する(Android版のON_RESUMEと同じ役割)。
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            checkRefreshDay() // checkDoneNudgeと同じ「一度出したら消す」もcheckRefreshDay内で行う
+            // TASK-C2-2026-07-27-local-notifications.md: 前面復帰のたびに次回通知を予約し直す
+            // (UNUserNotificationCenterのnon-repeating方式は自分で発火するたび次を積み直せない
+            // ため、アプリを開くたびに再同期する設計。DailyNotifications.swiftの冒頭コメント参照)。
+            DailyNotifications.resync(store: store)
+        }
+        .onReceive(dayTicker) { _ in checkRefreshDay() }
+        // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
+        // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
+        .overlay {
+            KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour) {
+                if let cardResult {
+                    VStack {
+                        Image(uiImage: cardResult.image).resizable().scaledToFit()
+                        // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                        // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
+                        // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
+                        if cardResult.isMilestone {
+                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+                                .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                                .multilineTextAlignment(.center)
+                            KyonoGhostButton("記録のひかえを取る") {
+                                self.cardResult = nil
+                                onOpenSettings()
+                            }
+                        }
+                        // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
+                        // (btn-primary「保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
+                        // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った
+                        // 「保存・シェアする」だけが2行に折り返し、1行の「とじる」と高さ・上端が
+                        // 揃わなかった。絵文字(Web版📤)は本人の新ガイドライン(ボタン・タブ・見出しには
+                        // OS絵文字を使わない・アイコンはデザイン生成のものを使う)により持ち込まない。
+                        VStack(spacing: 12 * zoom) {
+                            // index.html shareCard()相当(Step7bで新規実装)。
+                            KyonoPrimaryButton("保存・シェアする") {
+                                ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
+                            }
+                            KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
+                        }
+                    }
+                    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子3: 特別tier(記念日・
+                    // 季節・レア)だけ、既存の節目ポップインカーブ(:505-510と同じ
+                    // .timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))を軽く流用して「性格の違い」
+                    // 程度の入場差を付ける。ノーマルは.identity(親のKyonoCardModalOverlayが持つ
+                    // .transition(.opacity)フェードのみ・大当たり感を出さない)。
+                    .transition(
+                        cardResult.isSpecialTier
+                            ? .scale(scale: 0.85).combined(with: .opacity)
+                                .animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))
+                            : .identity
+                    )
+                }
+            }
+        }
+        // TASK-C2-2026-07-27-behavior-parity-audit.md §B →
+        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §B修正: index.html:4393
+        // scrollIntoView(todayVideo)(引数なし=ブラウザ既定behavior:"auto"=瞬時)の1:1移植。
+        // オンボ完了直後だけ「きょうの1本」へ瞬時スクロールする(60msはindex.html:4393と同じ、
+        // 直前のレイアウト確定を待つ猶予。withAnimationを付けるとWeb版より演出過剰になるため外す)。
+        .onChange(of: scrollToTodayPending.wrappedValue) { _, pending in
+            guard pending else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+                proxy.scrollTo("todayCard", anchor: .top)
+                scrollToTodayPending.wrappedValue = false
+            }
+        }
+        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足: rDoneNudgeBtn(結果画面)
+        // 経由でHomeへ来たときも、通常の動画復帰と同じくshowDoneNudgeを立てる(pulse+中央寄せの両方が
+        // 自然に効く)。
+        .onChange(of: pendingDoneNudge.wrappedValue) { _, pending in
+            guard pending else { return }
+            showDoneNudge = true
+            pendingDoneNudge.wrappedValue = false
+        }
+        }
+    }
+
+    // TASK-C2-2026-08-01-build15-subtraction9.md #10: ホームの並び替え(スケッチ承認済み)。
+    // 各カードを@ViewBuilderで切り出し、fdGuide中(fdFocusOn)は既存の並び順を一切変えず、
+    // 通常時だけ新しい並び順(見る→やる→きろく)で組み立てる(fdGuide中の画面構成は対象外=
+    // 触らない、という指示どおり中身は1文字も変えずに並び順だけを制御する)。
+
+    // ---- きょうのひとこと ----
+    @ViewBuilder private var hitokotoSection: some View {
             // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:602-603
             // .qbubble(カードの外・chara-hitokoto.pngアバター+日替わりひとこと)の1:1移植。
             // pendingVideoReturnActive()相当(showDoneNudge)のときだけ「おかえりなさい」に差し替える
@@ -444,7 +564,10 @@ struct HomeView: View {
                 Spacer()
                 KyonoCharaImage(name: "chara-hitokoto").frame(height: 44 * zoom)
             }
+    }
 
+    // ---- オフライン帯 ----
+    @ViewBuilder private var offlineBannerSection: some View {
             // TASK-C2-2026-07-27-offline-banner.md: index.html:4064-4080 envBanner(オフライン案内)の
             // 1:1移植。YouTubeアプリ内ブラウザ脱出案内等のA2HS/PWA固有の他用途は移植対象外(§2-2)なので、
             // 単純に「オフラインなら表示・オンラインなら非表示」でよい(Web版のenvBannerPrevHTML退避は不要)。
@@ -458,7 +581,10 @@ struct HomeView: View {
                             .overlay(RoundedRectangle(cornerRadius: 14 * zoom).stroke(colors.yellow, lineWidth: 1.5 * zoom))
                     )
             }
+    }
 
+    // ---- 条件もの(おかえりカード・再チェックお知らせ) ----
+    @ViewBuilder private var conditionalCardsSection: some View {
             // TASK-C2-2026-07-29-ux-audit-G.md G2: index.html:606-611 #welcomeBack(welcomeCheck())の
             // 1:1移植。HomeView既存の`showDoneNudge`(動画から戻った直後の「おかえりなさい」)とは別物
             // (あちらはqbubbleの見出し差し替えのみ・こちらは3日以上あいた復帰を祝う専用カード)。
@@ -487,12 +613,10 @@ struct HomeView: View {
                     KyonoGhostButton("あとで") { dismissRecheck() }
                 }
             }
+    }
 
-            if !checked {
-                CkCard(full: true, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
-                SoudanCard(onOpenSoudan: onOpenSoudan)
-            }
-
+    // ---- きょうの1本 ----
+    @ViewBuilder private var todayVideoSection: some View {
             // index.html:654-664 #todayCard(きょうの1本)相当。TASK-C2-2026-07-29-ux-audit-G.md G1で
             // renderToday()の1:1移植へ差し替え(プラン優先→タイプ判定→あさ/よる自動判定の順)、
             // TASK-C2-2026-07-30-ux-batch-13-amend-segment.mdでセグメント切替UI(あなた用/あさ/よる)+
@@ -516,7 +640,10 @@ struct HomeView: View {
             } else {
                 KyonoBodyText("🌱 はじめの1本ガイド中")
             }
+    }
 
+    // ---- 2週間プラン ----
+    @ViewBuilder private var planSection: some View {
             // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)。Web版DOM順
             // (index.html:664 todayCardの直後・streakCardの直前)に合わせて位置を修正。
             if let plan {
@@ -545,7 +672,10 @@ struct HomeView: View {
                     onClose: { planFinishedCache = nil }
                 )
             }
+    }
 
+    // ---- 続けた日数＋きょうやった！ ----
+    @ViewBuilder private func streakSection(proxy: ScrollViewProxy) -> some View {
             // index.html:686 #streakCard(続けた日数・通算)相当。
             KyonoCard {
                 KyonoSectionTitle("続けた日数（通算）", icon: .calendarCheck)
@@ -858,100 +988,17 @@ struct HomeView: View {
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
             }
+    }
 
+    // ---- かたさチェック＋オガトレ相談室(旧: !checked時はきょうの1本の前・checked時はstreakCardの直後の2箇所に分かれていたのを1箇所へ統合) ----
+    @ViewBuilder private var ckSoudanSection: some View {
+        if checked {
             // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。
-            if checked {
-                CkCard(full: false, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
-                SoudanCard(onOpenSoudan: onOpenSoudan)
-            }
-        }
-        // index.html:82 body{padding:20px 18px 180px}の1:1移植。下だけ180ptと大きいのは
-        // §C(scrollTo(doneBtn, anchor:.center)相当のdoneBtn中央寄せ)がページ末尾付近の
-        // 要素でも実際に中央まで届くための余白(TASK-C2-2026-07-28: ページ末尾に近い状態だと
-        // ScrollViewの実コンテンツ高さが足りずanchor:.centerが効かないまま見た目上
-        // 「動いていない」ように見えるバグの根本原因だった。Android版MainActivity.ktの
-        // HomeScreen Columnと同じ修正)。UI/UXパリティ監査GO-9・G6(2026-07-28)で共通定数化。
-        .kyonoScreenPadding()
-        }
-        .background(KyonoBackgroundColor().ignoresSafeArea())
-        // app-env.js:60 refreshDay相当。visibilitychangeの代わりにscenePhaseの.active復帰で
-        // 日付またぎ・pendingNudgeを確認する(Android版のON_RESUMEと同じ役割)。
-        .onChange(of: scenePhase) { _, newPhase in
-            guard newPhase == .active else { return }
-            checkRefreshDay() // checkDoneNudgeと同じ「一度出したら消す」もcheckRefreshDay内で行う
-            // TASK-C2-2026-07-27-local-notifications.md: 前面復帰のたびに次回通知を予約し直す
-            // (UNUserNotificationCenterのnon-repeating方式は自分で発火するたび次を積み直せない
-            // ため、アプリを開くたびに再同期する設計。DailyNotifications.swiftの冒頭コメント参照)。
-            DailyNotifications.resync(store: store)
-        }
-        .onReceive(dayTicker) { _ in checkRefreshDay() }
-        // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
-        // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
-        .overlay {
-            KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour) {
-                if let cardResult {
-                    VStack {
-                        Image(uiImage: cardResult.image).resizable().scaledToFit()
-                        // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
-                        // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
-                        // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
-                        if cardResult.isMilestone {
-                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
-                                .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                                .multilineTextAlignment(.center)
-                            KyonoGhostButton("記録のひかえを取る") {
-                                self.cardResult = nil
-                                onOpenSettings()
-                            }
-                        }
-                        // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
-                        // (btn-primary「保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
-                        // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った
-                        // 「保存・シェアする」だけが2行に折り返し、1行の「とじる」と高さ・上端が
-                        // 揃わなかった。絵文字(Web版📤)は本人の新ガイドライン(ボタン・タブ・見出しには
-                        // OS絵文字を使わない・アイコンはデザイン生成のものを使う)により持ち込まない。
-                        VStack(spacing: 12 * zoom) {
-                            // index.html shareCard()相当(Step7bで新規実装)。
-                            KyonoPrimaryButton("保存・シェアする") {
-                                ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
-                            }
-                            KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
-                        }
-                    }
-                    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子3: 特別tier(記念日・
-                    // 季節・レア)だけ、既存の節目ポップインカーブ(:505-510と同じ
-                    // .timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))を軽く流用して「性格の違い」
-                    // 程度の入場差を付ける。ノーマルは.identity(親のKyonoCardModalOverlayが持つ
-                    // .transition(.opacity)フェードのみ・大当たり感を出さない)。
-                    .transition(
-                        cardResult.isSpecialTier
-                            ? .scale(scale: 0.85).combined(with: .opacity)
-                                .animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))
-                            : .identity
-                    )
-                }
-            }
-        }
-        // TASK-C2-2026-07-27-behavior-parity-audit.md §B →
-        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §B修正: index.html:4393
-        // scrollIntoView(todayVideo)(引数なし=ブラウザ既定behavior:"auto"=瞬時)の1:1移植。
-        // オンボ完了直後だけ「きょうの1本」へ瞬時スクロールする(60msはindex.html:4393と同じ、
-        // 直前のレイアウト確定を待つ猶予。withAnimationを付けるとWeb版より演出過剰になるため外す)。
-        .onChange(of: scrollToTodayPending.wrappedValue) { _, pending in
-            guard pending else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
-                proxy.scrollTo("todayCard", anchor: .top)
-                scrollToTodayPending.wrappedValue = false
-            }
-        }
-        // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足: rDoneNudgeBtn(結果画面)
-        // 経由でHomeへ来たときも、通常の動画復帰と同じくshowDoneNudgeを立てる(pulse+中央寄せの両方が
-        // 自然に効く)。
-        .onChange(of: pendingDoneNudge.wrappedValue) { _, pending in
-            guard pending else { return }
-            showDoneNudge = true
-            pendingDoneNudge.wrappedValue = false
-        }
+            CkCard(full: false, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
+            SoudanCard(onOpenSoudan: onOpenSoudan)
+        } else {
+            CkCard(full: true, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
+            SoudanCard(onOpenSoudan: onOpenSoudan)
         }
     }
 }

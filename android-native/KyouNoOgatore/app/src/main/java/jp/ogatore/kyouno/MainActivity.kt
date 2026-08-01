@@ -1168,31 +1168,11 @@ fun HomeScreen(
                 confettiTrigger = null
             }
         }
-        Box(Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(colors.bg)
-                .onGloballyPositioned { coords ->
-                    homeColumnPositionInRootY = coords.positionInRoot().y
-                    homeViewportHeightPx = coords.size.height
-                }
-                .verticalScroll(homeScrollState)
-                // index.html:82 body{padding:20px 18px 180px}の1:1移植。下だけ180dpと大きいのは
-                // §C(scrollIntoView({block:"center"})相当のdoneBtn中央寄せ)がページ末尾付近の
-                // 要素でも実際に中央まで届くための余白(TASK-C2-2026-07-28: 3日目等ページ末尾に
-                // 近い状態でscrollToの目標値がmaxValueを超えクランプされ、中央に届かないまま
-                // 見た目上「動いていない」ように見えるバグの根本原因だった。均一20dpのままだと
-                // 再現する)。
-                .padding(KyonoScreenPadding),
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
-        ) {
-            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植をKyonoAppHeaderへ
-            // 共通化(マイ記録/動画を探す/使い方の3タブにも同じ部品を展開する)。
-            KyonoAppHeader()
-            Spacer(Modifier.height(16.dp))
-
+        // TASK-C2-2026-08-01-build15-subtraction9.md #10: ホームの並び替え(スケッチ承認済み)。
+        // 各カードをローカルcomposable関数として切り出し、fdGuide中(fdFocusOn)は既存の並びを
+        // 一切変えず、通常時だけ新しい並び順(見る→やる→きろく)で組み立てる(fdGuide中の画面
+        // 構成は対象外=触らない、という指示どおり中身は1文字も変えずに並び順だけを制御する)。
+        @Composable fun HitokotoSection() {
             // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:602-603
             // .qbubble(カードの外・chara-hitokoto.pngアバター+日替わりひとこと)の1:1移植。
             // pendingVideoReturnActive()相当(showDoneNudge)のときだけ「おかえりなさい」に差し替える
@@ -1226,6 +1206,9 @@ fun HomeScreen(
                 KyonoCharaImage("chara_hitokoto", Modifier.height(44.dp))
             }
 
+        }
+
+        @Composable fun OfflineBannerSection() {
             // TASK-C2-2026-07-27-offline-banner.md: index.html:4064-4080 envBanner(オフライン案内)の
             // 1:1移植。YouTubeアプリ内ブラウザ脱出案内等のA2HS/PWA固有の他用途は移植対象外(§2-2)なので、
             // 単純に「オフラインなら表示・オンラインなら非表示」でよい(Web版のenvBannerPrevHTML退避は不要)。
@@ -1256,7 +1239,9 @@ fun HomeScreen(
                 )
             }
             Spacer(Modifier.height(14.dp))
+        }
 
+        @Composable fun ConditionalCardsSection() {
             // TASK-C2-2026-07-29-ux-audit-G.md G2: index.html:606-611 #welcomeBack(welcomeCheck())の
             // 1:1移植。既存の`showDoneNudge`(動画から戻った直後の「おかえりなさい」)とは別物
             // (あちらはqbubbleの見出し差し替えのみ・こちらは3日以上あいた復帰を祝う専用カード)。
@@ -1297,17 +1282,9 @@ fun HomeScreen(
                 }
                 Spacer(Modifier.height(16.dp))
             }
+        }
 
-            // index.html:2929-2937 renderHome()のckCard/soudanCard移動ロジックの1:1移植:
-            // 未チェックのときはckCard(フル)+soudanCardがtodayCardの直前、チェック済みのときは
-            // ckCard(ミニ)+soudanCardがstreakCardの直後に移動する(soudanCardは常にckCardの直後を追従)。
-            if (!checked) {
-                CkCard(full = true, typeResult = typeResult, onStartQuiz = onOpenQuiz, onShowResult = onShowResult)
-                Spacer(Modifier.height(16.dp))
-                SoudanCard(onOpenSoudan = onOpenSoudan)
-                Spacer(Modifier.height(16.dp))
-            }
-
+        @Composable fun TodayVideoSection2() {
             // index.html:654-664 #todayCard(きょうの1本)相当。TASK-C2-2026-07-29-ux-audit-G.md G1で
             // renderToday()の1:1移植へ差し替え(プラン優先→タイプ判定→あさ/よる自動判定の順)、
             // TASK-C2-2026-07-30-ux-batch-13-amend-segment.mdでセグメント切替UI(あなた用/あさ/よる)+
@@ -1354,7 +1331,9 @@ fun HomeScreen(
                 Text("🌱 はじめの1本ガイド中", color = colors.ink, modifier = Modifier.testTag("fdBanner"))
                 Spacer(Modifier.height(16.dp))
             }
+        }
 
+        @Composable fun PlanSection() {
             // index.html:1781 renderPlanCard相当(相談室から発行した14日プランの進捗表示)。Web版DOM順
             // (index.html:664 todayCardの直後・streakCardの直前)に合わせて位置を修正。
             plan?.let { p ->
@@ -1386,7 +1365,9 @@ fun HomeScreen(
                 )
                 Spacer(Modifier.height(16.dp))
             }
+        }
 
+        @Composable fun StreakSection() {
             // index.html:686 #streakCard(続けた日数・通算)相当。
             KyonoCard(Modifier.testTag("streakCard")) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1790,13 +1771,69 @@ fun HomeScreen(
                     )
                 }
             }
+        }
 
-            // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。
+        // 旧: !checked時はckCard(フル)+soudanCardがtodayCardの直前・checked時はckCard(ミニ)+
+        // soudanCardがstreakCardの直後、の2箇所に分かれていたのを1箇所へ統合。
+        // index.html:2929-2937 renderHome()のckCard/soudanCard移動ロジックの1:1移植:
+        // 未チェックのときはckCard(フル)+soudanCardがtodayCardの直前、チェック済みのときは
+        // ckCard(ミニ)+soudanCardがstreakCardの直後に移動する(soudanCardは常にckCardの直後を追従)。
+        @Composable fun CkSoudanSection() {
             if (checked) {
-                Spacer(Modifier.height(16.dp))
                 CkCard(full = false, typeResult = typeResult, onStartQuiz = onOpenQuiz, onShowResult = onShowResult)
-                Spacer(Modifier.height(16.dp))
-                SoudanCard(onOpenSoudan = onOpenSoudan)
+            } else {
+                CkCard(full = true, typeResult = typeResult, onStartQuiz = onOpenQuiz, onShowResult = onShowResult)
+            }
+            Spacer(Modifier.height(16.dp))
+            SoudanCard(onOpenSoudan = onOpenSoudan)
+        }
+
+        Box(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.bg)
+                .onGloballyPositioned { coords ->
+                    homeColumnPositionInRootY = coords.positionInRoot().y
+                    homeViewportHeightPx = coords.size.height
+                }
+                .verticalScroll(homeScrollState)
+                // index.html:82 body{padding:20px 18px 180px}の1:1移植。下だけ180dpと大きいのは
+                // §C(scrollIntoView({block:"center"})相当のdoneBtn中央寄せ)がページ末尾付近の
+                // 要素でも実際に中央まで届くための余白(TASK-C2-2026-07-28: 3日目等ページ末尾に
+                // 近い状態でscrollToの目標値がmaxValueを超えクランプされ、中央に届かないまま
+                // 見た目上「動いていない」ように見えるバグの根本原因だった。均一20dpのままだと
+                // 再現する)。
+                .padding(KyonoScreenPadding),
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            // UI/UXパリティ監査GO-5(2026-07-28): index.html:91-94 .logoの1:1移植をKyonoAppHeaderへ
+            // 共通化(マイ記録/動画を探す/使い方の3タブにも同じ部品を展開する)。
+            KyonoAppHeader()
+            Spacer(Modifier.height(16.dp))
+
+            HitokotoSection()
+
+            OfflineBannerSection()
+
+            if (fdFocusOn) {
+                // 初回ジャーニー(fdGuide)中は既存の並びのまま(このタスクのスコープ外・触らない)。
+                ConditionalCardsSection()
+                TodayVideoSection2()
+                PlanSection()
+                StreakSection()
+                CkSoudanSection()
+            } else {
+                // TASK-C2-2026-08-01-build15-subtraction9.md #10: 毎日の動線「見る→やる→きろく」を
+                // 上に。旧並び(条件もの/かたさチェック+相談室が「きょうの1本」より前に出ることが
+                // あった)から、きょうの1本→続けた日数→条件もの(小さく)→プラン→かたさチェック→
+                // 相談室の順に変更。
+                TodayVideoSection2()
+                StreakSection()
+                ConditionalCardsSection()
+                PlanSection()
+                CkSoudanSection()
             }
         }
         // TASK-C2-2026-08-01-build13-round3.md ⑥: confettiの描画はここではなくカードダイアログの
