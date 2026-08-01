@@ -755,20 +755,11 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
             Text("かたさチェック", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(4.dp))
             Text("Q${qi + 1} / ${activeQuestions.size}", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizProgress"))
-            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: index.html:719 .dots+app-quiz.js:175-176の
-            // 1:1移植。ツアー画面にはドットがあるのにクイズには無かった欠落。
-            // D: fdGuide中はジャーニーバー(①チェック)と二重表示になるため、このドット行は隠す
-            // (Q進捗自体は直上の「Q1/5」テキストで既に分かる)。
-            if (!fdGuideActive) {
-            Row(modifier = Modifier.padding(top = 6.dp).testTag("quizDots"), horizontalArrangement = Arrangement.Center) {
-                for (i in activeQuestions.indices) {
-                    Box(
-                        Modifier.padding(horizontal = 3.dp).size(9.dp)
-                            .background(if (i <= qi) colors.pink else colors.line, RoundedCornerShape(50)),
-                    )
-                }
-            }
-            }
+            // TASK-C2-2026-08-01-build15-subtraction9.md #6: 通常時(非fdGuide)は直上の「Qn/N」
+            // テキストと9pxドット行が同じ進捗を二重表示していた(5視点監査指摘)ため、ドット行を
+            // 削除(引き算)。fdGuide中はジャーニーバー(①チェック)が進捗を示すため、この画面の
+            // ドットはfdGuide中ももとから非表示だった(元コード: TASK-C2-2026-07-28-quiz-result-
+            // reach-parity.md §5・index.html:719 .dots+app-quiz.js:175-176の1:1移植)。
             if (q != null) {
                 Spacer(Modifier.height(10.dp))
                 Text(q.title, color = colors.ink, fontSize = 18.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("quizTitle"))
