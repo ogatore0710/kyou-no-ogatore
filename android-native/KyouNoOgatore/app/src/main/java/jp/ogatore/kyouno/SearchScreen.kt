@@ -145,11 +145,12 @@ private fun chipColorsFor(key: String, dark: Boolean): ChipColors = when (key) {
 }
 
 // app-search.js:40-50 currentHits() の1:1移植。
-fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?, year: Int?): List<CatalogVideo> {
+// TASK-C2-2026-08-01-build15-subtraction9.md #2: yearパラメータは年セレクタUI削除に伴い
+// 除去(ネイティブのみ。呼び出し元だったUIが無くなったため引数ごと不要になった)。
+fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?): List<CatalogVideo> {
     val q = query.trim()
     return catalog.filter { v ->
         if (activeTag != null && activeTag !in v.tags) return@filter false
-        if (year != null && v.y != year) return@filter false
         if (q.isEmpty()) return@filter true
         val hay = (v.t + " " + v.tags.joinToString(" ") + " " + v.y + "年").lowercase()
         // app-search.js:48 q.split(/\s+/)の1:1移植。JSの\sはU+3000(全角スペース)を含むが、
@@ -239,14 +240,12 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             debouncedQuery = query
         }
         var searchLimit by remember { mutableStateOf(24) }
-        // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #search):
-        // index.html:955 #ySel(年フィルタ)の1:1移植。searchCatalogのyearパラメータ自体は既存で
-        // あったが、選択UIが無く常にnullで呼ばれていた(=年フィルタが機能していなかった)欠落。
-        val years = remember { catalog.map { it.y }.toSortedSet(compareByDescending { it }).toList() }
-        var selectedYear by remember { mutableStateOf<Int?>(null) }
-        var yearMenuOpen by remember { mutableStateOf(false) }
+        // TASK-C2-2026-08-01-build15-subtraction9.md #2: 年セレクタ(旧#ySel)を削除(5視点監査
+        // ①②③④が独立に指摘。「肩こりの動画がほしい」目的に対し「何年の動画か」で絞る発想は
+        // 想定ユーザーに伝わらず、このアプリで唯一のプルダウンUIだった。本人ガイドライン>
+        // Web1:1移植の既定によりネイティブのみ削除・Web正本は据え置き)。
 
-        val hits = remember(debouncedQuery, activeTag, selectedYear) { searchCatalog(catalog, debouncedQuery, activeTag, selectedYear) }
+        val hits = remember(debouncedQuery, activeTag) { searchCatalog(catalog, debouncedQuery, activeTag) }
 
         // TestFlight実機フィードバックC2(2026-07-29): 「動画を探す」でhits.sizeは正しく計算されて
         // いるのに(catalog.size=454を確認済み)、結果が1件も画面に出ない欠陥があった(logcatで
@@ -420,56 +419,9 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             Spacer(Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box {
-                    // alan5差し戻し(小1件・5視点ワンループG3検収): 実測45.8dpで48dp未満だったため、
-                    // Box+heightIn(min=48.dp)+中央寄せで確実に48dp以上へ(padding値だけの微調整は
-                    // 端末・フォント設定によって再び48dp未満へ戻りうるため、下限を明示する方式にする)。
-                    Box(
-                        modifier = Modifier
-                            .heightIn(min = 48.dp)
-                            .background(colors.card, RoundedCornerShape(12.dp))
-                            .border(2.dp, colors.line, RoundedCornerShape(12.dp))
-                            .clickable { yearMenuOpen = true }
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                            .testTag("searchYearSelect"),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            (selectedYear?.let { "${it}年" } ?: "すべての年") + " ▾",
-                            color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                        )
-                    }
-                    // ダークモード再確認タスク(TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚:
-                    // 素のDropdownMenu/DropdownMenuItemはMaterialTheme既定の配色(ライト固定)で描画され、
-                    // アプリのダークモードと無関係にライト色のポップアップが出ていた。他の箇所(設定画面の
-                    // やるタイミング変更ピッカー等)と同じくPopup+自前スタイルのColumnに置き換える。
-                    if (yearMenuOpen) {
-                        Popup(alignment = Alignment.TopStart, offset = androidx.compose.ui.unit.IntOffset(0, 130), onDismissRequest = { yearMenuOpen = false }) {
-                            Column(
-                                Modifier
-                                    .background(colors.card, RoundedCornerShape(12.dp))
-                                    .border(2.dp, colors.line, RoundedCornerShape(12.dp))
-                                    .padding(vertical = 4.dp)
-                                    .heightIn(max = 320.dp)
-                                    .verticalScroll(rememberScrollState()),
-                            ) {
-                                Text(
-                                    "すべての年", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.fillMaxWidth().clickable { selectedYear = null; yearMenuOpen = false; searchLimit = 24 }.padding(horizontal = 16.dp, vertical = 12.dp),
-                                )
-                                years.forEach { y ->
-                                    Text(
-                                        "${y}年", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.fillMaxWidth().clickable { selectedYear = y; yearMenuOpen = false; searchLimit = 24 }.padding(horizontal = 16.dp, vertical = 12.dp),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
                 // UI/UXパリティ監査GO-10(2026-07-28): app-search.js:61 `${hits.length}本`の1:1移植。
                 // 「件見つかりました」は動詞つきの事務的な文体で、Web版のカジュアルな単位表現とは別物だった。
                 Text("${hits.size}本", color = colors.sub, fontSize = 12.sp, modifier = Modifier.testTag("searchHitCount"))

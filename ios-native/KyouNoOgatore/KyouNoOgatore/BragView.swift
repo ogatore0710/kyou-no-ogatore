@@ -40,7 +40,7 @@ struct BragView: View {
     }
 
     private var hits: [CatalogVideo] {
-        query.trimmingCharacters(in: .whitespaces).isEmpty ? [] : Array(searchCatalog(catalog, query: query, activeTag: nil, year: nil).prefix(20))
+        query.trimmingCharacters(in: .whitespaces).isEmpty ? [] : Array(searchCatalog(catalog, query: query, activeTag: nil).prefix(20))
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }

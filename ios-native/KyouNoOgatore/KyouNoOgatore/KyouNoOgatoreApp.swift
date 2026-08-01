@@ -279,9 +279,10 @@ struct RootView: View {
                 if case .result = screen { return false }
                 return true
             }()
-            // 通信FAB: 使い方(本文・FAQ見出しへの被り対策)・1日目チュートリアル当日
-            // (練習宣言の吹き出しに被るのを2026-07-21実走で確認)では出さない。
-            let showObuFab = !fabsHiddenEntirely && screen != .guide && !fdGuideActiveNow
+            // 通信FAB: TASK-C2-2026-08-01-build15-subtraction9.md #3: 検索・マイ記録・再生リストでも
+            // 相談FABと2連表示になり視覚ノイズだった(5視点監査指摘)ため、ホーム以外では出さない拡張
+            // (引き算)。以前はscreen != .guideだけの判定で検索/再生リスト/マイ記録配下でも出ていた。
+            let showObuFab = screen == .home && !fabsHiddenEntirely && !fdGuideActiveNow
             if showSoudanFab || showObuFab {
                 VStack(spacing: 10) {
                     if showSoudanFab {

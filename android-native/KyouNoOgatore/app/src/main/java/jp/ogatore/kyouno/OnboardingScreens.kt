@@ -1295,9 +1295,9 @@ fun ResultScreen(
             // タブバーからの脱出は常に可能なため、隠しても迷子にはならない)。
             if (!fdGuideActive) {
                 KyonoPrimaryButton("きょうの1本へ", onDone, Modifier.testTag("resultDoneBtn"))
-                Spacer(Modifier.height(10.dp))
-                // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
-                KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("resultRecheckBtn"))
+                // TASK-C2-2026-08-01-build15-subtraction9.md #1: 「もう一回チェックする」は
+                // ホームのckCard(再チェック導線)と完全重複のため削除(5視点監査③④で独立に
+                // 指摘・本人GO)。通常時(非ガイド)でも出さない。
             }
         }
         // D: MainActivity.kt:1764-1771のKyonoConfettiと同じ作法(結果画面版)。

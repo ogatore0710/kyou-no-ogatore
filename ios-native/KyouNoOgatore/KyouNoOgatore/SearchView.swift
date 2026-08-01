@@ -36,11 +36,12 @@ let tagCats: [TagCatDef] = [
 ]
 
 // app-search.js:40-50 currentHits() の1:1移植。
-func searchCatalog(_ catalog: [CatalogVideo], query: String, activeTag: String?, year: Int?) -> [CatalogVideo] {
+// TASK-C2-2026-08-01-build15-subtraction9.md #2: yearパラメータは年セレクタUI削除に伴い
+// 除去(ネイティブのみ。呼び出し元だったUIが無くなったため引数ごと不要になった)。
+func searchCatalog(_ catalog: [CatalogVideo], query: String, activeTag: String?) -> [CatalogVideo] {
     let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
     return catalog.filter { v in
         if let activeTag, !(v.tags ?? []).contains(activeTag) { return false }
-        if let year, v.y != year { return false }
         if q.isEmpty { return true }
         let hay = (v.t + " " + (v.tags ?? []).joined(separator: " ") + " " + String(v.y) + "年").lowercased()
         // app-search.js:48 q.split(/\s+/)の1:1移植。JSの\sはU+3000(全角スペース)を含むが、
@@ -143,20 +144,13 @@ struct SearchView: View {
     @State private var debouncedQuery = ""
     @State private var debounceTask: Task<Void, Never>?
     @State private var searchLimit = 24
-    // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #search):
-    // index.html:955 #ySel(年フィルタ)の1:1移植。searchCatalogのyearパラメータ自体は既存で
-    // あったが、選択UIが無く常にnilで呼ばれていた(=年フィルタが機能していなかった)欠落。
-    @State private var selectedYear: Int?
-
-    private var years: [Int] { Array(Set(catalog.map { $0.y })).sorted(by: >) }
-    private var hits: [CatalogVideo] { searchCatalog(catalog, query: debouncedQuery, activeTag: activeTag, year: selectedYear) }
+    private var hits: [CatalogVideo] { searchCatalog(catalog, query: debouncedQuery, activeTag: activeTag) }
     private var themeSetting: String { store.get("theme", default: "auto") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             SearchContentView(
                 activeCat: $activeCat, activeTag: $activeTag, query: $query, searchLimit: $searchLimit,
-                selectedYear: $selectedYear, years: years,
                 hits: hits, onBack: onBack, openUrl: openUrl
             )
         }
@@ -182,8 +176,6 @@ private struct SearchContentView: View {
     @Binding var activeTag: String?
     @Binding var query: String
     @Binding var searchLimit: Int
-    @Binding var selectedYear: Int?
-    let years: [Int]
     let hits: [CatalogVideo]
     let onBack: () -> Void
     let openUrl: (String) -> Void
@@ -358,19 +350,11 @@ private struct SearchContentView: View {
                     Text("タップで解除").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                 }
             }
+            // TASK-C2-2026-08-01-build15-subtraction9.md #2: 年セレクタを削除(5視点監査
+            // ①②③④が独立に指摘。「肩こりの動画がほしい」目的に対し「何年の動画か」で絞る
+            // 発想は想定ユーザーに伝わらず、このアプリで唯一のプルダウンUIだった。本人ガイド
+            // ライン>Web1:1移植の既定によりネイティブのみ削除・Web正本は据え置き)。
             HStack {
-                Menu {
-                    Button("すべての年") { selectedYear = nil; searchLimit = 24 }
-                    ForEach(years, id: \.self) { y in
-                        Button("\(y)年") { selectedYear = y; searchLimit = 24 }
-                    }
-                } label: {
-                    Text((selectedYear.map { "\($0)年" } ?? "すべての年") + " ▾")
-                        .kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
-                        .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
-                }
                 Spacer()
                 // UI/UXパリティ監査GO-10(2026-07-28): app-search.js:61 `${hits.length}本`の1:1移植。
                 // 「件見つかりました」は動詞つきの事務的な文体で、Web版のカジュアルな単位表現とは別物だった。

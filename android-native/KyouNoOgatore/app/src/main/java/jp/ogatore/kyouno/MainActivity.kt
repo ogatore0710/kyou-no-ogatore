@@ -481,7 +481,11 @@ class MainActivity : ComponentActivity() {
                                     store.get("fdday", null as String?),
                                     today,
                                 )
-                                val showObuFab = !fabsHiddenEntirely && screen != Screen.Guide && !fdGuideActiveNow
+                                // TASK-C2-2026-08-01-build15-subtraction9.md #3: 検索・マイ記録・再生
+                                // リストでも相談FABと2連表示になり視覚ノイズだった(5視点監査指摘)ため、
+                                // ホーム以外では出さない拡張(引き算)。以前はscreen != Screen.Guideだけの
+                                // 判定で検索/再生リスト/マイ記録配下でも出ていた。
+                                val showObuFab = screen == Screen.Home && !fabsHiddenEntirely && !fdGuideActiveNow
                                 if (showSoudanFab || showObuFab) {
                                     val obuIsNew = jp.ogatore.kyouno.obu.obuHasNew(
                                         jp.ogatore.kyouno.obu.ObuLoader.shared, obuSeen, RecordLogic.todayStr(Instant.now()),

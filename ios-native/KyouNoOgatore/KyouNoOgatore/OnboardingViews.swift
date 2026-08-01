@@ -1236,8 +1236,9 @@ private struct ResultContentView: View {
                 // 隠す(app-quiz.js:291-299の1:1移植。タブバーからの脱出は常に可能なため迷子にはならない)。
                 if !fdGuideActive {
                     KyonoPrimaryButton("きょうの1本へ", action: onDone)
-                    // 全画面完全性監査タスク #result: index.html:748 #rRecheckBtn(もう一回チェックする)の1:1移植。
-                    KyonoGhostButton("もう一回チェックする", action: onStartQuiz)
+                    // TASK-C2-2026-08-01-build15-subtraction9.md #1: 「もう一回チェックする」は
+                    // ホームのckCard.mini(再チェック導線)と完全重複のため削除(5視点監査③④で
+                    // 独立に指摘・本人GO)。通常時(非ガイド)でも出さない。
                 }
             }
             .padding(20)

@@ -14,19 +14,19 @@ class SearchLogicTest {
 
     @Test
     fun fullWidthSpaceSeparatedQueryMatches() {
-        val hits = searchCatalog(sample, "肩こり　朝", null, null)
+        val hits = searchCatalog(sample, "肩こり　朝", null)
         assertTrue(hits.isNotEmpty())
     }
 
     @Test
     fun halfWidthSpaceSeparatedQueryStillMatches() {
-        val hits = searchCatalog(sample, "肩こり 朝", null, null)
+        val hits = searchCatalog(sample, "肩こり 朝", null)
         assertTrue(hits.isNotEmpty())
     }
 
     @Test
     fun mixedWhitespaceQueryStillMatches() {
-        val hits = searchCatalog(sample, "肩こり\t朝\n", null, null)
+        val hits = searchCatalog(sample, "肩こり\t朝\n", null)
         assertTrue(hits.isNotEmpty())
     }
 }

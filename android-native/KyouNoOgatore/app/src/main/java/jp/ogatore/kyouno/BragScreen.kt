@@ -76,7 +76,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
         var makingCard by remember { mutableStateOf(false) }
         val scope = androidx.compose.runtime.rememberCoroutineScope()
 
-        val hits = remember(query) { if (query.isBlank()) emptyList() else searchCatalog(catalog, query, null, null).take(20) }
+        val hits = remember(query) { if (query.isBlank()) emptyList() else searchCatalog(catalog, query, null).take(20) }
 
         // TASK-C2-2026-07-27-brag-card-thumbnail.md検証時に発覚した既存バグの修正の経緯: 検索結果
         // LazyColumn(旧Modifier.weight(1f))が、非スクロールの外側Columnの中では固定要素群との
