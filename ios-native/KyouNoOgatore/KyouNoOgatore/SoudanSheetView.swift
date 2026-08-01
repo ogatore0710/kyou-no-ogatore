@@ -660,10 +660,12 @@ private struct SoudanContentView: View {
             case .none:
                 EmptyView() // crisis直後: チップ・カテゴリタブなし(index.html:3143-3145)
             case let .intents(activeCat):
-                // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §2/§5: index.html:471
-                // .sd-foot .sd-catrow{flex-wrap:wrap}の1:1移植。相談室フッターのチップ行は
-                // 例外的に横スクロールだが、カテゴリ行だけは折り返しに戻る指定。
-                FlowLayout(spacing: 8, lineSpacing: 6, alignment: .leading) {
+                // TASK-C2-2026-08-01-build15-subtraction9.md #9: カテゴリ行は最大4段に折り返す
+                // FlowLayoutだと縦に伸びすぎていた(5視点監査指摘)ため、下のチップ行(FadingChipRow)
+                // と同じ「横スクロール+右端フェード」の作法へ統一(引き算・端が切れて見える=続きが
+                // あるの合図、も既存作法どおり)。以前のindex.html:471 flex-wrap:wrap準拠のコメントは
+                // この変更で役目を終える。
+                FadingChipRow {
                     ForEach(sdChipCats, id: \.key) { cat in
                         KyonoCatButton(label: cat.label, selected: cat.key == activeCat) { onCatSelect(cat.key) }
                     }
