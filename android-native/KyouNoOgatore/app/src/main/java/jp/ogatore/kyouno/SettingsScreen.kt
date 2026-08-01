@@ -159,6 +159,8 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
             }
         }
         var notifEnabled by remember { mutableStateOf(store.get("notif_enabled", false)) }
+        // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を開閉式に(引き算)。既定は閉。
+        var notifSectionExpanded by remember { mutableStateOf(false) }
         val notifPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
                 store.set("notif_enabled", true)
@@ -298,7 +300,25 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // 実際は通知機能とも共有する時刻だったため「おしらせの時間」に改め、時刻ピッカー→
                 // 「毎日のおしらせ」トグル→カレンダー登録ボタンの順に並び替え(iOS版と同型)。
                 Spacer(Modifier.height(20.dp))
-                Text("おしらせの時間", color = colors.ink, fontSize = 15.sp)
+                // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を隣接のFAQ開閉
+                // (GuideScreen.kt)と同じ様式(見出しタップで開閉・▾/▴)で畳む。既定は閉。閉じていても
+                // 状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { notifSectionExpanded = !notifSectionExpanded }
+                        .testTag("notifSectionHeader"),
+                ) {
+                    Text("おしらせの時間", color = colors.ink, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                    Text(
+                        if (notifEnabled) "%02d:%02d オン".format(icsHour, icsMinute) else "オフ",
+                        color = if (notifEnabled) colors.tealInk else colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(if (notifSectionExpanded) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
+                }
+                if (notifSectionExpanded) {
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     var showHourMenu by remember { mutableStateOf(false) }
@@ -405,6 +425,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 )
                 Spacer(Modifier.height(6.dp))
                 Text("スマホのカレンダーが毎日その時間に知らせてくれます", color = colors.sub, fontSize = 12.sp)
+                }
 
                 Spacer(Modifier.height(20.dp))
                 // アイコン方針(I) 新規描き起こしバッチ1(2026-07-30): この見出しと直下のボタンは

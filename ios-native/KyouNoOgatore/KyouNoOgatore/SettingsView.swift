@@ -66,6 +66,8 @@ struct SettingsView: View {
     // コピー退避のみ)。
     @State private var preImportSnapshot: [String: String]?
     @State private var showImportUndo = false
+    // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を開閉式に(引き算)。既定は閉。
+    @State private var notifSectionExpanded = false
 
     init(store: RecordStore, onBack: @escaping () -> Void) {
         self.store = store
@@ -232,7 +234,19 @@ struct SettingsView: View {
                     // 「毎日のおしらせ」トグル→カレンダー登録ボタンの順に並び替え(通知だけ使いたい人が
                     // カレンダー連携の説明を挟まず自分の通知時刻にたどり着けるように)。要素の追加削除は無し。
                     Spacer().frame(height: 20)
-                    KyonoBodyText("おしらせの時間")
+                    // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を隣接の
+                    // FAQ開閉(GuideView.swift)と同じ様式(見出しタップで開閉・▾/▴)で畳む。既定は閉。
+                    // 閉じていても状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
+                    HStack {
+                        KyonoBodyText("おしらせの時間")
+                        Spacer()
+                        Text(notifEnabled ? "\(String(format: "%02d", icsHour)):\(String(format: "%02d", icsMinute)) オン" : "オフ")
+                            .kyonoFont(.bold700, size: 13).foregroundColor(notifEnabled ? colors.tealInk : colors.sub)
+                        Text(notifSectionExpanded ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { notifSectionExpanded.toggle() }
+                    if notifSectionExpanded {
                     Spacer().frame(height: 6)
                     // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを
                     // 15分刻み(:00/:15/:30/:45の4択)に変更。Android版のDropdownMenu2つ構成と
@@ -320,6 +334,7 @@ struct SettingsView: View {
                     Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
                     if let icsMessage {
                         Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(colors.pink)
+                    }
                     }
 
                     Spacer().frame(height: 20)
