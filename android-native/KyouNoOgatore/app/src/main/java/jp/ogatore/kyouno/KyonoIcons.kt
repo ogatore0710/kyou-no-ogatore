@@ -28,7 +28,11 @@ import androidx.compose.ui.unit.sp
 // 全24箇所のsec-headは形状で見ると14種類に集約される(同一形状で塗り色/アクセント色だけ違う箇所あり)。
 // KyonoSectionHeader(icon, title)がsec-head全体(アイコン+タイトルの横並び)を1:1移植する。
 
-private val ink = Color(0xFF3A3A35)
+// TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-4: 旧実装はここを常時0xFF3A3A35の
+// 固定墨色でストロークしており、ダーク背景(0xFF211E19)とのコントラストがほぼ無く
+// (使い方タブ・マイ記録タブのアイコンが軒並み消える)、タブバーで既に直したtabbarStrokeOffと
+// 同じ欠落だった。KyonoIconGlyph内でLocalKyonoColors.current.colors.ink(テーマ変数)を
+// 直接使うよう全箇所置き換える(下記参照)。
 
 enum class KyonoIcon {
     Clock, Question, QuizCheck, SoudanBubble, ObuBubble, Play, CalendarCheck,
@@ -72,19 +76,20 @@ fun KyonoSectionHeader(icon: KyonoIcon, title: String, fill: Color, accent: Colo
 
 @Composable
 fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9E), modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
     Canvas(modifier) {
         val s = size.width / 24f
         fun pt(x: Float, y: Float) = Offset(x * s, y * s)
         when (icon) {
             KyonoIcon.Clock -> {
                 drawCircle(fill, radius = 8.5f * s, center = pt(12f, 12f))
-                drawCircle(ink, radius = 8.5f * s, center = pt(12f, 12f), style = Stroke(2.2f * s))
+                drawCircle(colors.ink, radius = 8.5f * s, center = pt(12f, 12f), style = Stroke(2.2f * s))
                 val hand = Path().apply { moveTo(pt(12f, 7.5f).x, pt(12f, 7.5f).y); lineTo(pt(12f, 12f).x, pt(12f, 12f).y); lineTo(pt(15f, 14.5f).x, pt(15f, 14.5f).y) }
-                drawPath(hand, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(hand, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
             }
             KyonoIcon.Question -> {
                 drawCircle(fill, radius = 8.5f * s, center = pt(12f, 12f))
-                drawCircle(ink, radius = 8.5f * s, center = pt(12f, 12f), style = Stroke(2.2f * s))
+                drawCircle(colors.ink, radius = 8.5f * s, center = pt(12f, 12f), style = Stroke(2.2f * s))
                 val q = Path().apply {
                     moveTo(pt(9f, 10f).x, pt(9f, 10f).y)
                     quadraticBezierTo(pt(9f, 7f).x, pt(9f, 7f).y, pt(12f, 7f).x, pt(12f, 7f).y)
@@ -92,14 +97,14 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     quadraticBezierTo(pt(15f, 12f).x, pt(15f, 12f).y, pt(12f, 13f).x, pt(12f, 13f).y)
                     lineTo(pt(12f, 14f).x, pt(12f, 14f).y)
                 }
-                drawPath(q, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
-                drawCircle(ink, radius = 0.3f * s, center = pt(12f, 17f))
+                drawPath(q, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawCircle(colors.ink, radius = 0.3f * s, center = pt(12f, 17f))
             }
             KyonoIcon.QuizCheck -> {
                 drawCircle(Color.Transparent, radius = 6.5f * s, center = pt(10.5f, 10.5f))
-                drawCircle(ink, radius = 6.5f * s, center = pt(10.5f, 10.5f), style = Stroke(2.2f * s))
+                drawCircle(colors.ink, radius = 6.5f * s, center = pt(10.5f, 10.5f), style = Stroke(2.2f * s))
                 val handle = Path().apply { moveTo(pt(15.5f, 15.5f).x, pt(15.5f, 15.5f).y); lineTo(pt(20f, 20f).x, pt(20f, 20f).y) }
-                drawPath(handle, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(handle, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
                 val cross = Path().apply {
                     moveTo(pt(8f, 10.5f).x, pt(8f, 10.5f).y); lineTo(pt(13f, 10.5f).x, pt(13f, 10.5f).y)
                     moveTo(pt(10.5f, 8f).x, pt(10.5f, 8f).y); lineTo(pt(10.5f, 13f).x, pt(10.5f, 13f).y)
@@ -118,7 +123,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     close()
                 }
                 drawPath(bubble, fill, style = Fill)
-                drawPath(bubble, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(bubble, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 if (icon == KyonoIcon.SoudanBubble) {
                     val lines = Path().apply {
                         moveTo(pt(8.5f, 9f).x, pt(8.5f, 9f).y); lineTo(pt(15.5f, 9f).x, pt(15.5f, 9f).y)
@@ -130,7 +135,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
             KyonoIcon.Play -> {
                 val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(2.5f * s, 4.5f * s, 21.5f * s, 19.5f * s, CornerRadius(4f * s))) }
                 drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawPath(rect, colors.ink, style = Stroke(2.2f * s))
                 val tri = Path().apply {
                     moveTo(pt(10f, 9.2f).x, pt(10f, 9.2f).y); lineTo(pt(10f, 14.8f).x, pt(10f, 14.8f).y); lineTo(pt(14.8f, 12f).x, pt(14.8f, 12f).y); close()
                 }
@@ -139,13 +144,13 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
             KyonoIcon.CalendarCheck -> {
                 val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(3f * s, 5f * s, 21f * s, 21f * s, CornerRadius(3.5f * s))) }
                 drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawPath(rect, colors.ink, style = Stroke(2.2f * s))
                 val lines = Path().apply {
                     moveTo(pt(3f, 9.5f).x, pt(3f, 9.5f).y); lineTo(pt(21f, 9.5f).x, pt(21f, 9.5f).y)
                     moveTo(pt(8f, 3f).x, pt(8f, 3f).y); lineTo(pt(8f, 7f).x, pt(8f, 7f).y)
                     moveTo(pt(16f, 3f).x, pt(16f, 3f).y); lineTo(pt(16f, 7f).x, pt(16f, 7f).y)
                 }
-                drawPath(lines, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(lines, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
                 val check = Path().apply {
                     moveTo(pt(8.5f, 14.5f).x, pt(8.5f, 14.5f).y); lineTo(pt(11f, 17f).x, pt(11f, 17f).y); lineTo(pt(15.5f, 12f).x, pt(15.5f, 12f).y)
                 }
@@ -154,7 +159,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
             KyonoIcon.DexBook -> {
                 val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(3.5f * s, 4f * s, 20.5f * s, 20f * s, CornerRadius(3f * s))) }
                 drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawPath(rect, colors.ink, style = Stroke(2.2f * s))
                 val lines = Path().apply {
                     moveTo(pt(12f, 4f).x, pt(12f, 4f).y); lineTo(pt(12f, 20f).x, pt(12f, 20f).y)
                     moveTo(pt(8f, 8f).x, pt(8f, 8f).y); lineTo(pt(9.5f, 8f).x, pt(9.5f, 8f).y)
@@ -162,12 +167,12 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     moveTo(pt(14.5f, 8f).x, pt(14.5f, 8f).y); lineTo(pt(16f, 8f).x, pt(16f, 8f).y)
                     moveTo(pt(14.5f, 12f).x, pt(14.5f, 12f).y); lineTo(pt(16f, 12f).x, pt(16f, 12f).y)
                 }
-                drawPath(lines, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(lines, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
             }
             KyonoIcon.Heart -> {
                 val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(3f * s, 5f * s, 21f * s, 20f * s, CornerRadius(3.5f * s))) }
                 drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawPath(rect, colors.ink, style = Stroke(2.2f * s))
                 val heart = Path().apply {
                     moveTo(pt(12f, 17f).x, pt(12f, 17f).y)
                     cubicTo(pt(9.4f, 15f).x, pt(9.4f, 15f).y, pt(7.9f, 13.3f).x, pt(7.9f, 13.3f).y, pt(8.4f, 11.5f).x, pt(8.4f, 11.5f).y)
@@ -181,35 +186,35 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
             KyonoIcon.Envelope -> {
                 val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(3f * s, 5f * s, 21f * s, 20f * s, CornerRadius(3.5f * s))) }
                 drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawPath(rect, colors.ink, style = Stroke(2.2f * s))
                 val chevron = Path().apply {
                     moveTo(pt(3.5f, 8f).x, pt(3.5f, 8f).y); lineTo(pt(12f, 13.5f).x, pt(12f, 13.5f).y); lineTo(pt(20.5f, 8f).x, pt(20.5f, 8f).y)
                 }
-                drawPath(chevron, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(chevron, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
             }
             KyonoIcon.Notes -> {
                 val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(4f * s, 3.5f * s, 20f * s, 20.5f * s, CornerRadius(3f * s))) }
                 drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawPath(rect, colors.ink, style = Stroke(2.2f * s))
                 val lines = Path().apply {
                     moveTo(pt(8f, 8.5f).x, pt(8f, 8.5f).y); lineTo(pt(16f, 8.5f).x, pt(16f, 8.5f).y)
                     moveTo(pt(8f, 12f).x, pt(8f, 12f).y); lineTo(pt(16f, 12f).x, pt(16f, 12f).y)
                     moveTo(pt(8f, 15.5f).x, pt(8f, 15.5f).y); lineTo(pt(13f, 15.5f).x, pt(13f, 15.5f).y)
                 }
-                drawPath(lines, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(lines, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
             }
             KyonoIcon.MountainCheck -> {
                 val mountain = Path().apply {
                     moveTo(pt(3f, 17f).x, pt(3f, 17f).y); lineTo(pt(17f, 3f).x, pt(17f, 3f).y); lineTo(pt(21f, 7f).x, pt(21f, 7f).y); lineTo(pt(7f, 21f).x, pt(7f, 21f).y); close()
                 }
                 drawPath(mountain, fill, style = Fill)
-                drawPath(mountain, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(mountain, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 val check = Path().apply {
                     moveTo(pt(13f, 7f).x, pt(13f, 7f).y); lineTo(pt(17f, 11f).x, pt(17f, 11f).y)
                     moveTo(pt(7f, 13f).x, pt(7f, 13f).y); lineTo(pt(9f, 15f).x, pt(9f, 15f).y)
                     moveTo(pt(10f, 10f).x, pt(10f, 10f).y); lineTo(pt(12f, 12f).x, pt(12f, 12f).y)
                 }
-                drawPath(check, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(check, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
             }
             KyonoIcon.ShieldCheck -> {
                 val shield = Path().apply {
@@ -222,7 +227,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     close()
                 }
                 drawPath(shield, fill, style = Fill)
-                drawPath(shield, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(shield, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 val check = Path().apply {
                     moveTo(pt(8.5f, 12f).x, pt(8.5f, 12f).y); lineTo(pt(11f, 14.5f).x, pt(11f, 14.5f).y); lineTo(pt(15.5f, 9.5f).x, pt(15.5f, 9.5f).y)
                 }
@@ -243,22 +248,22 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     close()
                 }
                 drawPath(star, fill, style = Fill)
-                drawPath(star, ink, style = Stroke(1.6f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(star, colors.ink, style = Stroke(1.6f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
             }
             KyonoIcon.Search -> {
                 drawCircle(fill, radius = 6.5f * s, center = pt(10.5f, 10.5f))
-                drawCircle(ink, radius = 6.5f * s, center = pt(10.5f, 10.5f), style = Stroke(2.2f * s))
+                drawCircle(colors.ink, radius = 6.5f * s, center = pt(10.5f, 10.5f), style = Stroke(2.2f * s))
                 val handle = Path().apply { moveTo(pt(15.5f, 15.5f).x, pt(15.5f, 15.5f).y); lineTo(pt(20f, 20f).x, pt(20f, 20f).y) }
-                drawPath(handle, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(handle, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
             }
             KyonoIcon.ExportBox -> {
                 val rect = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(4f * s, 9f * s, 20f * s, 21f * s, CornerRadius(1.5f * s))) }
                 drawPath(rect, fill, style = Fill)
-                drawPath(rect, ink, style = Stroke(2.2f * s))
+                drawPath(rect, colors.ink, style = Stroke(2.2f * s))
                 val flap = Path().apply {
                     moveTo(pt(4f, 9f).x, pt(4f, 9f).y); lineTo(pt(12f, 4.5f).x, pt(12f, 4.5f).y); lineTo(pt(20f, 9f).x, pt(20f, 9f).y)
                 }
-                drawPath(flap, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(flap, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 val tape = Path().apply {
                     moveTo(pt(12f, 9f).x, pt(12f, 9f).y); lineTo(pt(12f, 21f).x, pt(12f, 21f).y)
                     moveTo(pt(4f, 15f).x, pt(4f, 15f).y); lineTo(pt(20f, 15f).x, pt(20f, 15f).y)
@@ -268,9 +273,9 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
             KyonoIcon.ClipboardPaste -> {
                 val board = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(4f * s, 5.5f * s, 20f * s, 21f * s, CornerRadius(2f * s))) }
                 drawPath(board, fill, style = Fill)
-                drawPath(board, ink, style = Stroke(2.2f * s))
+                drawPath(board, colors.ink, style = Stroke(2.2f * s))
                 val clip = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(9f * s, 3f * s, 15f * s, 6f * s, CornerRadius(1.2f * s))) }
-                drawPath(clip, ink, style = Fill)
+                drawPath(clip, colors.ink, style = Fill)
                 val lines = Path().apply {
                     moveTo(pt(7f, 11f).x, pt(7f, 11f).y); lineTo(pt(17f, 11f).x, pt(17f, 11f).y)
                     moveTo(pt(7f, 14.5f).x, pt(7f, 14.5f).y); lineTo(pt(15f, 14.5f).x, pt(15f, 14.5f).y)
@@ -283,9 +288,9 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     lineTo(pt(17.5f, 20f).x, pt(17.5f, 20f).y); lineTo(pt(6.5f, 20f).x, pt(6.5f, 20f).y); close()
                 }
                 drawPath(tray, fill, style = Fill)
-                drawPath(tray, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(tray, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 val shaft = Path().apply { moveTo(pt(12f, 3f).x, pt(12f, 3f).y); lineTo(pt(12f, 12f).x, pt(12f, 12f).y) }
-                drawPath(shaft, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(shaft, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
                 val head = Path().apply {
                     moveTo(pt(8f, 8f).x, pt(8f, 8f).y); lineTo(pt(12f, 12f).x, pt(12f, 12f).y); lineTo(pt(16f, 8f).x, pt(16f, 8f).y)
                 }
@@ -298,8 +303,8 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     lineTo(pt(20f, 17f).x, pt(20f, 17f).y); close()
                 }
                 drawPath(crown, fill, style = Fill)
-                drawPath(crown, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
-                drawLine(ink, pt(4f, 17f), pt(20f, 17f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                drawPath(crown, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawLine(colors.ink, pt(4f, 17f), pt(20f, 17f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
                 drawCircle(accent, radius = 1.3f * s, center = pt(12f, 6f))
             }
             KyonoIcon.ConfettiBurst -> {
@@ -315,7 +320,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     moveTo(pt(5f, 19f).x, pt(5f, 19f).y); lineTo(pt(9f, 8f).x, pt(9f, 8f).y)
                     moveTo(pt(5f, 19f).x, pt(5f, 19f).y); lineTo(pt(17f, 12f).x, pt(17f, 12f).y)
                 }
-                drawPath(hornStroke, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(hornStroke, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 drawCircle(accent, radius = 1f * s, center = pt(11f, 3f))
                 drawCircle(accent, radius = 1f * s, center = pt(21f, 8f))
                 drawLine(accent, pt(17f, 3f), pt(19f, 5f), strokeWidth = 1.8f * s, cap = StrokeCap.Round)
@@ -337,22 +342,22 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     close()
                 }
                 drawPath(ticket, fill, style = Fill)
-                drawPath(ticket, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(ticket, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 drawLine(
                     accent, pt(12f, 7f), pt(12f, 17f), strokeWidth = 2.2f * s, cap = StrokeCap.Round,
                     pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(2.2f * s, 2.4f * s)),
                 )
             }
             KyonoIcon.GoalFlag -> {
-                drawLine(ink, pt(6f, 20f), pt(6f, 4f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                drawLine(colors.ink, pt(6f, 20f), pt(6f, 4f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
                 val flag = Path().apply {
                     moveTo(pt(6f, 4f).x, pt(6f, 4f).y); lineTo(pt(18f, 7.5f).x, pt(18f, 7.5f).y); lineTo(pt(6f, 11f).x, pt(6f, 11f).y); close()
                 }
                 drawPath(flag, accent, style = Fill)
-                drawPath(flag, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(flag, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
             }
             KyonoIcon.Sprout -> {
-                drawLine(ink, pt(12f, 20f), pt(12f, 12f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                drawLine(colors.ink, pt(12f, 20f), pt(12f, 12f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
                 val leftLeaf = Path().apply {
                     moveTo(pt(12f, 14f).x, pt(12f, 14f).y)
                     quadraticBezierTo(pt(6f, 14f).x, pt(6f, 14f).y, pt(6f, 10f).x, pt(6f, 10f).y)
@@ -360,7 +365,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     close()
                 }
                 drawPath(leftLeaf, fill, style = Fill)
-                drawPath(leftLeaf, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(leftLeaf, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 val rightLeaf = Path().apply {
                     moveTo(pt(12f, 12f).x, pt(12f, 12f).y)
                     quadraticBezierTo(pt(18f, 12f).x, pt(18f, 12f).y, pt(18f, 8f).x, pt(18f, 8f).y)
@@ -368,26 +373,26 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     close()
                 }
                 drawPath(rightLeaf, accent, style = Fill)
-                drawPath(rightLeaf, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(rightLeaf, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
             }
             KyonoIcon.HourglassTime -> {
                 val top = Path().apply {
                     moveTo(pt(6f, 4f).x, pt(6f, 4f).y); lineTo(pt(18f, 4f).x, pt(18f, 4f).y); lineTo(pt(12f, 11f).x, pt(12f, 11f).y); close()
                 }
                 drawPath(top, fill, style = Fill)
-                drawPath(top, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(top, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 val bottom = Path().apply {
                     moveTo(pt(6f, 20f).x, pt(6f, 20f).y); lineTo(pt(18f, 20f).x, pt(18f, 20f).y); lineTo(pt(12f, 13f).x, pt(12f, 13f).y); close()
                 }
                 drawPath(bottom, fill, style = Fill)
-                drawPath(bottom, ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+                drawPath(bottom, colors.ink, style = Stroke(2.2f * s, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 drawCircle(accent, radius = 1.2f * s, center = pt(12f, 12.4f))
             }
             KyonoIcon.PhoneDevice -> {
                 val body = Path().apply { addRoundRect(androidx.compose.ui.geometry.RoundRect(7f * s, 3f * s, 17f * s, 21f * s, CornerRadius(2f * s))) }
                 drawPath(body, fill, style = Fill)
-                drawPath(body, ink, style = Stroke(2.2f * s))
-                drawLine(ink, pt(10f, 5.5f), pt(14f, 5.5f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+                drawPath(body, colors.ink, style = Stroke(2.2f * s))
+                drawLine(colors.ink, pt(10f, 5.5f), pt(14f, 5.5f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
                 drawLine(accent, pt(10f, 18.5f), pt(14f, 18.5f), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
             }
             KyonoIcon.PaletteArt -> {
@@ -397,8 +402,8 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     fillType = PathFillType.EvenOdd
                 }
                 drawPath(punch, fill, style = Fill)
-                drawOval(ink, topLeft = pt(3f, 6f), size = androidx.compose.ui.geometry.Size(16f * s, 12f * s), style = Stroke(2.2f * s))
-                drawOval(ink, topLeft = pt(5.2f, 13.2f), size = androidx.compose.ui.geometry.Size(3.6f * s, 3.6f * s), style = Stroke(2.2f * s))
+                drawOval(colors.ink, topLeft = pt(3f, 6f), size = androidx.compose.ui.geometry.Size(16f * s, 12f * s), style = Stroke(2.2f * s))
+                drawOval(colors.ink, topLeft = pt(5.2f, 13.2f), size = androidx.compose.ui.geometry.Size(3.6f * s, 3.6f * s), style = Stroke(2.2f * s))
                 // alan5差し戻し(2026-07-30): 前回の3点はパレット本体の楕円からはみ出して
                 // いた(右端に寄せるほど楕円は細くなるため)。中心寄りに置き直し、親指の穴
                 // (center 7,15・半径1.8)とも重ならない位置を選ぶ。
@@ -433,7 +438,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                     moveTo(pt(5.5f, 6.5f).x, pt(5.5f, 6.5f).y); lineTo(pt(7.3f, 8.3f).x, pt(7.3f, 8.3f).y)
                     moveTo(pt(18.5f, 6.5f).x, pt(18.5f, 6.5f).y); lineTo(pt(16.7f, 8.3f).x, pt(16.7f, 8.3f).y)
                 }
-                drawPath(rays, ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
+                drawPath(rays, colors.ink, style = Stroke(2.2f * s, cap = StrokeCap.Round))
             }
             // index.html:658 segYoruの1:1移植(三日月・大円から小円を欠き取る)。
             // alan5差し戻し(2026-07-30): 旧実装はevenOddで2円の「XOR」領域を塗っていたため、
@@ -448,7 +453,7 @@ fun KyonoIconGlyph(icon: KyonoIcon, fill: Color, accent: Color = Color(0xFFE56A9
                 val small = Path().apply { addOval(androidx.compose.ui.geometry.Rect(9f * s, 1.5f * s, 23f * s, 15.5f * s)) }
                 val moon = Path.combine(PathOperation.Difference, big, small)
                 drawPath(moon, Color(0xFFB8A9F0), style = Fill)
-                drawPath(moon, ink, style = Stroke(2.2f * s))
+                drawPath(moon, colors.ink, style = Stroke(2.2f * s))
             }
         }
     }
