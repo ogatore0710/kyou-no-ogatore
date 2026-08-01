@@ -101,7 +101,7 @@ private fun DexSection(title: String, items: List<DexItem>) {
             Text(title, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
             // index.html:233 .dex-seccount(bg丸ピル)
             Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
-                Text("$got/${items.size}", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexSecCount_$title"))
+                Text("$got/${items.size}", color = colors.sub, fontSize = kyonoFloorSp(12f), fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexSecCount_$title"))
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -155,7 +155,7 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
         // (KyonoTightLineTextStyle、前回G2は検索チップのみに適用)をここにも展開する。
         // kyonoFloorSp()はbigtext時に実際のフォントサイズが変わりうるため、lineHeightは
         // その解決後の値に対する比率(1.3倍)で計算し、常にCSSと同じ比率を保つ。
-        val nameFontSize = kyonoFloorSp(11f)
+        val nameFontSize = kyonoFloorSp(12f)
         Text(
             if (item.got) item.name else "？？？",
             color = colors.ink,
@@ -169,7 +169,7 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
         val sub = if (item.got) item.flavor else item.hint
         if (sub.isNotEmpty()) {
             // index.html:242 .dex-hint{font-size:10px;line-height:1.35}の1:1移植。
-            val hintFontSize = kyonoFloorSp(10f)
+            val hintFontSize = kyonoFloorSp(12f)
             Text(
                 sub, fontSize = hintFontSize, lineHeight = (hintFontSize.value * 1.35f).sp,
                 style = KyonoTightLineTextStyle, color = colors.sub, textAlign = TextAlign.Center,

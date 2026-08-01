@@ -240,7 +240,7 @@ private fun ObuRadioPlayer(post: ObuPost, modifier: Modifier = Modifier) {
                 Box(Modifier.fillMaxWidth(frac).height(4.dp).background(colors.teal, RoundedCornerShape(2.dp)))
             }
             Spacer(Modifier.height(4.dp))
-            Text("${fmt(position)} / ${fmt(duration)}", color = colors.sub, fontSize = kyonoFloorSp(11f), modifier = Modifier.testTag("obuRadioTime_${post.id}"))
+            Text("${fmt(position)} / ${fmt(duration)}", color = colors.sub, fontSize = kyonoFloorSp(12f), modifier = Modifier.testTag("obuRadioTime_${post.id}"))
         }
     }
 }

@@ -1212,7 +1212,7 @@ fun HomeScreen(
                     Column {
                         Text(
                             if (showReturnNudge) "おかえりなさい" else "きょうのひとこと",
-                            color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black,
+                            color = colors.sub, fontSize = kyonoFloorSp(12f), fontWeight = FontWeight.Black,
                         )
                         Text(
                             if (showReturnNudge) "おわったら下の「きょうやった！」を押してね✅"

@@ -87,7 +87,7 @@ fun VoicesScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
 private fun VoiceTag(text: String) {
     val colors = LocalKyonoColors.current
     Box(Modifier.background(colors.tealSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 2.dp)) {
-        Text(text, color = colors.tealInk, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black)
+        Text(text, color = colors.tealInk, fontSize = kyonoFloorSp(12f), fontWeight = FontWeight.Black)
     }
 }
 

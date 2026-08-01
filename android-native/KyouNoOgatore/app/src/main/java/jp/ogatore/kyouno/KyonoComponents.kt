@@ -82,7 +82,7 @@ fun KyonoAppHeader() {
             )
             // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
             Text(
-                "みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Black,
+                "みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = kyonoFloorSp(12f), fontWeight = FontWeight.Black,
                 maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
             )
         }
@@ -427,7 +427,7 @@ fun KyonoJourneyBar(labels: List<String>, currentIndex: Int, modifier: Modifier 
                 if (label.isNotEmpty()) {
                     Spacer(Modifier.height(3.dp))
                     Text(
-                        label, color = if (current) colors.ink else colors.sub, fontSize = 10.sp,
+                        label, color = if (current) colors.ink else colors.sub, fontSize = 12.sp,
                         fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 }
