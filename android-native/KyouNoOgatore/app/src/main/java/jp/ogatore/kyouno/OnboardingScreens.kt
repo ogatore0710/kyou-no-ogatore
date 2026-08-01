@@ -101,6 +101,11 @@ import java.time.Instant
 data class ObChip(val label: String, val v: String)
 data class ObQuestionDef(val key: String, val q: String, val chips: List<ObChip>)
 
+// TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-2: 固定フッターCTA(かたさチェックを
+// はじめる/きょうの1本を見る)のおおよその高さ(ボタン本体+外側padding)。オンボチャットの
+// 自動スクロール着地位置に、この分の余白を確保するために使う。
+private val KYONO_ONBOARDING_CTA_INSET = 100.dp
+
 val OB_GREET = listOf(
     "いつもありがとうございます！理学療法士のオガトレです！",
     "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要🆓 あんしんしてね",
@@ -155,9 +160,12 @@ fun obDecideRoute(stiff: String, worry: String): String =
 // 同じ「明→暗」段階色パレット(bg,border)。実際の難易度でなくチップの並び順で明→暗を巡回させる
 // (index.html:4211と同じ「obg"+(i%4)」方式)。ライト/ダークで別パレット。
 private data class ObgColor(val bg: Color, val border: Color)
+// TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-1: 5択の質問(部位選択など)で
+// i%4のため1番目と5番目が同色になっていた欠落。5色目(青系・色相約200)を追加し5色パレットにした。
 private val OBG_LIGHT = listOf(
     ObgColor(Color(0xFFEAF8F1), Color(0xFFBFE8DC)), ObgColor(Color(0xFFFFF3CB), Color(0xFFF2DE8A)),
     ObgColor(Color(0xFFFBE3C6), Color(0xFFE5BC85)), ObgColor(Color(0xFFF2D7CD), Color(0xFFDCA894)),
+    ObgColor(Color(0xFFD9ECF7), Color(0xFFA8D0E6)),
 )
 // TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
 // ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
@@ -165,6 +173,7 @@ private val OBG_LIGHT = listOf(
 private val OBG_DARK = listOf(
     ObgColor(Color(0xFF223D33), Color(0xFF2E5A48)), ObgColor(Color(0xFF4A3D14), Color(0xFF6B5A1C)),
     ObgColor(Color(0xFF4D3018), Color(0xFF704620)), ObgColor(Color(0xFF4A1F35), Color(0xFF6B2C4C)),
+    ObgColor(Color(0xFF1F3A4D), Color(0xFF2B5570)),
 )
 private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
 
@@ -367,6 +376,11 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 }
                 }
             }
+            // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-2: 固定フッターCTA
+            // (かたさチェックをはじめる/きょうの1本を見る)の高さぶん、スクロール末尾に
+            // インセットを確保する。maxValueまでの自動スクロールもこの分だけ多く進むように
+            // なり、最後の吹き出しがCTAに隠れず全文読めるようになる。
+            Spacer(Modifier.height(KYONO_ONBOARDING_CTA_INSET))
         }
         // A2: 選択肢・CTAは固定フッター(スクロールしない)。
         val q = activeQuestion
@@ -376,7 +390,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 Spacer(Modifier.height(6.dp))
                 val palette = obgColors(dark)
                 q.chips.forEachIndexed { i, chip ->
-                    val c = palette[i % 4]
+                    val c = palette[i % palette.size]
                     // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
                     // 生成イラスト(硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。
                     // TASK-C2-2026-08-01-build13-round3.md ①: 「もじの大きさ」設問(key=="bigtext")は
@@ -789,7 +803,7 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                 // 段階色を付けず、通常のカード色(colors.card/colors.line)にする。
                 val palette = obgColors(dark)
                 q.opts.forEachIndexed { i, opt ->
-                    val c = if (opt.score != null) palette[i % 4] else null
+                    val c = if (opt.score != null) palette[i % palette.size] else null
                     val pickedVal: Any? = opt.score ?: opt.worryKey
                     // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
                     val isPicked = picked[q.key] == pickedVal

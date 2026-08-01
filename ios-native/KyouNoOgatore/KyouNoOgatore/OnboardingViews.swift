@@ -71,6 +71,11 @@ let obAnchorAck: [String: String] = [
 // "none"は対応表に含めない(worry!=="none"のときだけquizルートへ行く条件と対になっている)。
 let obWorryToQuiz: [String: String] = ["katakori": "katakori", "youtsuu": "yotsu", "zenkutsu": "yawaraka", "nemuri": "tsukare"]
 
+// TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-2: 固定フッターCTA(かたさチェックを
+// はじめる/きょうの1本を見る)のおおよその高さ(ボタン本体+外側padding)。オンボチャットの
+// 自動スクロール着地位置に、この分の余白を確保するために使う。
+let kyonoOnboardingCtaInset: CGFloat = 100
+
 // index.html:4108-4111 ONBOARDING_SCRIPT.routesの1:1移植(TASK-C2-2026-07-27-onboarding-routes-closing-message)。
 struct ObRouteInfo {
     let say: [String]
@@ -89,6 +94,8 @@ func obDecideRoute(stiff: String, worry: String) -> String {
 // かたさチェックの.opt.g0〜g3(index.html:301-309)・オンボの#obChips .chip.obg0-3(index.html:537-544)と
 // 同じ「明→暗」段階色パレット(bg,border)。並び順で明→暗を巡回させる(index.html:4211と同じ
 // 「obg"+(i%4)」方式)。ライト/ダークで別パレット。
+// TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-1: 5択の質問(部位選択など)で
+// i%4のため1番目と5番目が同色になっていた欠落。5色目(青系・色相約200)を追加し5色パレットにした。
 struct ObgColor {
     let bg: Color
     let border: Color
@@ -96,6 +103,7 @@ struct ObgColor {
 private let obgLight: [ObgColor] = [
     ObgColor(bg: Color(hex: 0xEAF8F1), border: Color(hex: 0xBFE8DC)), ObgColor(bg: Color(hex: 0xFFF3CB), border: Color(hex: 0xF2DE8A)),
     ObgColor(bg: Color(hex: 0xFBE3C6), border: Color(hex: 0xE5BC85)), ObgColor(bg: Color(hex: 0xF2D7CD), border: Color(hex: 0xDCA894)),
+    ObgColor(bg: Color(hex: 0xD9ECF7), border: Color(hex: 0xA8D0E6)),
 ]
 // TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
 // ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
@@ -103,6 +111,7 @@ private let obgLight: [ObgColor] = [
 private let obgDark: [ObgColor] = [
     ObgColor(bg: Color(hex: 0x223D33), border: Color(hex: 0x2E5A48)), ObgColor(bg: Color(hex: 0x4A3D14), border: Color(hex: 0x6B5A1C)),
     ObgColor(bg: Color(hex: 0x4D3018), border: Color(hex: 0x704620)), ObgColor(bg: Color(hex: 0x4A1F35), border: Color(hex: 0x6B2C4C)),
+    ObgColor(bg: Color(hex: 0x1F3A4D), border: Color(hex: 0x2B5570)),
 ]
 func obgColors(dark: Bool) -> [ObgColor] { dark ? obgDark : obgLight }
 
@@ -290,7 +299,11 @@ private struct OnboardingContentView: View {
                     }
                     .transition(.sdPop)
                 }
-                Color.clear.frame(height: 1).id("obBottom")
+                // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-2: 固定フッターCTA
+                // 「かたさチェックをはじめる」の高さぶん、スクロール末尾にインセットを確保する。
+                // obBottomアンカー自体を高さ分だけ確保することで、scrollTo(anchor:.bottom)の
+                // 着地位置もこの分だけ上にずれ、最後の吹き出しがCTAに隠れず全文読めるようになる。
+                Color.clear.frame(height: kyonoOnboardingCtaInset).id("obBottom")
             }
             .padding(20)
             // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §3: index.html:4149 .sd-pop
@@ -314,7 +327,7 @@ private struct OnboardingContentView: View {
                 Text("👇 タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 let palette = obgColors(dark: dark)
                 ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
-                    let c = palette[i % 4]
+                    let c = palette[i % palette.count]
                     // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
                     // 生成イラスト。ChipArt/chip-<v>.pngが存在するものだけ表示する
                     // (硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。
@@ -737,7 +750,7 @@ private struct QuizContentView: View {
                     // 段階色を付けず、通常のカード色(colors.card/colors.line)にする。
                     let palette = obgColors(dark: dark)
                     ForEach(Array(q.opts.enumerated()), id: \.offset) { i, opt in
-                        let c = opt.score != nil ? palette[i % 4] : nil
+                        let c = opt.score != nil ? palette[i % palette.count] : nil
                         let pickedVal = opt.score.map { String($0) } ?? opt.worryKey
                         // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
                         let isPicked = picked[q.key] == pickedVal
