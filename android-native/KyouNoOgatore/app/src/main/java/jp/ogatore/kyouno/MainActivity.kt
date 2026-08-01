@@ -192,6 +192,11 @@ class MainActivity : ComponentActivity() {
             // (Home側とは独立管理・既存設計どおり)からHome側のshowDoneNudgeへ、scrollToTodayPendingと
             // 同じ「ルートで保持→Home側で消費」の橋渡しで伝える。
             var pendingDoneNudge by remember { mutableStateOf(false) }
+            // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走(初回ジャーニーのみ)→ホーム初着地の
+            // 1度きりポップ用フラグ。scrollToTodayPending/pendingDoneNudgeと同じ「ルートで保持→
+            // Home側で消費」の橋渡し。obTourDone自体は再入場(使い方タブ経由)でも立つため、これは
+            // isFirstRunのときだけ立てる(下のScreen.Tour分岐参照)。
+            var tourJustFinishedPending by remember { mutableStateOf(false) }
             // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b・本人GO): アプリ再起動をまたいでも
             // 「最後のやり取りから10分以内」ならmessages/chipsMode/lastIntentIdを復元する
             // (Web版に無いネイティブ独自のパリティ例外・HANDOFF.md参照)。判定はここ(初回の
@@ -352,7 +357,14 @@ class MainActivity : ComponentActivity() {
                                             store = store,
                                             showClosing = s.showClosing,
                                             isFirstRun = s.isFirstRun,
-                                            onDone = { obTourDone = true; screen = Screen.Home },
+                                            onDone = {
+                                                obTourDone = true
+                                                // TASK-C2-2026-08-01-build13-round3.md ⑧: 初回ジャーニー
+                                                // (isFirstRun)のときだけ、ホーム初着地で1度きりのポップを
+                                                // 出す。使い方タブからの再入場(isFirstRun=false)では出さない。
+                                                if (s.isFirstRun) tourJustFinishedPending = true
+                                                screen = Screen.Home
+                                            },
                                         )
                                         is Screen.MyRecord -> MyRecordScreen(
                                             store = store,
@@ -417,6 +429,8 @@ class MainActivity : ComponentActivity() {
                                             onScrolledToToday = { scrollToTodayPending = false },
                                             pendingDoneNudge = pendingDoneNudge,
                                             onPendingDoneNudgeConsumed = { pendingDoneNudge = false },
+                                            tourJustFinishedPending = tourJustFinishedPending,
+                                            onTourJustFinishedConsumed = { tourJustFinishedPending = false },
                                         )
                                     }
                                     }
@@ -873,6 +887,8 @@ fun HomeScreen(
     onScrolledToToday: () -> Unit = {},
     pendingDoneNudge: Boolean = false,
     onPendingDoneNudgeConsumed: () -> Unit = {},
+    tourJustFinishedPending: Boolean = false,
+    onTourJustFinishedConsumed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
@@ -959,6 +975,15 @@ fun HomeScreen(
         if (pendingDoneNudge) {
             showDoneNudge = true
             onPendingDoneNudgeConsumed()
+        }
+    }
+    // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走(初回ジャーニーのみ)→ホーム初着地の
+    // 1度きりポップ(プロセス内メモリのみ・既存ユーザーには出ない)。
+    var tourFinishedPopupVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(tourJustFinishedPending) {
+        if (tourJustFinishedPending) {
+            tourFinishedPopupVisible = true
+            onTourJustFinishedConsumed()
         }
     }
 
@@ -1774,6 +1799,45 @@ fun HomeScreen(
         // text{}内部へ移した(下記参照)。AlertDialogは独自のWindowで最前面に出るため、通常の
         // Composeツリー上にあるこの位置に描いてもダイアログの下に隠れてしまう(iOSのZStackと違い、
         // Androidのダイアログはウィンドウが分かれているため後勝ちのz順が通用しない)。
+        // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走→ホーム初着地の1度きりポップ。既存の
+        // 「cpop」演出語彙(scale .85→1・opacity .4→1・.3s ease-out、cheerText/milestoneInfoと同じ
+        // fadeIn+scaleIn組み合わせ)を流用する。このBoxはAlertDialogより前(通常のComposeツリー)
+        // なのでz順は問題ない(ダイアログを伴わない単純な全画面オーバーレイのため)。
+        val tourFinishedReducedMotion = rememberReducedMotion()
+        if (tourFinishedPopupVisible) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.55f))
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) {},
+            )
+            AnimatedVisibility(
+                visible = true,
+                enter = if (tourFinishedReducedMotion) {
+                    fadeIn(tween(0))
+                } else {
+                    fadeIn(tween(300, easing = KyonoEaseOut), initialAlpha = 0.4f) +
+                        scaleIn(tween(300, easing = KyonoEaseOut), initialScale = 0.85f)
+                },
+                modifier = Modifier.align(androidx.compose.ui.Alignment.Center).padding(24.dp),
+            ) {
+                Column(
+                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                    modifier = Modifier.background(colors.card, RoundedCornerShape(20.dp)).padding(20.dp),
+                ) {
+                    Text(
+                        "使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね🌱",
+                        color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    KyonoPrimaryButton("はじめる", { tourFinishedPopupVisible = false }, Modifier.testTag("tourFinishedPopupBtn"))
+                }
+            }
+        }
         }
 
         cardResult?.let { result ->

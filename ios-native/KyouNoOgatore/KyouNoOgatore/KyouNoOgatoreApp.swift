@@ -211,6 +211,11 @@ struct RootView: View {
     // 既存設計どおり)からHome側のshowDoneNudgeへ、scrollToTodayPendingと同じ「ルートで保持→
     // Home側で消費」の橋渡しで伝える。
     @State private var pendingDoneNudge = false
+    // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走→ホーム初着地の1度きりポップ用フラグ。
+    // scrollToTodayPendingと同じ「ルートで保持→Home側で消費」の橋渡し。obTourDone自体は
+    // 再入場(使い方タブ経由)でも立つため、これは初回ジャーニー(isFirstRun)のときだけ
+    // 立てる(下のScreen.tour分岐参照)。
+    @State private var tourJustFinishedPending = false
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -406,7 +411,14 @@ struct RootView: View {
                 onStartTour: { obTourAfterQuiz = false; screen = .tour(showClosing: false, isFirstRun: true) }
             )
         case let .tour(showClosing, isFirstRun):
-            TourView(store: store, showClosing: showClosing, isFirstRun: isFirstRun) { obTourDone = true; screen = .home }
+            TourView(store: store, showClosing: showClosing, isFirstRun: isFirstRun) {
+                obTourDone = true
+                // TASK-C2-2026-08-01-build13-round3.md ⑧: 初回ジャーニー(isFirstRun)のときだけ、
+                // ホーム初着地で1度きりのポップを出す。使い方タブからの再入場(isFirstRun=false)では
+                // 出さない。
+                if isFirstRun { tourJustFinishedPending = true }
+                screen = .home
+            }
         case .soudan:
             // effectiveScreenは.soudanのときは常に.homeへ差し替え済みのため、この分岐は
             // switchの網羅性のためだけに存在し実際には到達しない(内容は.sheet()側で描画)。
@@ -474,7 +486,8 @@ struct RootView: View {
                 onOpenMyRecord: { screen = .myRecord },
                 onOpenSettings: { screen = .settings(returnTo: screen) },
                 scrollToTodayPending: $scrollToTodayPending,
-                pendingDoneNudge: $pendingDoneNudge
+                pendingDoneNudge: $pendingDoneNudge,
+                tourJustFinishedPending: $tourJustFinishedPending
             )
         }
     }

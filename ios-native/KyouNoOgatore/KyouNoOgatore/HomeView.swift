@@ -91,6 +91,10 @@ struct HomeView: View {
     // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §C補足: rDoneNudgeBtn(結果画面)
     // 経由でHomeへ来たときも、通常の動画復帰と同じくshowDoneNudgeを立てる。
     var pendingDoneNudge: Binding<Bool> = .constant(false)
+    // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走(初回ジャーニーのみ)→ホーム初着地の
+    // 1度きりポップ用フラグ。scrollToTodayPending/pendingDoneNudgeと同じ「ルートで保持→
+    // Home側で消費」の橋渡し。
+    var tourJustFinishedPending: Binding<Bool> = .constant(false)
 
     @Environment(\.kyonoColors) private var colors
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -154,6 +158,9 @@ struct HomeView: View {
     // TASK-C2-2026-07-27-local-notifications.md: 1日目クリアの場面で出す「あしたも
     // おしらせしようか？」の提案(プロセス内メモリのみ・§2-3)。
     @State private var showNotifPrompt = false
+    // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走→ホーム初着地の1度きりポップ
+    // (プロセス内メモリのみ・既存ユーザーには出ない)。
+    @State private var tourFinishedPopupVisible = false
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -162,7 +169,8 @@ struct HomeView: View {
         onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void,
         onOpenMyRecord: @escaping () -> Void, onOpenSettings: @escaping () -> Void,
         scrollToTodayPending: Binding<Bool> = .constant(false),
-        pendingDoneNudge: Binding<Bool> = .constant(false)
+        pendingDoneNudge: Binding<Bool> = .constant(false),
+        tourJustFinishedPending: Binding<Bool> = .constant(false)
     ) {
         self.store = store
         self.onStartTour = onStartTour
@@ -173,6 +181,7 @@ struct HomeView: View {
         self.onOpenMyRecord = onOpenMyRecord
         self.scrollToTodayPending = scrollToTodayPending
         self.pendingDoneNudge = pendingDoneNudge
+        self.tourJustFinishedPending = tourJustFinishedPending
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
@@ -344,6 +353,55 @@ struct HomeView: View {
                     .id(confettiTrigger)
                     .allowsHitTesting(false)
             }
+            // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走(初回ジャーニーのみ)→ホーム初着地の
+            // 1度きりポップ。既存の「cpop」演出語彙(scale .85→1・opacity .4→1・.3s ease-out、
+            // index.html:311-312/HomeView.swift cheerText・milestoneInfoと同じ組み合わせ)を流用する。
+            if tourFinishedPopupVisible {
+                ZStack {
+                    Color.black.opacity(0.55).ignoresSafeArea()
+                        .onTapGesture {}
+                    VStack(spacing: 14 * zoom) {
+                        Text("使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね🌱")
+                            .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                            .multilineTextAlignment(.center)
+                        KyonoPrimaryButton("はじめる") {
+                            if reduceMotion {
+                                tourFinishedPopupVisible = false
+                            } else {
+                                withAnimation(.easeOut(duration: 0.2)) { tourFinishedPopupVisible = false }
+                            }
+                        }
+                    }
+                    .padding(20 * zoom)
+                    .background(RoundedRectangle(cornerRadius: 20).fill(colors.card))
+                    .padding(24)
+                }
+                .transition(
+                    reduceMotion
+                        ? .opacity.animation(.easeOut(duration: 0))
+                        : .scale(scale: 0.85).combined(with: .opacity).animation(.easeOut(duration: 0.3))
+                )
+            }
+        }
+        .onChange(of: tourJustFinishedPending.wrappedValue) { _, pending in
+            consumeTourJustFinishedPending(pending)
+        }
+        // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走→.home遷移はHomeViewを毎回新規に
+        // マウントする(TourViewは.homeとは別のScreenケースであり、オンボと違ってeffectiveScreen経由の
+        // 常駐が無い)。.onChangeは初回appearance時の「既にtrueな値」では発火しない(SwiftUIの仕様)
+        // ため、.onAppearでも同じ消費処理を呼ぶ必要がある。
+        .onAppear {
+            consumeTourJustFinishedPending(tourJustFinishedPending.wrappedValue)
+        }
+    }
+
+    private func consumeTourJustFinishedPending(_ pending: Bool) {
+        guard pending else { return }
+        tourJustFinishedPending.wrappedValue = false
+        if reduceMotion {
+            tourFinishedPopupVisible = true
+        } else {
+            withAnimation(.easeOut(duration: 0.3)) { tourFinishedPopupVisible = true }
         }
     }
 
