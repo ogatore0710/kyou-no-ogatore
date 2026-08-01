@@ -953,7 +953,7 @@ struct PlanDoneCardView: View {
                 Spacer().frame(height: 8)
                 // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
                 // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
-                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pink).font(.kyono(.black900, size: 15))
+                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pinkInk).font(.kyono(.black900, size: 15))
                     + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
                     .foregroundColor(colors.ink)
                     .multilineTextAlignment(.center)

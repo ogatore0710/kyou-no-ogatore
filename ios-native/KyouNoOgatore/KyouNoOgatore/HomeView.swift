@@ -430,7 +430,7 @@ struct HomeView: View {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 4 * zoom) {
                     Text(showReturnNudge ? "おかえりなさい" : "きょうのひとこと")
-                        .kyonoFont(.black900, size: 11).foregroundColor(colors.sub)
+                        .kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                     Text(showReturnNudge
                         ? "おわったら下の「きょうやった！」を押してね✅"
                         : "「\(QUOTES[((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count])」")
@@ -555,7 +555,7 @@ struct HomeView: View {
                 // 1:1移植。HomeLogic.fdActive(fd/streakTotalのみ・fdday条件なし)をそのまま使う。
                 if HomeLogic.fdActive(fd: fd, streakTotal: streak.total) && !did {
                     Text("動画を見おわったら、ここを押してね👇")
-                        .kyonoFont(.black900, size: 14).foregroundColor(colors.pink)
+                        .kyonoFont(.black900, size: 14).foregroundColor(colors.pinkInk)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
                 // UI/UXパリティ監査GO-8(2026-07-28): index.html:382 .done-btn.did
@@ -694,7 +694,7 @@ struct HomeView: View {
                     // ポップイン)の1:1移植。
                     VStack(alignment: .leading, spacing: 6 * zoom) {
                         Text("🎉 1日目クリア！ナイスご自愛！")
-                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
+                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
                         HStack {
                             Spacer()
                             KyonoCharaImage(name: "card-sample").frame(width: 140 * zoom, height: 140 * zoom)
@@ -746,7 +746,7 @@ struct HomeView: View {
                 if let milestoneInfo {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("🎉 \(milestoneInfo.t)！（通算\(streak.total)日）")
-                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
+                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
                         if !milestoneInfo.m.isEmpty {
                             Spacer().frame(height: 4 * zoom)
                             Text(milestoneInfo.m).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
@@ -815,7 +815,7 @@ struct HomeView: View {
                 // (「👇 つぎは ここを押してみて」)の1:1移植。
                 if fdCardNudgeVisible {
                     Text("👇 つぎは ここを押してみて")
-                        .kyonoFont(.black900, size: 14).foregroundColor(colors.pink)
+                        .kyonoFont(.black900, size: 14).foregroundColor(colors.pinkInk)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
                 // TASK-C2-2026-07-29-ux-audit-G.md G3: index.html:703のボタン名「記録カードを画像でのこす」

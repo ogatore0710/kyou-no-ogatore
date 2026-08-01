@@ -84,7 +84,7 @@ private struct VoiceTag: View {
     @Environment(\.kyonoColors) private var colors
     let text: String
     var body: some View {
-        Text(text).kyonoFont(.black900, size: 11).foregroundColor(colors.tealInk)
+        Text(text).kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
             .padding(.horizontal, 8).padding(.vertical, 2)
             .background(Capsule().fill(colors.tealSoft))
     }

@@ -1216,7 +1216,7 @@ private struct ResultContentView: View {
                     // HomeView.swift:630-644 fdCelebrationVisibleの1:1移植(結果画面版)。
                     KyonoCard {
                         Text("🎉 1日目クリア！ナイスご自愛！")
-                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pink)
+                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
                         Spacer().frame(height: 6)
                         Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)

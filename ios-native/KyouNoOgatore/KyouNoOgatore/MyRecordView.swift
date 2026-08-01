@@ -224,7 +224,7 @@ private struct MyRecordContentView: View {
                     let ms = next.flatMap { n in data.MS.first { $0.d == n } }
                     if let next, let ms {
                         (Text("次のお祝い「")
-                            + Text(ms.t).foregroundColor(colors.pink).fontWeight(.black)
+                            + Text(ms.t).foregroundColor(colors.pinkInk).fontWeight(.black)
                             + Text("」は通算\(next)日目🌱 マイペースでどうぞ"))
                             .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     } else {
@@ -389,10 +389,10 @@ private struct MyRecordContentView: View {
                                     RecordLogic.setReach(store, lv: lv, now: Date())
                                     reachList = RecordLogic.getReach(store)
                                     if lv > best && best > 0 {
-                                        reachMsg = Text("🎉 自己ベスト更新！「\(reachLv[lv])」").fontWeight(.black).foregroundColor(colors.pink)
+                                        reachMsg = Text("🎉 自己ベスト更新！「\(reachLv[lv])」").fontWeight(.black).foregroundColor(colors.pinkInk)
                                             + Text(" 記録カードにも入ります")
                                     } else if lv >= 4 && best == 0 {
-                                        reachMsg = Text("最初から「\(reachLv[lv])」！すばらしい").fontWeight(.black).foregroundColor(colors.pink)
+                                        reachMsg = Text("最初から「\(reachLv[lv])」！すばらしい").fontWeight(.black).foregroundColor(colors.pinkInk)
                                     } else {
                                         reachMsg = Text("記録しました！じわじわ伸びていきますよ")
                                     }
@@ -420,7 +420,7 @@ private struct MyRecordContentView: View {
                             Spacer().frame(height: 6)
                             if diff > 0 {
                                 (Text("前回（\(reachLv[prev.lv])）より")
-                                    + Text("\(diff)段とどくようになった！🎉").fontWeight(.black).foregroundColor(colors.pink))
+                                    + Text("\(diff)段とどくようになった！🎉").fontWeight(.black).foregroundColor(colors.pinkInk))
                                     .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             } else if diff == 0 {
                                 Text("前回とおなじ「\(reachLv[latest.lv])」 キープも立派です！")
@@ -478,7 +478,7 @@ private struct MyRecordContentView: View {
                         calendarMsg = ok ? "カレンダーに追加しました" : "カレンダーへの追加が許可されませんでした"
                     }
                 }
-                if let calendarMsg { Text(calendarMsg).kyonoFont(.bold700, size: 15).foregroundColor(colors.pink) }
+                if let calendarMsg { Text(calendarMsg).kyonoFont(.bold700, size: 15).foregroundColor(colors.pinkInk) }
                 // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
                 // 数字・達成率は書かない(デザイン原則どおり)。
                 Spacer().frame(height: 16)

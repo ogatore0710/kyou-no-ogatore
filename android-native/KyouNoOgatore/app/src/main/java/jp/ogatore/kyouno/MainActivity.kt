@@ -1410,7 +1410,7 @@ fun HomeScreen(
                 if (HomeLogic.fdActive(fd, streak.total) && !did) {
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "動画を見おわったら、ここを押してね👇", color = colors.pink, fontSize = 14.sp,
+                        "動画を見おわったら、ここを押してね👇", color = colors.pinkInk, fontSize = 14.sp,
                         fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().testTag("fdDoneStaticNudge"),
                     )
@@ -1559,7 +1559,7 @@ fun HomeScreen(
                 ) {
                     Column(Modifier.testTag("fdCelebration")) {
                         Spacer(Modifier.height(10.dp))
-                        Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
                         Spacer(Modifier.height(6.dp))
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             KyonoCharaImage("card_sample", Modifier.size(140.dp))
@@ -1624,7 +1624,7 @@ fun HomeScreen(
                             Spacer(Modifier.height(10.dp))
                             Text(
                                 "🎉 ${ms.t}！（通算${streak.total}日）",
-                                color = colors.pink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                                color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black,
                             )
                             if (ms.m.isNotBlank()) {
                                 Spacer(Modifier.height(4.dp))
@@ -1740,7 +1740,7 @@ fun HomeScreen(
                 // (「👇 つぎは ここを押してみて」)+fd-breathe(呼吸アニメ)の1:1移植。
                 if (fdCardNudgeVisible) {
                     Text(
-                        "👇 つぎは ここを押してみて", color = colors.pink, fontSize = 14.sp,
+                        "👇 つぎは ここを押してみて", color = colors.pinkInk, fontSize = 14.sp,
                         fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().testTag("fdCardNudge"),
                     )
@@ -2108,7 +2108,7 @@ fun MyRecordScreen(
                     Text(
                         buildAnnotatedString {
                             append("次のお祝い「")
-                            withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) { append(ms.t) }
+                            withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append(ms.t) }
                             append("」は通算${next}日目🌱 マイペースでどうぞ")
                         },
                         color = colors.ink, fontSize = 15.sp, lineHeight = 15.sp, style = KyonoTightLineTextStyle,
@@ -2353,13 +2353,13 @@ fun MyRecordScreen(
                                     reachMsg = buildAnnotatedString {
                                         when {
                                             lv > best && best > 0 -> {
-                                                withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) {
+                                                withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) {
                                                     append("🎉 自己ベスト更新！「${REACH_LV[lv]}」")
                                                 }
                                                 append(" 記録カードにも入ります")
                                             }
                                             lv >= 4 && best == 0 -> {
-                                                withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) {
+                                                withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) {
                                                     append("最初から「${REACH_LV[lv]}」！すばらしい")
                                                 }
                                             }
@@ -2410,7 +2410,7 @@ fun MyRecordScreen(
                             diff > 0 -> Text(
                                 buildAnnotatedString {
                                     append("前回（${REACH_LV[prev.lv]}）より")
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.pink)) { append("${diff}段とどくようになった！🎉") }
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.pinkInk)) { append("${diff}段とどくようになった！🎉") }
                                 },
                                 color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("reachPrevText"),
                             )
@@ -2499,7 +2499,7 @@ fun MyRecordScreen(
             )
             calendarMsg?.let {
                 Spacer(Modifier.height(6.dp))
-                Text(it, color = colors.pink, modifier = Modifier.testTag("calendarMsgText"))
+                Text(it, color = colors.pinkInk, modifier = Modifier.testTag("calendarMsgText"))
             }
             // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
             // 数字・達成率は書かない(デザイン原則どおり)。

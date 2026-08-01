@@ -30,6 +30,11 @@ struct KyonoColors {
     let coral: Color
     let coralSoft: Color
     let pink: Color
+    // TASK-C2-2026-08-01-build15-subtraction9.md #8: pink(#E56A9A)を小さい文字で使うと、ライト背景
+    // (#FFFAF3/#FFFFFF)に対し実測2.95:1でWCAG AA(4.5:1)未達だった(ダーク背景#211E19に対しては
+    // 実測5.43:1でAA達成済み・変更不要)。tealInkと同じ設計(テーマ別に文字用の濃さを分ける)で、
+    // 小さい文字専用にライトだけ底上げした値を用意する(大見出しでのpink直使用はalan5判断で現状のまま)。
+    let pinkInk: Color
     let pinkSoft: Color
     let bg: Color
     let card: Color
@@ -64,7 +69,7 @@ let kyonoLightColors = KyonoColors(
     subFaint: Color(hex: 0x757267),
     teal: Color(hex: 0x2BB3A3), tealStrong: Color(hex: 0x1E7B70), tealSoft: Color(hex: 0xDFF5F2),
     tealInk: Color(hex: 0x177065), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0xFFE8E2),
-    pink: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0xFFEDF3),
+    pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xC04570), pinkSoft: Color(hex: 0xFFEDF3),
     bg: Color(hex: 0xFFFAF3), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xF2EADB),
     btnPrimaryShadow: Color(hex: 0xE8BE1E), tabbarIconOff: Color(hex: 0xC4BDA9),
     tabbarStrokeOff: Color(hex: 0x6E6B5F)
@@ -76,7 +81,7 @@ let kyonoDarkColors = KyonoColors(
     sub: Color(hex: 0xB9B2A0), sub2: Color(hex: 0xC6BFAE), subFaint: Color(hex: 0x8C8676),
     teal: Color(hex: 0x2BB3A3), tealStrong: Color(hex: 0x1E7B70), tealSoft: Color(hex: 0x22403B),
     tealInk: Color(hex: 0x7BD0C4), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0x3A2A24),
-    pink: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0x3A2730),
+    pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0x3A2730),
     bg: Color(hex: 0x211E19), card: Color(hex: 0x2C2822), line: Color(hex: 0x3D382F),
     btnPrimaryShadow: Color(hex: 0x8A6D00), tabbarIconOff: Color(hex: 0x3D382F),
     tabbarStrokeOff: Color(hex: 0x847D6C)

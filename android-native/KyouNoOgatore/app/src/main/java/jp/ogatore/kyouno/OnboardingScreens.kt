@@ -1142,7 +1142,7 @@ fun ResultScreen(
                             )
                         }
                         Text(
-                            "👇 ここを押してみて", color = colors.pink, fontSize = 15.sp, fontWeight = FontWeight.Black,
+                            "👇 ここを押してみて", color = colors.pinkInk, fontSize = 15.sp, fontWeight = FontWeight.Black,
                             modifier = Modifier.fillMaxWidth().offset(y = fdBobOffset.dp).testTag("fdPoint"),
                             textAlign = TextAlign.Center,
                         )
@@ -1270,7 +1270,7 @@ fun ResultScreen(
                 Spacer(Modifier.height(16.dp))
                 // MainActivity.kt:1522-1533 fdCelebrationVisibleの1:1移植(結果画面版)。
                 KyonoCard(Modifier.testTag("fdCelebration")) {
-                    Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(6.dp))
                     Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖", color = colors.ink, fontSize = 14.sp)
                 }

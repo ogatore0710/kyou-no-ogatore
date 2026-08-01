@@ -468,7 +468,8 @@ fun GuideScreen(
                                     .testTag("faqItem_$key"),
                             ) {
                                 Row(verticalAlignment = Alignment.Top) {
-                                    Text("Q", color = colors.pink, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 8.dp))
+                                    // TASK-C2-2026-08-01-build15-subtraction9.md #8: 小さい文字のpinkはcolors.pinkInk(AA対応)へ。
+                                    Text("Q", color = colors.pinkInk, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 8.dp))
                                     // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:191 .faq summary
                                     // {font-size:14px;line-height:1.6}の1:1移植。KyonoTightLineTextStyleは
                                     // 「行送りを詰める」だけでなく「フォント由来の余分な行送りを打ち消して

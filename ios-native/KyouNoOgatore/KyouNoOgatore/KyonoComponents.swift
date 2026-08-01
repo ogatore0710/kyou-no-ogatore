@@ -61,7 +61,7 @@ struct FdBobText: View {
 
     var body: some View {
         Text(text)
-            .kyonoFont(.black900, size: 15).foregroundColor(colors.pink)
+            .kyonoFont(.black900, size: 15).foregroundColor(colors.pinkInk)
             .frame(maxWidth: .infinity, alignment: .center)
             .offset(y: bob ? 5 : 0)
             .onAppear {
@@ -654,7 +654,7 @@ struct KyonoJourneyBar: View {
                                 .foregroundColor(current ? .white : colors.sub)
                         }
                     }
-                    Text(labels[i]).kyonoFont(.black900, size: 10)
+                    Text(labels[i]).kyonoFont(.black900, size: 12)
                         .foregroundColor(current ? colors.ink : colors.sub)
                         .lineLimit(1).minimumScaleFactor(0.7)
                 }

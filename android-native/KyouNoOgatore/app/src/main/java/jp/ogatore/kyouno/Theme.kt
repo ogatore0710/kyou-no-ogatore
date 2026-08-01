@@ -54,6 +54,11 @@ data class KyonoColors(
     val coral: Color,
     val coralSoft: Color,
     val pink: Color,
+    // TASK-C2-2026-08-01-build15-subtraction9.md #8: pink(#E56A9A)を小さい文字で使うと、ライト背景
+    // (#FFFAF3/#FFFFFF)に対し実測2.95:1でWCAG AA(4.5:1)未達だった(ダーク背景#211E19に対しては
+    // 実測5.43:1でAA達成済み・変更不要)。tealInkと同じ設計(テーマ別に文字用の濃さを分ける)で、
+    // 小さい文字専用にライトだけ底上げした値を用意する(大見出しでのpink直使用はalan5判断で現状のまま)。
+    val pinkInk: Color,
     val pinkSoft: Color,
     val bg: Color,
     val card: Color,
@@ -87,6 +92,7 @@ val KyonoLightColors = KyonoColors(
     coral = Color(0xFFFF8A70),
     coralSoft = Color(0xFFFFE8E2),
     pink = Color(0xFFE56A9A),
+    pinkInk = Color(0xFFC04570),
     pinkSoft = Color(0xFFFFEDF3),
     bg = Color(0xFFFFFAF3),
     card = Color(0xFFFFFFFF),
@@ -111,6 +117,7 @@ val KyonoDarkColors = KyonoColors(
     coral = Color(0xFFFF8A70),
     coralSoft = Color(0xFF3A2A24),
     pink = Color(0xFFE56A9A),
+    pinkInk = Color(0xFFE56A9A),
     pinkSoft = Color(0xFF3A2730),
     bg = Color(0xFF211E19),
     card = Color(0xFF2C2822),

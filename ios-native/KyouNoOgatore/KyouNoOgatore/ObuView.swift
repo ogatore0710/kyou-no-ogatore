@@ -209,7 +209,7 @@ struct ObuRadioPlayerView: View {
                         }
                     }.frame(height: 4)
                     Text("\(fmt(model.position)) / \(fmt(model.duration))")
-                        .kyonoFont(.bold700, size: 11).foregroundColor(colors.sub)
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 }
             }
             .padding(10)

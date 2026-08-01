@@ -373,7 +373,8 @@ private struct GuideContentView: View {
                                         // index.html:190-196 .faq details/summary(枠線ボックス・"Q"プレフィックス)
                                         VStack(alignment: .leading, spacing: 8) {
                                             HStack(alignment: .top) {
-                                                Text("Q").kyonoFont(.black900, size: 15).foregroundColor(colors.pink)
+                                                // TASK-C2-2026-08-01-build15-subtraction9.md #8: 小さい文字のpinkはcolors.pinkInk(AA対応)へ。
+                                                Text("Q").kyonoFont(.black900, size: 15).foregroundColor(colors.pinkInk)
                                                 // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:191 .faq summary
                                                 // {font-size:14px;line-height:1.6}の1:1移植。前回G2は検索チップの
                                                 // カスタムフォント行送り超過補正(Android KyonoTightLineTextStyle)を

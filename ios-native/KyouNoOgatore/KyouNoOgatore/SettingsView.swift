@@ -333,7 +333,7 @@ struct SettingsView: View {
                     Spacer().frame(height: 6)
                     Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
                     if let icsMessage {
-                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(colors.pink)
+                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(colors.pinkInk)
                     }
                     }
 

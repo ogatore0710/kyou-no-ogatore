@@ -93,7 +93,7 @@ private struct DexSectionView: View {
                 Spacer()
                 // index.html:233 .dex-seccount(bg丸ピル)
                 Text("\(items.filter { $0.got }.count)/\(items.count)")
-                    .kyonoFont(.bold700, size: 11).foregroundColor(colors.sub)
+                    .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     .padding(.horizontal, 10).padding(.vertical, 2)
                     .background(Capsule().fill(colors.bg))
             }
@@ -134,11 +134,11 @@ private struct DexCellView: View {
             // index.html:241 .dex-name{font-size:11px;line-height:1.3}の1:1移植。
             // UI/UXパリティ監査2巡目A1(2026-07-29): 前回G2は検索チップのみに適用していた
             // カスタムフォント行送り超過補正をここにも展開する。
-            Text(item.got ? item.name : "？？？").kyonoFont(.black900, size: 11).foregroundColor(colors.ink).multilineTextAlignment(.center).lineSpacing(3)
+            Text(item.got ? item.name : "？？？").kyonoFont(.black900, size: 12).foregroundColor(colors.ink).multilineTextAlignment(.center).lineSpacing(3)
             let sub = item.got ? item.flavor : item.hint
             if !sub.isEmpty {
                 // index.html:242 .dex-hint{font-size:10px;line-height:1.35}の1:1移植。
-                Text(sub).kyonoFont(.bold700, size: 10).foregroundColor(colors.sub).multilineTextAlignment(.center).lineSpacing(4)
+                Text(sub).kyonoFont(.bold700, size: 12).foregroundColor(colors.sub).multilineTextAlignment(.center).lineSpacing(4)
             }
         }
     }

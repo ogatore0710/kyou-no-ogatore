@@ -954,7 +954,7 @@ fun PlanDoneCard(
             Spacer(Modifier.height(8.dp))
             Text(
                 buildAnnotatedString {
-                    withStyle(SpanStyle(color = colors.pink, fontWeight = FontWeight.Black)) { append("🎉 ${cache.label}プラン完走！すごい！") }
+                    withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append("🎉 ${cache.label}プラン完走！すごい！") }
                     append("\n${cache.days}日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ")
                 },
                 color = colors.ink, fontSize = 15.sp, lineHeight = 27.sp, textAlign = TextAlign.Center,
