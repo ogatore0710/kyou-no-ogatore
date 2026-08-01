@@ -2159,53 +2159,9 @@ fun MyRecordScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // UI/UXパリティ監査GO-9(2026-07-28): Web順(続けた記録→カード図鑑→カレンダー→
-            // とどくメーター→お楽しみ機能→続ける設定)に合わせ、カード図鑑をカレンダーより前へ移動する
-            // (以前はカレンダー→カード図鑑の順で入れ替わっていた)。
-            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
-            // dexBannerCard(カード図鑑バナー)相当。
-            // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771
-            // renderDexBanner()の1:1移植(got/totalバッジ+記念/季節/レア/ノーマル各1枚の見本4枚)。
-            // 以前はプレーンカード+別文言で「あと何枚」の収集フックが欠落していた。
-            KyonoCard(Modifier.testTag("dexBannerCard")) {
-                val existingRot = remember { store.get("rotAssign", emptyMap<String, Int>()) }
-                val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existingRot) }
-                LaunchedEffect(Unit) { if (existingRot.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
-                val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
-                val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
-                val dexGot = dexAll.count { it.got }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    KyonoSectionHeader(KyonoIcon.DexBook, "カード図鑑", fill = colors.pinkSoft, accent = colors.pink)
-                    Spacer(Modifier.width(8.dp))
-                    Box(Modifier.background(colors.bg, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 2.dp)) {
-                        Text("$dexGot/${dexAll.size}", color = colors.sub, fontSize = kyonoFloorSp(11f), fontWeight = FontWeight.Bold, modifier = Modifier.testTag("dexBadge"))
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Text("記念日・季節・レアなカードをあつめよう", color = colors.sub, fontSize = 14.sp)
-                Spacer(Modifier.height(10.dp))
-                // alan5差し戻し(2巡目・A1続き、2026-07-29): index.html:245 .dex-banner-samples
-                // .dex-thumb{width:56px;height:56px}の1:1移植。従来はModifier.weight(1f)で行の
-                // 全幅を4等分していたため、サムネイルがWebの固定56pxよりずっと大きく(実測で
-                // 画面幅次第では87dp相当)なり、そのぶん縦にも余分に伸びて「見本カード+ボタンが
-                // 画面に収まらない」の直接原因になっていた。固定56dp+CSSと同じ8dpの間隔に直す。
-                Row(
-                    Modifier.fillMaxWidth().testTag("dexBannerSamples"),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    val samples = listOfNotNull(
-                        dexStatus.toku.firstOrNull(), dexStatus.season.firstOrNull(),
-                        dexStatus.rare.firstOrNull(), dexStatus.normal.firstOrNull(),
-                    )
-                    for (item in samples) {
-                        DexBannerCell(item, Modifier.width(56.dp))
-                    }
-                }
-                Spacer(Modifier.height(10.dp))
-                KyonoGhostButton("図鑑をひらく", onOpenDex, Modifier.testTag("dexBtn"))
-            }
-
-            Spacer(Modifier.height(16.dp))
+            // TASK-C2-2026-08-01-build15-subtraction9.md #7: カード図鑑バナー(見本サムネイル付きの
+            // 独立カード)と「お楽しみ機能」カードの2つの入口を1つに統合(引き算)。進捗件数(n/106)
+            // だけをお楽しみ機能カード内のボタンラベルへ残し、見本サムネイル行は削除(旧DexBannerCell)。
 
             // 見た目パリティ移植の仕上げ(TASK-C2-2026-07-26-native-visual-design-parity-cleanup.md):
             // タブバー導入後は「戻る」概念が無いWeb版に合わせ、タブ画面から「◀ もどる」ボタンを削除
@@ -2495,8 +2451,18 @@ fun MyRecordScreen(
             KyonoCard(Modifier.testTag("funCard")) {
                 KyonoSectionHeader(KyonoIcon.Star, "お楽しみ機能", fill = colors.yellowSoft)
                 Spacer(Modifier.height(8.dp))
-                Text("じまんカードやせんぱいの声をチェック", color = colors.sub)
+                Text("カード図鑑やじまんカード、せんぱいの声をチェック", color = colors.sub)
                 Spacer(Modifier.height(10.dp))
+                // TASK-C2-2026-08-01-build15-subtraction9.md #7: 旧dexBannerCard(独立カード)を
+                // ここへ統合。進捗件数(n/106)だけをボタンラベルに残す。
+                val existingRot = remember { store.get("rotAssign", emptyMap<String, Int>()) }
+                val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existingRot) }
+                LaunchedEffect(Unit) { if (existingRot.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
+                val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
+                val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
+                val dexGot = dexAll.count { it.got }
+                KyonoGhostButton("カード図鑑（$dexGot/${dexAll.size}）", onOpenDex, Modifier.testTag("dexBtn"), icon = KyonoIcon.DexBook)
+                Spacer(Modifier.height(8.dp))
                 KyonoGhostButton("じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
                 Spacer(Modifier.height(8.dp))
                 // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
@@ -2599,55 +2565,6 @@ fun MyRecordScreen(
 private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shape.RoundedCornerShape(
     topStartPercent = percent, topEndPercent = percent, bottomStartPercent = percent, bottomEndPercent = percent,
 )
-
-// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:768-771
-// dexCellHtml(item,{noFlavor:true})の1:1移植(見本4枚専用の簡略セル。DexScreenのDexCellと違い
-// flavor/hint文言は出さない=バナーの高さを固定してFAB/相談室チャットとの衝突を避けるWeb版の設計)。
-@Composable
-private fun DexBannerCell(item: DexItem, modifier: Modifier) {
-    val colors = LocalKyonoColors.current
-    val context = LocalContext.current
-    // alan5差し戻し(2巡目・A1続き、2026-07-29): 呼び出し元がModifier.width(56.dp)という固定幅を
-    // 渡すようになったため、ここでさらにpadding(4.dp)を足すとRowのspacedBy(8.dp)と二重に間隔が
-    // 空いてしまう。Web版のCSSにセル自体のpaddingは無い(間隔は親のgapだけ)ため取り除く。
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            Modifier.fillMaxWidth().aspectRatio(1f)
-                .background(colors.bg, RoundedCornerShape(12.dp))
-                .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
-                .testTag("dexBannerCell_${item.tier}_${item.name}"),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (item.tier == "normal") {
-                val nc = CardDataLoader.shared.NORMAL_CARDS.find { n -> n.name == item.name }
-                if (item.got && nc != null) {
-                    Box(Modifier.fillMaxSize(0.34f).background(Color(android.graphics.Color.parseColor(nc.main)), RoundedCornerShape(50)))
-                } else {
-                    Text("？", color = colors.sub, fontSize = 18.sp, fontWeight = FontWeight.Black)
-                }
-            } else if (item.key != null) {
-                val resId = remember(item.key) { context.resources.getIdentifier(item.key, "drawable", context.packageName) }
-                if (resId != 0) {
-                    Image(
-                        painter = painterResource(id = resId),
-                        contentDescription = item.name,
-                        colorFilter = if (item.got) null else ColorFilter.tint(Color.Black.copy(alpha = 0.55f), androidx.compose.ui.graphics.BlendMode.SrcAtop),
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
-        }
-        Spacer(Modifier.height(4.dp))
-        // index.html:241 .dex-name{line-height:1.3}の1:1移植(dexCellHtmlはバナー・図鑑本体で共通)。
-        val bannerNameFontSize = kyonoFloorSp(10f)
-        Text(
-            if (item.got) item.name else "？？？",
-            color = colors.ink, fontSize = bannerNameFontSize, lineHeight = (bannerNameFontSize.value * 1.3f).sp,
-            style = KyonoTightLineTextStyle, fontWeight = FontWeight.Black,
-            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
 
 // index.html:2001 renderIcs/saveIcsTime相当。Web版はICSファイルダウンロード/Googleカレンダーリンクだが、
 // ネイティブはOS標準のカレンダーAppへIntent委譲する(マスタープラン§2-1「icstimeはEventKit/

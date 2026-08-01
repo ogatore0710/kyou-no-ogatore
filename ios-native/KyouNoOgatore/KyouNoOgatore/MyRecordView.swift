@@ -174,90 +174,16 @@ struct MyRecordView: View {
     }
 }
 
-// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:766-771 renderDexBanner()の
-// 1:1移植。DexView.swiftのDexCellViewと違い、flavor/hint文言は出さない(バナーの高さを固定して
-// FAB/相談室チャットとの衝突を避けるWeb版の設計・index.html:768-771のコメントと同じ判断)。
-private struct DexBannerCardView: View {
-    @Environment(\.kyonoColors) private var colors
-    let store: RecordStore
-    let streak: RecordLogic.StreakData
-    let onOpenDex: () -> Void
-
-    private let status: DexStatus
-
-    init(store: RecordStore, streak: RecordLogic.StreakData, onOpenDex: @escaping () -> Void) {
-        self.store = store
-        self.streak = streak
-        self.onOpenDex = onOpenDex
-        let existing: [String: Int] = store.get("rotAssign", default: [:])
-        let rot = CardLottery.ensureRotAssign(dates: streak.dates, total: streak.total, existing: existing)
-        if existing.isEmpty && !rot.isEmpty { store.set("rotAssign", rot) }
-        self.status = DexLogic.getDexStatus(dates: streak.dates, total: streak.total, rotAssign: rot)
-    }
-
-    private var all: [DexItem] { status.toku + status.season + status.rare + status.normal }
-    private var samples: [DexItem] { [status.toku.first, status.season.first, status.rare.first, status.normal.first].compactMap { $0 } }
-
-    var body: some View {
-        KyonoCard {
-            HStack(alignment: .center, spacing: 8) {
-                KyonoSectionHeader(icon: .dexBook, title: "カード図鑑", fill: colors.pinkSoft, accent: colors.pink)
-                Text("\(all.filter { $0.got }.count)/\(all.count)")
-                    .kyonoFont(.bold700, size: 11).foregroundColor(colors.sub)
-                    .padding(.horizontal, 10).padding(.vertical, 2)
-                    .background(Capsule().fill(colors.bg))
-            }
-            Spacer().frame(height: 4)
-            Text("記念日・季節・レアなカードをあつめよう").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
-            Spacer().frame(height: 10)
-            // alan5差し戻し(2巡目・A1続き、2026-07-29): index.html:245 .dex-banner-samples
-            // .dex-thumb{width:56px;height:56px}の1:1移植。従来はセルに明示的な幅指定が無く、
-            // HStackが利用可能幅いっぱいに引き伸ばしていたため、Webの固定56ptよりずっと大きく
-            // なり「見本カード+ボタンが画面に収まらない」の直接原因になっていた。
-            HStack(spacing: 8) {
-                ForEach(Array(samples.enumerated()), id: \.offset) { _, item in DexBannerCellView(item: item) }
-                Spacer(minLength: 0)
-            }
-            Spacer().frame(height: 10)
-            KyonoGhostButton("図鑑をひらく", action: onOpenDex)
-        }
-    }
-}
-
-private struct DexBannerCellView: View {
-    @Environment(\.kyonoColors) private var colors
-    let item: DexItem
-
-    var body: some View {
-        VStack(spacing: 4) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12).fill(colors.bg)
-                RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5)
-                if item.tier == "normal" {
-                    if item.got, let nc = CardDataLoader.shared.NORMAL_CARDS.first(where: { $0.name == item.name }) {
-                        Circle().fill(Color(hex: nc.main)).frame(width: 20, height: 20)
-                    } else {
-                        Text("？").kyonoFont(.black900, size: 18).foregroundColor(colors.sub)
-                    }
-                } else if let key = item.key, let uiImage = loadDexBannerCardArt(key) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .colorMultiply(item.got ? .white : Color.black.opacity(0.55))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-            }
-            .frame(width: 56, height: 56)
-            // index.html:241 .dex-name{line-height:1.3}の1:1移植(dexCellHtmlはバナー・図鑑本体で共通)。
-            Text(item.got ? item.name : "？？？").kyonoFont(.black900, size: 10).foregroundColor(colors.ink).multilineTextAlignment(.center).lineSpacing(3)
-        }
-        .frame(width: 56)
-    }
-}
-
-private func loadDexBannerCardArt(_ key: String) -> UIImage? {
-    guard let url = Bundle.main.url(forResource: key, withExtension: "png") else { return nil }
-    return UIImage(contentsOfFile: url.path)
+// TASK-C2-2026-08-01-build15-subtraction9.md #7: カード図鑑バナー(見本サムネイル付きの独立カード。
+// 旧DexBannerCardView/DexBannerCellView)と「お楽しみ機能」カードの2つの入口を1つに統合(引き算)。
+// 進捗件数(n/106)だけをお楽しみ機能カード内のボタンラベルへ残し、見本サムネイル行は削除。
+private func dexProgressCount(store: RecordStore, streak: RecordLogic.StreakData) -> (got: Int, total: Int) {
+    let existing: [String: Int] = store.get("rotAssign", default: [:])
+    let rot = CardLottery.ensureRotAssign(dates: streak.dates, total: streak.total, existing: existing)
+    if existing.isEmpty && !rot.isEmpty { store.set("rotAssign", rot) }
+    let status = DexLogic.getDexStatus(dates: streak.dates, total: streak.total, rotAssign: rot)
+    let all = status.toku + status.season + status.rare + status.normal
+    return (all.filter { $0.got }.count, all.count)
 }
 
 private struct MyRecordContentView: View {
@@ -337,13 +263,6 @@ private struct MyRecordContentView: View {
                     Text("おやすみ券 のこり\(freezeLeft)枚\n休んだ日に自動でつかわれて連続がつながります")
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                 }
-
-                // UI/UXパリティ監査GO-9(2026-07-28): Web順(続けた記録→カード図鑑→カレンダー→
-                // とどくメーター→お楽しみ機能→続ける設定)に合わせ、カード図鑑をカレンダーより前へ
-                // 移動する(以前はカレンダー→カード図鑑の順で入れ替わっていた。Android版と同一修正)。
-                // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:759-770
-                // dexBannerCard(カード図鑑バナー)相当。
-                DexBannerCardView(store: store, streak: streak, onOpenDex: onOpenDex)
 
                 KyonoCard {
                     KyonoSectionHeader(icon: .calendarCheck, title: "マイ記録", fill: colors.pinkSoft, accent: colors.pink)
@@ -529,8 +448,11 @@ private struct MyRecordContentView: View {
                 KyonoCard {
                     KyonoSectionHeader(icon: .star, title: "お楽しみ機能", fill: colors.yellowSoft)
                     Spacer().frame(height: 8)
-                    Text("じまんカードやせんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
+                    Text("カード図鑑やじまんカード、せんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
+                    let dexProgress = dexProgressCount(store: store, streak: streak)
+                    KyonoGhostButton("カード図鑑（\(dexProgress.got)/\(dexProgress.total)）", icon: .dexBook, action: onOpenDex)
+                    Spacer().frame(height: 8)
                     KyonoGhostButton("じまんカード", action: onOpenBrag)
                     Spacer().frame(height: 8)
                     // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
