@@ -157,30 +157,17 @@ private struct GuideContentView: View {
                     Spacer().frame(height: 8)
 
                     // 使い方タブ再入場リンク欠落修正タスク(TASK-C2-2026-07-26-guide-reentry-links.md):
-                    // index.html:970 .daychip×2(obReenterLink/obTourLink)の1:1移植。
-                    // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4-2: index.html:970
-                    // display:flex;flex-wrap:wrapの1:1移植。幅が足りないときはラベルが割れるのではなく
-                    // ボタンごと下の行に落ちるようHStackからFlowLayoutへ変更。
-                    FlowLayout(spacing: 10, lineSpacing: 8, alignment: .center) {
-                        // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.sprout)。
-                        HStack(spacing: 4) {
-                            KyonoIconGlyph(icon: .sprout, fill: .clear, accent: colors.tealInk).frame(width: 16, height: 16)
-                            Text("はじめてガイド").kyonoFont(.extraBold800, size: 14).foregroundColor(colors.tealInk)
-                        }
-                            .padding(.horizontal, 16).padding(.vertical, 9)
-                            .background(Capsule().fill(colors.tealSoft))
-                            .onTapGesture(perform: onReenterOnboarding)
-                        Text("📖 使い方ツアー")
-                            .kyonoFont(.extraBold800, size: 14).foregroundColor(dark ? Color(hex: 0xE8C74C) : Color(hex: 0x7E6400))
-                            .padding(.horizontal, 16).padding(.vertical, 9)
-                            .background(Capsule().fill(colors.yellowSoft))
-                            .onTapGesture(perform: onReenterTour)
-                    }
-                    .frame(maxWidth: .infinity)
-                    Text("「はじめてガイド」＝さいしょの質問からやりなおす／「使い方ツアー」＝つかいかたをスライドで見る")
-                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
+                    // index.html:970 .daychip×2(obReenterLink/obTourLink)の1:1移植だったが、
+                    // TASK-C2-2026-08-01-build15-subtraction9.md #5: 「はじめてガイド」「使い方ツアー」の
+                    // 2ピル＋区別説明文は入口として二重で迷いやすい(5視点監査指摘)ため、「📖 使い方ツアー」
+                    // 1本に統合(引き算)。はじめてガイド(質問のやり直し)への導線は下の「困ったときは」
+                    // カード内へ移した(onReenterOnboarding呼び出し自体は変更なし)。
+                    Text("📖 使い方ツアー")
+                        .kyonoFont(.extraBold800, size: 14).foregroundColor(dark ? Color(hex: 0xE8C74C) : Color(hex: 0x7E6400))
+                        .padding(.horizontal, 16).padding(.vertical, 9)
+                        .background(Capsule().fill(colors.yellowSoft))
+                        .onTapGesture(perform: onReenterTour)
+                        .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.bottom, 8)
 
                     // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
@@ -231,6 +218,9 @@ private struct GuideContentView: View {
                             // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。
                             // 🩹(ストレッチ中に痛かった)は対応するアイコンが無いため、絵文字のまま
                             // 残す(報告書に新規アイコン要としてリストアップ済み)。
+                            // TASK-C2-2026-08-01-build15-subtraction9.md #5: 上の入口統合で無くなった
+                            // 「はじめてガイド」ピルの導線をここへ移設。
+                            KyonoGhostButton("さいしょの質問をやりなおす", icon: .sprout, action: onReenterOnboarding)
                             KyonoGhostButton("記録が消えた・0日にもどってる", icon: .calendarCheck) { jumpToFaq(proxy, groupTitle: "記録・続けるについて", itemQ: "連続が切れちゃった…") }
                             KyonoGhostButton("機種変更したい", icon: .phoneDevice, action: onOpenSettings)
                             KyonoGhostButton("🩹 ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }

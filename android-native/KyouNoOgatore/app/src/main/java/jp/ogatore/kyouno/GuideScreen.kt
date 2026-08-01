@@ -174,32 +174,11 @@ fun GuideScreen(
             // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §4-2: index.html:970
             // display:flex;flex-wrap:wrapの1:1移植。幅が足りないときはラベルが割れるのではなく
             // ボタンごと下の行に落ちるようRowからFlowRowへ変更。
-            FlowRow(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                // UI/UXパリティ監査2巡目A1(2026-07-29): 前回G2で検索チップだけに適用した
-                // KyonoTightLineTextStyle(実測ベースのフォント行送り超過補正)をここにも展開。
-                // 実機(エミュレータ)で確認したところ、この修正だけでは縦積み(保留項目#10)は
-                // 解消しなかった——#10は行送りではなく横幅側の別要因と見られる。#10は指示どおり
-                // 保留のまま・ここでは行送り超過の補正のみを目的として適用する。
-                // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.Sprout)。
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .background(colors.tealSoft, RoundedCornerShape(50))
-                        .clickable(onClick = onReenterOnboarding)
-                        .padding(horizontal = 16.dp, vertical = 9.dp)
-                        .testTag("obReenterLink"),
-                ) {
-                    KyonoIconGlyph(KyonoIcon.Sprout, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        "はじめてガイド", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
-                        lineHeight = 14.sp, style = KyonoTightLineTextStyle,
-                    )
-                }
+            // TASK-C2-2026-08-01-build15-subtraction9.md #5: 「はじめてガイド」「使い方ツアー」の
+            // 2ピル＋区別説明文は入口として二重で迷いやすい(5視点監査指摘)ため、「📖 使い方ツアー」
+            // 1本に統合(引き算)。はじめてガイド(質問のやり直し)への導線は下の「困ったときは」
+            // カード内へ移した(onReenterOnboarding呼び出し自体は変更なし)。
+            Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), contentAlignment = Alignment.Center) {
                 Text(
                     "📖 使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                     lineHeight = 14.sp, style = KyonoTightLineTextStyle,
@@ -210,11 +189,6 @@ fun GuideScreen(
                         .testTag("obTourLink"),
                 )
             }
-            Text(
-                "「はじめてガイド」＝さいしょの質問からやりなおす／「使い方ツアー」＝つかいかたをスライドで見る",
-                color = colors.sub, fontSize = 12.sp, textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            )
 
             // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
             // §2 キャラクター画像: index.html:973-978 .card.grad-warm(chara.png 84x84+「おぼえるのはこれだけ！」)
@@ -288,6 +262,9 @@ fun GuideScreen(
                     // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。
                     // 🩹(ストレッチ中に痛かった)は対応するアイコンが無いため、絵文字のまま
                     // 残す(報告書に新規アイコン要としてリストアップ済み)。
+                    // TASK-C2-2026-08-01-build15-subtraction9.md #5: 上の入口統合で無くなった
+                    // 「はじめてガイド」ピルの導線をここへ移設。
+                    KyonoLineButton("さいしょの質問をやりなおす", onReenterOnboarding, Modifier.testTag("gdHelpRestartOnboarding"), icon = KyonoIcon.Sprout)
                     KyonoLineButton("記録が消えた・0日にもどってる", { jumpToFaq("記録・続けるについて", "連続が切れちゃった…") }, Modifier.testTag("gdHelpMissing"), icon = KyonoIcon.CalendarCheck)
                     KyonoLineButton("機種変更したい", onOpenSettings, Modifier.testTag("gdHelpDevice"), icon = KyonoIcon.PhoneDevice)
                     KyonoLineButton("🩹 ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
