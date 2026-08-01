@@ -1100,7 +1100,9 @@ private struct ResultContentView: View {
                     // 検証D・PO承認済み)。「タスクスイッチできない層がYouTubeから戻れないのが最初の
                     // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
                     KyonoCard {
-                        Text("きょうはこの1本だけでOK！")
+                        // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-3: 見出し文言変更
+                        // (動画カード内バッジ「きょうはこれ1本でOK！」は対象外・据え置き)。
+                        Text("きょうは練習してみよう")
                             .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         // app-quiz.js:316-320 sd-row.oga相当の練習宣言吹き出し(相談室botバブルと同じ見た目)。
