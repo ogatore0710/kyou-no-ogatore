@@ -1454,12 +1454,6 @@ fun HomeScreen(
                                 cheerText = CHEERS[Random.nextInt(CHEERS.size)] // §2-4許容箇所: markDoneのcheer選択のみ乱数OK
                                 milestoneInfo = null
                             }
-                            // UI/UXパリティ監査GO-1: app-record.js:132 launchConfetti(ms?105:70)の
-                            // 1:1移植。粒数はUI装飾のみの乱数使用(§2-4許容箇所)。
-                            if (!confettiReducedMotion) {
-                                confettiCount = if (ms != null) 105 else 70
-                                confettiTrigger = (confettiTrigger ?: 0) + 1
-                            }
                             if (wasGuide) {
                                 store.set("fd", "1")
                                 fd = "1"
@@ -1469,8 +1463,14 @@ fun HomeScreen(
                                 fdCardNudgeVisible = true
                             }
                             // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子1: 同時発火を
-                            // やめ、労い+confettiの一拍(0.7秒)のあとにカードを入場させる。
-                            // reduceMotion時は即時・無フェード(A6の瞬時方針どおり)。
+                            // やめ、労いの一拍(0.7秒)のあとにカードを入場させる。reduceMotion時は
+                            // 即時・無フェード(A6の瞬時方針どおり)。
+                            // TASK-C2-2026-08-01-build13-round3.md ⑥: 本人指摘「紙吹雪が先に出てしまう」
+                            // 対応。confettiはKyonoConfettiが既にComposeツリー上で最前面だが、旧実装は
+                            // タップ直後(カード入場より0.7秒も前)に発火しており、カードが出る頃には
+                            // 紙吹雪の見せ場が終わっていた。労いの一言→カード入場→カードの上に紙吹雪、
+                            // の順に見えるようconfetti発火をカード入場と同じタイミングへ移す
+                            // (reduceMotion時は既存どおり紙吹雪なし=confettiTrigger未発火のまま)。
                             val newCard = renderTodayCard(store, streak, today, context)
                             if (confettiReducedMotion) {
                                 cardEnterAnimated = false
@@ -1480,6 +1480,10 @@ fun HomeScreen(
                                     delay(700)
                                     cardEnterAnimated = true
                                     cardResult = newCard
+                                    // UI/UXパリティ監査GO-1: app-record.js:132 launchConfetti(ms?105:70)の
+                                    // 1:1移植。粒数はUI装飾のみの乱数使用(§2-4許容箇所)。
+                                    confettiCount = if (ms != null) 105 else 70
+                                    confettiTrigger = (confettiTrigger ?: 0) + 1
                                 }
                             }
                         }
@@ -1766,14 +1770,10 @@ fun HomeScreen(
                 SoudanCard(onOpenSoudan = onOpenSoudan)
             }
         }
-        // UI/UXパリティ監査GO-1: index.html:1919-1942 launchConfetti()の1:1移植。countが同じ値の
-        // 連続タップでも必ず再生させるため、単調増加するconfettiTriggerをkey()に使って毎回新規の
-        // KyonoConfettiとして張り替える(remember(count)だけだと同じ粒数のとき再生されない)。
-        if (confettiTrigger != null) {
-            key(confettiTrigger) {
-                KyonoConfetti(count = confettiCount, modifier = Modifier.matchParentSize())
-            }
-        }
+        // TASK-C2-2026-08-01-build13-round3.md ⑥: confettiの描画はここではなくカードダイアログの
+        // text{}内部へ移した(下記参照)。AlertDialogは独自のWindowで最前面に出るため、通常の
+        // Composeツリー上にあるこの位置に描いてもダイアログの下に隠れてしまう(iOSのZStackと違い、
+        // Androidのダイアログはウィンドウが分かれているため後勝ちのz順が通用しない)。
         }
 
         cardResult?.let { result ->
@@ -1827,6 +1827,11 @@ fun HomeScreen(
                             contentAlpha.animateTo(1f, tween(350))
                         }
                     }
+                    // TASK-C2-2026-08-01-build13-round3.md ⑥: 紙吹雪をカード本文と同じBoxに入れ、
+                    // 後勝ちのz順でカードの上のレイヤーに描く(祝いの的がカードになる形)。
+                    // AlertDialogは独自Windowで最前面に出るため、通常のComposeツリー上(Boxの外)に
+                    // 描いても隠れてしまう欠陥があった(このダイアログの中に置くことでのみ解決する)。
+                    Box {
                     Column(Modifier.graphicsLayer { scaleX = contentScale.value; scaleY = contentScale.value; alpha = contentAlpha.value }) {
                         Image(
                             bitmap = bmp.asImageBitmap(),
@@ -1853,6 +1858,15 @@ fun HomeScreen(
                                 Modifier.testTag("cardMsExportBtn"),
                             )
                         }
+                    }
+                    // UI/UXパリティ監査GO-1: index.html:1919-1942 launchConfetti()の1:1移植。countが
+                    // 同じ値の連続タップでも必ず再生させるため、単調増加するconfettiTriggerをkey()に
+                    // 使って毎回新規のKyonoConfettiとして張り替える。
+                    if (confettiTrigger != null) {
+                        key(confettiTrigger) {
+                            KyonoConfetti(count = confettiCount, modifier = Modifier.matchParentSize())
+                        }
+                    }
                     }
                 },
             )

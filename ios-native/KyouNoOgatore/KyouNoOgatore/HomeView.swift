@@ -570,11 +570,6 @@ struct HomeView: View {
                         milestoneInfo = nil
                         withAnimation(.easeOut(duration: 0.3)) { cheerText = CHEERS.randomElement() }
                     }
-                    // UI/UXパリティ監査GO-1: app-record.js:132 launchConfetti(ms?105:70)の1:1移植。
-                    if !reduceMotion {
-                        confettiCount = ms != nil ? 105 : 70
-                        confettiTrigger = (confettiTrigger ?? 0) + 1
-                    }
                     if wasGuide {
                         store.set("fd", "1")
                         fd = "1"
@@ -584,16 +579,24 @@ struct HomeView: View {
                         fdCardNudgeVisible = true
                     }
                     // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子1-2: 労い(cheerText/
-                    // fdCelebrationVisible/milestoneInfo)とconfettiが主役の間を作ってから
-                    // カードを入場させる(同時発火をやめる)。KyonoCardModalOverlayの
-                    // .transition(.opacity)は状態変化がwithAnimationで包まれて初めて発火するため、
-                    // ここでも包む(骨子2: 死んだtransitionの是正)。reduceMotion時は即時・無演出。
+                    // fdCelebrationVisible/milestoneInfo)が主役の間を作ってからカードを入場させる
+                    // (同時発火をやめる)。KyonoCardModalOverlayの.transition(.opacity)は状態変化が
+                    // withAnimationで包まれて初めて発火するため、ここでも包む(骨子2: 死んだ
+                    // transitionの是正)。reduceMotion時は即時・無演出。
+                    // TASK-C2-2026-08-01-build13-round3.md ⑥: 本人指摘「紙吹雪が先に出てしまう」対応。
+                    // confettiは既にZStack上で最前面(HomeView.body)だが、旧実装はタップ直後(カード
+                    // 入場より0.7秒も前)に発火しており、カードが出る頃には紙吹雪の見せ場が終わって
+                    // いた。労いの一言→カード入場→カードの上に紙吹雪、の順に見えるよう、confetti
+                    // 発火をカード入場と同じタイミングへ移す(reduceMotion時は既存どおり紙吹雪なし=
+                    // confettiTrigger未発火のまま)。
                     let newCard = renderTodayCard(store: store, streak: streak, ds: today)
                     if reduceMotion {
                         cardResult = newCard
                     } else {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                             withAnimation(.easeOut(duration: 0.35)) { cardResult = newCard }
+                            confettiCount = ms != nil ? 105 : 70
+                            confettiTrigger = (confettiTrigger ?? 0) + 1
                         }
                     }
                 }
