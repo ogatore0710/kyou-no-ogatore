@@ -54,7 +54,7 @@ import jp.ogatore.kyouno.record.RecordStore
 fun DexScreen(store: RecordStore, onBack: () -> Unit) {
     // GO-G6(5視点ワンループ): システム「もどる」を拾い、既存の「◀ もどる」ボタンと同じonBackへ。
     BackHandler(onBack = onBack)
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val streak = remember { RecordLogic.loadStreak(store) }

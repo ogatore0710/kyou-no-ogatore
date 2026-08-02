@@ -45,7 +45,7 @@ import java.time.Instant
 // Phase 3: index.html:350-369 .vcard/.vface/.vfront(yellow-soft→pink-softグラデ)/.vback/.vtag/.vgoの1:1移植。
 @Composable
 fun VoicesScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val today = remember { RecordLogic.todayStr(Instant.now()) }

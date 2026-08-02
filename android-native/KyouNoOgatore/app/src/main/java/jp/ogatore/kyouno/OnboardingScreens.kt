@@ -278,7 +278,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         finish()
     }
 
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val dark = colors.bg == KyonoDarkColors.bg
@@ -725,7 +725,7 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
         if (qi > 0) qi-- else onClose()
     }
 
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val dark = colors.bg == KyonoDarkColors.bg
@@ -1386,7 +1386,7 @@ const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね\nきょうのぶ�
 fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = false, onDone: () -> Unit) {
     var si by remember { mutableStateOf(0) }
     val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
-    KyonoTheme(store.get("theme", "auto"), bigText = store.get("bigtext", true)) {
+    KyonoTheme(store.get("theme", "light"), bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         // TestFlight実機フィードバックD6(2026-07-29、iOS向けだがAndroidにも同じ穴があった):
         // ステップごとに本文の量が違い、その下に置かれた「つぎへ」の位置が毎回上下に動いていた。

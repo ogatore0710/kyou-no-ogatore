@@ -70,7 +70,7 @@ import kotlinx.coroutines.delay
 fun ObuScreen(store: RecordStore, onBack: () -> Unit) {
     // GO-G6(5視点ワンループ): システム「もどる」を拾い、既存の「◀ もどる」ボタンと同じonBackへ。
     BackHandler(onBack = onBack)
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:1352

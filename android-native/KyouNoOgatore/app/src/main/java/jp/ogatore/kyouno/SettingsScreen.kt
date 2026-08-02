@@ -102,11 +102,15 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
     // GO-G6(5視点ワンループ): システム「もどる」を拾い、既存の「◀ もどる」ボタンと同じonBackへ。
     BackHandler(onBack = onBack)
     val context = LocalContext.current
-    val themeSetting = store.get("theme", "auto")
+    // TASK-C2-2026-08-02-build17-feedback-fixes.md P-3: 未使用初回起動時の既定値を
+    // "auto"(旧仕様)から"light"へ変更(本人指示)。「じどう」「暗い」の選択肢自体は残す
+    // (これは既に保存済みの値が無いときの既定値であり、一度設定を保存したユーザーには
+    // 影響しない)。全`store.get("theme", ...)`呼び出し箇所(19箇所)を同じ値に揃える。
+    val themeSetting = store.get("theme", "light")
 
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
-        var theme by remember { mutableStateOf(store.get("theme", "auto")) }
+        var theme by remember { mutableStateOf(store.get("theme", "light")) }
         var bigtext by remember { mutableStateOf(store.get("bigtext", true)) }
         var exportText by remember { mutableStateOf<String?>(null) }
         var importInput by remember { mutableStateOf("") }
@@ -540,7 +544,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         {
                             preImportSnapshot?.let { snapshot ->
                                 RecordSnapshot.restore(store, snapshot)
-                                theme = store.get("theme", "auto")
+                                theme = store.get("theme", "light")
                                 bigtext = store.get("bigtext", true)
                             }
                             importMessage = "さっきの状態にもどしました"
@@ -584,7 +588,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                                 // GO-G9(5視点ワンループ): 上書き前の状態を1件だけ退避してからimportする。
                                 val snapshot = RecordSnapshot.capture(store)
                                 KyonoTransfer.importString(importInput.trim(), store)
-                                theme = store.get("theme", "auto")
+                                theme = store.get("theme", "light")
                                 bigtext = store.get("bigtext", true)
                                 importMessage = "よみこみました！"
                                 preImportSnapshot = snapshot

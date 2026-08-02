@@ -228,7 +228,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
     // 無く、システム「もどる」が即アプリ終了していた。onBack自体は呼び出し元で既に
     // screen=Home配線済みなので、他の副画面(DexScreen等)と同じ単純な形で拾うだけでよい。
     BackHandler(onBack = onBack)
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val context = LocalContext.current
@@ -612,7 +612,7 @@ private fun PlaylistRow(item: jp.ogatore.kyouno.catalog.PlaylistItem, openUrl: (
 fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
     // Fable監査GO-2(視点B): SearchScreenと同じ理由でBackHandler不在だった。
     BackHandler(onBack = onBack)
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val playlistGroups = remember { jp.ogatore.kyouno.catalog.PlaylistLoader.shared }

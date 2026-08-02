@@ -246,7 +246,7 @@ class MainActivity : ComponentActivity() {
             // (祝い演出・紙吹雪込み)が開いている間、両FABを隠すための橋渡し(HomeScreen側で発生した
             // 状態をここへ伝える。scrollToTodayPendingらと逆方向)。
             var homeCardModalOpen by remember { mutableStateOf(false) }
-            val themeSetting = store.get("theme", "auto")
+            val themeSetting = store.get("theme", "light")
             // フォント適用漏れ修正(TASK-C2-2026-07-26-visual-parity-fonts-characters.md):
             // 本文用フォントをM PLUS 1p(Bold=700系)にするため、Typography全スタイルのfontFamilyを
             // 一括で差し替え、アプリ全体の素朴なText()呼び出しにも反映させる(各画面のTextコンポーザブルを
@@ -1154,7 +1154,7 @@ fun HomeScreen(
             catalogByIdForDaylog[vid]?.let { it.id to it.t }
         }
     }
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
 
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
@@ -2121,7 +2121,7 @@ fun MyRecordScreen(
     BackHandler(onBack = onBack)
     // GO-G7(5視点ワンループ): とどくメーター記録に「きょうやった！」と同じ軽いハプティクスを追加。
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-    val themeSetting = store.get("theme", "auto")
+    val themeSetting = store.get("theme", "light")
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }
