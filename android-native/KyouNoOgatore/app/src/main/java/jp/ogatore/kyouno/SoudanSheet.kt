@@ -39,6 +39,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -821,6 +822,15 @@ fun SoudanSheet(
                         // TASK-C2-2026-07-29-ux-audit-G.md G5: index.html:1230 placeholder="例: 肩がこる／
                         // 前屈できない"の1:1移植。何を打てばいいかの手本が消えていた欠落。
                         placeholder = { Text("例: 肩がこる／前屈できない") },
+                        // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: OutlinedTextFieldは既定で
+                        // containerColorが透明なため、Material3の既定(ambient)テーマがシステム側の
+                        // ダーク/ライト設定に追従しアプリ内テーマと食い違うと、入力欄だけ暗いまま浮いて
+                        // 見えていた欠陥。SearchScreen.ktの検索欄と同じ自前スタイルに揃える。
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
+                            focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                            focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
+                        ),
                     )
                     Spacer(Modifier.width(8.dp))
                     KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"), enabled = !sdPending)

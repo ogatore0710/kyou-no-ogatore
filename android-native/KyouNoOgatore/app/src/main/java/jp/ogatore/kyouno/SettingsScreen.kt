@@ -35,6 +35,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -462,11 +463,22 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     // 文言はそのまま同じにはできないが、句点・コロンで終わる説明文調ではなくWeb版と
                     // 同じカジュアルな文体に寄せる。
                     Text("クリップボードにコピーしたよ 下の文字は長押しでも選べるよ", color = colors.sub, fontSize = 12.sp)
+                    // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: OutlinedTextFieldは既定で
+                    // containerColorが透明なため、Material3の既定(ambient)テーマがシステム側の
+                    // ダーク/ライト設定に追従しアプリ内テーマと食い違うと、入力欄だけ暗いまま浮いて
+                    // 見えていた欠陥。SearchScreen.ktの検索欄と同じ自前スタイルに揃える。
                     OutlinedTextField(
                         value = it,
                         onValueChange = {},
                         readOnly = true,
                         modifier = Modifier.fillMaxWidth().testTag("exportText"),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
+                            focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                            focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
+                            disabledContainerColor = colors.card, disabledBorderColor = colors.line,
+                            disabledTextColor = colors.ink,
+                        ),
                     )
                 }
                 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:837の1:1移植。
@@ -503,11 +515,20 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 Spacer(Modifier.height(6.dp))
                 Text("うまくいかないときは 下のわくに手で貼り付けてね", color = colors.sub, fontSize = 12.sp)
                 Spacer(Modifier.height(8.dp))
+                // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: OutlinedTextFieldは既定で
+                // containerColorが透明なため、Material3の既定(ambient)テーマがシステム側の
+                // ダーク/ライト設定に追従しアプリ内テーマと食い違うと、入力欄だけ暗いまま浮いて
+                // 見えていた欠陥。SearchScreen.ktの検索欄と同じ自前スタイルに揃える。
                 OutlinedTextField(
                     value = importInput,
                     onValueChange = { importInput = it },
                     modifier = Modifier.fillMaxWidth().testTag("importText"),
                     placeholder = { Text("KYONO1:... をここに貼りつけ") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
+                        focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                        focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
+                    ),
                 )
                 Spacer(Modifier.height(8.dp))
                 KyonoLineButton(
