@@ -64,12 +64,18 @@ private func chipColors(for key: String, dark: Bool) -> ChipColors {
     case "b": return dark
         ? ChipColors(bg: Color(hex: 0x1F3532), border: Color(hex: 0x2E5A52), text: Color(hex: 0x7BD0C4), onBg: Color(hex: 0x1E7B70), onBorder: Color(hex: 0x1E7B70), onText: .white)
         : ChipColors(bg: Color(hex: 0xE7F8F1), border: Color(hex: 0xBFE8DC), text: Color(hex: 0x177065), onBg: Color(hex: 0x1E7B70), onBorder: Color(hex: 0x1E7B70), onText: .white)
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: 選択中チップ(on)の白文字コントラスト。
+    // pink(#E56A9A)/purple(#8B7BD8)地に白文字は実測3.06:1/3.55:1でWCAG AA(4.5:1)未達だった。
+    // teal(case b)が既にonBg/onBorderへ素のteal(#2BB3A3)でなくtealStrong(#1E7B70)という
+    // 濃い変種を使っている前例に倣い、pink/purpleも「この画面の未選択時textとして既に使っている
+    // 濃い変種」(0xB0366E/0x6A58B5、どちらも実測4.5:1超)へ差し替える(新しい色トークンは増やさない)。
+    // onBgは白文字向けの固定色のためlight/dark共通(teal案と同じ設計)。
     case "c": return dark
-        ? ChipColors(bg: Color(hex: 0x3A2730), border: Color(hex: 0x5E3A4C), text: Color(hex: 0xF09BC0), onBg: Color(hex: 0xE56A9A), onBorder: Color(hex: 0xE56A9A), onText: .white)
-        : ChipColors(bg: Color(hex: 0xFFEDF3), border: Color(hex: 0xF5C6D8), text: Color(hex: 0xB0366E), onBg: Color(hex: 0xE56A9A), onBorder: Color(hex: 0xE56A9A), onText: .white)
+        ? ChipColors(bg: Color(hex: 0x3A2730), border: Color(hex: 0x5E3A4C), text: Color(hex: 0xF09BC0), onBg: Color(hex: 0xB0366E), onBorder: Color(hex: 0xB0366E), onText: .white)
+        : ChipColors(bg: Color(hex: 0xFFEDF3), border: Color(hex: 0xF5C6D8), text: Color(hex: 0xB0366E), onBg: Color(hex: 0xB0366E), onBorder: Color(hex: 0xB0366E), onText: .white)
     default: return dark
-        ? ChipColors(bg: Color(hex: 0x2C2740), border: Color(hex: 0x4A4070), text: Color(hex: 0xB8A9F0), onBg: Color(hex: 0x8B7BD8), onBorder: Color(hex: 0x8B7BD8), onText: .white)
-        : ChipColors(bg: Color(hex: 0xF1EDFF), border: Color(hex: 0xD6CCF5), text: Color(hex: 0x6A58B5), onBg: Color(hex: 0x8B7BD8), onBorder: Color(hex: 0x8B7BD8), onText: .white)
+        ? ChipColors(bg: Color(hex: 0x2C2740), border: Color(hex: 0x4A4070), text: Color(hex: 0xB8A9F0), onBg: Color(hex: 0x6A58B5), onBorder: Color(hex: 0x6A58B5), onText: .white)
+        : ChipColors(bg: Color(hex: 0xF1EDFF), border: Color(hex: 0xD6CCF5), text: Color(hex: 0x6A58B5), onBg: Color(hex: 0x6A58B5), onBorder: Color(hex: 0x6A58B5), onText: .white)
     }
 }
 

@@ -246,7 +246,10 @@ private struct MyRecordContentView: View {
                     HStack(alignment: .lastTextBaseline, spacing: 20) {
                         HStack(alignment: .lastTextBaseline, spacing: 4) {
                             Text("通算").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                            Text("\(streak.total)").kyonoFont(.black900, size: 22).foregroundColor(colors.pink)
+                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: 「通算N日」の
+                            // ピンク大見出しをpinkInk化(build15 #8で用意した小さい文字専用の濃さを
+                            // ここにも適用)。
+                            Text("\(streak.total)").kyonoFont(.black900, size: 22).foregroundColor(colors.pinkInk)
                             Text("日").kyonoFont(.extraBold800, size: 13).foregroundColor(colors.ink)
                         }
                         HStack(alignment: .lastTextBaseline, spacing: 4) {

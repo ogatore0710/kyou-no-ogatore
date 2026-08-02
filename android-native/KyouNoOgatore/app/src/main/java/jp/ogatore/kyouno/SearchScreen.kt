@@ -133,15 +133,21 @@ private val tagChipKey: Map<String, Map<String, String>> = mapOf(
 // index.html:441-449 .chip-a〜d(カテゴリ色)の1:1移植(ライト/ダーク)。
 private data class ChipColors(val bg: Color, val border: Color, val text: Color, val onBg: Color, val onBorder: Color, val onText: Color)
 
+// TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: 選択中チップ(on)の白文字コントラスト。
+// pink(#E56A9A)/purple(#8B7BD8)地に白文字は実測3.06:1/3.55:1でWCAG AA(4.5:1)未達だった。
+// teal("b")が既にonBg/onBorderへ素のteal(#2BB3A3)でなくtealStrong(#1E7B70)という濃い変種を
+// 使っている前例に倣い、pink/purpleも「この画面の未選択時textとして既に使っている濃い変種」
+// (0xB0366E/0x6A58B5、どちらも実測4.5:1超)へ差し替える(新しい色トークンは増やさない)。
+// onBgは白文字向けの固定色のためlight/dark共通(teal案と同じ設計)。
 private fun chipColorsFor(key: String, dark: Boolean): ChipColors = when (key) {
     "a" -> if (dark) ChipColors(Color(0xFF37301C), Color(0xFF5C4F1E), Color(0xFFE8C74C), Color(0xFFFFD93B), Color(0xFFFFD93B), Color(0xFF211E19))
     else ChipColors(Color(0xFFFFF6D8), Color(0xFFF2DE8A), Color(0xFF8A6D00), Color(0xFFFFD93B), Color(0xFFFFD93B), Color(0xFF3A3A35))
     "b" -> if (dark) ChipColors(Color(0xFF1F3532), Color(0xFF2E5A52), Color(0xFF7BD0C4), Color(0xFF1E7B70), Color(0xFF1E7B70), Color.White)
     else ChipColors(Color(0xFFE7F8F1), Color(0xFFBFE8DC), Color(0xFF177065), Color(0xFF1E7B70), Color(0xFF1E7B70), Color.White)
-    "c" -> if (dark) ChipColors(Color(0xFF3A2730), Color(0xFF5E3A4C), Color(0xFFF09BC0), Color(0xFFE56A9A), Color(0xFFE56A9A), Color.White)
-    else ChipColors(Color(0xFFFFEDF3), Color(0xFFF5C6D8), Color(0xFFB0366E), Color(0xFFE56A9A), Color(0xFFE56A9A), Color.White)
-    else -> if (dark) ChipColors(Color(0xFF2C2740), Color(0xFF4A4070), Color(0xFFB8A9F0), Color(0xFF8B7BD8), Color(0xFF8B7BD8), Color.White)
-    else ChipColors(Color(0xFFF1EDFF), Color(0xFFD6CCF5), Color(0xFF6A58B5), Color(0xFF8B7BD8), Color(0xFF8B7BD8), Color.White)
+    "c" -> if (dark) ChipColors(Color(0xFF3A2730), Color(0xFF5E3A4C), Color(0xFFF09BC0), Color(0xFFB0366E), Color(0xFFB0366E), Color.White)
+    else ChipColors(Color(0xFFFFEDF3), Color(0xFFF5C6D8), Color(0xFFB0366E), Color(0xFFB0366E), Color(0xFFB0366E), Color.White)
+    else -> if (dark) ChipColors(Color(0xFF2C2740), Color(0xFF4A4070), Color(0xFFB8A9F0), Color(0xFF6A58B5), Color(0xFF6A58B5), Color.White)
+    else ChipColors(Color(0xFFF1EDFF), Color(0xFFD6CCF5), Color(0xFF6A58B5), Color(0xFF6A58B5), Color(0xFF6A58B5), Color.White)
 }
 
 // app-search.js:40-50 currentHits() の1:1移植。

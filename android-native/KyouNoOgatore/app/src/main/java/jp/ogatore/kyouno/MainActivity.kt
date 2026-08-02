@@ -1401,13 +1401,15 @@ fun HomeScreen(
                     Text("続けた日数（通算）", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 }
                 Spacer(Modifier.height(6.dp))
+                // TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: 「通算N日」のピンク大見出しを
+                // pinkInk化(build15 #8で用意した小さい文字専用の濃さをここにも適用)。
                 Text(
                     "通算 ${streak.total} 日" + when {
                         streakBrokenNow -> "・きょうやると新しい章のスタート"
                         streak.count >= 2 -> "・いま${streak.count}日連続"
                         else -> ""
                     },
-                    color = colors.pink, fontSize = 20.sp, fontWeight = FontWeight.Black,
+                    color = colors.pinkInk, fontSize = 20.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.testTag("streakText"),
                 )
                 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home):
@@ -2201,7 +2203,8 @@ fun MyRecordScreen(
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text("通算", color = colors.sub, fontSize = 13.sp)
                         Spacer(Modifier.width(4.dp))
-                        Text("${streak.total}", color = colors.pink, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histTotal"))
+                        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: pinkInk化(streakTextと同じ理由)。
+                        Text("${streak.total}", color = colors.pinkInk, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histTotal"))
                         Text("日", fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, color = colors.ink)
                     }
                     Row(verticalAlignment = Alignment.Bottom) {

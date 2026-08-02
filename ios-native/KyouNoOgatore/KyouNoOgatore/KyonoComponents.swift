@@ -177,9 +177,11 @@ struct KyonoStreakText: View {
         self.total = total; self.streakCount = streakCount; self.brokenNow = brokenNow
     }
     var body: some View {
+        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: 「通算N日」のピンク大見出しをpinkInk化
+        // (build15 #8で用意した小さい文字専用の濃さをここにも適用)。
         Text("通算 \(total) 日" + (brokenNow ? "・きょうやると新しい章のスタート" : (streakCount >= 2 ? "・いま\(streakCount)日連続" : "")))
             .kyonoFont(.black900, size: 20)
-            .foregroundColor(colors.pink)
+            .foregroundColor(colors.pinkInk)
     }
 }
 
