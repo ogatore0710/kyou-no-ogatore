@@ -209,6 +209,12 @@ struct KyonoFab: View {
     let borderColor: Color
     var accessibilityLabelText: String = ""
     var photoResName: String? = nil
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-2: 相談FABの💬絵文字をタブバー調のCanvas線画
+    // アイコンへ差し替える。指定時はemoji文字列より優先して描画する(photoResNameはobuFAB専用で
+    // 両立しない・soudanFABは常にphotoResName=nilのため優先順位の衝突は無い)。
+    var icon: KyonoIcon? = nil
+    var iconFill: Color = .clear
+    var iconAccent: Color? = nil
     // TASK-C2-2026-07-27-obu-fab-preview-popup.md: index.html:255-256 .obu-dot(15px・pink・bg色2pxボーダー・
     // 右上にはみ出す配置)の1:1移植。trueのときだけ描画(obuFabのみで使用・soudanFabは常にfalse)。
     // Web版にはこの他「NEW📣」の吹き出しチップ(.obu-bubbletip)もあるが、位置指定が複雑な割に
@@ -219,7 +225,10 @@ struct KyonoFab: View {
     var body: some View {
         Button(action: action) {
             Group {
-                if let photoResName {
+                if let icon {
+                    KyonoIconGlyph(icon: icon, fill: iconFill, accent: iconAccent ?? colors.ink)
+                        .frame(width: 26, height: 26)
+                } else if let photoResName {
                     // index.html:248 .obu-fab img{object-fit:cover}の1:1移植。
                     if let url = Bundle.main.url(forResource: photoResName, withExtension: "jpg"),
                        let uiImage = UIImage(contentsOfFile: url.path) {

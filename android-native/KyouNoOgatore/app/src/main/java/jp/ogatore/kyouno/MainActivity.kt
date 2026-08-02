@@ -497,7 +497,9 @@ class MainActivity : ComponentActivity() {
                                         verticalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
                                         if (showSoudanFab) {
-                                            KyonoFab("💬", colors.teal, contentDescription = "オガトレ相談室", onClick = { screen = Screen.Soudan() })
+                                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-2: 相談FABの
+                                            // 💬絵文字をタブバー調のCanvas線画アイコン(SoudanBubble)へ差し替える。
+                                            KyonoFab("", colors.teal, contentDescription = "オガトレ相談室", icon = KyonoIcon.SoudanBubble, onClick = { screen = Screen.Soudan() })
                                         }
                                         if (showObuFab) {
                                             KyonoFab(

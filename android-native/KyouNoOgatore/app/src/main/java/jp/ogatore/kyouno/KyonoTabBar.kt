@@ -227,7 +227,20 @@ private fun SearchIcon(fill: Color, stroke: Color) {
 // Web版にはこの他「NEW📣」の吹き出しチップ(.obu-bubbletip)もあるが、これは位置指定が複雑な割に
 // 視覚的な付加情報がドット(未読の有無)と重複するため今回は見送り(ドットのみでバッジ機能として成立)。
 @Composable
-fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modifier: Modifier = Modifier, photoResName: String? = null, badgeDot: Boolean = false, onClick: () -> Unit) {
+fun KyonoFab(
+    emoji: String,
+    borderColor: Color,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    photoResName: String? = null,
+    badgeDot: Boolean = false,
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-2: 相談FABの💬絵文字をタブバー調のCanvas線画
+    // アイコンへ差し替える。指定時はemoji文字列より優先して描画する。
+    icon: KyonoIcon? = null,
+    iconFill: Color = Color.Transparent,
+    iconAccent: Color? = null,
+    onClick: () -> Unit,
+) {
     val colors = LocalKyonoColors.current
     // badgeDotは意図的にshadow()のクリップ範囲(下記の内側Box)の外に置く: Modifier.shadow(elevation>0.dp)は
     // 既定でclip=trueとなり、その場に描くと円の外へはみ出す部分が切り取られてほぼ見えなくなるため
@@ -243,7 +256,9 @@ fun KyonoFab(emoji: String, borderColor: Color, contentDescription: String, modi
                 .semantics { this.contentDescription = contentDescription },
             contentAlignment = Alignment.Center,
         ) {
-            if (photoResName != null) {
+            if (icon != null) {
+                KyonoIconGlyph(icon, iconFill, iconAccent ?: colors.ink, Modifier.size(26.dp))
+            } else if (photoResName != null) {
                 // index.html:248 .obu-fab img{object-fit:cover}の1:1移植。KyonoCharaImageは
                 // ContentScale.Fit固定(飾りキャラ画像向け)のためここでは使わず、円を埋める
                 // ContentScale.Cropで直接読み込む(KyonoTourMockups.ktのKyonoTourDrawableと同じ手法)。
