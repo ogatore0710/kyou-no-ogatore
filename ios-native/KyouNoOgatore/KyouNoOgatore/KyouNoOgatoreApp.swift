@@ -359,6 +359,14 @@ struct RootView: View {
                 )
             }
         }
+        // TASK-C2-2026-08-02-build17-feedback-fixes.md P-7: このZStackにbackground()が一度も
+        // 指定されておらず、UIWindowの既定背景(黒)がそのまま透けていた欠陥。screenContentの
+        // 画面切替トランジション(.22s・opacity+move)中、旧画面がスライドで退場し新画面が
+        // フェードで入場する間の一瞬、どちらの画面もルート全域を覆いきれない隙間ができ、その
+        // 隙間からルート(ZStack自身の透明な背景=黒)が露出してライトモードで黒フラッシュに
+        // 見えていた(ダークモードでは黒背景と地の色が近く目立たなかった)。KyonoBackgroundColor
+        // (テーマのcolors.bg)を明示的に敷いて隙間を塞ぐ。
+        .background(KyonoBackgroundColor().ignoresSafeArea())
         // TASK-C2-2026-08-02-build16-polish-and-ia.md P-3: ステータスバーのスクリム。
         // タブ画面(showsTabBar=true)だけに敷く(全タブ共通の1コンポーネント)。ZStackの既定
         // alignment(.bottomTrailing)に影響されないよう、.overlay(alignment: .top)で明示的に
