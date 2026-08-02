@@ -331,8 +331,12 @@ struct RootView: View {
                 // タップ吸収が無く背後のHomeへタップが素通りしていた欠陥があった(相談室スクリムには
                 // 元々あった)。iOSのColorは既定でヒットテストするはずだが、念のため明示的なno-op
                 // タップで吸収を確定させる(将来Colorが変わってもここが保険になる)。
-                Color.black.opacity(0.55)
-                    .ignoresSafeArea()
+                // TASK-C2-2026-08-02-build17-feedback-fixes.md P-1: 半透明の黒(opacity 0.55)だと、
+                // colors.yellow(#FFD93B)がライト/ダーク共通の固定値で暗くならないため、55%だけ
+                // 暗くしても輝度差でうっすら透けて見えてしまう(ダーク背景ほど周囲との輝度差が
+                // 大きく目立つ)欠陥があった。半透明のスクリムをやめ、OnboardingScrim(不透明な
+                // colors.bg)に差し替えて背後を完全に隠す。
+                OnboardingScrim()
                     .onTapGesture {}
                     .transition(.opacity.animation(.easeOut(duration: 0.28)))
                 OnboardingOverlayCard {
@@ -514,6 +518,18 @@ struct RootView: View {
             )
         }
     }
+}
+
+// TASK-C2-2026-08-02-build17-feedback-fixes.md P-1: オンボ表示中、背後のHome(かたさチェック
+// カードの黄色ボタン等)が角丸カードの外にうっすら透けて見えていた欠陥の修正。旧実装は
+// Color.black.opacity(0.55)の半透明スクリムだったが、colors.yellow(#FFD93B)がライト/ダーク
+// 共通の固定値で暗くならないため、55%だけ暗くしても輝度差で透けて見えていた(ダーク背景ほど
+// 周囲との輝度差が大きく目立つ)。不透明なcolors.bgに差し替えて完全に隠す。RootView直下で
+// @Environment(\.kyonoColors)を読むと既定値(ライト)になってしまうため、OnboardingOverlayCardと
+// 同じ理由で専用のView構造体にする。
+private struct OnboardingScrim: View {
+    @Environment(\.kyonoColors) private var colors
+    var body: some View { colors.bg.ignoresSafeArea() }
 }
 
 // TASK-C2-2026-07-27-screen-transitions.md: index.html:515 .ob-sheet(background:var(--bg)・

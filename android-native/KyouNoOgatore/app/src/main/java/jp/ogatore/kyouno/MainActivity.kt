@@ -616,6 +616,12 @@ class MainActivity : ComponentActivity() {
                             // clickableが無かったため、背後のHome(相談室カード等)へタップが素通り
                             // していた(相談室スクリムは元々clickableでこの穴が無かった)。閉じる
                             // アクションは付けず、タップを吸収するだけのno-opにする。
+                            // TASK-C2-2026-08-02-build17-feedback-fixes.md P-1: 半透明の黒
+                            // (alpha 0.55)だと、colors.yellow(#FFD93B)がライト/ダーク共通の
+                            // 固定値で暗くならないため、55%だけ暗くしても輝度差で背後のHome
+                            // (かたさチェックカードの黄色ボタン等)が透けて見えていた欠陥
+                            // (ダーク背景ほど周囲との輝度差が大きく目立つ)。不透明な
+                            // colors.bgに差し替えて完全に隠す。
                             AnimatedVisibility(
                                 visible = screen is Screen.Onboarding,
                                 enter = fadeIn(tween(280)),
@@ -625,7 +631,7 @@ class MainActivity : ComponentActivity() {
                                 Box(
                                     Modifier
                                         .fillMaxSize()
-                                        .background(Color.Black.copy(alpha = 0.55f))
+                                        .background(colors.bg)
                                         .clickable(
                                             indication = null,
                                             interactionSource = remember { MutableInteractionSource() },
