@@ -1549,7 +1549,10 @@ fun HomeScreen(
                     noteText?.let {
                         Column {
                             Spacer(Modifier.height(10.dp))
-                            Text(it, color = colors.teal, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.testTag("markDoneNote"))
+                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: colors.teal(#2BB3A3)を
+                            // 小さい文字で使うと、ライト背景に対し実測2.5:1でWCAG AA(4.5:1)未達だった
+                            // (colors.pinkInkと同じ設計)。小さい文字専用のtealInkに差し替える。
+                            Text(it, color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.testTag("markDoneNote"))
                         }
                     }
                 }
@@ -1646,7 +1649,8 @@ fun HomeScreen(
                                         .padding(horizontal = 12.dp, vertical = 9.dp),
                                 ) {
                                     Column {
-                                        Text("せんぱいの声", color = colors.teal, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                                        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(上と同じ理由)。
+                                        Text("せんぱいの声", color = colors.tealInk, fontSize = 13.sp, fontWeight = FontWeight.Black)
                                         Text(ms.q.removeSuffix("（先輩の声）"), color = colors.sub, fontSize = 13.sp)
                                     }
                                 }
@@ -1710,7 +1714,8 @@ fun HomeScreen(
                         )
                         memoSavedNote?.let {
                             Spacer(Modifier.height(6.dp))
-                            Text(it, color = colors.teal, fontSize = 14.sp, modifier = Modifier.testTag("memoSaved"))
+                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(上と同じ理由)。
+                            Text(it, color = colors.tealInk, fontSize = 14.sp, modifier = Modifier.testTag("memoSaved"))
                         }
                     }
                 }
@@ -1730,7 +1735,8 @@ fun HomeScreen(
                             Text(
                                 buildAnnotatedString {
                                     append("いまは効果を感じにくい時期！体は変わり続けていますよ ")
-                                    withStyle(SpanStyle(color = colors.teal, fontWeight = FontWeight.Black)) { append("とどくメーター") }
+                                    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(上と同じ理由)。
+                                    withStyle(SpanStyle(color = colors.tealInk, fontWeight = FontWeight.Black)) { append("とどくメーター") }
                                     append("で確かめてみて")
                                 },
                                 color = colors.sub, fontSize = 14.sp, lineHeight = 22.sp,
@@ -2205,9 +2211,11 @@ fun MyRecordScreen(
                         // effectiveStreakCount(st)の1:1移植。休みが券でもつなげない期間を挟んだ後は
                         // 保存値(streak.count)そのままでなく0を表示する(押した瞬間に消えたと誤解
                         // させないための表示専用ガード。保存値自体はmarkDone時に正しく再計算される)。
+                        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: 「いま連続N日」の大見出し
+                        // 数字もtealInk化(「通算N日」のpinkInk化と同じ設計・build15 #8)。
                         Text(
                             "${RecordLogic.effectiveStreakCount(store, streak, Instant.now())}",
-                            color = colors.teal, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histStreak"),
+                            color = colors.tealInk, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("histStreak"),
                         )
                         Text("日", fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, color = colors.ink)
                     }
@@ -2439,7 +2447,8 @@ fun MyRecordScreen(
                 }
                 reachMsg?.let {
                     Spacer(Modifier.height(6.dp))
-                    Text(it, color = colors.teal, modifier = Modifier.testTag("reachMsgText"))
+                    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(上と同じ理由)。
+                    Text(it, color = colors.tealInk, modifier = Modifier.testTag("reachMsgText"))
                 }
                 // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md):
                 // app-record.js:245-264 renderReach()の1:1移植(いまの記録+自己ベスト/前回比コメント/
@@ -2459,7 +2468,8 @@ fun MyRecordScreen(
                     Text(
                         buildAnnotatedString {
                             append("自己ベスト: ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.teal)) { append(REACH_LV[best]) }
+                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(上と同じ理由)。
+                            withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.tealInk)) { append(REACH_LV[best]) }
                         },
                         color = colors.sub, fontSize = 15.sp, modifier = Modifier.testTag("reachBestText"),
                     )

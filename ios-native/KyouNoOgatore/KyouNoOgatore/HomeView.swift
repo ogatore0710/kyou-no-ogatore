@@ -838,7 +838,10 @@ struct HomeView: View {
                 // note(おやすみ券/第N章)の1:1移植。fdCelebration/cheerText/milestoneInfoの3分岐
                 // どれが有効でもその先頭に前置される(Web版と同じ位置)。
                 if let noteText {
-                    Text(noteText).kyonoFont(.extraBold800, size: 14).foregroundColor(colors.teal)
+                    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: colors.teal(#2BB3A3)を
+                    // 小さい文字で使うと、ライト背景に対し実測2.5:1でWCAG AA(4.5:1)未達だった
+                    // (pinkInkと同じ設計・build15 #8参照)。小さい文字専用のtealInkに差し替える。
+                    Text(noteText).kyonoFont(.extraBold800, size: 14).foregroundColor(colors.tealInk)
                         .transition(.scale(scale: 0.85).combined(with: .opacity))
                 }
                 if fdCelebrationVisible {
@@ -907,7 +910,8 @@ struct HomeView: View {
                         if !milestoneInfo.q.isEmpty {
                             Spacer().frame(height: 8 * zoom)
                             VStack(alignment: .leading, spacing: 2 * zoom) {
-                                Text("せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.teal)
+                                // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(上のnoteTextと同じ理由)。
+                                Text("せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.tealInk)
                                 Text(milestoneInfo.q.hasSuffix("（先輩の声）")
                                     ? String(milestoneInfo.q.dropLast("（先輩の声）".count))
                                     : milestoneInfo.q)

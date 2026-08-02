@@ -254,8 +254,10 @@ private struct MyRecordContentView: View {
                             // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §1: app-record.js:277
                             // effectiveStreakCount(st)の1:1移植。休みが券でもつなげない期間を挟んだ後は
                             // 保存値(streak.count)そのままでなく0を表示する(表示専用ガード)。
+                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: 「いま連続N日」の
+                            // 大見出し数字もtealInk化(「通算N日」のpinkInk化と同じ設計・build15 #8)。
                             Text("\(RecordLogic.effectiveStreakCount(store, streak, now: Date()))")
-                                .kyonoFont(.black900, size: 22).foregroundColor(colors.teal)
+                                .kyonoFont(.black900, size: 22).foregroundColor(colors.tealInk)
                             Text("日").kyonoFont(.extraBold800, size: 13).foregroundColor(colors.ink)
                         }
                     }
@@ -399,7 +401,9 @@ private struct MyRecordContentView: View {
                                 }
                         }
                     }
-                    if let reachMsg { Spacer().frame(height: 6); reachMsg.kyonoFont(.bold700, size: 15).foregroundColor(colors.teal) }
+                    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(HomeView.swiftの
+                    // noteTextと同じ理由・colors.tealは小さい文字でライト背景2.5:1のためAA未達)。
+                    if let reachMsg { Spacer().frame(height: 6); reachMsg.kyonoFont(.bold700, size: 15).foregroundColor(colors.tealInk) }
                     // とどくメーター詳細欠落修正タスク(TASK-C2-2026-07-26-reach-meter-details.md):
                     // app-record.js:245-264 renderReach()の1:1移植(いまの記録+自己ベスト/前回比コメント/
                     // 直近14回トレンド棒グラフ)。段位の記録・判定ロジック自体は変更せず、表示の追加のみ。
@@ -411,7 +415,8 @@ private struct MyRecordContentView: View {
                             + Text(verbatim: "（\(latest.d.dropFirst(5).replacingOccurrences(of: "-", with: "/"))）"))
                             .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         Spacer().frame(height: 4)
-                        (Text("自己ベスト: ") + Text(reachLv[best]).fontWeight(.black).foregroundColor(colors.teal))
+                        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化。
+                        (Text("自己ベスト: ") + Text(reachLv[best]).fontWeight(.black).foregroundColor(colors.tealInk))
                             .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         // 前回比(2回以上の記録があるときだけ・数字プレッシャーをかけない「段」表現)。
                         if reachList.count >= 2 {
