@@ -562,6 +562,10 @@ struct FadingChipRow<Content: View>: View {
     }
 
     private var hasMore: Bool { contentWidth - (-offsetX) - containerWidth > 8 }
+    // TASK-C2-2026-08-02-build17-feedback-fixes.md P-5: 「左右どちらにもスクロール可能な状態が
+    // 伝わること」の指示どおり、右端のフェード+矢印(既存)と対になる左端版を追加する。offsetXは
+    // 左スクロール前は0、スクロールすると負の値になるので符号を反転してhasMoreと揃える。
+    private var hasPrevious: Bool { -offsetX > 8 }
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -602,11 +606,25 @@ struct FadingChipRow<Content: View>: View {
                 .transition(.opacity)
             }
         }
-        .animation(.easeOut(duration: 0.2), value: hasMore)
-        .overlay(alignment: .topLeading) {
-            Text("cw=\(Int(contentWidth)) ctw=\(Int(containerWidth)) ox=\(Int(offsetX)) hm=\(hasMore ? 1 : 0)")
-                .font(.system(size: 9)).foregroundColor(.red).background(Color.white)
+        .overlay(alignment: .leading) {
+            if hasPrevious {
+                ZStack(alignment: .leading) {
+                    LinearGradient(colors: [colors.card.opacity(0), colors.card], startPoint: .trailing, endPoint: .leading)
+                        .frame(width: 40)
+                    Circle()
+                        .fill(colors.card)
+                        .overlay(Circle().stroke(colors.line, lineWidth: 1))
+                        .frame(width: 22, height: 22)
+                        .overlay(Text("‹").foregroundColor(colors.sub).font(.system(size: 14, weight: .black)))
+                        .padding(.leading, 2)
+                }
+                .frame(height: 42)
+                .allowsHitTesting(false)
+                .transition(.opacity)
+            }
         }
+        .animation(.easeOut(duration: 0.2), value: hasMore)
+        .animation(.easeOut(duration: 0.2), value: hasPrevious)
     }
 }
 

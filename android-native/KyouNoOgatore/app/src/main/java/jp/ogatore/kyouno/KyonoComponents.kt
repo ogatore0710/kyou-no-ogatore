@@ -376,13 +376,10 @@ fun <T> KyonoSegmentedControl(
 fun FadingChipRow(modifier: Modifier = Modifier, testTag: String, content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit) {
     val colors = LocalKyonoColors.current
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val hasMore by remember {
-        derivedStateOf {
-            val info = listState.layoutInfo
-            val last = info.visibleItemsInfo.lastOrNull() ?: return@derivedStateOf false
-            last.index < info.totalItemsCount - 1 || (last.offset + last.size) > info.viewportEndOffset
-        }
-    }
+    val hasMore by remember { derivedStateOf { listState.canScrollForward } }
+    // TASK-C2-2026-08-02-build17-feedback-fixes.md P-5: 「左右どちらにもスクロール可能な状態が
+    // 伝わること」の指示どおり、右端の既存フェード+矢印と対になる左端版を追加する。
+    val hasPrevious by remember { derivedStateOf { listState.canScrollBackward } }
     Box(modifier.testTag(testTag)) {
         androidx.compose.foundation.lazy.LazyRow(state = listState, modifier = Modifier.fillMaxWidth(), content = content)
         androidx.compose.animation.AnimatedVisibility(
@@ -411,6 +408,35 @@ fun FadingChipRow(modifier: Modifier = Modifier, testTag: String, content: andro
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("›", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                }
+            }
+        }
+        androidx.compose.animation.AnimatedVisibility(
+            visible = hasPrevious,
+            modifier = Modifier.align(Alignment.CenterStart),
+            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(200)),
+            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+        ) {
+            Box(Modifier.width(44.dp).height(42.dp)) {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .background(
+                            androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                listOf(colors.card, colors.card.copy(alpha = 0f)),
+                            ),
+                        ),
+                )
+                Box(
+                    Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 2.dp)
+                        .size(22.dp)
+                        .background(colors.card, androidx.compose.foundation.shape.CircleShape)
+                        .border(1.dp, colors.line, androidx.compose.foundation.shape.CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("‹", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
                 }
             }
         }
