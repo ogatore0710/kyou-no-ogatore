@@ -242,6 +242,10 @@ class MainActivity : ComponentActivity() {
             // obuSeenはstore永続値のミラー(バッジ再計算を即座に反映させるためのUI側キャッシュ)。
             var obuPopupOpen by remember { mutableStateOf(false) }
             var obuSeen by remember { mutableStateOf(store.get("obu_seen", null as String?)) }
+            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: HomeScreen内の記録カードダイアログ
+            // (祝い演出・紙吹雪込み)が開いている間、両FABを隠すための橋渡し(HomeScreen側で発生した
+            // 状態をここへ伝える。scrollToTodayPendingらと逆方向)。
+            var homeCardModalOpen by remember { mutableStateOf(false) }
             val themeSetting = store.get("theme", "auto")
             // フォント適用漏れ修正(TASK-C2-2026-07-26-visual-parity-fonts-characters.md):
             // 本文用フォントをM PLUS 1p(Bold=700系)にするため、Typography全スタイルのfontFamilyを
@@ -431,6 +435,7 @@ class MainActivity : ComponentActivity() {
                                             onPendingDoneNudgeConsumed = { pendingDoneNudge = false },
                                             tourJustFinishedPending = tourJustFinishedPending,
                                             onTourJustFinishedConsumed = { tourJustFinishedPending = false },
+                                            onCardModalOpenChange = { homeCardModalOpen = it },
                                         )
                                     }
                                     }
@@ -466,8 +471,12 @@ class MainActivity : ComponentActivity() {
                             // 非表示は行わず、代わりにボタン行側に余白を足して重なりを回避する
                             // (MyRecordScreen側・後述)。
                             run {
+                                // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: 「FABの躾」。
+                                // ホームで記録カードダイアログ(祝い演出・紙吹雪込み)が開いている間は、
+                                // 通信FABがダイアログの上に浮いたまま残っていた欠落を修正。
                                 val fabsHiddenEntirely = screen is Screen.Quiz || screen is Screen.Soudan ||
-                                    screen == Screen.Onboarding || screen == Screen.Dex || screen is Screen.Obu || obuPopupOpen
+                                    screen == Screen.Onboarding || screen == Screen.Dex || screen is Screen.Obu ||
+                                    obuPopupOpen || homeCardModalOpen
                                 // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・
                                 // 使い方(FAQ見出しの▾に被る実測あり・2026-07-20監査④)・結果画面
                                 // (「相談室で聞いてみる」リンクとの二重導線・2026-07-20監査⑤)では出さない。
@@ -900,6 +909,10 @@ fun HomeScreen(
     onPendingDoneNudgeConsumed: () -> Unit = {},
     tourJustFinishedPending: Boolean = false,
     onTourJustFinishedConsumed: () -> Unit = {},
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: 記録カードダイアログ(祝い演出込み)の
+    // 開閉をルート(MainActivity)へ橋渡しし、両FABを隠す判定に合流させる(逆方向・Home側で
+    // 発生した状態をルートへ伝える)。
+    onCardModalOpenChange: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
@@ -933,6 +946,11 @@ fun HomeScreen(
     var confettiCount by remember { mutableStateOf(70) }
     val confettiReducedMotion = rememberReducedMotion()
     var cardResult by remember { mutableStateOf<TodayCardResult?>(null) }
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: cardResultの開閉をそのまま真偽値として
+    // ルート(MainActivity)へ橋渡しする(iOS版HomeView.onChange(of: cardResult != nil)と同じ設計)。
+    LaunchedEffect(cardResult != null) {
+        onCardModalOpenChange(cardResult != null)
+    }
     // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子1-2: markDone直後だけ、労い(cheerText/
     // fdCelebrationVisible/milestoneInfo)+confettiが主役の間を作ってからカードを入場させる
     // (同時発火をやめる)。trueのときだけカード本文をフェードインさせる(骨子2: 死んだ入場演出の是正)。

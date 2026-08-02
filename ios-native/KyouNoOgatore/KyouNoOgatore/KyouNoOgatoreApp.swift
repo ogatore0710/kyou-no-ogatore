@@ -216,6 +216,10 @@ struct RootView: View {
     // 再入場(使い方タブ経由)でも立つため、これは初回ジャーニー(isFirstRun)のときだけ
     // 立てる(下のScreen.tour分岐参照)。
     @State private var tourJustFinishedPending = false
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: HomeView内の記録カードモーダル(祝い演出込み)が
+    // 開いている間、両FABを隠すための橋渡し(HomeView側で発生した状態をルートへ伝える。
+    // scrollToTodayPendingらと逆方向)。
+    @State private var homeCardModalOpen = false
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -258,11 +262,16 @@ struct RootView: View {
             // 各モーダル/welcome でだけ両FABとも隠し、それ以外(result/voices/fun/brag/通信アーカイブ
             // 含む)では出す。reach(とどくメーター)はネイティブではMyRecord内にインライン移植されて
             // おり独立画面が無いため、reach相当の非表示は行わず、MyRecordView側の余白で重なりを回避する。
+            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: 「FABの躾」。ホームで記録カード
+            // モーダル(祝い演出・紙吹雪込み)が開いている間は、通信FAB(ホームでのみ表示対象)が
+            // モーダルの上に浮いたまま残っていた欠落(モーダルのスクリムより前面のレイヤーに
+            // FABがいる構造のため)。homeCardModalOpenをここに合流させて両FABとも隠す。
             let fabsHiddenEntirely: Bool = {
                 if case .quiz = screen { return true }
                 if case .soudan = screen { return true }
                 if screen == .onboarding || screen == .dex { return true }
                 if case .obu = screen { return true }
+                if homeCardModalOpen { return true }
                 return obuPopupOpen
             }()
             let fdGuideActiveNow = HomeLogic.fdFocusHomeActive(
@@ -499,7 +508,8 @@ struct RootView: View {
                 onOpenSettings: { screen = .settings(returnTo: screen) },
                 scrollToTodayPending: $scrollToTodayPending,
                 pendingDoneNudge: $pendingDoneNudge,
-                tourJustFinishedPending: $tourJustFinishedPending
+                tourJustFinishedPending: $tourJustFinishedPending,
+                cardModalOpen: $homeCardModalOpen
             )
         }
     }

@@ -95,6 +95,11 @@ struct HomeView: View {
     // 1度きりポップ用フラグ。scrollToTodayPending/pendingDoneNudgeと同じ「ルートで保持→
     // Home側で消費」の橋渡し。
     var tourJustFinishedPending: Binding<Bool> = .constant(false)
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: 記録カードモーダル(祝い演出込み)が
+    // 開いている間、RootView側の相談・通信FABを隠すための橋渡し(逆方向・Home側で発生した
+    // 状態をルートへ伝える)。cardResultはUIImageを含みEquatable化できないため、
+    // .onChange(of: cardResult != nil)で真偽値だけを橋渡しする。
+    var cardModalOpen: Binding<Bool> = .constant(false)
 
     @Environment(\.kyonoColors) private var colors
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -170,7 +175,8 @@ struct HomeView: View {
         onOpenMyRecord: @escaping () -> Void, onOpenSettings: @escaping () -> Void,
         scrollToTodayPending: Binding<Bool> = .constant(false),
         pendingDoneNudge: Binding<Bool> = .constant(false),
-        tourJustFinishedPending: Binding<Bool> = .constant(false)
+        tourJustFinishedPending: Binding<Bool> = .constant(false),
+        cardModalOpen: Binding<Bool> = .constant(false)
     ) {
         self.store = store
         self.onStartTour = onStartTour
@@ -182,6 +188,7 @@ struct HomeView: View {
         self.scrollToTodayPending = scrollToTodayPending
         self.pendingDoneNudge = pendingDoneNudge
         self.tourJustFinishedPending = tourJustFinishedPending
+        self.cardModalOpen = cardModalOpen
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _fd = State(initialValue: store.get("fd", default: nil))
@@ -348,11 +355,17 @@ struct HomeView: View {
             // position:fixedの全画面canvasなので、homeContentの上に重ねる。confettiTriggerを
             // .id()に使い、同じcountの連続タップでも必ず新規Viewとして張り替えて再生させる
             // (PlanDoneCardViewのKyonoConfettiと同じ部品。§D reduceMotion時は不発火)。
+            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-5: 以前はcardModalOverlay(旧実装は
+            // homeContentの.overlayとしてconfettiより後=上に描画されていた)より紙吹雪が前面に
+            // 来ており、カードモーダルのボタン列(保存・シェアする/とじる)の文字に紙吹雪が
+            // 重なって読みにくかった。cardModalOverlayをこのZStackの下(このブロックより後ろ)に
+            // 移設し、紙吹雪→カードモーダルの順で積む(紙吹雪はボタン列の下)。
             if let confettiTrigger, !reduceMotion {
                 KyonoConfetti(count: confettiCount)
                     .id(confettiTrigger)
                     .allowsHitTesting(false)
             }
+            cardModalOverlay
             // TASK-C2-2026-08-01-build13-round3.md ⑧: ツアー完走(初回ジャーニーのみ)→ホーム初着地の
             // 1度きりポップ。既存の「cpop」演出語彙(scale .85→1・opacity .4→1・.3s ease-out、
             // index.html:311-312/HomeView.swift cheerText・milestoneInfoと同じ組み合わせ)を流用する。
@@ -392,6 +405,11 @@ struct HomeView: View {
         // ため、.onAppearでも同じ消費処理を呼ぶ必要がある。
         .onAppear {
             consumeTourJustFinishedPending(tourJustFinishedPending.wrappedValue)
+        }
+        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: cardResult自体はUIImageを含み
+        // Equatable化できないため、真偽値(nilかどうか)だけをRootViewへ橋渡しする。
+        .onChange(of: cardResult != nil) { _, isOpen in
+            cardModalOpen.wrappedValue = isOpen
         }
     }
 
@@ -460,53 +478,6 @@ struct HomeView: View {
             DailyNotifications.resync(store: store)
         }
         .onReceive(dayTicker) { _ in checkRefreshDay() }
-        // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
-        // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
-        .overlay {
-            KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour) {
-                if let cardResult {
-                    VStack {
-                        Image(uiImage: cardResult.image).resizable().scaledToFit()
-                        // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
-                        // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
-                        // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
-                        if cardResult.isMilestone {
-                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
-                                .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                                .multilineTextAlignment(.center)
-                            KyonoGhostButton("記録のひかえを取る") {
-                                self.cardResult = nil
-                                onOpenSettings()
-                            }
-                        }
-                        // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
-                        // (btn-primary「保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
-                        // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った
-                        // 「保存・シェアする」だけが2行に折り返し、1行の「とじる」と高さ・上端が
-                        // 揃わなかった。絵文字(Web版📤)は本人の新ガイドライン(ボタン・タブ・見出しには
-                        // OS絵文字を使わない・アイコンはデザイン生成のものを使う)により持ち込まない。
-                        VStack(spacing: 12 * zoom) {
-                            // index.html shareCard()相当(Step7bで新規実装)。
-                            KyonoPrimaryButton("保存・シェアする") {
-                                ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
-                            }
-                            KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
-                        }
-                    }
-                    // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子3: 特別tier(記念日・
-                    // 季節・レア)だけ、既存の節目ポップインカーブ(:505-510と同じ
-                    // .timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))を軽く流用して「性格の違い」
-                    // 程度の入場差を付ける。ノーマルは.identity(親のKyonoCardModalOverlayが持つ
-                    // .transition(.opacity)フェードのみ・大当たり感を出さない)。
-                    .transition(
-                        cardResult.isSpecialTier
-                            ? .scale(scale: 0.85).combined(with: .opacity)
-                                .animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))
-                            : .identity
-                    )
-                }
-            }
-        }
         // TASK-C2-2026-07-27-behavior-parity-audit.md §B →
         // TASK-C2-2026-07-27-scroll-parity-and-reduced-motion-gaps.md §B修正: index.html:4393
         // scrollIntoView(todayVideo)(引数なし=ブラウザ既定behavior:"auto"=瞬時)の1:1移植。
@@ -527,6 +498,58 @@ struct HomeView: View {
             showDoneNudge = true
             pendingDoneNudge.wrappedValue = false
         }
+        }
+    }
+
+    // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
+    // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-5: 以前はhomeContentの.overlayとして
+    // (=紙吹雪より後ろ)配線されていたため、紙吹雪がボタン列の上に重なっていた欠落。body側の
+    // ZStackで紙吹雪より後ろ(=上)に積む、独立したcomputed propertyへ切り出した。
+    @ViewBuilder
+    private var cardModalOverlay: some View {
+        KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour) {
+            if let cardResult {
+                VStack {
+                    Image(uiImage: cardResult.image).resizable().scaledToFit()
+                    // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
+                    // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
+                    // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
+                    if cardResult.isMilestone {
+                        Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
+                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                            .multilineTextAlignment(.center)
+                        KyonoGhostButton("記録のひかえを取る") {
+                            self.cardResult = nil
+                            onOpenSettings()
+                        }
+                    }
+                    // TestFlight実機フィードバックD3(2026-07-29): index.html:1197-1199
+                    // (btn-primary「保存・シェアする」→btn-line「とじる」の縦積み・各100%幅)の
+                    // 1:1移植。以前はHStackで横並びにしていたため、幅を分け合った
+                    // 「保存・シェアする」だけが2行に折り返し、1行の「とじる」と高さ・上端が
+                    // 揃わなかった。絵文字(Web版📤)は本人の新ガイドライン(ボタン・タブ・見出しには
+                    // OS絵文字を使わない・アイコンはデザイン生成のものを使う)により持ち込まない。
+                    VStack(spacing: 12 * zoom) {
+                        // index.html shareCard()相当(Step7bで新規実装)。
+                        KyonoPrimaryButton("保存・シェアする") {
+                            ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ \(streak.total)日目！")
+                        }
+                        KyonoLineButton("とじる", action: closeCardAndMaybeStartTour)
+                    }
+                }
+                // TASK-C2-2026-07-30-completion-moment-redesign.md 骨子3: 特別tier(記念日・
+                // 季節・レア)だけ、既存の節目ポップインカーブ(:505-510と同じ
+                // .timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))を軽く流用して「性格の違い」
+                // 程度の入場差を付ける。ノーマルは.identity(親のKyonoCardModalOverlayが持つ
+                // .transition(.opacity)フェードのみ・大当たり感を出さない)。
+                .transition(
+                    cardResult.isSpecialTier
+                        ? .scale(scale: 0.85).combined(with: .opacity)
+                            .animation(.timingCurve(0.34, 1.56, 0.64, 1, duration: 0.5))
+                        : .identity
+                )
+            }
         }
     }
 
