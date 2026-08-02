@@ -81,7 +81,6 @@ struct HomeView: View {
     private let store: RecordStore
     let onStartTour: (Bool) -> Void
     let onOpenQuiz: () -> Void
-    let onShowResult: (String) -> Void
     let onOpenSoudan: (String?) -> Void
     let onOpenMyRecord: () -> Void
     let onOpenSettings: () -> Void
@@ -171,7 +170,7 @@ struct HomeView: View {
 
     init(
         store: RecordStore, onStartTour: @escaping (Bool) -> Void, onOpenQuiz: @escaping () -> Void,
-        onShowResult: @escaping (String) -> Void, onOpenSoudan: @escaping (String?) -> Void,
+        onOpenSoudan: @escaping (String?) -> Void,
         onOpenMyRecord: @escaping () -> Void, onOpenSettings: @escaping () -> Void,
         scrollToTodayPending: Binding<Bool> = .constant(false),
         pendingDoneNudge: Binding<Bool> = .constant(false),
@@ -181,7 +180,6 @@ struct HomeView: View {
         self.store = store
         self.onStartTour = onStartTour
         self.onOpenQuiz = onOpenQuiz
-        self.onShowResult = onShowResult
         self.onOpenSoudan = onOpenSoudan
         self.onOpenSettings = onOpenSettings
         self.onOpenMyRecord = onOpenMyRecord
@@ -1018,13 +1016,15 @@ struct HomeView: View {
     }
 
     // ---- かたさチェック＋オガトレ相談室(旧: !checked時はきょうの1本の前・checked時はstreakCardの直後の2箇所に分かれていたのを1箇所へ統合) ----
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md A部: チェック済みユーザーの再チェック導線
+    // (CkCard(full:false)のミニ版)をホームからマイ記録タブへ移設した(MyRecordView.swiftの
+    // 「かたさタイプ」カード参照)。ホームはチェック済みならSoudanCardのみに絞る(引き算)。
+    // 未チェックユーザーはこれまでどおりCkCard(full:true)をホームに残す(初回導線は変えない)。
     @ViewBuilder private var ckSoudanSection: some View {
         if checked {
-            // チェック済みのときはckCard(ミニ)+soudanCardをここ(streakCardの直後)に移動。
-            CkCard(full: false, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
             SoudanCard(onOpenSoudan: onOpenSoudan)
         } else {
-            CkCard(full: true, typeResult: typeResult, onStartQuiz: onOpenQuiz, onShowResult: onShowResult)
+            CkCard(onStartQuiz: onOpenQuiz)
             SoudanCard(onOpenSoudan: onOpenSoudan)
         }
     }
@@ -1074,45 +1074,33 @@ private struct HomeMemoRow: View {
 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:627-640 #ckCard
 // (かたさチェックカード)の1:1移植。full=falseはindex.html:198-202 #ckCard.mini(縮小・
 // 「もう一回チェックする」ghostボタン+前回結果リンク)分岐(Android版CkCardと同一ロジック)。
+// TASK-C2-2026-08-02-build16-polish-and-ia.md A部: チェック済みユーザー向けのミニ版
+// (旧full:false分岐・前回の結果+もう一回チェックする)をマイ記録の「かたさタイプ」カードへ
+// 移設した結果、ここは常にfull版(未チェックユーザーへの初回案内)としてしか呼ばれなくなった
+// ため、full引数と未使用のelse分岐を削って単純化する。
 private struct CkCard: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.kyonoBigText) private var bigText
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
-    let full: Bool
-    let typeResult: QuizTypeResult?
     let onStartQuiz: () -> Void
-    let onShowResult: (String) -> Void
 
     var body: some View {
         KyonoCard {
             KyonoSectionHeader(icon: .quizCheck, title: "かたさチェック", fill: colors.tealSoft, accent: colors.teal)
-            if full {
-                Spacer().frame(height: 10 * zoom)
-                HStack(alignment: .center) {
-                    Text("タップするだけ30秒でチェック\nあなたに合うストレッチがわかります")
-                        .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
-                    Spacer()
-                    KyonoCharaImage(name: "chara-3").frame(width: 74 * zoom, height: 74 * zoom)
-                }
-                Spacer().frame(height: 12 * zoom)
-                KyonoPrimaryButton("チェックをはじめる", action: onStartQuiz)
-                Spacer().frame(height: 10 * zoom)
-                Text("※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ")
-                    .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-            } else {
-                Spacer().frame(height: 6 * zoom)
-                if let tr = typeResult, let name = quizTypes[tr.key]?.name {
-                    // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
-                    Text("前回の結果: \(name)")
-                        .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
-                        .padding(.vertical, 12 * zoom)
-                        .onTapGesture { onShowResult(tr.key) }
-                    Spacer().frame(height: 10 * zoom)
-                }
-                KyonoGhostButton("もう一回チェックする", action: onStartQuiz)
+            Spacer().frame(height: 10 * zoom)
+            HStack(alignment: .center) {
+                Text("タップするだけ30秒でチェック\nあなたに合うストレッチがわかります")
+                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
+                Spacer()
+                KyonoCharaImage(name: "chara-3").frame(width: 74 * zoom, height: 74 * zoom)
             }
+            Spacer().frame(height: 12 * zoom)
+            KyonoPrimaryButton("チェックをはじめる", action: onStartQuiz)
+            Spacer().frame(height: 10 * zoom)
+            Text("※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ")
+                .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
         }
     }
 }
@@ -1346,6 +1334,6 @@ func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: Str
 #Preview {
     HomeView(
         store: RecordStore(inMemory: [:]), onStartTour: { _ in },
-        onOpenQuiz: {}, onShowResult: { _ in }, onOpenSoudan: { _ in }, onOpenMyRecord: {}, onOpenSettings: {}
+        onOpenQuiz: {}, onOpenSoudan: { _ in }, onOpenMyRecord: {}, onOpenSettings: {}
     )
 }

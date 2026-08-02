@@ -495,14 +495,15 @@ struct RootView: View {
                 onOpenBrag: { screen = .brag },
                 onOpenVoices: { screen = .voices },
                 onOpenDiary: { screen = .diary },
-                onOpenSettings: { screen = .settings(returnTo: screen) }
+                onOpenSettings: { screen = .settings(returnTo: screen) },
+                onOpenQuiz: { screen = .quiz(presetWorry: nil) },
+                onShowResult: { typeKey in screen = .result(typeKey: typeKey) }
             )
         case .home:
             HomeView(
                 store: store,
                 onStartTour: { showClosing in screen = .tour(showClosing: showClosing) },
                 onOpenQuiz: { screen = .quiz(presetWorry: nil) },
-                onShowResult: { typeKey in screen = .result(typeKey: typeKey) },
                 onOpenSoudan: { intentId in screen = .soudan(presetIntentId: intentId) },
                 onOpenMyRecord: { screen = .myRecord },
                 onOpenSettings: { screen = .settings(returnTo: screen) },

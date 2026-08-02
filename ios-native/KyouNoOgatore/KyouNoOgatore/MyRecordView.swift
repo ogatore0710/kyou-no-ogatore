@@ -36,6 +36,12 @@ struct MyRecordView: View {
     let onOpenVoices: () -> Void
     let onOpenDiary: () -> Void
     let onOpenSettings: () -> Void
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md A部: ホームのckSoudanSectionにあった
+    // チェック済みユーザー向け再チェック導線(CkCard(full:false))をこの画面の「かたさタイプ」
+    // カードへ移設した。HomeView.swiftと同じ.quiz/.resultルートをそのまま再利用する
+    // (新しい画面は作らない)。
+    let onOpenQuiz: () -> Void
+    let onShowResult: (String) -> Void
 
     @State private var streak: RecordLogic.StreakData
     @State private var doneDates: Set<String>
@@ -54,10 +60,12 @@ struct MyRecordView: View {
     // index.html:782 #dayInfo(カレンダーの日タップ→その日の記録詳細)の1:1移植。
     @State private var selectedDay: String?
     @State private var dayCardResult: TodayCardResult?
+    @State private var typeResult: QuizTypeResult?
 
     init(
         store: RecordStore, onOpenDex: @escaping () -> Void, onOpenBrag: @escaping () -> Void,
-        onOpenVoices: @escaping () -> Void, onOpenDiary: @escaping () -> Void, onOpenSettings: @escaping () -> Void
+        onOpenVoices: @escaping () -> Void, onOpenDiary: @escaping () -> Void, onOpenSettings: @escaping () -> Void,
+        onOpenQuiz: @escaping () -> Void, onShowResult: @escaping (String) -> Void
     ) {
         self.store = store
         self.onOpenDex = onOpenDex
@@ -65,6 +73,8 @@ struct MyRecordView: View {
         self.onOpenVoices = onOpenVoices
         self.onOpenDiary = onOpenDiary
         self.onOpenSettings = onOpenSettings
+        self.onOpenQuiz = onOpenQuiz
+        self.onShowResult = onShowResult
         let s = RecordLogic.loadStreak(store)
         _streak = State(initialValue: s)
         _doneDates = State(initialValue: Set(s.dates))
@@ -75,6 +85,7 @@ struct MyRecordView: View {
         _month = State(initialValue: c.month!)
         _reachList = State(initialValue: RecordLogic.getReach(store))
         _freezeLeft = State(initialValue: RecordLogic.freezeLeft(store, now: now))
+        _typeResult = State(initialValue: store.get("type", default: nil))
     }
 
     private var themeSetting: String { store.get("theme", default: "auto") }
@@ -102,7 +113,8 @@ struct MyRecordView: View {
                 streak: streak, store: store, onConnectCalendar: connectCalendar,
                 onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices,
                 onOpenDiary: onOpenDiary, onOpenSettings: onOpenSettings,
-                onShowDayCard: { ds in dayCardResult = renderTodayCard(store: store, streak: streak, ds: ds) }
+                onShowDayCard: { ds in dayCardResult = renderTodayCard(store: store, streak: streak, ds: ds) },
+                typeResult: typeResult, onOpenQuiz: onOpenQuiz, onShowResult: onShowResult
             )
         }
         .onReceive(dayTicker) { _ in checkDayChange() }
@@ -206,6 +218,9 @@ private struct MyRecordContentView: View {
     let onOpenDiary: () -> Void
     let onOpenSettings: () -> Void
     let onShowDayCard: (String) -> Void
+    let typeResult: QuizTypeResult?
+    let onOpenQuiz: () -> Void
+    let onShowResult: (String) -> Void
 
     var body: some View {
         ScrollView {
@@ -448,6 +463,25 @@ private struct MyRecordContentView: View {
                             }
                         }
                         .frame(height: 56, alignment: .bottom)
+                    }
+                }
+
+                // TASK-C2-2026-08-02-build16-polish-and-ia.md A部: HomeView.swiftのckSoudanSection
+                // にあった「チェック済みユーザー向け再チェック導線」(旧CkCard(full:false)ミニ版)を
+                // ホームから引き算し、この画面(マイ記録)のとどくメーターの直後へ移設する。
+                // typeResult(かたさチェック結果)が無い=未チェックのユーザーには出さない
+                // (ホーム側に既存のCkCard(full:true)フル版が引き続き案内する)。
+                if let tr = typeResult, let name = quizTypes[tr.key]?.name {
+                    KyonoCard {
+                        KyonoSectionHeader(icon: .quizCheck, title: "かたさタイプ", fill: colors.tealSoft, accent: colors.teal)
+                        Spacer().frame(height: 6)
+                        // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
+                        Text("前回の結果: \(name)")
+                            .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                            .padding(.vertical, 12)
+                            .onTapGesture { onShowResult(tr.key) }
+                        Spacer().frame(height: 10)
+                        KyonoGhostButton("もう一回チェックする", action: onOpenQuiz)
                     }
                 }
 
