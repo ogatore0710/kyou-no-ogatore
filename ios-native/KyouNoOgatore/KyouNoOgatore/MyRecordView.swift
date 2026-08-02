@@ -361,7 +361,13 @@ private struct MyRecordContentView: View {
                 // 引き続きKyonoGhostButtonのまま)より視覚的に大きく・先頭に配置する。
                 // 新しいカードは作らず既存カード内の並びだけを変える(本人裁定によりB-3=記録カード
                 // モーダルからの図鑑リンクは対象外)。
-                KyonoCard {
+                // TASK-C2-2026-08-02-build16-polish-and-ia.md C部: グラデ予算制。このカードは
+                // L1(タブの顔級)枠としてマイ記録タブに割り当てられた1枚(HANDOFF.md「グラデ予算」
+                // 節参照)。KyonoCard(白一色)からKyonoGradientCard(warm)へ変更して図鑑の看板感を
+                // 出す。本文はcolors.sub/colors.ink/colors.tealInk(既存トークン)のままで、warm
+                // グラデーションの両端(light: #FFF3C4→#FFEDF3)に対し実測4.7:1以上でAA達成
+                // (dark側はグラデーションが暗色・本文が明色トークンのため元々余裕でAA達成)。
+                KyonoGradientCard(gradient: .warm) {
                     KyonoSectionHeader(icon: .dexBook, title: "お楽しみ機能", fill: colors.yellowSoft)
                     Spacer().frame(height: 8)
                     Text("カード図鑑やじまんカード、せんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
