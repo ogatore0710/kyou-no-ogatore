@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -92,6 +93,25 @@ fun KyonoAppHeader() {
 // index.html:95 .card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:16px}
 // 内部はColumn(縦積み)。中身が複数要素のとき単純にBoxへ渡すと重なって描画されてしまうため注意
 // (実機検証で発見・修正: KyonoCard内の複数Text/Buttonが同一座標に重なって表示されるバグがあった)。
+// TASK-C2-2026-08-02-build16-polish-and-ia.md P-3: ステータスバーのスクリム。iOS版は
+// ScrollViewのコンテンツがそのままステータスバー(時計・電波・電池)の裏まで素通しでスクロール
+// してしまい文字と時計が重なる欠陥があったが、Androidはthemes.xmlのandroid:statusBarColorが
+// 不透明でedge-to-edge化していない(WindowCompat.setDecorFitsSystemWindows未呼び出し)ため、
+// アプリのコンテンツ自体はそもそもステータスバーの裏に回り込まない。この差はP-3の症状が
+// Android側では再現しないことを意味するが、コンポーネント自体はiOS版と同じ形で用意し、
+// 将来edge-to-edge化された場合や見た目の一貫性のために同じ場所に差し込んでおく(現状は
+// 不透明なステータスバーの直下にごく短いグラデーションが乗るだけで実害はない)。
+@Composable
+fun KyonoStatusBarScrim(modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(Brush.verticalGradient(listOf(colors.bg, colors.bg.copy(alpha = 0f)))),
+    )
+}
+
 // index.html:95-96 .card{...border:1.5px solid var(--line);box-shadow:0 2px 10px
 // rgba(160,140,80,.06)} / body.dark .card{box-shadow:none}の1:1移植。
 // UI/UXパリティ監査GO-4(2026-07-28): 枠線・影とも欠落していた(ダークモードは

@@ -449,6 +449,11 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-3: ステータスバーの
+                            // スクリム。タブ画面(showTabBar=true)だけに敷く(全タブ共通の1コンポーネント)。
+                            if (showTabBar) {
+                                KyonoStatusBarScrim(Modifier.align(Alignment.TopCenter))
+                            }
                             // index.html:1166-1175 obuFab/soudanFab(円形FAB・縦積み)の1:1移植。
                             // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: index.html:
                             // 1419-1434 updateFabs()の1:1移植。以前はcurrentTab != null(5タブ画面のみ)
