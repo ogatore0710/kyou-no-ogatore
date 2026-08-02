@@ -743,24 +743,37 @@ private struct QuizContentView: View {
                     // 「段階色は数値スコアの設問(Q1-Q4)だけ」の1:1移植。Q5(worry)はscore==nilのため
                     // 段階色を付けず、通常のカード色(colors.card/colors.line)にする。
                     let palette = obgColors(dark: dark)
-                    ForEach(Array(q.opts.enumerated()), id: \.offset) { i, opt in
-                        let c = opt.score != nil ? palette[i % palette.count] : nil
-                        let pickedVal = opt.score.map { String($0) } ?? opt.worryKey
-                        // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
-                        let isPicked = picked[q.key] == pickedVal
-                        // UI/UXパリティ監査GO-2(2026-07-28)・視点D確信度CONFIRMED: 素の
-                        // VStack{...}.onTapGestureのみで押下時の見た目変化が一切無く、新規ユーザーが
-                        // 最初に触る5問クイズがタップしても無反応に見えていた欠落。index.html:295
-                        // .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}の
-                        // 1:1移植(KyonoPrimaryButtonと同じDragGesture+@State pressedの手法を展開)。
-                        QuizOptionCard(
-                            label: opt.label, note: opt.note,
-                            background: c?.bg ?? colors.card,
-                            borderColor: isPicked ? colors.teal : (c?.border ?? colors.line),
-                            pressedBackground: colors.yellowSoft, pressedBorderColor: colors.yellow,
-                            colors: colors
-                        ) { if !answering { onOptTap(q, opt) } }
+                    // TASK-C2-2026-08-02-build17-feedback-fixes.md P-6: 前段の.transaction{
+                    // $0.animation=nil}(build13-round3⑤)だけでは残像を消しきれなかった欠陥の修正。
+                    // QuizOptionCardStyleは押下ハイライト用に.animation(_, value: pressed)を持つ
+                    // (KyonoComponents側の一般的な作法)が、これは祖先の.transaction{}では上書き
+                    // できないSwiftUIの仕様。タップ直後の「押した→離した」がちょうど次の設問への
+                    // 切り替えと同時に起きるため、離した瞬間のアニメーションが「旧設問の押下色」から
+                    // 「新設問の背景色」への値の変化までまとめて0.1sで補間してしまい、色付き背景の
+                    // クロスフェード+せり上がりに見えていた。Group全体に設問キーで.id()を振り、
+                    // 設問が変わるたびに選択肢ボタン一式をSwiftUIに「別物」として作り直させることで、
+                    // 補間の起きようがない即時差し替えにする。
+                    Group {
+                        ForEach(Array(q.opts.enumerated()), id: \.offset) { i, opt in
+                            let c = opt.score != nil ? palette[i % palette.count] : nil
+                            let pickedVal = opt.score.map { String($0) } ?? opt.worryKey
+                            // app-quiz.js:171 .opt.on(前回選んだ選択肢に枠色)の1:1移植。
+                            let isPicked = picked[q.key] == pickedVal
+                            // UI/UXパリティ監査GO-2(2026-07-28)・視点D確信度CONFIRMED: 素の
+                            // VStack{...}.onTapGestureのみで押下時の見た目変化が一切無く、新規ユーザーが
+                            // 最初に触る5問クイズがタップしても無反応に見えていた欠落。index.html:295
+                            // .opt:active{background:var(--yellow-soft);border-color:var(--yellow)}の
+                            // 1:1移植(KyonoPrimaryButtonと同じDragGesture+@State pressedの手法を展開)。
+                            QuizOptionCard(
+                                label: opt.label, note: opt.note,
+                                background: c?.bg ?? colors.card,
+                                borderColor: isPicked ? colors.teal : (c?.border ?? colors.line),
+                                pressedBackground: colors.yellowSoft, pressedBorderColor: colors.yellow,
+                                colors: colors
+                            ) { if !answering { onOptTap(q, opt) } }
+                        }
                     }
+                    .id(q.key)
                 }
             }
             .padding(20)
