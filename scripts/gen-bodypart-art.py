@@ -49,9 +49,32 @@ MOTIF = {
         "a plain neutral character standing upright with a calm relaxed smile, arms loosely "
         "at its sides — representing the whole body in general, no specific tension anywhere"
     ),
+    # TASK-C2-2026-08-02-build16-polish-and-ia.md P-9: 実配置のchip-kata.pngはalpha bboxトリムの
+    # 結果、横866x縦290px(横3:1近い極端な帯状)という不自然な切り抜きになっており、正方形の
+    # 28pt枠にscaledToFitすると縦がほぼ潰れて判読不能だった欠陥を修正。全身が収まる通常比率の
+    # 構図を明示し、koshi等と同じ「肩上面に赤アクセントパッチ」を足す(kata自体はkatakoriほど
+    # 痛そうにしない=緊張マークは付けない・部位ラベルとしての中立トーンを保つ)。
     "kata": (
-        "a character with both shoulders raised up in a shrug, hands touching its own "
-        "shoulders, a slightly strained worried expression — shoulder tension"
+        "a character standing upright with a full body clearly visible (head, torso, both "
+        "legs), both shoulders raised up in a gentle shrug, hands touching its own "
+        "shoulders, a slightly strained worried expression, a soft red-pink glowing "
+        "highlight patch right on the top of one shoulder (same red-accent highlight "
+        "treatment as the reference lower-back image) — shoulder tension, keep the whole "
+        "character roughly square in overall proportions, not a wide thin sliver"
+    ),
+    # TASK-C2-2026-08-02-build16-polish-and-ia.md P-9: kataとkatakoriが同一画像を流用しており
+    # (ChipArt/chip-katakori.pngがchip-kata.pngのMD5完全一致コピーだった)区別できなかった欠陥の
+    # 修正。kataの「両肩をすくめる」ポーズとは明確に異なる「片手で反対の肩をもむ」ポーズにし、
+    # 小さな痛みスパークで「こり」の強さを足す(スタイル指針の「診断図・矢印・解剖学的マーキング
+    # 禁止」には抵触しない、コミック的な痛み表現として)。
+    "katakori": (
+        "a character reaching one arm across its own body to knead/press the opposite "
+        "shoulder with its paw/hand, head tilted with a wincing pained expression, a soft "
+        "red-pink glowing highlight patch right on the gripped shoulder (same red-accent "
+        "highlight treatment as the reference lower-back image), plus small comic-style "
+        "jagged ache-spark marks floating just outside the highlight (like a comic pain "
+        "symbol, not a diagram) — shoulder/neck stiffness, more visibly sore than plain "
+        "shoulder tension"
     ),
     "kubi": (
         "a character tilting its head to one side and rubbing the side of its own neck with "
