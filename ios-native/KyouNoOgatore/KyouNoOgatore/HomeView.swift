@@ -1052,10 +1052,19 @@ private struct HomeMemoRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8 * zoom) {
+            // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: `.textFieldStyle(.roundedBorder)`は
+            // 端末のシステム側ダーク/ライト設定に追従する既定の背景色を使うため、アプリ内テーマ
+            // (kyono_theme)がシステム設定と食い違う(例: システムはダークなのにアプリ内は「明るい」)
+            // とき、入力欄だけシステム側の暗い背景のまま浮いて見えていた欠陥。BragView.swift等の
+            // 既存の検索欄と同じ「colors.card塗り+colors.line枠線」の自前スタイルに差し替える。
             TextField("ひとことメモをどうぞ", text: Binding(
                 get: { text },
                 set: { text = String($0.prefix(30)); saved = false }
-            )).textFieldStyle(.roundedBorder)
+            ))
+                .foregroundColor(colors.ink)
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
             KyonoLineButton(saved ? "のこしました ✓" : "メモをのこす", enabled: !saved) {
                 // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()

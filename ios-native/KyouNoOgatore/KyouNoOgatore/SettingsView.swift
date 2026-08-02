@@ -361,7 +361,19 @@ struct SettingsView: View {
                         // 文言はそのまま同じにはできないが、句点・コロンで終わる説明文調ではなく
                         // Web版と同じカジュアルな文体に寄せる。
                         Text("クリップボードにコピーしたよ 下の文字は長押しでも選べるよ").kyonoFont(.bold700, size: 12)
-                        TextEditor(text: .constant(exportText)).frame(height: 120).border(Color.gray.opacity(0.3))
+                        // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: `.border(Color.gray...)`は
+                        // 枠線のみで背景の塗りが無く、システム既定の(システム側ダーク/ライト設定に
+                        // 追従する)背景がそのまま透けていた欠陥。他の入力欄と同じ自前スタイルに揃える。
+                        TextEditor(text: .constant(exportText))
+                            .foregroundColor(colors.ink)
+                            // TextEditorは既定でシステム背景を自前で塗るため、下の.background()が
+                            // 隠れてしまう。iOS16+の.scrollContentBackground(.hidden)でそれを消してから
+                            // colors.cardを塗る(min target 17.0のため使用可)。
+                            .scrollContentBackground(.hidden)
+                            .frame(height: 120)
+                            .padding(4)
+                            .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
                     }
                     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:837の1:1移植。
                     // コピーして終わり→保存されないまま機種変、が起きないよう保存先を促す。
@@ -388,7 +400,15 @@ struct SettingsView: View {
                     Spacer().frame(height: 6)
                     Text("うまくいかないときは 下のわくに手で貼り付けてね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     Spacer().frame(height: 8)
-                    TextField("KYONO1:... をここに貼りつけ", text: $importInput).textFieldStyle(.roundedBorder)
+                    // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: `.textFieldStyle(.roundedBorder)`は
+                    // システム側のダーク/ライト設定に追従する既定の背景色を使うため、アプリ内テーマが
+                    // システム設定と食い違うと入力欄だけ暗いまま浮いて見えていた欠陥。既存の検索欄と
+                    // 同じ「colors.card塗り+colors.line枠線」の自前スタイルに差し替える。
+                    TextField("KYONO1:... をここに貼りつけ", text: $importInput)
+                        .foregroundColor(colors.ink)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
                     Spacer().frame(height: 8)
                     KyonoLineButton("よみこむ", icon: .importTray) {
                         // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: index.html:2082-2084
