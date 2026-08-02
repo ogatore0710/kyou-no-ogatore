@@ -378,6 +378,8 @@ class MainActivity : ComponentActivity() {
                                             onOpenVoices = { screen = Screen.Voices },
                                             onOpenDiary = { screen = Screen.Diary },
                                             onOpenSettings = { screen = Screen.Settings(returnTo = screen) },
+                                            onOpenQuiz = { screen = Screen.Quiz(null) },
+                                            onShowResult = { typeKey -> screen = Screen.Result(typeKey) },
                                         )
                                         // mainScreenはSoudan中も常にHomeへ差し替え済みのため、この分岐は
                                         // 型の網羅性チェックのためだけに存在し実際には到達しない。
@@ -425,7 +427,6 @@ class MainActivity : ComponentActivity() {
                                             openUrl = { url -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                             onStartTour = { showClosing -> screen = Screen.Tour(showClosing, isFirstRun = true) },
                                             onOpenQuiz = { screen = Screen.Quiz(null) },
-                                            onShowResult = { typeKey -> screen = Screen.Result(typeKey) },
                                             onOpenSoudan = { intentId -> screen = Screen.Soudan(intentId) },
                                             onOpenMyRecord = { screen = Screen.MyRecord },
                                             onOpenSettings = { screen = Screen.Settings(returnTo = screen) },
@@ -899,7 +900,6 @@ fun HomeScreen(
     isForeground: Boolean = true,
     onStartTour: (Boolean) -> Unit,
     onOpenQuiz: () -> Unit,
-    onShowResult: (String) -> Unit,
     onOpenSoudan: (String?) -> Unit,
     onOpenMyRecord: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -1811,13 +1811,14 @@ fun HomeScreen(
         // index.html:2929-2937 renderHome()のckCard/soudanCard移動ロジックの1:1移植:
         // 未チェックのときはckCard(フル)+soudanCardがtodayCardの直前、チェック済みのときは
         // ckCard(ミニ)+soudanCardがstreakCardの直後に移動する(soudanCardは常にckCardの直後を追従)。
+        // TASK-C2-2026-08-02-build16-polish-and-ia.md A部: チェック済みユーザー向け再チェック
+        // 導線(旧CkCard(full=false)ミニ版)をホームからマイ記録タブの「かたさタイプ」カードへ
+        // 移設した(引き算)。未チェックユーザーはこれまでどおりCkCard(full=true)をホームに残す。
         @Composable fun CkSoudanSection() {
-            if (checked) {
-                CkCard(full = false, typeResult = typeResult, onStartQuiz = onOpenQuiz, onShowResult = onShowResult)
-            } else {
-                CkCard(full = true, typeResult = typeResult, onStartQuiz = onOpenQuiz, onShowResult = onShowResult)
+            if (!checked) {
+                CkCard(onStartQuiz = onOpenQuiz)
+                Spacer(Modifier.height(16.dp))
             }
-            Spacer(Modifier.height(16.dp))
             SoudanCard(onOpenSoudan = onOpenSoudan)
         }
 
@@ -2013,43 +2014,32 @@ fun HomeScreen(
 }
 
 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:627-640 #ckCard
-// (かたさチェックカード)の1:1移植。full=falseはindex.html:198-202 #ckCard.mini(縮小・
-// 「もう一回チェックする」ghostボタン+前回結果リンク)分岐。
+// (かたさチェックカード)の1:1移植。
+// TASK-C2-2026-08-02-build16-polish-and-ia.md A部: チェック済みユーザー向けのミニ版(旧full=false・
+// 前回の結果+もう一回チェックする)をマイ記録の「かたさタイプ」カードへ移設した結果、ここは常に
+// full版(未チェックユーザーへの初回案内)としてしか呼ばれなくなったため、full/typeResult/
+// onShowResult引数と未使用分岐を削って単純化する。
 @Composable
-private fun CkCard(full: Boolean, typeResult: QuizTypeResult?, onStartQuiz: () -> Unit, onShowResult: (String) -> Unit) {
+private fun CkCard(onStartQuiz: () -> Unit) {
     val colors = LocalKyonoColors.current
     KyonoCard(Modifier.testTag("ckCard")) {
         KyonoSectionHeader(KyonoIcon.QuizCheck, "かたさチェック", fill = colors.tealSoft)
-        if (full) {
-            Spacer(Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "タップするだけ30秒でチェック\nあなたに合うストレッチがわかります",
-                    color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp, modifier = Modifier.weight(1f),
-                )
-                KyonoCharaImage("chara_3", Modifier.size(74.dp))
-            }
-            Spacer(Modifier.height(12.dp))
-            KyonoPrimaryButton("チェックをはじめる", onStartQuiz, Modifier.testTag("ckBtn"))
-            Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ",
-                color = colors.sub, fontSize = 12.sp, textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().testTag("ckHint"),
+                "タップするだけ30秒でチェック\nあなたに合うストレッチがわかります",
+                color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp, modifier = Modifier.weight(1f),
             )
-        } else {
-            Spacer(Modifier.height(6.dp))
-            typeResult?.let { tr ->
-                val name = QUIZ_TYPES[tr.key]?.name ?: tr.key
-                // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
-                Text(
-                    "前回の結果: $name", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                    modifier = Modifier.clickable { onShowResult(tr.key) }.padding(vertical = 12.dp).testTag("lastTypeName"),
-                )
-                Spacer(Modifier.height(10.dp))
-            }
-            KyonoGhostButton("もう一回チェックする", onStartQuiz, Modifier.testTag("ckBtn"))
+            KyonoCharaImage("chara_3", Modifier.size(74.dp))
         }
+        Spacer(Modifier.height(12.dp))
+        KyonoPrimaryButton("チェックをはじめる", onStartQuiz, Modifier.testTag("ckBtn"))
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "※目安をつかむセルフチェックです\n強い痛みや持病がある方は無理せず医療機関へ",
+            color = colors.sub, fontSize = 12.sp, textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().testTag("ckHint"),
+        )
     }
 }
 
@@ -2113,6 +2103,11 @@ fun MyRecordScreen(
     onOpenVoices: () -> Unit,
     onOpenDiary: () -> Unit,
     onOpenSettings: () -> Unit,
+    // TASK-C2-2026-08-02-build16-polish-and-ia.md A部: HomeScreenのCkSoudanSectionにあった
+    // チェック済みユーザー向け再チェック導線(旧CkCard(full=false))をこの画面の「かたさタイプ」
+    // カードへ移設した。HomeScreenと同じ.quiz/.resultルートをそのまま再利用する。
+    onOpenQuiz: () -> Unit,
+    onShowResult: (String) -> Unit,
 ) {
     val context = LocalContext.current
     // Fable監査GO-2(視点B): 下タブ5枚のうちマイ記録にBackHandlerが無く、システム「もどる」が
@@ -2126,6 +2121,7 @@ fun MyRecordScreen(
         var streak by remember { mutableStateOf(RecordLogic.loadStreak(store)) }
         var doneDates by remember { mutableStateOf(streak.dates.toSet()) }
         var today by remember { mutableStateOf(RecordLogic.todayStr(Instant.now())) }
+        val typeResult = remember(streak) { store.get<QuizTypeResult?>("type", null) }
         // TASK-C2-2026-07-27-auto-theme-time-rule.md: index.html:4017 setInterval(refreshDay,60000)の
         // 1:1移植。開いたまま日付(3時境界)をまたいでもマイ記録の表示(通算/カレンダー等)が追従するよう、
         // フォアグラウンド中は60秒ごとに日付を再確認する。
@@ -2522,6 +2518,28 @@ fun MyRecordScreen(
                             )
                         }
                     }
+                }
+            }
+
+            // TASK-C2-2026-08-02-build16-polish-and-ia.md A部: HomeScreenのCkSoudanSectionに
+            // あった「チェック済みユーザー向け再チェック導線」(旧CkCard(full=false)ミニ版)を
+            // ホームから引き算し、この画面(マイ記録)のとどくメーターの直後へ移設する。
+            // typeResult(かたさチェック結果)が無い=未チェックのユーザーには出さない
+            // (ホーム側に既存のCkCard(full=true)フル版が引き続き案内する)。
+            if (typeResult != null) {
+                val name = QUIZ_TYPES[typeResult.key]?.name ?: typeResult.key
+                Spacer(Modifier.height(16.dp))
+                KyonoCard(Modifier.testTag("kataTypeCard")) {
+                    KyonoSectionHeader(KyonoIcon.QuizCheck, "かたさタイプ", fill = colors.tealSoft)
+                    Spacer(Modifier.height(6.dp))
+                    // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
+                    Text(
+                        "前回の結果: $name", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.clickable { onShowResult(typeResult.key) }.padding(vertical = 12.dp)
+                            .testTag("lastTypeName"),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    KyonoGhostButton("もう一回チェックする", onOpenQuiz, Modifier.testTag("kataTypeBtn"))
                 }
             }
 
