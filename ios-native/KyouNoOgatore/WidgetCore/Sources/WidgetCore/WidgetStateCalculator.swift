@@ -79,13 +79,13 @@ public enum WidgetStateCalculator {
             message = "きょうもおつかれさま！"
         case effStreak == 0:
             chara = .cheer
-            message = "きょうから また1日め🌱"
+            message = "きょうから また1日め"
         case !effDoneToday && isMorning:
             chara = .cheer
-            message = "きょうもいこう！💪"
+            message = "きょうもいこう！"
         case !effDoneToday:
             chara = .kaikyaku
-            message = "ねる前に1本 どう？🌙"
+            message = "ねる前に1本 どう？"
         default:
             let celebrating = (summary.celebrateUntil ?? 0) >= date.timeIntervalSince1970
             chara = celebrating ? .congrats : .good

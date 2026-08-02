@@ -177,7 +177,7 @@ struct KyonoStreakText: View {
         self.total = total; self.streakCount = streakCount; self.brokenNow = brokenNow
     }
     var body: some View {
-        Text("通算 \(total) 日" + (brokenNow ? "・きょうやると新しい章のスタート🌱" : (streakCount >= 2 ? "・いま\(streakCount)日連続" : "")))
+        Text("通算 \(total) 日" + (brokenNow ? "・きょうやると新しい章のスタート" : (streakCount >= 2 ? "・いま\(streakCount)日連続" : "")))
             .kyonoFont(.black900, size: 20)
             .foregroundColor(colors.pink)
     }

@@ -29,12 +29,12 @@ enum DailyNotifications {
     }
 
     static let anchorNotifs: [AnchorNotif] = [
-        AnchorNotif(key: "asa", defaultHour: 7, defaultMinute: 30, body: "おはようございます☀️朝の1本いきましょう！"),
-        AnchorNotif(key: "furo", defaultHour: 20, defaultMinute: 30, body: "おふろ上がりの1本いきましょう♨️"),
-        AnchorNotif(key: "neru", defaultHour: 21, defaultMinute: 30, body: "寝るまえの1本できょうをしめくくりましょう🌙"),
+        AnchorNotif(key: "asa", defaultHour: 7, defaultMinute: 30, body: "おはようございます朝の1本いきましょう！"),
+        AnchorNotif(key: "furo", defaultHour: 20, defaultMinute: 30, body: "おふろ上がりの1本いきましょう"),
+        AnchorNotif(key: "neru", defaultHour: 21, defaultMinute: 30, body: "寝るまえの1本できょうをしめくくりましょう"),
         // index.html:1978 ANCHORS.free.gは「すきな時間にきょうの1本をどうぞ🌿」(アプリ内挨拶用)。
         // 通知では本人指示により「夜がおすすめの時間」を伝える文言に差し替える(アプリ内挨拶自体は不変)。
-        AnchorNotif(key: "free", defaultHour: 20, defaultMinute: 0, body: "夜はストレッチにおすすめの時間だよ🌿 きょうの1本どうぞ"),
+        AnchorNotif(key: "free", defaultHour: 20, defaultMinute: 0, body: "夜はストレッチにおすすめの時間だよ きょうの1本どうぞ"),
     ]
 
     private static func resolveTime(_ store: RecordStore) -> (hour: Int, minute: Int) {

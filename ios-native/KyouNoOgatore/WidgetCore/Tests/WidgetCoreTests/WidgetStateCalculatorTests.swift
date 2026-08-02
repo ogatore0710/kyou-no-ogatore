@@ -72,11 +72,11 @@ final class WidgetStateCalculatorTests: XCTestCase {
     func testNilSummaryIsDistinctFromGenuineZeroStreak() {
         let unavailable = WidgetStateCalculator.compute(summary: nil, at: Date(timeIntervalSince1970: 1_753_000_000))
         XCTAssertTrue(unavailable.isUnavailable)
-        XCTAssertNotEqual(unavailable.message, "きょうから また1日め🌱")
+        XCTAssertNotEqual(unavailable.message, "きょうから また1日め")
 
         let genuineZero = summary(recordedDate: "2026-07-20", doneToday: false, streak: 12, streakBreaksOnDate: "2026-07-20")
         let zero = WidgetStateCalculator.compute(summary: genuineZero, at: ISO8601DateFormatter().date(from: "2026-07-20T12:00:00Z")!)
         XCTAssertFalse(zero.isUnavailable)
-        XCTAssertEqual(zero.message, "きょうから また1日め🌱")
+        XCTAssertEqual(zero.message, "きょうから また1日め")
     }
 }

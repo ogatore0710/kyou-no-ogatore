@@ -26,12 +26,12 @@ object DailyNotifications {
     data class AnchorNotif(val key: String, val defaultHour: Int, val defaultMinute: Int, val body: String)
 
     val ANCHOR_NOTIFS = listOf(
-        AnchorNotif("asa", 7, 30, "おはようございます☀️朝の1本いきましょう！"),
-        AnchorNotif("furo", 20, 30, "おふろ上がりの1本いきましょう♨️"),
-        AnchorNotif("neru", 21, 30, "寝るまえの1本できょうをしめくくりましょう🌙"),
+        AnchorNotif("asa", 7, 30, "おはようございます朝の1本いきましょう！"),
+        AnchorNotif("furo", 20, 30, "おふろ上がりの1本いきましょう"),
+        AnchorNotif("neru", 21, 30, "寝るまえの1本できょうをしめくくりましょう"),
         // index.html:1978 ANCHORS.free.gは「すきな時間にきょうの1本をどうぞ🌿」(アプリ内挨拶用)。
         // 通知では本人指示により「夜がおすすめの時間」を伝える文言に差し替える(アプリ内挨拶自体は不変)。
-        AnchorNotif("free", 20, 0, "夜はストレッチにおすすめの時間だよ🌿 きょうの1本どうぞ"),
+        AnchorNotif("free", 20, 0, "夜はストレッチにおすすめの時間だよ きょうの1本どうぞ"),
     )
 
     private fun storeFile(context: Context): File = File(context.filesDir, "kyono-store.json")

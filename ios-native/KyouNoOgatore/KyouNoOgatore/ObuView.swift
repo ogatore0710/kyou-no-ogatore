@@ -59,11 +59,11 @@ private struct ObuContentView: View {
             KyonoSectionHeader(icon: .obuBubble, title: "オガトレ通信", fill: colors.pinkSoft)
             // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #obu):
             // index.html:932 説明文の1:1移植。
-            Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱")
+            Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます")
                 .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
             if posts.isEmpty {
                 KyonoCard {
-                    Text("まだ投稿がありません また今度のぞいてみてね🌱")
+                    Text("まだ投稿がありません また今度のぞいてみてね")
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
@@ -120,7 +120,7 @@ struct ObuPostCardView: View {
                 }
                 if let text = post.text { Text(text).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(6) }
             case "radio":
-                if let title = post.title { Text("📻 \(title)").kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk) }
+                if let title = post.title { Text("\(title)").kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk) }
                 Spacer().frame(height: 6)
                 ObuRadioPlayerView(post: post)
             default:
@@ -217,7 +217,7 @@ struct ObuRadioPlayerView: View {
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
             .onAppear { model.load(url: url) }
         } else {
-            Text("🎧 音声を読み込めませんでした").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+            Text("音声を読み込めませんでした").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
         }
     }
 
@@ -274,7 +274,7 @@ struct ObuPreviewPopupView: View {
                     }
                     ScrollView {
                         if items.isEmpty {
-                            Text("まだ投稿がありません また今度のぞいてみてね🌱")
+                            Text("まだ投稿がありません また今度のぞいてみてね")
                                 .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .multilineTextAlignment(.center)

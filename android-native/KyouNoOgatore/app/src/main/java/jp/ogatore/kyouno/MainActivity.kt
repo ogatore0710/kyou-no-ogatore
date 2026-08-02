@@ -743,8 +743,8 @@ val ScreenSaver: Saver<Screen, Any> = Saver(
 )
 
 private val CHEERS = listOf(
-    "ナイスご自愛🎉", "がんばったね！おつかれさまでした✨", "その数分が体を変えます💪",
-    "イタ気持ちいい できました？😊", "体は正直！ちゃんと応えてくれますよ✨", "昨日の自分より1ミリ前へ🌱",
+    "ナイスご自愛", "がんばったね！おつかれさまでした", "その数分が体を変えます",
+    "イタ気持ちいい できました？", "体は正直！ちゃんと応えてくれますよ", "昨日の自分より1ミリ前へ",
 )
 
 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:2124 QUOTES
@@ -835,7 +835,7 @@ private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizT
         lookupVideoById(plan.videos[idx])?.let { v ->
             VideoRow(v, onVideoTap, badge = "プラン${planDayNum}日目/${plan.days}日: ${plan.label}")
             Text(
-                "相談室でつくった2週間プランの1本だよ🌱", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
+                "相談室でつくった2週間プランの1本だよ", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
                 modifier = Modifier.fillMaxWidth().padding(top = 6.dp), textAlign = TextAlign.Center,
             )
         }
@@ -866,7 +866,7 @@ private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizT
         }
     }
     Text(
-        "動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね✅",
+        "動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね",
         color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp), textAlign = TextAlign.Center,
     )
@@ -1195,7 +1195,7 @@ fun HomeScreen(
                             color = colors.sub, fontSize = kyonoFloorSp(12f), fontWeight = FontWeight.Black,
                         )
                         Text(
-                            if (showReturnNudge) "おわったら下の「きょうやった！」を押してね✅"
+                            if (showReturnNudge) "おわったら下の「きょうやった！」を押してね"
                             else "「${QUOTES[(dayIndex(Instant.now()) % QUOTES.size).toInt()]}」",
                             color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                             modifier = Modifier.testTag("qbubbleText"),
@@ -1215,7 +1215,7 @@ fun HomeScreen(
             if (rememberIsOffline()) {
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+                    "いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
                     color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                     modifier = Modifier.fillMaxWidth()
                         .background(colors.yellowSoft, RoundedCornerShape(14.dp))
@@ -1253,7 +1253,7 @@ fun HomeScreen(
                     Spacer(Modifier.height(8.dp))
                     Text(
                         buildAnnotatedString {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Black, fontSize = 17.sp)) { append("おかえりなさい！また会えてうれしいです🌱") }
+                            withStyle(SpanStyle(fontWeight = FontWeight.Black, fontSize = 17.sp)) { append("おかえりなさい！また会えてうれしいです") }
                             append("\n\n休んでも習慣はこわれません\n体は数日で取り返せます\n")
                             withStyle(SpanStyle(fontWeight = FontWeight.Black)) { append("通算${streak.total}日は残っています") }
                         },
@@ -1272,7 +1272,7 @@ fun HomeScreen(
             if (showRecheck) {
                 KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("recheckCard")) {
                     Text(
-                        "チェックから2週間たったよ🌱\n前屈 どこまで届くようになった？",
+                        "チェックから2週間たったよ\n前屈 どこまで届くようになった？",
                         color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                     )
                     Spacer(Modifier.height(10.dp))
@@ -1328,7 +1328,7 @@ fun HomeScreen(
                 }
                 Spacer(Modifier.height(16.dp))
             } else {
-                Text("🌱 はじめの1本ガイド中", color = colors.ink, modifier = Modifier.testTag("fdBanner"))
+                Text("はじめの1本ガイド中", color = colors.ink, modifier = Modifier.testTag("fdBanner"))
                 Spacer(Modifier.height(16.dp))
             }
         }
@@ -1378,7 +1378,7 @@ fun HomeScreen(
                 Spacer(Modifier.height(6.dp))
                 Text(
                     "通算 ${streak.total} 日" + when {
-                        streakBrokenNow -> "・きょうやると新しい章のスタート🌱"
+                        streakBrokenNow -> "・きょうやると新しい章のスタート"
                         streak.count >= 2 -> "・いま${streak.count}日連続"
                         else -> ""
                     },
@@ -1391,7 +1391,7 @@ fun HomeScreen(
                 if (HomeLogic.fdActive(fd, streak.total) && !did) {
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "動画を見おわったら、ここを押してね👇", color = colors.pinkInk, fontSize = 14.sp,
+                        "動画を見おわったら、ここを押してね", color = colors.pinkInk, fontSize = 14.sp,
                         fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().testTag("fdDoneStaticNudge"),
                     )
@@ -1410,7 +1410,7 @@ fun HomeScreen(
                     }
                 }
                 KyonoPrimaryButton(
-                    if (did) "きょうの分は完了！おつかれさまでした😊" else "きょうやった！",
+                    if (did) "きょうの分は完了！おつかれさまでした" else "きょうやった！",
                     {
                         if (!did) {
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
@@ -1436,13 +1436,13 @@ fun HomeScreen(
                                 (outcome.usedFreezeCount ?: 0) > 0 ->
                                     "おやすみ券を${outcome.usedFreezeCount}枚つかったので連続はつながっています"
                                 outcome.newChapter ->
-                                    "第${outcome.chapters}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨"
+                                    "第${outcome.chapters}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い"
                                 else -> null
                             }
                             // app-record.js:131 tomorrowMsPreviewの1:1移植。きょうが節目でない(ms==null)
                             // ときだけ、通算+1が明日ちょうど節目に乗るなら1行予告する(節目名は出さない)。
                             tomorrowMsPreview = if (ms == null && CardDataLoader.shared.MILESTONES.contains(streak.total + 1)) {
-                                "あしたで ${streak.total + 1}日目🎉 おたのしみに！"
+                                "あしたで ${streak.total + 1}日目 おたのしみに！"
                             } else null
                             // app-record.js:103-105: 節目とは重ならない前提(通算1日目=guideの
                             // 唯一の発生タイミングはMSの最小値3より前)だが、念のため節目表示を
@@ -1540,15 +1540,15 @@ fun HomeScreen(
                 ) {
                     Column(Modifier.testTag("fdCelebration")) {
                         Spacer(Modifier.height(10.dp))
-                        Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        Text("1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
                         Spacer(Modifier.height(6.dp))
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             KyonoCharaImage("card_sample", Modifier.size(140.dp))
                         }
                         Spacer(Modifier.height(6.dp))
-                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖", color = colors.ink, fontSize = 14.sp)
+                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく", color = colors.ink, fontSize = 14.sp)
                         Spacer(Modifier.height(6.dp))
-                        Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）", color = colors.ink, fontSize = 14.sp)
+                        Text("よかったら下にきょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）", color = colors.ink, fontSize = 14.sp)
                     }
                 }
                 // TASK-C2-2026-07-27-local-notifications.md §4: 1日目クリアの場面で初めて許可
@@ -1604,7 +1604,7 @@ fun HomeScreen(
                         Column(Modifier.testTag("milestoneCelebration")) {
                             Spacer(Modifier.height(10.dp))
                             Text(
-                                "🎉 ${ms.t}！（通算${streak.total}日）",
+                                "${ms.t}！（通算${streak.total}日）",
                                 color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black,
                             )
                             if (ms.m.isNotBlank()) {
@@ -1621,7 +1621,7 @@ fun HomeScreen(
                                         .padding(horizontal = 12.dp, vertical = 9.dp),
                                 ) {
                                     Column {
-                                        Text("💬 せんぱいの声", color = colors.teal, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                                        Text("せんぱいの声", color = colors.teal, fontSize = 13.sp, fontWeight = FontWeight.Black)
                                         Text(ms.q.removeSuffix("（先輩の声）"), color = colors.sub, fontSize = 13.sp)
                                     }
                                 }
@@ -1677,7 +1677,7 @@ fun HomeScreen(
                                 // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 RecordLogic.saveMemo(store, today, memoText)
-                                memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました✍️ 記録カードにも入ります"
+                                memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました 記録カードにも入ります"
                                 memoSaved = true
                             },
                             Modifier.testTag("memoBtn"),
@@ -1693,8 +1693,8 @@ fun HomeScreen(
                 // 停滞期はげまし文言)の1:1移植。app-record.js:58-62の閾値をそのまま使う。
                 if (!did) {
                     val plateauText = when {
-                        streak.total in 12..16 -> "💡 いまは効果を感じにくい時期！体は変わり続けていますよ とどくメーターで確かめてみて"
-                        streak.total in 28..34 -> "💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ"
+                        streak.total in 12..16 -> "いまは効果を感じにくい時期！体は変わり続けていますよ とどくメーターで確かめてみて"
+                        streak.total in 28..34 -> "1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ"
                         else -> null
                     }
                     plateauText?.let {
@@ -1704,7 +1704,7 @@ fun HomeScreen(
                             // 2行分の高さで既に44dp超だが、1行に収まる画面幅では不足しうるため念のため追加)。
                             Text(
                                 buildAnnotatedString {
-                                    append("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
+                                    append("いまは効果を感じにくい時期！体は変わり続けていますよ ")
                                     withStyle(SpanStyle(color = colors.teal, fontWeight = FontWeight.Black)) { append("とどくメーター") }
                                     append("で確かめてみて")
                                 },
@@ -1721,7 +1721,7 @@ fun HomeScreen(
                 // (「👇 つぎは ここを押してみて」)+fd-breathe(呼吸アニメ)の1:1移植。
                 if (fdCardNudgeVisible) {
                     Text(
-                        "👇 つぎは ここを押してみて", color = colors.pinkInk, fontSize = 14.sp,
+                        "つぎは ここを押してみて", color = colors.pinkInk, fontSize = 14.sp,
                         fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().testTag("fdCardNudge"),
                     )
@@ -1766,7 +1766,7 @@ fun HomeScreen(
                     // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "カード画像を保存かシェアでのこしてね📤", color = colors.sub, fontSize = 13.sp,
+                        "カード画像を保存かシェアでのこしてね", color = colors.sub, fontSize = 13.sp,
                         textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().testTag("cardHint"),
                     )
                 }
@@ -1870,7 +1870,7 @@ fun HomeScreen(
                     modifier = Modifier.background(colors.card, RoundedCornerShape(20.dp)).padding(20.dp),
                 ) {
                     Text(
-                        "使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね🌱",
+                        "使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね",
                         color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
                         textAlign = TextAlign.Center,
                     )
@@ -1949,7 +1949,7 @@ fun HomeScreen(
                         if (result.isMilestone) {
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "せっかくの節目！記録のひかえを取っておくと あんしんです📦",
+                                "せっかくの節目！記録のひかえを取っておくと あんしんです",
                                 color = colors.sub, fontSize = 13.sp, textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth().testTag("cardMsExportNudge"),
                             )
@@ -1991,7 +1991,7 @@ private fun CkCard(full: Boolean, typeResult: QuizTypeResult?, onStartQuiz: () -
             Spacer(Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります",
+                    "タップするだけ30秒でチェック\nあなたに合うストレッチがわかります",
                     color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp, modifier = Modifier.weight(1f),
                 )
                 KyonoCharaImage("chara_3", Modifier.size(74.dp))
@@ -2039,7 +2039,7 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "からだの悩み\nオガトレに聞いてみて💬", color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp,
+                "からだの悩み\nオガトレに聞いてみて", color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp,
                 modifier = Modifier.weight(1f),
             )
             KyonoCharaImage("chara_hitokoto", Modifier.size(64.dp))
@@ -2047,7 +2047,7 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
         Spacer(Modifier.height(10.dp))
         KyonoPrimaryButton("相談する", { onOpenSoudan(null) }, Modifier.testTag("soudanBtn"), icon = KyonoIcon.SoudanBubble)
         Spacer(Modifier.height(10.dp))
-        Text("👇 タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
+        Text("タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
         Spacer(Modifier.height(6.dp))
         // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §5: index.html:438
         // .chips{display:flex;flex-wrap:wrap}が既定(相談室フッターのチップ行だけが例外の横スクロール)。
@@ -2146,7 +2146,7 @@ fun MyRecordScreen(
                         buildAnnotatedString {
                             append("次のお祝い「")
                             withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append(ms.t) }
-                            append("」は通算${next}日目🌱 マイペースでどうぞ")
+                            append("」は通算${next}日目 マイペースでどうぞ")
                         },
                         color = colors.ink, fontSize = 15.sp, lineHeight = 15.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier.testTag("msNote"),
@@ -2310,7 +2310,7 @@ fun MyRecordScreen(
                         }
                         if (memo != null && memo.isNotEmpty()) {
                             Spacer(Modifier.height(6.dp))
-                            Text("✍️ $memo", color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("dayMemoText"))
+                            Text("$memo", color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("dayMemoText"))
                         }
                         if (log == null && memo.isNullOrEmpty()) {
                             Spacer(Modifier.height(6.dp))
@@ -2319,7 +2319,7 @@ fun MyRecordScreen(
                         Spacer(Modifier.height(8.dp))
                         // GO-G3: 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
                         Text(
-                            "🖼 この日の記録カードを見る", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                            "この日の記録カードを見る", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
                             modifier = Modifier.clickable { dayCardResult = renderTodayCard(store, streak, ds, context) }.padding(vertical = 12.dp).testTag("dayCardLink"),
                         )
                     }
@@ -2342,7 +2342,7 @@ fun MyRecordScreen(
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ🏥）",
+                    "いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ）",
                     color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp,
                 )
                 // index.html:900-902 assets/check/meter.jpg(前屈のお手本写真)の1:1移植。
@@ -2391,7 +2391,7 @@ fun MyRecordScreen(
                                         when {
                                             lv > best && best > 0 -> {
                                                 withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) {
-                                                    append("🎉 自己ベスト更新！「${REACH_LV[lv]}」")
+                                                    append("自己ベスト更新！「${REACH_LV[lv]}」")
                                                 }
                                                 append(" 記録カードにも入ります")
                                             }
@@ -2447,7 +2447,7 @@ fun MyRecordScreen(
                             diff > 0 -> Text(
                                 buildAnnotatedString {
                                     append("前回（${REACH_LV[prev.lv]}）より")
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.pinkInk)) { append("${diff}段とどくようになった！🎉") }
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.pinkInk)) { append("${diff}段とどくようになった！") }
                                 },
                                 color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("reachPrevText"),
                             )
@@ -2456,7 +2456,7 @@ fun MyRecordScreen(
                                 color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("reachPrevText"),
                             )
                             else -> Text(
-                                "体は日によってちがうもの またコツコツいきましょう🌱",
+                                "体は日によってちがうもの またコツコツいきましょう",
                                 color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("reachPrevText"),
                             )
                         }
@@ -2578,7 +2578,7 @@ fun MyRecordScreen(
                         if (result.isMilestone) {
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "せっかくの節目！記録のひかえを取っておくと あんしんです📦",
+                                "せっかくの節目！記録のひかえを取っておくと あんしんです",
                                 color = colors.sub, fontSize = 13.sp, textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth().testTag("dayCardMsExportNudge"),
                             )

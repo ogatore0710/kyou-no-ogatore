@@ -9,9 +9,10 @@ import java.time.Instant
 import java.time.ZoneOffset
 
 // GO-H1(ホーム画面ウィジェット)検収基準: 「1週間休んで券でも埋まらない状態で、ウィジェットの
-// 連続日数が0→「きょうから また1日め🌱」表示になる」ことをユニットテストで固定する
+// 連続日数が0→「きょうから また1日め」表示になる」ことをユニットテストで固定する
 // (effectiveStreakCount経由であることの証明。生のstreak.countを読んでいたら、この
 // テストは古い連続日数のまま失敗する)。
+// TASK-C2-2026-08-02-build16-polish-and-ia.md P-1: 絵文字全廃に伴い期待文字列も更新。
 class WidgetLogicTest {
     private val zone = ZoneOffset.UTC
 
@@ -25,7 +26,7 @@ class WidgetLogicTest {
         val state = WidgetLogic.compute(store, now, zone)
 
         assertEquals(0, state.streakCount)
-        assertEquals("きょうから また1日め🌱", state.message)
+        assertEquals("きょうから また1日め", state.message)
         assertEquals(CharaAsset.CHEER, state.chara)
     }
 
@@ -83,9 +84,9 @@ class WidgetLogicTest {
         val eveningState = WidgetLogic.compute(store, evening, zone)
 
         assertEquals(CharaAsset.CHEER, morningState.chara)
-        assertEquals("きょうもいこう！💪", morningState.message)
+        assertEquals("きょうもいこう！", morningState.message)
         assertEquals(CharaAsset.KAIKYAKU, eveningState.chara)
-        assertEquals("ねる前に1本 どう？🌙", eveningState.message)
+        assertEquals("ねる前に1本 どう？", eveningState.message)
     }
 
     // GO-H1 D3(alan5差し戻し2026-07-28): 「記録直後(congrats)→4時間後(good)→翌日(cheer/

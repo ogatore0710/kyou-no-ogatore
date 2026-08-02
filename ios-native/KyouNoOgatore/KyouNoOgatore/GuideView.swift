@@ -162,7 +162,7 @@ private struct GuideContentView: View {
                     // 2ピル＋区別説明文は入口として二重で迷いやすい(5視点監査指摘)ため、「📖 使い方ツアー」
                     // 1本に統合(引き算)。はじめてガイド(質問のやり直し)への導線は下の「困ったときは」
                     // カード内へ移した(onReenterOnboarding呼び出し自体は変更なし)。
-                    Text("📖 使い方ツアー")
+                    Text("使い方ツアー")
                         .kyonoFont(.extraBold800, size: 14).foregroundColor(dark ? Color(hex: 0xE8C74C) : Color(hex: 0x7E6400))
                         .padding(.horizontal, 16).padding(.vertical, 9)
                         .background(Capsule().fill(colors.yellowSoft))
@@ -223,7 +223,7 @@ private struct GuideContentView: View {
                             KyonoGhostButton("さいしょの質問をやりなおす", icon: .sprout, action: onReenterOnboarding)
                             KyonoGhostButton("記録が消えた・0日にもどってる", icon: .calendarCheck) { jumpToFaq(proxy, groupTitle: "記録・続けるについて", itemQ: "連続が切れちゃった…") }
                             KyonoGhostButton("機種変更したい", icon: .phoneDevice, action: onOpenSettings)
-                            KyonoGhostButton("🩹 ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
+                            KyonoGhostButton("ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
                             KyonoGhostButton("通知・リマインダーについて", icon: .clock) { jumpToFaq(proxy, groupTitle: "きほんのき", itemQ: "通知はこないの？") }
                         }
                     }
@@ -242,8 +242,8 @@ private struct GuideContentView: View {
                         }
                         GStep(marker: "2", title: "あなたの「かたさタイプ」が出ます", body: "タイプに合わせた おすすめ3本つき")
                         GStep(marker: "3", title: "まず1本 動画をやってみる", body: "おわったらホームの「きょうやった！」を押す")
-                        GStep(marker: "💬", icon: .soudanBubble, title: "オガトレ相談室", body: "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
-                        GStep(marker: "🎯", icon: .goalFlag, title: "2週間プラン", body: "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+                        GStep(marker: "", icon: .soudanBubble, title: "オガトレ相談室", body: "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下のボタンか ホームのカードからいつでもどうぞ")
+                        GStep(marker: "", icon: .goalFlag, title: "2週間プラン", body: "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
                         Spacer().frame(height: 4)
                         KyonoPrimaryButton("チェックをはじめる", action: onOpenQuiz)
                     }
@@ -262,10 +262,10 @@ private struct GuideContentView: View {
                         // 選択を無効化(onSelectを何もしない)して「見た目は本物・操作は無効」を1:1で再現。
                         GdSegmentMock()
                         Spacer().frame(height: 10)
-                        Text("おわったら✍️ ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです")
+                        Text("おわったら ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 14)
-                        GStep(marker: "💬", icon: .obuBubble, title: "オガトレ通信", body: "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
+                        GStep(marker: "", icon: .obuBubble, title: "オガトレ通信", body: "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます「もっと見る」で過去ぶんも全部よめます")
                     }
 
                     // ---- 4. 記録が消えない3つの守り(index.html:1029-1045。ステップ1のA2HS手順のみ
@@ -285,7 +285,7 @@ private struct GuideContentView: View {
                         // 実態に合わせたシンプルな注意書きに置き換えた(タスク指示どおりの判断。
                         // 情報を削りすぎない=「アプリを消さない」という守りの本旨自体は残す)。
                         GStep(marker: "1", title: "このアプリを削除しないでね", body: "ネイティブアプリとして端末にインストール済みなので、Web版のような「ホーム画面に追加」の操作は不要です。このアプリを削除しない限り、記録はずっとこの端末に残ります。")
-                        GStep(marker: "2", title: "記録カードを画像で保存", body: "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます👀") {
+                        GStep(marker: "2", title: "記録カードを画像で保存", body: "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます") {
                             KyonoCharaImage(name: "card-sample").frame(width: 140, height: 140)
                         }
                         GStep(marker: "3", title: "機種変更のとき", body: "マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」")
@@ -297,18 +297,18 @@ private struct GuideContentView: View {
                         open: sectionOpen["gd-tsuzuku"] ?? false, onToggle: { toggleSection("gd-tsuzuku") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
-                        GStep(marker: "🎫", icon: .ticketStub, title: "おやすみ券が毎月3枚", body: "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
-                        GStep(marker: "👑", icon: .crownBadge, title: "節目はゴールドカード", body: "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
+                        GStep(marker: "", icon: .ticketStub, title: "おやすみ券が毎月3枚", body: "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
+                        GStep(marker: "", icon: .crownBadge, title: "節目はゴールドカード", body: "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
                         VStack {
                             KyonoCharaImage(name: "card-sample-gold").frame(width: 180, height: 180)
                             Text("見本（ほんものは日付や あなたのメモ入り）").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         }
                         .frame(maxWidth: .infinity)
                         Spacer().frame(height: 10)
-                        Text("記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「🎉お楽しみ機能」の中にあるカード図鑑📖でいつでも見返せます")
+                        Text("記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「お楽しみ機能」の中にあるカード図鑑でいつでも見返せます")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
-                        GStep(marker: "🌱", icon: .sprout, title: "サボっても だいじょうぶ", body: "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+                        GStep(marker: "", icon: .sprout, title: "サボっても だいじょうぶ", body: "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
                         GStep(marker: "⏱", icon: .hourglassTime, title: "時間がない日は30秒の1本でもOK", body: "「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です")
                     }
 
@@ -318,11 +318,11 @@ private struct GuideContentView: View {
                         open: sectionOpen["gd-myrec"] ?? false, onToggle: { toggleSection("gd-myrec") },
                         onBackToToc: { jump(proxy, "gtoc") },
                     ) {
-                        GStep(marker: "📅", icon: .calendarCheck, title: "カレンダー", body: "やった日に印がつく（×はつきません）")
-                        GStep(marker: "📏", icon: .mountainCheck, title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
-                        GStep(marker: "🎉", icon: .confettiBurst, title: "お楽しみ機能", body: "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                        GStep(marker: "⚙️", icon: .clock, title: "続ける設定", body: "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
-                        GStep(marker: "🎬", icon: .play, title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
+                        GStep(marker: "", icon: .calendarCheck, title: "カレンダー", body: "やった日に印がつく（×はつきません）")
+                        GStep(marker: "", icon: .mountainCheck, title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+                        GStep(marker: "", icon: .confettiBurst, title: "お楽しみ機能", body: "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
+                        GStep(marker: "", icon: .clock, title: "続ける設定", body: "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+                        GStep(marker: "", icon: .play, title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
                         Spacer().frame(height: 4)
                         KyonoGhostButton("マイ記録タブをひらく", action: onOpenMyRecord)
                     }

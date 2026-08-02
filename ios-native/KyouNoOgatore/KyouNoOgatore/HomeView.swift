@@ -27,8 +27,8 @@ import CardCore
 import SafetyCore
 
 private let CHEERS = [
-    "ナイスご自愛🎉", "がんばったね！おつかれさまでした✨", "その数分が体を変えます💪",
-    "イタ気持ちいい できました？😊", "体は正直！ちゃんと応えてくれますよ✨", "昨日の自分より1ミリ前へ🌱",
+    "ナイスご自愛", "がんばったね！おつかれさまでした", "その数分が体を変えます",
+    "イタ気持ちいい できました？", "体は正直！ちゃんと応えてくれますよ", "昨日の自分より1ミリ前へ",
 ]
 
 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:2124 QUOTES
@@ -361,7 +361,7 @@ struct HomeView: View {
                     Color.black.opacity(0.55).ignoresSafeArea()
                         .onTapGesture {}
                     VStack(spacing: 14 * zoom) {
-                        Text("使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね🌱")
+                        Text("使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね")
                             .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                             .multilineTextAlignment(.center)
                         KyonoPrimaryButton("はじめる") {
@@ -471,7 +471,7 @@ struct HomeView: View {
                         // cardMsExportNudgeの1:1移植。節目カード(じまんカードは対象外=このシートは
                         // 元々きょうの記録カード専用)のときだけ、記録のひかえ(エクスポート)を促す。
                         if cardResult.isMilestone {
-                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
                                 .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                                 .multilineTextAlignment(.center)
                             KyonoGhostButton("記録のひかえを取る") {
@@ -552,7 +552,7 @@ struct HomeView: View {
                     Text(showReturnNudge ? "おかえりなさい" : "きょうのひとこと")
                         .kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                     Text(showReturnNudge
-                        ? "おわったら下の「きょうやった！」を押してね✅"
+                        ? "おわったら下の「きょうやった！」を押してね"
                         : "「\(QUOTES[((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count])」")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                 }
@@ -572,7 +572,7 @@ struct HomeView: View {
             // 1:1移植。YouTubeアプリ内ブラウザ脱出案内等のA2HS/PWA固有の他用途は移植対象外(§2-2)なので、
             // 単純に「オフラインなら表示・オンラインなら非表示」でよい(Web版のenvBannerPrevHTML退避は不要)。
             if networkMonitor.isOffline {
-                Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+                Text("いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
                     .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
                     .padding(.horizontal, 12 * zoom).padding(.vertical, 10 * zoom)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -594,7 +594,7 @@ struct HomeView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                     // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
                     // (HomeView.swift既存の停滞期はげまし文言と同じ理由)。
-                    (Text("おかえりなさい！また会えてうれしいです🌱").font(.kyono(.black900, size: 17))
+                    (Text("おかえりなさい！また会えてうれしいです").font(.kyono(.black900, size: 17))
                         + Text("\n\n休んでも習慣はこわれません\n体は数日で取り返せます\n").font(.kyono(.bold700, size: 15))
                         + Text("通算\(streak.total)日は残っています").font(.kyono(.black900, size: 15)))
                         .foregroundColor(colors.ink)
@@ -607,7 +607,7 @@ struct HomeView: View {
             // 相当はMyRecordタブ内にインライン移植済みのため、そちらへ遷移させる)。
             if showRecheck {
                 KyonoGradientCard(gradient: .mint) {
-                    Text("チェックから2週間たったよ🌱\n前屈 どこまで届くようになった？")
+                    Text("チェックから2週間たったよ\n前屈 どこまで届くようになった？")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
                     KyonoPrimaryButton("とどくメーターで測ってみる") { goRecheck() }
                     KyonoGhostButton("あとで") { dismissRecheck() }
@@ -638,7 +638,7 @@ struct HomeView: View {
                 // scrollIntoView(todayVideo)のスクロール先識別子。
                 .id("todayCard")
             } else {
-                KyonoBodyText("🌱 はじめの1本ガイド中")
+                KyonoBodyText("はじめの1本ガイド中")
             }
     }
 
@@ -684,13 +684,13 @@ struct HomeView: View {
                 // index.html:693 #fdDoneStaticNudge(はじめの1本ガイド中・未記録のときだけ出す常時案内)の
                 // 1:1移植。HomeLogic.fdActive(fd/streakTotalのみ・fdday条件なし)をそのまま使う。
                 if HomeLogic.fdActive(fd: fd, streakTotal: streak.total) && !did {
-                    Text("動画を見おわったら、ここを押してね👇")
+                    Text("動画を見おわったら、ここを押してね")
                         .kyonoFont(.black900, size: 14).foregroundColor(colors.pinkInk)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
                 // UI/UXパリティ監査GO-8(2026-07-28): index.html:382 .done-btn.did
                 // (背景グレー・影なし・文字縮小)の1:1移植。
-                KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did, flatWhenDisabled: true) {
+                KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした" : "きょうやった！", enabled: !did, flatWhenDisabled: true) {
                     guard !did else { return }
                     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
                     // ネイティブならではの上乗せとして、主要アクションに軽いハプティクスを追加
@@ -723,14 +723,14 @@ struct HomeView: View {
                     if let usedFreezeCount = outcome.usedFreezeCount, usedFreezeCount > 0 {
                         note = "おやすみ券を\(usedFreezeCount)枚つかったので連続はつながっています"
                     } else if outcome.newChapter {
-                        note = "第\(outcome.chapters)章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨"
+                        note = "第\(outcome.chapters)章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い"
                     } else {
                         note = nil
                     }
                     // app-record.js:131 tomorrowMsPreviewの1:1移植。きょうが節目でない(ms==nil)ときだけ、
                     // 通算+1が明日ちょうど節目に乗るなら1行予告する(節目名は出さない=当日の新鮮味を保つ)。
                     let tomorrowPreview: String? = (ms == nil && CardDataLoader.shared.MILESTONES.contains(streak.total + 1))
-                        ? "あしたで \(streak.total + 1)日目🎉 おたのしみに！"
+                        ? "あしたで \(streak.total + 1)日目 おたのしみに！"
                         : nil
                     noteText = note
                     tomorrowMsPreview = tomorrowPreview
@@ -823,16 +823,16 @@ struct HomeView: View {
                     // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
                     // ポップイン)の1:1移植。
                     VStack(alignment: .leading, spacing: 6 * zoom) {
-                        Text("🎉 1日目クリア！ナイスご自愛！")
+                        Text("1日目クリア！ナイスご自愛！")
                             .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
                         HStack {
                             Spacer()
                             KyonoCharaImage(name: "card-sample").frame(width: 140 * zoom, height: 140 * zoom)
                             Spacer()
                         }
-                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
+                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
-                        Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）")
+                        Text("よかったら下にきょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                     }
                     // §D: index.html:214-220 fd-cardpopはprefers-reduced-motion:no-preference時のみ発火する。
@@ -875,7 +875,7 @@ struct HomeView: View {
                 // 弾むバウンドとは別物)。
                 if let milestoneInfo {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("🎉 \(milestoneInfo.t)！（通算\(streak.total)日）")
+                        Text("\(milestoneInfo.t)！（通算\(streak.total)日）")
                             .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
                         if !milestoneInfo.m.isEmpty {
                             Spacer().frame(height: 4 * zoom)
@@ -884,7 +884,7 @@ struct HomeView: View {
                         if !milestoneInfo.q.isEmpty {
                             Spacer().frame(height: 8 * zoom)
                             VStack(alignment: .leading, spacing: 2 * zoom) {
-                                Text("💬 せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.teal)
+                                Text("せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.teal)
                                 Text(milestoneInfo.q.hasSuffix("（先輩の声）")
                                     ? String(milestoneInfo.q.dropLast("（先輩の声）".count))
                                     : milestoneInfo.q)
@@ -931,20 +931,20 @@ struct HomeView: View {
                     if (12...16).contains(streak.total) {
                         // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
                         // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
-                        (Text("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
+                        (Text("いまは効果を感じにくい時期！体は変わり続けていますよ ")
                             + Text("とどくメーター").font(.kyono(.black900, size: 14)).foregroundColor(colors.tealInk)
                             + Text("で確かめてみて"))
                             .font(.kyono(.bold700, size: 14)).foregroundColor(colors.sub)
                             .onTapGesture { onOpenMyRecord() }
                     } else if (28...34).contains(streak.total) {
-                        Text("💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ")
+                        Text("1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     }
                 }
                 // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:196-208 fdCardNudge
                 // (「👇 つぎは ここを押してみて」)の1:1移植。
                 if fdCardNudgeVisible {
-                    Text("👇 つぎは ここを押してみて")
+                    Text("つぎは ここを押してみて")
                         .kyonoFont(.black900, size: 14).foregroundColor(colors.pinkInk)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
@@ -983,7 +983,7 @@ struct HomeView: View {
                     // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)。
                     // .hint{margin-top:8px}の1:1移植(同じ理由でここも0px詰まりだった)。
                     Spacer().frame(height: 8 * zoom)
-                    Text("カード画像を保存かシェアでのこしてね📤")
+                    Text("カード画像を保存かシェアでのこしてね")
                         .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
@@ -1034,7 +1034,7 @@ private struct HomeMemoRow: View {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 RecordLogic.saveMemo(store, today: today, text: text)
                 savedNote = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    ? "メモを消しました" : "メモをのこしました✍️ 記録カードにも入ります"
+                    ? "メモを消しました" : "メモをのこしました 記録カードにも入ります"
                 saved = true
             }
             if let savedNote {
@@ -1062,7 +1062,7 @@ private struct CkCard: View {
             if full {
                 Spacer().frame(height: 10 * zoom)
                 HStack(alignment: .center) {
-                    Text("タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります")
+                    Text("タップするだけ30秒でチェック\nあなたに合うストレッチがわかります")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                     Spacer()
                     KyonoCharaImage(name: "chara-3").frame(width: 74 * zoom, height: 74 * zoom)
@@ -1116,7 +1116,7 @@ private struct SoudanCard: View {
                         KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
                         Spacer().frame(height: 10 * zoom)
                         HStack(alignment: .center) {
-                            Text("からだの悩み\nオガトレに聞いてみて💬")
+                            Text("からだの悩み\nオガトレに聞いてみて")
                                 .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                             Spacer()
                             KyonoCharaImage(name: "chara-hitokoto").frame(width: 64 * zoom, height: 64 * zoom)
@@ -1126,7 +1126,7 @@ private struct SoudanCard: View {
                         // (KyonoIcon.soudanBubble・タブバーと同じCanvas意匠を流用)。
                         KyonoPrimaryButton("相談する", icon: .soudanBubble) { onOpenSoudan(nil) }
                         Spacer().frame(height: 10 * zoom)
-                        Text("👇 タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                        Text("タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         Spacer().frame(height: 6 * zoom)
                         // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §5: index.html:438
                         // .chips{display:flex;flex-wrap:wrap}が既定(相談室フッターのチップ行だけが
@@ -1201,7 +1201,7 @@ private struct TodayVideoSection: View {
             let idx = ((dayIndex(now) % plan.videos.count) + plan.videos.count) % plan.videos.count
             if let v = lookupVideoById(plan.videos[idx]) {
                 VideoRow(v: v, openUrl: onVideoTap, badge: "プラン\(dayNum)日目/\(plan.days)日: \(plan.label)")
-                Text("相談室でつくった2週間プランの1本だよ🌱")
+                Text("相談室でつくった2週間プランの1本だよ")
                     .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     .frame(maxWidth: .infinity, alignment: .center).padding(.top, 6)
             }
@@ -1231,7 +1231,7 @@ private struct TodayVideoSection: View {
                 VideoRow(v: v, openUrl: onVideoTap, badge: effectiveMode == "asa" ? "きょうのあさ" : "きょうのよる")
             }
         }
-        Text("動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね✅")
+        Text("動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね")
             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
             .frame(maxWidth: .infinity, alignment: .center).multilineTextAlignment(.center).padding(.top, 8)
     }

@@ -115,7 +115,7 @@ fun KyonoTourMockup(slideIndex: Int) {
                 KyonoCharaImage("chara_hitokoto", Modifier.size(34.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "それはつらいね…！まずはこの1本からやってみよう😊", color = colors.ink,
+                    "それはつらいね…！まずはこの1本からやってみよう", color = colors.ink,
                     modifier = Modifier
                         .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                         .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
@@ -129,7 +129,7 @@ fun KyonoTourMockup(slideIndex: Int) {
             Spacer(Modifier.width(12.dp))
             Column {
                 Text("右下のこの写真ボタン", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
-                Text("ひとこと・写真・ラジオ📻", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("ひとこと・写真・ラジオ", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
         // 7) マイ記録でふりかえる: カレンダーのミニチュア(5個の丸、3個が塗りつぶし=やった日)

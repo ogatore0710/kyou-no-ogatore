@@ -94,7 +94,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
             KyonoCard {
                 KyonoSectionHeader(KyonoIcon.Heart, "じまんカードをつくる", fill = colors.pinkSoft, accent = colors.pink)
                 Spacer(Modifier.height(8.dp))
-                Text("続けてる日数と すきな1本を 1枚のカードに✨\nできたカードは保存やSNS投稿ができます", color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp)
+                Text("続けてる日数と すきな1本を 1枚のカードに\nできたカードは保存やSNS投稿ができます", color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp)
 
                 // index.html:340 #brag .lbl
                 Spacer(Modifier.height(14.dp))
@@ -120,7 +120,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                 )
 
                 Spacer(Modifier.height(14.dp))
-                Text("すきな1本をさがす🎬", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                Text("すきな1本をさがす", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(6.dp))
                 TextField(
                     value = query,
@@ -158,7 +158,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
 
                 Spacer(Modifier.height(16.dp))
                 KyonoPrimaryButton(
-                    "カードをつくる✨",
+                    "カードをつくる",
                     {
                         // TASK-C2-2026-07-27-brag-card-thumbnail.md: index.html:2765-2774
                         // loadBragThumb()の1:1移植。サムネイル取得はネットワークI/Oのためsuspend化し、

@@ -89,7 +89,7 @@ struct KyonoTourMockup: View {
                 HStack(alignment: .bottom) {
                     KyonoCharaImage(name: "chara-hitokoto").frame(width: 34, height: 34)
                     let shape = UnevenRoundedRectangle(topLeadingRadius: 16, bottomLeadingRadius: 6, bottomTrailingRadius: 16, topTrailingRadius: 16)
-                    Text("それはつらいね…！まずはこの1本からやってみよう😊").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                    Text("それはつらいね…！まずはこの1本からやってみよう").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(shape.fill(colors.card))
                         .overlay(shape.stroke(colors.line, lineWidth: 1.5))
@@ -104,7 +104,7 @@ struct KyonoTourMockup: View {
                 Spacer().frame(width: 12)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("右下のこの写真ボタン").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
-                    Text("ひとこと・写真・ラジオ📻").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                    Text("ひとこと・写真・ラジオ").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                 }
                 Spacer()
             }

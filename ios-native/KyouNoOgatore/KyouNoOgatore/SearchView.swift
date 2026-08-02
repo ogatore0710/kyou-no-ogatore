@@ -257,7 +257,7 @@ private struct SearchContentView: View {
             Spacer().frame(height: 8)
             // GO-G14(5視点ワンループ): 文言・スタイルはホーム版(HomeView.swift)と完全に同じにする。
             if networkMonitor.isOffline {
-                Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+                Text("いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
                     .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
                     .padding(.horizontal, 12).padding(.vertical, 10)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -415,8 +415,8 @@ private struct ReqBox: View {
     var body: some View {
         KyonoGradientCard(gradient: .warm) {
             Text(shown
-                ? "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます📮"
-                : "ごめんなさい まだなかったみたい💦\nリクエストを送ってもらえたら動画づくりの参考にします📮")
+                ? "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます"
+                : "ごめんなさい まだなかったみたい\nリクエストを送ってもらえたら動画づくりの参考にします")
                 .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
             Spacer().frame(height: 12)
             KyonoGhostButton(kwText.isEmpty ? "リクエストを送る" : "「\(kwText)」をリクエストする") {
@@ -433,7 +433,7 @@ private struct ReqBox: View {
                 if !copied {
                     KyonoIconGlyph(icon: .clipboardPaste, fill: .clear, accent: colors.tealInk).frame(width: 14, height: 14)
                 }
-                Text(copied ? "コピーしました✅" : "アドレスをコピー")
+                Text(copied ? "コピーしました" : "アドレスをコピー")
                     .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
             }
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -557,7 +557,7 @@ private struct CatalogListContentView: View {
             Text("再生リスト").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
             // GO-G14(5視点ワンループ): 文言・スタイルはホーム版(HomeView.swift)と完全に同じにする。
             if networkMonitor.isOffline {
-                Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+                Text("いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
                     .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
                     .padding(.horizontal, 12).padding(.vertical, 10)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -578,7 +578,7 @@ private struct CatalogListContentView: View {
                     ForEach(catalog, id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
                     // index.html:941 .hint(固定表示にするとFAB2段(右下)と重なるバグの再発になる=
                     // とどくメーターの5番目ボタンで既発見済みの教訓と同種のため、リスト末尾項目にする)
-                    Text("タップするとYouTubeで開きます！テレビで流すのもおすすめ📺")
+                    Text("タップするとYouTubeで開きます！テレビで流すのもおすすめ")
                         .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                         .padding(.top, 8).padding(.bottom, 90)
                 }

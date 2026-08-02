@@ -36,7 +36,7 @@ struct ObQuestionDef {
 let obGreet = [
     "いつもありがとうございます！理学療法士のオガトレです！",
     "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要🆓 あんしんしてね",
-    "最初に4つだけ教えてね！あなた用にこのアプリをととのえます☺️",
+    "最初に4つだけ教えてね！あなた用にこのアプリをととのえます",
 ]
 
 // index.html:4093-4102 ONBOARDING_SCRIPT.questions の1:1移植。かたさチェック本体(QUESTIONS)とは
@@ -61,10 +61,10 @@ let obQuestions = [
 ]
 
 let obAnchorAck: [String: String] = [
-    "asa": "朝おきてすぐだね☀️ ホームにも覚えさせたよ📝",
-    "furo": "おふろ上がりは体もほぐれてて効果的👍 覚えたよ📝",
-    "neru": "寝るまえの1本はねむりにも効くよ🌙 覚えたよ📝",
-    "free": "きめなくてもOK！そのつどでだいじょうぶ😊",
+    "asa": "朝おきてすぐだね ホームにも覚えさせたよ",
+    "furo": "おふろ上がりは体もほぐれてて効果的 覚えたよ",
+    "neru": "寝るまえの1本はねむりにも効くよ 覚えたよ",
+    "free": "きめなくてもOK！そのつどでだいじょうぶ",
 ]
 
 // app-quiz.js:193 WORRY_TIEBREAKと紐づくQ5語彙への対応表(index.html:4370 OB_WORRY_TO_QUIZ)。
@@ -83,7 +83,7 @@ struct ObRouteInfo {
 }
 let obRoutes: [String: ObRouteInfo] = [
     "quiz": ObRouteInfo(say: ["そしたら30秒で硬さチェックをしよう！下のボタンタップしてね！"], btn: "かたさチェックをはじめる"),
-    "today": ObRouteInfo(say: ["じゃあ今日の1本から！むずかしいことはなしだよ👍"], btn: "きょうの1本を見る"),
+    "today": ObRouteInfo(say: ["じゃあ今日の1本から！むずかしいことはなしだよ"], btn: "きょうの1本を見る"),
 ]
 
 // index.html:4377 obGo()内の条件式の1:1移植。
@@ -209,7 +209,7 @@ struct OnboardingView: View {
             // アクセシビリティ対応: ユーザーが選んだチップの吹き出しも同様に、追加された瞬間だけ通知する。
             UIAccessibility.post(notification: .announcement, argument: picked.label)
             if q.key == "anchor" {
-                await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ📝"])
+                await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ"])
             } else if q.key == "bigtext" {
                 await say([obBigtextAck])
             }
@@ -269,7 +269,7 @@ private struct OnboardingContentView: View {
         // ScrollView外の固定上部へ移し「📖 使い方ツアー」+4点バー(番号のみ・6段連結はしない)。
         // 再入場(使い方タブ経由)は既存どおり本文内に「🌱 はじめてガイド」を出すのでここには出さない。
         if isFirstRun {
-            Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+            Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 .padding(.horizontal, 20).padding(.top, 20)
             KyonoJourneyBar(labels: ["", "", "", ""], currentIndex: answeredCount)
         }
@@ -277,7 +277,7 @@ private struct OnboardingContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 if !isFirstRun {
-                    Text("🌱 はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                    Text("はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 }
                 // index.html:478-483 .sd-row/.sd-b(相談室と共用の吹き出しCSSをオンボでも流用)の1:1移植。
                 // border-bottom-right-radius:6px(user)/border-bottom-left-radius:6px(bot)をUnevenRoundedRectangleで再現。
@@ -324,7 +324,7 @@ private struct OnboardingContentView: View {
         // A2: 選択肢・CTAは固定フッター(スクロールしない)。
         if let q = activeQuestion {
             VStack(alignment: .leading, spacing: 10) {
-                Text("👇 タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                Text("タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 let palette = obgColors(dark: dark)
                 ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
                     let c = palette[i % palette.count]
@@ -704,7 +704,7 @@ private struct QuizContentView: View {
         // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」をオンボチャットと
         // 同じ見た目でバーの上に常設する(既存のfdGuideActive条件=初回ジャーニー中のみを維持)。
         if fdGuideActive {
-            Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+            Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 .padding(.horizontal, 20).padding(.top, 20)
             KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: 0)
         }
@@ -736,7 +736,7 @@ private struct QuizContentView: View {
                     }
                     // 全画面完全性監査タスク #quiz: index.html:717 .tap-hint(タップ誘導文言)の1:1移植。
                     Spacer().frame(height: 6)
-                    Text("👇 タップしてえらんでね").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                    Text("タップしてえらんでね").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
                     Spacer().frame(height: 4)
                     // index.html:293-309 .opt/.opt.g0〜g3(明→暗の段階色カード)の1:1移植。
                     // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:168-169
@@ -1040,7 +1040,7 @@ private struct ResultContentView: View {
         // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」をオンボチャットと
         // 同じ見た目でバーの上に常設する(既存のfdGuideActive条件=初回ジャーニー中のみを維持)。
         if fdGuideActive {
-            Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+            Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 .padding(.horizontal, 20).padding(.top, 20)
             KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: journeyIndex)
         }
@@ -1070,7 +1070,7 @@ private struct ResultContentView: View {
                     // 翌日以降(通常表示)に回す(一本道=①をタップ→もどる→記録、以外の分岐を見せない)。
                     if !fdGuideActive {
                         Spacer().frame(height: 12)
-                        Text("🌱 " + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                        Text("" + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                             .padding(14)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(colors.yellowSoft)
@@ -1078,7 +1078,7 @@ private struct ResultContentView: View {
                         // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
                         Spacer().frame(height: 12)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("🩺 理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                            Text("理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
                             boldHtmlText(info.pt, bold: colors.ink)
                                 .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                         }
@@ -1117,7 +1117,7 @@ private struct ResultContentView: View {
                         }
                         Spacer().frame(height: 8)
                         // index.html:216 fdBob(1.4s ease-in-out infinite・translateY 0↔5px)の1:1移植。
-                        FdBobText("👇 ここを押してみて")
+                        FdBobText("ここを押してみて")
                         Spacer().frame(height: 4)
                         if let vk = rx.first, let v = lookupVideo(vk) {
                             // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:320
@@ -1127,7 +1127,7 @@ private struct ResultContentView: View {
                             VideoRow(v: v, openUrl: { url in videoTapped = true; onVideoTap(url) }, badge: "きょうはこれ1本でOK！", hero: true)
                         }
                         Spacer().frame(height: 6)
-                        Text("あと2本とくわしい解説は あしたから見られるよ🌱")
+                        Text("あと2本とくわしい解説は あしたから見られるよ")
                             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
@@ -1172,7 +1172,7 @@ private struct ResultContentView: View {
                 if !fdGuideActive {
                     // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
                     KyonoCard {
-                        Text("🩺 ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                        Text("ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
                         Spacer().frame(height: 6)
                         Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
@@ -1201,11 +1201,11 @@ private struct ResultContentView: View {
                 // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
                 if showDoneNudge && cardResult == nil {
                     KyonoCard {
-                        Text("おかえりなさい！✨ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                        Text("おかえりなさい！ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         // D(本丸): fdGuide中はその場(結果画面)で記録を完結させる。ホームへは飛ばさない。
                         KyonoPrimaryButton(
-                            fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく",
+                            fdGuideActive ? "1日目の記録をつけにいく" : "きょうの記録をつけにいく",
                             action: fdGuideActive ? performPracticeRecord : onDoneFromNudge
                         )
                         .scaleEffect(doneNudgeScale)
@@ -1215,16 +1215,16 @@ private struct ResultContentView: View {
                 if fdCelebrationVisible {
                     // HomeView.swift:630-644 fdCelebrationVisibleの1:1移植(結果画面版)。
                     KyonoCard {
-                        Text("🎉 1日目クリア！ナイスご自愛！")
+                        Text("1日目クリア！ナイスご自愛！")
                             .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
                         Spacer().frame(height: 6)
-                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
+                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく")
                             .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                     }
                 }
                 // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。
                 if showTourBtn {
-                    KyonoGhostButton("📖 つづき：使い方ツアーへ", action: onStartTour)
+                    KyonoGhostButton("つづき：使い方ツアーへ", action: onStartTour)
                 }
                 // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rGoHomeBtn/rRecheckBtnもガイド中は
                 // 隠す(app-quiz.js:291-299の1:1移植。タブバーからの脱出は常に可能なため迷子にはならない)。
@@ -1294,22 +1294,22 @@ struct TourSlideDef {
 // index.html:4117-4143 OB_TOUR_SLIDES の1:1移植(タイトル・説明文のみ)。A2HS関連の内容は1枚も無い
 // (§6 Step5c検収基準3のgrep確認対象と対応)。
 let obTourSlides = [
-    TourSlideDef(title: "📺 まいにち1本、動画をやる", desc: "ホームの「きょうの1本」をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"),
-    TourSlideDef(title: "✅ おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚の🎫おやすみ券が自動で連続を守ってくれるよ"),
-    TourSlideDef(title: "📇 記録カードをつくる", desc: "「きょうやった！」のあと「記録カードを画像でのこす」を押す→「保存・シェアする」で写真に保存📷 SNSやコメント欄にもどうぞ"),
-    TourSlideDef(title: "📖 ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→🎉お楽しみ機能）"),
-    TourSlideDef(title: "💬 悩みは相談室で質問", desc: "右下の💬ボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
-    TourSlideDef(title: "📣 オガトレ通信をのぞく", desc: "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります✅"),
+    TourSlideDef(title: "まいにち1本、動画をやる", desc: "ホームの「きょうの1本」をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"),
+    TourSlideDef(title: "おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚のおやすみ券が自動で連続を守ってくれるよ"),
+    TourSlideDef(title: "記録カードをつくる", desc: "「きょうやった！」のあと「記録カードを画像でのこす」を押す→「保存・シェアする」で写真に保存 SNSやコメント欄にもどうぞ"),
+    TourSlideDef(title: "ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）"),
+    TourSlideDef(title: "悩みは相談室で質問", desc: "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
+    TourSlideDef(title: "オガトレ通信をのぞく", desc: "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります"),
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版の「見てみる」ボタンはネイティブの
     // マイ記録に存在しない(お楽しみは🎉じまんカード/💬せんぱいの声/📔ひとことにっきの個別3ボタン)ため、
     // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
-    TourSlideDef(title: "📅 マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ） 📏とどくメーターと🎉じまんカード・💬せんぱいの声・📔ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ📅"),
-    TourSlideDef(title: "📖 忘れてもだいじょうぶ", desc: "困ったらいつでも読み返せるよ！ 使い方タブの「📖 使い方ツアー」からね"),
+    TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ） とどくメーターとじまんカード・せんぱいの声・ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
+    TourSlideDef(title: "忘れてもだいじょうぶ", desc: "困ったらいつでも読み返せるよ！ 使い方タブの「使い方ツアー」からね"),
 ]
-let obTourClosingTitle = "🌱 これで準備ばっちり！"
+let obTourClosingTitle = "これで準備ばっちり！"
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:4275-4277
 // OB_TOUR_CLOSING.dの1:1移植(2026-07-21 PO承認案(b))。以前はタイトルのみで説明文が欠落していた。
-let obTourClosingDesc = "あしたも待ってるね🌱 きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ💪"
+let obTourClosingDesc = "あしたも待ってるね きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ"
 
 // index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。8枚+条件付き9枚目
 // (closing・自動起動時のみ)。「つぎへ」ボタン+ドット進捗のリニアなステップ形式(スワイプ不使用)。
@@ -1359,7 +1359,7 @@ private struct TourContentView: View {
             // TASK-C2-2026-08-01-build13-round3.md ③⑦: 見出し「📖 使い方ツアー」を初回ジャーニー
             // (isFirstRun)のときだけオンボチャットと同じ見た目でバーの上に常設する。
             if isFirstRun {
-                Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+                Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                     .padding(.horizontal, 20).padding(.top, 20)
             }
             KyonoJourneyBar(labels: Array(repeating: "", count: totalSlides), currentIndex: si)

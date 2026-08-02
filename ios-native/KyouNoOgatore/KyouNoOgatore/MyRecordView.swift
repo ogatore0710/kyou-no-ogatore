@@ -117,7 +117,7 @@ struct MyRecordView: View {
                         // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
                         // cardMsExportNudgeの1:1移植(この日別カードもmakeCard(ds)共通のためWeb版と同様に対象)。
                         if dayCardResult.isMilestone {
-                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
                                 .kyonoFont(.bold700, size: 13).multilineTextAlignment(.center)
                             KyonoGhostButton("記録のひかえを取る") {
                                 self.dayCardResult = nil
@@ -225,7 +225,7 @@ private struct MyRecordContentView: View {
                     if let next, let ms {
                         (Text("次のお祝い「")
                             + Text(ms.t).foregroundColor(colors.pinkInk).fontWeight(.black)
-                            + Text("」は通算\(next)日目🌱 マイペースでどうぞ"))
+                            + Text("」は通算\(next)日目 マイペースでどうぞ"))
                             .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     } else {
                         Text("全部の節目をたっせい！すごすぎます").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
@@ -315,13 +315,13 @@ private struct MyRecordContentView: View {
                                     }
                             }
                             if let memo, !memo.isEmpty {
-                                Text("✍️ \(memo)").kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+                                Text("\(memo)").kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             }
                             if log == nil && (memo?.isEmpty ?? true) {
                                 Text("この日は「やった！」の印だけ残っています").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                             }
                             // GO-G3: 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
-                            Text("🖼 この日の記録カードを見る")
+                            Text("この日の記録カードを見る")
                                 .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
                                 .padding(.vertical, 12)
                                 .onTapGesture { onShowDayCard(ds) }
@@ -344,7 +344,7 @@ private struct MyRecordContentView: View {
                     Text("ひざを伸ばして前屈 手はどこまで届く？\n届いたところのボタンを押すと記録されます（週1回でOK）")
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
-                    Text("いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ🏥）")
+                    Text("いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ）")
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     // index.html:900-902 assets/check/meter.jpg(前屈のお手本写真)の1:1移植。
                     Spacer().frame(height: 10)
@@ -389,7 +389,7 @@ private struct MyRecordContentView: View {
                                     RecordLogic.setReach(store, lv: lv, now: Date())
                                     reachList = RecordLogic.getReach(store)
                                     if lv > best && best > 0 {
-                                        reachMsg = Text("🎉 自己ベスト更新！「\(reachLv[lv])」").fontWeight(.black).foregroundColor(colors.pinkInk)
+                                        reachMsg = Text("自己ベスト更新！「\(reachLv[lv])」").fontWeight(.black).foregroundColor(colors.pinkInk)
                                             + Text(" 記録カードにも入ります")
                                     } else if lv >= 4 && best == 0 {
                                         reachMsg = Text("最初から「\(reachLv[lv])」！すばらしい").fontWeight(.black).foregroundColor(colors.pinkInk)
@@ -420,13 +420,13 @@ private struct MyRecordContentView: View {
                             Spacer().frame(height: 6)
                             if diff > 0 {
                                 (Text("前回（\(reachLv[prev.lv])）より")
-                                    + Text("\(diff)段とどくようになった！🎉").fontWeight(.black).foregroundColor(colors.pinkInk))
+                                    + Text("\(diff)段とどくようになった！").fontWeight(.black).foregroundColor(colors.pinkInk))
                                     .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             } else if diff == 0 {
                                 Text("前回とおなじ「\(reachLv[latest.lv])」 キープも立派です！")
                                     .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             } else {
-                                Text("体は日によってちがうもの またコツコツいきましょう🌱")
+                                Text("体は日によってちがうもの またコツコツいきましょう")
                                     .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                             }
                         }

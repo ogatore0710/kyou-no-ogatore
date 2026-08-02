@@ -85,12 +85,12 @@ fun ObuScreen(store: RecordStore, onBack: () -> Unit) {
             // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #obu):
             // index.html:932 説明文の1:1移植。
             Spacer(Modifier.height(6.dp))
-            Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱", color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp)
+            Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます", color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp)
             Spacer(Modifier.height(12.dp))
             if (posts.isEmpty()) {
                 KyonoCard {
                     Text(
-                        "まだ投稿がありません また今度のぞいてみてね🌱",
+                        "まだ投稿がありません また今度のぞいてみてね",
                         color = colors.sub, fontSize = 14.sp, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -155,7 +155,7 @@ fun ObuPostCard(post: ObuPost, today: String, photoWidthFraction: Float = 1f) {
             }
             "radio" -> {
                 post.title?.let {
-                    Text("📻 $it", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 6.dp))
+                    Text("$it", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 6.dp))
                 }
                 Spacer(Modifier.height(6.dp))
                 ObuRadioPlayer(post)
@@ -178,7 +178,7 @@ private fun ObuRadioPlayer(post: ObuPost, modifier: Modifier = Modifier) {
         } ?: 0
     }
     if (resId == 0) {
-        Text("🎧 音声を読み込めませんでした", color = colors.sub, fontSize = 12.sp, modifier = modifier)
+        Text("音声を読み込めませんでした", color = colors.sub, fontSize = 12.sp, modifier = modifier)
         return
     }
     var mediaPlayer by remember(resId) { mutableStateOf<MediaPlayer?>(null) }
@@ -289,7 +289,7 @@ fun ObuPreviewPopup(onClose: () -> Unit, onViewArchive: () -> Unit) {
             Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(18.dp, 12.dp, 18.dp, 0.dp)) {
                 if (items.isEmpty()) {
                     Text(
-                        "まだ投稿がありません また今度のぞいてみてね🌱",
+                        "まだ投稿がありません また今度のぞいてみてね",
                         color = colors.sub, fontSize = 14.sp, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp).testTag("obuPopupEmpty"),
                     )

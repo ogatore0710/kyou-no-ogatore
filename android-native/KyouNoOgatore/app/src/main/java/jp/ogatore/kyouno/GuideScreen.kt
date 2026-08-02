@@ -180,7 +180,7 @@ fun GuideScreen(
             // カード内へ移した(onReenterOnboarding呼び出し自体は変更なし)。
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), contentAlignment = Alignment.Center) {
                 Text(
-                    "📖 使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                    "使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                     lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                     modifier = Modifier
                         .background(colors.yellowSoft, RoundedCornerShape(50))
@@ -267,7 +267,7 @@ fun GuideScreen(
                     KyonoLineButton("さいしょの質問をやりなおす", onReenterOnboarding, Modifier.testTag("gdHelpRestartOnboarding"), icon = KyonoIcon.Sprout)
                     KyonoLineButton("記録が消えた・0日にもどってる", { jumpToFaq("記録・続けるについて", "連続が切れちゃった…") }, Modifier.testTag("gdHelpMissing"), icon = KyonoIcon.CalendarCheck)
                     KyonoLineButton("機種変更したい", onOpenSettings, Modifier.testTag("gdHelpDevice"), icon = KyonoIcon.PhoneDevice)
-                    KyonoLineButton("🩹 ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
+                    KyonoLineButton("ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
                     KyonoLineButton("通知・リマインダーについて", { jumpToFaq("きほんのき", "通知はこないの？") }, Modifier.testTag("gdHelpNotify"), icon = KyonoIcon.Clock)
                 }
             }
@@ -287,8 +287,8 @@ fun GuideScreen(
                 }
                 GStep("2", "あなたの「かたさタイプ」が出ます", "タイプに合わせた おすすめ3本つき")
                 GStep("3", "まず1本 動画をやってみる", "おわったらホームの「きょうやった！」を押す")
-                GStep("💬", icon = KyonoIcon.SoudanBubble, title = "オガトレ相談室", body = "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
-                GStep("🎯", icon = KyonoIcon.GoalFlag, title = "2週間プラン", body = "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+                GStep("", icon = KyonoIcon.SoudanBubble, title = "オガトレ相談室", body = "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下のボタンか ホームのカードからいつでもどうぞ")
+                GStep("", icon = KyonoIcon.GoalFlag, title = "2週間プラン", body = "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
                 Spacer(Modifier.height(4.dp))
                 KyonoPrimaryButton("チェックをはじめる", onOpenQuiz, Modifier.testTag("gdStartQuizBtn"))
             }
@@ -314,11 +314,11 @@ fun GuideScreen(
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "おわったら✍️ ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです",
+                    "おわったら ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです",
                     color = colors.ink, fontSize = 14.sp, lineHeight = 25.sp,
                 )
                 Spacer(Modifier.height(14.dp))
-                GStep("💬", icon = KyonoIcon.ObuBubble, title = "オガトレ通信", body = "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
+                GStep("", icon = KyonoIcon.ObuBubble, title = "オガトレ通信", body = "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます「もっと見る」で過去ぶんも全部よめます")
             }
             Spacer(Modifier.height(16.dp))
 
@@ -344,7 +344,7 @@ fun GuideScreen(
                 )
                 GStep(
                     "2", "記録カードを画像で保存",
-                    "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます👀",
+                    "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます",
                 ) {
                     KyonoCharaImage("card_sample", Modifier.size(140.dp))
                 }
@@ -358,8 +358,8 @@ fun GuideScreen(
                 open = sectionOpen["gd-tsuzuku"] == true, onToggle = { toggleSection("gd-tsuzuku") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
-                GStep("🎫", icon = KyonoIcon.TicketStub, title = "おやすみ券が毎月3枚", body = "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
-                GStep("👑", icon = KyonoIcon.CrownBadge, title = "節目はゴールドカード", body = "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
+                GStep("", icon = KyonoIcon.TicketStub, title = "おやすみ券が毎月3枚", body = "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
+                GStep("", icon = KyonoIcon.CrownBadge, title = "節目はゴールドカード", body = "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     KyonoCharaImage("card_sample_gold", Modifier.size(180.dp))
                     Spacer(Modifier.height(6.dp))
@@ -367,11 +367,11 @@ fun GuideScreen(
                 }
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「🎉お楽しみ機能」の中にあるカード図鑑📖でいつでも見返せます",
+                    "記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「お楽しみ機能」の中にあるカード図鑑でいつでも見返せます",
                     color = colors.ink, fontSize = 14.sp, lineHeight = 25.sp,
                 )
                 Spacer(Modifier.height(10.dp))
-                GStep("🌱", icon = KyonoIcon.Sprout, title = "サボっても だいじょうぶ", body = "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+                GStep("", icon = KyonoIcon.Sprout, title = "サボっても だいじょうぶ", body = "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
                 GStep("⏱", icon = KyonoIcon.HourglassTime, title = "時間がない日は30秒の1本でもOK", body = "「動画を探す」の「時間・シーン」→「ショート」を選べば すぐおわる動画だけ出ます それでも堂々と「きょうやった！」です")
             }
             Spacer(Modifier.height(16.dp))
@@ -382,11 +382,11 @@ fun GuideScreen(
                 open = sectionOpen["gd-myrec"] == true, onToggle = { toggleSection("gd-myrec") },
                 anchorY = anchorY, onBackToToc = { jump("gd-toc") },
             ) {
-                GStep("📅", icon = KyonoIcon.CalendarCheck, title = "カレンダー", body = "やった日に印がつく（×はつきません）")
-                GStep("📏", icon = KyonoIcon.MountainCheck, title = "とどくメーター", body = "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
-                GStep("🎉", icon = KyonoIcon.ConfettiBurst, title = "お楽しみ機能", body = "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                GStep("⚙️", icon = KyonoIcon.Clock, title = "続ける設定", body = "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
-                GStep("🎬", icon = KyonoIcon.Play, title = "（こちらは下のタブ）「再生リスト」タブ", body = "連続再生できるまとめ 流しっぱなしでOK")
+                GStep("", icon = KyonoIcon.CalendarCheck, title = "カレンダー", body = "やった日に印がつく（×はつきません）")
+                GStep("", icon = KyonoIcon.MountainCheck, title = "とどくメーター", body = "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+                GStep("", icon = KyonoIcon.ConfettiBurst, title = "お楽しみ機能", body = "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
+                GStep("", icon = KyonoIcon.Clock, title = "続ける設定", body = "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+                GStep("", icon = KyonoIcon.Play, title = "（こちらは下のタブ）「再生リスト」タブ", body = "連続再生できるまとめ 流しっぱなしでOK")
                 Spacer(Modifier.height(4.dp))
                 KyonoGhostButton("マイ記録タブをひらく", onOpenMyRecord, Modifier.testTag("gdMyrecOpenBtn"))
             }

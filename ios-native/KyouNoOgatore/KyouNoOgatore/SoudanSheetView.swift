@@ -367,13 +367,13 @@ struct SoudanSheetView: View {
         let newPlan = SdPlanData(intentId: id, label: intent.chip, videos: vids, start: today, days: 14)
         store.set("plan", newPlan)
         plan = newPlan
-        let bubble = SdBubble.bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ😊", red: false, videoId: nil)
+        let bubble = SdBubble.bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ", red: false, videoId: nil)
         messages.append(SdMessage(bubble: bubble))
         announceBubble(bubble)
     }
 
     private func planDecline() {
-        let bubble = SdBubble.bot(text: "OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil)
+        let bubble = SdBubble.bot(text: "OK！1本ずつでも十分えらいよ プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil)
         messages.append(SdMessage(bubble: bubble))
         announceBubble(bubble)
     }
@@ -404,7 +404,7 @@ struct SoudanSheetView: View {
         // ホーム構造修正タスクのpresetIntentId自動応答(index.html:3464-3467)より先に出す(Web版と同順)。
         .onAppear {
             if !greeted {
-                let greetBubble = SdBubble.bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね", red: false, videoId: nil)
+                let greetBubble = SdBubble.bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて\n下のチップか、ことばで入力してね", red: false, videoId: nil)
                 messages.append(SdMessage(bubble: greetBubble))
                 announceBubble(greetBubble)
                 onGreeted()
@@ -783,7 +783,7 @@ private struct FallbackLinksView: View {
                 if !copied {
                     KyonoIconGlyph(icon: .clipboardPaste, fill: .clear, accent: colors.tealInk).frame(width: 16, height: 16)
                 }
-                Text(copied ? "コピーしました✅" : "メールがひらかない方はアドレスをコピー")
+                Text(copied ? "コピーしました" : "メールがひらかない方はアドレスをコピー")
                     .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
             }
                 .onTapGesture {
@@ -955,8 +955,8 @@ struct PlanDoneCardView: View {
                 Spacer().frame(height: 8)
                 // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
                 // (bigtextの1.18倍はこの1箇所のみ非適用・影響は軽微)。
-                (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pinkInk).font(.kyono(.black900, size: 15))
-                    + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
+                (Text("\(cache.label)プラン完走！すごい！").foregroundColor(colors.pinkInk).font(.kyono(.black900, size: 15))
+                    + Text("\n\(cache.days)日間続けたの、ほんとにえらい\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
                     .foregroundColor(colors.ink)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, alignment: .center)

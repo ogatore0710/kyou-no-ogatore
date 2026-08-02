@@ -1,0 +1,795 @@
+ios-native/KyouNoOgatore/KyouNoOgatore/SearchView.swift:260
+  OLD: Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+  NEW: Text("いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+ios-native/KyouNoOgatore/KyouNoOgatore/SearchView.swift:418
+  OLD: ? "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます📮"
+  NEW: ? "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます"
+ios-native/KyouNoOgatore/KyouNoOgatore/SearchView.swift:419
+  OLD: : "ごめんなさい まだなかったみたい💦\nリクエストを送ってもらえたら動画づくりの参考にします📮")
+  NEW: : "ごめんなさい まだなかったみたい\nリクエストを送ってもらえたら動画づくりの参考にします")
+ios-native/KyouNoOgatore/KyouNoOgatore/SearchView.swift:436
+  OLD: Text(copied ? "コピーしました✅" : "アドレスをコピー")
+  NEW: Text(copied ? "コピーしました" : "アドレスをコピー")
+ios-native/KyouNoOgatore/KyouNoOgatore/SearchView.swift:560
+  OLD: Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+  NEW: Text("いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+ios-native/KyouNoOgatore/KyouNoOgatore/SearchView.swift:581
+  OLD: Text("タップするとYouTubeで開きます！テレビで流すのもおすすめ📺")
+  NEW: Text("タップするとYouTubeで開きます！テレビで流すのもおすすめ")
+ios-native/KyouNoOgatore/KyouNoOgatore/DailyNotifications.swift:32
+  OLD: AnchorNotif(key: "asa", defaultHour: 7, defaultMinute: 30, body: "おはようございます☀️朝の1本いきましょう！"),
+  NEW: AnchorNotif(key: "asa", defaultHour: 7, defaultMinute: 30, body: "おはようございます朝の1本いきましょう！"),
+ios-native/KyouNoOgatore/KyouNoOgatore/DailyNotifications.swift:33
+  OLD: AnchorNotif(key: "furo", defaultHour: 20, defaultMinute: 30, body: "おふろ上がりの1本いきましょう♨️"),
+  NEW: AnchorNotif(key: "furo", defaultHour: 20, defaultMinute: 30, body: "おふろ上がりの1本いきましょう"),
+ios-native/KyouNoOgatore/KyouNoOgatore/DailyNotifications.swift:34
+  OLD: AnchorNotif(key: "neru", defaultHour: 21, defaultMinute: 30, body: "寝るまえの1本できょうをしめくくりましょう🌙"),
+  NEW: AnchorNotif(key: "neru", defaultHour: 21, defaultMinute: 30, body: "寝るまえの1本できょうをしめくくりましょう"),
+ios-native/KyouNoOgatore/KyouNoOgatore/DailyNotifications.swift:37
+  OLD: AnchorNotif(key: "free", defaultHour: 20, defaultMinute: 0, body: "夜はストレッチにおすすめの時間だよ🌿 きょうの1本どうぞ"),
+  NEW: AnchorNotif(key: "free", defaultHour: 20, defaultMinute: 0, body: "夜はストレッチにおすすめの時間だよ きょうの1本どうぞ"),
+ios-native/KyouNoOgatore/KyouNoOgatore/VoicesView.swift:57
+  OLD: Text("まえを歩くせんぱいたちの ほんとうの声です🌱\nカードをタップするとめくれます")
+  NEW: Text("まえを歩くせんぱいたちの ほんとうの声です\nカードをタップするとめくれます")
+ios-native/KyouNoOgatore/KyouNoOgatore/KyonoComponents.swift:180
+  OLD: Text("通算 \(total) 日" + (brokenNow ? "・きょうやると新しい章のスタート🌱" : (streakCount >= 2 ? "・いま\(streakCount)日連続" : "")))
+  NEW: Text("通算 \(total) 日" + (brokenNow ? "・きょうやると新しい章のスタート" : (streakCount >= 2 ? "・いま\(streakCount)日連続" : "")))
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:30
+  OLD: "ナイスご自愛🎉", "がんばったね！おつかれさまでした✨", "その数分が体を変えます💪",
+  NEW: "ナイスご自愛", "がんばったね！おつかれさまでした", "その数分が体を変えます",
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:31
+  OLD: "イタ気持ちいい できました？😊", "体は正直！ちゃんと応えてくれますよ✨", "昨日の自分より1ミリ前へ🌱",
+  NEW: "イタ気持ちいい できました？", "体は正直！ちゃんと応えてくれますよ", "昨日の自分より1ミリ前へ",
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:364
+  OLD: Text("使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね🌱")
+  NEW: Text("使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:474
+  OLD: Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+  NEW: Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:555
+  OLD: ? "おわったら下の「きょうやった！」を押してね✅"
+  NEW: ? "おわったら下の「きょうやった！」を押してね"
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:575
+  OLD: Text("いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+  NEW: Text("いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:597
+  OLD: (Text("おかえりなさい！また会えてうれしいです🌱").font(.kyono(.black900, size: 17))
+  NEW: (Text("おかえりなさい！また会えてうれしいです").font(.kyono(.black900, size: 17))
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:610
+  OLD: Text("チェックから2週間たったよ🌱\n前屈 どこまで届くようになった？")
+  NEW: Text("チェックから2週間たったよ\n前屈 どこまで届くようになった？")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:641
+  OLD: KyonoBodyText("🌱 はじめの1本ガイド中")
+  NEW: KyonoBodyText("はじめの1本ガイド中")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:687
+  OLD: Text("動画を見おわったら、ここを押してね👇")
+  NEW: Text("動画を見おわったら、ここを押してね")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:693
+  OLD: KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした😊" : "きょうやった！", enabled: !did, flatWhenDisabled: true) {
+  NEW: KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした" : "きょうやった！", enabled: !did, flatWhenDisabled: true) {
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:726
+  OLD: note = "第\(outcome.chapters)章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨"
+  NEW: note = "第\(outcome.chapters)章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い"
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:733
+  OLD: ? "あしたで \(streak.total + 1)日目🎉 おたのしみに！"
+  NEW: ? "あしたで \(streak.total + 1)日目 おたのしみに！"
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:826
+  OLD: Text("🎉 1日目クリア！ナイスご自愛！")
+  NEW: Text("1日目クリア！ナイスご自愛！")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:833
+  OLD: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
+  NEW: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:835
+  OLD: Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）")
+  NEW: Text("よかったら下にきょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:878
+  OLD: Text("🎉 \(milestoneInfo.t)！（通算\(streak.total)日）")
+  NEW: Text("\(milestoneInfo.t)！（通算\(streak.total)日）")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:887
+  OLD: Text("💬 せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.teal)
+  NEW: Text("せんぱいの声").kyonoFont(.black900, size: 13).foregroundColor(colors.teal)
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:934
+  OLD: (Text("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
+  NEW: (Text("いまは効果を感じにくい時期！体は変わり続けていますよ ")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:940
+  OLD: Text("💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ")
+  NEW: Text("1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:947
+  OLD: Text("👇 つぎは ここを押してみて")
+  NEW: Text("つぎは ここを押してみて")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:986
+  OLD: Text("カード画像を保存かシェアでのこしてね📤")
+  NEW: Text("カード画像を保存かシェアでのこしてね")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:1037
+  OLD: ? "メモを消しました" : "メモをのこしました✍️ 記録カードにも入ります"
+  NEW: ? "メモを消しました" : "メモをのこしました 記録カードにも入ります"
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:1065
+  OLD: Text("タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります")
+  NEW: Text("タップするだけ30秒でチェック\nあなたに合うストレッチがわかります")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:1119
+  OLD: Text("からだの悩み\nオガトレに聞いてみて💬")
+  NEW: Text("からだの悩み\nオガトレに聞いてみて")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:1129
+  OLD: Text("👇 タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+  NEW: Text("タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:1204
+  OLD: Text("相談室でつくった2週間プランの1本だよ🌱")
+  NEW: Text("相談室でつくった2週間プランの1本だよ")
+ios-native/KyouNoOgatore/KyouNoOgatore/HomeView.swift:1234
+  OLD: Text("動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね✅")
+  NEW: Text("動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね")
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:39
+  OLD: "最初に4つだけ教えてね！あなた用にこのアプリをととのえます☺️",
+  NEW: "最初に4つだけ教えてね！あなた用にこのアプリをととのえます",
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:64
+  OLD: "asa": "朝おきてすぐだね☀️ ホームにも覚えさせたよ📝",
+  NEW: "asa": "朝おきてすぐだね ホームにも覚えさせたよ",
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:65
+  OLD: "furo": "おふろ上がりは体もほぐれてて効果的👍 覚えたよ📝",
+  NEW: "furo": "おふろ上がりは体もほぐれてて効果的 覚えたよ",
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:66
+  OLD: "neru": "寝るまえの1本はねむりにも効くよ🌙 覚えたよ📝",
+  NEW: "neru": "寝るまえの1本はねむりにも効くよ 覚えたよ",
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:67
+  OLD: "free": "きめなくてもOK！そのつどでだいじょうぶ😊",
+  NEW: "free": "きめなくてもOK！そのつどでだいじょうぶ",
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:86
+  OLD: "today": ObRouteInfo(say: ["じゃあ今日の1本から！むずかしいことはなしだよ👍"], btn: "きょうの1本を見る"),
+  NEW: "today": ObRouteInfo(say: ["じゃあ今日の1本から！むずかしいことはなしだよ"], btn: "きょうの1本を見る"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:212
+  OLD: await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ📝"])
+  NEW: await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ"])
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:272
+  OLD: Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+  NEW: Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:280
+  OLD: Text("🌱 はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+  NEW: Text("はじめてガイド").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:327
+  OLD: Text("👇 タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+  NEW: Text("タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:707
+  OLD: Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+  NEW: Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:739
+  OLD: Text("👇 タップしてえらんでね").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+  NEW: Text("タップしてえらんでね").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1043
+  OLD: Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+  NEW: Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1073
+  OLD: Text("🌱 " + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+  NEW: Text("" + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1081
+  OLD: Text("🩺 理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+  NEW: Text("理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1120
+  OLD: FdBobText("👇 ここを押してみて")
+  NEW: FdBobText("ここを押してみて")
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1130
+  OLD: Text("あと2本とくわしい解説は あしたから見られるよ🌱")
+  NEW: Text("あと2本とくわしい解説は あしたから見られるよ")
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1175
+  OLD: Text("🩺 ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+  NEW: Text("ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1204
+  OLD: Text("おかえりなさい！✨ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+  NEW: Text("おかえりなさい！ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1208
+  OLD: fdGuideActive ? "✅ 1日目の記録をつけにいく" : "✅ きょうの記録をつけにいく",
+  NEW: fdGuideActive ? "1日目の記録をつけにいく" : "きょうの記録をつけにいく",
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1218
+  OLD: Text("🎉 1日目クリア！ナイスご自愛！")
+  NEW: Text("1日目クリア！ナイスご自愛！")
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1221
+  OLD: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖")
+  NEW: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく")
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1227
+  OLD: KyonoGhostButton("📖 つづき：使い方ツアーへ", action: onStartTour)
+  NEW: KyonoGhostButton("つづき：使い方ツアーへ", action: onStartTour)
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1297
+  OLD: TourSlideDef(title: "📺 まいにち1本、動画をやる", desc: "ホームの「きょうの1本」をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"),
+  NEW: TourSlideDef(title: "まいにち1本、動画をやる", desc: "ホームの「きょうの1本」をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1298
+  OLD: TourSlideDef(title: "✅ おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚の🎫おやすみ券が自動で連続を守ってくれるよ"),
+  NEW: TourSlideDef(title: "おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚のおやすみ券が自動で連続を守ってくれるよ"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1299
+  OLD: TourSlideDef(title: "📇 記録カードをつくる", desc: "「きょうやった！」のあと「記録カードを画像でのこす」を押す→「保存・シェアする」で写真に保存📷 SNSやコメント欄にもどうぞ"),
+  NEW: TourSlideDef(title: "記録カードをつくる", desc: "「きょうやった！」のあと「記録カードを画像でのこす」を押す→「保存・シェアする」で写真に保存 SNSやコメント欄にもどうぞ"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1300
+  OLD: TourSlideDef(title: "📖 ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→🎉お楽しみ機能）"),
+  NEW: TourSlideDef(title: "ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1301
+  OLD: TourSlideDef(title: "💬 悩みは相談室で質問", desc: "右下の💬ボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
+  NEW: TourSlideDef(title: "悩みは相談室で質問", desc: "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1302
+  OLD: TourSlideDef(title: "📣 オガトレ通信をのぞく", desc: "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります✅"),
+  NEW: TourSlideDef(title: "オガトレ通信をのぞく", desc: "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1306
+  OLD: TourSlideDef(title: "📅 マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ） 📏とどくメーターと🎉じまんカード・💬せんぱいの声・📔ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ📅"),
+  NEW: TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ） とどくメーターとじまんカード・せんぱいの声・ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1307
+  OLD: TourSlideDef(title: "📖 忘れてもだいじょうぶ", desc: "困ったらいつでも読み返せるよ！ 使い方タブの「📖 使い方ツアー」からね"),
+  NEW: TourSlideDef(title: "忘れてもだいじょうぶ", desc: "困ったらいつでも読み返せるよ！ 使い方タブの「 使い方ツアー」からね"),
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1309
+  OLD: let obTourClosingTitle = "🌱 これで準備ばっちり！"
+  NEW: let obTourClosingTitle = "これで準備ばっちり！"
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1312
+  OLD: let obTourClosingDesc = "あしたも待ってるね🌱 きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ💪"
+  NEW: let obTourClosingDesc = "あしたも待ってるね きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ"
+ios-native/KyouNoOgatore/KyouNoOgatore/OnboardingViews.swift:1362
+  OLD: Text("📖 使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+  NEW: Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/ObuView.swift:62
+  OLD: Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱")
+  NEW: Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます")
+ios-native/KyouNoOgatore/KyouNoOgatore/ObuView.swift:66
+  OLD: Text("まだ投稿がありません また今度のぞいてみてね🌱")
+  NEW: Text("まだ投稿がありません また今度のぞいてみてね")
+ios-native/KyouNoOgatore/KyouNoOgatore/ObuView.swift:123
+  OLD: if let title = post.title { Text("📻 \(title)").kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk) }
+  NEW: if let title = post.title { Text("\(title)").kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk) }
+ios-native/KyouNoOgatore/KyouNoOgatore/ObuView.swift:220
+  OLD: Text("🎧 音声を読み込めませんでした").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+  NEW: Text("音声を読み込めませんでした").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+ios-native/KyouNoOgatore/KyouNoOgatore/ObuView.swift:277
+  OLD: Text("まだ投稿がありません また今度のぞいてみてね🌱")
+  NEW: Text("まだ投稿がありません また今度のぞいてみてね")
+ios-native/KyouNoOgatore/KyouNoOgatore/SoudanSheetView.swift:370
+  OLD: let bubble = SdBubble.bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ😊", red: false, videoId: nil)
+  NEW: let bubble = SdBubble.bot(text: "よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が\(intent.chip)用になったよ", red: false, videoId: nil)
+ios-native/KyouNoOgatore/KyouNoOgatore/SoudanSheetView.swift:376
+  OLD: let bubble = SdBubble.bot(text: "OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil)
+  NEW: let bubble = SdBubble.bot(text: "OK！1本ずつでも十分えらいよ プランにしたくなったら、いつでもここから組めるからね", red: false, videoId: nil)
+ios-native/KyouNoOgatore/KyouNoOgatore/SoudanSheetView.swift:407
+  OLD: let greetBubble = SdBubble.bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね", red: false, videoId: nil)
+  NEW: let greetBubble = SdBubble.bot(text: "こんにちは、オガトレです！からだの悩み、なんでも聞かせて\n下のチップか、ことばで入力してね", red: false, videoId: nil)
+ios-native/KyouNoOgatore/KyouNoOgatore/SoudanSheetView.swift:786
+  OLD: Text(copied ? "コピーしました✅" : "メールがひらかない方はアドレスをコピー")
+  NEW: Text(copied ? "コピーしました" : "メールがひらかない方はアドレスをコピー")
+ios-native/KyouNoOgatore/KyouNoOgatore/SoudanSheetView.swift:958
+  OLD: (Text("🎉 \(cache.label)プラン完走！すごい！").foregroundColor(colors.pinkInk).font(.kyono(.black900, size: 15))
+  NEW: (Text("\(cache.label)プラン完走！すごい！").foregroundColor(colors.pinkInk).font(.kyono(.black900, size: 15))
+ios-native/KyouNoOgatore/KyouNoOgatore/SoudanSheetView.swift:959
+  OLD: + Text("\n\(cache.days)日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
+  NEW: + Text("\n\(cache.days)日間続けたの、ほんとにえらい\n体はちゃんと応えてくれてるよ").font(.kyono(.bold700, size: 15)))
+ios-native/KyouNoOgatore/KyouNoOgatore/KyonoTourMockups.swift:92
+  OLD: Text("それはつらいね…！まずはこの1本からやってみよう😊").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+  NEW: Text("それはつらいね…！まずはこの1本からやってみよう").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/KyonoTourMockups.swift:107
+  OLD: Text("ひとこと・写真・ラジオ📻").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+  NEW: Text("ひとこと・写真・ラジオ").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:120
+  OLD: Text("せっかくの節目！記録のひかえを取っておくと あんしんです📦")
+  NEW: Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:228
+  OLD: + Text("」は通算\(next)日目🌱 マイペースでどうぞ"))
+  NEW: + Text("」は通算\(next)日目 マイペースでどうぞ"))
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:318
+  OLD: Text("✍️ \(memo)").kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+  NEW: Text("\(memo)").kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:324
+  OLD: Text("🖼 この日の記録カードを見る")
+  NEW: Text("この日の記録カードを見る")
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:347
+  OLD: Text("いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ🏥）")
+  NEW: Text("いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ）")
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:392
+  OLD: reachMsg = Text("🎉 自己ベスト更新！「\(reachLv[lv])」").fontWeight(.black).foregroundColor(colors.pinkInk)
+  NEW: reachMsg = Text("自己ベスト更新！「\(reachLv[lv])」").fontWeight(.black).foregroundColor(colors.pinkInk)
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:423
+  OLD: + Text("\(diff)段とどくようになった！🎉").fontWeight(.black).foregroundColor(colors.pinkInk))
+  NEW: + Text("\(diff)段とどくようになった！").fontWeight(.black).foregroundColor(colors.pinkInk))
+ios-native/KyouNoOgatore/KyouNoOgatore/MyRecordView.swift:429
+  OLD: Text("体は日によってちがうもの またコツコツいきましょう🌱")
+  NEW: Text("体は日によってちがうもの またコツコツいきましょう")
+ios-native/KyouNoOgatore/KyouNoOgatore/KyouNoOgatoreApp.swift:293
+  OLD: emoji: "📣", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo",
+  NEW: emoji: "", borderColor: Color(hex: 0xFFD93B), accessibilityLabelText: "オガトレ通信", photoResName: "obu-fab-photo",
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:39
+  OLD: FaqItem(q: "電波がないところでも使える？", a: "アプリをひらいて「きょうやった！」の記録はできます✅ 動画の再生だけ電波が必要です"),
+  NEW: FaqItem(q: "電波がないところでも使える？", a: "アプリをひらいて「きょうやった！」の記録はできます 動画の再生だけ電波が必要です"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:41
+  OLD: FaqItem(q: "古いスマホでも使えるの？", a: "だいたいの端末で使えます！ただしかなり古いタイプだと オフラインでの記録やホーム画面への追加がうまくいかないことがあります📱 その場合もアプリ自体はふつうに使えるのでご安心を"),
+  NEW: FaqItem(q: "古いスマホでも使えるの？", a: "だいたいの端末で使えます！ただしかなり古いタイプだと オフラインでの記録やホーム画面への追加がうまくいかないことがあります その場合もアプリ自体はふつうに使えるのでご安心を"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:44
+  OLD: a: "📱iPhone: 画面いちばん下の共有ボタン→下にスクロール→「ホーム画面に追加」→右上の「追加」\n🤖Android: 右上の「⋮」→「ホーム画面に追加」→「追加」",
+  NEW: a: "iPhone: 画面いちばん下の共有ボタン→下にスクロール→「ホーム画面に追加」→右上の「追加」\nAndroid: 右上の「⋮」→「ホーム画面に追加」→「追加」",
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:51
+  OLD: FaqItem(q: "おやすみ券ってなに？", a: "毎月3枚もらえる「お休みしてもいい券」🎫 休んだ日に自動でつかわれて連続がつながります 使い切っても通算日数はぜったい消えません"),
+  NEW: FaqItem(q: "おやすみ券ってなに？", a: "毎月3枚もらえる「お休みしてもいい券」 休んだ日に自動でつかわれて連続がつながります 使い切っても通算日数はぜったい消えません"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:52
+  OLD: FaqItem(q: "連続が切れちゃった…", a: "通算日数は消えていません！「第2章のスタート」としてまた始まるだけ 戻ってくる人がいちばん強いんです✨"),
+  NEW: FaqItem(q: "連続が切れちゃった…", a: "通算日数は消えていません！「第2章のスタート」としてまた始まるだけ 戻ってくる人がいちばん強いんです"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:54
+  OLD: FaqItem(q: "1日に2本やったら2日分になる？", a: "記録は1日1回です 2本目はからだへのボーナス💪"),
+  NEW: FaqItem(q: "1日に2本やったら2日分になる？", a: "記録は1日1回です 2本目はからだへのボーナス"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:57
+  OLD: a: "LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ✅ おひっこしは「記録をコピー」→「よみこむ」で",
+  NEW: a: "LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ おひっこしは「記録をコピー」→「よみこむ」で",
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:72
+  OLD: FaqItem(q: "やりたいストレッチが見つからない", a: "「動画を探す」のいちばん下からリクエストを送れます📮 相談室で悩みを打ってみるのも近道です"),
+  NEW: FaqItem(q: "やりたいストレッチが見つからない", a: "「動画を探す」のいちばん下からリクエストを送れます 相談室で悩みを打ってみるのも近道です"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:75
+  OLD: FaqItem(q: "文字の大きさは変えられる？", a: "マイ記録→続ける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠"),
+  NEW: FaqItem(q: "文字の大きさは変えられる？", a: "マイ記録→続ける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:76
+  OLD: FaqItem(q: "画面を暗くしたい（ダークモード）", a: "マイ記録→続ける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙"),
+  NEW: FaqItem(q: "画面を暗くしたい（ダークモード）", a: "マイ記録→続ける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:77
+  OLD: FaqItem(q: "じまんカードが見つからない", a: "マイ記録の「🎉お楽しみ機能」を開くと出てきます💗"),
+  NEW: FaqItem(q: "じまんカードが見つからない", a: "マイ記録の「お楽しみ機能」を開くと出てきます"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:81
+  OLD: FaqItem(q: "とどくメーターは毎日やるの？", a: "週1回くらいでOK！のびていく証拠づくりです📏"),
+  NEW: FaqItem(q: "とどくメーターは毎日やるの？", a: "週1回くらいでOK！のびていく証拠づくりです"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideData.swift:82
+  OLD: FaqItem(q: "使い方をもう一度おしえてほしい", a: "この使い方タブのいちばん上からどうぞ 「🌱 はじめてガイドをもう一度」は最初の質問から 「📖 使い方ツアー」は機能の説明だけを1つずつ見られます"),
+  NEW: FaqItem(q: "使い方をもう一度おしえてほしい", a: "この使い方タブのいちばん上からどうぞ 「 はじめてガイドをもう一度」は最初の質問から 「 使い方ツアー」は機能の説明だけを1つずつ見られます"),
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:165
+  OLD: Text("📖 使い方ツアー")
+  NEW: Text("使い方ツアー")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:226
+  OLD: KyonoGhostButton("🩹 ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
+  NEW: KyonoGhostButton("ストレッチ中に痛かった") { jumpToFaq(proxy, groupTitle: "きょうの1本・相談室", itemQ: "ストレッチ中に痛かったら？") }
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:245
+  OLD: GStep(marker: "💬", icon: .soudanBubble, title: "オガトレ相談室", body: "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
+  NEW: GStep(marker: "", icon: .soudanBubble, title: "オガトレ相談室", body: "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下のボタンか ホームのカードからいつでもどうぞ")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:246
+  OLD: GStep(marker: "🎯", icon: .goalFlag, title: "2週間プラン", body: "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+  NEW: GStep(marker: "", icon: .goalFlag, title: "2週間プラン", body: "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:265
+  OLD: Text("おわったら✍️ ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです")
+  NEW: Text("おわったら ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:268
+  OLD: GStep(marker: "💬", icon: .obuBubble, title: "オガトレ通信", body: "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
+  NEW: GStep(marker: "", icon: .obuBubble, title: "オガトレ通信", body: "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます「もっと見る」で過去ぶんも全部よめます")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:288
+  OLD: GStep(marker: "2", title: "記録カードを画像で保存", body: "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます👀") {
+  NEW: GStep(marker: "2", title: "記録カードを画像で保存", body: "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます") {
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:300
+  OLD: GStep(marker: "🎫", icon: .ticketStub, title: "おやすみ券が毎月3枚", body: "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
+  NEW: GStep(marker: "", icon: .ticketStub, title: "おやすみ券が毎月3枚", body: "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:301
+  OLD: GStep(marker: "👑", icon: .crownBadge, title: "節目はゴールドカード", body: "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
+  NEW: GStep(marker: "", icon: .crownBadge, title: "節目はゴールドカード", body: "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:308
+  OLD: Text("記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「🎉お楽しみ機能」の中にあるカード図鑑📖でいつでも見返せます")
+  NEW: Text("記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「お楽しみ機能」の中にあるカード図鑑でいつでも見返せます")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:311
+  OLD: GStep(marker: "🌱", icon: .sprout, title: "サボっても だいじょうぶ", body: "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+  NEW: GStep(marker: "", icon: .sprout, title: "サボっても だいじょうぶ", body: "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:321
+  OLD: GStep(marker: "📅", icon: .calendarCheck, title: "カレンダー", body: "やった日に印がつく（×はつきません）")
+  NEW: GStep(marker: "", icon: .calendarCheck, title: "カレンダー", body: "やった日に印がつく（×はつきません）")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:322
+  OLD: GStep(marker: "📏", icon: .mountainCheck, title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+  NEW: GStep(marker: "", icon: .mountainCheck, title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:323
+  OLD: GStep(marker: "🎉", icon: .confettiBurst, title: "お楽しみ機能", body: "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
+  NEW: GStep(marker: "", icon: .confettiBurst, title: "お楽しみ機能", body: "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:324
+  OLD: GStep(marker: "⚙️", icon: .clock, title: "続ける設定", body: "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+  NEW: GStep(marker: "", icon: .clock, title: "続ける設定", body: "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+ios-native/KyouNoOgatore/KyouNoOgatore/GuideView.swift:325
+  OLD: GStep(marker: "🎬", icon: .play, title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
+  NEW: GStep(marker: "", icon: .play, title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
+ios-native/KyouNoOgatore/KyouNoOgatore/BragView.swift:97
+  OLD: Text("続けてる日数と すきな1本を 1枚のカードに✨\nできたカードは保存やSNS投稿ができます")
+  NEW: Text("続けてる日数と すきな1本を 1枚のカードに\nできたカードは保存やSNS投稿ができます")
+ios-native/KyouNoOgatore/KyouNoOgatore/BragView.swift:120
+  OLD: Text("すきな1本をさがす🎬").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
+  NEW: Text("すきな1本をさがす").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
+ios-native/KyouNoOgatore/KyouNoOgatore/BragView.swift:151
+  OLD: KyonoPrimaryButton("カードをつくる✨", enabled: !makingCard) {
+  NEW: KyonoPrimaryButton("カードをつくる", enabled: !makingCard) {
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/KyonoTourMockups.kt:118
+  OLD: "それはつらいね…！まずはこの1本からやってみよう😊", color = colors.ink,
+  NEW: "それはつらいね…！まずはこの1本からやってみよう", color = colors.ink,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/KyonoTourMockups.kt:132
+  OLD: Text("ひとこと・写真・ラジオ📻", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+  NEW: Text("ひとこと・写真・ラジオ", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/VoicesScreen.kt:64
+  OLD: "まえを歩くせんぱいたちの ほんとうの声です🌱\nカードをタップするとめくれます",
+  NEW: "まえを歩くせんぱいたちの ほんとうの声です\nカードをタップするとめくれます",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:504
+  OLD: "📣", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo",
+  NEW: "", colors.yellow, contentDescription = "オガトレ通信", photoResName = "obu_fab_photo",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:746
+  OLD: "ナイスご自愛🎉", "がんばったね！おつかれさまでした✨", "その数分が体を変えます💪",
+  NEW: "ナイスご自愛", "がんばったね！おつかれさまでした", "その数分が体を変えます",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:747
+  OLD: "イタ気持ちいい できました？😊", "体は正直！ちゃんと応えてくれますよ✨", "昨日の自分より1ミリ前へ🌱",
+  NEW: "イタ気持ちいい できました？", "体は正直！ちゃんと応えてくれますよ", "昨日の自分より1ミリ前へ",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:838
+  OLD: "相談室でつくった2週間プランの1本だよ🌱", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
+  NEW: "相談室でつくった2週間プランの1本だよ", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:869
+  OLD: "動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね✅",
+  NEW: "動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1198
+  OLD: if (showReturnNudge) "おわったら下の「きょうやった！」を押してね✅"
+  NEW: if (showReturnNudge) "おわったら下の「きょうやった！」を押してね"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1218
+  OLD: "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+  NEW: "いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1256
+  OLD: withStyle(SpanStyle(fontWeight = FontWeight.Black, fontSize = 17.sp)) { append("おかえりなさい！また会えてうれしいです🌱") }
+  NEW: withStyle(SpanStyle(fontWeight = FontWeight.Black, fontSize = 17.sp)) { append("おかえりなさい！また会えてうれしいです") }
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1275
+  OLD: "チェックから2週間たったよ🌱\n前屈 どこまで届くようになった？",
+  NEW: "チェックから2週間たったよ\n前屈 どこまで届くようになった？",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1331
+  OLD: Text("🌱 はじめの1本ガイド中", color = colors.ink, modifier = Modifier.testTag("fdBanner"))
+  NEW: Text("はじめの1本ガイド中", color = colors.ink, modifier = Modifier.testTag("fdBanner"))
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1381
+  OLD: streakBrokenNow -> "・きょうやると新しい章のスタート🌱"
+  NEW: streakBrokenNow -> "・きょうやると新しい章のスタート"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1394
+  OLD: "動画を見おわったら、ここを押してね👇", color = colors.pinkInk, fontSize = 14.sp,
+  NEW: "動画を見おわったら、ここを押してね", color = colors.pinkInk, fontSize = 14.sp,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1413
+  OLD: if (did) "きょうの分は完了！おつかれさまでした😊" else "きょうやった！",
+  NEW: if (did) "きょうの分は完了！おつかれさまでした" else "きょうやった！",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1439
+  OLD: "第${outcome.chapters}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い✨"
+  NEW: "第${outcome.chapters}章のスタート！通算はぜんぶ残ってます 戻ってくる人がいちばん強い"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1445
+  OLD: "あしたで ${streak.total + 1}日目🎉 おたのしみに！"
+  NEW: "あしたで ${streak.total + 1}日目 おたのしみに！"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1543
+  OLD: Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
+  NEW: Text("1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1549
+  OLD: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖", color = colors.ink, fontSize = 14.sp)
+  NEW: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく", color = colors.ink, fontSize = 14.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1551
+  OLD: Text("よかったら下に✍️きょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）", color = colors.ink, fontSize = 14.sp)
+  NEW: Text("よかったら下にきょうのひとことをどうぞ からだの感じをひとことでOK（あとからでもいいよ）", color = colors.ink, fontSize = 14.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1607
+  OLD: "🎉 ${ms.t}！（通算${streak.total}日）",
+  NEW: "${ms.t}！（通算${streak.total}日）",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1624
+  OLD: Text("💬 せんぱいの声", color = colors.teal, fontSize = 13.sp, fontWeight = FontWeight.Black)
+  NEW: Text("せんぱいの声", color = colors.teal, fontSize = 13.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1680
+  OLD: memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました✍️ 記録カードにも入ります"
+  NEW: memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました 記録カードにも入ります"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1696
+  OLD: streak.total in 12..16 -> "💡 いまは効果を感じにくい時期！体は変わり続けていますよ とどくメーターで確かめてみて"
+  NEW: streak.total in 12..16 -> "いまは効果を感じにくい時期！体は変わり続けていますよ とどくメーターで確かめてみて"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1697
+  OLD: streak.total in 28..34 -> "💡 1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ"
+  NEW: streak.total in 28..34 -> "1ヶ月ちかくまで来ました この時期を過ぎると変化を感じた報告がぐっと増えますよ のんびりどうぞ"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1707
+  OLD: append("💡 いまは効果を感じにくい時期！体は変わり続けていますよ ")
+  NEW: append("いまは効果を感じにくい時期！体は変わり続けていますよ ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1724
+  OLD: "👇 つぎは ここを押してみて", color = colors.pinkInk, fontSize = 14.sp,
+  NEW: "つぎは ここを押してみて", color = colors.pinkInk, fontSize = 14.sp,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1769
+  OLD: "カード画像を保存かシェアでのこしてね📤", color = colors.sub, fontSize = 13.sp,
+  NEW: "カード画像を保存かシェアでのこしてね", color = colors.sub, fontSize = 13.sp,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1873
+  OLD: "使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね🌱",
+  NEW: "使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1952
+  OLD: "せっかくの節目！記録のひかえを取っておくと あんしんです📦",
+  NEW: "せっかくの節目！記録のひかえを取っておくと あんしんです",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:1994
+  OLD: "タップするだけ30秒でチェック✅\nあなたに合うストレッチがわかります",
+  NEW: "タップするだけ30秒でチェック\nあなたに合うストレッチがわかります",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2042
+  OLD: "からだの悩み\nオガトレに聞いてみて💬", color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp,
+  NEW: "からだの悩み\nオガトレに聞いてみて", color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2050
+  OLD: Text("👇 タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
+  NEW: Text("タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2149
+  OLD: append("」は通算${next}日目🌱 マイペースでどうぞ")
+  NEW: append("」は通算${next}日目 マイペースでどうぞ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2313
+  OLD: Text("✍️ $memo", color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("dayMemoText"))
+  NEW: Text("$memo", color = colors.ink, fontSize = 14.sp, modifier = Modifier.testTag("dayMemoText"))
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2322
+  OLD: "🖼 この日の記録カードを見る", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+  NEW: "この日の記録カードを見る", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2345
+  OLD: "いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ🏥）",
+  NEW: "いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ）",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2394
+  OLD: append("🎉 自己ベスト更新！「${REACH_LV[lv]}」")
+  NEW: append("自己ベスト更新！「${REACH_LV[lv]}」")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2450
+  OLD: withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.pinkInk)) { append("${diff}段とどくようになった！🎉") }
+  NEW: withStyle(SpanStyle(fontWeight = FontWeight.Black, color = colors.pinkInk)) { append("${diff}段とどくようになった！") }
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2459
+  OLD: "体は日によってちがうもの またコツコツいきましょう🌱",
+  NEW: "体は日によってちがうもの またコツコツいきましょう",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/MainActivity.kt:2581
+  OLD: "せっかくの節目！記録のひかえを取っておくと あんしんです📦",
+  NEW: "せっかくの節目！記録のひかえを取っておくと あんしんです",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/DailyNotifications.kt:29
+  OLD: AnchorNotif("asa", 7, 30, "おはようございます☀️朝の1本いきましょう！"),
+  NEW: AnchorNotif("asa", 7, 30, "おはようございます朝の1本いきましょう！"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/DailyNotifications.kt:30
+  OLD: AnchorNotif("furo", 20, 30, "おふろ上がりの1本いきましょう♨️"),
+  NEW: AnchorNotif("furo", 20, 30, "おふろ上がりの1本いきましょう"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/DailyNotifications.kt:31
+  OLD: AnchorNotif("neru", 21, 30, "寝るまえの1本できょうをしめくくりましょう🌙"),
+  NEW: AnchorNotif("neru", 21, 30, "寝るまえの1本できょうをしめくくりましょう"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/DailyNotifications.kt:34
+  OLD: AnchorNotif("free", 20, 0, "夜はストレッチにおすすめの時間だよ🌿 きょうの1本どうぞ"),
+  NEW: AnchorNotif("free", 20, 0, "夜はストレッチにおすすめの時間だよ きょうの1本どうぞ"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SettingsScreen.kt:560
+  OLD: "🧪 [検証用] ウィジェットをホームに追加",
+  NEW: "[検証用] ウィジェットをホームに追加",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:112
+  OLD: "最初に4つだけ教えてね！あなた用にこのアプリをととのえます☺️",
+  NEW: "最初に4つだけ教えてね！あなた用にこのアプリをととのえます",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:137
+  OLD: "asa" to "朝おきてすぐだね☀️ ホームにも覚えさせたよ📝",
+  NEW: "asa" to "朝おきてすぐだね ホームにも覚えさせたよ",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:138
+  OLD: "furo" to "おふろ上がりは体もほぐれてて効果的👍 覚えたよ📝",
+  NEW: "furo" to "おふろ上がりは体もほぐれてて効果的 覚えたよ",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:139
+  OLD: "neru" to "寝るまえの1本はねむりにも効くよ🌙 覚えたよ📝",
+  NEW: "neru" to "寝るまえの1本はねむりにも効くよ 覚えたよ",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:140
+  OLD: "free" to "きめなくてもOK！そのつどでだいじょうぶ😊",
+  NEW: "free" to "きめなくてもOK！そのつどでだいじょうぶ",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:152
+  OLD: "today" to ObRouteInfo(listOf("じゃあ今日の1本から！むずかしいことはなしだよ👍"), "きょうの1本を見る"),
+  NEW: "today" to ObRouteInfo(listOf("じゃあ今日の1本から！むずかしいことはなしだよ"), "きょうの1本を見る"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:265
+  OLD: "anchor" -> say(listOf(OB_ANCHOR_ACK[picked.v] ?: "OK！おぼえたよ📝"))
+  NEW: "anchor" -> say(listOf(OB_ANCHOR_ACK[picked.v] ?: "OK！おぼえたよ"))
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:317
+  OLD: "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+  NEW: "使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:326
+  OLD: Text("🌱 はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
+  NEW: Text("はじめてガイド", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("obTitle"))
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:389
+  OLD: Text("👇 タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
+  NEW: Text("タップしてえらんでね", color = colors.sub, fontSize = 12.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:744
+  OLD: "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+  NEW: "使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:789
+  OLD: Text("👇 タップしてえらんでね", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+  NEW: Text("タップしてえらんでね", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1080
+  OLD: Text("🌱 " + info.hope, color = colors.ink, fontSize = 15.sp)
+  NEW: Text("" + info.hope, color = colors.ink, fontSize = 15.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1085
+  OLD: Text("🩺 理学療法士のひとくち解説", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+  NEW: Text("理学療法士のひとくち解説", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1145
+  OLD: "👇 ここを押してみて", color = colors.pinkInk, fontSize = 15.sp, fontWeight = FontWeight.Black,
+  NEW: "ここを押してみて", color = colors.pinkInk, fontSize = 15.sp, fontWeight = FontWeight.Black,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1162
+  OLD: "あと2本とくわしい解説は あしたから見られるよ🌱", color = colors.sub, fontSize = 13.sp,
+  NEW: "あと2本とくわしい解説は あしたから見られるよ", color = colors.sub, fontSize = 13.sp,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1219
+  OLD: Text("🩺 ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
+  NEW: Text("ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1259
+  OLD: Text("おかえりなさい！✨ ストレッチできた？", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
+  NEW: Text("おかえりなさい！ ストレッチできた？", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1263
+  OLD: if (fdGuideActive) "✅ 1日目の記録をつけにいく" else "✅ きょうの記録をつけにいく",
+  NEW: if (fdGuideActive) "1日目の記録をつけにいく" else "きょうの記録をつけにいく",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1273
+  OLD: Text("🎉 1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
+  NEW: Text("1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1275
+  OLD: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく📖", color = colors.ink, fontSize = 14.sp)
+  NEW: Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく", color = colors.ink, fontSize = 14.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1281
+  OLD: KyonoGhostButton("📖 つづき：使い方ツアーへ", onStartTour, Modifier.testTag("rTourBtn"))
+  NEW: KyonoGhostButton("つづき：使い方ツアーへ", onStartTour, Modifier.testTag("rTourBtn"))
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1311
+  OLD: "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+  NEW: "使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1355
+  OLD: TourSlideDef("📺 まいにち1本、動画をやる", "ホームの「きょうの1本」をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"),
+  NEW: TourSlideDef("まいにち1本、動画をやる", "ホームの「きょうの1本」をタップ→YouTubeがひらくよ 見おわったらこのアプリにもどってきてね"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1356
+  OLD: TourSlideDef("✅ おわったら「きょうやった！」", "アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚の🎫おやすみ券が自動で連続を守ってくれるよ"),
+  NEW: TourSlideDef("おわったら「きょうやった！」", "アプリにもどったらこのボタンを押すだけ 連続と通算がのびるよ 休んでも毎月3枚のおやすみ券が自動で連続を守ってくれるよ"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1357
+  OLD: TourSlideDef("📇 記録カードをつくる", "「きょうやった！」のあと「記録カードを画像でのこす」を押す→「保存・シェアする」で写真に保存📷 SNSやコメント欄にもどうぞ"),
+  NEW: TourSlideDef("記録カードをつくる", "「きょうやった！」のあと「記録カードを画像でのこす」を押す→「保存・シェアする」で写真に保存 SNSやコメント欄にもどうぞ"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1358
+  OLD: TourSlideDef("📖 ためると図鑑がうまる", "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→🎉お楽しみ機能）"),
+  NEW: TourSlideDef("ためると図鑑がうまる", "記録カードは記念日・季節・レアなど何種類もあるよ 毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1359
+  OLD: TourSlideDef("💬 悩みは相談室で質問", "右下の💬ボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
+  NEW: TourSlideDef("悩みは相談室で質問", "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ オガトレ監修の答えとおすすめ動画がすぐ届くよ"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1360
+  OLD: TourSlideDef("📣 オガトレ通信をのぞく", "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります✅"),
+  NEW: TourSlideDef("オガトレ通信をのぞく", "尾形さんからのお知らせが届くよ ホームいちばん上の「きょうのひとこと」も毎日かわります"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1364
+  OLD: TourSlideDef("📅 マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ） 📏とどくメーターと🎉じまんカード・💬せんぱいの声・📔ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ📅"),
+  NEW: TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ） とどくメーターとじまんカード・せんぱいの声・ひとことにっき もこのタブから見られるよ 毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1365
+  OLD: TourSlideDef("📖 忘れてもだいじょうぶ", "困ったらいつでも読み返せるよ！ 使い方タブの「📖 使い方ツアー」からね"),
+  NEW: TourSlideDef("忘れてもだいじょうぶ", "困ったらいつでも読み返せるよ！ 使い方タブの「 使い方ツアー」からね"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1367
+  OLD: const val OB_TOUR_CLOSING_TITLE = "🌱 これで準備ばっちり！"
+  NEW: const val OB_TOUR_CLOSING_TITLE = "これで準備ばっちり！"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1370
+  OLD: const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね🌱 きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ💪"
+  NEW: const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね きょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/OnboardingScreens.kt:1402
+  OLD: "📖 使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+  NEW: "使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/ObuScreen.kt:88
+  OLD: Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます🌱", color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp)
+  NEW: Text("尾形さんからの ひとこと・写真・ラジオを ぜんぶまとめて見られます", color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/ObuScreen.kt:93
+  OLD: "まだ投稿がありません また今度のぞいてみてね🌱",
+  NEW: "まだ投稿がありません また今度のぞいてみてね",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/ObuScreen.kt:158
+  OLD: Text("📻 $it", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 6.dp))
+  NEW: Text("$it", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 6.dp))
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/ObuScreen.kt:181
+  OLD: Text("🎧 音声を読み込めませんでした", color = colors.sub, fontSize = 12.sp, modifier = modifier)
+  NEW: Text("音声を読み込めませんでした", color = colors.sub, fontSize = 12.sp, modifier = modifier)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/ObuScreen.kt:292
+  OLD: "まだ投稿がありません また今度のぞいてみてね🌱",
+  NEW: "まだ投稿がありません また今度のぞいてみてね",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SearchScreen.kt:279
+  OLD: "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+  NEW: "いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SearchScreen.kt:483
+  OLD: if (shown) "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます📮"
+  NEW: if (shown) "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SearchScreen.kt:484
+  OLD: else "ごめんなさい まだなかったみたい💦\nリクエストを送ってもらえたら動画づくりの参考にします📮",
+  NEW: else "ごめんなさい まだなかったみたい\nリクエストを送ってもらえたら動画づくりの参考にします",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SearchScreen.kt:520
+  OLD: if (copied) "コピーしました✅" else "アドレスをコピー",
+  NEW: if (copied) "コピーしました" else "アドレスをコピー",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SearchScreen.kt:621
+  OLD: "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+  NEW: "いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SearchScreen.kt:654
+  OLD: "タップするとYouTubeで開きます！テレビで流すのもおすすめ📺",
+  NEW: "タップするとYouTubeで開きます！テレビで流すのもおすすめ",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:41
+  OLD: FaqItem("電波がないところでも使える？", "アプリをひらいて「きょうやった！」の記録はできます✅ 動画の再生だけ電波が必要です"),
+  NEW: FaqItem("電波がないところでも使える？", "アプリをひらいて「きょうやった！」の記録はできます 動画の再生だけ電波が必要です"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:43
+  OLD: FaqItem("古いスマホでも使えるの？", "だいたいの端末で使えます！ただしかなり古いタイプだと オフラインでの記録やホーム画面への追加がうまくいかないことがあります📱 その場合もアプリ自体はふつうに使えるのでご安心を"),
+  NEW: FaqItem("古いスマホでも使えるの？", "だいたいの端末で使えます！ただしかなり古いタイプだと オフラインでの記録やホーム画面への追加がうまくいかないことがあります その場合もアプリ自体はふつうに使えるのでご安心を"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:46
+  OLD: "📱iPhone: 画面いちばん下の共有ボタン→下にスクロール→「ホーム画面に追加」→右上の「追加」\n🤖Android: 右上の「⋮」→「ホーム画面に追加」→「追加」",
+  NEW: "iPhone: 画面いちばん下の共有ボタン→下にスクロール→「ホーム画面に追加」→右上の「追加」\nAndroid: 右上の「⋮」→「ホーム画面に追加」→「追加」",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:57
+  OLD: FaqItem("おやすみ券ってなに？", "毎月3枚もらえる「お休みしてもいい券」🎫 休んだ日に自動でつかわれて連続がつながります 使い切っても通算日数はぜったい消えません"),
+  NEW: FaqItem("おやすみ券ってなに？", "毎月3枚もらえる「お休みしてもいい券」 休んだ日に自動でつかわれて連続がつながります 使い切っても通算日数はぜったい消えません"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:58
+  OLD: FaqItem("連続が切れちゃった…", "通算日数は消えていません！「第2章のスタート」としてまた始まるだけ 戻ってくる人がいちばん強いんです✨"),
+  NEW: FaqItem("連続が切れちゃった…", "通算日数は消えていません！「第2章のスタート」としてまた始まるだけ 戻ってくる人がいちばん強いんです"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:60
+  OLD: FaqItem("1日に2本やったら2日分になる？", "記録は1日1回です 2本目はからだへのボーナス💪"),
+  NEW: FaqItem("1日に2本やったら2日分になる？", "記録は1日1回です 2本目はからだへのボーナス"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:63
+  OLD: "LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ✅ おひっこしは「記録をコピー」→「よみこむ」で",
+  NEW: "LINEの中でひらいた時とホーム画面/Safariでひらいた時は 記録が別々に保存されます いつも同じひらきかたで使うのがコツ おひっこしは「記録をコピー」→「よみこむ」で",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:82
+  OLD: FaqItem("やりたいストレッチが見つからない", "「動画を探す」のいちばん下からリクエストを送れます📮 相談室で悩みを打ってみるのも近道です"),
+  NEW: FaqItem("やりたいストレッチが見つからない", "「動画を探す」のいちばん下からリクエストを送れます 相談室で悩みを打ってみるのも近道です"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:89
+  OLD: FaqItem("文字の大きさは変えられる？", "マイ記録→続ける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）🔠"),
+  NEW: FaqItem("文字の大きさは変えられる？", "マイ記録→続ける設定→「もじの大きさ」で「ふつう/大きめ」を選べます（最初は「大きめ」になっています）"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:90
+  OLD: FaqItem("画面を暗くしたい（ダークモード）", "マイ記録→続ける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります🌙"),
+  NEW: FaqItem("画面を暗くしたい（ダークモード）", "マイ記録→続ける設定→「画面のみため」で選べます 「じどう」なら夜だけ暗くなります"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:91
+  OLD: FaqItem("じまんカードが見つからない", "マイ記録の「🎉お楽しみ機能」を開くと出てきます💗"),
+  NEW: FaqItem("じまんカードが見つからない", "マイ記録の「お楽しみ機能」を開くと出てきます"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:95
+  OLD: FaqItem("とどくメーターは毎日やるの？", "週1回くらいでOK！のびていく証拠づくりです📏"),
+  NEW: FaqItem("とどくメーターは毎日やるの？", "週1回くらいでOK！のびていく証拠づくりです"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideData.kt:96
+  OLD: FaqItem("使い方をもう一度おしえてほしい", "この使い方タブのいちばん上からどうぞ 「🌱 はじめてガイドをもう一度」は最初の質問から 「📖 使い方ツアー」は機能の説明だけを1つずつ見られます"),
+  NEW: FaqItem("使い方をもう一度おしえてほしい", "この使い方タブのいちばん上からどうぞ 「 はじめてガイドをもう一度」は最初の質問から 「 使い方ツアー」は機能の説明だけを1つずつ見られます"),
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SoudanSheet.kt:429
+  OLD: messages = messages + SdBubble.Bot("よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が${intent.chip}用になったよ😊")
+  NEW: messages = messages + SdBubble.Bot("よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が${intent.chip}用になったよ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SoudanSheet.kt:433
+  OLD: messages = messages + SdBubble.Bot("OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね")
+  NEW: messages = messages + SdBubble.Bot("OK！1本ずつでも十分えらいよ プランにしたくなったら、いつでもここから組めるからね")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SoudanSheet.kt:442
+  OLD: messages = messages + SdBubble.Bot("こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね")
+  NEW: messages = messages + SdBubble.Bot("こんにちは、オガトレです！からだの悩み、なんでも聞かせて\n下のチップか、ことばで入力してね")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SoudanSheet.kt:683
+  OLD: if (copied) "コピーしました✅" else "📋 メールがひらかない方はアドレスをコピー",
+  NEW: if (copied) "コピーしました" else "メールがひらかない方はアドレスをコピー",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SoudanSheet.kt:954
+  OLD: withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append("🎉 ${cache.label}プラン完走！すごい！") }
+  NEW: withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append("${cache.label}プラン完走！すごい！") }
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/SoudanSheet.kt:955
+  OLD: append("\n${cache.days}日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ")
+  NEW: append("\n${cache.days}日間続けたの、ほんとにえらい\n体はちゃんと応えてくれてるよ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:183
+  OLD: "📖 使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+  NEW: "使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:270
+  OLD: KyonoLineButton("🩹 ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
+  NEW: KyonoLineButton("ストレッチ中に痛かった", { jumpToFaq("きょうの1本・相談室", "ストレッチ中に痛かったら？") }, Modifier.testTag("gdHelpPain"))
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:290
+  OLD: GStep("💬", icon = KyonoIcon.SoudanBubble, title = "オガトレ相談室", body = "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下の💬ボタンか ホームのカードからいつでもどうぞ")
+  NEW: GStep("", icon = KyonoIcon.SoudanBubble, title = "オガトレ相談室", body = "からだの悩みを打つと オガトレの言葉で「どの動画をやればいいか」まで答えます\n右下のボタンか ホームのカードからいつでもどうぞ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:291
+  OLD: GStep("🎯", icon = KyonoIcon.GoalFlag, title = "2週間プラン", body = "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+  NEW: GStep("", icon = KyonoIcon.GoalFlag, title = "2週間プラン", body = "相談の答えを「2週間プラン」にすると ホームの「あなた用」がその悩み専用の動画にかわります")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:317
+  OLD: "おわったら✍️ ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです",
+  NEW: "おわったら ひとことメモも残せます（「はじめてつま先さわれた」など）あとで読み返すと たからものです",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:321
+  OLD: GStep("💬", icon = KyonoIcon.ObuBubble, title = "オガトレ通信", body = "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます📻「もっと見る」で過去ぶんも全部よめます")
+  NEW: GStep("", icon = KyonoIcon.ObuBubble, title = "オガトレ通信", body = "右下のアイコンをタップすると 尾形さんからのひとこと・写真・ラジオが届きます「もっと見る」で過去ぶんも全部よめます")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:347
+  OLD: "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます👀",
+  NEW: "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:361
+  OLD: GStep("🎫", icon = KyonoIcon.TicketStub, title = "おやすみ券が毎月3枚", body = "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
+  NEW: GStep("", icon = KyonoIcon.TicketStub, title = "おやすみ券が毎月3枚", body = "休んでも 自動でつかわれて連続がつながる\n使い切っても通算日数はぜったい消えません")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:362
+  OLD: GStep("👑", icon = KyonoIcon.CrownBadge, title = "節目はゴールドカード", body = "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
+  NEW: GStep("", icon = KyonoIcon.CrownBadge, title = "節目はゴールドカード", body = "3日・7日・2週間…の節目の日は 記録カードがこんなゴールドのお祝いデザインになります↓")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:370
+  OLD: "記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「🎉お楽しみ機能」の中にあるカード図鑑📖でいつでも見返せます",
+  NEW: "記念日・季節・レアなど カードのデザインは何種類もあります あつめた記録は「マイ記録」タブの「お楽しみ機能」の中にあるカード図鑑でいつでも見返せます",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:374
+  OLD: GStep("🌱", icon = KyonoIcon.Sprout, title = "サボっても だいじょうぶ", body = "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+  NEW: GStep("", icon = KyonoIcon.Sprout, title = "サボっても だいじょうぶ", body = "ひさしぶりに開くと「おかえりなさい」から始まります 責められません")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:385
+  OLD: GStep("📅", icon = KyonoIcon.CalendarCheck, title = "カレンダー", body = "やった日に印がつく（×はつきません）")
+  NEW: GStep("", icon = KyonoIcon.CalendarCheck, title = "カレンダー", body = "やった日に印がつく（×はつきません）")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:386
+  OLD: GStep("📏", icon = KyonoIcon.MountainCheck, title = "とどくメーター", body = "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+  NEW: GStep("", icon = KyonoIcon.MountainCheck, title = "とどくメーター", body = "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:387
+  OLD: GStep("🎉", icon = KyonoIcon.ConfettiBurst, title = "お楽しみ機能", body = "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
+  NEW: GStep("", icon = KyonoIcon.ConfettiBurst, title = "お楽しみ機能", body = "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:388
+  OLD: GStep("⚙️", icon = KyonoIcon.Clock, title = "続ける設定", body = "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+  NEW: GStep("", icon = KyonoIcon.Clock, title = "続ける設定", body = "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/GuideScreen.kt:389
+  OLD: GStep("🎬", icon = KyonoIcon.Play, title = "（こちらは下のタブ）「再生リスト」タブ", body = "連続再生できるまとめ 流しっぱなしでOK")
+  NEW: GStep("", icon = KyonoIcon.Play, title = "（こちらは下のタブ）「再生リスト」タブ", body = "連続再生できるまとめ 流しっぱなしでOK")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/BragScreen.kt:97
+  OLD: Text("続けてる日数と すきな1本を 1枚のカードに✨\nできたカードは保存やSNS投稿ができます", color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp)
+  NEW: Text("続けてる日数と すきな1本を 1枚のカードに\nできたカードは保存やSNS投稿ができます", color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/BragScreen.kt:123
+  OLD: Text("すきな1本をさがす🎬", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black)
+  NEW: Text("すきな1本をさがす", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black)
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/BragScreen.kt:161
+  OLD: "カードをつくる✨",
+  NEW: "カードをつくる",
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/widget/WidgetLogic.kt:86
+  OLD: effCount == 0 -> "きょうから また1日め🌱"
+  NEW: effCount == 0 -> "きょうから また1日め"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/widget/WidgetLogic.kt:87
+  OLD: !doneToday && isMorning -> "きょうもいこう！💪"
+  NEW: !doneToday && isMorning -> "きょうもいこう！"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/widget/WidgetLogic.kt:88
+  OLD: !doneToday -> "ねる前に1本 どう？🌙"
+  NEW: !doneToday -> "ねる前に1本 どう？"
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/safety/SoudanEngine.kt:84
+  OLD: "shorter" -> pickAnotherVideo(intent, shownVideoIds, "それなら、みじかめのこれ！", "どの悩みのことか、下のチップから教えてもらえたら ぴったりの短いのを出すよ😊")
+  NEW: "shorter" -> pickAnotherVideo(intent, shownVideoIds, "それなら、みじかめのこれ！", "どの悩みのことか、下のチップから教えてもらえたら ぴったりの短いのを出すよ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/safety/SoudanEngine.kt:85
+  OLD: "more" -> pickAnotherVideo(intent, shownVideoIds, "こっちもおすすめ！", "どの悩みか、下のチップから教えてくれたら おすすめを出すよ😊")
+  NEW: "more" -> pickAnotherVideo(intent, shownVideoIds, "こっちもおすすめ！", "どの悩みか、下のチップから教えてくれたら おすすめを出すよ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/safety/SoudanEngine.kt:173
+  OLD: ?: return textOnly("いま出せるおすすめは以上!まずはさっきの1本からどうぞ😊")
+  NEW: ?: return textOnly("いま出せるおすすめは以上!まずはさっきの1本からどうぞ")
+android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno/safety/SoudanEngine.kt:201
+  OLD: message = "ごめんね、その悩みはまだ勉強中🙏\n近いのはこのあたりかも！下のチップからどうぞ",
+  NEW: message = "ごめんね、その悩みはまだ勉強中\n近いのはこのあたりかも！下のチップからどうぞ",

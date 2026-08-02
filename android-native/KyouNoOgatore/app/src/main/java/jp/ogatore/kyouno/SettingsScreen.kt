@@ -557,7 +557,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 if (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0) {
                     Spacer(Modifier.height(20.dp))
                     KyonoLineButton(
-                        "🧪 [検証用] ウィジェットをホームに追加",
+                        "[検証用] ウィジェットをホームに追加",
                         {
                             val awm = context.getSystemService(android.appwidget.AppWidgetManager::class.java)
                             val provider = android.content.ComponentName(context, jp.ogatore.kyouno.widget.KyonoWidgetReceiver::class.java)

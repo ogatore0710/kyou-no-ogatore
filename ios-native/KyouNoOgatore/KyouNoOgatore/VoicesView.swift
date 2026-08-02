@@ -54,7 +54,7 @@ private struct VoicesContentView: View {
                 KyonoCard {
                     KyonoSectionHeader(icon: .envelope, title: "せんぱいの声", fill: colors.pinkSoft)
                     Spacer().frame(height: 8)
-                    Text("まえを歩くせんぱいたちの ほんとうの声です🌱\nカードをタップするとめくれます")
+                    Text("まえを歩くせんぱいたちの ほんとうの声です\nカードをタップするとめくれます")
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
                     Spacer().frame(height: 4)
                     Text("※YouTubeコメントの原文のまま（お名前は出ません）\n※個人の感想です 症状があるときは医療機関へ")

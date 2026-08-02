@@ -83,9 +83,9 @@ object WidgetLogic {
             // ままなのに文言だけ「つづいてるね！」に戻ってしまっていた(iOS版WidgetStateCalculator.
             // swiftは元々chara/messageを同じswitch式で両方セットしており揃っている)。
             isMilestoneToday -> "きょうもおつかれさま！"
-            effCount == 0 -> "きょうから また1日め🌱"
-            !doneToday && isMorning -> "きょうもいこう！💪"
-            !doneToday -> "ねる前に1本 どう？🌙"
+            effCount == 0 -> "きょうから また1日め"
+            !doneToday && isMorning -> "きょうもいこう！"
+            !doneToday -> "ねる前に1本 どう？"
             celebrating -> "きょうもおつかれさま！"
             else -> "つづいてるね！"
         }

@@ -61,7 +61,7 @@ fun VoicesScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 KyonoSectionHeader(KyonoIcon.Envelope, "せんぱいの声", fill = colors.pinkSoft)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "まえを歩くせんぱいたちの ほんとうの声です🌱\nカードをタップするとめくれます",
+                    "まえを歩くせんぱいたちの ほんとうの声です\nカードをタップするとめくれます",
                     color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp,
                 )
                 Spacer(Modifier.height(4.dp))

@@ -17,12 +17,12 @@ class KyonoWidgetRenderTest {
         val state = WidgetState(
             doneToday = false, streakCount = 0,
             last7 = List(7) { DotState.NONE }, chara = CharaAsset.CHEER,
-            message = "きょうから また1日め🌱",
+            message = "きょうから また1日め",
         )
         provideComposable { WideWidgetContent(state) }
 
         // GO-H1§2-2検収基準: 「0日」という数字表記を絶対に出さない・「また1日め」文言が出ること。
-        onNode(hasText("きょうから また1日め🌱")).assertExists()
+        onNode(hasText("きょうから また1日め")).assertExists()
         onNode(hasText("0日つづいてる")).assertDoesNotExist()
     }
 
@@ -31,12 +31,12 @@ class KyonoWidgetRenderTest {
         val state = WidgetState(
             doneToday = false, streakCount = 5,
             last7 = List(7) { DotState.NONE }, chara = CharaAsset.CHEER,
-            message = "きょうもいこう！💪",
+            message = "きょうもいこう！",
         )
         provideComposable { WideWidgetContent(state) }
 
         onNode(hasText("5日つづいてる")).assertExists()
-        onNode(hasText("きょうもいこう！💪")).assertExists()
+        onNode(hasText("きょうもいこう！")).assertExists()
     }
 
     @Test

@@ -81,8 +81,8 @@ object SoudanEngine {
         val f = kb.commonFollowups.find { it.id == id } ?: return null
         val intent = lastIntentId?.let { lid -> kb.intents.find { it.id == lid } }
         return when (f.mode) {
-            "shorter" -> pickAnotherVideo(intent, shownVideoIds, "それなら、みじかめのこれ！", "どの悩みのことか、下のチップから教えてもらえたら ぴったりの短いのを出すよ😊")
-            "more" -> pickAnotherVideo(intent, shownVideoIds, "こっちもおすすめ！", "どの悩みか、下のチップから教えてくれたら おすすめを出すよ😊")
+            "shorter" -> pickAnotherVideo(intent, shownVideoIds, "それなら、みじかめのこれ！", "どの悩みのことか、下のチップから教えてもらえたら ぴったりの短いのを出すよ")
+            "more" -> pickAnotherVideo(intent, shownVideoIds, "こっちもおすすめ！", "どの悩みか、下のチップから教えてくれたら おすすめを出すよ")
             else -> textOnly(f.answer ?: "")
         }
     }
@@ -170,7 +170,7 @@ object SoudanEngine {
     private fun pickAnotherVideo(intent: SafetyKB.Intent?, shownVideoIds: List<String>, foundMsg: String, noIntentMsg: String): SoudanResponse {
         if (intent == null) return textOnly(noIntentMsg)
         val pick = intent.videos.firstOrNull { v -> shownVideoIds.none { shown -> shown == v.v } }
-            ?: return textOnly("いま出せるおすすめは以上!まずはさっきの1本からどうぞ😊")
+            ?: return textOnly("いま出せるおすすめは以上!まずはさっきの1本からどうぞ")
         return SoudanResponse(
             verdict = SoudanVerdict.Normal,
             empathy = "",
@@ -198,7 +198,7 @@ object SoudanEngine {
         return SoudanResponse(
             verdict = SoudanVerdict.Normal,
             empathy = "",
-            message = "ごめんね、その悩みはまだ勉強中🙏\n近いのはこのあたりかも！下のチップからどうぞ",
+            message = "ごめんね、その悩みはまだ勉強中\n近いのはこのあたりかも！下のチップからどうぞ",
             hasVideo = false,
             hasFollowup = false,
             nearmissChips = near,

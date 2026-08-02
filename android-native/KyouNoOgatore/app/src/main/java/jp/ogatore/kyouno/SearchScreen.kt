@@ -276,7 +276,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             // 文言・スタイルはホーム版(MainActivity.kt)と完全に同じにする。
             if (rememberIsOffline()) {
                 Text(
-                    "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+                    "いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
                     color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                     modifier = Modifier.fillMaxWidth()
                         .background(colors.yellowSoft, RoundedCornerShape(14.dp))
@@ -480,8 +480,8 @@ private fun ReqBox(context: Context, store: RecordStore, shown: Boolean, kwText:
 
     KyonoGradientCard(KyonoGradient.Warm, Modifier.testTag("reqBox")) {
         Text(
-            if (shown) "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます📮"
-            else "ごめんなさい まだなかったみたい💦\nリクエストを送ってもらえたら動画づくりの参考にします📮",
+            if (shown) "やりたいストレッチが見つからない？\nオガトレに直接リクエストを送れます"
+            else "ごめんなさい まだなかったみたい\nリクエストを送ってもらえたら動画づくりの参考にします",
             color = colors.ink, fontSize = 15.sp, modifier = Modifier.testTag("reqMsg"),
         )
         Spacer(Modifier.height(12.dp))
@@ -517,7 +517,7 @@ private fun ReqBox(context: Context, store: RecordStore, shown: Boolean, kwText:
                 Spacer(Modifier.width(4.dp))
             }
             Text(
-                if (copied) "コピーしました✅" else "アドレスをコピー",
+                if (copied) "コピーしました" else "アドレスをコピー",
                 color = colors.tealInk, fontSize = 12.sp, fontWeight = FontWeight.Black,
             )
         }
@@ -618,7 +618,7 @@ fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () 
             // 文言・スタイルはホーム版(MainActivity.kt)と完全に同じにする。
             if (rememberIsOffline()) {
                 Text(
-                    "いま電波がないみたい📡 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
+                    "いま電波がないみたい 動画を見るには電波が必要だよ（「きょうやった！」の記録はつけられるよ）",
                     color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                     modifier = Modifier.fillMaxWidth()
                         .background(colors.yellowSoft, RoundedCornerShape(14.dp))
@@ -651,7 +651,7 @@ fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () 
                 // 既発見済みの教訓と同種)
                 item {
                     Text(
-                        "タップするとYouTubeで開きます！テレビで流すのもおすすめ📺",
+                        "タップするとYouTubeで開きます！テレビで流すのもおすすめ",
                         color = colors.sub, fontSize = 13.sp,
                         modifier = Modifier.padding(top = 8.dp, bottom = 90.dp),
                     )

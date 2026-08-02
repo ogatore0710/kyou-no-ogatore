@@ -426,11 +426,11 @@ fun SoudanSheet(
         val newPlan = SdPlanData(intentId = id, label = intent.chip, videos = vids, start = today, days = 14)
         store.set("plan", newPlan)
         plan = newPlan
-        messages = messages + SdBubble.Bot("よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が${intent.chip}用になったよ😊")
+        messages = messages + SdBubble.Bot("よし、きょうから14日間いっしょにやろう！ホームの「きょうの1本」が${intent.chip}用になったよ")
     }
 
     fun planDecline() {
-        messages = messages + SdBubble.Bot("OK！1本ずつでも十分えらいよ😊 プランにしたくなったら、いつでもここから組めるからね")
+        messages = messages + SdBubble.Bot("OK！1本ずつでも十分えらいよ プランにしたくなったら、いつでもここから組めるからね")
     }
 
     // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3459 sdEnsureGreeting()の1:1移植。
@@ -439,7 +439,7 @@ fun SoudanSheet(
     // ホーム構造修正タスクのpresetIntentId自動応答(index.html:3464-3467)より先に出す(Web版と同順)。
     LaunchedEffect(Unit) {
         if (!greeted) {
-            messages = messages + SdBubble.Bot("こんにちは、オガトレです！からだの悩み、なんでも聞かせて😊\n下のチップか、ことばで入力してね")
+            messages = messages + SdBubble.Bot("こんにちは、オガトレです！からだの悩み、なんでも聞かせて\n下のチップか、ことばで入力してね")
             onGreeted()
         }
         presetIntentId?.let { chipTap(it) }
@@ -680,7 +680,7 @@ fun SoudanSheet(
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    if (copied) "コピーしました✅" else "📋 メールがひらかない方はアドレスをコピー",
+                                    if (copied) "コピーしました" else "メールがひらかない方はアドレスをコピー",
                                     color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black,
                                     modifier = Modifier
                                         .clickable {
@@ -951,8 +951,8 @@ fun PlanDoneCard(
             Spacer(Modifier.height(8.dp))
             Text(
                 buildAnnotatedString {
-                    withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append("🎉 ${cache.label}プラン完走！すごい！") }
-                    append("\n${cache.days}日間続けたの、ほんとにえらい👏\n体はちゃんと応えてくれてるよ")
+                    withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append("${cache.label}プラン完走！すごい！") }
+                    append("\n${cache.days}日間続けたの、ほんとにえらい\n体はちゃんと応えてくれてるよ")
                 },
                 color = colors.ink, fontSize = 15.sp, lineHeight = 27.sp, textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().testTag("planDoneText"),
