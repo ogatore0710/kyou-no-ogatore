@@ -353,6 +353,35 @@ private struct MyRecordContentView: View {
                     }
                 }
 
+                // TASK-C2-2026-08-02-build16-polish-and-ia.md B部: 図鑑の格上げ(お楽しみ機能カードを
+                // 図鑑看板化)。カード順を続けた記録→カレンダー→お楽しみ機能→とどくメーター→
+                // かたさタイプ→続ける設定へ変更(このカードをとどくメーターより前へ移動)。
+                // 見出しアイコンを.starから.dexBook(Canvas線画)へ差し替えて図鑑を前面に出し、
+                // カード図鑑ボタンをKyonoPrimaryButton化して他3つ(じまん/せんぱい/にっき、
+                // 引き続きKyonoGhostButtonのまま)より視覚的に大きく・先頭に配置する。
+                // 新しいカードは作らず既存カード内の並びだけを変える(本人裁定によりB-3=記録カード
+                // モーダルからの図鑑リンクは対象外)。
+                KyonoCard {
+                    KyonoSectionHeader(icon: .dexBook, title: "お楽しみ機能", fill: colors.yellowSoft)
+                    Spacer().frame(height: 8)
+                    Text("カード図鑑やじまんカード、せんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
+                    Spacer().frame(height: 10)
+                    let dexProgress = dexProgressCount(store: store, streak: streak)
+                    KyonoPrimaryButton("カード図鑑（\(dexProgress.got)/\(dexProgress.total)）", icon: .dexBook, action: onOpenDex)
+                    Spacer().frame(height: 10)
+                    HStack(spacing: 8) {
+                        KyonoGhostButton("じまんカード", action: onOpenBrag)
+                        // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
+                        // 自身の見出しアイコン(.envelope)と揃える。
+                        KyonoGhostButton("せんぱいの声", icon: .envelope, action: onOpenVoices)
+                    }
+                    Spacer().frame(height: 8)
+                    // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
+                    // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
+                    // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
+                    KyonoGhostButton("ひとことにっき", action: onOpenDiary)
+                }
+
                 // UI/UXパリティ監査GO-9(2026-07-28): 独立した「おやすみ券」カードはWeb側に対応が
                 // 無い重複表示だったため削除する(続けた記録カード内の説明文で既に触れている)。
 
@@ -483,28 +512,6 @@ private struct MyRecordContentView: View {
                         Spacer().frame(height: 10)
                         KyonoGhostButton("もう一回チェックする", action: onOpenQuiz)
                     }
-                }
-
-                // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:772-790
-                // お楽しみ機能バナー(じまんカード/せんぱいの声への入口)相当。画面の中身は作り直さず導線のみ追加。
-                KyonoCard {
-                    KyonoSectionHeader(icon: .star, title: "お楽しみ機能", fill: colors.yellowSoft)
-                    Spacer().frame(height: 8)
-                    Text("カード図鑑やじまんカード、せんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
-                    Spacer().frame(height: 10)
-                    let dexProgress = dexProgressCount(store: store, streak: streak)
-                    KyonoGhostButton("カード図鑑（\(dexProgress.got)/\(dexProgress.total)）", icon: .dexBook, action: onOpenDex)
-                    Spacer().frame(height: 8)
-                    KyonoGhostButton("じまんカード", action: onOpenBrag)
-                    Spacer().frame(height: 8)
-                    // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
-                    // 自身の見出しアイコン(.envelope)と揃える。
-                    KyonoGhostButton("せんぱいの声", icon: .envelope, action: onOpenVoices)
-                    Spacer().frame(height: 8)
-                    // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
-                    // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
-                    // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
-                    KyonoGhostButton("ひとことにっき", action: onOpenDiary)
                 }
 
                 // index.html:792-800 続ける設定カード相当。画面の中身(SettingsView)はPhase 3実装済みのため

@@ -2367,6 +2367,43 @@ fun MyRecordScreen(
             // 前)へ移動した。独立した「おやすみ券」カード(freezeCard)はWeb側に対応が無い重複表示
             // だったため削除する(続けた記録カード内の説明文で既に触れている)。
 
+            // TASK-C2-2026-08-02-build16-polish-and-ia.md B部: 図鑑の格上げ(お楽しみ機能カードを
+            // 図鑑看板化)。カード順を続けた記録→カレンダー→お楽しみ機能→とどくメーター→
+            // かたさタイプ→続ける設定へ変更(このカードをとどくメーターより前へ移動)。
+            // 見出しアイコンをStarからDexBook(Canvas線画)へ差し替えて図鑑を前面に出し、
+            // カード図鑑ボタンをKyonoPrimaryButton化して他3つ(じまん/せんぱい/にっき、
+            // 引き続きKyonoGhostButtonのまま)より視覚的に大きく・先頭に配置する。
+            // 新しいカードは作らず既存カード内の並びだけを変える(本人裁定によりB-3=記録カード
+            // モーダルからの図鑑リンクは対象外)。
+            Spacer(Modifier.height(16.dp))
+            KyonoCard(Modifier.testTag("funCard")) {
+                KyonoSectionHeader(KyonoIcon.DexBook, "お楽しみ機能", fill = colors.yellowSoft)
+                Spacer(Modifier.height(8.dp))
+                Text("カード図鑑やじまんカード、せんぱいの声をチェック", color = colors.sub)
+                Spacer(Modifier.height(10.dp))
+                // TASK-C2-2026-08-01-build15-subtraction9.md #7: 旧dexBannerCard(独立カード)を
+                // ここへ統合。進捗件数(n/106)だけをボタンラベルに残す。
+                val existingRot = remember { store.get("rotAssign", emptyMap<String, Int>()) }
+                val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existingRot) }
+                LaunchedEffect(Unit) { if (existingRot.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
+                val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
+                val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
+                val dexGot = dexAll.count { it.got }
+                KyonoPrimaryButton("カード図鑑（$dexGot/${dexAll.size}）", onOpenDex, Modifier.testTag("dexBtn"), icon = KyonoIcon.DexBook)
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KyonoGhostButton("じまんカード", onOpenBrag, Modifier.weight(1f).testTag("bragBtn"))
+                    // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
+                    // 自身の見出しアイコン(Envelope)と揃える。
+                    KyonoGhostButton("せんぱいの声", onOpenVoices, Modifier.weight(1f).testTag("voicesBtn"), icon = KyonoIcon.Envelope)
+                }
+                Spacer(Modifier.height(8.dp))
+                // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
+                // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
+                // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
+                KyonoGhostButton("ひとことにっき", onOpenDiary, Modifier.testTag("diaryBtn"))
+            }
+
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("reachCard")) {
                 KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター（前屈チェック）", fill = colors.yellowSoft)
@@ -2541,36 +2578,6 @@ fun MyRecordScreen(
                     Spacer(Modifier.height(10.dp))
                     KyonoGhostButton("もう一回チェックする", onOpenQuiz, Modifier.testTag("kataTypeBtn"))
                 }
-            }
-
-            // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §2): index.html:772-790
-            // お楽しみ機能バナー(じまんカード/せんぱいの声への入口)相当。画面の中身は作り直さず導線のみ追加。
-            Spacer(Modifier.height(16.dp))
-            KyonoCard(Modifier.testTag("funCard")) {
-                KyonoSectionHeader(KyonoIcon.Star, "お楽しみ機能", fill = colors.yellowSoft)
-                Spacer(Modifier.height(8.dp))
-                Text("カード図鑑やじまんカード、せんぱいの声をチェック", color = colors.sub)
-                Spacer(Modifier.height(10.dp))
-                // TASK-C2-2026-08-01-build15-subtraction9.md #7: 旧dexBannerCard(独立カード)を
-                // ここへ統合。進捗件数(n/106)だけをボタンラベルに残す。
-                val existingRot = remember { store.get("rotAssign", emptyMap<String, Int>()) }
-                val rot = remember { CardLottery.ensureRotAssign(streak.dates, streak.total, existingRot) }
-                LaunchedEffect(Unit) { if (existingRot.isEmpty() && rot.isNotEmpty()) store.set("rotAssign", rot) }
-                val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
-                val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
-                val dexGot = dexAll.count { it.got }
-                KyonoGhostButton("カード図鑑（$dexGot/${dexAll.size}）", onOpenDex, Modifier.testTag("dexBtn"), icon = KyonoIcon.DexBook)
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("じまんカード", onOpenBrag, Modifier.testTag("bragBtn"))
-                Spacer(Modifier.height(8.dp))
-                // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
-                // 自身の見出しアイコン(Envelope)と揃える。
-                KyonoGhostButton("せんぱいの声", onOpenVoices, Modifier.testTag("voicesBtn"), icon = KyonoIcon.Envelope)
-                Spacer(Modifier.height(8.dp))
-                // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
-                // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
-                // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
-                KyonoGhostButton("ひとことにっき", onOpenDiary, Modifier.testTag("diaryBtn"))
             }
 
             // index.html:792-800 続ける設定カード相当。画面の中身(SettingsScreen)はPhase 3実装済みのため
