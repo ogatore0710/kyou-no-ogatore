@@ -2286,11 +2286,16 @@ fun MyRecordScreen(
                                         if (isToday) cellMod = cellMod.border(2.5.dp, colors.pink, CircleShape)
                                         if (isDone && selectedDay == ds) cellMod = cellMod.border(2.5.dp, colors.ink, CircleShape)
                                         Box(modifier = cellMod, contentAlignment = Alignment.Center) {
+                                            // TASK-C2-2026-08-02-build16-polish-and-ia.md P-8: 未来日の色が
+                                            // #D5CFBEでハードコードされておりテーマ非対応だった(ライト背景
+                                            // では意図通り薄いが、実測1.7:1・ダーク背景では逆に明るすぎて
+                                            // 浮いてしまう)。テーマごとに調整済みの薄色トークンcolors.subFaint
+                                            // へ差し替える。
                                             Text(
                                                 "$day",
                                                 color = when {
                                                     isDone -> Color.White
-                                                    isFuture -> Color(0xFFD5CFBE)
+                                                    isFuture -> colors.subFaint
                                                     else -> colors.ink
                                                 },
                                                 fontWeight = FontWeight.Bold,

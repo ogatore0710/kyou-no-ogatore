@@ -529,7 +529,11 @@ private struct MyRecordContentView: View {
                                 Text(verbatim: "\(day)")
                                     .kyonoFont(.bold700, size: 15)
                                     .frame(maxWidth: .infinity, minHeight: 44)
-                                    .foregroundStyle(isDone ? .white : (isFuture ? Color(hex: 0xD5CFBE) : colors.ink))
+                                    // TASK-C2-2026-08-02-build16-polish-and-ia.md P-8: 未来日の色が
+                                    // #D5CFBEでハードコードされておりテーマ非対応だった(ライト背景では
+                                    // 意図通り薄いが、実測1.7:1・ダーク背景では逆に明るすぎて浮いてしまう)。
+                                    // テーマごとに調整済みの薄色トークンcolors.subFaintへ差し替える。
+                                    .foregroundStyle(isDone ? .white : (isFuture ? colors.subFaint : colors.ink))
                                     .background(isDone ? colors.tealStrong : Color.clear)
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(isDone && selectedDay == ds ? colors.ink : (isToday ? colors.pink : .clear), lineWidth: 2.5))
