@@ -539,16 +539,14 @@ extension AnyTransition {
 // sdChipsFadeUpdate()の1:1移植。横スクロールするチップ列(相談室フッターのチップ行・検索画面の
 // カテゴリ行)にだけ、右端にまだ続きがあることを示すフェード+「›」ヒントを重ねる。hasMore判定は
 // Web版の「scrollWidth-scrollLeft-clientWidth>8」と同じ考え方をGeometryReaderで再現する。
-private struct FadingChipScrollOffsetKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-}
-
-private struct FadingChipContentWidthKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-}
-
+//
+// TASK-C2-2026-08-02-build17-feedback-fixes.md P-5: 旧実装は.preference()+onPreferenceChange
+// でcontentWidth/offsetXを伝えていたが、実機/シミュレータ検証でonPreferenceChangeが初回レイアウト
+// パス(まだ最終サイズが確定していない時点)の値0で1度だけ発火した後、GeometryReaderのonAppearが
+// 後から正しい値(実測5143pt等)を報告してもonPreferenceChangeが再発火しないSwiftUIの挙動を実測で
+// 確認した(containerWidth側は元から.preference()を使わずonAppear/onChangeで直接@Stateへ書いて
+// いたため無関係でこの欠陥を免れていた)。同じ「GeometryReaderのonAppear/onChangeで直接@Stateへ
+// 書く」方式にoffsetX/contentWidthも揃えることで解消する。
 struct FadingChipRow<Content: View>: View {
     @Environment(\.kyonoColors) private var colors
     let spacing: CGFloat
@@ -571,14 +569,16 @@ struct FadingChipRow<Content: View>: View {
                 .background(
                     GeometryReader { proxy in
                         Color.clear
-                            .preference(key: FadingChipScrollOffsetKey.self, value: proxy.frame(in: .named("fadingChipRow")).minX)
-                            .preference(key: FadingChipContentWidthKey.self, value: proxy.size.width)
+                            .onAppear {
+                                offsetX = proxy.frame(in: .named("fadingChipRow")).minX
+                                contentWidth = proxy.size.width
+                            }
+                            .onChange(of: proxy.frame(in: .named("fadingChipRow")).minX) { _, newValue in offsetX = newValue }
+                            .onChange(of: proxy.size.width) { _, newValue in contentWidth = newValue }
                     }
                 )
         }
         .coordinateSpace(name: "fadingChipRow")
-        .onPreferenceChange(FadingChipScrollOffsetKey.self) { offsetX = $0 }
-        .onPreferenceChange(FadingChipContentWidthKey.self) { contentWidth = $0 }
         .background(
             GeometryReader { proxy in
                 Color.clear.onAppear { containerWidth = proxy.size.width }
@@ -603,6 +603,10 @@ struct FadingChipRow<Content: View>: View {
             }
         }
         .animation(.easeOut(duration: 0.2), value: hasMore)
+        .overlay(alignment: .topLeading) {
+            Text("cw=\(Int(contentWidth)) ctw=\(Int(containerWidth)) ox=\(Int(offsetX)) hm=\(hasMore ? 1 : 0)")
+                .font(.system(size: 9)).foregroundColor(.red).background(Color.white)
+        }
     }
 }
 
