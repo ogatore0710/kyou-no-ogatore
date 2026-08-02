@@ -2541,6 +2541,52 @@ function checkNoTempMarkers() {
   );
 }
 
+// グラデ予算制(HANDOFF.md「グラデ予算制」節参照・TASK-C2-2026-08-02-build16-polish-and-ia.md C部)。
+// KyonoGradientCard(L1=タブの顔級カード。1タブ最大1枚)の呼び出し件数が、承認済みの基準値を
+// 超えて増えたら赤くする。件数が「減る」ぶんには問題ない(引き算はいつでも歓迎)ため上限チェックのみ。
+// コメント行(行頭が//)は誤検出防止のため対象外。コンポーネント定義自体(struct/fun宣言)も除外。
+const GRADIENT_CARD_BUDGET = {
+  ios: { dir: "ios-native/KyouNoOgatore/KyouNoOgatore", ext: ".swift", definitionMarker: "struct KyonoGradientCard", baseline: 8 },
+  android: {
+    dir: "android-native/KyouNoOgatore/app/src/main/java/jp/ogatore/kyouno",
+    ext: ".kt",
+    definitionMarker: "fun KyonoGradientCard",
+    baseline: 8,
+  },
+};
+function checkGradientCardBudget() {
+  for (const [platform, cfg] of Object.entries(GRADIENT_CARD_BUDGET)) {
+    const abs = path.join(ROOT, cfg.dir);
+    if (!fs.existsSync(abs)) {
+      fail(`グラデ予算(${platform}): ディレクトリ突き合わせ`, `${cfg.dir} が見つからない`);
+      continue;
+    }
+    const hits = [];
+    const walk = (cur) => {
+      for (const entry of fs.readdirSync(cur, { withFileTypes: true })) {
+        const full = path.join(cur, entry.name);
+        if (entry.isDirectory()) { walk(full); continue; }
+        if (!entry.name.endsWith(cfg.ext)) continue;
+        const rel = path.relative(ROOT, full);
+        const src = read(rel);
+        if (src.includes(cfg.definitionMarker)) continue; // コンポーネント定義ファイル自体は除外
+        const lines = src.split("\n");
+        for (let i = 0; i < lines.length; i += 1) {
+          const trimmed = lines[i].trim();
+          if (trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
+          if (lines[i].includes("KyonoGradientCard(")) hits.push(`${rel}:${i + 1}`);
+        }
+      }
+    };
+    walk(abs);
+    assert(
+      `グラデ予算(${platform}): KyonoGradientCard呼び出しが基準値(${cfg.baseline})以下`,
+      hits.length <= cfg.baseline,
+      `${hits.length}件: ${hits.join(", ")}`
+    );
+  }
+}
+
 function main() {
   for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "app-card.js", "app-env.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
@@ -2592,6 +2638,7 @@ function main() {
   checkTypeArtAssetsByteMatchNativeCopies();
   checkNoGroupIfLetTaskPattern();
   checkNoTempMarkers();
+  checkGradientCardBudget();
 
   if (failures.length) {
     console.error(`\nQA failed: ${failures.length} issue(s)`);

@@ -2375,8 +2375,13 @@ fun MyRecordScreen(
             // 引き続きKyonoGhostButtonのまま)より視覚的に大きく・先頭に配置する。
             // 新しいカードは作らず既存カード内の並びだけを変える(本人裁定によりB-3=記録カード
             // モーダルからの図鑑リンクは対象外)。
+            // TASK-C2-2026-08-02-build16-polish-and-ia.md C部: グラデ予算制。このカードはL1
+            // (タブの顔級)枠としてマイ記録タブに割り当てられた1枚(HANDOFF.md「グラデ予算」節
+            // 参照)。KyonoCard(白一色)からKyonoGradientCard(Warm)へ変更して図鑑の看板感を出す。
+            // 本文はcolors.sub/colors.ink/colors.tealInk(既存トークン)のままで、warmグラデーション
+            // の両端に対し実測4.7:1以上でAA達成(iOS版と同一値・同一計算)。
             Spacer(Modifier.height(16.dp))
-            KyonoCard(Modifier.testTag("funCard")) {
+            KyonoGradientCard(KyonoGradient.Warm, Modifier.testTag("funCard")) {
                 KyonoSectionHeader(KyonoIcon.DexBook, "お楽しみ機能", fill = colors.yellowSoft)
                 Spacer(Modifier.height(8.dp))
                 Text("カード図鑑やじまんカード、せんぱいの声をチェック", color = colors.sub)
