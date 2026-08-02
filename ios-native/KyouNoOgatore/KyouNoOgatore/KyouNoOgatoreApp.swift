@@ -346,6 +346,15 @@ struct RootView: View {
                 )
             }
         }
+        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-3: ステータスバーのスクリム。
+        // タブ画面(showsTabBar=true)だけに敷く(全タブ共通の1コンポーネント)。ZStackの既定
+        // alignment(.bottomTrailing)に影響されないよう、.overlay(alignment: .top)で明示的に
+        // 上端固定する。
+        .overlay(alignment: .top) {
+            if screen.showsTabBar {
+                KyonoStatusBarScrim()
+            }
+        }
         .onChange(of: screen) { _, newValue in
             if case let .soudan(id) = newValue { soudanPresetIntentId = id }
         }

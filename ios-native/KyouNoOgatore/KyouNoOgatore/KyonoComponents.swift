@@ -188,6 +188,21 @@ struct KyonoBackgroundColor: View {
     var body: some View { colors.bg }
 }
 
+// TASK-C2-2026-08-02-build16-polish-and-ia.md P-3: ステータスバーのスクリム。タブ画面は
+// ScrollViewのコンテンツがそのままステータスバー(時計・電波・電池)の裏まで素通しでスクロール
+// してしまい、文字色によっては時計と重なって読みにくくなる欠陥の修正。上端にcolors.bg
+// (ダークは焦げ茶)から透明への短いグラデーションを敷き、常に一定の読める背景を確保する。
+// 全タブ共通の1コンポーネント(RootView.contentから1箇所だけ差し込む・タップは透過)。
+struct KyonoStatusBarScrim: View {
+    @Environment(\.kyonoColors) private var colors
+    var body: some View {
+        LinearGradient(colors: [colors.bg, colors.bg.opacity(0)], startPoint: .top, endPoint: .bottom)
+            .frame(height: 56)
+            .ignoresSafeArea(edges: .top)
+            .allowsHitTesting(false)
+    }
+}
+
 // index.html:99-102 .btn/.btn-primary(黄色背景+太字20px+下方向の立体シャドウ)の1:1移植。
 // box-shadow:0 4px 0 #E8BE1E(ぼかし無しのオフセット矩形)をSwiftUI上でZStack二重描画により再現。
 // :active時はtranslateY(3px)+shadow 1pxに縮む(押した感触)ため、押下状態を検知する。
