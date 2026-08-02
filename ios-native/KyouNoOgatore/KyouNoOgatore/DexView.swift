@@ -43,7 +43,7 @@ struct DexView: View {
     }
 
     private var all: [DexItem] { status.toku + status.season + status.rare + status.normal }
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {

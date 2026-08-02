@@ -378,7 +378,7 @@ struct SoudanSheetView: View {
         announceBubble(bubble)
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
     // Phase 3: index.html:459-489 .sd-sheet/.sd-head/.sd-b/.chip/.catbtnの1:1移植。見た目の変更のみで、

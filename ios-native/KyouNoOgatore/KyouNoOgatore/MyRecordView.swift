@@ -88,7 +88,7 @@ struct MyRecordView: View {
         _typeResult = State(initialValue: store.get("type", default: nil))
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     // TASK-C2-2026-07-27-auto-theme-time-rule.md: Android版MyRecordScreenの60秒日付跨ぎ
     // 追従(checkRefreshDay相当)の1:1移植。開いたまま日付が変わったらカレンダー/streak/freezeLeftを

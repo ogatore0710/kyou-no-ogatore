@@ -72,7 +72,11 @@ struct SettingsView: View {
     init(store: RecordStore, onBack: @escaping () -> Void) {
         self.store = store
         self.onBack = onBack
-        _theme = State(initialValue: store.get("theme", default: "auto"))
+        // TASK-C2-2026-08-02-build17-feedback-fixes.md P-3: 未使用初回起動時の既定値を
+        // "auto"(旧仕様)から"light"へ変更(本人指示)。"じどう"/"暗い"の選択肢自体は残す
+        // (これは既に保存済みの値が無いときの既定値であり、一度設定を保存したユーザーには
+        // 影響しない)。全`store.get("theme", default:)`呼び出し箇所(18箇所)を同じ値に揃える。
+        _theme = State(initialValue: store.get("theme", default: "light"))
         _bigtext = State(initialValue: store.get("bigtext", default: true))
         let savedAnchor: String? = store.get("anchor", default: nil)
         _anchor = State(initialValue: savedAnchor)
@@ -127,7 +131,7 @@ struct SettingsView: View {
         if let url = URL(string: urlStr) { UIApplication.shared.open(url) }
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -413,7 +417,7 @@ struct SettingsView: View {
                                 let current = store.allRawKyonoEntries
                                 for k in current.keys where snapshot[k] == nil { store.removeRaw(k) }
                                 for (k, v) in snapshot { store.setRaw(k, v) }
-                                theme = store.get("theme", default: "auto")
+                                theme = store.get("theme", default: "light")
                                 bigtext = store.get("bigtext", default: true)
                             }
                             importMessage = "さっきの状態にもどしました"
@@ -432,7 +436,7 @@ struct SettingsView: View {
                     // GO-G9(5視点ワンループ): 上書き前の状態を1件だけ退避してからimportする。
                     let snapshot = store.allRawKyonoEntries
                     try KyonoTransfer.importString(importInput.trimmingCharacters(in: .whitespacesAndNewlines), into: store)
-                    theme = store.get("theme", default: "auto")
+                    theme = store.get("theme", default: "light")
                     bigtext = store.get("bigtext", default: true)
                     importMessage = "よみこみました！"
                     preImportSnapshot = snapshot

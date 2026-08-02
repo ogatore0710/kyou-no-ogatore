@@ -200,7 +200,7 @@ struct RootView: View {
         }
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
     private var isOnboarding: Bool { if case .onboarding = screen { return true } else { return false } }
     // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
     // scrollIntoView(todayVideo)の1:1移植用フラグ。

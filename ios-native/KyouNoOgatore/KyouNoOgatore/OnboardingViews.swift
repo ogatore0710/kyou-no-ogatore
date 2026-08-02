@@ -226,7 +226,7 @@ struct OnboardingView: View {
         finish()
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -634,7 +634,7 @@ struct QuizView: View {
         _worry = State(initialValue: presetWorry)
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
     // TASK-C2-2026-07-31-build11-renshu-journey.md D: 練習モードジャーニーバーはfdGuide中
     // (はじめの1本ガイド・streakTotal==0)だけに出す。既存ユーザーの再チェックには一切出さない。
     private var fdGuideActive: Bool {
@@ -1335,7 +1335,7 @@ struct TourView: View {
     private var totalSlides: Int { obTourSlides.count + (showClosing ? 1 : 0) }
 
     var body: some View {
-        KyonoTheme(themeSetting: store.get("theme", default: "auto"), bigText: store.get("bigtext", default: true)) {
+        KyonoTheme(themeSetting: store.get("theme", default: "light"), bigText: store.get("bigtext", default: true)) {
             TourContentView(si: $si, totalSlides: totalSlides, showClosing: showClosing, isFirstRun: isFirstRun, onDone: onDone)
         }
     }

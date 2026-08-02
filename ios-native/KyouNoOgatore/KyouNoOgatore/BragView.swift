@@ -43,7 +43,7 @@ struct BragView: View {
         query.trimmingCharacters(in: .whitespaces).isEmpty ? [] : Array(searchCatalog(catalog, query: query, activeTag: nil).prefix(20))
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {

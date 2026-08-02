@@ -151,7 +151,7 @@ struct SearchView: View {
     @State private var debounceTask: Task<Void, Never>?
     @State private var searchLimit = 24
     private var hits: [CatalogVideo] { searchCatalog(catalog, query: debouncedQuery, activeTag: activeTag) }
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
@@ -538,7 +538,7 @@ struct CatalogListView: View {
 
     private let playlistGroups = PlaylistLoader.shared
     private let catalog = CatalogLoader.shared.sorted { a, b in a.y != b.y ? a.y > b.y : a.t < b.t }
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {

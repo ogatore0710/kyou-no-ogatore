@@ -24,7 +24,7 @@ struct DiaryView: View {
         self.entries = memos.sorted { $0.key > $1.key }.prefix(7).map { (date: $0.key, memo: $0.value) }
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {

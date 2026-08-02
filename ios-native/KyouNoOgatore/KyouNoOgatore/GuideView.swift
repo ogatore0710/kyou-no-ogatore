@@ -44,7 +44,7 @@ struct GuideView: View {
     @State private var sectionEverToggled = false
 
     private var nq: String { SafetyGate.norm(query) }
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {

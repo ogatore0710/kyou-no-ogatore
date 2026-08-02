@@ -29,7 +29,7 @@ struct VoicesView: View {
         self.todays = VoicesLogic.pickDaily(today: today)
     }
 
-    private var themeSetting: String { store.get("theme", default: "auto") }
+    private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
