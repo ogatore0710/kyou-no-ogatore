@@ -613,7 +613,12 @@ private let reachFromMomo = [5, 4, 2, 1]
 // この配列の「要素数」にだけ依存し(currentIndexは別ロジック)、意味的な段名には依存しない
 // ため実害はない。ResultContentViewのjourneyIndex(この下)は必ず同時に直す
 // (段の位置がズレる=alan5の警告どおり)。
-let kyonoJourneySteps = ["チェック", "けっか", "きろく", "カード"]
+// TASK-C2-2026-08-04-build19-tour-redesign.md T-3: 使い方ツアー独自の7点バー(番号のみのドット
+// 表示)が、この体験ジャーニーバーとは別に画面上部にもう1本出ており「二重のツアー感」になって
+// いた。ツアー専用バーを廃止し、この共通バーを5段目「みどころ」まで拡張してツアーからも
+// 共用する(予告3枚+締めの間は常に「みどころ」がカレント)。QuizView/ResultContentViewは
+// 5段目を一切参照しない(currentIndexの最大値はカードの3のまま)ため実害はない。
+let kyonoJourneySteps = ["チェック", "けっか", "きろく", "カード", "みどころ"]
 
 struct QuizView: View {
     let store: RecordStore
@@ -1305,16 +1310,12 @@ struct TourSlideDef {
 
 // index.html:4117-4143 OB_TOUR_SLIDES の1:1移植(タイトル・説明文のみ)。A2HS関連の内容は1枚も無い
 // (§6 Step5c検収基準3のgrep確認対象と対応)。
-// TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 絵文字・句読点の全廃(build16 P-1)で
-// 文の切れ目が消えたため、発注書指定の位置に改行(\n)を入れる(文言そのものは変更しない・
-// 改行位置のみ発注書の指定どおり)。
+// TASK-C2-2026-08-04-build19-tour-redesign.md T-2(本人カード裁定=案2「体験一本道＋予告3枚」):
+// 「もう体験したことの再説明」枚(まいにち1本・きょうやった！・ためると図鑑)を削除し、ツアーを
+// 「まだ見ていない場所の予告編」に純化する。記録の手順そのものは練習モード(かたさチェック→
+// けっか→きろく→カード)で既に一度体験済みのため、ここでの再説明は不要という判断。
+// 残す3枚の文言はビルド18のまま変更なし(改行位置も含め既存どおり)。
 let obTourSlides = [
-    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-10(本人GO・alan5指定文言)。
-    TourSlideDef(title: "まいにち1本、動画をやる", desc: "ホームの「きょうの1本」をタップ→YouTubeがひらくよ\n見おわったらこのアプリにもどってきてね"),
-    // おやすみ券の行を削除。
-    TourSlideDef(title: "おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ\n連続と通算がのびるよ"),
-    // 旧「記録カードをつくる」枚を削除し、この枚(旧「ためると図鑑がうまる」)に吸収。
-    TourSlideDef(title: "ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ\n「保存・シェアする」で写真にのこせて SNSやコメント欄にもどうぞ\n毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）"),
     TourSlideDef(title: "悩みは相談室で質問", desc: "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ\nオガトレ監修の答えとおすすめ動画がすぐ届くよ"),
     // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 「尾形さん」→「尾形」(本人指示・改行と同時)。
     TourSlideDef(title: "オガトレ通信をのぞく", desc: "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります"),
@@ -1323,17 +1324,16 @@ let obTourSlides = [
     // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
     // B-10: 6機能列挙をやめて簡略化。
     TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
-    TourSlideDef(title: "忘れてもだいじょうぶ", desc: "困ったらいつでも読み返せるよ！\n使い方タブの「使い方ツアー」からね"),
 ]
 let obTourClosingTitle = "これで準備ばっちり！"
-// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:4275-4277
-// OB_TOUR_CLOSING.dの1:1移植(2026-07-21 PO承認案(b))。以前はタイトルのみで説明文が欠落していた。
-// TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 改行位置は発注書の指定どおり。
-let obTourClosingDesc = "あしたも待ってるね\nきょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ"
+// TASK-C2-2026-08-04-build19-tour-redesign.md T-2(alan5指定文言・このまま): 削除した「忘れても
+// だいじょうぶ」枚の内容をこの締めスライドに吸収する。
+let obTourClosingDesc = "あしたも待ってるね\nきょうのぶんの動画は ホームの「きょうの1本」からどうぞ\n困ったら使い方タブの「使い方ツアー」でいつでも読み返せるよ"
 
-// index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。7枚(B-10で8枚から
-// 引き算)+条件付き8枚目
-// (closing・自動起動時のみ)。「つぎへ」ボタン+ドット進捗のリニアなステップ形式(スワイプ不使用)。
+// index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。3枚(T-2で7枚から
+// 予告3枚+締めへ再構成)+条件付き4枚目(closing・自動起動時のみ)。「つぎへ」ボタン+進捗バーの
+// リニアなステップ形式(スワイプ不使用)。T-3以降、進捗バーはツアー独自の点表示ではなく
+// 体験ジャーニーバー(kyonoJourneySteps)の5段目「みどころ」を共用する。
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: 以前はRecordStoreを受け取らず
 // テーマ・文字サイズを"auto"/trueに固定していたため、手動でライト設定にしている本人が夜に
 // 再訪するとツアー画面だけダークになる不具合があった。他画面と同じくstoreの実設定を使う。
@@ -1383,8 +1383,15 @@ private struct TourContentView: View {
                 Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                     .padding(.horizontal, 20).padding(.top, 20)
             }
-            KyonoJourneyBar(labels: Array(repeating: "", count: totalSlides), currentIndex: si)
+            // TASK-C2-2026-08-04-build19-tour-redesign.md T-3: ツアー独自の(番号のみの)進捗バーを
+            // 廃止し、体験ジャーニーバーの5段目「みどころ」を共用する(予告3枚+締めの間は常に
+            // カレント)。
+            KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: kyonoJourneySteps.count - 1)
             ScrollViewReader { proxy in
+            // TASK-C2-2026-08-04-build19-tour-redesign.md T-5: 内容がボタン列より大きく上に寄り、
+            // 画面中央がクリーム一色の余白になっていた。GeometryReaderで可視高さを取り、
+            // 内容VStackにminHeight+alignment:.centerを与えて縦中央に寄せる。
+            GeometryReader { outerGeo in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     Color.clear.frame(height: 0).id("obTop")
@@ -1393,10 +1400,12 @@ private struct TourContentView: View {
                         Text(slide.title).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
                         // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
                         KyonoTourMockup(slideIndex: si)
-                        Text(slide.desc).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(11)
+                        // TASK-C2-2026-08-04-build19-tour-redesign.md T-6: lineSpacing 11@14ptだと
+                        // 行がバラけて痩せて見えていた(本人指摘)ため6へ詰める。1.5pt線枠は外し、
+                        // colors.card塗り+角丸14のみのシンプルな箱にする。
+                        Text(slide.desc).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(6)
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
                     } else {
                         // index.html:4276 OB_TOUR_CLOSING(chara-congrats.png 110x110・中央表示)の1:1移植。
                         VStack(spacing: 8) {
@@ -1409,24 +1418,40 @@ private struct TourContentView: View {
                     }
                 }
                 .padding(20)
+                .frame(minHeight: outerGeo.size.height, alignment: .center)
             }
             // index.html:4308 log.scrollTop=0の1:1移植。内容側だけが独立してスクロールする
             // ようになったため、ステップが変わるたびに先頭へ戻さないと前のステップのスクロール
             // 位置が持ち越されて見える(Web版はそれが起きないようステップ描画のたびに毎回0へ戻す)。
             .onChange(of: si) { _, _ in proxy.scrollTo("obTop", anchor: .top) }
             }
+            }
             // D6: ボタン列は内容のスクロールに関わらず画面下端に固定。
+            // TASK-C2-2026-08-04-build19-tour-redesign.md T-4: 全幅ボタン3段積み(もどる/つぎへ/
+            // とばす)が画面下1/3を占有し野暮ったかった(本人指摘)。全幅ボタンは黄色「つぎへ」
+            // 1本だけにし、「もどる」「ツアーをとばす」は1行に並べる細身のテキストリンクへ格下げ
+            // する(枠・塗りなし・タップ領域は高さ44pt確保)。締めスライドは「おわる」黄1本のみ
+            // (もどるも省く・alan5指定)。
             VStack(spacing: 10) {
-                if si > 0 {
-                    KyonoLineButton("◀ もどる") { si -= 1 }
-                }
-                // D6: ボタン文言から絵文字を外す(D7と同じ理由)。ドット進捗が既に上にあるため、
-                // 文字側の「(N/9)」は重複と判断して落とす(ドットのほうを残す)。
                 KyonoPrimaryButton(si < totalSlides - 1 ? "つぎへ" : "おわる") {
                     if si < totalSlides - 1 { si += 1 } else { onDone() }
                 }
                 if si < totalSlides - 1 {
-                    KyonoGhostButton("ツアーをとばす", action: onDone)
+                    HStack {
+                        if si > 0 {
+                            Button { si -= 1 } label: {
+                                Text("◀ もどる").kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
+                                    .frame(minHeight: 44)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Spacer()
+                        Button(action: onDone) {
+                            Text("ツアーをとばす").kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+                                .frame(minHeight: 44)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
             .padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 20)
