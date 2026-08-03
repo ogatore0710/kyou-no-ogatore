@@ -66,17 +66,13 @@ final class TempB18Verify: XCTestCase {
             attach("MISSING-kyouyatta-button")
         }
 
-        // カードモーダルを閉じるとtourpendが立っているため、次の起動でツアーが自動開始される。
+        // カードモーダルを閉じるとcloseCardAndMaybeStartTour()がtourpend/tourseenを見て
+        // 0.35秒後に同一セッション内でツアーを自動開始する(次回起動時ではない)。
         let closeBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS 'とじる'")).firstMatch
         if closeBtn.waitForExistence(timeout: 5) {
             closeBtn.tap()
-            sleep(1)
+            sleep(2)
         }
-        // ツアーは次回起動時に自動開始される設計のため、アプリを一度終了して再起動する。
-        app.terminate()
-        sleep(1)
-        app.launch()
-        sleep(2)
         attach("07-tour-slide1-no-fab")
 
         for i in 0..<8 {
