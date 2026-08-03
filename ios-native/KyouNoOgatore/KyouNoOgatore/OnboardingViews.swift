@@ -1060,11 +1060,10 @@ private struct ResultContentView: View {
         ZStack {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // D(本丸)→W1-a修正: 「③どうが」(動画タップ後)はタイプカードを畳み、
-                // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。動画タップまでは
-                // タイプカードを表示し続ける(ポップ削除の結合修理: これが無いと初回ユーザーが
-                // タイプカードを一度も見られなくなる)。
-                if !fdGuideActive || !videoTapped {
+                // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-1: ガイド中(fdGuideActive)だけ
+                // 「タイプ+①」に削ぎ落としていた結果画面を廃止し、通常のかたさチェックと同じ
+                // フル版(タイプカード+解説+動画3本+ペース目安+相談室リンク)を常に表示する
+                // (「一度正確な自分の結果がきちんと出る」という本人の狙いどおり)。
                 KyonoGradientCard(gradient: .soft) {
                     Text("あなたのかたさタイプは…").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -1077,137 +1076,101 @@ private struct ResultContentView: View {
                     Spacer().frame(height: 8)
                     Text(info.copy).kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
-                    // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: app-quiz.js:291-299の1:1移植。
-                    // ガイド中(fdGuideActive)は結果画面を「タイプ+①」に削ぎ落とす(2026-07-21 5視点
-                    // 検証C・PO承認済み)。長文解説(rHope/rPT)・ペース目安(rPace)・②③・相談室リンクは
-                    // 翌日以降(通常表示)に回す(一本道=①をタップ→もどる→記録、以外の分岐を見せない)。
-                    if !fdGuideActive {
-                        Spacer().frame(height: 12)
-                        Text("" + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
-                            .padding(14)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(colors.yellowSoft)
-                            .cornerRadius(14)
-                        // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
-                        Spacer().frame(height: 12)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
-                            boldHtmlText(info.pt, bold: colors.ink)
-                                .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
-                        }
+                    Spacer().frame(height: 12)
+                    Text("" + info.hope).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(colors.yellowSoft)
+                        .cornerRadius(14)
+                    // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
+                    Spacer().frame(height: 12)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("理学療法士のひとくち解説").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                        boldHtmlText(info.pt, bold: colors.ink)
+                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     }
                     // TASK-C2-2026-08-01-build13-round3.md ④: 「とどくメーターにも記録したよ」の
                     // 表示行を削除(自動転記=setReach(lv, silent: true)自体は既存どおり継続、
                     // 表示だけを消す。alan5指摘: 結果画面が説明過多だった)。
                 }
-                }
-                if fdGuideActive {
-                    // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-quiz.js:300-322の1:1移植。ガイド中は
-                    // 通常の3本リストではなく、①だけを練習させる専用UIに差し替える(2026-07-21 5視点
-                    // 検証D・PO承認済み)。「タスクスイッチできない層がYouTubeから戻れないのが最初の
-                    // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
-                    KyonoCard {
-                        // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-3: 見出し文言変更
-                        // (動画カード内バッジ「きょうはこれ1本でOK！」は対象外・据え置き)。
-                        Text("きょうは練習してみよう")
-                            .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
-                        Spacer().frame(height: 10)
-                        // app-quiz.js:316-320 sd-row.oga相当の練習宣言吹き出し(相談室botバブルと同じ見た目)。
-                        // A-2: 練習開始ポップの「やってみる」がここへスクロールする際のアンカー。
-                        HStack(alignment: .bottom, spacing: 8) {
-                            KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
-                            VStack(alignment: .leading, spacing: 4) {
-                                // TASK-C2-2026-08-01-build13-round3.md ④: 「①をタップ！YouTubeが開くよ」+
-                                // 🔙戻り方説明の2行を、1文「下の動画をタップして すぐこのアプリに
-                                // もどってきてみて」に差し替え(直前の見出し「きょうはこの1本だけでOK！」は
-                                // 維持したまま説明を簡潔にする、alan5指摘)。
-                                Text("下の動画をタップして すぐこのアプリに もどってきてみて")
-                                    .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
-                            }
-                            .padding(.horizontal, 14).padding(.vertical, 10)
-                            .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+                // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
+                // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
+                // Q-1: ガイド中専用の「①だけ練習」カードは廃止し、常にこの通常版を表示する。
+                KyonoCard {
+                    Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
+                        .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                    Spacer().frame(height: 10)
+                    // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-4: ガイド中(fdGuideActive)は
+                    // 動画サムネをタップ不可のままにする(本人裁定・離脱回避)。onVideoTapを差し替えず
+                    // no-opにする(見た目はQ-1どおり通常の3本リストのまま・タップだけ無効化)。
+                    let videoTapHandler: (String) -> Void = fdGuideActive ? { _ in } : onVideoTap
+                    let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
+                    ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
+                        if let v = lookupVideo(vk) {
+                            VideoRow(v: v, openUrl: videoTapHandler, badge: badges.indices.contains(i) ? badges[i] : nil)
                         }
+                    }
+                    if !rx.isEmpty && !fdGuideActive {
                         Spacer().frame(height: 8)
-                        // index.html:216 fdBob(1.4s ease-in-out infinite・translateY 0↔5px)の1:1移植。
-                        FdBobText("ここを押してみて")
-                        Spacer().frame(height: 4)
-                        if let vk = rx.first, let v = lookupVideo(vk) {
-                            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:320
-                            // videoCard(rx[0], "きょうはこれ1本でOK!")の1:1移植。badge:nilで欠落していた。
-                            // W1-a結合修理: タップした瞬間にvideoTapped=trueへ(タイプカードが畳まれ
-                            // どうが(③)へ進段する)。
-                            VideoRow(v: v, openUrl: { url in videoTapped = true; onVideoTap(url) }, badge: "きょうはこれ1本でOK！", hero: true)
+                        KyonoGhostButton("▶ 3本続けて再生する") {
+                            let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
+                            openUrl("https://www.youtube.com/watch_videos?video_ids=\(ids)")
                         }
-                        Spacer().frame(height: 6)
-                        Text("あと2本とくわしい解説は あしたから見られるよ")
+                    }
+                    // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
+                    if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
+                        Spacer().frame(height: 4)
+                        VideoRow(v: v, openUrl: videoTapHandler, badge: "＋ \(extra.label)")
+                    }
+                    // index.html:740 #rRotateNoteの1:1移植。
+                    Spacer().frame(height: 4)
+                    // GO-G2(5視点ワンループ): index.html:740 .rotate-note{color:var(--sub)}の1:1移植。
+                    // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
+                    // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
+                    // 30日超の古い投稿日付のみ・index.html:277-278)。
+                    Text("おすすめは3日ごとに自動で入れ替わります")
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                }
+                // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-1: rPace/rSoudanLinkもガイド中だけ
+                // 隠していたが、フル版統一のため常に表示する。
+                KyonoCard {
+                    Text("ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                    Spacer().frame(height: 6)
+                    Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
+                        .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                    Spacer().frame(height: 8)
+                    // GO-G2: index.html:742 .hint{color:var(--sub)}の1:1移植。
+                    Text("※効果には個人差があります 痛みが強いときは中止して医療機関へ")
+                        .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                    // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
+                    if let intentId = soudanTypeIntent[typeKey] {
+                        Spacer().frame(height: 10)
+                        // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
+                        // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.soudanBubble)。
+                        HStack(spacing: 4) {
+                            KyonoIconGlyph(icon: .soudanBubble, fill: .clear, accent: colors.tealInk).frame(width: 16, height: 16)
+                            Text("この悩み、相談室で聞いてみる")
+                                .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
+                        }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 12)
+                            .onTapGesture { onOpenSoudan(intentId) }
+                    }
+                }
+                // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-3: 結果表示と同時/直後に出していた
+                // 「練習モード」ポップアップ的な専用ブロック(旧「きょうは練習してみよう」カード)を廃止し、
+                // 静かな一行+ボタンに差し替える。読み終わったら自分のタイミングで進む設計。
+                if fdGuideActive {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("この結果はほんもの！マイ記録からいつでも見られるよ")
                             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             .frame(maxWidth: .infinity, alignment: .center)
+                        KyonoPrimaryButton("つぎへ（記録の練習）") {
+                            videoTapped = true
+                            performPracticeRecord()
+                        }
                     }
                     .id("practiceBlock")
-                } else {
-                    // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
-                    // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
-                    KyonoCard {
-                        Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
-                            .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
-                        Spacer().frame(height: 10)
-                        let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
-                        ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
-                            if let v = lookupVideo(vk) {
-                                VideoRow(v: v, openUrl: onVideoTap, badge: badges.indices.contains(i) ? badges[i] : nil)
-                            }
-                        }
-                        if !rx.isEmpty {
-                            Spacer().frame(height: 8)
-                            KyonoGhostButton("▶ 3本続けて再生する") {
-                                let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
-                                openUrl("https://www.youtube.com/watch_videos?video_ids=\(ids)")
-                            }
-                        }
-                        // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
-                        if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
-                            Spacer().frame(height: 4)
-                            VideoRow(v: v, openUrl: onVideoTap, badge: "＋ \(extra.label)")
-                        }
-                        // index.html:740 #rRotateNoteの1:1移植。
-                        Spacer().frame(height: 4)
-                        // GO-G2(5視点ワンループ): index.html:740 .rotate-note{color:var(--sub)}の1:1移植。
-                        // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
-                        // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
-                        // 30日超の古い投稿日付のみ・index.html:277-278)。
-                        Text("おすすめは3日ごとに自動で入れ替わります")
-                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-                    }
-                }
-                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rPace/rSoudanLinkもガイド中は隠す
-                // (app-quiz.js:291-299 rPace + app-quiz.js:332 !guide && sdKb()の1:1移植)。
-                if !fdGuideActive {
-                    // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
-                    KyonoCard {
-                        Text("ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
-                        Spacer().frame(height: 6)
-                        Text("・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで")
-                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
-                        Spacer().frame(height: 8)
-                        // GO-G2: index.html:742 .hint{color:var(--sub)}の1:1移植。
-                        Text("※効果には個人差があります 痛みが強いときは中止して医療機関へ")
-                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-                        // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
-                        if let intentId = soudanTypeIntent[typeKey] {
-                            Spacer().frame(height: 10)
-                            // GO-G3(5視点ワンループ): 最小タップ領域44pt/48ptの確保(見た目は変えず当たり判定のみ拡張)。
-                            // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(.soudanBubble)。
-                            HStack(spacing: 4) {
-                                KyonoIconGlyph(icon: .soudanBubble, fill: .clear, accent: colors.tealInk).frame(width: 16, height: 16)
-                                Text("この悩み、相談室で聞いてみる")
-                                    .kyonoFont(.black900, size: 14).foregroundColor(colors.tealInk)
-                            }
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding(.vertical, 12)
-                                .onTapGesture { onOpenSoudan(intentId) }
-                        }
-                    }
                 }
                 // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
                 // はじめの1本ガイド中、結果画面を表示したまま動画を見に行って戻ってきたときに、
