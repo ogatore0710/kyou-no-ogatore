@@ -65,5 +65,31 @@ final class TempB18Verify: XCTestCase {
         } else {
             attach("MISSING-kyouyatta-button")
         }
+
+        // カードモーダルを閉じるとtourpendが立っているため、次の起動でツアーが自動開始される。
+        let closeBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS 'とじる'")).firstMatch
+        if closeBtn.waitForExistence(timeout: 5) {
+            closeBtn.tap()
+            sleep(1)
+        }
+        // ツアーは次回起動時に自動開始される設計のため、アプリを一度終了して再起動する。
+        app.terminate()
+        sleep(1)
+        app.launch()
+        sleep(2)
+        attach("07-tour-slide1-no-fab")
+
+        for i in 0..<8 {
+            let nextTourBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS 'つぎへ' OR label CONTAINS 'おわる'")).firstMatch
+            if nextTourBtn.waitForExistence(timeout: 5) {
+                attach("08-tour-slide-\(i)")
+                nextTourBtn.tap()
+                sleep(1)
+            } else {
+                attach("MISSING-tour-next-\(i)")
+                break
+            }
+        }
+        attach("09-tour-final-state")
     }
 }
