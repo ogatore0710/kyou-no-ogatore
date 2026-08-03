@@ -20,16 +20,19 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -108,7 +111,7 @@ private val KYONO_ONBOARDING_CTA_INSET = 100.dp
 
 val OB_GREET = listOf(
     "いつもありがとうございます！理学療法士のオガトレです！",
-    "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要🆓 あんしんしてね",
+    "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要 あんしんしてね",
     "最初に4つだけ教えてね！あなた用にこのアプリをととのえます",
 )
 
@@ -371,8 +374,10 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         // 同じ値のまま)はbubbles.size変化時も再コンポーズがスキップされ、この
                         // Text自体は「新しく生成された瞬間」にしかliveRegionが発火しない
                         // (=新しい吹き出しが増えるたびに全文が読み直される事故を回避)。
+                        // TASK-C2-2026-08-04-build19-tour-redesign.md T-7: lineHeight 26sp@15ptだと
+                        // 行がバラけて痩せて見えていた(iOS版lineSpacing 11→7の等価値)ため詰める。
                         Text(
-                            b.text, color = colors.ink, fontSize = 15.sp, lineHeight = 26.sp,
+                            b.text, color = colors.ink, fontSize = 15.sp, lineHeight = 22.sp,
                             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                         )
                     }
@@ -700,7 +705,11 @@ internal val QuizPickedSaver: Saver<SnapshotStateMap<String, Any?>, Any> = Saver
 // ためタップされることがなく、「どうが」段が実際には体験されないままバーだけ進んで見えていた
 // (本人指摘)。5段から「どうが」を外し4段にする。journeyIndex(この下)は必ず同時に直す
 // (段の位置がズレる=alan5の警告どおり)。
-val KYONO_JOURNEY_STEPS = listOf("チェック", "けっか", "きろく", "カード")
+// TASK-C2-2026-08-04-build19-tour-redesign.md T-3: ツアー独自の(番号のみの)進捗バーを廃止し、
+// 体験ジャーニーバーの5段目「みどころ」を共用する(予告3枚+締めの間は常にカレント)。
+// QuizScreen(currentIndex常に0固定)/ResultScreen(journeyIndex最大3=カード)は5段目を
+// 参照しないため、添字の変更は不要。
+val KYONO_JOURNEY_STEPS = listOf("チェック", "けっか", "きろく", "カード", "みどころ")
 
 @Composable
 fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit, onClose: () -> Unit) {
@@ -1328,33 +1337,28 @@ data class TourSlideDef(val title: String, val desc: String)
 // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 絵文字・句読点の全廃(build16 P-1)で
 // 文の切れ目が消えたため、発注書指定の位置に改行(\n)を入れる(文言そのものは変更しない・
 // 改行位置のみ発注書の指定どおり)。
-// TASK-C2-2026-08-03-build18-tutorial-quality.md B-10(本人GO・alan5指定文言)。
+// TASK-C2-2026-08-04-build19-tour-redesign.md T-2(本人カード裁定=案2「体験一本道＋予告3枚」):
+// 「もう体験したことの再説明」枚(まいにち1本・きょうやった！・ためると図鑑)を削除し、ツアーを
+// 「まだ見ていない場所の予告編」に純化する。記録の手順そのものは練習モード(かたさチェック→
+// けっか→きろく→カード)で既に一度体験済みのため、ここでの再説明は不要という判断。
+// 残す3枚の文言はビルド18のまま変更なし(改行位置も含め既存どおり)。
 val OB_TOUR_SLIDES = listOf(
-    TourSlideDef("まいにち1本、動画をやる", "ホームの「きょうの1本」をタップ→YouTubeがひらくよ\n見おわったらこのアプリにもどってきてね"),
-    // おやすみ券の行を削除。
-    TourSlideDef("おわったら「きょうやった！」", "アプリにもどったらこのボタンを押すだけ\n連続と通算がのびるよ"),
-    // 旧「記録カードをつくる」枚を削除し、この枚(旧「ためると図鑑がうまる」)に吸収。
-    TourSlideDef("ためると図鑑がうまる", "記録カードは記念日・季節・レアなど何種類もあるよ\n「保存・シェアする」で写真にのこせて SNSやコメント欄にもどうぞ\n毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）"),
     TourSlideDef("悩みは相談室で質問", "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ\nオガトレ監修の答えとおすすめ動画がすぐ届くよ"),
     // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 「尾形さん」→「尾形」(本人指示・改行と同時)。
     TourSlideDef("オガトレ通信をのぞく", "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります"),
-    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版の「見てみる」ボタンはネイティブの
-    // マイ記録に存在しない(お楽しみは🎉じまんカード/💬せんぱいの声/📔ひとことにっきの個別3ボタン)ため、
-    // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
-    // B-10: 6機能列挙をやめて簡略化。
+    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: ...(既存コメント維持)...
     TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
-    TourSlideDef("忘れてもだいじょうぶ", "困ったらいつでも読み返せるよ！\n使い方タブの「使い方ツアー」からね"),
 )
 const val OB_TOUR_CLOSING_TITLE = "これで準備ばっちり！"
-// TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:4275-4277
-// OB_TOUR_CLOSING.dの1:1移植(2026-07-21 PO承認案(b))。以前はタイトルのみで説明文が欠落していた。
-// TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 改行位置は発注書の指定どおり。
-const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね\nきょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ"
+// TASK-C2-2026-08-04-build19-tour-redesign.md T-2(alan5指定文言・このまま): 削除した「忘れても
+// だいじょうぶ」枚の内容をこの締めスライドに吸収する。
+const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね\nきょうのぶんの動画は ホームの「きょうの1本」からどうぞ\n困ったら使い方タブの「使い方ツアー」でいつでも読み返せるよ"
 
-// index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。7枚(B-10で8枚から
-// 引き算)+条件付き8枚目(closing・自動起動時のみ)。スワイプカルーセルでなく「つぎへ」
+// index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。3枚(T-2で7枚から予告3枚+
+// 締めへ再構成)+条件付き4枚目(closing・自動起動時のみ)。スワイプカルーセルでなく「つぎへ」
 // ボタン+ドット進捗のリニアなステップ形式
-// (index.html:4297-4324と同じ構造)。
+// (index.html:4297-4324と同じ構造)。T-3以降、進捗バーはツアー独自の点表示ではなく体験
+// ジャーニーバー(KYONO_JOURNEY_STEPS)の5段目「みどころ」を共用する。
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 // Phase 3: index.html:172-176,313-315 .obt-t/.obt-d/.dots/.dot/.dot.onの1:1移植。
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: 以前はRecordStoreを受け取らず
@@ -1386,10 +1390,19 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = f
                 modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp),
             )
         }
-        KyonoJourneyBar(labels = List(totalSlides) { "" }, currentIndex = si)
-        Column(
-            Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState).padding(20.dp),
-        ) {
+        // TASK-C2-2026-08-04-build19-tour-redesign.md T-3: ツアー独自の(番号のみの)進捗バーを
+        // 廃止し、体験ジャーニーバーの5段目「みどころ」を共用する(予告3枚+締めの間は常に
+        // カレント)。
+        KyonoJourneyBar(labels = KYONO_JOURNEY_STEPS, currentIndex = KYONO_JOURNEY_STEPS.size - 1)
+        // TASK-C2-2026-08-04-build19-tour-redesign.md T-5: 内容がボタン列より大きく上に寄り、
+        // 画面中央がクリーム一色の余白になっていた(本人指摘)。BoxWithConstraintsで可視高さを
+        // 取り、内容Columnに heightIn(min=) と Arrangement.Center を与えて縦中央に寄せる。
+        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            val visibleHeight = this.maxHeight
+            Column(
+                Modifier.fillMaxWidth().verticalScroll(scrollState).heightIn(min = visibleHeight).padding(20.dp),
+                verticalArrangement = Arrangement.Center,
+            ) {
             if (si < OB_TOUR_SLIDES.size) {
                 val slide = OB_TOUR_SLIDES[si]
                 Text(slide.title, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
@@ -1397,13 +1410,15 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = f
                 // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
                 KyonoTourMockup(si)
                 Spacer(Modifier.height(10.dp))
+                // TASK-C2-2026-08-04-build19-tour-redesign.md T-6: lineHeight 27sp@14ptだと行が
+                // バラけて痩せて見えていた(本人指摘)ため詰める(iOS版lineSpacing 6の等価値)。
+                // 1.5dp線枠は外し、colors.card塗り+角丸14のみのシンプルな箱にする。
                 Box(
                     Modifier.fillMaxWidth()
                         .background(colors.card, RoundedCornerShape(14.dp))
-                        .border(1.5.dp, colors.line, RoundedCornerShape(14.dp))
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                 ) {
-                    Text(slide.desc, color = colors.ink, fontSize = 14.sp, lineHeight = 27.sp, modifier = Modifier.testTag("tourDesc"))
+                    Text(slide.desc, color = colors.ink, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.testTag("tourDesc"))
                 }
             } else {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1418,23 +1433,37 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = f
                     )
                 }
             }
+            }
         }
         // D6: ボタン列は内容のスクロールに関わらず画面下端に固定。
+        // TASK-C2-2026-08-04-build19-tour-redesign.md T-4: 全幅ボタン3段積み(もどる/つぎへ/
+        // とばす)が画面下1/3を占有し野暮ったかった(本人指摘)。全幅ボタンは黄色「つぎへ」1本
+        // だけにし、「もどる」「ツアーをとばす」は1行に並べる細身のテキストリンクへ格下げする
+        // (枠・塗りなし・タップ領域は高さ44dp確保)。締めスライドは「おわる」黄1本のみ
+        // (もどるも省く・alan5指定)。
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 20.dp)) {
-            if (si > 0) {
-                KyonoLineButton("◀ もどる", { si-- }, Modifier.testTag("tourPrevBtn"))
-                Spacer(Modifier.height(8.dp))
-            }
-            // D6: ボタン文言から絵文字を外す(D7と同じ理由)。ドット進捗が既に上にあるため、
-            // 文字側の「(N/9)」は重複と判断して落とす(ドットのほうを残す・iOSと同じ判断)。
             KyonoPrimaryButton(
                 if (si < totalSlides - 1) "つぎへ" else "おわる",
                 { if (si < totalSlides - 1) si++ else onDone() },
                 Modifier.testTag("tourNextBtn"),
             )
             if (si < totalSlides - 1) {
-                Spacer(Modifier.height(8.dp))
-                KyonoGhostButton("ツアーをとばす", onDone, Modifier.testTag("tourSkipBtn"))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    if (si > 0) {
+                        Text(
+                            "◀ もどる", color = colors.sub2, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.heightIn(min = 44.dp).wrapContentHeight(Alignment.CenterVertically)
+                                .clickable { si-- }.testTag("tourPrevBtn"),
+                        )
+                    } else {
+                        Spacer(Modifier.width(1.dp))
+                    }
+                    Text(
+                        "ツアーをとばす", color = colors.tealInk, fontSize = 15.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.heightIn(min = 44.dp).wrapContentHeight(Alignment.CenterVertically)
+                            .clickable(onClick = onDone).testTag("tourSkipBtn"),
+                    )
+                }
             }
         }
         }

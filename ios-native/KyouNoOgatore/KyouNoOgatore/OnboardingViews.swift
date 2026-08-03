@@ -35,7 +35,7 @@ struct ObQuestionDef {
 
 let obGreet = [
     "いつもありがとうございます！理学療法士のオガトレです！",
-    "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要🆓 あんしんしてね",
+    "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要 あんしんしてね",
     "最初に4つだけ教えてね！あなた用にこのアプリをととのえます",
 ]
 
@@ -294,7 +294,9 @@ private struct OnboardingContentView: View {
                             topLeadingRadius: 16, bottomLeadingRadius: b.fromUser ? 16 : 6,
                             bottomTrailingRadius: b.fromUser ? 6 : 16, topTrailingRadius: 16
                         )
-                        Text(b.text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(11)
+                        // TASK-C2-2026-08-04-build19-tour-redesign.md T-7: lineSpacing 11@15ptだと
+                        // 行がバラけて痩せて見えていた → 7へ詰める。
+                        Text(b.text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(7)
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(shape.fill(b.fromUser ? colors.yellowSoft : colors.card))
                             .overlay(shape.stroke(b.fromUser ? Color.clear : colors.line, lineWidth: 1.5))

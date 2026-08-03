@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,7 +27,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -36,74 +34,18 @@ import androidx.compose.ui.unit.sp
 // 各スライドが「実際のアプリ画面のミニチュア再現」であるWeb版(index.html:4117-4143 OB_TOUR_SLIDES
 // のv フィールド)を1:1移植する。タップ不可の静止モックアップ(Web版の「gmock」)であり、
 // ここで描く内容はロジック・状態には一切影響しない(見た目のみ)。
+//
+// TASK-C2-2026-08-04-build19-tour-redesign.md T-1(実バグ修正): B-10でOB_TOUR_SLIDESを8→7枚に
+// 詰めた際、このwhenのcase番号(8枚時代のcase 0〜7)を詰め忘れ、3枚目以降が1つ前の話題の絵に
+// なっていた(iOS版・alan5が実描画で確認・報告)。T-2で3枚+締めへ再構成したのに合わせ、caseを
+// ゼロから書き直す(以後、スライド文言の変更時は必ずこのwhenも同時に見直すこと・検収基準
+// 「見出し⇔絵の一致」を新設)。
 @Composable
 fun KyonoTourMockup(slideIndex: Int) {
     val colors = LocalKyonoColors.current
     when (slideIndex) {
-        // 1) 📺まいにち1本: 「きょうの1本」カードのミニチュア(動画サムネイル+タイトル+案内文)
-        0 -> KyonoCard {
-            Text("きょうの1本", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(120.dp).aspectRatio(16f / 9f).background(colors.line, RoundedCornerShape(8.dp))) {
-                    KyonoAsyncImage(
-                        youtubeThumbUrl("Re5FPU5_37g"),
-                        Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(8.dp)),
-                    )
-                }
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("開脚できるようになる2週間ストレッチ", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(4.dp))
-                    Text("▶ タップでYouTubeがひらきます", color = colors.sub, fontSize = 12.sp)
-                }
-            }
-        }
-        // 2) ✅きょうやった！: 「続けた日数」カードのミニチュア(大きい数字「8日目」+done-btn)
-        1 -> KyonoCard {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("続けた日数（通算）", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text("8", color = colors.pink, fontSize = 38.sp, fontWeight = FontWeight.Black)
-                    Text("日目", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(bottom = 6.dp))
-                }
-                Spacer(Modifier.height(6.dp))
-                // index.html:380-381 .done-btn(teal-strong塗り+立体シャドウ。gmockのため押下は無し)
-                Box(
-                    Modifier.fillMaxWidth()
-                        .background(Color(0xFF1E8A7D), RoundedCornerShape(18.dp))
-                        .padding(top = 4.dp),
-                ) {
-                    Box(Modifier.fillMaxWidth().background(colors.tealStrong, RoundedCornerShape(18.dp)).padding(vertical = 14.dp)) {
-                        Text("きょうやった！", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                    }
-                }
-            }
-        }
-        // 3) 記録カードをつくる: card-sample.pngを180x180角丸で中央表示
-        2 -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            KyonoTourDrawable("card_sample", Modifier.size(180.dp), RoundedCornerShape(20.dp))
-        }
-        // 4) ためると図鑑がうまる: card-sample.pngの隣に「？」の点線枠3つ
-        3 -> KyonoCard {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("カード図鑑", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    KyonoTourDrawable("card_sample", Modifier.size(52.dp), RoundedCornerShape(10.dp))
-                    repeat(3) {
-                        Box(
-                            Modifier.size(52.dp)
-                                .border(1.5.dp, colors.line, RoundedCornerShape(10.dp)),
-                            contentAlignment = Alignment.Center,
-                        ) { Text("？", color = colors.sub, fontWeight = FontWeight.Black) }
-                    }
-                }
-            }
-        }
-        // 5) 悩みは相談室で質問: 実際のチャット吹き出し2つ(ユーザー発言→オガトレくんの返答、アバター付き)
-        4 -> Column {
+        // 1) 悩みは相談室で質問: 実際のチャット吹き出し2つ(ユーザー発言→オガトレくんの返答、アバター付き)
+        0 -> Column {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Text(
                     "肩こりがつらい", color = colors.ink,
@@ -123,8 +65,8 @@ fun KyonoTourMockup(slideIndex: Int) {
                 )
             }
         }
-        // 6) オガトレ通信をのぞく: 丸い写真アイコン+説明
-        5 -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        // 2) オガトレ通信をのぞく: 丸い写真アイコン+説明
+        1 -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             KyonoTourDrawable("obu_fab_photo", Modifier.size(56.dp).border(3.dp, colors.yellow, CircleShape), CircleShape)
             Spacer(Modifier.width(12.dp))
             Column {
@@ -132,8 +74,8 @@ fun KyonoTourMockup(slideIndex: Int) {
                 Text("ひとこと・写真・ラジオ", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
-        // 7) マイ記録でふりかえる: カレンダーのミニチュア(5個の丸、3個が塗りつぶし=やった日)
-        6 -> KyonoCard {
+        // 3) マイ記録でふりかえる: カレンダーのミニチュア(5個の丸、3個が塗りつぶし=やった日)
+        2 -> KyonoCard {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("カレンダー", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(8.dp))
@@ -149,13 +91,6 @@ fun KyonoTourMockup(slideIndex: Int) {
                     }
                 }
             }
-        }
-        // 8) 忘れてもだいじょうぶ: シンプルな案内カード
-        7 -> KyonoCard {
-            Text(
-                "下の「使い方」タブに\nぜんぶ書いてあります", color = colors.ink, fontSize = 14.sp, lineHeight = 24.sp,
-                modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-            )
         }
     }
 }
