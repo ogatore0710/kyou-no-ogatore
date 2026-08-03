@@ -1044,11 +1044,10 @@ fun ResultScreen(
                 .verticalScroll(resultScrollState)
                 .padding(20.dp),
         ) {
-            // D(本丸)→W1-a修正: 「③どうが」(動画タップ後)はタイプカードを畳み、
-            // 動画カード(練習ブロック)だけを大きく見せる(本人の明示要求)。動画タップまでは
-            // タイプカードを表示し続ける(ポップ削除の結合修理: これが無いと初回ユーザーが
-            // タイプカードを一度も見られなくなる)。
-            if (!fdGuideActive || !videoTapped) {
+            // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-1: ガイド中(fdGuideActive)だけ
+            // 「タイプ+①」に削ぎ落としていた結果画面を廃止し、通常のかたさチェックと同じ
+            // フル版(タイプカード+解説+動画3本+ペース目安+相談室リンク)を常に表示する
+            // (「一度正確な自分の結果がきちんと出る」という本人の狙いどおり)。
             KyonoGradientCard(KyonoGradient.Soft, Modifier.testTag("resultCard")) {
                 Text(
                     "あなたのかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
@@ -1070,178 +1069,121 @@ fun ResultScreen(
                     info.copy, color = colors.sub, fontSize = 15.sp,
                     modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                 )
-                // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: app-quiz.js:291-299の1:1移植。
-                // ガイド中(fdGuideActive)は結果画面を「タイプ+①」に削ぎ落とす(2026-07-21 5視点
-                // 検証C・PO承認済み)。長文解説(rHope/rPT)・ペース目安(rPace)・②③・相談室リンクは
-                // 翌日以降(通常表示)に回す(一本道=①をタップ→もどる→記録、以外の分岐を見せない)。
-                if (!fdGuideActive) {
-                    Spacer(Modifier.height(12.dp))
-                    Box(Modifier.fillMaxWidth().background(colors.yellowSoft, RoundedCornerShape(14.dp)).padding(14.dp)) {
-                        Text("" + info.hope, color = colors.ink, fontSize = 15.sp)
-                    }
-                    // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
-                    Spacer(Modifier.height(12.dp))
-                    Column {
-                        Text("理学療法士のひとくち解説", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            annotatedBoldHtml(info.pt, colors.ink), color = colors.sub, fontSize = 14.sp, lineHeight = 21.sp,
-                            modifier = Modifier.testTag("resultPT"),
-                        )
-                    }
+                Spacer(Modifier.height(12.dp))
+                Box(Modifier.fillMaxWidth().background(colors.yellowSoft, RoundedCornerShape(14.dp)).padding(14.dp)) {
+                    Text("" + info.hope, color = colors.ink, fontSize = 15.sp)
+                }
+                // 全画面完全性監査タスク #result: index.html:733 #rPT(理学療法士のひとくち解説)の1:1移植。
+                Spacer(Modifier.height(12.dp))
+                Column {
+                    Text("理学療法士のひとくち解説", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        annotatedBoldHtml(info.pt, colors.ink), color = colors.sub, fontSize = 14.sp, lineHeight = 21.sp,
+                        modifier = Modifier.testTag("resultPT"),
+                    )
                 }
                 // TASK-C2-2026-08-01-build13-round3.md ④: 「とどくメーターにも記録したよ」の
                 // 表示行を削除(自動転記=setReach(lv, silent=true)自体は既存どおり継続、
                 // 表示だけを消す。alan5指摘: 結果画面が説明過多だった)。
             }
-            }
             Spacer(Modifier.height(16.dp))
-            if (fdGuideActive) {
-                // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-quiz.js:300-322の1:1移植。ガイド中は
-                // 通常の3本リストではなく、①だけを練習させる専用UIに差し替える(2026-07-21 5視点
-                // 検証D・PO承認済み)。「タスクスイッチできない層がYouTubeから戻れないのが最初の
-                // 脱落点」という動機のため、OS別のもどりかた案内を必ず添える。
-                KyonoCard {
-                    // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-3: 見出し文言変更
-                    // (動画カード内バッジ「きょうはこれ1本でOK！」は対象外・据え置き)。
-                    Text(
-                        "きょうは練習してみよう", color = colors.ink, fontSize = 15.sp,
-                        fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Column(modifier = Modifier.testTag("rxList")) {
-                        // app-quiz.js:316-320 sd-row.oga相当の練習宣言吹き出し(相談室botバブルと同じ見た目)。
-                        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.testTag("fdPracticeBubble")) {
-                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Column(
-                                Modifier.fillMaxWidth()
-                                    .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                            ) {
-                                // TASK-C2-2026-08-01-build13-round3.md ④: 「①をタップ！YouTubeが開くよ」+
-                                // 🔙戻り方説明の2行を、1文「下の動画をタップして すぐこのアプリに
-                                // もどってきてみて」に差し替え(直前の見出し「きょうはこの1本だけでOK！」は
-                                // 維持したまま説明を簡潔にする、alan5指摘)。
-                                Text("下の動画をタップして すぐこのアプリに もどってきてみて", color = colors.ink)
-                            }
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        // index.html:214,216 fdBob(1.4s ease-in-out infinite・translateY 0↔5px)の1:1移植。
-                        // index.html:214 @media(prefers-reduced-motion:no-preference)の1:1移植:
-                        // 減速設定オンでは静止させる(TASK-C2-2026-07-27-behavior-parity-audit.md §D)。
-                        val fdBobOffset by if (rememberReducedMotion()) {
-                            remember { mutableStateOf(0f) }
-                        } else {
-                            val fdBobInfinite = rememberInfiniteTransition(label = "fdBob")
-                            fdBobInfinite.animateFloat(
-                                initialValue = 0f, targetValue = 5f,
-                                animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                                label = "fdBobOffset",
-                            )
-                        }
-                        Text(
-                            "ここを押してみて", color = colors.pinkInk, fontSize = 15.sp, fontWeight = FontWeight.Black,
-                            modifier = Modifier.fillMaxWidth().offset(y = fdBobOffset.dp).testTag("fdPoint"),
-                            textAlign = TextAlign.Center,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        rx.firstOrNull()?.let { vk ->
-                            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §5: app-quiz.js:320
-                            // videoCard(rx[0], "きょうはこれ1本でOK!")の1:1移植。badge=nullで欠落していた。
-                            // W1-a結合修理: タップした瞬間にvideoTapped=trueへ(タイプカードが畳まれ
-                            // どうが(③)へ進段する)。
-                            lookupVideo(vk)?.let { v ->
-                                VideoRow(v, { url -> videoTapped = true; onVideoTap(url) }, badge = "きょうはこれ1本でOK！", hero = true)
-                            }
-                        }
+            // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
+            // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
+            // Q-1: ガイド中専用の「①だけ練習」カードは廃止し、常にこの通常版を表示する。
+            KyonoCard {
+                Text(
+                    "おすすめの3本: まずは「${info.area}」から！2週間続けてみて", color = colors.ink,
+                    fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
+                )
+                Spacer(Modifier.height(10.dp))
+                // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-4: ガイド中(fdGuideActive)は
+                // 動画サムネをタップ不可のままにする(本人裁定・離脱回避)。onVideoTapを差し替えず
+                // no-opにする(見た目はQ-1どおり通常の3本リストのまま・タップだけ無効化)。
+                val videoTapHandler: (String) -> Unit = if (fdGuideActive) { {} } else onVideoTap
+                val badges = listOf("①まずほぐす", "②メインの1本", "③しあげ")
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
+                    rx.forEachIndexed { i, vk ->
+                        lookupVideo(vk)?.let { v -> VideoRow(v, videoTapHandler, badge = badges.getOrNull(i)) }
                     }
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "あと2本とくわしい解説は あしたから見られるよ", color = colors.sub, fontSize = 13.sp,
-                        fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth().testTag("fdRotateNote"),
-                        textAlign = TextAlign.Center,
+                }
+                if (rx.isNotEmpty() && !fdGuideActive) {
+                    Spacer(Modifier.height(8.dp))
+                    KyonoGhostButton(
+                        "▶ 3本続けて再生する",
+                        { openUrl("https://www.youtube.com/watch_videos?video_ids=" + rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")) },
+                        Modifier.testTag("rxPlayAllBtn"),
                     )
                 }
-            } else {
-                // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
-                // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
-                KyonoCard {
-                    Text(
-                        "おすすめの3本: まずは「${info.area}」から！2週間続けてみて", color = colors.ink,
-                        fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    val badges = listOf("①まずほぐす", "②メインの1本", "③しあげ")
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
-                        rx.forEachIndexed { i, vk ->
-                            lookupVideo(vk)?.let { v -> VideoRow(v, onVideoTap, badge = badges.getOrNull(i)) }
-                        }
-                    }
-                    if (rx.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
-                        KyonoGhostButton(
-                            "▶ 3本続けて再生する",
-                            { openUrl("https://www.youtube.com/watch_videos?video_ids=" + rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")) },
-                            Modifier.testTag("rxPlayAllBtn"),
-                        )
-                    }
-                    // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
-                    worry?.let { w ->
-                        WORRY_EXTRA[w]?.let { extra ->
-                            if (extra.v !in rx) {
-                                lookupVideo(extra.v)?.let { v ->
-                                    Spacer(Modifier.height(4.dp))
-                                    VideoRow(v, onVideoTap, badge = "＋ ${extra.label}")
-                                }
+                // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
+                worry?.let { w ->
+                    WORRY_EXTRA[w]?.let { extra ->
+                        if (extra.v !in rx) {
+                            lookupVideo(extra.v)?.let { v ->
+                                Spacer(Modifier.height(4.dp))
+                                VideoRow(v, videoTapHandler, badge = "＋ ${extra.label}")
                             }
                         }
                     }
-                    // index.html:740 #rRotateNoteの1:1移植。
-                    Spacer(Modifier.height(4.dp))
-                    // GO-G2(5視点ワンループ): index.html:740 .rotate-note{color:var(--sub)}の1:1移植。
-                    // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
-                    // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
-                    // 30日超の古い投稿日付のみ・index.html:277-278)。
-                    Text(
-                        "おすすめは3日ごとに自動で入れ替わります", color = colors.sub, fontSize = 12.sp,
-                        modifier = Modifier.testTag("rRotateNote"),
-                    )
+                }
+                // index.html:740 #rRotateNoteの1:1移植。
+                Spacer(Modifier.height(4.dp))
+                // GO-G2(5視点ワンループ): index.html:740 .rotate-note{color:var(--sub)}の1:1移植。
+                // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
+                // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
+                // 30日超の古い投稿日付のみ・index.html:277-278)。
+                Text(
+                    "おすすめは3日ごとに自動で入れ替わります", color = colors.sub, fontSize = 12.sp,
+                    modifier = Modifier.testTag("rRotateNote"),
+                )
+            }
+            // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-1: rPace/rSoudanLinkもガイド中だけ
+            // 隠していたが、フル版統一のため常に表示する。
+            Spacer(Modifier.height(16.dp))
+            // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
+            KyonoCard {
+                Text("ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで",
+                    color = colors.sub, fontSize = 14.sp, lineHeight = 24.sp,
+                )
+                Spacer(Modifier.height(8.dp))
+                // GO-G2: index.html:742 .hint{color:var(--sub)}の1:1移植。
+                Text(
+                    "※効果には個人差があります 痛みが強いときは中止して医療機関へ",
+                    color = colors.sub, fontSize = 12.sp,
+                )
+                // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
+                SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->
+                    Spacer(Modifier.height(10.dp))
+                    // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
+                    // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(SoudanBubble)。
+                    Row(
+                        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.padding(vertical = 12.dp).testTag("resultSoudanLink"),
+                    ) {
+                        KyonoIconGlyph(KyonoIcon.SoudanBubble, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                    }
                 }
             }
-            // TASK-C2-2026-07-28-quiz-result-reach-parity.md §1: rPace/rSoudanLinkもガイド中は隠す
-            // (app-quiz.js:291-299 rPace + app-quiz.js:332 !guide && sdKb()の1:1移植)。
-            if (!fdGuideActive) {
+            // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-3: 結果表示と同時/直後に出していた
+            // 「練習モード」ポップアップ的な専用ブロック(旧「きょうは練習してみよう」カード)を廃止し、
+            // 静かな一行+ボタンに差し替える。読み終わったら自分のタイミングで進む設計。
+            if (fdGuideActive) {
                 Spacer(Modifier.height(16.dp))
-                // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
-                KyonoCard {
-                    Text("ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.height(6.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("fdPracticeBlock")) {
                     Text(
-                        "・毎日が理想！週3でも効きます\n・1日1回で十分\n・痛い日は休むのが正解\n・痛みは「イタ気持ちいい」まで",
-                        color = colors.sub, fontSize = 14.sp, lineHeight = 24.sp,
+                        "この結果はほんもの！マイ記録からいつでも見られるよ", color = colors.sub, fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                     )
-                    Spacer(Modifier.height(8.dp))
-                    // GO-G2: index.html:742 .hint{color:var(--sub)}の1:1移植。
-                    Text(
-                        "※効果には個人差があります 痛みが強いときは中止して医療機関へ",
-                        color = colors.sub, fontSize = 12.sp,
+                    KyonoPrimaryButton(
+                        "つぎへ（記録の練習）",
+                        { videoTapped = true; performPracticeRecord() },
+                        Modifier.testTag("fdPracticeNextBtn"),
                     )
-                    // 全画面完全性監査タスク #result: index.html:743 #rSoudanLink(タイプ別の相談室逆導線)の1:1移植。
-                    SOUDAN_TYPE_INTENT[typeKey]?.let { intentId ->
-                        Spacer(Modifier.height(10.dp))
-                        // GO-G3(5視点ワンループ): 最小タップ領域44pt/48dpの確保(見た目は変えず当たり判定のみ拡張)。
-                        // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ(SoudanBubble)。
-                        Row(
-                            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().clickable { onOpenSoudan(intentId) }.padding(vertical = 12.dp).testTag("resultSoudanLink"),
-                        ) {
-                            KyonoIconGlyph(KyonoIcon.SoudanBubble, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                        }
-                    }
                 }
             }
             // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
