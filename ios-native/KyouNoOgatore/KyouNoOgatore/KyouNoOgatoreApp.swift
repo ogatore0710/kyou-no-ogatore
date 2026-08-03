@@ -274,6 +274,11 @@ struct RootView: View {
                 if case .soudan = screen { return true }
                 if screen == .onboarding || screen == .dex { return true }
                 if case .obu = screen { return true }
+                // TASK-C2-2026-08-03-build18-tutorial-quality.md B-5: 使い方ツアーの全スライドで
+                // 白丸の相談室FABが「つぎへ/おわる」ボタンの右端に重なり、誤タップ導線になって
+                // いた(本人GO)。5枚目の相談室紹介はスライド本文自体で伝わるため、ツアー中は
+                // ビルド16の「FABの躾」の延長として両FABとも隠す。
+                if case .tour = screen { return true }
                 if homeCardModalOpen { return true }
                 return obuPopupOpen
             }()

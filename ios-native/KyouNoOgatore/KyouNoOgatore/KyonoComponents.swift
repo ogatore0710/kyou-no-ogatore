@@ -637,12 +637,26 @@ struct KyonoCardModalOverlay<Content: View>: View {
     @Environment(\.kyonoColors) private var colors
     let isPresented: Bool
     let onClose: () -> Void
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-1: 結果画面(ResultContentView)だけ、
+    // 半透明スクリム(0.55)越しに背後の「静かな一行+ボタン」や各カードが透けて見え、モーダルの
+    // カードと二重に見える欠陥があった(alan5実機報告IMG_8729)。P-1のOnboardingScrimと同じ
+    // 「不透明色で完全に隠す」方針をここにも展開できるよう、既定値falseで既存呼び出し元
+    // (HomeView/MyRecordView/BragView)の見た目は変えず、ResultContentViewの呼び出しだけ
+    // trueにして不透明にする。
+    var scrimOpaque: Bool = false
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         if isPresented {
             ZStack {
-                Color.black.opacity(0.55).ignoresSafeArea()
+                Group {
+                    if scrimOpaque {
+                        colors.bg
+                    } else {
+                        Color.black.opacity(0.55)
+                    }
+                }
+                .ignoresSafeArea()
                     .onTapGesture { onClose() }
                 // TestFlight実機フィードバックD3(2026-07-29): index.html:1191 #cardModalBox
                 // (padding:18px・高さ指定なし=内容ぴったり)の1:1移植。以前は.background()を

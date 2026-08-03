@@ -94,6 +94,11 @@ struct VideoRow: View {
     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: index.html:337 .fd-hero .video(pink枠+pink-soft地)の
     // 1:1移植。はじめの1本ガイド中の①だけを視覚的に主役化する強調枠。
     var hero: Bool = false
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: TASK-C2-2026-08-02-build17-feedback-
+    // fixes.md Q-4でfdGuide中はopenUrlをno-opにしたが、見た目は普段どおりタップできそうに
+    // 見えており「押せるように見える嘘」になっていた(本人指摘)。no-op裁定自体は維持しつつ、
+    // 減光+実際にdisabled(true)にして見た目でも押せないことを明示する。
+    var disabledLook: Bool = false
 
     // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
     // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと

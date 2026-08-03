@@ -602,8 +602,15 @@ struct QuizTypeResult: Codable {
 private let reachFromMomo = [5, 4, 2, 1]
 
 // TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モード(かたさチェック開始〜初回
-// 記録カード表示まで)5段の共通ラベル。QuizView/ResultViewの両方から参照する。
-let kyonoJourneySteps = ["チェック", "けっか", "どうが", "きろく", "カード"]
+// 記録カード表示まで)の共通ラベル。QuizView/ResultViewの両方から参照する。
+// TASK-C2-2026-08-03-build18-tutorial-quality.md B-2: fdGuide中は動画サムネがno-op(Q-4)の
+// ためタップされることがなく、「どうが」段が実際には体験されないままバーだけ進んで見えていた
+// (本人指摘)。5段から「どうが」を外し4段にする。KyonoJourneyBarはQuizView(:709)・
+// ResultContentView(:1066頃)・TourView(:1354頃)の3箇所で使われるが、QuizView/TourViewは
+// この配列の「要素数」にだけ依存し(currentIndexは別ロジック)、意味的な段名には依存しない
+// ため実害はない。ResultContentViewのjourneyIndex(この下)は必ず同時に直す
+// (段の位置がズレる=alan5の警告どおり)。
+let kyonoJourneySteps = ["チェック", "けっか", "きろく", "カード"]
 
 struct QuizView: View {
     let store: RecordStore
@@ -997,11 +1004,15 @@ private struct ResultContentView: View {
     }
 
     // D: 練習モードジャーニーバーの現在地(0-based)。①チェックはQuizViewが担当するため
-    // ここでは②〜⑤(index 1〜4)のみ動く。
+    // ここでは②〜④(index 1〜3)のみ動く。
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-2: kyonoJourneySteps側で「どうが」を
+    // 外し4段(チェック/けっか/きろく/カード)にしたのに合わせ、こちらの添字も詰める
+    // (旧: けっか1・どうが2・きろく3・カード4 → 新: けっか1・きろく2・カード3)。
+    // videoTapped(「きょうやった!」タップ済み)とshowDoneNudge(動画から復帰済み)は、どちらも
+    // 「けっかの次=きろく」段に該当するため同じ2にまとめる。
     private var journeyIndex: Int {
-        if cardResult != nil { return 4 }
-        if showDoneNudge { return 3 }
-        if videoTapped { return 2 }
+        if cardResult != nil { return 3 }
+        if showDoneNudge || videoTapped { return 2 }
         return 1
     }
 
@@ -1041,15 +1052,19 @@ private struct ResultContentView: View {
         } else {
             withAnimation(.easeOut(duration: 0.5)) { fdCelebrationVisible = true }
         }
-        if !reduceMotion {
-            confettiTrigger = (confettiTrigger ?? 0) + 1
-        }
+        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-1: HomeView.swift(TASK-C2-2026-07-30-
+        // completion-moment-redesign.md)で「紙吹雪がカード入場より0.7秒も前に先発してしまい、
+        // カードが出る頃には見せ場が終わっている」欠陥を直した際と同じ再発がここにもあった
+        // (confettiTriggerがfdCelebrationVisibleと同時=即時発火・cardResultだけ0.7秒後という
+        // ズレ)。HomeView側の直し方どおり、confettiもcardResultと同じタイミング(0.7秒後)へ
+        // 揃える。
         let newCard = renderTodayCard(store: store, streak: streak, ds: today)
         if reduceMotion {
             cardResult = newCard
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                 withAnimation(.easeOut(duration: 0.35)) { cardResult = newCard }
+                confettiTrigger = (confettiTrigger ?? 0) + 1
             }
         }
     }
@@ -1168,12 +1183,20 @@ private struct ResultContentView: View {
                 // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-3: 結果表示と同時/直後に出していた
                 // 「練習モード」ポップアップ的な専用ブロック(旧「きょうは練習してみよう」カード)を廃止し、
                 // 静かな一行+ボタンに差し替える。読み終わったら自分のタイミングで進む設計。
-                if fdGuideActive {
+                // TASK-C2-2026-08-03-build18-tutorial-quality.md B-6: 文言をalan5指定どおりに変更
+                // (練習ボタンを本番と同じ「きょうやった！」に)。B-1: タップと同時にこのブロック
+                // 自体を消し、カードモーダル出現までの0.7秒間、背後にボタンが残って半透明スクリム
+                // 越しに二重に見えることを防ぐ(videoTappedをそのまま表示条件に使う)。B-8:
+                // QuizView.onOptTapのansweringガードと同じ考え方で、videoTapped自体を
+                // 「既に処理済みか」の判定にも使い、モーダル出現までの0.7秒間の再タップで
+                // performPracticeRecordが二重発火しないようにする。
+                if fdGuideActive && !videoTapped {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("この結果はほんもの！マイ記録からいつでも見られるよ")
+                        Text("この結果はほんもの！つぎは本番とおなじボタンで記録の練習")
                             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                             .frame(maxWidth: .infinity, alignment: .center)
-                        KyonoPrimaryButton("つぎへ（記録の練習）") {
+                        KyonoPrimaryButton("きょうやった！") {
+                            guard !videoTapped else { return }
                             videoTapped = true
                             performPracticeRecord()
                         }
@@ -1232,7 +1255,7 @@ private struct ResultContentView: View {
         // D: HomeView.swift:830-872のカードモーダルと同じ作法(結果画面版・節目分岐は日1目には
         // 到達しないため省略)。
         .overlay {
-            KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour) {
+            KyonoCardModalOverlay(isPresented: cardResult != nil, onClose: closeCardAndMaybeStartTour, scrimOpaque: true) {
                 if let cardResult {
                     VStack {
                         Image(uiImage: cardResult.image).resizable().scaledToFit()

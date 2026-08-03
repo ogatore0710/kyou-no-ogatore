@@ -475,9 +475,13 @@ class MainActivity : ComponentActivity() {
                                 // TASK-C2-2026-08-02-build16-polish-and-ia.md P-4: 「FABの躾」。
                                 // ホームで記録カードダイアログ(祝い演出・紙吹雪込み)が開いている間は、
                                 // 通信FABがダイアログの上に浮いたまま残っていた欠落を修正。
+                                // TASK-C2-2026-08-03-build18-tutorial-quality.md B-5: 使い方ツアーの
+                                // 全スライドで白丸の相談室FABが「つぎへ/おわる」ボタンの右端に重なり、
+                                // 誤タップ導線になっていた(本人GO)。5枚目の相談室紹介はスライド本文
+                                // 自体で伝わるため、ツアー中は両FABとも隠す。
                                 val fabsHiddenEntirely = screen is Screen.Quiz || screen is Screen.Soudan ||
                                     screen == Screen.Onboarding || screen == Screen.Dex || screen is Screen.Obu ||
-                                    obuPopupOpen || homeCardModalOpen
+                                    screen is Screen.Tour || obuPopupOpen || homeCardModalOpen
                                 // 相談室FAB: ホーム(相談室カードと重複・2026-07-19 Fableレビュー)・
                                 // 使い方(FAQ見出しの▾に被る実測あり・2026-07-20監査④)・結果画面
                                 // (「相談室で聞いてみる」リンクとの二重導線・2026-07-20監査⑤)では出さない。
