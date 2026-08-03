@@ -201,6 +201,9 @@ struct RootView: View {
     }
 
     private var themeSetting: String { store.get("theme", default: "light") }
+    // TASK-C2-2026-08-02-build17-feedback-fixes.md P-8: 相談室シートに.presentationBackground()を
+    // 明示指定するために必要(下記参照)。
+    @Environment(\.colorScheme) private var systemColorScheme
     private var isOnboarding: Bool { if case .onboarding = screen { return true } else { return false } }
     // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
     // scrollIntoView(todayVideo)の1:1移植用フラグ。
@@ -402,6 +405,20 @@ struct RootView: View {
             .presentationDetents([.fraction(0.92)])
             .presentationCornerRadius(20)
             .presentationDragIndicator(.hidden)
+            // TASK-C2-2026-08-02-build17-feedback-fixes.md P-8: alan5の実測(録画3フレーム差分)で
+            // 「相談室シート中央の平均輝度がチップドラッグ中だけ+4.4〜4.8/255明るくなり、アイドルで
+            // 消える。シート外(背後)は無変化」という現象が報告された。原因の最有力仮説(alan5指摘)は
+            // 「.presentationBackground()を明示していないため、iOSの.sheet()既定のシステム背景
+            // (マテリアル等)がドラッグ中の対話的トランジション演出で一瞬効いて見える」というもの。
+            // SoudanSheetView自身は.background(colors.bg)で不透明に塗っているが、それは
+            // シート"コンテンツ"の背景であり、シート"プレゼンテーション"自体の背景
+            // (UISheetPresentationControllerが管理する、コンテンツの外側/下敷きの層)は別物で、
+            // 明示しない限りシステム既定に委ねられる。ここを明示的にcolors.bgへ固定することで、
+            // ドラッグ中のシステム演出が対話的トランジション用の背景を見せる余地自体を無くす。
+            // シミュレータでは現象が再現せず(バースト連写で輝度差0.1未満・実機の+4.4〜4.8とは
+            // 別次元)、この修正がalan5の実測結果を解消するかどうかはシミュレータ上で検証できて
+            // いない。実機での再検証が必要。
+            .presentationBackground(resolveKyonoColors(themeSetting: themeSetting, systemColorScheme: systemColorScheme).bg)
         }
     }
 
