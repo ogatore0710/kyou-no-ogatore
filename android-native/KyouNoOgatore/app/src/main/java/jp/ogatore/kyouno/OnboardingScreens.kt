@@ -1029,7 +1029,13 @@ fun ResultScreen(
     // 置く方式。バーをColumnの子にするとAnimatedVisibility呼び出しがColumnScope拡張版と衝突する
     // ため、あえてBox直下の兄弟構成にする)。
     var journeyBarHeightPx by remember { mutableStateOf(0) }
-    KyonoTheme("auto", bigText = store.get("bigtext", true)) {
+    // TASK-C2-2026-08-03-build17-hotfix-result-theme.md: themeSettingを"auto"に固定していたため、
+    // アプリ内テーマ(kyono_theme)が「明るい」でもシステム側がダークだと結果画面だけダーク描画
+    // されていた欠陥。build16まではデフォルト値も"auto"だったため気づかれなかったが、build17の
+    // P-3(デフォルトを"light"へ変更)により、他画面(QuizScreen/TourScreen等)は正しく追従する
+    // 一方ResultScreenだけ食い違うようになった(alan5実機報告)。他画面と同じ
+    // store.get("theme", "light")に揃える。
+    KyonoTheme(store.get("theme", "light"), bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         Box(Modifier.fillMaxSize()) {
         Column(

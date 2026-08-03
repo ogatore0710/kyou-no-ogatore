@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA0000000000000000380001 /* TempHotfixCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000380002 /* TempHotfixCheck.swift */; };
 		25F2D027FEC15A1FC4195062 /* SearchViewUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46132710479193E86203285 /* SearchViewUITests.swift */; };
 		4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5818E1CC197288CC2CC64AF6 /* CardCore */; };
 		5656707DCF8EE465F7D9CEF1 /* chara-congrats.png in Resources */ = {isa = PBXBuildFile; fileRef = BAA8A556CF2AA315E596EF36 /* chara-congrats.png */; };
@@ -59,6 +60,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA0000000000000000380002 /* TempHotfixCheck.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TempHotfixCheck.swift; path = KyouNoOgatoreUITests/TempHotfixCheck.swift; sourceTree = "<group>"; };
 		12F1F2182C79A6C9426039B7 /* KyonoWidgetExtensionBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KyonoWidgetExtensionBundle.swift; sourceTree = "<group>"; };
 		4314DCE6A1F9E6AA843BC423 /* chara-cheer.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-cheer.png"; sourceTree = "<group>"; };
 		5187B9F13014B06500013565 /* KyouNoOgatore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KyouNoOgatore.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -162,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				C46132710479193E86203285 /* SearchViewUITests.swift */,
+				AA0000000000000000380002 /* TempHotfixCheck.swift */,
 			);
 			name = KyouNoOgatoreUITests;
 			sourceTree = SOURCE_ROOT;
@@ -355,6 +358,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				25F2D027FEC15A1FC4195062 /* SearchViewUITests.swift in Sources */,
+				AA0000000000000000380001 /* TempHotfixCheck.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

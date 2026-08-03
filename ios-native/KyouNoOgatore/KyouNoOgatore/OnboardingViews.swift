@@ -916,10 +916,18 @@ struct ResultView: View {
         return HomeLogic.fdActive(fd: fd, streakTotal: RecordLogic.loadStreak(store).total)
     }
 
+    // TASK-C2-2026-08-03-build17-hotfix-result-theme.md: themeSettingを"auto"に固定していたため、
+    // アプリ内テーマ(kyono_theme)が「明るい」でもシステム側がダークだと結果画面だけダーク描画
+    // されていた欠陥。build16まではデフォルト値も"auto"だったため気づかれなかったが、build17の
+    // P-3(デフォルトを"light"へ変更)により、他画面(QuizView/TourView等)は正しく追従する一方
+    // ResultViewだけ食い違うようになった(alan5実機報告・IMG_8728/8729)。他画面と同じ
+    // store.get("theme", default: "light")に揃える。
+    private var themeSetting: String { store.get("theme", default: "light") }
+
     var body: some View {
         // ResultViewはRecordStoreを従来受け取らなかったが、rSoudanLinkの遷移先(onOpenSoudan)や
-        // worry(WORRY_EXTRA用)を読むために保持する。テーマ設定はシステムのダークモードに委ねる("auto"扱い)。
-        KyonoTheme(themeSetting: "auto", bigText: store.get("bigtext", default: true)) {
+        // worry(WORRY_EXTRA用)を読むために保持する。
+        KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             content
         }
         .onChange(of: scenePhase) { _, newPhase in
