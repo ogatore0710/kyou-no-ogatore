@@ -310,14 +310,17 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         // 選択肢・CTAボタンを本文と同じverticalScrollから外し、外側Columnの固定フッターにする。
         // これでCTAは常に画面内の同じ位置にあり、本文の長さに関わらず動かない。
         Column(Modifier.fillMaxSize().background(colors.bg)) {
-        // W1-a: 初回起動だけ見出しをverticalScroll外の固定上部へ移し「📖 使い方ツアー」+4点バー
-        // (番号のみ・6段連結はしない)。再入場は既存どおり本文内に「🌱 はじめてガイド」を出す。
+        // W1-a: 初回起動だけ見出しをverticalScroll外の固定上部へ移し「📖 使い方ツアー」を出す。
+        // 再入場は既存どおり本文内に「🌱 はじめてガイド」を出す。
+        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-9(本人GO): この見出し下で
+        // 「4点バー(この画面)→チェック4/5段(Quiz/Result)→ツアー7/8点(Tour)」と3種類の
+        // 進捗バーが連続して出ていた引き算。質問4つはチャットの吹き出しの流れそのもので
+        // 十分伝わるため、この4点バーだけを消す(チェック・ツアーの2種は残す)。
         if (isFirstRun) {
             Text(
                 "使い方ツアー", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
                 modifier = Modifier.testTag("obTitle").padding(horizontal = 20.dp, vertical = 20.dp),
             )
-            KyonoJourneyBar(labels = listOf("", "", "", ""), currentIndex = answers.size)
         }
         Column(
             Modifier.weight(1f).fillMaxWidth().verticalScroll(obScrollState).padding(20.dp),
@@ -693,7 +696,11 @@ internal val QuizPickedSaver: Saver<SnapshotStateMap<String, Any?>, Any> = Saver
 
 // TASK-C2-2026-07-31-build11-renshu-journey.md D(本丸): 練習モード(かたさチェック開始〜初回
 // 記録カード表示まで)5段の共通ラベル。QuizScreen/ResultScreenの両方から参照する。
-val KYONO_JOURNEY_STEPS = listOf("チェック", "けっか", "どうが", "きろく", "カード")
+// TASK-C2-2026-08-03-build18-tutorial-quality.md B-2: fdGuide中は動画サムネがno-op(Q-4)の
+// ためタップされることがなく、「どうが」段が実際には体験されないままバーだけ進んで見えていた
+// (本人指摘)。5段から「どうが」を外し4段にする。journeyIndex(この下)は必ず同時に直す
+// (段の位置がズレる=alan5の警告どおり)。
+val KYONO_JOURNEY_STEPS = listOf("チェック", "けっか", "きろく", "カード")
 
 @Composable
 fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: String, autoReachLv: Int?) -> Unit, onClose: () -> Unit) {
@@ -990,11 +997,14 @@ fun ResultScreen(
     val resultContext = androidx.compose.ui.platform.LocalContext.current
     val resultScope = androidx.compose.runtime.rememberCoroutineScope()
     // D: 練習モードジャーニーバーの現在地(0-based)。①チェックはQuizScreenが担当するため
-    // ここでは②〜⑤(index 1〜4)のみ動く。
+    // ここでは②〜④(index 1〜3)のみ動く。
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-2: KYONO_JOURNEY_STEPS側で「どうが」を
+    // 外し4段にしたのに合わせ添字を詰める(旧: けっか1・どうが2・きろく3・カード4 →
+    // 新: けっか1・きろく2・カード3)。videoTapped/showDoneNudgeはどちらも
+    // 「けっかの次=きろく」段に該当するため同じ2にまとめる。
     val journeyIndex = when {
-        cardResult != null -> 4
-        showDoneNudge -> 3
-        videoTapped -> 2
+        cardResult != null -> 3
+        showDoneNudge || videoTapped -> 2
         else -> 1
     }
     val resultHaptic = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -1011,9 +1021,11 @@ fun ResultScreen(
         store.set("fd", "1")
         store.set("tourpend", true)
         fdCelebrationVisible = true
-        if (!resultReducedMotion) {
-            confettiTrigger = (confettiTrigger ?: 0) + 1
-        }
+        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-1: MainActivity.kt(HomeScreen)で
+        // 「紙吹雪がカード入場より0.7秒も前に先発してしまい、カードが出る頃には見せ場が
+        // 終わっている」欠陥を直した際と同じ再発がここにもあった(confettiTriggerが
+        // fdCelebrationVisibleと同時=即時発火・cardResultだけ700ms後というズレ)。
+        // MainActivity側の直し方どおり、confettiもcardResultと同じタイミング(700ms後)へ揃える。
         val newCard = renderTodayCard(store, streak, today, resultContext)
         if (resultReducedMotion) {
             cardResult = newCard
@@ -1021,6 +1033,7 @@ fun ResultScreen(
             resultScope.launch {
                 delay(700)
                 cardResult = newCard
+                confettiTrigger = (confettiTrigger ?: 0) + 1
             }
         }
     }
@@ -1110,7 +1123,9 @@ fun ResultScreen(
                 val badges = listOf("①まずほぐす", "②メインの1本", "③しあげ")
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
                     rx.forEachIndexed { i, vk ->
-                        lookupVideo(vk)?.let { v -> VideoRow(v, videoTapHandler, badge = badges.getOrNull(i)) }
+                        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: no-op裁定は維持した
+                        // まま、見た目でも押せないことを明示する。
+                        lookupVideo(vk)?.let { v -> VideoRow(v, videoTapHandler, badge = badges.getOrNull(i), disabledLook = fdGuideActive) }
                     }
                 }
                 if (rx.isNotEmpty() && !fdGuideActive) {
@@ -1127,7 +1142,7 @@ fun ResultScreen(
                         if (extra.v !in rx) {
                             lookupVideo(extra.v)?.let { v ->
                                 Spacer(Modifier.height(4.dp))
-                                VideoRow(v, videoTapHandler, badge = "＋ ${extra.label}")
+                                VideoRow(v, videoTapHandler, badge = "＋ ${extra.label}", disabledLook = fdGuideActive)
                             }
                         }
                     }
@@ -1178,16 +1193,27 @@ fun ResultScreen(
             // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-3: 結果表示と同時/直後に出していた
             // 「練習モード」ポップアップ的な専用ブロック(旧「きょうは練習してみよう」カード)を廃止し、
             // 静かな一行+ボタンに差し替える。読み終わったら自分のタイミングで進む設計。
-            if (fdGuideActive) {
+            // TASK-C2-2026-08-03-build18-tutorial-quality.md B-6: 文言をalan5指定どおりに変更
+            // (練習ボタンを本番と同じ「きょうやった！」に)。B-1: タップと同時にこのブロック
+            // 自体を消し、カードダイアログ出現までの700ms間、背後にボタンが残って見えることを
+            // 防ぐ(videoTappedをそのまま表示条件に使う)。B-8: QuizScreenのansweringガードと
+            // 同じ考え方で、videoTapped自体を「既に処理済みか」の判定にも使い、ダイアログ出現
+            // までの700ms間の再タップでperformPracticeRecordが二重発火しないようにする。
+            if (fdGuideActive && !videoTapped) {
                 Spacer(Modifier.height(16.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("fdPracticeBlock")) {
                     Text(
-                        "この結果はほんもの！マイ記録からいつでも見られるよ", color = colors.sub, fontSize = 13.sp,
+                        "この結果はほんもの！つぎは本番とおなじボタンで記録の練習", color = colors.sub, fontSize = 13.sp,
                         fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                     )
                     KyonoPrimaryButton(
-                        "つぎへ（記録の練習）",
-                        { videoTapped = true; performPracticeRecord() },
+                        "きょうやった！",
+                        {
+                            if (!videoTapped) {
+                                videoTapped = true
+                                performPracticeRecord()
+                            }
+                        },
                         Modifier.testTag("fdPracticeNextBtn"),
                     )
                 }

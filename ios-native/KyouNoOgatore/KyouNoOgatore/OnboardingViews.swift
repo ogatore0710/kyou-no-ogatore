@@ -232,7 +232,7 @@ struct OnboardingView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             OnboardingContentView(
                 bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
-                isFirstRun: isFirstRun, answeredCount: answers.count,
+                isFirstRun: isFirstRun,
                 onChipTap: { chip in
                     pendingPick?.resume(returning: chip)
                     pendingPick = nil
@@ -254,7 +254,6 @@ private struct OnboardingContentView: View {
     let activeQuestion: ObQuestionDef?
     let routeCta: ObRouteInfo?
     let isFirstRun: Bool
-    let answeredCount: Int
     let onChipTap: (ObChip) -> Void
     let onCtaTap: () -> Void
 
@@ -266,12 +265,16 @@ private struct OnboardingContentView: View {
         // これでCTAは常に画面内の同じ位置にあり、本文の長さに関わらず動かない。
         VStack(spacing: 0) {
         // TASK-C2-2026-07-31-build12-journey2-splash-emoji.md W1-a: 初回起動だけ見出しを
-        // ScrollView外の固定上部へ移し「📖 使い方ツアー」+4点バー(番号のみ・6段連結はしない)。
+        // ScrollView外の固定上部へ移し「📖 使い方ツアー」を出す。
         // 再入場(使い方タブ経由)は既存どおり本文内に「🌱 はじめてガイド」を出すのでここには出さない。
+        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-9(本人GO): この見出し下で
+        // 「4点バー(この画面)→チェック4/5段(Quiz/Result)→ツアー7/8点(Tour)」と3種類の
+        // 進捗バーが連続して出ていた引き算。質問4つ(もじの大きさ/かたさ/悩み/いつやる)は
+        // チャットの吹き出しの流れそのもので十分伝わるため、この4点バーだけを消す
+        // (チェック・ツアーの2種は残す)。
         if isFirstRun {
             Text("使い方ツアー").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                 .padding(.horizontal, 20).padding(.top, 20)
-            KyonoJourneyBar(labels: ["", "", "", ""], currentIndex: answeredCount)
         }
         ScrollViewReader { proxy in
         ScrollView {
@@ -1130,7 +1133,9 @@ private struct ResultContentView: View {
                     let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
                     ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
                         if let v = lookupVideo(vk) {
-                            VideoRow(v: v, openUrl: videoTapHandler, badge: badges.indices.contains(i) ? badges[i] : nil)
+                            // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: no-op裁定は維持
+                            // したまま、見た目でも押せないことを明示する。
+                            VideoRow(v: v, openUrl: videoTapHandler, badge: badges.indices.contains(i) ? badges[i] : nil, disabledLook: fdGuideActive)
                         }
                     }
                     if !rx.isEmpty && !fdGuideActive {
@@ -1143,7 +1148,7 @@ private struct ResultContentView: View {
                     // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
                     if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
                         Spacer().frame(height: 4)
-                        VideoRow(v: v, openUrl: videoTapHandler, badge: "＋ \(extra.label)")
+                        VideoRow(v: v, openUrl: videoTapHandler, badge: "＋ \(extra.label)", disabledLook: fdGuideActive)
                     }
                     // index.html:740 #rRotateNoteの1:1移植。
                     Spacer().frame(height: 4)
@@ -1304,17 +1309,20 @@ struct TourSlideDef {
 // 文の切れ目が消えたため、発注書指定の位置に改行(\n)を入れる(文言そのものは変更しない・
 // 改行位置のみ発注書の指定どおり)。
 let obTourSlides = [
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-10(本人GO・alan5指定文言)。
     TourSlideDef(title: "まいにち1本、動画をやる", desc: "ホームの「きょうの1本」をタップ→YouTubeがひらくよ\n見おわったらこのアプリにもどってきてね"),
-    TourSlideDef(title: "おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ\n連続と通算がのびるよ\n休んでも毎月3枚のおやすみ券が自動で連続を守ってくれるよ"),
-    TourSlideDef(title: "記録カードをつくる", desc: "「きょうやった！」のあと「記録カードを画像でのこす」を押す→「保存・シェアする」で写真に保存\nSNSやコメント欄にもどうぞ"),
-    TourSlideDef(title: "ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ\n毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）"),
+    // おやすみ券の行を削除。
+    TourSlideDef(title: "おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ\n連続と通算がのびるよ"),
+    // 旧「記録カードをつくる」枚を削除し、この枚(旧「ためると図鑑がうまる」)に吸収。
+    TourSlideDef(title: "ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ\n「保存・シェアする」で写真にのこせて SNSやコメント欄にもどうぞ\n毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）"),
     TourSlideDef(title: "悩みは相談室で質問", desc: "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ\nオガトレ監修の答えとおすすめ動画がすぐ届くよ"),
     // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 「尾形さん」→「尾形」(本人指示・改行と同時)。
     TourSlideDef(title: "オガトレ通信をのぞく", desc: "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります"),
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版の「見てみる」ボタンはネイティブの
     // マイ記録に存在しない(お楽しみは🎉じまんカード/💬せんぱいの声/📔ひとことにっきの個別3ボタン)ため、
     // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
-    TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ）\nとどくメーターとじまんカード・せんぱいの声・ひとことにっき もこのタブから見られるよ\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
+    // B-10: 6機能列挙をやめて簡略化。
+    TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
     TourSlideDef(title: "忘れてもだいじょうぶ", desc: "困ったらいつでも読み返せるよ！\n使い方タブの「使い方ツアー」からね"),
 ]
 let obTourClosingTitle = "これで準備ばっちり！"

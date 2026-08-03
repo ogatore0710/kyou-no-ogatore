@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -174,7 +175,7 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
 // TASK-C2-2026-07-26-result-video-recommendations.md)。badge指定時はvideoCard()と同じく
 // タグpillの代わりにbadge文言(「①まずほぐす」等)を表示する。
 @Composable
-fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, hero: Boolean = false) {
+fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, hero: Boolean = false, disabledLook: Boolean = false) {
     val colors = LocalKyonoColors.current
     // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
     // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと
@@ -183,11 +184,16 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
     val badgeTextColor = if (dark) Color(0xFFF0A58E) else Color(0xFFB4462F)
     // TASK-C2-2026-07-27-fd-guide-ui-branch.md: index.html:337 .fd-hero .video(pink枠+pink-soft地)の
     // 1:1移植。はじめの1本ガイド中の①だけを視覚的に主役化する強調枠。
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: fdGuide中はopenUrlをno-opにしている
+    // (Q-4)が、見た目は普段どおりタップできそうに見えており「押せるように見える嘘」になって
+    // いた。no-op裁定は維持したまま、減光+clickable自体をenabled=falseにして見た目でも
+    // 押せないことを明示する。
     Row(
         Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp)
-            .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
+            .alpha(if (disabledLook) 0.5f else 1f)
+            .clickable(enabled = !disabledLook) { openUrl("https://www.youtube.com/watch?v=${v.id}") }
             .background(if (hero) colors.pinkSoft else colors.card, RoundedCornerShape(16.dp))
             .border(if (hero) 2.5.dp else 1.5.dp, if (hero) colors.pink else colors.line, RoundedCornerShape(16.dp))
             .padding(10.dp)

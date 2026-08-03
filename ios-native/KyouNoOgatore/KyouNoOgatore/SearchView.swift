@@ -136,6 +136,8 @@ struct VideoRow: View {
         // 補足を1回のVoiceOverスワイプで読める1つの単位にまとめる。
         .accessibilityElement(children: .combine)
         .buttonStyle(.plain)
+        .opacity(disabledLook ? 0.5 : 1)
+        .disabled(disabledLook)
     }
 }
 
