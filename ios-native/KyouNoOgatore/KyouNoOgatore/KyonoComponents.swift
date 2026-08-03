@@ -335,12 +335,19 @@ struct KyonoGhostButton: View {
                 Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
             }
         }
-        .buttonStyle(KyonoGhostButtonStyle(background: colors.tealSoft, zoom: zoom))
+        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-3: 実測でtealSoft(#DFF5F2)が地の
+        // colors.bg(#FFFAF3)に対しコントラスト比1.04:1しかなく、ボタンの輪郭がほぼ見えなかった
+        // (「ツアーをとばす」「記録カードを画像でのこす」等で発生)。tealSoftの背景色自体は
+        // KyonoSectionHeaderの見出しアイコン地など他の用途でも広く共用されているため、そちらを
+        // 変えると影響範囲が広すぎる。ゴーストボタンにだけtealStrongの2pt縁取りを足して輪郭を
+        // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。
+        .buttonStyle(KyonoGhostButtonStyle(background: colors.tealSoft, borderColor: colors.tealStrong, zoom: zoom))
     }
 }
 
 private struct KyonoGhostButtonStyle: ButtonStyle {
     let background: Color
+    let borderColor: Color
     let zoom: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -351,6 +358,7 @@ private struct KyonoGhostButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .background(background)
             .cornerRadius(kyonoButtonRadius * zoom)
+            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: 2))
             .opacity(pressed ? 0.85 : 1)
             .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())
@@ -418,7 +426,12 @@ struct KyonoLineButton: View {
                 Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
             }
         }
-        .buttonStyle(KyonoLineButtonStyle(borderColor: Color(hex: dark ? 0x4A443A : 0xE0D5BE), zoom: zoom, enabled: enabled))
+        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-4: 実測でライトの枠#E0D5BEが地の
+        // colors.bg(#FFFAF3)に対しコントラスト比1.33:1しかなく、ボタンの輪郭がほぼ見えなかった
+        // (「もどる/とじる」等で発生。文字色sub2は5.12:1で合格済みのため枠だけ直す)。
+        // sub2(ライト0x6B6857)は既にこの文字色として合格実測済みの値そのものなので、枠にも
+        // 流用すれば同じ比率を確保できる。ダーク側(0x4A443A)はalan5未指摘のため変更しない。
+        .buttonStyle(KyonoLineButtonStyle(borderColor: dark ? Color(hex: 0x4A443A) : colors.sub2, zoom: zoom, enabled: enabled))
         .disabled(!enabled)
     }
 }

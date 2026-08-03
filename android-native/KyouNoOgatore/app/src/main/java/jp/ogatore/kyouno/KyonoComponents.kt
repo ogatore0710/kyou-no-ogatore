@@ -258,12 +258,19 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     val colors = LocalKyonoColors.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-3: 実測でtealSoft(#DFF5F2)が地の
+    // colors.bg(#FFFAF3)に対しコントラスト比1.04:1しかなく、ボタンの輪郭がほぼ見えなかった
+    // (「ツアーをとばす」「記録カードを画像でのこす」等で発生)。tealSoftの背景色自体は
+    // KyonoSectionHeaderの見出しアイコン地など他の用途でも広く共用されているため、そちらを
+    // 変えると影響範囲が広すぎる。ゴーストボタンにだけtealStrongの2dp縁取りを足して輪郭を
+    // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。
     Box(
         modifier = modifier
             .fillMaxWidth()
             .offset(y = if (pressed) 1.dp else 0.dp)
             .alpha(if (pressed) 0.85f else 1f)
             .background(colors.tealSoft, KyonoButtonShape)
+            .border(2.dp, colors.tealStrong, KyonoButtonShape)
             // Fable監査GO-3: enabled=falseのときは.clickable自体を付けない(clickable自身の
             // enabledフラグに頼らず、Modifier.thenで条件付き付与することで、隠れている間は
             // ポインタイベントを一切消費しないことを構造的に保証する)。VoicesScreenの
@@ -294,7 +301,12 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
-    val borderColor = if (dark) Color(0xFF4A443A) else Color(0xFFE0D5BE)
+    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-4: 実測でライトの枠#E0D5BEが地の
+    // colors.bg(#FFFAF3)に対しコントラスト比1.33:1しかなく、ボタンの輪郭がほぼ見えなかった
+    // (「もどる/とじる」等で発生。文字色sub2は5.12:1で合格済みのため枠だけ直す)。
+    // sub2(ライト0x6B6857)は既にこの文字色として合格実測済みの値そのものなので、枠にも
+    // 流用すれば同じ比率を確保できる。ダーク側(0x4A443A)はalan5未指摘のため変更しない。
+    val borderColor = if (dark) Color(0xFF4A443A) else colors.sub2
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     Box(

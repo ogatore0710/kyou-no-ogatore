@@ -1331,7 +1331,8 @@ let obTourClosingTitle = "これで準備ばっちり！"
 // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 改行位置は発注書の指定どおり。
 let obTourClosingDesc = "あしたも待ってるね\nきょうのぶんの動画をちゃんとやるなら ホームの「きょうの1本」からどうぞ"
 
-// index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。8枚+条件付き9枚目
+// index.html:4283-4347 fdTourMaybeStart/obTourStep/obTourEndの1:1移植。7枚(B-10で8枚から
+// 引き算)+条件付き8枚目
 // (closing・自動起動時のみ)。「つぎへ」ボタン+ドット進捗のリニアなステップ形式(スワイプ不使用)。
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: 以前はRecordStoreを受け取らず
 // テーマ・文字サイズを"auto"/trueに固定していたため、手動でライト設定にしている本人が夜に
