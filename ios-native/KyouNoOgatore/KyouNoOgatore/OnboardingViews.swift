@@ -99,19 +99,28 @@ func obDecideRoute(stiff: String, worry: String) -> String {
 struct ObgColor {
     let bg: Color
     let border: Color
+    let text: Color
 }
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-3(IMG_8768): 淡色チップが背景クリームと同輝度で
+// 沈んでいた。地色のパステルは維持したまま、カテゴリごとの濃色を縁(2.5pt)と文字に足す
+// (基準: 縁vs背景3:1以上・文字vs地4.5:1以上)。ライトのみの変更(ダークのtextは既存のink固定値を
+// そのまま踏襲し、見た目を変えない)。
 private let obgLight: [ObgColor] = [
-    ObgColor(bg: Color(hex: 0xEAF8F1), border: Color(hex: 0xBFE8DC)), ObgColor(bg: Color(hex: 0xFFF3CB), border: Color(hex: 0xF2DE8A)),
-    ObgColor(bg: Color(hex: 0xFBE3C6), border: Color(hex: 0xE5BC85)), ObgColor(bg: Color(hex: 0xF2D7CD), border: Color(hex: 0xDCA894)),
-    ObgColor(bg: Color(hex: 0xD9ECF7), border: Color(hex: 0xA8D0E6)),
+    ObgColor(bg: Color(hex: 0xEAF8F1), border: Color(hex: 0x177065), text: Color(hex: 0x177065)),
+    ObgColor(bg: Color(hex: 0xFFF3CB), border: Color(hex: 0x7A5E00), text: Color(hex: 0x7A5E00)),
+    ObgColor(bg: Color(hex: 0xFBE3C6), border: Color(hex: 0x995400), text: Color(hex: 0x995400)),
+    ObgColor(bg: Color(hex: 0xF2D7CD), border: Color(hex: 0x863213), text: Color(hex: 0x863213)),
+    ObgColor(bg: Color(hex: 0xD9ECF7), border: Color(hex: 0x006199), text: Color(hex: 0x006199)),
 ]
 // TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
 // ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
 // 大きく振り、緑(154)・黄(48)・橙(28)・薔薇(320)へ色相を広く分散させた。
 private let obgDark: [ObgColor] = [
-    ObgColor(bg: Color(hex: 0x223D33), border: Color(hex: 0x2E5A48)), ObgColor(bg: Color(hex: 0x4A3D14), border: Color(hex: 0x6B5A1C)),
-    ObgColor(bg: Color(hex: 0x4D3018), border: Color(hex: 0x704620)), ObgColor(bg: Color(hex: 0x4A1F35), border: Color(hex: 0x6B2C4C)),
-    ObgColor(bg: Color(hex: 0x1F3A4D), border: Color(hex: 0x2B5570)),
+    ObgColor(bg: Color(hex: 0x223D33), border: Color(hex: 0x2E5A48), text: Color(hex: 0xF2EDE1)),
+    ObgColor(bg: Color(hex: 0x4A3D14), border: Color(hex: 0x6B5A1C), text: Color(hex: 0xF2EDE1)),
+    ObgColor(bg: Color(hex: 0x4D3018), border: Color(hex: 0x704620), text: Color(hex: 0xF2EDE1)),
+    ObgColor(bg: Color(hex: 0x4A1F35), border: Color(hex: 0x6B2C4C), text: Color(hex: 0xF2EDE1)),
+    ObgColor(bg: Color(hex: 0x1F3A4D), border: Color(hex: 0x2B5570), text: Color(hex: 0xF2EDE1)),
 ]
 func obgColors(dark: Bool) -> [ObgColor] { dark ? obgDark : obgLight }
 
@@ -346,12 +355,15 @@ private struct OnboardingContentView: View {
                            let uiImage = UIImage(contentsOfFile: url.path) {
                             Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 32, height: 32)
                         }
-                        Text(chip.label).kyonoFont(.bold700, size: (q.key == "bigtext" && chip.v == "big") ? 20 : 16).foregroundColor(colors.ink)
+                        // TASK-C2-2026-08-04-build22-yellow-return.md Z-3: 文字もカテゴリの濃色
+                        // (c.text)にして淡色地への沈みを解消。
+                        Text(chip.label).kyonoFont(.bold700, size: (q.key == "bigtext" && chip.v == "big") ? 20 : 16).foregroundColor(c.text)
                     }
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 18).padding(.vertical, 14)
                         .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2))
+                        // Z-3: 縁を2pt→2.5ptへ太く(視認性強化)。
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2.5))
                         .onTapGesture { onChipTap(chip) }
                 }
             }
@@ -785,6 +797,9 @@ private struct QuizContentView: View {
                                 label: opt.label, note: opt.note,
                                 background: c?.bg ?? colors.card,
                                 borderColor: isPicked ? colors.teal : (c?.border ?? colors.line),
+                                // TASK-C2-2026-08-04-build22-yellow-return.md Z-3(棚卸し対象): このQ1-Q4
+                                // 段階色カードもobgColorsパレットを共有するため、同基準で文字も濃色化。
+                                labelColor: c?.text ?? colors.ink,
                                 pressedBackground: colors.yellowSoft, pressedBorderColor: colors.yellow,
                                 colors: colors
                             ) { if !answering { onOptTap(q, opt) } }
