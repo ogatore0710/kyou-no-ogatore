@@ -505,6 +505,10 @@ fun GuideScreen(
 @Composable
 private fun GuideTocChipsFlow(chips: List<Pair<String, String>>, onTap: (String) -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-4(本人裁定「案A・白ピル+濃枠」):
+    // ベージュ地(colors.line)が新背景#F7EEDCに同化していたため、ホームのセグメント選択ノブと
+    // 同じ文法(白地+枠#6B6857 2pt+文字#33322C)へライトのみ統一。ダークは現状維持。
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -512,9 +516,10 @@ private fun GuideTocChipsFlow(chips: List<Pair<String, String>>, onTap: (String)
     ) {
         chips.forEach { (label, id) ->
             Text(
-                label, color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
+                label, color = if (dark) colors.sub else Color(0xFF33322C), fontSize = 13.sp, fontWeight = FontWeight.Black,
                 modifier = Modifier
-                    .background(colors.line, RoundedCornerShape(50))
+                    .background(if (dark) colors.line else Color.White, RoundedCornerShape(50))
+                    .then(if (dark) Modifier else Modifier.border(2.dp, Color(0xFF6B6857), RoundedCornerShape(50)))
                     .clickable { onTap(id) }
                     .padding(horizontal = 14.dp, vertical = 10.dp)
                     .testTag("gtocChip_$id"),
