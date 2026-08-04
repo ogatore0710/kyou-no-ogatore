@@ -38,7 +38,14 @@ struct KyonoTourMockup: View {
             } else {
                 VStack(spacing: 6) {
                     HStack(spacing: 8) {
-                        RoundedRectangle(cornerRadius: 8).fill(colors.line).frame(width: 46, height: 46 * 9 / 16)
+                        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-1(IMG_8780): グレー
+                        // 空箱のままだと未完成に見えるため、朝専用の看板動画(asa10=2EfFlQev4rg)の
+                        // サムネを仮アセット同梱して表示(GPT生成絵が届くまでの暫定)。
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8).fill(colors.line)
+                            KyonoTourDrawable(name: "tour-map-thumb").clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .frame(width: 46, height: 46 * 9 / 16)
                         Text("きょうの1本").kyonoFont(.bold700, size: 13).foregroundColor(colors.ink)
                         Spacer()
                     }
@@ -160,8 +167,9 @@ struct KyonoTourMockup: View {
 
 private struct KyonoTourDrawable: View {
     let name: String
+    private var ext: String { ["obu-fab-photo", "tour-map-thumb"].contains(name) ? "jpg" : "png" }
     var body: some View {
-        if let url = Bundle.main.url(forResource: name, withExtension: name == "obu-fab-photo" ? "jpg" : "png"),
+        if let url = Bundle.main.url(forResource: name, withExtension: ext),
            let uiImage = UIImage(contentsOfFile: url.path) {
             Image(uiImage: uiImage).resizable().aspectRatio(contentMode: .fill)
         }
