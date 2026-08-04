@@ -850,13 +850,19 @@ fun SoudanSheet(
 @Composable
 fun KyonoChip(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalKyonoColors.current
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-6: 押下ハロー(意図的実装)。
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
     Box(
         modifier = modifier
             .background(colors.card, RoundedCornerShape(99.dp))
             .border(2.dp, colors.borderStrong, RoundedCornerShape(99.dp))
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
-    ) { Text(label, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }
+    ) {
+        KyonoPressHaloBackground(pressed = pressed, color = colors.tealStrong)
+        Text(label, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
+    }
 }
 
 // index.html:436-437 .catbtn/.catbtn.on(カテゴリタブ・選択時=yellow背景)の1:1移植。

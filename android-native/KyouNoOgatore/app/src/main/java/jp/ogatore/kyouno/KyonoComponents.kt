@@ -1,5 +1,7 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -44,6 +47,28 @@ import androidx.compose.ui.unit.sp
 // ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md
 // §「やること」2「共通コンポーネント化」): index.html .card/.btn/.btn-primary/.btn-ghostの1:1移植。
 // アプリ全体がこのカード型ボックス+ボタンの積み重ねで構成される(タスク文どおり最優先で直す箇所)。
+
+// TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-6(P-9完結・本人裁定): 押下ハローの
+// 意図的実装。対象は相談室のチップとかたさチェックの選択肢ボタンの2箇所のみ(他画面には広げない)。
+// 不透明度10〜15%・半径は要素の1.5倍程度・フェードイン/アウト各0.15秒・reduceMotion時は無効。
+// P-8(グロー消滅=シート背景の透けが正体だった件)とは別の、意図して足すハローであることに注意。
+// BoxScope拡張にする理由: matchParentSize()はBoxScopeのメンバー拡張のため、呼び出し元のBox {}の
+// 直下(最初の子として)で呼ぶ必要がある。押下対象のBox { KyonoPressHaloBackground(...); 本体... } の形で使う。
+@Composable
+fun BoxScope.KyonoPressHaloBackground(pressed: Boolean, color: Color) {
+    val reduceMotion = rememberReducedMotion()
+    val alpha by animateFloatAsState(
+        targetValue = if (pressed && !reduceMotion) 0.13f else 0f,
+        animationSpec = tween(150),
+        label = "kyonoPressHalo",
+    )
+    Box(
+        Modifier
+            .matchParentSize()
+            .scale(1.5f)
+            .background(color.copy(alpha = alpha), androidx.compose.foundation.shape.CircleShape),
+    )
+}
 
 // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
 // §2 キャラクター画像: assets/chara*.pngをdrawable-nodpiへ同梱済みの前提で、複数画面(相談室・
