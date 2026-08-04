@@ -162,21 +162,30 @@ fun obDecideRoute(stiff: String, worry: String): String =
 // かたさチェックの.opt.g0〜g3(index.html:301-309)・オンボの#obChips .chip.obg0-3(index.html:537-544)と
 // 同じ「明→暗」段階色パレット(bg,border)。実際の難易度でなくチップの並び順で明→暗を巡回させる
 // (index.html:4211と同じ「obg"+(i%4)」方式)。ライト/ダークで別パレット。
-private data class ObgColor(val bg: Color, val border: Color)
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-3: 淡色チップが背景に沈む問題(IMG_8768)を
+// 解消するため、境界線と対にした濃色文字(text)を追加。
+private data class ObgColor(val bg: Color, val border: Color, val text: Color)
 // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-1: 5択の質問(部位選択など)で
 // i%4のため1番目と5番目が同色になっていた欠落。5色目(青系・色相約200)を追加し5色パレットにした。
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): border/textをカテゴリ毎の
+// 濃縮色に刷新。text-vs-bg実測4.5:1以上・border-vsページ背景(#F7EEDC)実測3:1以上。
 private val OBG_LIGHT = listOf(
-    ObgColor(Color(0xFFEAF8F1), Color(0xFFBFE8DC)), ObgColor(Color(0xFFFFF3CB), Color(0xFFF2DE8A)),
-    ObgColor(Color(0xFFFBE3C6), Color(0xFFE5BC85)), ObgColor(Color(0xFFF2D7CD), Color(0xFFDCA894)),
-    ObgColor(Color(0xFFD9ECF7), Color(0xFFA8D0E6)),
+    ObgColor(Color(0xFFEAF8F1), Color(0xFF177065), Color(0xFF177065)),
+    ObgColor(Color(0xFFFFF3CB), Color(0xFF7A5E00), Color(0xFF7A5E00)),
+    ObgColor(Color(0xFFFBE3C6), Color(0xFF995400), Color(0xFF995400)),
+    ObgColor(Color(0xFFF2D7CD), Color(0xFF863213), Color(0xFF863213)),
+    ObgColor(Color(0xFFD9ECF7), Color(0xFF006199), Color(0xFF006199)),
 )
 // TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
 // ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
 // 大きく振り、緑(154)・黄(48)・橙(28)・薔薇(320)へ色相を広く分散させた。
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-3: ダークはbuild21から不変(text=既存ink)。
 private val OBG_DARK = listOf(
-    ObgColor(Color(0xFF223D33), Color(0xFF2E5A48)), ObgColor(Color(0xFF4A3D14), Color(0xFF6B5A1C)),
-    ObgColor(Color(0xFF4D3018), Color(0xFF704620)), ObgColor(Color(0xFF4A1F35), Color(0xFF6B2C4C)),
-    ObgColor(Color(0xFF1F3A4D), Color(0xFF2B5570)),
+    ObgColor(Color(0xFF223D33), Color(0xFF2E5A48), Color(0xFFF2EDE1)),
+    ObgColor(Color(0xFF4A3D14), Color(0xFF6B5A1C), Color(0xFFF2EDE1)),
+    ObgColor(Color(0xFF4D3018), Color(0xFF704620), Color(0xFFF2EDE1)),
+    ObgColor(Color(0xFF4A1F35), Color(0xFF6B2C4C), Color(0xFFF2EDE1)),
+    ObgColor(Color(0xFF1F3A4D), Color(0xFF2B5570), Color(0xFFF2EDE1)),
 )
 private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
 
@@ -410,7 +419,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
                             .background(c.bg, RoundedCornerShape(16.dp))
-                            .border(2.dp, c.border, RoundedCornerShape(16.dp))
+                            .border(2.5.dp, c.border, RoundedCornerShape(16.dp))
                             .clickable { pickChannel.trySend(chip) }
                             .padding(horizontal = 18.dp, vertical = 14.dp)
                             .testTag("obChip_${q.key}_${chip.v}"),
@@ -425,7 +434,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                             Spacer(Modifier.width(10.dp))
                         }
                         val labelSize = if (q.key == "bigtext" && chip.v == "big") 20.sp else 16.sp
-                        Text(chip.label, color = colors.ink, fontSize = labelSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                        Text(chip.label, color = c.text, fontSize = labelSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -864,7 +873,9 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                         Text(
                             // UI/UXパリティ監査2巡目A4(2026-07-29): index.html:294 .opt{font-size:18px}
                             // の1:1移植。従来15spで-16.7%小さく値がズレていた欠落を修正する。
-                            opt.label, color = colors.ink, fontSize = 18.sp, lineHeight = 18.sp,
+                            // TASK-C2-2026-08-04-build22-yellow-return.md Z-3(棚卸し対象): このQ1-Q4
+                            // 段階色カードもobgColorsパレットを共有するため、同基準で文字も濃色化。
+                            opt.label, color = c?.text ?: colors.ink, fontSize = 18.sp, lineHeight = 18.sp,
                             style = KyonoTightLineTextStyle, fontWeight = FontWeight.Black,
                         )
                         Text(
