@@ -647,7 +647,7 @@ struct HomeView: View {
                     KyonoSectionTitle("きょうの1本", icon: .play)
                     TodaySegmentControl(store: store, mineAvail: mineAvail, mode: effectiveMode, onSelect: setMode)
                     // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
-                    // 説明行を削除。「きょうのあなた用」の小見出し自体はTodayVideoSection側に残す。
+                    // 説明行を削除。
                     TodayVideoSection(store: store, mode: effectiveMode, plan: plan, typeResult: typeResult, onVideoTap: openTodayVideo)
                 }
                 // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
@@ -1233,10 +1233,8 @@ private struct TodayVideoSection: View {
             // fdFocusOnのときは丸ごと非表示になる既存の分岐(HomeView.body参照)と重複するため
             // ここでは扱わない)。
             let rx = currentRx(typeResult.key, now: now)
-            // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
-            // TASK-C2-2026-08-04-build20-addendum.md F-2②: よびな長文時も1行固定+自動縮小。
-            Text("きょうの\(kyonoDisplayName(store))用").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
-                .lineLimit(1).minimumScaleFactor(0.7)
+            // TASK-C2-2026-08-04-build21-addendum.md Y-2(本人指示・引き算): タブと重複するため
+            // 「きょうの(よびな)用」の小見出し行を削除。
             ForEach(rx, id: \.self) { key in
                 if let v = lookupVideoByKey(key) {
                     HomeTodayVideoRow(v: v, openUrl: onVideoTap)

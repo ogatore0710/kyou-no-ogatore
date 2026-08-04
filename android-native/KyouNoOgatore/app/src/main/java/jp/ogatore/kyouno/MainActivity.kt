@@ -873,9 +873,8 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
         // fdFocusOnのときは丸ごと非表示になる既存の分岐(HomeScreen呼び出し側参照)と重複するため
         // ここでは扱わない)。
         val rx = remember(typeResult.key) { currentRx(typeResult.key, now) }
-        // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
-        // TASK-C2-2026-08-04-build20-addendum.md F-2②: よびな長文時も1行固定+自動縮小。
-        KyonoAutoShrinkText("きょうの${kyonoDisplayName(store)}用", color = colors.sub, baseFontSize = 12.sp, fontWeight = FontWeight.Black)
+        // TASK-C2-2026-08-04-build21-addendum.md Y-2(本人指示・引き算): タブと重複するため
+        // 「きょうの(よびな)用」の小見出し行を削除。
         rx.forEach { key -> lookupVideoByKey(key)?.let { v -> HomeTodayVideoRow(v, onVideoTap) } }
         if (rx.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
@@ -1392,7 +1391,7 @@ fun HomeScreen(
                     Spacer(Modifier.height(10.dp))
                     TodaySegmentControl(store = store, mineAvail = mineAvail, mode = effectiveMode, onSelect = ::setMode)
                     // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
-                    // 説明行を削除。「きょうのあなた用」の小見出し自体はTodayVideoSection側に残す。
+                    // 説明行を削除。
                     TodayVideoSection(
                         store = store,
                         mode = effectiveMode,
