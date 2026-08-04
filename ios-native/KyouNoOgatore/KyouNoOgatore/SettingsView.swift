@@ -286,8 +286,10 @@ struct SettingsView: View {
                             Text("\(String(format: "%02d", icsHour))時")
                                 .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 2))
+                                // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: カード内の
+                                // 子面(時分ピッカー)をchildFace/childBorderへ差し替え(ライトは無変更)。
+                                .background(RoundedRectangle(cornerRadius: 12).fill(colors.childFace))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.childBorder, lineWidth: 2))
                         }
                         .accessibilityLabel("時を選ぶ、現在\(String(format: "%02d", icsHour))時")
                         Menu {
@@ -302,8 +304,10 @@ struct SettingsView: View {
                             Text("\(String(format: "%02d", icsMinute))分")
                                 .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 2))
+                                // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: カード内の
+                                // 子面(時分ピッカー)をchildFace/childBorderへ差し替え(ライトは無変更)。
+                                .background(RoundedRectangle(cornerRadius: 12).fill(colors.childFace))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.childBorder, lineWidth: 2))
                         }
                         .accessibilityLabel("分を選ぶ、現在\(String(format: "%02d", icsMinute))分")
                     }

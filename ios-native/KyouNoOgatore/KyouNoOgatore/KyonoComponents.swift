@@ -521,10 +521,14 @@ private struct SegmentedOptionButton: View {
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトの選択中は白ノブ+
-    // 枠#6B6857 2pt+文字#26261F。ダークはbuild21から不変(card地+ink文字/sub未選択、枠なし)。
-    private var onBg: Color { dark ? colors.card : .white }
-    private var onText: Color { dark ? colors.ink : Color(hex: 0x26261F) }
-    private var onBorder: Color? { dark ? nil : Color(hex: 0x6B6857) }
+    // 枠#6B6857 2pt+文字#26261F。
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8(本人カード裁定「d1案」): ダークの
+    // 選択中ノブがトラック(colors.line)とほぼ同色(実測1.06:1)で判別不能だった問題を修正。
+    // 子面トークン相当の専用ノブ色#453D30+枠#9A9382(トラック比3.81:1)を新設し、文字は即判別用に
+    // 黄#FFD93B(ダークのみ)へ。
+    private var onBg: Color { dark ? Color(hex: 0x453D30) : .white }
+    private var onText: Color { dark ? colors.yellow : Color(hex: 0x26261F) }
+    private var onBorder: Color? { dark ? Color(hex: 0x9A9382) : Color(hex: 0x6B6857) }
     private var offText: Color { dark ? colors.sub : Color(hex: 0x57544A) }
 
     var body: some View {

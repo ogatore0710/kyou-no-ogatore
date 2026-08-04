@@ -482,12 +482,14 @@ private struct MyRecordContentView: View {
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     // index.html:900-902 assets/check/meter.jpg(前屈のお手本写真)の1:1移植。
                     Spacer().frame(height: 10)
+                    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: カード内の子面(写真枠)を
+                    // childFace/childBorderへ差し替え(ダークで沈んでいた問題の修正・ライトは無変更)。
                     KyonoCharaImage(name: "meter")
                         .frame(maxWidth: .infinity, alignment: .center)
                         .frame(width: 220)
-                        .background(colors.card)
+                        .background(colors.childFace)
                         .cornerRadius(16)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 1.5))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.childBorder, lineWidth: 1.5))
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 10)
                     if reachList.isEmpty {
@@ -509,8 +511,8 @@ private struct MyRecordContentView: View {
                                 .foregroundColor(on ? .white : colors.sub)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .padding(.vertical, 13)
-                                .background(on ? colors.tealStrong : colors.card)
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(on ? colors.tealStrong : colors.borderStrong, lineWidth: 2))
+                                .background(on ? colors.tealStrong : colors.childFace)
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(on ? colors.tealStrong : colors.childBorder, lineWidth: 2))
                                 .cornerRadius(12)
                                 .contentShape(Rectangle())
                                 .onTapGesture {

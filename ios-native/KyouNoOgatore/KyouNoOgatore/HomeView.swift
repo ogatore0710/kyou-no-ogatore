@@ -1315,8 +1315,10 @@ private struct HomeTodayVideoRow: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 1.5))
+        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: ダークでカードと同色に沈んで
+        // いた動画行を、子面トークン(childFace/childBorder)へ差し替え。ライトは無変更。
+        .background(RoundedRectangle(cornerRadius: 16).fill(colors.childFace))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.childBorder, lineWidth: 1.5))
         .accessibilityElement(children: .combine)
         .buttonStyle(.plain)
     }
