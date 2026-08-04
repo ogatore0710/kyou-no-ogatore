@@ -874,9 +874,15 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
         val rx = remember(typeResult.key) { currentRx(typeResult.key, now) }
         // TASK-C2-2026-08-04-build21-addendum.md Y-2(本人指示・引き算): タブと重複するため
         // 「きょうの(よびな)用」の小見出し行を削除。
-        rx.forEach { key -> lookupVideoByKey(key)?.let { v -> HomeTodayVideoRow(v, onVideoTap) } }
+        // TASK-C2-2026-08-04-build22-yellow-return.md Z-4: カード同士が詰まって見えていた欠落を
+        // 修正。カード間隔+連続再生ボタン前の間隔を揃えて+7dp確保(旧比+1.5倍相当)。
+        // HomeTodayVideoRow自体のpadding(カード内密度)は不変。
+        rx.forEachIndexed { i, key ->
+            lookupVideoByKey(key)?.let { v -> HomeTodayVideoRow(v, onVideoTap) }
+            if (i < rx.size - 1) Spacer(Modifier.height(7.dp))
+        }
         if (rx.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(4.dp + 7.dp))
             KyonoGhostButton(
                 "▶ ${kyonoDisplayName(store)}への3本 連続再生はこちら",
                 {

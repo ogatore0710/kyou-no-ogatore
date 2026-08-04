@@ -1235,15 +1235,20 @@ private struct TodayVideoSection: View {
             let rx = currentRx(typeResult.key, now: now)
             // TASK-C2-2026-08-04-build21-addendum.md Y-2(本人指示・引き算): タブと重複するため
             // 「きょうの(よびな)用」の小見出し行を削除。
-            ForEach(rx, id: \.self) { key in
-                if let v = lookupVideoByKey(key) {
-                    HomeTodayVideoRow(v: v, openUrl: onVideoTap)
+            // TASK-C2-2026-08-04-build22-yellow-return.md Z-4: カードが密着(旧spacing 0)して
+            // 見えていた欠落を修正。カード間隔+連続再生ボタン前の間隔を揃えて+7pt確保(旧比+1.5倍相当)。
+            // カード内部の密度(HomeTodayVideoRowの.padding(10)等)は不変。
+            VStack(alignment: .leading, spacing: 7) {
+                ForEach(rx, id: \.self) { key in
+                    if let v = lookupVideoByKey(key) {
+                        HomeTodayVideoRow(v: v, openUrl: onVideoTap)
+                    }
                 }
-            }
-            if !rx.isEmpty {
-                KyonoGhostButton("▶ \(kyonoDisplayName(store))への3本 連続再生はこちら") {
-                    let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
-                    onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
+                if !rx.isEmpty {
+                    KyonoGhostButton("▶ \(kyonoDisplayName(store))への3本 連続再生はこちら") {
+                        let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
+                        onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
+                    }
                 }
             }
         } else {
