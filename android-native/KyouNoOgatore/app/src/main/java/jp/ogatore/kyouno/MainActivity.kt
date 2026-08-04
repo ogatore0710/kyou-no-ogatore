@@ -695,6 +695,15 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showSplash,
+                exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(if (splashReduceMotion) 0 else 500)),
+            ) {
+                KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
+                    KyonoSplashView()
+                }
+            }
+            }
         }
     }
 }

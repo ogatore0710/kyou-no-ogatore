@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -41,6 +43,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,6 +72,43 @@ fun BoxScope.KyonoPressHaloBackground(pressed: Boolean, color: Color) {
             .scale(1.5f)
             .background(color.copy(alpha = alpha), androidx.compose.foundation.shape.CircleShape),
     )
+}
+
+// TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-560 #appSplash/
+// .spl-badge/.spl-innerの1:1移植。黄色い角丸バッジ(-8°回転+3D影)+「きょうの/オガトレ」+
+// サブコピーの3点構成。背景はcolors.bgでテーマに追従する。
+@Composable
+fun KyonoSplashView() {
+    val colors = LocalKyonoColors.current
+    Box(Modifier.fillMaxSize().background(colors.bg), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                Modifier.size(92.dp).rotate(-8f),
+                contentAlignment = Alignment.Center,
+            ) {
+                // index.html:162 box-shadow:0 5px 0 #E8BE1Eの1:1移植(KyonoPrimaryButtonの
+                // 面+影と同じ「オフセット塗りつぶし」手法)。
+                Box(
+                    Modifier.size(92.dp).offset(y = 5.dp)
+                        .background(Color(0xFFE8BE1E), RoundedCornerShape(26.dp)),
+                )
+                Box(
+                    Modifier.size(92.dp).background(colors.yellow, RoundedCornerShape(26.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("#", color = Color.White, fontSize = 60.sp, fontWeight = FontWeight.Black)
+                }
+            }
+            Text(
+                "きょうの\nオガトレ", color = colors.ink, fontSize = 34.sp, fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center, modifier = Modifier.padding(top = 20.dp),
+            )
+            Text(
+                "みんなで一緒にストレッチを習慣化", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+        }
+    }
 }
 
 // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
