@@ -108,6 +108,7 @@ private struct BragContentView: View {
                 TextField("", text: $daysText)
                     .keyboardType(.numberPad)
                     .foregroundColor(colors.ink)
+                    .tint(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
@@ -124,7 +125,10 @@ private struct BragContentView: View {
                 Spacer().frame(height: 14)
                 Text("すきな1本をさがす").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                 Spacer().frame(height: 6)
+                // TASK-C2-2026-08-04-build20-addendum.md A-1: 同上の文字色未指定バグの棚卸し対象。
                 TextField("例: 肩甲骨／朝／開脚", text: $query)
+                    .foregroundColor(colors.ink)
+                    .tint(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))

@@ -337,9 +337,12 @@ private struct GuideContentView: View {
                     // index.html:426-429 .searchbox
                     // アイコン方針(TASK-C2-2026-07-30-icon-system.md)判断: 検索欄の虫めがねを
                     // 左側へ実際に差し込む(alan5判断・2026-07-30。SearchView.swiftと同じ扱い)。
+                    // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し対象。
                     HStack(spacing: 6) {
                         KyonoIconGlyph(icon: .search, fill: .clear, accent: colors.sub).frame(width: 18, height: 18)
                         TextField("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
+                            .foregroundColor(colors.ink)
+                            .tint(colors.ink)
                     }
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))

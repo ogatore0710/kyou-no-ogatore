@@ -100,6 +100,9 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                 Spacer(Modifier.height(14.dp))
                 Text("つづいている日数", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(6.dp))
+                // TASK-C2-2026-08-04-build20-addendum.md A-1(実バグ): ビルド17 P-4は背景色だけを
+                // 棚卸ししており、文字色が未指定のままMaterial3の既定onSurface(KyonoColors/
+                // kyono_themeとは無関係)にフォールバックしていた(本人スクショIMG_8745)。
                 TextField(
                     value = daysText,
                     onValueChange = { s -> if (s.all { it.isDigit() } && s.length <= 4) daysText = s },
@@ -108,6 +111,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
                         focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                        focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
                     ),
                     modifier = Modifier.testTag("bragDaysInput"),
                 )
@@ -122,6 +126,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                 Spacer(Modifier.height(14.dp))
                 Text("すきな1本をさがす", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(6.dp))
+                // TASK-C2-2026-08-04-build20-addendum.md A-1: 同上の文字色未指定バグの棚卸し対象。
                 TextField(
                     value = query,
                     onValueChange = { query = it },
@@ -130,6 +135,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
                         focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                        focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
                     ),
                     modifier = Modifier.fillMaxWidth().testTag("bragSearchInput"),
                 )

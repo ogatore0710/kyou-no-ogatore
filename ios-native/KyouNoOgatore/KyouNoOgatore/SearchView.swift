@@ -291,7 +291,10 @@ private struct SearchContentView: View {
                 // (alan5判断・2026-07-30)。右のG4消去ボタンとは反対側なので場所は競合しない。
                 KyonoIconGlyph(icon: .search, fill: .clear, accent: colors.sub)
                     .frame(width: 18 * zoom, height: 18 * zoom)
+                // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し対象。
                 TextField("例: 肩こり／朝／むくみ", text: $query)
+                    .foregroundColor(colors.ink)
+                    .tint(colors.ink)
                 if !query.isEmpty {
                     Button {
                         query = ""

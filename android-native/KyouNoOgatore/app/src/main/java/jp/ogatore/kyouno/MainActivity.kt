@@ -1746,9 +1746,13 @@ fun HomeScreen(
                             },
                             placeholder = { Text("ひとことメモをどうぞ", color = colors.subFaint) },
                             shape = RoundedCornerShape(12.dp),
+                            // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し
+                            // 対象(iOS版HomeView.swift:1055相当は既にP-4でforegroundColor(colors.ink)
+                            // 済みだったが、Android側は同等の対応が漏れていた)。
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
                                 focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                                focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
                             ),
                             modifier = Modifier.fillMaxWidth().testTag("memoInput"),
                         )

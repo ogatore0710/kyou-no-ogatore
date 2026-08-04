@@ -330,9 +330,11 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                     }
                 } else null,
                 shape = RoundedCornerShape(16.dp),
+                // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し対象。
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
                     focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                    focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
                 ),
             )
             Spacer(Modifier.height(10.dp))
