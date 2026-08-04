@@ -822,9 +822,11 @@ val REACH_LV = listOf("", "ひざまで", "すねまで", "足首まで", "つ�
 // TASK-C2-2026-07-30-ux-batch-13-amend-segment.md: index.html:656-661 セグメント(あなた用/あさ/よる)の
 // 1:1移植。「あなた用」はmineAvail(タイプ判定済み or プラン実行中)のときだけ出す。
 @Composable
-private fun TodaySegmentControl(mineAvail: Boolean, mode: String, onSelect: (String) -> Unit) {
+private fun TodaySegmentControl(store: RecordStore, mineAvail: Boolean, mode: String, onSelect: (String) -> Unit) {
+    // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換): よびな設定済みなら
+    // 「あなた用」→「（よびな）用」。
     val options = buildList {
-        if (mineAvail) add("mine" to "あなた用")
+        if (mineAvail) add("mine" to "${kyonoDisplayName(store)}用")
         add("asa" to "あさ")
         add("yoru" to "よる")
     }
@@ -843,7 +845,7 @@ private fun TodaySegmentControl(mineAvail: Boolean, mode: String, onSelect: (Str
 // 使える条件ならmine→あさ/よる自動判定)が解決した`mode`をそのまま使う(選出ロジック自体はここでは
 // 書き直さず、上にセグメントUIと手動上書きを足す形)。
 @Composable
-private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizTypeResult?, onVideoTap: (String) -> Unit) {
+private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData?, typeResult: QuizTypeResult?, onVideoTap: (String) -> Unit) {
     val colors = LocalKyonoColors.current
     // OnboardingScreens.kt(ResultScreen)のcatalogById/lookupVideoと同じ形(結果画面のおすすめ動画3本と
     // 同じ変換表・カタログを再利用するため、そちらとロジックを分岐させない)。
@@ -871,12 +873,13 @@ private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizT
         // fdFocusOnのときは丸ごと非表示になる既存の分岐(HomeScreen呼び出し側参照)と重複するため
         // ここでは扱わない)。
         val rx = remember(typeResult.key) { currentRx(typeResult.key, now) }
-        Text("きょうのあなた用", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
+        // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
+        Text("きょうの${kyonoDisplayName(store)}用", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
         rx.forEach { key -> lookupVideoByKey(key)?.let { v -> HomeTodayVideoRow(v, onVideoTap) } }
         if (rx.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
             KyonoGhostButton(
-                "▶ あなたへの3本 連続再生はこちら",
+                "▶ ${kyonoDisplayName(store)}への3本 連続再生はこちら",
                 {
                     val ids = rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")
                     onVideoTap("https://www.youtube.com/watch_videos?video_ids=$ids")
@@ -1384,10 +1387,11 @@ fun HomeScreen(
                         Text("きょうの1本", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                     }
                     Spacer(Modifier.height(10.dp))
-                    TodaySegmentControl(mineAvail = mineAvail, mode = effectiveMode, onSelect = ::setMode)
+                    TodaySegmentControl(store = store, mineAvail = mineAvail, mode = effectiveMode, onSelect = ::setMode)
                     // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
                     // 説明行を削除。「きょうのあなた用」の小見出し自体はTodayVideoSection側に残す。
                     TodayVideoSection(
+                        store = store,
                         mode = effectiveMode,
                         plan = plan,
                         typeResult = typeResult,

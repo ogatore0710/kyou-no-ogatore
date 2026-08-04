@@ -8,9 +8,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -79,6 +81,13 @@ val ANCHORS = listOf(
     AnchorInfo("free", "きめてない・そのつど", 20, 0),
 )
 
+// TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(端末内保存のみ・送信なし)。未設定なら
+// 従来どおり「あなた」。呼び出し側で敬称を勝手に足さない(alan5指示)。
+fun kyonoDisplayName(store: RecordStore): String {
+    val nickname = store.get("nickname", "")
+    return nickname.ifEmpty { "あなた" }
+}
+
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
 // 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。設定画面・マイ記録画面の両方の
 // カレンダー登録ボタンから共通で使う(以前はマイ記録側だけ引数なし=常に20:00のままだった)。
@@ -113,6 +122,8 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         val colors = LocalKyonoColors.current
         var theme by remember { mutableStateOf(store.get("theme", "light")) }
         var bigtext by remember { mutableStateOf(store.get("bigtext", true)) }
+        // TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(端末内保存のみ・送信なし)。
+        var nickname by remember { mutableStateOf(store.get("nickname", "")) }
         var exportText by remember { mutableStateOf<String?>(null) }
         var importInput by remember { mutableStateOf("") }
         var importMessage by remember { mutableStateOf<String?>(null) }
@@ -166,6 +177,8 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         var notifEnabled by remember { mutableStateOf(store.get("notif_enabled", false)) }
         // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を開閉式に(引き算)。既定は閉。
         var notifSectionExpanded by remember { mutableStateOf(false) }
+        // TASK-C2-2026-08-04-build20-addendum.md A-4: OS側の通知許可状態(許可済みならtrue)。
+        var notifAuthorized by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled()) }
         val notifPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
                 store.set("notif_enabled", true)
@@ -293,6 +306,27 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     modifier = Modifier.testTag("bigtextSeg"),
                 )
 
+                // TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(にゅうりょくは じゆう・
+                // 任意・空欄可・最大8文字・端末内store保存のみ・送信なし)。
+                Spacer(Modifier.height(12.dp))
+                Text("よびな（にゅうりょくは じゆう）", color = colors.ink, fontSize = 15.sp)
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = nickname,
+                    onValueChange = { s ->
+                        val trimmed = s.take(8)
+                        nickname = trimmed
+                        store.set("nickname", trimmed)
+                    },
+                    modifier = Modifier.fillMaxWidth().testTag("nicknameInput"),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
+                        focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                        focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
+                        cursorColor = colors.ink,
+                    ),
+                )
+
                 // index.html:809-816 カレンダーのおしらせ時間+Apple/Googleカレンダー登録ボタンの
                 // 1:1移植。「毎日自動でアプリがひらく設定（iPhone）」(index.html:818-827・Shortcuts
                 // アプリの自動化案内)はPWAが通知を送れないことへのiOS限定の回避策でネイティブには
@@ -308,14 +342,21 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を隣接のFAQ開閉
                 // (GuideScreen.kt)と同じ様式(見出しタップで開閉・▾/▴)で畳む。既定は閉。閉じていても
                 // 状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
+                // TASK-C2-2026-08-04-build20-addendum.md A-4: 「おしらせの時間」を「通知」
+                // セクションへ格上げ(見える化・整理。曜日指定などの新機能は足さない)。
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { notifSectionExpanded = !notifSectionExpanded }
+                        .clickable {
+                            notifSectionExpanded = !notifSectionExpanded
+                            if (notifSectionExpanded) {
+                                notifAuthorized = NotificationManagerCompat.from(context).areNotificationsEnabled()
+                            }
+                        }
                         .testTag("notifSectionHeader"),
                 ) {
-                    Text("おしらせの時間", color = colors.ink, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                    Text("通知", color = colors.ink, fontSize = 15.sp, modifier = Modifier.weight(1f))
                     Text(
                         if (notifEnabled) "%02d:%02d オン".format(icsHour, icsMinute) else "オフ",
                         color = if (notifEnabled) colors.tealInk else colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
@@ -324,6 +365,34 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     Text(if (notifSectionExpanded) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
                 }
                 if (notifSectionExpanded) {
+                Spacer(Modifier.height(6.dp))
+                // A-4②: OS側の通知許可が切れているときだけ案内+設定アプリへのリンクを表示
+                // (許可済みなら非表示)。
+                if (!notifAuthorized) {
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(colors.coralSoft, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                            .padding(10.dp)
+                            .testTag("notifPermissionBanner"),
+                    ) {
+                        Text("⚠️", fontSize = 14.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("Androidの設定で通知を許可してね", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                "設定アプリをひらく", color = colors.tealInk, fontSize = 13.sp, fontWeight = FontWeight.Black,
+                                modifier = Modifier.clickable {
+                                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                    context.startActivity(intent)
+                                },
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     var showHourMenu by remember { mutableStateOf(false) }
@@ -386,10 +455,12 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // TASK-C2-2026-07-27-local-notifications.md: 「毎日のおしらせ」トグル。既定オフ・
                 // オンにした瞬間だけ許可ダイアログを出す(1日目クリア時のインライン提案とは別経路。
                 // どちらも同じnotif_enabledに収束する)。
+                // TASK-C2-2026-08-04-build20-addendum.md A-4①: ラベルを「毎日の合図」に変更
+                // (中身の機能・保存キーは変更なし)。
                 Spacer(Modifier.height(20.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.weight(1f)) {
-                        Text("毎日のおしらせ", color = colors.ink, fontSize = 15.sp)
+                        Text("毎日の合図", color = colors.ink, fontSize = 15.sp)
                         Spacer(Modifier.height(4.dp))
                         Text(
                             "上の時間に、一言だけやわらかくお知らせします(その日すでに記録していれば出ません)",

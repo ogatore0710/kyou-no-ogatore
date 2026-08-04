@@ -1077,8 +1077,9 @@ fun ResultScreen(
             // フル版(タイプカード+解説+動画3本+ペース目安+相談室リンク)を常に表示する
             // (「一度正確な自分の結果がきちんと出る」という本人の狙いどおり)。
             KyonoGradientCard(KyonoGradient.Soft, Modifier.testTag("resultCard")) {
+                // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
                 Text(
-                    "あなたのかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                    "${kyonoDisplayName(store)}のかたさタイプは…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(10.dp))
