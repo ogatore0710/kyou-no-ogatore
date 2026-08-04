@@ -874,7 +874,8 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
         // ここでは扱わない)。
         val rx = remember(typeResult.key) { currentRx(typeResult.key, now) }
         // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
-        Text("きょうの${kyonoDisplayName(store)}用", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
+        // TASK-C2-2026-08-04-build20-addendum.md F-2②: よびな長文時も1行固定+自動縮小。
+        KyonoAutoShrinkText("きょうの${kyonoDisplayName(store)}用", color = colors.sub, baseFontSize = 12.sp, fontWeight = FontWeight.Black)
         rx.forEach { key -> lookupVideoByKey(key)?.let { v -> HomeTodayVideoRow(v, onVideoTap) } }
         if (rx.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
@@ -905,8 +906,10 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
 // TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md H-1: ホーム「きょうの1本」専用の
 // 引き算カード。VideoRow(SearchScreen.kt)は探す/再生リスト/相談室/ツアー内チェック結果画面で
 // フル情報のまま使い続けるため触らず、ここだけ別コンポーネントに分離する。年・再生回数の
-// メタ行(v.s)を削除し、短タイトル(v.st)1行のみ表示(分数はst文中に既に含まれる想定)。
-// stが無い動画はフルタイトル(v.t)へフォールバックし、行数だけmaxLines=2に広げる。
+// メタ行(v.s)を削除し、短タイトル(v.st)を表示(分数はst文中に既に含まれる想定)。
+// stが無い動画はフルタイトル(v.t)へフォールバックする。
+// TASK-C2-2026-08-04-build20-addendum.md F-1(検収差し戻し): stをmaxLines=1にしていたため
+// 種別語ごと切り詰められていた。2行まで許可する(フォールバックのv.tも同じ2行)。
 @Composable
 private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null) {
     val colors = LocalKyonoColors.current
@@ -942,7 +945,7 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
                 Spacer(Modifier.height(4.dp))
             }
             if (v.st != null) {
-                Text(v.st, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(v.st, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             } else {
                 Text(v.t, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }

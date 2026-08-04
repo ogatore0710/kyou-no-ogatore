@@ -32,9 +32,12 @@ let settingsAnchors: [AnchorInfo] = [
 // カレンダー登録ボタンから共通で使う(以前はマイ記録側だけhour=20,minute=0固定だった)。
 // TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(端末内保存のみ・送信なし)。未設定なら
 // 従来どおり「あなた」。呼び出し側で敬称を勝手に足さない(alan5指示)。
+// TASK-C2-2026-08-04-build20-addendum.md F-2③(検収差し戻し): 入力上限は8→6文字に変更したが、
+// 既に7〜8文字で保存済みの値は保存データ自体を壊さず、表示側だけ先頭6文字に丸める。
 func kyonoDisplayName(_ store: RecordStore) -> String {
     let nickname: String = store.get("nickname", default: "")
-    return nickname.isEmpty ? "あなた" : nickname
+    if nickname.isEmpty { return "あなた" }
+    return String(nickname.prefix(6))
 }
 
 func icsTimeFor(_ store: RecordStore) -> (Int, Int) {
@@ -242,9 +245,11 @@ struct SettingsView: View {
                     )
 
                     // TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(にゅうりょくは じゆう・
-                    // 任意・空欄可・最大8文字・端末内store保存のみ・送信なし)。
+                    // 任意・空欄可・端末内store保存のみ・送信なし)。
+                    // TASK-C2-2026-08-04-build20-addendum.md F-2①(検収差し戻し): タブ/小見出しの
+                    // 折り返しを防ぐため上限を8→6文字に変更。
                     Spacer().frame(height: 12)
-                    KyonoBodyText("よびな（にゅうりょくは じゆう）")
+                    KyonoBodyText("よびな（にゅうりょくは じゆう・6もじまで）")
                     Spacer().frame(height: 6)
                     TextField("", text: $nickname)
                         .foregroundColor(colors.ink)
@@ -253,7 +258,7 @@ struct SettingsView: View {
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
                         .onChange(of: nickname) { _, newValue in
-                            let trimmed = String(newValue.prefix(8))
+                            let trimmed = String(newValue.prefix(6))
                             if trimmed != newValue { nickname = trimmed }
                             store.set("nickname", trimmed)
                         }

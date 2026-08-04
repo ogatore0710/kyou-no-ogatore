@@ -1234,7 +1234,9 @@ private struct TodayVideoSection: View {
             // ここでは扱わない)。
             let rx = currentRx(typeResult.key, now: now)
             // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
+            // TASK-C2-2026-08-04-build20-addendum.md F-2②: よびな長文時も1行固定+自動縮小。
             Text("きょうの\(kyonoDisplayName(store))用").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
+                .lineLimit(1).minimumScaleFactor(0.7)
             ForEach(rx, id: \.self) { key in
                 if let v = lookupVideoByKey(key) {
                     HomeTodayVideoRow(v: v, openUrl: onVideoTap)
@@ -1264,8 +1266,10 @@ private struct TodayVideoSection: View {
 // TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md H-1: ホーム「きょうの1本」専用の
 // 引き算カード。VideoRow(SearchView.swift)は探す/再生リスト/相談室/ツアー内チェック結果画面で
 // フル情報のまま使い続けるため触らず、ここだけ別コンポーネントに分離する。年・再生回数の
-// メタ行(v.s)を削除し、短タイトル(v.st)1行のみ表示(分数はst文中に既に含まれる想定)。
-// stが無い動画はフルタイトル(v.t)へフォールバックし、行数だけlineLimit(2)に広げる。
+// メタ行(v.s)を削除し、短タイトル(v.st)を表示(分数はst文中に既に含まれる想定)。
+// stが無い動画はフルタイトル(v.t)へフォールバックする。
+// TASK-C2-2026-08-04-build20-addendum.md F-1(検収差し戻し): stをlineLimit(1)にしていたため
+// 種別語ごと切り詰められていた。2行まで許可する(フォールバックのv.tも同じ2行)。
 private struct HomeTodayVideoRow: View {
     @Environment(\.kyonoColors) private var colors
     let v: CatalogVideo
@@ -1293,7 +1297,7 @@ private struct HomeTodayVideoRow: View {
                             .background(Capsule().fill(colors.coralSoft))
                     }
                     if let st = v.st {
-                        Text(st).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(1)
+                        Text(st).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(2)
                     } else {
                         Text(v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(2)
                     }

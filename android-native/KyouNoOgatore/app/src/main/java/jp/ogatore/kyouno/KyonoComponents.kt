@@ -23,7 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -373,10 +375,30 @@ fun <T> KyonoSegmentedControl(
                     KyonoIconGlyph(it, fill = Color(0xFFFFEDF3), modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
                 }
-                Text(label, color = if (on) colors.ink else colors.sub, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                // TASK-C2-2026-08-04-build20-addendum.md F-2②(検収差し戻し): よびな置換で
+                // ラベルが長くなる「あなた用」タブが3行に折り返っていた。1行固定+自動縮小にして、
+                // 短いラベル(あさ/よる等)には影響を与えず長いラベルだけ縮んで収まるようにする。
+                KyonoAutoShrinkText(label, color = if (on) colors.ink else colors.sub, baseFontSize = 15.sp, fontWeight = FontWeight.Black)
             }
         }
     }
+}
+
+// TASK-C2-2026-08-04-build20-addendum.md F-2②: Compose BOM 2024.06.00にはautoSizeが無いため、
+// onTextLayoutでオーバーフローを検知して1行に収まるまでフォントサイズを段階的に縮める簡易実装。
+// HomeScreen(MainActivity.kt)の小見出しからも共用するためfile-privateにしない。
+@Composable
+fun KyonoAutoShrinkText(text: String, color: Color, baseFontSize: androidx.compose.ui.unit.TextUnit, fontWeight: FontWeight) {
+    var fontSize by remember(text) { mutableStateOf(baseFontSize) }
+    Text(
+        text, color = color, fontSize = fontSize, fontWeight = fontWeight,
+        maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && fontSize.value > baseFontSize.value * 0.6f) {
+                fontSize = (fontSize.value - 1f).sp
+            }
+        },
+    )
 }
 
 // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §1: index.html:470-474,3190-3198

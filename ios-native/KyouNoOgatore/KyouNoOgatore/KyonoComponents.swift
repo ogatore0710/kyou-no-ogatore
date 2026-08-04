@@ -504,7 +504,12 @@ private struct SegmentedOptionButton: View {
                     // ここで渡すfillはsegHeart用の値でよい。
                     KyonoIconGlyph(icon: icon, fill: Color(hex: 0xFFEDF3)).frame(width: 16 * zoom, height: 16 * zoom)
                 }
+                // TASK-C2-2026-08-04-build20-addendum.md F-2②(検収差し戻し): よびな置換で
+                // ラベルが長くなる「あなた用」タブが3行に折り返っていた。1行固定+自動縮小
+                // (minimumScaleFactor)にして、短いラベル(あさ/よる等)には影響を与えず長い
+                // ラベルだけ縮んで収まるようにする。
                 Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
+                    .lineLimit(1).minimumScaleFactor(0.6)
             }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 13 * zoom)
