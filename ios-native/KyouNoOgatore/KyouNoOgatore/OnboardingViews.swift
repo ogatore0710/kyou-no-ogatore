@@ -1305,28 +1305,54 @@ private struct ResultContentView: View {
 
 // MARK: - 使い方ツアー
 
+// TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md T-B: KyonoTourMockupを位置(index)では
+// なくこのkeyで切り替える。スライド配列を並べ替えても絵がズレない設計にする(build19 T-1で
+// 実際に起きた「見出し⇔絵のズレ」の再発防止)。
+enum TourMockKind {
+    case map, videoDaily, todayDone, cardDex, soudan, obu, myRecord
+}
+
 struct TourSlideDef {
     let title: String
     let desc: String
+    let mock: TourMockKind
 }
 
-// index.html:4117-4143 OB_TOUR_SLIDES の1:1移植(タイトル・説明文のみ)。A2HS関連の内容は1枚も無い
-// (§6 Step5c検収基準3のgrep確認対象と対応)。
-// TASK-C2-2026-08-04-build19-tour-redesign.md T-2(本人カード裁定=案2「体験一本道＋予告3枚」):
-// 「もう体験したことの再説明」枚(まいにち1本・きょうやった！・ためると図鑑)を削除し、ツアーを
-// 「まだ見ていない場所の予告編」に純化する。記録の手順そのものは練習モード(かたさチェック→
-// けっか→きろく→カード)で既に一度体験済みのため、ここでの再説明は不要という判断。
-// 残す3枚の文言はビルド18のまま変更なし(改行位置も含め既存どおり)。
-let obTourSlides = [
-    TourSlideDef(title: "悩みは相談室で質問", desc: "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ\nオガトレ監修の答えとおすすめ動画がすぐ届くよ"),
+// TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md T-A/T-B: 「体験一本道＋予告3枚」
+// (build19 T-2)をさらに2段構えにする。共通プール7枚から、初回は「地図+まだ見ていない3枚」、
+// 再生(使い方タブ)は「地図+全7枚のフルマニュアル」を切り出す(スライド配列の共通プール+
+// 初回サブセット方式)。
+let obTourPool: [TourSlideDef] = [
+    // T-A(alan5指定文言・このまま): 初回1枚目に追加する「1日の流れ」地図。
+    TourSlideDef(
+        title: "まいにちやることは1つだけ",
+        desc: "ホームの「きょうの1本」をみる→おわったら「きょうやった！」をおす\nこれだけで記録カードがたまっていくよ\nつぎの3枚は「こまったとき」の場所あんないだよ",
+        mock: .map
+    ),
+    // T-B「復活3枚」(alan5指定文言・build18までと同一・このまま)。再生の7枚版にのみ含める。
+    TourSlideDef(title: "まいにち1本、動画をやる", desc: "ホームの「きょうの1本」をタップ→YouTubeがひらくよ\n見おわったらこのアプリにもどってきてね", mock: .videoDaily),
+    TourSlideDef(title: "おわったら「きょうやった！」", desc: "アプリにもどったらこのボタンを押すだけ\n連続と通算がのびるよ", mock: .todayDone),
+    TourSlideDef(title: "ためると図鑑がうまる", desc: "記録カードは記念日・季節・レアなど何種類もあるよ\n「保存・シェアする」で写真にのこせて SNSやコメント欄にもどうぞ\n毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）", mock: .cardDex),
+    // build19 T-2の「予告3枚」(文言は変更なし)。初回サブセットにも含まれる。
+    TourSlideDef(title: "悩みは相談室で質問", desc: "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ\nオガトレ監修の答えとおすすめ動画がすぐ届くよ", mock: .soudan),
     // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 「尾形さん」→「尾形」(本人指示・改行と同時)。
-    TourSlideDef(title: "オガトレ通信をのぞく", desc: "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります"),
+    TourSlideDef(title: "オガトレ通信をのぞく", desc: "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります", mock: .obu),
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Web版の「見てみる」ボタンはネイティブの
     // マイ記録に存在しない(お楽しみは🎉じまんカード/💬せんぱいの声/📔ひとことにっきの個別3ボタン)ため、
     // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
     // B-10: 6機能列挙をやめて簡略化。
-    TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
+    TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ", mock: .myRecord),
 ]
+// T-A: 初回は「地図(0)+予告3枚(4,5,6)」の4枚。「もう体験したことの再説明」(videoDaily/
+// todayDone/cardDex)は初回では引き続き省く(build19 T-2の判断を継承)。
+private let obTourFirstRunIndices = [0, 4, 5, 6]
+
+// T-A/T-B: isFirstRun(初回=tryStartTour/オンボ直後・showClosing:trueの経路とオンボ埋め込み
+// 経路の両方)は「地図+予告3枚」の4枚、再生(使い方タブ onReenterTour・isFirstRun:false)は
+// プール全7枚のフルマニュアルを返す。
+func obTourSlides(isFirstRun: Bool) -> [TourSlideDef] {
+    isFirstRun ? obTourFirstRunIndices.map { obTourPool[$0] } : obTourPool
+}
 let obTourClosingTitle = "これで準備ばっちり！"
 // TASK-C2-2026-08-04-build19-tour-redesign.md T-2(alan5指定文言・このまま): 削除した「忘れても
 // だいじょうぶ」枚の内容をこの締めスライドに吸収する。
@@ -1350,11 +1376,12 @@ struct TourView: View {
 
     @State private var si = 0
 
-    private var totalSlides: Int { obTourSlides.count + (showClosing ? 1 : 0) }
+    private var slides: [TourSlideDef] { obTourSlides(isFirstRun: isFirstRun) }
+    private var totalSlides: Int { slides.count + (showClosing ? 1 : 0) }
 
     var body: some View {
         KyonoTheme(themeSetting: store.get("theme", default: "light"), bigText: store.get("bigtext", default: true)) {
-            TourContentView(si: $si, totalSlides: totalSlides, showClosing: showClosing, isFirstRun: isFirstRun, onDone: onDone)
+            TourContentView(si: $si, slides: slides, totalSlides: totalSlides, showClosing: showClosing, isFirstRun: isFirstRun, onDone: onDone)
         }
     }
 }
@@ -1362,6 +1389,7 @@ struct TourView: View {
 private struct TourContentView: View {
     @Environment(\.kyonoColors) private var colors
     @Binding var si: Int
+    let slides: [TourSlideDef]
     let totalSlides: Int
     let showClosing: Bool
     let isFirstRun: Bool
@@ -1388,7 +1416,17 @@ private struct TourContentView: View {
             // TASK-C2-2026-08-04-build19-tour-redesign.md T-3: ツアー独自の(番号のみの)進捗バーを
             // 廃止し、体験ジャーニーバーの5段目「みどころ」を共用する(予告3枚+締めの間は常に
             // カレント)。
-            KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: kyonoJourneySteps.count - 1)
+            // TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md T-B: 再生(フル7枚マニュアル・
+            // isFirstRun:false)ではジャーニーバーの「チェック✓の残骸」が意味不明になる(発注書の
+            // 指摘)ため非表示にし、かわりに「N/7」の小さな頁表示にする。
+            if isFirstRun {
+                KyonoJourneyBar(labels: kyonoJourneySteps, currentIndex: kyonoJourneySteps.count - 1)
+            } else {
+                Text("\(si + 1)/\(slides.count)")
+                    .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.horizontal, 20).padding(.top, 12)
+            }
             ScrollViewReader { proxy in
             // TASK-C2-2026-08-04-build19-tour-redesign.md T-5: 内容がボタン列より大きく上に寄り、
             // 画面中央がクリーム一色の余白になっていた。GeometryReaderで可視高さを取り、
@@ -1397,11 +1435,11 @@ private struct TourContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     Color.clear.frame(height: 0).id("obTop")
-                    if si < obTourSlides.count {
-                        let slide = obTourSlides[si]
+                    if si < slides.count {
+                        let slide = slides[si]
                         Text(slide.title).kyonoFont(.black900, size: 17).foregroundColor(colors.ink)
                         // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
-                        KyonoTourMockup(slideIndex: si)
+                        KyonoTourMockup(kind: slide.mock)
                         // TASK-C2-2026-08-04-build19-tour-redesign.md T-6: lineSpacing 11@14ptだと
                         // 行がバラけて痩せて見えていた(本人指摘)ため6へ詰める。1.5pt線枠は外し、
                         // colors.card塗り+角丸14のみのシンプルな箱にする。

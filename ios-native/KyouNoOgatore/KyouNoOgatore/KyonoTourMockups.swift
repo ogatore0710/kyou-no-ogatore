@@ -12,17 +12,94 @@
 //  なっていた(alan5が実描画で確認・報告)。T-2で3枚+締めへ再構成したのに合わせ、caseをゼロから
 //  書き直す(以後、スライド文言の変更時は必ずこのswitchも同時に見直すこと・検収基準「見出し⇔絵の
 //  一致」を新設)。
+//
+//  TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md T-A/T-B: スライド配列が「初回4枚/
+//  再生7枚」の2構成に分かれ、同じ絵が異なるインデックスで出ることになったため、位置(index)では
+//  なくTourMockKind(意味のある固定キー)でswitchするよう変更。これにより配列の並び替えで絵が
+//  ズレる心配が構造的に無くなる(T-1の再発防止)。
 
 import SwiftUI
 
 struct KyonoTourMockup: View {
     @Environment(\.kyonoColors) private var colors
-    let slideIndex: Int
+    let kind: TourMockKind
 
     var body: some View {
-        switch slideIndex {
-        // 1) 悩みは相談室で質問: 実際のチャット吹き出し2つ(ユーザー発言→オガトレくんの返答、アバター付き)
-        case 0:
+        switch kind {
+        // T-A: まいにちやることは1つだけ。動画カード→黄色「きょうやった！」ボタン→記録カードの
+        // 3コマ縦並び簡略図(alan5指定)。
+        case .map:
+            VStack(spacing: 6) {
+                HStack(spacing: 8) {
+                    RoundedRectangle(cornerRadius: 8).fill(colors.line).frame(width: 46, height: 46 * 9 / 16)
+                    Text("きょうの1本").kyonoFont(.bold700, size: 13).foregroundColor(colors.ink)
+                    Spacer()
+                }
+                .padding(8).background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
+                Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
+                Text("きょうやった！").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                    .frame(maxWidth: .infinity).padding(.vertical, 8)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(colors.yellow))
+                Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
+                HStack {
+                    Spacer()
+                    KyonoCharaImage(name: "card-sample").frame(width: 60, height: 60)
+                    Spacer()
+                }
+            }
+        // 復活枚1) まいにち1本、動画をやる: 「きょうの1本」カードのミニチュア(動画サムネイル+タイトル+案内文)
+        case .videoDaily:
+            KyonoCard {
+                Text("きょうの1本").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                Spacer().frame(height: 8)
+                HStack(alignment: .center) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8).fill(colors.line)
+                        KyonoAsyncImage(url: youtubeThumbUrl("Re5FPU5_37g")).clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .frame(width: 120, height: 120 * 9 / 16)
+                    Spacer().frame(width: 10)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("開脚できるようになる2週間ストレッチ").kyonoFont(.bold700, size: 13).foregroundColor(colors.ink)
+                        Text("▶ タップでYouTubeがひらきます").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
+                    }
+                    Spacer()
+                }
+            }
+        // 復活枚2) おわったら「きょうやった！」: 「続けた日数」カードのミニチュア(大きい数字「8日目」+done-btn)
+        case .todayDone:
+            KyonoCard {
+                VStack(alignment: .center, spacing: 2) {
+                    Text("続けた日数（通算）").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                    HStack(alignment: .bottom, spacing: 2) {
+                        Text("8").kyonoFont(.black900, size: 38).foregroundColor(colors.pink)
+                        Text("日目").kyonoFont(.black900, size: 16).foregroundColor(colors.ink).padding(.bottom, 6)
+                    }
+                    Spacer().frame(height: 6)
+                    Text("きょうやった！").kyonoFont(.black900, size: 16).foregroundColor(.white)
+                        .frame(maxWidth: .infinity).padding(.vertical, 14)
+                        .background(RoundedRectangle(cornerRadius: 18).fill(colors.tealStrong))
+                }
+                .frame(maxWidth: .infinity)
+            }
+        // 復活枚3) ためると図鑑がうまる: card-sample.pngの隣に「？」の点線枠3つ
+        case .cardDex:
+            KyonoCard {
+                VStack(alignment: .center, spacing: 8) {
+                    Text("カード図鑑").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                    HStack(spacing: 8) {
+                        KyonoCharaImage(name: "card-sample").frame(width: 52, height: 52)
+                        ForEach(0..<3, id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 10).stroke(colors.line, lineWidth: 1.5)
+                                .frame(width: 52, height: 52)
+                                .overlay(Text("？").kyonoFont(.black900, size: 16).foregroundColor(colors.sub))
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        // 予告1) 悩みは相談室で質問: 実際のチャット吹き出し2つ(ユーザー発言→オガトレくんの返答、アバター付き)
+        case .soudan:
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Spacer()
@@ -39,8 +116,8 @@ struct KyonoTourMockup: View {
                         .overlay(shape.stroke(colors.line, lineWidth: 1.5))
                 }
             }
-        // 2) オガトレ通信をのぞく: 丸い写真アイコン+説明
-        case 1:
+        // 予告2) オガトレ通信をのぞく: 丸い写真アイコン+説明
+        case .obu:
             HStack {
                 Spacer()
                 KyonoTourDrawable(name: "obu-fab-photo").frame(width: 56, height: 56).clipShape(Circle())
@@ -52,8 +129,8 @@ struct KyonoTourMockup: View {
                 }
                 Spacer()
             }
-        // 3) マイ記録でふりかえる: カレンダーのミニチュア(5個の丸、3個が塗りつぶし=やった日)
-        case 2:
+        // 予告3) マイ記録でふりかえる: カレンダーのミニチュア(5個の丸、3個が塗りつぶし=やった日)
+        case .myRecord:
             KyonoCard {
                 VStack {
                     Text("カレンダー").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
@@ -69,8 +146,6 @@ struct KyonoTourMockup: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-        default:
-            EmptyView()
         }
     }
 }

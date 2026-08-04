@@ -1329,26 +1329,44 @@ fun ResultScreen(
     }
 }
 
-data class TourSlideDef(val title: String, val desc: String)
+// TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md T-B: KyonoTourMockupを位置(index)では
+// なくmock(意味のある固定キー)でswitchする。スライド配列の並べ替えで絵がズレる心配が構造的に
+// 無くなる(build19 T-1の再発防止)。
+enum class TourMockKind { MAP, VIDEO_DAILY, TODAY_DONE, CARD_DEX, SOUDAN, OBU, MY_RECORD }
 
-// index.html:4117-4143 OB_TOUR_SLIDES の1:1移植(タイトル・説明文のみ。実画面モックHTML(v)は
-// 移植対象外=ネイティブでは実UI自体がその場にあるため不要)。A2HS関連の内容は1枚も無い
-// (§6 Step5c検収基準3のgrep確認対象と対応)。
-// TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 絵文字・句読点の全廃(build16 P-1)で
-// 文の切れ目が消えたため、発注書指定の位置に改行(\n)を入れる(文言そのものは変更しない・
-// 改行位置のみ発注書の指定どおり)。
-// TASK-C2-2026-08-04-build19-tour-redesign.md T-2(本人カード裁定=案2「体験一本道＋予告3枚」):
-// 「もう体験したことの再説明」枚(まいにち1本・きょうやった！・ためると図鑑)を削除し、ツアーを
-// 「まだ見ていない場所の予告編」に純化する。記録の手順そのものは練習モード(かたさチェック→
-// けっか→きろく→カード)で既に一度体験済みのため、ここでの再説明は不要という判断。
-// 残す3枚の文言はビルド18のまま変更なし(改行位置も含め既存どおり)。
-val OB_TOUR_SLIDES = listOf(
-    TourSlideDef("悩みは相談室で質問", "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ\nオガトレ監修の答えとおすすめ動画がすぐ届くよ"),
+data class TourSlideDef(val title: String, val desc: String, val mock: TourMockKind)
+
+// TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md T-A/T-B: 「体験一本道＋予告3枚」
+// (build19 T-2)をさらに2段構えにする。共通プール7枚から、初回は「地図+まだ見ていない3枚」、
+// 再生(使い方タブ)は「地図+全7枚のフルマニュアル」を切り出す(スライド配列の共通プール+
+// 初回サブセット方式)。
+val OB_TOUR_POOL = listOf(
+    // T-A(alan5指定文言・このまま): 初回1枚目に追加する「1日の流れ」地図。
+    TourSlideDef(
+        "まいにちやることは1つだけ",
+        "ホームの「きょうの1本」をみる→おわったら「きょうやった！」をおす\nこれだけで記録カードがたまっていくよ\nつぎの3枚は「こまったとき」の場所あんないだよ",
+        TourMockKind.MAP,
+    ),
+    // T-B「復活3枚」(alan5指定文言・build18までと同一・このまま)。再生の7枚版にのみ含める。
+    TourSlideDef("まいにち1本、動画をやる", "ホームの「きょうの1本」をタップ→YouTubeがひらくよ\n見おわったらこのアプリにもどってきてね", TourMockKind.VIDEO_DAILY),
+    TourSlideDef("おわったら「きょうやった！」", "アプリにもどったらこのボタンを押すだけ\n連続と通算がのびるよ", TourMockKind.TODAY_DONE),
+    TourSlideDef("ためると図鑑がうまる", "記録カードは記念日・季節・レアなど何種類もあるよ\n「保存・シェアする」で写真にのこせて SNSやコメント欄にもどうぞ\n毎日の記録でカード図鑑がすこしずつうまっていく（マイ記録→お楽しみ機能）", TourMockKind.CARD_DEX),
+    // build19 T-2の「予告3枚」(文言は変更なし)。初回サブセットにも含まれる。
+    TourSlideDef("悩みは相談室で質問", "右下のボタンをタップ→「肩こり」のように打つか、チップを選ぶだけ\nオガトレ監修の答えとおすすめ動画がすぐ届くよ", TourMockKind.SOUDAN),
     // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 「尾形さん」→「尾形」(本人指示・改行と同時)。
-    TourSlideDef("オガトレ通信をのぞく", "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります"),
+    TourSlideDef("オガトレ通信をのぞく", "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります", TourMockKind.OBU),
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: ...(既存コメント維持)...
-    TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ"),
+    TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ", TourMockKind.MY_RECORD),
 )
+// T-A: 初回は「地図(0)+予告3枚(4,5,6)」の4枚。「もう体験したことの再説明」(videoDaily/
+// todayDone/cardDex)は初回では引き続き省く(build19 T-2の判断を継承)。
+private val OB_TOUR_FIRST_RUN_INDICES = listOf(0, 4, 5, 6)
+
+// T-A/T-B: isFirstRun(初回=tryStartTour/オンボ直後・showClosing:trueの経路とオンボ埋め込み
+// 経路の両方)は「地図+予告3枚」の4枚、再生(使い方タブ onReenterTour・isFirstRun:false)は
+// プール全7枚のフルマニュアルを返す。
+fun obTourSlides(isFirstRun: Boolean): List<TourSlideDef> =
+    if (isFirstRun) OB_TOUR_FIRST_RUN_INDICES.map { OB_TOUR_POOL[it] } else OB_TOUR_POOL
 const val OB_TOUR_CLOSING_TITLE = "これで準備ばっちり！"
 // TASK-C2-2026-08-04-build19-tour-redesign.md T-2(alan5指定文言・このまま): 削除した「忘れても
 // だいじょうぶ」枚の内容をこの締めスライドに吸収する。
@@ -1367,7 +1385,8 @@ const val OB_TOUR_CLOSING_DESC = "あしたも待ってるね\nきょうのぶ�
 @Composable
 fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = false, onDone: () -> Unit) {
     var si by remember { mutableStateOf(0) }
-    val totalSlides = OB_TOUR_SLIDES.size + if (showClosing) 1 else 0
+    val slides = remember(isFirstRun) { obTourSlides(isFirstRun) }
+    val totalSlides = slides.size + if (showClosing) 1 else 0
     KyonoTheme(store.get("theme", "light"), bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         // TestFlight実機フィードバックD6(2026-07-29、iOS向けだがAndroidにも同じ穴があった):
@@ -1393,7 +1412,18 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = f
         // TASK-C2-2026-08-04-build19-tour-redesign.md T-3: ツアー独自の(番号のみの)進捗バーを
         // 廃止し、体験ジャーニーバーの5段目「みどころ」を共用する(予告3枚+締めの間は常に
         // カレント)。
-        KyonoJourneyBar(labels = KYONO_JOURNEY_STEPS, currentIndex = KYONO_JOURNEY_STEPS.size - 1)
+        // TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md T-B: 再生(フル7枚マニュアル・
+        // isFirstRun:false)ではジャーニーバーの「チェック✓の残骸」が意味不明になる(発注書の
+        // 指摘)ため非表示にし、かわりに「N/7」の小さな頁表示にする。
+        if (isFirstRun) {
+            KyonoJourneyBar(labels = KYONO_JOURNEY_STEPS, currentIndex = KYONO_JOURNEY_STEPS.size - 1)
+        } else {
+            Text(
+                "${si + 1}/${slides.size}", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 12.dp),
+                textAlign = TextAlign.End,
+            )
+        }
         // TASK-C2-2026-08-04-build19-tour-redesign.md T-5: 内容がボタン列より大きく上に寄り、
         // 画面中央がクリーム一色の余白になっていた(本人指摘)。BoxWithConstraintsで可視高さを
         // 取り、内容Columnに heightIn(min=) と Arrangement.Center を与えて縦中央に寄せる。
@@ -1403,12 +1433,12 @@ fun TourScreen(store: RecordStore, showClosing: Boolean, isFirstRun: Boolean = f
                 Modifier.fillMaxWidth().verticalScroll(scrollState).heightIn(min = visibleHeight).padding(20.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
-            if (si < OB_TOUR_SLIDES.size) {
-                val slide = OB_TOUR_SLIDES[si]
+            if (si < slides.size) {
+                val slide = slides[si]
                 Text(slide.title, color = colors.ink, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("tourTitle"))
                 Spacer(Modifier.height(10.dp))
                 // index.html:4118-4142 各スライドv フィールド(実際の画面のミニチュアモックアップ)の1:1移植。
-                KyonoTourMockup(si)
+                KyonoTourMockup(slide.mock)
                 Spacer(Modifier.height(10.dp))
                 // TASK-C2-2026-08-04-build19-tour-redesign.md T-6: lineHeight 27sp@14ptだと行が
                 // バラけて痩せて見えていた(本人指摘)ため詰める(iOS版lineSpacing 6の等価値)。
