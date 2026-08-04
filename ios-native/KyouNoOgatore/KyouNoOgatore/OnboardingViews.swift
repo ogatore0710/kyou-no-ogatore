@@ -855,6 +855,9 @@ private struct QuizOptionCard: View {
     let note: String
     let background: Color
     let borderColor: Color
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-3(棚卸し対象): obgColorsパレット共有に伴い、
+    // 濃色文字も選択可能に。未指定時はcolors.inkのまま(既存呼び出し元との後方互換)。
+    var labelColor: Color? = nil
     let pressedBackground: Color
     let pressedBorderColor: Color
     let colors: KyonoColors
@@ -869,7 +872,7 @@ private struct QuizOptionCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 // UI/UXパリティ監査2巡目A4(2026-07-29): index.html:294 .opt{font-size:18px}の1:1移植。
                 // 従来15ptで-16.7%小さく値がズレていた欠落を修正する。
-                Text(label).kyonoFont(.black900, size: 18).foregroundColor(colors.ink)
+                Text(label).kyonoFont(.black900, size: 18).foregroundColor(labelColor ?? colors.ink)
                 // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:297 .opt .crit{line-height:1.5}の
                 // 1:1移植。前回G2は検索チップのみに適用していたカスタムフォント行送り超過補正をここにも展開する。
                 Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub).lineSpacing(7)
