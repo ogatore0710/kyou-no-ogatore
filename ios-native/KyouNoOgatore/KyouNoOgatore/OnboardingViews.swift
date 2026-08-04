@@ -1023,6 +1023,9 @@ private struct ResultContentView: View {
     @State private var cardResult: TodayCardResult?
     @State private var confettiTrigger: Int?
     @State private var fdCelebrationVisible = false
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-2: 1本目だけYouTube往復の練習に
+    // 使えるようにする。案内を一拍見せてからopenUrlする間の再タップ二重発火を防ぐガード。
+    @State private var youtubeNoticeVisible = false
 
     private var catalogById: [String: CatalogVideo] {
         Dictionary(uniqueKeysWithValues: CatalogLoader.shared.map { ($0.id, $0) })
@@ -1155,14 +1158,41 @@ private struct ResultContentView: View {
                     // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-4: ガイド中(fdGuideActive)は
                     // 動画サムネをタップ不可のままにする(本人裁定・離脱回避)。onVideoTapを差し替えず
                     // no-opにする(見た目はQ-1どおり通常の3本リストのまま・タップだけ無効化)。
+                    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-2(本人発案・YouTube往復の
+                    // 練習): build17 Q-4を部分改訂し、1本目だけはタップ可にする(2・3本目は従来どおり
+                    // no-op+減光)。タップ時は一拍だけ案内を見せてからonVideoTap(既存のpendingNudgeDate
+                    // 記録込み)を呼ぶ。performPracticeRecordやtourpend配線には一切触れない
+                    // (既存のscenePhase復帰検知→showDoneNudge→「1日目の記録をつけにいく」ボタンの
+                    // 練習合流フローをそのまま再利用するだけ)。
                     let videoTapHandler: (String) -> Void = fdGuideActive ? { _ in } : onVideoTap
+                    let firstVideoTapHandler: (String) -> Void = { url in
+                        guard !youtubeNoticeVisible else { return }
+                        withAnimation(.easeOut(duration: 0.2)) { youtubeNoticeVisible = true }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                            youtubeNoticeVisible = false
+                            onVideoTap(url)
+                        }
+                    }
                     let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
                     ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
                         if let v = lookupVideo(vk) {
                             // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: no-op裁定は維持
                             // したまま、見た目でも押せないことを明示する。
-                            VideoRow(v: v, openUrl: videoTapHandler, badge: badges.indices.contains(i) ? badges[i] : nil, disabledLook: fdGuideActive)
+                            let isFirst = fdGuideActive && i == 0
+                            VideoRow(
+                                v: v,
+                                openUrl: isFirst ? firstVideoTapHandler : videoTapHandler,
+                                badge: badges.indices.contains(i) ? badges[i] : nil,
+                                disabledLook: fdGuideActive && !isFirst
+                            )
                         }
+                    }
+                    if fdGuideActive && youtubeNoticeVisible {
+                        Text("YouTubeがひらくよ。見おわったら〈きょうのオガトレ〉にもどってきてね")
+                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.tealInk)
+                            .frame(maxWidth: .infinity, alignment: .center).multilineTextAlignment(.center)
+                            .padding(.top, 6)
+                            .transition(.opacity)
                     }
                     if !rx.isEmpty && !fdGuideActive {
                         Spacer().frame(height: 8)
@@ -1239,7 +1269,10 @@ private struct ResultContentView: View {
                 // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
                 if showDoneNudge && cardResult == nil {
                     KyonoCard {
-                        Text("おかえりなさい！ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-2: ツアー中(YouTube
+                        // 往復の練習)はこの復帰カードの一言を短く「おかえり！」にする(本人指定の文言)。
+                        // 通常ユーザーの復帰ナッジは従来どおりの文言を維持。
+                        Text(fdGuideActive ? "おかえり！" : "おかえりなさい！ ストレッチできた？").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
                         Spacer().frame(height: 10)
                         // D(本丸): fdGuide中はその場(結果画面)で記録を完結させる。ホームへは飛ばさない。
                         KyonoPrimaryButton(
