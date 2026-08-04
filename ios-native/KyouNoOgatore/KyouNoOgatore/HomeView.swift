@@ -646,13 +646,8 @@ struct HomeView: View {
                 KyonoCard {
                     KyonoSectionTitle("きょうの1本", icon: .play)
                     TodaySegmentControl(mineAvail: mineAvail, mode: effectiveMode, onSelect: setMode)
-                    // index.html:661 segMineHint(typedかつプラン非実行のときだけ)の1:1移植。
-                    if checked && !planRunning {
-                        Text("「あなた用」＝かたさチェックの結果に合わせたおすすめ3本です")
-                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.bottom, 4)
-                    }
+                    // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
+                    // 説明行を削除。「きょうのあなた用」の小見出し自体はTodayVideoSection側に残す。
                     TodayVideoSection(mode: effectiveMode, plan: plan, typeResult: typeResult, onVideoTap: openTodayVideo)
                 }
                 // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393

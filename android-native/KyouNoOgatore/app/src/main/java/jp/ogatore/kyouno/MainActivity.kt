@@ -1385,15 +1385,8 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height(10.dp))
                     TodaySegmentControl(mineAvail = mineAvail, mode = effectiveMode, onSelect = ::setMode)
-                    // index.html:661 segMineHint(typedかつプラン非実行のときだけ)の1:1移植。
-                    if (checked && !planRunning) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "「あなた用」＝かたさチェックの結果に合わせたおすすめ3本です",
-                            color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
-                        )
-                    }
+                    // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
+                    // 説明行を削除。「きょうのあなた用」の小見出し自体はTodayVideoSection側に残す。
                     TodayVideoSection(
                         mode = effectiveMode,
                         plan = plan,
