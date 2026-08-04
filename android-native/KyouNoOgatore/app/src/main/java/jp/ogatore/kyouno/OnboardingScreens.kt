@@ -832,6 +832,11 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                     // 直接yellow-soft/yellowへ切り替える(遷移なし=CSS同様の瞬時切り替え)。
                     val optInteractionSource = remember { MutableInteractionSource() }
                     val optPressed by optInteractionSource.collectIsPressedAsState()
+                    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-6: かたさチェック選択肢の
+                    // 押下ハロー(相談室チップと同じ意図的実装)。matchParentSize()はBoxScope限定のため
+                    // 外側にBoxを1枚かぶせる。
+                    Box {
+                    KyonoPressHaloBackground(pressed = optPressed, color = colors.teal)
                     Column(
                         Modifier.fillMaxWidth().padding(vertical = 4.dp)
                             .background(if (optPressed) colors.yellowSoft else (c?.bg ?: colors.card), RoundedCornerShape(16.dp))
@@ -883,6 +888,7 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                             style = KyonoTightLineTextStyle, fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 2.dp),
                         )
+                    }
                     }
                 }
             }
