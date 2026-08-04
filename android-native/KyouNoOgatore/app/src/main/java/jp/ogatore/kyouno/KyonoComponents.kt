@@ -232,19 +232,20 @@ fun KyonoPrimaryButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = faceOffset)
-                .background(colors.yellow.copy(alpha = alpha), KyonoButtonShape)
+                .background(colors.btnPrimaryBg.copy(alpha = alpha), KyonoButtonShape)
                 .clickable(interactionSource = interactionSource, indication = null, enabled = enabled, onClick = onClick)
                 .padding(16.dp, 18.dp),
             contentAlignment = Alignment.Center,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (icon != null) {
-                    KyonoIconGlyph(icon, fill = Color.Transparent, accent = colors.yellowInk, modifier = Modifier.size(20.dp))
+                    // TASK-C2-2026-08-04-build21-color-system-navy.md D2: 藍背景の上に乗るアイコンは
+                    // 塗りなし・線は白固定。
+                    KyonoIconGlyph(icon, fill = Color.Transparent, accent = Color.White, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
                 }
-                // B1: 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値固定)を使う。
-                // ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
-                Text(text, color = colors.yellowInk, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                // D2(本人裁定「藍地×白文字」): 藍背景は常に白文字固定(テーマ非依存)。
+                Text(text, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
     }
@@ -258,6 +259,7 @@ fun KyonoPrimaryButton(
 @Composable
 fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null) {
     val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     // TASK-C2-2026-08-03-build18-tutorial-quality.md B-3: 実測でtealSoft(#DFF5F2)が地の
@@ -265,14 +267,20 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     // (「ツアーをとばす」「記録カードを画像でのこす」等で発生)。tealSoftの背景色自体は
     // KyonoSectionHeaderの見出しアイコン地など他の用途でも広く共用されているため、そちらを
     // 変えると影響範囲が広すぎる。ゴーストボタンにだけtealStrongの2dp縁取りを足して輪郭を
-    // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。
+    // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。ダークはこの構成を維持する。
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(セカンダリボタン): ライトは白地+文字藍+
+    // 青枠2.5dp。ダークは藍が未実測のため既存teal系を維持する(本編C-1はライト限定の刷新)。
+    val bg = if (dark) colors.tealSoft else colors.card
+    val borderColor = if (dark) colors.tealStrong else Color(0xFF3E70F5)
+    val borderWidth = if (dark) 2.dp else 2.5.dp
+    val textColor = if (dark) colors.tealInk else Color(0xFF073A71)
     Box(
         modifier = modifier
             .fillMaxWidth()
             .offset(y = if (pressed) 1.dp else 0.dp)
             .alpha(if (pressed) 0.85f else 1f)
-            .background(colors.tealSoft, KyonoButtonShape)
-            .border(2.dp, colors.tealStrong, KyonoButtonShape)
+            .background(bg, KyonoButtonShape)
+            .border(borderWidth, borderColor, KyonoButtonShape)
             // Fable監査GO-3: enabled=falseのときは.clickable自体を付けない(clickable自身の
             // enabledフラグに頼らず、Modifier.thenで条件付き付与することで、隠れている間は
             // ポインタイベントを一切消費しないことを構造的に保証する)。VoicesScreenの
@@ -285,10 +293,10 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
         // Canvasアイコンへ置き換えるための穴。
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (icon != null) {
-                KyonoIconGlyph(icon, fill = Color.Transparent, accent = colors.tealInk, modifier = Modifier.size(18.dp))
+                KyonoIconGlyph(icon, fill = Color.Transparent, accent = textColor, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
             }
-            Text(text, color = colors.tealInk, fontSize = 15.sp, fontWeight = FontWeight.Black)
+            Text(text, color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -303,12 +311,10 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
-    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-4: 実測でライトの枠#E0D5BEが地の
-    // colors.bg(#FFFAF3)に対しコントラスト比1.33:1しかなく、ボタンの輪郭がほぼ見えなかった
-    // (「もどる/とじる」等で発生。文字色sub2は5.12:1で合格済みのため枠だけ直す)。
-    // sub2(ライト0x6B6857)は既にこの文字色として合格実測済みの値そのものなので、枠にも
-    // 流用すれば同じ比率を確保できる。ダーク側(0x4A443A)はalan5未指摘のため変更しない。
-    val borderColor = if (dark) Color(0xFF4A443A) else colors.sub2
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ラインボタン): ライトは文字#33322C・
+    // 枠#4A473D(実測8.95:1)。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
+    val borderColor = if (dark) Color(0xFF4A443A) else Color(0xFF4A473D)
+    val textColor = if (dark) colors.sub2 else Color(0xFF33322C)
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     Box(
@@ -324,10 +330,10 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (icon != null) {
-                KyonoIconGlyph(icon, fill = Color.Transparent, accent = colors.sub2, modifier = Modifier.size(20.dp))
+                KyonoIconGlyph(icon, fill = Color.Transparent, accent = textColor, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(6.dp))
             }
-            Text(text, color = colors.sub2.copy(alpha = if (enabled) 1f else 0.5f), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+            Text(text, color = textColor.copy(alpha = if (enabled) 1f else 0.5f), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
         }
     }
 }
@@ -346,6 +352,12 @@ fun <T> KyonoSegmentedControl(
     icon: (T) -> KyonoIcon? = { null },
 ) {
     val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ホームの切り替えノブ): ライトの選択中は
+    // 藍地+白文字、未選択文字は#57544A。ダークは既存(card地+ink文字/sub未選択)を維持。
+    val onBg = if (dark) colors.card else Color(0xFF073A71)
+    val onText = if (dark) colors.ink else Color.White
+    val offText = if (dark) colors.sub else Color(0xFF57544A)
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -363,9 +375,11 @@ fun <T> KyonoSegmentedControl(
                 modifier = Modifier
                     .weight(1f)
                     .alpha(if (!on && pressed) 0.6f else 1f)
-                    .background(if (on) colors.card else Color.Transparent, RoundedCornerShape(12.dp))
+                    .background(if (on) onBg else Color.Transparent, RoundedCornerShape(12.dp))
                     .clickable(interactionSource = interactionSource, indication = null) { onSelect(value) }
-                    .padding(vertical = 13.dp),
+                    // TASK-C2-2026-08-04-build21-addendum.md Y-1(検収差し戻し): 横パディングが無く、
+                    // よびな6文字時に文字がピル右端へ接触していた。左右にも余白を持たせる。
+                    .padding(horizontal = 10.dp, vertical = 13.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -378,7 +392,7 @@ fun <T> KyonoSegmentedControl(
                 // TASK-C2-2026-08-04-build20-addendum.md F-2②(検収差し戻し): よびな置換で
                 // ラベルが長くなる「あなた用」タブが3行に折り返っていた。1行固定+自動縮小にして、
                 // 短いラベル(あさ/よる等)には影響を与えず長いラベルだけ縮んで収まるようにする。
-                KyonoAutoShrinkText(label, color = if (on) colors.ink else colors.sub, baseFontSize = 15.sp, fontWeight = FontWeight.Black)
+                KyonoAutoShrinkText(label, color = if (on) onText else offText, baseFontSize = 15.sp, fontWeight = FontWeight.Black)
             }
         }
     }

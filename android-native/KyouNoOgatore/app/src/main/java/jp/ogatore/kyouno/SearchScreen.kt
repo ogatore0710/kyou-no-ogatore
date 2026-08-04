@@ -140,9 +140,12 @@ private data class ChipColors(val bg: Color, val border: Color, val text: Color,
 // 使っている前例に倣い、pink/purpleも「この画面の未選択時textとして既に使っている濃い変種」
 // (0xB0366E/0x6A58B5、どちらも実測4.5:1超)へ差し替える(新しい色トークンは増やさない)。
 // onBgは白文字向けの固定色のためlight/dark共通(teal案と同じ設計)。
+// TASK-C2-2026-08-04-build21-color-system-navy.md D2(選択中チップ): 黄地+白文字は実測1.38:1で
+// 読めなくなる罠のため、onBg/onBorderを#6B5500へ(白文字と実測7.18:1)。b/c/d同様onはテーマ
+// 非依存の単一値にする(新しい色トークンは増やさない・既存方針を踏襲)。
 private fun chipColorsFor(key: String, dark: Boolean): ChipColors = when (key) {
-    "a" -> if (dark) ChipColors(Color(0xFF37301C), Color(0xFF5C4F1E), Color(0xFFE8C74C), Color(0xFFFFD93B), Color(0xFFFFD93B), Color(0xFF211E19))
-    else ChipColors(Color(0xFFFFF6D8), Color(0xFFF2DE8A), Color(0xFF8A6D00), Color(0xFFFFD93B), Color(0xFFFFD93B), Color(0xFF3A3A35))
+    "a" -> if (dark) ChipColors(Color(0xFF37301C), Color(0xFF5C4F1E), Color(0xFFE8C74C), Color(0xFF6B5500), Color(0xFF6B5500), Color.White)
+    else ChipColors(Color(0xFFFFF6D8), Color(0xFFF2DE8A), Color(0xFF8A6D00), Color(0xFF6B5500), Color(0xFF6B5500), Color.White)
     "b" -> if (dark) ChipColors(Color(0xFF1F3532), Color(0xFF2E5A52), Color(0xFF7BD0C4), Color(0xFF1E7B70), Color(0xFF1E7B70), Color.White)
     else ChipColors(Color(0xFFE7F8F1), Color(0xFFBFE8DC), Color(0xFF177065), Color(0xFF1E7B70), Color(0xFF1E7B70), Color.White)
     "c" -> if (dark) ChipColors(Color(0xFF3A2730), Color(0xFF5E3A4C), Color(0xFFF09BC0), Color(0xFFB0366E), Color(0xFFB0366E), Color.White)
@@ -344,13 +347,14 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "searchCatRow") {
                 items(TAG_CATS) { cat ->
                     val on = cat.key == activeCat
-                    // B1(2026-07-29): 選択中(on=true)は黄色背景になるため、colors.inkではなく
-                    // colors.yellowInk(ライト値固定)を使う。
+                    // TASK-C2-2026-08-04-build21-color-system-navy.md D2拡張判断(「黄は面として
+                    // 使わない」原則の適用): 選択中(on=true)はライトのみ藍地+白文字へ。ダークは
+                    // 未検証のため既存(黄地+yellowInk文字)を維持。
                     Text(
-                        cat.name, color = if (on) colors.yellowInk else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        cat.name, color = if (on) (if (dark) colors.yellowInk else Color.White) else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
                         lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier
-                            .background(if (on) colors.yellow else colors.line, RoundedCornerShape(12.dp))
+                            .background(if (on) (if (dark) colors.yellow else Color(0xFF073A71)) else colors.line, RoundedCornerShape(12.dp))
                             .clickable { activeCat = cat.key; activeTag = null }
                             .padding(horizontal = 13.dp, vertical = 10.dp)
                             .testTag("searchCat_${cat.key}"),

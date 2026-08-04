@@ -60,6 +60,12 @@ fun KyonoTabBar(current: KyonoTab?, onSelect: (KyonoTab) -> Unit) {
     val dark = colors.bg == KyonoDarkColors.bg
     val tabbarBg = (if (dark) Color(0xFF211E19) else Color(0xFFFFFFFF)).copy(alpha = 0.97f)
     val borderTopColor = colors.line
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(タブバー): 選択時の黄アイコン+ink文字は
+    // 現行維持(ブランドの黄の居場所)。ライトの非選択はラベル/輪郭を#57544Aへ、アイコンの淡塗り
+    // (tabbarIconOff)は廃止して塗りなし(白抜き線画)にする。ダークは既存値を維持。
+    val unselectedIconFill = if (dark) colors.tabbarIconOff else Color.Transparent
+    val unselectedLabel = if (dark) colors.sub else Color(0xFF57544A)
+    val unselectedStroke = if (dark) colors.tabbarStrokeOff else Color(0xFF57544A)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -74,11 +80,11 @@ fun KyonoTabBar(current: KyonoTab?, onSelect: (KyonoTab) -> Unit) {
             }
             .padding(horizontal = 4.dp, vertical = 6.dp),
     ) {
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Guide, "使い方") { onSelect(KyonoTab.Guide) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.MyRecord, "マイ記録") { onSelect(KyonoTab.MyRecord) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Home, "ホーム") { onSelect(KyonoTab.Home) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Catalog, "再生リスト") { onSelect(KyonoTab.Catalog) }
-        TabItem(colors.tabbarIconOff, colors.yellow, colors.ink, colors.sub, colors.tabbarStrokeOff, current == KyonoTab.Search, "動画を探す") { onSelect(KyonoTab.Search) }
+        TabItem(unselectedIconFill, colors.yellow, colors.ink, unselectedLabel, unselectedStroke, current == KyonoTab.Guide, "使い方") { onSelect(KyonoTab.Guide) }
+        TabItem(unselectedIconFill, colors.yellow, colors.ink, unselectedLabel, unselectedStroke, current == KyonoTab.MyRecord, "マイ記録") { onSelect(KyonoTab.MyRecord) }
+        TabItem(unselectedIconFill, colors.yellow, colors.ink, unselectedLabel, unselectedStroke, current == KyonoTab.Home, "ホーム") { onSelect(KyonoTab.Home) }
+        TabItem(unselectedIconFill, colors.yellow, colors.ink, unselectedLabel, unselectedStroke, current == KyonoTab.Catalog, "再生リスト") { onSelect(KyonoTab.Catalog) }
+        TabItem(unselectedIconFill, colors.yellow, colors.ink, unselectedLabel, unselectedStroke, current == KyonoTab.Search, "動画を探す") { onSelect(KyonoTab.Search) }
     }
 }
 
