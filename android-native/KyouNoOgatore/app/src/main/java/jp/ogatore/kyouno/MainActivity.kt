@@ -945,9 +945,9 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
                 Spacer(Modifier.height(4.dp))
             }
             if (v.st != null) {
-                Text(v.st, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                KyonoAutoShrinkText(v.st, color = colors.ink, baseFontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2, lineHeight = 20.sp)
             } else {
-                Text(v.t, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                KyonoAutoShrinkText(v.t, color = colors.ink, baseFontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2, lineHeight = 20.sp)
             }
         }
     }

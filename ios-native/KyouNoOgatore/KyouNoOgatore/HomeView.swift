@@ -1270,6 +1270,8 @@ private struct TodayVideoSection: View {
 // stが無い動画はフルタイトル(v.t)へフォールバックする。
 // TASK-C2-2026-08-04-build20-addendum.md F-1(検収差し戻し): stをlineLimit(1)にしていたため
 // 種別語ごと切り詰められていた。2行まで許可する(フォールバックのv.tも同じ2行)。
+// st第4ラウンド(『超』硬い人向け改名の衝突識別語「画面と一緒に」等)で最長stが24字まで伸び、
+// 2行でもクリップされるケースが実描画で見つかったため、minimumScaleFactorで自動縮小も併用する。
 private struct HomeTodayVideoRow: View {
     @Environment(\.kyonoColors) private var colors
     let v: CatalogVideo
@@ -1297,9 +1299,11 @@ private struct HomeTodayVideoRow: View {
                             .background(Capsule().fill(colors.coralSoft))
                     }
                     if let st = v.st {
-                        Text(st).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(2)
+                        Text(st).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                            .lineLimit(2).minimumScaleFactor(0.7)
                     } else {
-                        Text(v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(2)
+                        Text(v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                            .lineLimit(2).minimumScaleFactor(0.7)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

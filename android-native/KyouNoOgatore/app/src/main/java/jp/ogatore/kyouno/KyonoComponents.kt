@@ -387,12 +387,21 @@ fun <T> KyonoSegmentedControl(
 // TASK-C2-2026-08-04-build20-addendum.md F-2②: Compose BOM 2024.06.00にはautoSizeが無いため、
 // onTextLayoutでオーバーフローを検知して1行に収まるまでフォントサイズを段階的に縮める簡易実装。
 // HomeScreen(MainActivity.kt)の小見出しからも共用するためfile-privateにしない。
+// maxLines=2はst第4ラウンドで最長stが24字まで伸び、ホームカードのst(2行)がクリップされる
+// ケースが実描画で見つかったため追加(F-1のフォローアップ)。
 @Composable
-fun KyonoAutoShrinkText(text: String, color: Color, baseFontSize: androidx.compose.ui.unit.TextUnit, fontWeight: FontWeight) {
+fun KyonoAutoShrinkText(
+    text: String,
+    color: Color,
+    baseFontSize: androidx.compose.ui.unit.TextUnit,
+    fontWeight: FontWeight,
+    maxLines: Int = 1,
+    lineHeight: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
+) {
     var fontSize by remember(text) { mutableStateOf(baseFontSize) }
     Text(
-        text, color = color, fontSize = fontSize, fontWeight = fontWeight,
-        maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
+        text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lineHeight,
+        maxLines = maxLines, softWrap = maxLines > 1, overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
         onTextLayout = { result ->
             if (result.hasVisualOverflow && fontSize.value > baseFontSize.value * 0.6f) {
                 fontSize = (fontSize.value - 1f).sp
