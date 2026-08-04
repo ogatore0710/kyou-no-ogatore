@@ -219,6 +219,62 @@ private struct DexPreviewThumb: View {
     }
 }
 
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-9(本人指示・FullSizeRender青線): 図鑑ボタンと
+// プレビュー4枚を1つの角丸枠に統合。配色は案B(Z-1/Z-2)のghost配色(じまんカード等と同じ
+// ミント地+濃緑枠)に整合させ、枠全体を1つのタップ領域にする。
+private struct DexBannerCard: View {
+    @Environment(\.kyonoColors) private var colors
+    @Environment(\.kyonoBigText) private var bigText
+    let banner: (got: Int, total: Int, preview: [DexItem])
+    let action: () -> Void
+
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    private var textColor: Color { dark ? colors.tealInk : Color(hex: 0x0F5A50) }
+    private var bg: Color { dark ? colors.tealSoft : Color(hex: 0xDFF5F2) }
+    private var borderColor: Color { dark ? colors.tealStrong : Color(hex: 0x177065) }
+    private var borderWidth: CGFloat { dark ? 2 : 2.5 }
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 10 * zoom) {
+                HStack(spacing: 6 * zoom) {
+                    KyonoIconGlyph(icon: .dexBook, fill: .clear, accent: textColor).frame(width: 18 * zoom, height: 18 * zoom)
+                    Text("カード図鑑（\(banner.got)/\(banner.total)）").kyonoFont(.black900, size: 15).foregroundColor(textColor)
+                    Spacer()
+                }
+                HStack(spacing: 8) {
+                    ForEach(Array(banner.preview.enumerated()), id: \.offset) { _, item in
+                        DexPreviewThumb(item: item)
+                    }
+                }
+            }
+            .padding(14 * zoom)
+        }
+        .buttonStyle(DexBannerButtonStyle(background: bg, borderColor: borderColor, borderWidth: borderWidth, zoom: zoom))
+    }
+}
+
+private struct DexBannerButtonStyle: ButtonStyle {
+    let background: Color
+    let borderColor: Color
+    let borderWidth: CGFloat
+    let zoom: CGFloat
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
+            .frame(maxWidth: .infinity)
+            .background(background)
+            .cornerRadius(kyonoButtonRadius * zoom)
+            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: borderWidth))
+            .opacity(pressed ? 0.85 : 1)
+            .contentShape(Rectangle())
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+    }
+}
+
 private struct MyRecordContentView: View {
     @Environment(\.kyonoColors) private var colors
     @Binding var year: Int
@@ -392,16 +448,11 @@ private struct MyRecordContentView: View {
                     Text("カード図鑑やじまんカード、せんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
                     let dexBanner = dexBannerData(store: store, streak: streak)
-                    KyonoPrimaryButton("カード図鑑（\(dexBanner.got)/\(dexBanner.total)）", icon: .dexBook, action: onOpenDex)
-                    // TASK-C2-2026-08-04-build21-addendum.md Y-4(本人指示「前みたいに」): カードの
-                    // ミニサムネイル4枚を横並びで表示(タップ挙動はカード図鑑ボタンと同じ)。
-                    Spacer().frame(height: 10)
-                    HStack(spacing: 8) {
-                        ForEach(Array(dexBanner.preview.enumerated()), id: \.offset) { _, item in
-                            DexPreviewThumb(item: item)
-                        }
-                    }
-                    .onTapGesture(perform: onOpenDex)
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-9(本人指示・FullSizeRender青線):
+                    // 図鑑ボタン+プレビュー4枚が別々の部品に見えていたのを1つの角丸枠に統合。
+                    // 枠全体がタップ領域(図鑑へ)。ボタン風の見た目は枠側(案B ghost配色)に寄せ、
+                    // 内側の旧ボタンは行表示に格下げ(二重ボタン感の解消)。
+                    DexBannerCard(banner: dexBanner, action: onOpenDex)
                     Spacer().frame(height: 10)
                     HStack(spacing: 8) {
                         KyonoGhostButton("じまんカード", action: onOpenBrag)
