@@ -463,7 +463,7 @@ fun FadingChipRow(modifier: Modifier = Modifier, testTag: String, content: andro
                         .padding(end = 2.dp)
                         .size(22.dp)
                         .background(colors.card, androidx.compose.foundation.shape.CircleShape)
-                        .border(1.dp, colors.line, androidx.compose.foundation.shape.CircleShape),
+                        .border(1.dp, colors.borderStrong, androidx.compose.foundation.shape.CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("›", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
@@ -492,7 +492,7 @@ fun FadingChipRow(modifier: Modifier = Modifier, testTag: String, content: andro
                         .padding(start = 2.dp)
                         .size(22.dp)
                         .background(colors.card, androidx.compose.foundation.shape.CircleShape)
-                        .border(1.dp, colors.line, androidx.compose.foundation.shape.CircleShape),
+                        .border(1.dp, colors.borderStrong, androidx.compose.foundation.shape.CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("‹", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
