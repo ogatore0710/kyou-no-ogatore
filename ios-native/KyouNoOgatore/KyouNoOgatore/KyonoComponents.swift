@@ -88,7 +88,7 @@ struct KyonoCard<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content() }
@@ -115,7 +115,7 @@ struct KyonoGradientCard<Content: View>: View {
 
     var body: some View {
         let dark = colors.bg == kyonoDarkColors.bg
-        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : kyonoNormalTextScale
         let (from, to): (Color, Color) = {
             switch gradient {
             case .warm: return dark ? (Color(hex: 0x37301C), Color(hex: 0x33232B)) : (Color(hex: 0xFFF3C4), Color(hex: 0xFFEDF3))
@@ -233,7 +233,7 @@ struct KyonoPrimaryButton: View {
         self.text = text; self.icon = icon; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.action = action
     }
 
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     var body: some View {
         if flatWhenDisabled && !enabled {
@@ -324,7 +324,7 @@ struct KyonoGhostButton: View {
         self.text = text; self.icon = icon; self.action = action
     }
 
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     var body: some View {
         Button(action: action) {
@@ -379,7 +379,7 @@ struct KyonoGhostNavigationLink<Destination: View>: View {
     }
 
     var body: some View {
-        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : kyonoNormalTextScale
         NavigationLink { destination() } label: {
             Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
@@ -412,7 +412,7 @@ struct KyonoLineButton: View {
     }
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     // index.html:104,105,143 .btn-line + .btn-line:active{transform:translateY(1px);opacity:.85}の
     // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
@@ -470,7 +470,7 @@ struct KyonoSegmentedControl<T: Equatable>: View {
     var icon: (T) -> KyonoIcon? = { _ in nil }
 
     var body: some View {
-        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : kyonoNormalTextScale
         HStack(spacing: 0) {
             ForEach(options.indices, id: \.self) { i in
                 let (value, label) = options[i]
@@ -706,7 +706,7 @@ struct KyonoJourneyBar: View {
     @Environment(\.kyonoBigText) private var bigText
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {

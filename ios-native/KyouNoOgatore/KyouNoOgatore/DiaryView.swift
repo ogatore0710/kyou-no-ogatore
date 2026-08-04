@@ -41,7 +41,7 @@ private struct DiaryContentView: View {
     // リテラルpadding/frame/lineWidthにも1.18倍を適用する(フォントサイズは対象外・理由は
     // HomeView.swiftの同種コメント参照)。
     @Environment(\.kyonoBigText) private var bigText
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     let entries: [(date: String, memo: String)]
     let onBack: () -> Void
 

@@ -106,7 +106,7 @@ struct HomeView: View {
     // 持つリテラルpadding/frame/cornerRadius/lineWidthにも1.18倍を適用する(フォントサイズは
     // .kyonoFont()側で既に掛かっているため対象外・第1段階と同じ除外理由)。
     @Environment(\.kyonoBigText) private var bigText
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     // ---- 永続状態(RecordStore経由でkyono-store.jsonへ) ----
     @State private var streak: RecordLogic.StreakData
@@ -1031,7 +1031,7 @@ struct HomeView: View {
 private struct HomeMemoRow: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.kyonoBigText) private var bigText
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     let store: RecordStore
     let today: String
 
@@ -1085,7 +1085,7 @@ private struct HomeMemoRow: View {
 private struct CkCard: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.kyonoBigText) private var bigText
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     let onStartQuiz: () -> Void
 
     var body: some View {
@@ -1115,7 +1115,7 @@ private struct CkCard: View {
 private struct SoudanCard: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.kyonoBigText) private var bigText
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     let onOpenSoudan: (String?) -> Void
     private let kb = SafetyKBLoader.shared
 
@@ -1322,7 +1322,7 @@ private struct HomeTodayVideoRow: View {
 private struct HomeSoudanChip: View {
     @Environment(\.kyonoColors) private var colors
     @Environment(\.kyonoBigText) private var bigText
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     let label: String
     let action: () -> Void
     var body: some View {

@@ -194,7 +194,7 @@ private struct SearchContentView: View {
     let openUrl: (String) -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
     @StateObject private var networkMonitor = NetworkMonitor()
 

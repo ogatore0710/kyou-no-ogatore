@@ -24,7 +24,7 @@ struct KyonoTabBar: View {
     let onSelect: (KyonoTab) -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     var body: some View {
         HStack(spacing: 0) {

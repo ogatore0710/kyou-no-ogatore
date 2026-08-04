@@ -63,6 +63,11 @@ data class KyonoColors(
     val bg: Color,
     val card: Color,
     val line: Color,
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(本人裁定「藍地×白文字」): 主ボタンの地。
+    // ライトは本家色#073A71(白文字と実測11.33:1)。ダークは藍そのままだと沈む(#073A71は暗背景
+    // #211E19に対し実測1.47:1しか無い)ため、白文字4.5:1以上・面vs暗背景3:1以上の両立を条件に
+    // 実測選定した派生色#2278C0(白文字4.65:1・vs暗背景3.57:1)を採用。
+    val btnPrimaryBg: Color,
     val btnPrimaryShadow: Color,
     val tabbarIconOff: Color,
     // GO-G1(5視点ワンループ): index.html:392,121 .tabbar button{color:var(--sub)}/
@@ -97,7 +102,8 @@ val KyonoLightColors = KyonoColors(
     bg = Color(0xFFFFFAF3),
     card = Color(0xFFFFFFFF),
     line = Color(0xFFF2EADB),
-    btnPrimaryShadow = Color(0xFFE8BE1E),
+    btnPrimaryBg = Color(0xFF073A71),
+    btnPrimaryShadow = Color(0xFF052A52),
     tabbarIconOff = Color(0xFFC4BDA9),
     tabbarStrokeOff = Color(0xFF6E6B5F),
 )
@@ -122,7 +128,8 @@ val KyonoDarkColors = KyonoColors(
     bg = Color(0xFF211E19),
     card = Color(0xFF2C2822),
     line = Color(0xFF3D382F),
-    btnPrimaryShadow = Color(0xFF8A6D00),
+    btnPrimaryBg = Color(0xFF2278C0),
+    btnPrimaryShadow = Color(0xFF19578B),
     tabbarIconOff = Color(0xFF3D382F),
     tabbarStrokeOff = Color(0xFF847D6C),
 )
@@ -155,7 +162,8 @@ val LocalKyonoBigText = compositionLocalOf { true }
 @Composable
 fun kyonoFloorSp(base: Float): androidx.compose.ui.unit.TextUnit {
     val bigText = LocalKyonoBigText.current
-    return if (bigText) maxOf(base, 14f / KYONO_BIG_TEXT_SCALE).sp else base.sp
+    val scale = if (bigText) KYONO_BIG_TEXT_SCALE else KYONO_NORMAL_TEXT_SCALE
+    return maxOf(base, 14f / scale).sp
 }
 
 // index.html:99-105 .btn/.btn-primary/.btn-ghost/.btn-lineの角丸・シャドウ形状。
@@ -222,7 +230,10 @@ fun resolveKyonoColors(themeSetting: String, tick: Int = 0): KyonoColors {
 // Web版は既定でbigtext=true(2026-07-12本人フィードバック・対象ユーザー50-60代)。OS側のフォント
 // スケール(ユーザー補助設定)と掛け合わさって極端になりすぎないよう上限(2.2倍)を設ける
 // (検収基準「アプリ大きめ+端末最大でもレイアウトが破綻しない」への対応)。
-const val KYONO_BIG_TEXT_SCALE = 1.18f
+// TASK-C2-2026-08-04-build21-addendum.md Y-6(本人指示): ふつう/おおきめとも底上げ
+// (1.0→1.08・1.18→1.30)。
+const val KYONO_NORMAL_TEXT_SCALE = 1.08f
+const val KYONO_BIG_TEXT_SCALE = 1.30f
 const val KYONO_MAX_FONT_SCALE = 2.2f
 
 // UI/UXパリティ監査GO-3/G4差し戻し(2026-07-29): カスタムフォント(mplus1p)は、Web版のブラウザ既定
@@ -284,7 +295,7 @@ fun KyonoTheme(themeSetting: String, bigText: Boolean = true, content: @Composab
     // ままにする(sp.toPx()の式の中でdensity側の1.18が既に効くため、これでdp/sp双方とも一律1.18倍
     // になる。二重掛けにはならない)。KYONO_MAX_FONT_SCALEはOS設定自体の暴走対策として引き続き
     // fontScale側に適用する。
-    val bigTextScale = if (bigText) KYONO_BIG_TEXT_SCALE else 1f
+    val bigTextScale = if (bigText) KYONO_BIG_TEXT_SCALE else KYONO_NORMAL_TEXT_SCALE
     val cappedFontScale = baseDensity.fontScale.coerceAtMost(KYONO_MAX_FONT_SCALE)
     CompositionLocalProvider(
         LocalKyonoColors provides colors,

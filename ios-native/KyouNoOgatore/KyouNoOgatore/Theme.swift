@@ -89,7 +89,8 @@ let kyonoDarkColors = KyonoColors(
     tealInk: Color(hex: 0x7BD0C4), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0x3A2A24),
     pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0x3A2730),
     bg: Color(hex: 0x211E19), card: Color(hex: 0x2C2822), line: Color(hex: 0x3D382F),
-    btnPrimaryShadow: Color(hex: 0x8A6D00), tabbarIconOff: Color(hex: 0x3D382F),
+    btnPrimaryBg: Color(hex: 0x2278C0), btnPrimaryShadow: Color(hex: 0x19578B),
+    tabbarIconOff: Color(hex: 0x3D382F),
     tabbarStrokeOff: Color(hex: 0x847D6C)
 )
 
@@ -108,7 +109,7 @@ private struct KyonoScreenPaddingModifier: ViewModifier {
     // 共有部品と同じくbigText時に1.18倍する。
     @Environment(\.kyonoBigText) private var bigText
     func body(content: Content) -> some View {
-        let zoom: CGFloat = bigText ? kyonoBigTextScale : 1
+        let zoom: CGFloat = bigText ? kyonoBigTextScale : kyonoNormalTextScale
         content
             .padding(.horizontal, 18 * zoom)
             .padding(.top, 20 * zoom)
@@ -165,7 +166,10 @@ extension EnvironmentValues {
     }
 }
 
-let kyonoBigTextScale: CGFloat = 1.18
+// TASK-C2-2026-08-04-build21-addendum.md Y-6(本人指示): ふつう/おおきめとも底上げ
+// (1.0→1.08・1.18→1.30)。
+let kyonoNormalTextScale: CGFloat = 1.08
+let kyonoBigTextScale: CGFloat = 1.30
 
 struct KyonoTheme<Content: View>: View {
     let themeSetting: String
@@ -265,7 +269,10 @@ private struct KyonoFontModifier: ViewModifier {
     func body(content: Content) -> some View {
         // GO-G12(5視点ワンループ): bigtext ON時に最小文字階層へフロアを入れる(既存の1.18倍
         // スケールでも14ptに届かない階層のみ)。非線形スケールの全面導入は保留(縮小版の指示どおり)。
-        content.font(.kyono(weight, size: bigText ? max(size * kyonoBigTextScale, 14) : size))
+        // Y-6(build21追補)でふつう時も等倍(1.0)ではなくなったため、フロアはふつう/おおきめ
+        // どちらでも一貫して効くようにする。
+        let scale = bigText ? kyonoBigTextScale : kyonoNormalTextScale
+        content.font(.kyono(weight, size: max(size * scale, 14)))
     }
 }
 

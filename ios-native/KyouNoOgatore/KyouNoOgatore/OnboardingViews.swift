@@ -847,7 +847,7 @@ private struct QuizOptionCard: View {
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
 
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : 1 }
+    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
 
     var body: some View {
         Button(action: action) {
