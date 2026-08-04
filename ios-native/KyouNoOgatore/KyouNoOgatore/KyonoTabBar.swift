@@ -69,7 +69,11 @@ struct KyonoTabBar: View {
         return Button(action: { onSelect(tab) }) {
             VStack(spacing: 2 * zoom) {
                 icon(selected ? colors.yellow : unselectedFill, stroke).frame(width: 24 * zoom, height: 24 * zoom)
+                // TASK-C2-2026-08-04-build21-addendum.md Y-6: おおきめの倍率底上げ(1.18→1.30)で
+                // 「再生リスト」「動画を探す」が2行に折り返すようになった(実描画で発見)ため、
+                // セグメントコントロールと同じ1行固定+自動縮小で吸収する。
                 Text(label).kyonoFont(.black900, size: 12).foregroundColor(selected ? colors.ink : unselectedLabel)
+                    .lineLimit(1).minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 4 * zoom)

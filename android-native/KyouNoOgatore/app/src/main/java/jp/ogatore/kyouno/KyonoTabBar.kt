@@ -120,7 +120,10 @@ private fun RowScope.TabItem(
             "再生リスト" -> CatalogIcon(fill, stroke)
             "動画を探す" -> SearchIcon(fill, stroke)
         }
-        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Black, color = if (selected) labelOn else labelOff)
+        // TASK-C2-2026-08-04-build21-addendum.md Y-6: おおきめの倍率底上げ(1.18→1.30)で
+        // 「再生リスト」「動画を探す」が2行に折り返すようになった(実描画で発見)ため、
+        // セグメントコントロールと同じ1行固定+自動縮小で吸収する。
+        KyonoAutoShrinkText(label, color = if (selected) labelOn else labelOff, baseFontSize = 12.sp, fontWeight = FontWeight.Black)
     }
 }
 
