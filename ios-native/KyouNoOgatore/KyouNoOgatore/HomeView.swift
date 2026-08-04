@@ -694,7 +694,8 @@ struct HomeView: View {
     @ViewBuilder private func streakSection(proxy: ScrollViewProxy) -> some View {
             // index.html:686 #streakCard(続けた日数・通算)相当。
             KyonoCard {
-                KyonoSectionTitle("続けた日数（通算）", icon: .calendarCheck)
+                // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 見出しから「通算」の言葉を全廃。
+                KyonoSectionTitle("つづけた日数", icon: .calendarCheck)
                 KyonoStreakText(streak.total, streakCount: streak.count, brokenNow: streakBrokenNow)
                 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home):
                 // index.html:693 #fdDoneStaticNudge(はじめの1本ガイド中・未記録のときだけ出す常時案内)の
@@ -704,10 +705,15 @@ struct HomeView: View {
                         .kyonoFont(.black900, size: 14).foregroundColor(colors.pinkInk)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }
-                // UI/UXパリティ監査GO-8(2026-07-28): index.html:382 .done-btn.did
-                // (背景グレー・影なし・文字縮小)の1:1移植。
-                KyonoPrimaryButton(did ? "きょうの分は完了！おつかれさまでした" : "きょうやった！", enabled: !did, flatWhenDisabled: true) {
-                    guard !did else { return }
+                // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 完了時はグレー無効ボタンではなく、
+                // 数字の下に小さく1行(折り返しなし)で労いを表示する形へ変更(旧pillの折り返し問題も解消)。
+                if did {
+                    Text("きょうの分は完了！おつかれさま")
+                        .kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                KyonoPrimaryButton("きょうやった！") {
                     // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §3): Web版には無い
                     // ネイティブならではの上乗せとして、主要アクションに軽いハプティクスを追加
                     // (情報構造・文言・並び順はWeb版のまま変更しない「仕上げ方」のみの改善)。
@@ -826,6 +832,7 @@ struct HomeView: View {
                             withAnimation { proxy.scrollTo("doneBtn", anchor: .center) }
                         }
                     }
+                }
                 }
                 // TASK-C2-2026-07-30-ux-batch-13.md 第1波・案2: app-record.js:86,113,134,143,151の
                 // note(おやすみ券/第N章)の1:1移植。fdCelebration/cheerText/milestoneInfoの3分岐
@@ -984,7 +991,8 @@ struct HomeView: View {
                     // 一連の演出テキストが何も表示されていない典型状態(同日に開き直しただけ)だと
                     // 「きょうやった！」(いまは無効表示)とこのボタンが0px間隔で詰まって見えていた。
                     Spacer().frame(height: 12 * zoom)
-                    KyonoGhostButton("記録カードを画像でのこす") {
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 文言を「記録カードをつくる」へ。
+                    KyonoGhostButton("記録カードをつくる") {
                         cardResult = renderTodayCard(store: store, streak: streak, ds: today)
                     }
                     // app-record.js:196-208 fd-breathe(1.8s ease-in-out infinite・scale 1↔1.025)の1:1移植。
@@ -1000,12 +1008,8 @@ struct HomeView: View {
                             makeCardBtnBreatheScale = 1
                         }
                     }
-                    // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)。
-                    // .hint{margin-top:8px}の1:1移植(同じ理由でここも0px詰まりだった)。
-                    Spacer().frame(height: 8 * zoom)
-                    Text("カード画像を保存かシェアでのこしてね")
-                        .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                        .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 説明行「カード画像を保存か
+                    // シェアでのこしてね」を削除(モーダル内の案内で足りるため引き算)。
                 }
             }
     }
@@ -1047,26 +1051,40 @@ private struct HomeMemoRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8 * zoom) {
-            // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: `.textFieldStyle(.roundedBorder)`は
-            // 端末のシステム側ダーク/ライト設定に追従する既定の背景色を使うため、アプリ内テーマ
-            // (kyono_theme)がシステム設定と食い違う(例: システムはダークなのにアプリ内は「明るい」)
-            // とき、入力欄だけシステム側の暗い背景のまま浮いて見えていた欠陥。BragView.swift等の
-            // 既存の検索欄と同じ「colors.card塗り+colors.line枠線」の自前スタイルに差し替える。
-            TextField("ひとことメモをどうぞ", text: Binding(
-                get: { text },
-                set: { text = String($0.prefix(30)); saved = false }
-            ))
-                .foregroundColor(colors.ink)
-                .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
-            KyonoLineButton(saved ? "のこしました ✓" : "メモをのこす", enabled: !saved) {
-                // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                RecordLogic.saveMemo(store, today: today, text: text)
-                savedNote = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    ? "メモを消しました" : "メモをのこしました 記録カードにも入ります"
-                saved = true
+            // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 入力欄+黄ミニボタン「のこす」を
+            // 1行に合体(旧・全幅の「メモをのこす」ボタンは廃止)。placeholderは既定の薄い
+            // システム色で「枠の中の字が見えない」指摘があったため、colors.subへ明示的に濃色化
+            // (対地3:1目安)。入力済み文字はcolors.ink(墨)のまま変更なし。
+            HStack(spacing: 8) {
+                // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: `.textFieldStyle(.roundedBorder)`は
+                // 端末のシステム側ダーク/ライト設定に追従する既定の背景色を使うため、アプリ内テーマ
+                // (kyono_theme)がシステム設定と食い違う(例: システムはダークなのにアプリ内は「明るい」)
+                // とき、入力欄だけシステム側の暗い背景のまま浮いて見えていた欠陥。BragView.swift等の
+                // 既存の検索欄と同じ「colors.card塗り+colors.line枠線」の自前スタイルに差し替える。
+                TextField("", text: Binding(
+                    get: { text },
+                    set: { text = String($0.prefix(30)); saved = false }
+                ), prompt: Text("ひとことメモをどうぞ").foregroundColor(colors.sub))
+                    .foregroundColor(colors.ink)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
+                Button {
+                    // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    RecordLogic.saveMemo(store, today: today, text: text)
+                    savedNote = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        ? "メモを消しました" : "メモをのこしました 記録カードにも入ります"
+                    saved = true
+                } label: {
+                    Text(saved ? "✓" : "のこす")
+                        .kyonoFont(.black900, size: 14).foregroundColor(kyonoBtnPrimaryText)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .background(Capsule().fill(colors.yellow))
+                        .overlay(Capsule().stroke(kyonoBtnPrimaryBorder, lineWidth: 2))
+                }
+                .disabled(saved)
+                .opacity(saved ? 0.6 : 1)
             }
             if let savedNote {
                 Text(savedNote).kyonoFont(.bold700, size: 14).foregroundColor(colors.tealInk)

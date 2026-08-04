@@ -166,6 +166,10 @@ struct KyonoBodyText: View {
     }
 }
 
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-7(本人カード裁定「案1・数字が主役」): 「通算N日」の
+// 1行見出しを、記録カードと同じBanananum流儀の大きな数字を中央に主役配置する形へ再設計。
+// 「通算」の言葉は本文からも全廃(呼び出し元の見出しごと変更)し、連続記録の付帯情報(いま○日連続/
+// 新しい章のスタート)は数字の下の小さい1行へ格下げして情報は落とさない。
 struct KyonoStreakText: View {
     @Environment(\.kyonoColors) private var colors
     let total: Int
@@ -176,12 +180,20 @@ struct KyonoStreakText: View {
     init(_ total: Int, streakCount: Int, brokenNow: Bool = false) {
         self.total = total; self.streakCount = streakCount; self.brokenNow = brokenNow
     }
+    private var subtitle: String? {
+        brokenNow ? "きょうやると新しい章のスタート" : (streakCount >= 2 ? "いま\(streakCount)日連続" : nil)
+    }
     var body: some View {
-        // TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: 「通算N日」のピンク大見出しをpinkInk化
-        // (build15 #8で用意した小さい文字専用の濃さをここにも適用)。
-        Text("通算 \(total) 日" + (brokenNow ? "・きょうやると新しい章のスタート" : (streakCount >= 2 ? "・いま\(streakCount)日連続" : "")))
-            .kyonoFont(.black900, size: 20)
-            .foregroundColor(colors.pinkInk)
+        VStack(spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text("\(total)").kyonoFont(.banana, size: 56).foregroundColor(colors.pinkInk)
+                Text("日").kyonoFont(.black900, size: 22).foregroundColor(colors.pinkInk)
+            }
+            if let subtitle {
+                Text(subtitle).kyonoFont(.extraBold800, size: 13).foregroundColor(colors.pinkInk)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
