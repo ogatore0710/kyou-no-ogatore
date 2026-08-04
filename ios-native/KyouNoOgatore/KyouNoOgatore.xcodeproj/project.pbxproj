@@ -542,7 +542,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "きょうのオガトレ";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "つくった記録カードを写真フォルダに保存するときに使います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -580,7 +579,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "きょうのオガトレ";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "「カレンダーに登録する」でストレッチの時間をカレンダーへ追加するために使います。既存の予定は読み取りません。";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "つくった記録カードを写真フォルダに保存するときに使います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

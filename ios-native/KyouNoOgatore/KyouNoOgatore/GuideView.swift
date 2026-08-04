@@ -321,7 +321,7 @@ private struct GuideContentView: View {
                         GStep(marker: "", icon: .calendarCheck, title: "カレンダー", body: "やった日に印がつく（×はつきません）")
                         GStep(marker: "", icon: .mountainCheck, title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
                         GStep(marker: "", icon: .confettiBurst, title: "お楽しみ機能", body: "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                        GStep(marker: "", icon: .clock, title: "続ける設定", body: "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+                        GStep(marker: "", icon: .clock, title: "続ける設定", body: "毎日の合図（通知）や画面のみため（夜は暗く）はここ")
                         GStep(marker: "", icon: .play, title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
                         Spacer().frame(height: 4)
                         KyonoGhostButton("マイ記録タブをひらく", action: onOpenMyRecord)

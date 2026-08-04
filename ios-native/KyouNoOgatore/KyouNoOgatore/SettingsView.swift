@@ -12,11 +12,10 @@
 
 import SwiftUI
 import UIKit
-import EventKit
 import RecordCore
 
 // 設定画面「やるタイミング」欠落修正タスク(TASK-C2-2026-07-26-settings-missing-items.md):
-// index.html:1974-1979 ANCHORSの1:1移植(ラベル+カレンダー通知の既定時刻)。キー(asa/furo/neru/free)
+// index.html:1974-1979 ANCHORSの1:1移植(ラベル+毎日の合図の既定時刻)。キー(asa/furo/neru/free)
 // 自体はOnboardingViews.swiftのanchor質問と共有(§1-2手写し禁止対象の機械抽出データではなく、
 // 短い固定UI文言なのでオンボ文言等と同じくUI copyとして直接記述)。
 struct AnchorInfo { let key: String; let label: String; let defaultHour: Int; let defaultMinute: Int }
@@ -28,8 +27,8 @@ let settingsAnchors: [AnchorInfo] = [
 ]
 
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
-// 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。設定画面・マイ記録画面の両方の
-// カレンダー登録ボタンから共通で使う(以前はマイ記録側だけhour=20,minute=0固定だった)。
+// 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。毎日の合図(DailyNotifications)の
+// 時刻表示・設定から使う(保存キー名"icstime"は当時カレンダー連携と共有していた名残)。
 // TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(端末内保存のみ・送信なし)。未設定なら
 // 従来どおり「あなた」。呼び出し側で敬称を勝手に足さない(alan5指示)。
 // TASK-C2-2026-08-04-build20-addendum.md F-2③(検収差し戻し): 入力上限は8→6文字に変更したが、
@@ -71,14 +70,13 @@ struct SettingsView: View {
     @State private var showAnchorPicker = false
     @State private var icsHour: Int
     @State private var icsMinute: Int
-    @State private var icsMessage: String?
     @State private var notifEnabled: Bool
     // GO-G9(5視点ワンループ): 「よみこむ」実行前の状態を1件だけプロセス内メモリに退避し、実行直後の
     // 一定時間だけ「さっきの状態にもどす」を出す(永続化はしない・RecordLogicの計算には一切触れない
     // コピー退避のみ)。
     @State private var preImportSnapshot: [String: String]?
     @State private var showImportUndo = false
-    // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を開閉式に(引き算)。既定は閉。
+    // TASK-C2-2026-08-01-build15-subtraction9.md #4: 通知一式を開閉式に(引き算)。既定は閉。
     @State private var notifSectionExpanded = false
     // TASK-C2-2026-08-04-build20-addendum.md A-4: OS側の通知許可状態(許可済みならtrue)。
     // 許可ダイアログは出さず現在の状態だけを読む(checkAuthorizationStatus)。
@@ -107,45 +105,6 @@ struct SettingsView: View {
     }
 
     private static let minuteOptions = [0, 15, 30, 45]
-
-    // index.html:2001系のカレンダーIntent(MyRecordView.connectCalendarと同じ設計判断・§2-1準拠)。
-    // 時刻を指定できるようパラメータ化。
-    private func addToAppleCalendar(hour: Int, minute: Int, completion: @escaping (Bool) -> Void) {
-        let eventStore = EKEventStore()
-        eventStore.requestWriteOnlyAccessToEvents { granted, _ in
-            DispatchQueue.main.async {
-                guard granted else { completion(false); return }
-                let event = EKEvent(eventStore: eventStore)
-                event.title = "きょうのオガトレ（1本だけ）"
-                event.notes = "ストレッチの時間です"
-                var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-                comps.hour = hour; comps.minute = minute
-                let start = Calendar.current.date(from: comps) ?? Date()
-                event.startDate = start
-                event.endDate = start.addingTimeInterval(10 * 60)
-                event.recurrenceRules = [EKRecurrenceRule(recurrenceWith: .daily, interval: 1, end: nil)]
-                event.calendar = eventStore.defaultCalendarForNewEvents
-                do {
-                    try eventStore.save(event, span: .thisEvent)
-                    completion(true)
-                } catch {
-                    completion(false)
-                }
-            }
-        }
-    }
-
-    // index.html:2020 gcalLink組み立ての1:1移植。終了時刻の丸め方(分+10を59で頭打ち・時をまたがない)
-    // もWeb版の実装をそのまま踏襲。
-    private func openGoogleCalendar(hour: Int, minute: Int) {
-        let icsDate = RecordLogic.todayStr(now: Date()).replacingOccurrences(of: "-", with: "")
-        let startTm = String(format: "%02d%02d00", hour, minute)
-        let endMinute = min(59, minute + 10)
-        let endTm = String(format: "%02d%02d00", hour, endMinute)
-        let text = "きょうのオガトレ（1本だけ）".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlStr = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=\(text)&dates=\(icsDate)T\(startTm)/\(icsDate)T\(endTm)&recur=RRULE:FREQ=DAILY"
-        if let url = URL(string: urlStr) { UIApplication.shared.open(url) }
-    }
 
     private var themeSetting: String { store.get("theme", default: "light") }
 
@@ -263,18 +222,15 @@ struct SettingsView: View {
                             store.set("nickname", trimmed)
                         }
 
-                    // index.html:809-816 カレンダーのおしらせ時間+Apple/Googleカレンダー登録ボタンの
-                    // 1:1移植。「毎日自動でアプリがひらく設定（iPhone）」(index.html:818-827・
-                    // Shortcutsアプリの自動化案内)はPWAが通知を送れないことへのiOS限定の回避策で
-                    // ネイティブには元から無関係な問題のため移植しない(タスク指示どおり)。マイ記録
-                    // タブの既存「📅 カレンダーに登録する」(時刻指定なし・簡易版)とは別物として両方残す。
-                    // UX13案・案9(2026-07-30): 見出しが「カレンダーの」おしらせ時間を名乗りつつ、
-                    // 実際は通知機能とも共有する時刻だったため「おしらせの時間」に改め、時刻ピッカー→
-                    // 「毎日のおしらせ」トグル→カレンダー登録ボタンの順に並び替え(通知だけ使いたい人が
-                    // カレンダー連携の説明を挟まず自分の通知時刻にたどり着けるように)。要素の追加削除は無し。
+                    // index.html:809-816 カレンダーのおしらせ時間相当(ネイティブは毎日の合図=
+                    // ローカル通知に統一。「毎日自動でアプリがひらく設定（iPhone）」(index.html:
+                    // 818-827・Shortcutsアプリの自動化案内)はPWAが通知を送れないことへのiOS限定の
+                    // 回避策でネイティブには元から無関係な問題のため移植しない(タスク指示どおり)。
+                    // TASK-C2-2026-08-04-build21-addendum.md Y-5(本人指示): 端末カレンダー登録
+                    // (Apple/Googleカレンダーに入れる)は通知と二重のため削除した(Web版は残る)。
                     Spacer().frame(height: 20)
-                    // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を隣接の
-                    // FAQ開閉(GuideView.swift)と同じ様式(見出しタップで開閉・▾/▴)で畳む。既定は閉。
+                    // TASK-C2-2026-08-01-build15-subtraction9.md #4: 通知一式を隣接のFAQ開閉
+                    // (GuideView.swift)と同じ様式(見出しタップで開閉・▾/▴)で畳む。既定は閉。
                     // 閉じていても状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
                     // TASK-C2-2026-08-04-build20-addendum.md A-4: 「おしらせの時間」を「通知」
                     // セクションへ格上げ(見える化・整理。曜日指定などの新機能は足さない)。
@@ -390,19 +346,6 @@ struct SettingsView: View {
                         )).labelsHidden()
                     }
 
-                    Spacer().frame(height: 20)
-                    KyonoLineButton("Appleカレンダーに入れる") {
-                        addToAppleCalendar(hour: icsHour, minute: icsMinute) { ok in
-                            icsMessage = ok ? nil : "カレンダーへの追加が許可されませんでした"
-                        }
-                    }
-                    Spacer().frame(height: 8)
-                    KyonoLineButton("Googleカレンダーに入れる") { openGoogleCalendar(hour: icsHour, minute: icsMinute) }
-                    Spacer().frame(height: 6)
-                    Text("スマホのカレンダーが毎日その時間に知らせてくれます").kyonoFont(.bold700, size: 12)
-                    if let icsMessage {
-                        Text(icsMessage).kyonoFont(.bold700, size: 12).foregroundColor(colors.pinkInk)
-                    }
                     }
 
                     Spacer().frame(height: 20)
