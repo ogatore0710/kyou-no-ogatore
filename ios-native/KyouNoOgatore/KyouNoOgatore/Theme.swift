@@ -39,6 +39,11 @@ struct KyonoColors {
     let bg: Color
     let card: Color
     let line: Color
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(本人裁定「藍地×白文字」): 主ボタンの地。
+    // ライトは本家色#073A71(白文字と実測11.33:1)。ダークは藍そのままだと沈む(#073A71は暗背景
+    // #211E19に対し実測1.47:1しか無い)ため、白文字4.5:1以上・面vs暗背景3:1以上の両立を条件に
+    // 実測選定した派生色#2278C0(白文字4.65:1・vs暗背景3.57:1)を採用。
+    let btnPrimaryBg: Color
     let btnPrimaryShadow: Color
     let tabbarIconOff: Color
     // GO-G1(5視点ワンループ): index.html:392,121 .tabbar button{color:var(--sub)}/
@@ -71,7 +76,8 @@ let kyonoLightColors = KyonoColors(
     tealInk: Color(hex: 0x177065), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0xFFE8E2),
     pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xC04570), pinkSoft: Color(hex: 0xFFEDF3),
     bg: Color(hex: 0xFFFAF3), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xF2EADB),
-    btnPrimaryShadow: Color(hex: 0xE8BE1E), tabbarIconOff: Color(hex: 0xC4BDA9),
+    btnPrimaryBg: Color(hex: 0x073A71), btnPrimaryShadow: Color(hex: 0x052A52),
+    tabbarIconOff: Color(hex: 0xC4BDA9),
     tabbarStrokeOff: Color(hex: 0x6E6B5F)
 )
 
