@@ -101,8 +101,13 @@ private struct BragContentView: View {
                 Spacer().frame(height: 14)
                 Text("つづいている日数").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                 Spacer().frame(height: 6)
+                // TASK-C2-2026-08-04-build20-addendum.md A-1(実バグ): ビルド17 P-4は背景色だけを
+                // 棚卸ししており、文字色が未指定のまま.primary(システムのcolorScheme依存・
+                // KyonoThemeのアプリ内テーマ設定とは無関係)にフォールバックしていた。システム側が
+                // ダーク・アプリ内が明るいと白地に白文字になる(本人スクショIMG_8745)。
                 TextField("", text: $daysText)
                     .keyboardType(.numberPad)
+                    .foregroundColor(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
