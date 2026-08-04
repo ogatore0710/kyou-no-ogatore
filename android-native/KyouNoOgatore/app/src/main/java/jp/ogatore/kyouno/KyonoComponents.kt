@@ -151,11 +151,17 @@ val KyonoCardShadowColor = Color(0xFFA08C50)
 fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-3(本人裁定「案a・彩度を立てる」):
+    // ライトの新背景#F7EEDC(Z-5)に対しグラデ両端が同化していたため、色相を保ったまま彩度/明度を
+    // 一段濃くした。本人の基準ペア(暖色系#FFF6D8→#FFE9A8・桃色系#FFE9F0→#FFD3E3)から明度比
+    // 0.898(暖色)/0.955(桃色)を実測抽出し、平均レート0.9265を全8箇所へ均等適用(彩度はどちらの
+    // 基準ペアもS=100%のため、ミント系(元々S=54.8%)も含め全端点をS=100%へ底上げ)。ダークは
+    // 対象外(現状維持)。
     val (from, to) = when (gradient) {
-        KyonoGradient.Warm -> if (dark) Color(0xFF37301C) to Color(0xFF33232B) else Color(0xFFFFF3C4) to Color(0xFFFFEDF3)
-        KyonoGradient.Mint -> if (dark) Color(0xFF22403B) to Color(0xFF33301C) else Color(0xFFE7F8F1) to Color(0xFFFFF9DC)
-        KyonoGradient.Pink -> if (dark) Color(0xFF33232B) to Color(0xFF33301C) else Color(0xFFFFEDF3) to Color(0xFFFFF9DC)
-        KyonoGradient.Soft -> if (dark) Color(0xFF2C2822) to Color(0xFF33232B) else Color(0xFFFFFDF5) to Color(0xFFFFEDF3)
+        KyonoGradient.Warm -> if (dark) Color(0xFF37301C) to Color(0xFF33232B) else Color(0xFFFFECA3) to Color(0xFFFFC9DB)
+        KyonoGradient.Mint -> if (dark) Color(0xFF22403B) to Color(0xFF33301C) else Color(0xFFBDFFE4) to Color(0xFFFFF3B9)
+        KyonoGradient.Pink -> if (dark) Color(0xFF33232B) to Color(0xFF33301C) else Color(0xFFFFC9DB) to Color(0xFFFFF3B9)
+        KyonoGradient.Soft -> if (dark) Color(0xFF2C2822) to Color(0xFF33232B) else Color(0xFFFFF6D0) to Color(0xFFFFC9DB)
     }
     Column(
         modifier = modifier

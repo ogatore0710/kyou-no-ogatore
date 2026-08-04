@@ -116,12 +116,18 @@ struct KyonoGradientCard<Content: View>: View {
     var body: some View {
         let dark = colors.bg == kyonoDarkColors.bg
         let zoom: CGFloat = bigText ? kyonoBigTextScale : kyonoNormalTextScale
+        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-3(本人裁定「案a・彩度を立てる」):
+        // ライトの新背景#F7EEDC(Z-5)に対しグラデ両端が同化していたため、色相を保ったまま彩度/明度を
+        // 一段濃くした。本人の基準ペア(暖色系#FFF6D8→#FFE9A8・桃色系#FFE9F0→#FFD3E3)から明度比
+        // 0.898(暖色)/0.955(桃色)を実測抽出し、平均レート0.9265を全8箇所へ均等適用(彩度はどちらの
+        // 基準ペアもS=100%のため、ミント系(元々S=54.8%)も含め全端点をS=100%へ底上げ)。ダークは
+        // 対象外(現状維持)。
         let (from, to): (Color, Color) = {
             switch gradient {
-            case .warm: return dark ? (Color(hex: 0x37301C), Color(hex: 0x33232B)) : (Color(hex: 0xFFF3C4), Color(hex: 0xFFEDF3))
-            case .mint: return dark ? (Color(hex: 0x22403B), Color(hex: 0x33301C)) : (Color(hex: 0xE7F8F1), Color(hex: 0xFFF9DC))
-            case .pink: return dark ? (Color(hex: 0x33232B), Color(hex: 0x33301C)) : (Color(hex: 0xFFEDF3), Color(hex: 0xFFF9DC))
-            case .soft: return dark ? (Color(hex: 0x2C2822), Color(hex: 0x33232B)) : (Color(hex: 0xFFFDF5), Color(hex: 0xFFEDF3))
+            case .warm: return dark ? (Color(hex: 0x37301C), Color(hex: 0x33232B)) : (Color(hex: 0xFFECA3), Color(hex: 0xFFC9DB))
+            case .mint: return dark ? (Color(hex: 0x22403B), Color(hex: 0x33301C)) : (Color(hex: 0xBDFFE4), Color(hex: 0xFFF3B9))
+            case .pink: return dark ? (Color(hex: 0x33232B), Color(hex: 0x33301C)) : (Color(hex: 0xFFC9DB), Color(hex: 0xFFF3B9))
+            case .soft: return dark ? (Color(hex: 0x2C2822), Color(hex: 0x33232B)) : (Color(hex: 0xFFF6D0), Color(hex: 0xFFC9DB))
             }
         }()
         VStack(alignment: .leading, spacing: 0) { content() }
