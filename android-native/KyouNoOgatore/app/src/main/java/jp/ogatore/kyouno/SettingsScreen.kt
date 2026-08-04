@@ -579,7 +579,9 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     value = importInput,
                     onValueChange = { importInput = it },
                     modifier = Modifier.fillMaxWidth().testTag("importText"),
-                    placeholder = { Text("KYONO1:... をここに貼りつけ") },
+                    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-5: 色指定が無く
+                    // システム既定色のままでライトでほぼ白=見えないバグだった。colors.subへ明示指定。
+                    placeholder = { Text("KYONO1:... をここに貼りつけ", color = colors.sub) },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
                         focusedBorderColor = colors.borderStrong, unfocusedBorderColor = colors.borderStrong,

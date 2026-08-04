@@ -308,7 +308,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                 value = query,
                 onValueChange = { query = it; searchLimit = 24 },
                 modifier = Modifier.fillMaxWidth().testTag("searchInput"),
-                placeholder = { Text("例: 肩こり／朝／むくみ", color = colors.subFaint) },
+                placeholder = { Text("例: 肩こり／朝／むくみ", color = colors.sub) },
                 // アイコン方針(TASK-C2-2026-07-30-icon-system.md)判断: 検索欄の虫めがねは
                 // この年齢層にとっていちばん通じる目印なので、プレースホルダー内の絵文字を
                 // 削除するだけでなく、タブバーと同じ.searchアイコンを実際に左側(leadingIcon)へ

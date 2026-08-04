@@ -413,7 +413,7 @@ fun GuideScreen(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth().testTag("faqSearch"),
-                placeholder = { Text("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", color = colors.subFaint) },
+                placeholder = { Text("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", color = colors.sub) },
                 // アイコン方針(TASK-C2-2026-07-30-icon-system.md)判断: 検索欄の虫めがねを
                 // 実際に左側(leadingIcon)へ差し込む(alan5判断・2026-07-30。SearchScreen.ktと
                 // 同じ扱い)。

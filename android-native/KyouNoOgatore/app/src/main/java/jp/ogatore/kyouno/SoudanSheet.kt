@@ -821,7 +821,9 @@ fun SoudanSheet(
                         modifier = Modifier.weight(1f).testTag("sdInput"),
                         // TASK-C2-2026-07-29-ux-audit-G.md G5: index.html:1230 placeholder="例: 肩がこる／
                         // 前屈できない"の1:1移植。何を打てばいいかの手本が消えていた欠落。
-                        placeholder = { Text("例: 肩がこる／前屈できない") },
+                        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-5: 色指定が無く
+                        // システム既定色のままでライトでほぼ白=見えないバグだった。colors.subへ明示指定。
+                        placeholder = { Text("例: 肩がこる／前屈できない", color = colors.sub) },
                         // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: OutlinedTextFieldは既定で
                         // containerColorが透明なため、Material3の既定(ambient)テーマがシステム側の
                         // ダーク/ライト設定に追従しアプリ内テーマと食い違うと、入力欄だけ暗いまま浮いて

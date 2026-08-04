@@ -130,7 +130,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                 TextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = { Text("例: 肩甲骨／朝／開脚", color = colors.subFaint) },
+                    placeholder = { Text("例: 肩甲骨／朝／開脚", color = colors.sub) },
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
