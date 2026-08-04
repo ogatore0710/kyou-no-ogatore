@@ -411,7 +411,9 @@ struct SettingsView: View {
                     // システム側のダーク/ライト設定に追従する既定の背景色を使うため、アプリ内テーマが
                     // システム設定と食い違うと入力欄だけ暗いまま浮いて見えていた欠陥。既存の検索欄と
                     // 同じ「colors.card塗り+colors.line枠線」の自前スタイルに差し替える。
-                    TextField("KYONO1:... をここに貼りつけ", text: $importInput)
+                    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-5: placeholderが
+                    // システム既定色のままだった取りこぼしを修正(colors.subへ明示指定)。
+                    TextField("", text: $importInput, prompt: Text("KYONO1:... をここに貼りつけ").foregroundColor(colors.sub))
                         .foregroundColor(colors.ink)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))

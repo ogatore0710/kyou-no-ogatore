@@ -725,7 +725,11 @@ private struct SoudanContentView: View {
                 // システム側のダーク/ライト設定に追従する既定の背景色を使うため、アプリ内テーマが
                 // システム設定と食い違うと入力欄だけ暗いまま浮いて見えていた欠陥。既存の検索欄と
                 // 同じ「colors.card塗り+colors.line枠線」の自前スタイルに差し替える。
-                TextField("例: 肩がこる／前屈できない", text: $input)
+                // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-5: placeholderに色指定が
+                // 無くシステム既定色に頼っていたため、ライトでほぼ白=見えないバグがあった
+                // (P-4と同根・アプリ内テーマではなくシステム設定に追従する既定色の問題)。
+                // Z-7のホームメモ欄と同じcolors.subへ明示指定して揃える。
+                TextField("", text: $input, prompt: Text("例: 肩がこる／前屈できない").foregroundColor(colors.sub))
                     .foregroundColor(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))

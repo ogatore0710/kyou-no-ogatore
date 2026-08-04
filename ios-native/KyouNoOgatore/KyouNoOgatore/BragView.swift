@@ -126,7 +126,9 @@ private struct BragContentView: View {
                 Text("すきな1本をさがす").kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
                 Spacer().frame(height: 6)
                 // TASK-C2-2026-08-04-build20-addendum.md A-1: 同上の文字色未指定バグの棚卸し対象。
-                TextField("例: 肩甲骨／朝／開脚", text: $query)
+                // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-5: placeholderが
+                // システム既定色のままだった取りこぼしを修正(colors.subへ明示指定)。
+                TextField("", text: $query, prompt: Text("例: 肩甲骨／朝／開脚").foregroundColor(colors.sub))
                     .foregroundColor(colors.ink)
                     .tint(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)

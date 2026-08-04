@@ -295,7 +295,9 @@ private struct SearchContentView: View {
                 KyonoIconGlyph(icon: .search, fill: .clear, accent: colors.sub)
                     .frame(width: 18 * zoom, height: 18 * zoom)
                 // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し対象。
-                TextField("例: 肩こり／朝／むくみ", text: $query)
+                // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-5: placeholderがシステム
+                // 既定色のままだった取りこぼしを修正(colors.subへ明示指定)。
+                TextField("", text: $query, prompt: Text("例: 肩こり／朝／むくみ").foregroundColor(colors.sub))
                     .foregroundColor(colors.ink)
                     .tint(colors.ink)
                 if !query.isEmpty {

@@ -345,7 +345,9 @@ private struct GuideContentView: View {
                     // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し対象。
                     HStack(spacing: 6) {
                         KyonoIconGlyph(icon: .search, fill: .clear, accent: colors.sub).frame(width: 18, height: 18)
-                        TextField("キーワードでさがす（例: 記録 / 機種変更 / 痛い）", text: $query)
+                        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-5: placeholderが
+                        // システム既定色のままだった取りこぼしを修正(colors.subへ明示指定)。
+                        TextField("", text: $query, prompt: Text("キーワードでさがす（例: 記録 / 機種変更 / 痛い）").foregroundColor(colors.sub))
                             .foregroundColor(colors.ink)
                             .tint(colors.ink)
                     }
