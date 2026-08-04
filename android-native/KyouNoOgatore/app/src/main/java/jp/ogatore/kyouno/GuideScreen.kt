@@ -385,7 +385,7 @@ fun GuideScreen(
                 GStep("", icon = KyonoIcon.CalendarCheck, title = "カレンダー", body = "やった日に印がつく（×はつきません）")
                 GStep("", icon = KyonoIcon.MountainCheck, title = "とどくメーター", body = "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
                 GStep("", icon = KyonoIcon.ConfettiBurst, title = "お楽しみ機能", body = "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                GStep("", icon = KyonoIcon.Clock, title = "続ける設定", body = "リマインダー（カレンダー通知）や画面のみため（夜は暗く）はここ")
+                GStep("", icon = KyonoIcon.Clock, title = "続ける設定", body = "毎日の合図（通知）や画面のみため（夜は暗く）はここ")
                 GStep("", icon = KyonoIcon.Play, title = "（こちらは下のタブ）「再生リスト」タブ", body = "連続再生できるまとめ 流しっぱなしでOK")
                 Spacer(Modifier.height(4.dp))
                 KyonoGhostButton("マイ記録タブをひらく", onOpenMyRecord, Modifier.testTag("gdMyrecOpenBtn"))

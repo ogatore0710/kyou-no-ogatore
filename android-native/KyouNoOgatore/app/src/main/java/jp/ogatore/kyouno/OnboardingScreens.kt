@@ -1357,7 +1357,7 @@ val OB_TOUR_POOL = listOf(
     // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 「尾形さん」→「尾形」(本人指示・改行と同時)。
     TourSlideDef("オガトレ通信をのぞく", "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります", TourMockKind.OBU),
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: ...(既存コメント維持)...
-    TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（カレンダー通知）は続ける設定からいつでも入れられるよ", TourMockKind.MY_RECORD),
+    TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（通知）は続ける設定からいつでも入れられるよ", TourMockKind.MY_RECORD),
 )
 // T-A: 初回は「地図(0)+予告3枚(4,5,6)」の4枚。「もう体験したことの再説明」(videoDaily/
 // todayDone/cardDex)は初回では引き続き省く(build19 T-2の判断を継承)。

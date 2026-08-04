@@ -10,7 +10,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.CalendarContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -2721,23 +2720,6 @@ fun MyRecordScreen(
                 KyonoGhostButton("設定をひらく", onOpenSettings, Modifier.testTag("settingsBtn"))
             }
 
-            Spacer(Modifier.height(16.dp))
-            var calendarMsg by remember { mutableStateOf<String?>(null) }
-            KyonoLineButton(
-                "カレンダーに登録する",
-                {
-                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020
-                    // renderIcs()の1:1移植。以前は引数なし(常にhour=20,minute=0)で、設定画面の
-                    // 「カレンダーのおしらせ時間」を無視していた。
-                    val (hour, minute) = icsTimeFor(store)
-                    calendarMsg = if (openCalendarIntent(context, hour, minute)) null else "カレンダーアプリが見つかりませんでした"
-                },
-                Modifier.testTag("calendarConnectBtn"),
-            )
-            calendarMsg?.let {
-                Spacer(Modifier.height(6.dp))
-                Text(it, color = colors.pinkInk, modifier = Modifier.testTag("calendarMsgText"))
-            }
             // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
             // 数字・達成率は書かない(デザイン原則どおり)。
             Spacer(Modifier.height(16.dp))
@@ -2747,8 +2729,8 @@ fun MyRecordScreen(
                 modifier = Modifier.testTag("deviceStorageNote"),
             )
             // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: FABの表示範囲をWeb版に
-            // 合わせて拡げた結果、マイ記録タブの末尾要素(カレンダーに登録するボタン)が最大スクロール時に
-            // 右下固定FABと重なることを実機で確認したため、末尾に余白を足して回避する
+            // 合わせて拡げた結果、マイ記録タブの末尾要素が最大スクロール時に右下固定FABと
+            // 重なることを実機で確認したため、末尾に余白を足して回避する
             // (行の下に余白を足す対応。Web版のreach-row対策と同じ「実測して決める」方針)。
             Spacer(Modifier.height(100.dp))
         }
@@ -2802,42 +2784,6 @@ fun MyRecordScreen(
 private fun RoundedCornerShape2(percent: Int) = androidx.compose.foundation.shape.RoundedCornerShape(
     topStartPercent = percent, topEndPercent = percent, bottomStartPercent = percent, bottomEndPercent = percent,
 )
-
-// index.html:2001 renderIcs/saveIcsTime相当。Web版はICSファイルダウンロード/Googleカレンダーリンクだが、
-// ネイティブはOS標準のカレンダーAppへIntent委譲する(マスタープラン§2-1「icstimeはEventKit/
-// カレンダーIntentに接続」)。書き込み権限を要求せず確認operationはカレンダーApp側のUIに委ねる設計
-// (権限ダイアログの摩擦を避ける。Step5aのYouTube外部遷移と同じ設計判断)。
-//
-// dataだけを設定するとAndroidはMIME型をContentResolver.getType()の問い合わせで自動解決しようとするが、
-// カレンダーaccountが1つも無い端末(Googleアカウント未設定のエミュレータ等)ではこの問い合わせが
-// 失敗し、Calendarアプリが実際にはINSERTを処理できるにもかかわらず型解決に失敗することがある
-// (実機/エミュレータ検証で発見)。setDataAndTypeで型を明示することで型解決をスキップする。
-// 解決可否の事前チェックはIntent.resolveActivity()でなくstartActivity()のtry/catchで行う
-// (実機検証でresolveActivity()がstartActivity()自体は成功するケースでもnullを返す=偽陰性になる
-// ことを確認したため。ActivityNotFoundExceptionを捕まえる方がAndroid公式推奨でもあり確実)。
-// 設定画面「カレンダーのおしらせ時間」欠落修正タスク(TASK-C2-2026-07-26-settings-missing-items.md):
-// hour/minuteを外から指定できるように拡張(既定値20:00はMyRecordScreenの既存呼び出し元の挙動を
-// 変えないため据え置き)。
-fun openCalendarIntent(context: Context, hour: Int = 20, minute: Int = 0): Boolean {
-    val cal = JCalendar.getInstance()
-    cal.set(JCalendar.HOUR_OF_DAY, hour)
-    cal.set(JCalendar.MINUTE, minute)
-    cal.set(JCalendar.SECOND, 0)
-    val intent = Intent(Intent.ACTION_INSERT).apply {
-        setDataAndType(CalendarContract.Events.CONTENT_URI, "vnd.android.cursor.item/event")
-        putExtra(CalendarContract.Events.TITLE, "きょうのオガトレ（1本だけ）")
-        putExtra(CalendarContract.Events.DESCRIPTION, "ストレッチの時間です")
-        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, cal.timeInMillis)
-        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, cal.timeInMillis + 10 * 60 * 1000)
-        putExtra(CalendarContract.Events.RRULE, "FREQ=DAILY")
-    }
-    return try {
-        context.startActivity(intent)
-        true
-    } catch (e: android.content.ActivityNotFoundException) {
-        false
-    }
-}
 
 // TASK-C2-2026-07-27-milestone-card-export-nudge.md: 記録カードモーダルの節目促し表示可否を
 // 呼び出し元(HomeScreen)が判定できるよう、描画結果と一緒にmilestone判定も返す。

@@ -70,7 +70,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // 設定画面「やるタイミング」欠落修正タスク(TASK-C2-2026-07-26-settings-missing-items.md):
-// index.html:1974-1979 ANCHORSの1:1移植(ラベル+カレンダー通知の既定時刻)。キー(asa/furo/neru/free)
+// index.html:1974-1979 ANCHORSの1:1移植(ラベル+毎日の合図の既定時刻)。キー(asa/furo/neru/free)
 // 自体はOnboardingScreens.ktのanchor質問と共有(§1-2手写し禁止対象の機械抽出データではなく、
 // 短い固定UI文言なのでオンボ文言・SOUDAN_CHIP_CATS等と同じくUI copyとして直接記述)。
 data class AnchorInfo(val key: String, val label: String, val defaultHour: Int, val defaultMinute: Int)
@@ -92,8 +92,8 @@ fun kyonoDisplayName(store: RecordStore): String {
 }
 
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
-// 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。設定画面・マイ記録画面の両方の
-// カレンダー登録ボタンから共通で使う(以前はマイ記録側だけ引数なし=常に20:00のままだった)。
+// 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。毎日の合図(DailyNotifications相当)の
+// 時刻表示・設定から使う(保存キー名"icstime"は当時カレンダー連携と共有していた名残)。
 fun icsTimeFor(store: RecordStore): Pair<Int, Int> {
     val anchor = store.get<String?>("anchor", null)
     val anchorInfo = ANCHORS.find { it.key == anchor }
@@ -148,7 +148,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         var showImportUndo by rememberSaveable { mutableStateOf(false) }
         val importScope = androidx.compose.runtime.rememberCoroutineScope()
 
-        // 設定画面「やるタイミング」「カレンダーのおしらせ時間」欠落修正タスク
+        // 設定画面「やるタイミング」「毎日の合図の時間」欠落修正タスク
         // (TASK-C2-2026-07-26-settings-missing-items.md): index.html:800,809-816の1:1移植。
         var anchor by remember { mutableStateOf(store.get<String?>("anchor", null)) }
         var showAnchorPicker by remember { mutableStateOf(false) }
@@ -178,7 +178,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
             }
         }
         var notifEnabled by remember { mutableStateOf(store.get("notif_enabled", false)) }
-        // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を開閉式に(引き算)。既定は閉。
+        // TASK-C2-2026-08-01-build15-subtraction9.md #4: 通知一式を開閉式に(引き算)。既定は閉。
         var notifSectionExpanded by remember { mutableStateOf(false) }
         // TASK-C2-2026-08-04-build20-addendum.md A-4: OS側の通知許可状態(許可済みならtrue)。
         var notifAuthorized by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled()) }
@@ -332,19 +332,17 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     ),
                 )
 
-                // index.html:809-816 カレンダーのおしらせ時間+Apple/Googleカレンダー登録ボタンの
-                // 1:1移植。「毎日自動でアプリがひらく設定（iPhone）」(index.html:818-827・Shortcuts
-                // アプリの自動化案内)はPWAが通知を送れないことへのiOS限定の回避策でネイティブには
-                // 元から無関係な問題のため移植しない(タスク指示どおり)。マイ記録タブの既存
-                // 「📅 カレンダーに登録する」(時刻指定なし・簡易版)とは別物として両方残す。
+                // index.html:809-816 カレンダーのおしらせ時間相当(ネイティブは毎日の合図=
+                // ローカル通知に統一)。「毎日自動でアプリがひらく設定（iPhone）」(index.html:
+                // 818-827・Shortcutsアプリの自動化案内)はPWAが通知を送れないことへのiOS限定の
+                // 回避策でネイティブには元から無関係な問題のため移植しない(タスク指示どおり)。
                 // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを
                 // 15分刻み(:00/:15/:30/:45の4択)に変更。標準のスピナーではなく時と分を並べて
                 // 選ぶ形にする(実装方式は任せる、との指示どおりドロップダウン2つで組む)。
-                // UX13案・案9(2026-07-30): 見出しが「カレンダーの」おしらせ時間を名乗りつつ、
-                // 実際は通知機能とも共有する時刻だったため「おしらせの時間」に改め、時刻ピッカー→
-                // 「毎日のおしらせ」トグル→カレンダー登録ボタンの順に並び替え(iOS版と同型)。
+                // TASK-C2-2026-08-04-build21-addendum.md Y-5(本人指示): 端末カレンダー登録
+                // (カレンダー/Googleカレンダーに入れる)は通知と二重のため削除した(Web版は残る)。
                 Spacer(Modifier.height(20.dp))
-                // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を隣接のFAQ開閉
+                // TASK-C2-2026-08-01-build15-subtraction9.md #4: 通知一式を隣接のFAQ開閉
                 // (GuideScreen.kt)と同じ様式(見出しタップで開閉・▾/▴)で畳む。既定は閉。閉じていても
                 // 状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
                 // TASK-C2-2026-08-04-build20-addendum.md A-4: 「おしらせの時間」を「通知」
@@ -488,24 +486,6 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     )
                 }
 
-                Spacer(Modifier.height(20.dp))
-                KyonoLineButton(
-                    // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: 実体はAndroidの
-                    // CalendarContract Intent(端末標準カレンダー)であり、Android端末にAppleカレンダーは
-                    // 無いため誤ったラベルだった(Web版は両OS向けの共通コードのため"Apple/Google"併記が
-                    // 正しいが、ネイティブAndroidでは意味が通らない)。
-                    "カレンダーに入れる",
-                    { openCalendarIntent(context, icsHour, icsMinute) },
-                    Modifier.testTag("icsAppleBtn"),
-                )
-                Spacer(Modifier.height(8.dp))
-                KyonoLineButton(
-                    "Googleカレンダーに入れる",
-                    { openGoogleCalendarIntent(context, icsHour, icsMinute) },
-                    Modifier.testTag("icsGoogleBtn"),
-                )
-                Spacer(Modifier.height(6.dp))
-                Text("スマホのカレンダーが毎日その時間に知らせてくれます", color = colors.sub, fontSize = 12.sp)
                 }
 
                 Spacer(Modifier.height(20.dp))
@@ -709,14 +689,3 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
     }
 }
 
-// index.html:2020 gcalLink組み立ての1:1移植(Googleカレンダーの「予定を追加」テンプレートURLを
-// ブラウザで開くだけ。終了時刻の丸め方(分+10を59で頭打ち・時をまたがない)もWeb版の実装をそのまま踏襲)。
-private fun openGoogleCalendarIntent(context: Context, hour: Int, minute: Int) {
-    val icsDate = jp.ogatore.kyouno.record.RecordLogic.todayStr(java.time.Instant.now()).replace("-", "")
-    val startTm = "%02d%02d00".format(hour, minute)
-    val endMinute = minOf(59, minute + 10)
-    val endTm = "%02d%02d00".format(hour, endMinute)
-    val text = java.net.URLEncoder.encode("きょうのオガトレ（1本だけ）", "UTF-8")
-    val url = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=$text&dates=${icsDate}T$startTm/${icsDate}T$endTm&recur=RRULE:FREQ=DAILY"
-    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-}
