@@ -189,12 +189,17 @@ private struct GuideContentView: View {
                     // display:flex;flex-wrap:wrap;justify-content:centerの1:1移植。横スクロール
                     // (旧ScrollView)だと7個中3個しか見えず「❓ よくあるしつもん」等が隠れていたため、
                     // FlowLayoutで折り返して全項目を常に見せる。
+                    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-4(本人裁定「案A・白ピル+
+                    // 濃枠」): ベージュ地(colors.line)が新背景#F7EEDCに同化していたため、ホームの
+                    // セグメント選択ノブと同じ文法(白地+枠#6B6857 2pt+文字#33322C)へライトのみ統一。
+                    // ダークは既存(colors.line地+colors.sub文字)を維持(本タスクは新ライト背景対策)。
                     FlowLayout(spacing: 8, lineSpacing: 8, alignment: .center) {
                         ForEach(gtocChips, id: \.id) { chip in
                             Text(chip.label)
-                                .kyonoFont(.black900, size: 13).foregroundColor(colors.sub)
+                                .kyonoFont(.black900, size: 13).foregroundColor(dark ? colors.sub : Color(hex: 0x33322C))
                                 .padding(.horizontal, 14).padding(.vertical, 10)
-                                .background(Capsule().fill(colors.line))
+                                .background(Capsule().fill(dark ? colors.line : Color.white))
+                                .overlay { if !dark { Capsule().stroke(Color(hex: 0x6B6857), lineWidth: 2) } }
                                 .onTapGesture { jumpToSection(proxy, id: chip.id) }
                         }
                     }
