@@ -58,9 +58,12 @@ private struct ChipColors {
 
 private func chipColors(for key: String, dark: Bool) -> ChipColors {
     switch key {
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(選択中チップ): 黄地+白文字は実測1.38:1で
+    // 読めなくなる罠のため、onBg/onBorderを#6B5500へ(白文字と実測7.18:1)。b/c/d同様onは
+    // テーマ非依存の単一値にする(新しい色トークンは増やさない・既存方針を踏襲)。
     case "a": return dark
-        ? ChipColors(bg: Color(hex: 0x37301C), border: Color(hex: 0x5C4F1E), text: Color(hex: 0xE8C74C), onBg: Color(hex: 0xFFD93B), onBorder: Color(hex: 0xFFD93B), onText: Color(hex: 0x211E19))
-        : ChipColors(bg: Color(hex: 0xFFF6D8), border: Color(hex: 0xF2DE8A), text: Color(hex: 0x8A6D00), onBg: Color(hex: 0xFFD93B), onBorder: Color(hex: 0xFFD93B), onText: Color(hex: 0x3A3A35))
+        ? ChipColors(bg: Color(hex: 0x37301C), border: Color(hex: 0x5C4F1E), text: Color(hex: 0xE8C74C), onBg: Color(hex: 0x6B5500), onBorder: Color(hex: 0x6B5500), onText: .white)
+        : ChipColors(bg: Color(hex: 0xFFF6D8), border: Color(hex: 0xF2DE8A), text: Color(hex: 0x8A6D00), onBg: Color(hex: 0x6B5500), onBorder: Color(hex: 0x6B5500), onText: .white)
     case "b": return dark
         ? ChipColors(bg: Color(hex: 0x1F3532), border: Color(hex: 0x2E5A52), text: Color(hex: 0x7BD0C4), onBg: Color(hex: 0x1E7B70), onBorder: Color(hex: 0x1E7B70), onText: .white)
         : ChipColors(bg: Color(hex: 0xE7F8F1), border: Color(hex: 0xBFE8DC), text: Color(hex: 0x177065), onBg: Color(hex: 0x1E7B70), onBorder: Color(hex: 0x1E7B70), onText: .white)
@@ -317,11 +320,12 @@ private struct SearchContentView: View {
             FadingChipRow(spacing: 6) {
                 ForEach(tagCats, id: \.key) { cat in
                     let on = cat.key == activeCat
-                    // B1(2026-07-29): 選択中(on=true)は黄色背景になるため、colors.inkではなく
-                    // colors.yellowInk(ライト値固定)を使う。
-                    Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.yellowInk : colors.sub)
+                    // TASK-C2-2026-08-04-build21-color-system-navy.md D2拡張判断(「黄は面として
+                    // 使わない」原則の適用): 選択中(on=true)はライトのみ藍地+白文字へ。ダークは
+                    // 未検証のため既存(黄地+yellowInk文字)を維持。
+                    Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? (dark ? colors.yellowInk : .white) : colors.sub)
                         .padding(.horizontal, 13 * zoom).padding(.vertical, 10 * zoom)
-                        .background(RoundedRectangle(cornerRadius: 12 * zoom).fill(on ? colors.yellow : colors.line))
+                        .background(RoundedRectangle(cornerRadius: 12 * zoom).fill(on ? (dark ? colors.yellow : Color(hex: 0x073A71)) : colors.line))
                         .onTapGesture { activeCat = cat.key; activeTag = nil }
                 }
             }

@@ -825,17 +825,20 @@ private struct KyonoChip: View {
     }
 }
 
-// index.html:436-437 .catbtn/.catbtn.on(カテゴリタブ・選択時=yellow背景)の1:1移植。
+// index.html:436-437 .catbtn/.catbtn.on(カテゴリタブ)の1:1移植。
+// TASK-C2-2026-08-04-build21-color-system-navy.md D2拡張判断: SearchView.swiftのcatbtnと同じ扱いで
+// 選択時をライトのみ藍地+白文字へ(ダークは既存の黄地+darkink文字を維持)。
 private struct KyonoCatButton: View {
     @Environment(\.kyonoColors) private var colors
     let label: String
     let selected: Bool
     let action: () -> Void
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     var body: some View {
         Button(action: action) {
-            Text(label).kyonoFont(.black900, size: 14).foregroundColor(selected ? Color(hex: 0x3A3A35) : colors.sub)
+            Text(label).kyonoFont(.black900, size: 14).foregroundColor(selected ? (dark ? Color(hex: 0x3A3A35) : .white) : colors.sub)
                 .padding(.horizontal, 13).padding(.vertical, 10)
-                .background(RoundedRectangle(cornerRadius: 12).fill(selected ? colors.yellow : colors.line))
+                .background(RoundedRectangle(cornerRadius: 12).fill(selected ? (dark ? colors.yellow : Color(hex: 0x073A71)) : colors.line))
         }
         .buttonStyle(.plain)
     }
