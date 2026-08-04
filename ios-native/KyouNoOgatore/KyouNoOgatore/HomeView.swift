@@ -645,10 +645,10 @@ struct HomeView: View {
             if !fdFocusOn {
                 KyonoCard {
                     KyonoSectionTitle("きょうの1本", icon: .play)
-                    TodaySegmentControl(mineAvail: mineAvail, mode: effectiveMode, onSelect: setMode)
+                    TodaySegmentControl(store: store, mineAvail: mineAvail, mode: effectiveMode, onSelect: setMode)
                     // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
                     // 説明行を削除。「きょうのあなた用」の小見出し自体はTodayVideoSection側に残す。
-                    TodayVideoSection(mode: effectiveMode, plan: plan, typeResult: typeResult, onVideoTap: openTodayVideo)
+                    TodayVideoSection(store: store, mode: effectiveMode, plan: plan, typeResult: typeResult, onVideoTap: openTodayVideo)
                 }
                 // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
                 // scrollIntoView(todayVideo)のスクロール先識別子。
@@ -1167,12 +1167,15 @@ private struct SoudanCard: View {
 // TASK-C2-2026-07-30-ux-batch-13-amend-segment.md: index.html:656-661 セグメント(あなた用/あさ/よる)の
 // 1:1移植。「あなた用」はmineAvail(タイプ判定済み or プラン実行中)のときだけ出す。
 private struct TodaySegmentControl: View {
+    let store: RecordStore
     let mineAvail: Bool
     let mode: String
     let onSelect: (String) -> Void
 
     var body: some View {
-        let options: [(String, String)] = (mineAvail ? [("mine", "あなた用")] : []) + [("asa", "あさ"), ("yoru", "よる")]
+        // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換): よびな設定済みなら
+        // 「あなた用」→「（よびな）用」。
+        let options: [(String, String)] = (mineAvail ? [("mine", "\(kyonoDisplayName(store))用")] : []) + [("asa", "あさ"), ("yoru", "よる")]
         KyonoSegmentedControl(options: options, selected: mode, onSelect: onSelect) { m in
             switch m {
             case "mine": return KyonoIcon.segHeart
@@ -1190,6 +1193,7 @@ private struct TodaySegmentControl: View {
 // 書き直さず、上にセグメントUIと手動上書きを足す形)。
 private struct TodayVideoSection: View {
     @Environment(\.kyonoColors) private var colors
+    let store: RecordStore
     let mode: String
     let plan: SdPlanData?
     let typeResult: QuizTypeResult?
@@ -1229,14 +1233,15 @@ private struct TodayVideoSection: View {
             // fdFocusOnのときは丸ごと非表示になる既存の分岐(HomeView.body参照)と重複するため
             // ここでは扱わない)。
             let rx = currentRx(typeResult.key, now: now)
-            Text("きょうのあなた用").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
+            // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
+            Text("きょうの\(kyonoDisplayName(store))用").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
             ForEach(rx, id: \.self) { key in
                 if let v = lookupVideoByKey(key) {
                     HomeTodayVideoRow(v: v, openUrl: onVideoTap)
                 }
             }
             if !rx.isEmpty {
-                KyonoGhostButton("▶ あなたへの3本 連続再生はこちら") {
+                KyonoGhostButton("▶ \(kyonoDisplayName(store))への3本 連続再生はこちら") {
                     let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
                     onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
                 }

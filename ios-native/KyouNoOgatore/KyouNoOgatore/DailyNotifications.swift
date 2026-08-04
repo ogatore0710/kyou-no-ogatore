@@ -59,6 +59,15 @@ enum DailyNotifications {
         }
     }
 
+    // TASK-C2-2026-08-04-build20-addendum.md A-4: OS側の通知許可が切れているとき(設定アプリで
+    // 手動オフにされた等)に案内を出すための状態確認。requestAuthorizationと違い許可ダイアログは
+    // 出さず、現在の許可状態だけを読む。
+    static func checkAuthorizationStatus(completion: @escaping (Bool) -> Void) {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async { completion(settings.authorizationStatus == .authorized) }
+        }
+    }
+
     // アプリ前面復帰時・記録時に呼ぶ。notif_enabled=falseならすべて取り消す。有効なら、
     // 今日(まだ記録していない・時刻前のときだけ)〜数日分を非repeatingで予約し直す
     // (index.html:3970 checkDoneNudge等と同じ「今日の記録が済んでいるか」の判定を再利用。

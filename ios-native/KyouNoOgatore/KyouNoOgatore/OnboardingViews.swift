@@ -1098,7 +1098,8 @@ private struct ResultContentView: View {
                 // フル版(タイプカード+解説+動画3本+ペース目安+相談室リンク)を常に表示する
                 // (「一度正確な自分の結果がきちんと出る」という本人の狙いどおり)。
                 KyonoGradientCard(gradient: .soft) {
-                    Text("あなたのかたさタイプは…").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
+                    // TASK-C2-2026-08-04-build20-addendum.md A-3(最小セット置換)。
+                    Text("\(kyonoDisplayName(store))のかたさタイプは…").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 10)
                     // index.html:317-318,729 .type-illust(104x104・中央寄せ)の1:1移植。

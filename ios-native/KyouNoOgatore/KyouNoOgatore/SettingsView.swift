@@ -30,6 +30,13 @@ let settingsAnchors: [AnchorInfo] = [
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
 // 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。設定画面・マイ記録画面の両方の
 // カレンダー登録ボタンから共通で使う(以前はマイ記録側だけhour=20,minute=0固定だった)。
+// TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(端末内保存のみ・送信なし)。未設定なら
+// 従来どおり「あなた」。呼び出し側で敬称を勝手に足さない(alan5指示)。
+func kyonoDisplayName(_ store: RecordStore) -> String {
+    let nickname: String = store.get("nickname", default: "")
+    return nickname.isEmpty ? "あなた" : nickname
+}
+
 func icsTimeFor(_ store: RecordStore) -> (Int, Int) {
     let anchor: String? = store.get("anchor", default: nil)
     let anchorInfo = settingsAnchors.first { $0.key == anchor }
@@ -51,6 +58,8 @@ struct SettingsView: View {
 
     @State private var theme: String
     @State private var bigtext: Bool
+    // TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(端末内保存のみ・送信なし・任意・最大8文字)。
+    @State private var nickname: String
     @State private var exportText: String?
     @State private var importInput = ""
     @State private var importMessage: String?
@@ -68,6 +77,9 @@ struct SettingsView: View {
     @State private var showImportUndo = false
     // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を開閉式に(引き算)。既定は閉。
     @State private var notifSectionExpanded = false
+    // TASK-C2-2026-08-04-build20-addendum.md A-4: OS側の通知許可状態(許可済みならtrue)。
+    // 許可ダイアログは出さず現在の状態だけを読む(checkAuthorizationStatus)。
+    @State private var notifAuthorized = true
 
     init(store: RecordStore, onBack: @escaping () -> Void) {
         self.store = store
@@ -78,6 +90,7 @@ struct SettingsView: View {
         // 影響しない)。全`store.get("theme", default:)`呼び出し箇所(18箇所)を同じ値に揃える。
         _theme = State(initialValue: store.get("theme", default: "light"))
         _bigtext = State(initialValue: store.get("bigtext", default: true))
+        _nickname = State(initialValue: store.get("nickname", default: ""))
         let savedAnchor: String? = store.get("anchor", default: nil)
         _anchor = State(initialValue: savedAnchor)
         // index.html:2003 renderIcs()のdef計算(未設定時はfree扱い)+保存済みicstimeがあればそちらを優先。
@@ -228,6 +241,23 @@ struct SettingsView: View {
                         onSelect: { v in bigtext = v; store.set("bigtext", v) }
                     )
 
+                    // TASK-C2-2026-08-04-build20-addendum.md A-3: よびな(にゅうりょくは じゆう・
+                    // 任意・空欄可・最大8文字・端末内store保存のみ・送信なし)。
+                    Spacer().frame(height: 12)
+                    KyonoBodyText("よびな（にゅうりょくは じゆう）")
+                    Spacer().frame(height: 6)
+                    TextField("", text: $nickname)
+                        .foregroundColor(colors.ink)
+                        .tint(colors.ink)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                        .onChange(of: nickname) { _, newValue in
+                            let trimmed = String(newValue.prefix(8))
+                            if trimmed != newValue { nickname = trimmed }
+                            store.set("nickname", trimmed)
+                        }
+
                     // index.html:809-816 カレンダーのおしらせ時間+Apple/Googleカレンダー登録ボタンの
                     // 1:1移植。「毎日自動でアプリがひらく設定（iPhone）」(index.html:818-827・
                     // Shortcutsアプリの自動化案内)はPWAが通知を送れないことへのiOS限定の回避策で
@@ -241,17 +271,44 @@ struct SettingsView: View {
                     // TASK-C2-2026-08-01-build15-subtraction9.md #4: カレンダー・通知一式を隣接の
                     // FAQ開閉(GuideView.swift)と同じ様式(見出しタップで開閉・▾/▴)で畳む。既定は閉。
                     // 閉じていても状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
+                    // TASK-C2-2026-08-04-build20-addendum.md A-4: 「おしらせの時間」を「通知」
+                    // セクションへ格上げ(見える化・整理。曜日指定などの新機能は足さない)。
                     HStack {
-                        KyonoBodyText("おしらせの時間")
+                        KyonoBodyText("通知")
                         Spacer()
                         Text(notifEnabled ? "\(String(format: "%02d", icsHour)):\(String(format: "%02d", icsMinute)) オン" : "オフ")
                             .kyonoFont(.bold700, size: 13).foregroundColor(notifEnabled ? colors.tealInk : colors.sub)
                         Text(notifSectionExpanded ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture { notifSectionExpanded.toggle() }
+                    .onTapGesture {
+                        notifSectionExpanded.toggle()
+                        if notifSectionExpanded {
+                            DailyNotifications.checkAuthorizationStatus { granted in notifAuthorized = granted }
+                        }
+                    }
                     if notifSectionExpanded {
                     Spacer().frame(height: 6)
+                    // A-4②: OS側の通知許可が切れているときだけ案内+設定アプリへのリンクを表示
+                    // (許可済みなら非表示)。
+                    if !notifAuthorized {
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("⚠️").font(.system(size: 14))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("iPhoneの設定で通知を許可してね").kyonoFont(.bold700, size: 13).foregroundColor(colors.ink)
+                                Text("設定アプリをひらく").kyonoFont(.black900, size: 13).foregroundColor(colors.tealInk)
+                                    .onTapGesture {
+                                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    }
+                            }
+                        }
+                        .padding(10)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(colors.coralSoft))
+                        Spacer().frame(height: 10)
+                    }
+                    // A-4①: 毎日の合図(オン/オフ+時刻。中身は現行機能のまま)。
                     // TASK-C2-2026-07-27-local-notifications.md §2-2(本人指示): 時刻ピッカーを
                     // 15分刻み(:00/:15/:30/:45の4択)に変更。Android版のDropdownMenu2つ構成と
                     // 同じ考え方でMenu2つに置き換える(単一のDatePickerだと分の刻みを制御できない)。
@@ -293,10 +350,12 @@ struct SettingsView: View {
                     // TASK-C2-2026-07-27-local-notifications.md: 「毎日のおしらせ」トグル。既定オフ・
                     // オンにした瞬間だけ許可ダイアログを出す(1日目クリア時のインライン提案とは別経路。
                     // どちらも同じnotif_enabledに収束する。Android版SettingsScreen.ktと同一仕様)。
+                    // TASK-C2-2026-08-04-build20-addendum.md A-4①: ラベルを「毎日の合図」に変更
+                    // (中身の機能・保存キーは変更なし)。
                     Spacer().frame(height: 20)
                     HStack(alignment: .center) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("毎日のおしらせ").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
+                            Text("毎日の合図").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                             Text("上の時間に、一言だけやわらかくお知らせします(その日すでに記録していれば出ません)")
                                 .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         }
