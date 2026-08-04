@@ -110,7 +110,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                        focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                        focusedIndicatorColor = colors.borderStrong, unfocusedIndicatorColor = colors.borderStrong,
                         focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
                     ),
                     modifier = Modifier.testTag("bragDaysInput"),
@@ -134,7 +134,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                        focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                        focusedIndicatorColor = colors.borderStrong, unfocusedIndicatorColor = colors.borderStrong,
                         focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
                     ),
                     modifier = Modifier.fillMaxWidth().testTag("bragSearchInput"),

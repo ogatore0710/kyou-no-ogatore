@@ -1806,38 +1806,49 @@ fun HomeScreen(
                     var memoSaved by remember(today) { mutableStateOf(false) }
                     var memoSavedNote by remember(today) { mutableStateOf<String?>(null) }
                     Spacer(Modifier.height(10.dp))
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 入力欄+黄ミニボタン「のこす」を
+                    // 1行に合体(旧・全幅の「メモをのこす」ボタンは廃止)。placeholderが薄く「枠の中の
+                    // 字が見えない」指摘があったため、colors.subへ濃色化(対地3:1目安)。
                     Column(Modifier.testTag("memoRow")) {
-                        TextField(
-                            value = memoText,
-                            onValueChange = { s ->
-                                memoText = s.take(30)
-                                memoSaved = false
-                            },
-                            placeholder = { Text("ひとことメモをどうぞ", color = colors.subFaint) },
-                            shape = RoundedCornerShape(12.dp),
-                            // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し
-                            // 対象(iOS版HomeView.swift:1055相当は既にP-4でforegroundColor(colors.ink)
-                            // 済みだったが、Android側は同等の対応が漏れていた)。
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                                focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
-                                focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
-                            ),
-                            modifier = Modifier.fillMaxWidth().testTag("memoInput"),
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        KyonoLineButton(
-                            if (memoSaved) "のこしました ✓" else "メモをのこす",
-                            {
-                                // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                RecordLogic.saveMemo(store, today, memoText)
-                                memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました 記録カードにも入ります"
-                                memoSaved = true
-                            },
-                            Modifier.testTag("memoBtn"),
-                            enabled = !memoSaved,
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextField(
+                                value = memoText,
+                                onValueChange = { s ->
+                                    memoText = s.take(30)
+                                    memoSaved = false
+                                },
+                                placeholder = { Text("ひとことメモをどうぞ", color = colors.sub) },
+                                shape = RoundedCornerShape(12.dp),
+                                // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し
+                                // 対象(iOS版HomeView.swift:1055相当は既にP-4でforegroundColor(colors.ink)
+                                // 済みだったが、Android側は同等の対応が漏れていた)。
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
+                                    focusedIndicatorColor = colors.borderStrong, unfocusedIndicatorColor = colors.borderStrong,
+                                    focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
+                                ),
+                                modifier = Modifier.weight(1f).testTag("memoInput"),
+                            )
+                            Button(
+                                onClick = {
+                                    // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    RecordLogic.saveMemo(store, today, memoText)
+                                    memoSavedNote = if (memoText.trim().isEmpty()) "メモを消しました" else "メモをのこしました 記録カードにも入ります"
+                                    memoSaved = true
+                                },
+                                enabled = !memoSaved,
+                                shape = androidx.compose.foundation.shape.CircleShape,
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    containerColor = colors.yellow, contentColor = KyonoBtnPrimaryText,
+                                    disabledContainerColor = colors.yellow.copy(alpha = 0.6f), disabledContentColor = KyonoBtnPrimaryText.copy(alpha = 0.6f),
+                                ),
+                                border = androidx.compose.foundation.BorderStroke(2.dp, KyonoBtnPrimaryBorder),
+                                modifier = Modifier.testTag("memoBtn"),
+                            ) {
+                                Text(if (memoSaved) "✓" else "のこす", fontWeight = FontWeight.Black, fontSize = 14.sp)
+                            }
+                        }
                         memoSavedNote?.let {
                             Spacer(Modifier.height(6.dp))
                             // TASK-C2-2026-08-02-build16-polish-and-ia.md P-6: tealInk化(上と同じ理由)。
@@ -1911,20 +1922,16 @@ fun HomeScreen(
                     // (同日に開き直しただけ)だと「きょうやった！」(いまは無効表示)とこのボタンが
                     // 0dp間隔で詰まって見えていた。
                     Spacer(Modifier.height(12.dp))
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 文言を「記録カードをつくる」へ。
+                    // 下の説明行「カード画像を保存かシェアでのこしてね」はモーダル内の案内で足りるため削除。
                     KyonoGhostButton(
-                        "記録カードを画像でのこす",
+                        "記録カードをつくる",
                         {
                             // 完了の瞬間の一拍演出とは無関係の手動オープンなので、A6どおり瞬時のまま。
                             cardEnterAnimated = false
                             cardResult = renderTodayCard(store, streak, today, context)
                         },
                         Modifier.scale(makeCardBtnScale).testTag("makeCardBtn"),
-                    )
-                    // 全画面完全性監査タスク #home: index.html:705 #cardHint(記録カードボタン下の常時ヒント)の1:1移植。
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "カード画像を保存かシェアでのこしてね", color = colors.sub, fontSize = 13.sp,
-                        textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().testTag("cardHint"),
                     )
                 }
             }

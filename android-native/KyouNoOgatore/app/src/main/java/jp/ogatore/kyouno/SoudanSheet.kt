@@ -828,7 +828,7 @@ fun SoudanSheet(
                         // 見えていた欠陥。SearchScreen.ktの検索欄と同じ自前スタイルに揃える。
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                            focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                            focusedBorderColor = colors.borderStrong, unfocusedBorderColor = colors.borderStrong,
                             focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
                         ),
                     )

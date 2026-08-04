@@ -424,7 +424,7 @@ fun GuideScreen(
                 // TASK-C2-2026-08-04-build20-addendum.md A-1: 文字色未指定バグの棚卸し対象。
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                    focusedIndicatorColor = colors.line, unfocusedIndicatorColor = colors.line,
+                    focusedIndicatorColor = colors.borderStrong, unfocusedIndicatorColor = colors.borderStrong,
                     focusedTextColor = colors.ink, unfocusedTextColor = colors.ink, cursorColor = colors.ink,
                 ),
             )

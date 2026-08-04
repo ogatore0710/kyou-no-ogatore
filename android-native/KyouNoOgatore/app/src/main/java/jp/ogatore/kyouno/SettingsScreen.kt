@@ -326,7 +326,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth().testTag("nicknameInput"),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                        focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                        focusedBorderColor = colors.borderStrong, unfocusedBorderColor = colors.borderStrong,
                         focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
                         cursorColor = colors.ink,
                     ),
@@ -530,9 +530,9 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().testTag("exportText"),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                            focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                            focusedBorderColor = colors.borderStrong, unfocusedBorderColor = colors.borderStrong,
                             focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
-                            disabledContainerColor = colors.card, disabledBorderColor = colors.line,
+                            disabledContainerColor = colors.card, disabledBorderColor = colors.borderStrong,
                             disabledTextColor = colors.ink,
                         ),
                     )
@@ -582,7 +582,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                     placeholder = { Text("KYONO1:... をここに貼りつけ") },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = colors.card, unfocusedContainerColor = colors.card,
-                        focusedBorderColor = colors.line, unfocusedBorderColor = colors.line,
+                        focusedBorderColor = colors.borderStrong, unfocusedBorderColor = colors.borderStrong,
                         focusedTextColor = colors.ink, unfocusedTextColor = colors.ink,
                     ),
                 )
