@@ -328,10 +328,10 @@ struct KyonoGhostButton: View {
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(セカンダリボタン): ライトは白地+文字藍+
-    // 青枠2.5pt。ダークは藍がまだ実地検証されていない組み合わせのため、既に実測済みのteal系を
-    // そのまま維持する(本編C-1はライト限定の刷新)。
-    private var textColor: Color { dark ? colors.tealInk : Color(hex: 0x073A71) }
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトはミント地#DFF5F2+
+    // 文字#0F5A50(実測7.11:1)+枠#177065 2.5pt(実測5.71:1)へ復帰。ダークはbuild21から不変
+    // (teal系のまま)。
+    private var textColor: Color { dark ? colors.tealInk : Color(hex: 0x0F5A50) }
 
     var body: some View {
         Button(action: action) {
@@ -342,15 +342,9 @@ struct KyonoGhostButton: View {
                 Text(text).kyonoFont(.black900, size: 15).foregroundColor(textColor)
             }
         }
-        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-3: 実測でtealSoft(#DFF5F2)が地の
-        // colors.bg(#FFFAF3)に対しコントラスト比1.04:1しかなく、ボタンの輪郭がほぼ見えなかった
-        // (「ツアーをとばす」「記録カードを画像でのこす」等で発生)。tealSoftの背景色自体は
-        // KyonoSectionHeaderの見出しアイコン地など他の用途でも広く共用されているため、そちらを
-        // 変えると影響範囲が広すぎる。ゴーストボタンにだけtealStrongの2pt縁取りを足して輪郭を
-        // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。ダークはこの構成を維持。
         .buttonStyle(dark
             ? KyonoGhostButtonStyle(background: colors.tealSoft, borderColor: colors.tealStrong, borderWidth: 2, zoom: zoom)
-            : KyonoGhostButtonStyle(background: colors.card, borderColor: Color(hex: 0x3E70F5), borderWidth: 2.5, zoom: zoom))
+            : KyonoGhostButtonStyle(background: Color(hex: 0xDFF5F2), borderColor: Color(hex: 0x177065), borderWidth: 2.5, zoom: zoom))
     }
 }
 
@@ -427,9 +421,9 @@ struct KyonoLineButton: View {
     // index.html:104,105,143 .btn-line + .btn-line:active{transform:translateY(1px);opacity:.85}の
     // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
     // TASK-C2-2026-07-30-button-standard-migration.md: 標準Button+ButtonStyleへ移行(理由はKyonoPrimaryButton参照)。
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ラインボタン): ライトは文字#33322C・
-    // 枠#4A473D(実測8.95:1)。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
-    private var textColor: Color { dark ? colors.sub2 : Color(hex: 0x33322C) }
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトは文字・枠とも
+    // #4A473D(実測8.95:1)に統一。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
+    private var textColor: Color { dark ? colors.sub2 : Color(hex: 0x4A473D) }
 
     var body: some View {
         Button(action: action) {
@@ -506,10 +500,11 @@ private struct SegmentedOptionButton: View {
     let action: () -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ホームの切り替えノブ): ライトの選択中は
-    // 藍地+白文字、未選択文字は#57544A。ダークは既存(card地+ink文字/sub未選択)を維持。
-    private var onBg: Color { dark ? colors.card : Color(hex: 0x073A71) }
-    private var onText: Color { dark ? colors.ink : .white }
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトの選択中は白ノブ+
+    // 枠#6B6857 2pt+文字#26261F。ダークはbuild21から不変(card地+ink文字/sub未選択、枠なし)。
+    private var onBg: Color { dark ? colors.card : .white }
+    private var onText: Color { dark ? colors.ink : Color(hex: 0x26261F) }
+    private var onBorder: Color? { dark ? nil : Color(hex: 0x6B6857) }
     private var offText: Color { dark ? colors.sub : Color(hex: 0x57544A) }
 
     var body: some View {
@@ -534,6 +529,11 @@ private struct SegmentedOptionButton: View {
                 .padding(.vertical, 13 * zoom)
                 .background(on ? onBg : Color.clear)
                 .cornerRadius(12 * zoom)
+                .overlay {
+                    if on, let onBorder {
+                        RoundedRectangle(cornerRadius: 12 * zoom).stroke(onBorder, lineWidth: 2 * zoom)
+                    }
+                }
         }
         .buttonStyle(KyonoSegmentedOptionButtonStyle(on: on))
     }

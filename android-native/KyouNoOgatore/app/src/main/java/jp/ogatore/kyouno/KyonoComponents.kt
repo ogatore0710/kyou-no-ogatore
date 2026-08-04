@@ -265,18 +265,13 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    // TASK-C2-2026-08-03-build18-tutorial-quality.md B-3: 実測でtealSoft(#DFF5F2)が地の
-    // colors.bg(#FFFAF3)に対しコントラスト比1.04:1しかなく、ボタンの輪郭がほぼ見えなかった
-    // (「ツアーをとばす」「記録カードを画像でのこす」等で発生)。tealSoftの背景色自体は
-    // KyonoSectionHeaderの見出しアイコン地など他の用途でも広く共用されているため、そちらを
-    // 変えると影響範囲が広すぎる。ゴーストボタンにだけtealStrongの2dp縁取りを足して輪郭を
-    // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。ダークはこの構成を維持する。
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(セカンダリボタン): ライトは白地+文字藍+
-    // 青枠2.5dp。ダークは藍が未実測のため既存teal系を維持する(本編C-1はライト限定の刷新)。
-    val bg = if (dark) colors.tealSoft else colors.card
-    val borderColor = if (dark) colors.tealStrong else Color(0xFF3E70F5)
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトはミント地#DFF5F2+
+    // 文字#0F5A50(実測7.11:1)+枠#177065 2.5dp(実測5.71:1)へ復帰。ダークはbuild21から不変
+    // (teal系のまま)。
+    val bg = if (dark) colors.tealSoft else Color(0xFFDFF5F2)
+    val borderColor = if (dark) colors.tealStrong else Color(0xFF177065)
     val borderWidth = if (dark) 2.dp else 2.5.dp
-    val textColor = if (dark) colors.tealInk else Color(0xFF073A71)
+    val textColor = if (dark) colors.tealInk else Color(0xFF0F5A50)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -314,10 +309,10 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ラインボタン): ライトは文字#33322C・
-    // 枠#4A473D(実測8.95:1)。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトは文字・枠とも
+    // #4A473D(実測8.95:1)に統一。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
     val borderColor = if (dark) Color(0xFF4A443A) else Color(0xFF4A473D)
-    val textColor = if (dark) colors.sub2 else Color(0xFF33322C)
+    val textColor = if (dark) colors.sub2 else Color(0xFF4A473D)
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     Box(
@@ -356,10 +351,11 @@ fun <T> KyonoSegmentedControl(
 ) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ホームの切り替えノブ): ライトの選択中は
-    // 藍地+白文字、未選択文字は#57544A。ダークは既存(card地+ink文字/sub未選択)を維持。
-    val onBg = if (dark) colors.card else Color(0xFF073A71)
-    val onText = if (dark) colors.ink else Color.White
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトの選択中は白ノブ+
+    // 枠#6B6857 2dp+文字#26261F。ダークはbuild21から不変(card地+ink文字/sub未選択、枠なし)。
+    val onBg = if (dark) colors.card else Color.White
+    val onText = if (dark) colors.ink else Color(0xFF26261F)
+    val onBorder = if (dark) null else Color(0xFF6B6857)
     val offText = if (dark) colors.sub else Color(0xFF57544A)
     Row(
         modifier = modifier
@@ -379,6 +375,7 @@ fun <T> KyonoSegmentedControl(
                     .weight(1f)
                     .alpha(if (!on && pressed) 0.6f else 1f)
                     .background(if (on) onBg else Color.Transparent, RoundedCornerShape(12.dp))
+                    .then(if (on && onBorder != null) Modifier.border(2.dp, onBorder, RoundedCornerShape(12.dp)) else Modifier)
                     .clickable(interactionSource = interactionSource, indication = null) { onSelect(value) }
                     // TASK-C2-2026-08-04-build21-addendum.md Y-1(検収差し戻し): 横パディングが無く、
                     // よびな6文字時に文字がピル右端へ接触していた。左右にも余白を持たせる。

@@ -320,12 +320,14 @@ private struct SearchContentView: View {
             FadingChipRow(spacing: 6) {
                 ForEach(tagCats, id: \.key) { cat in
                     let on = cat.key == activeCat
-                    // TASK-C2-2026-08-04-build21-color-system-navy.md D2拡張判断(「黄は面として
-                    // 使わない」原則の適用): 選択中(on=true)はライトのみ藍地+白文字へ。ダークは
-                    // 未検証のため既存(黄地+yellowInk文字)を維持。
-                    Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? (dark ? colors.yellowInk : .white) : colors.sub)
+                    // B1(2026-07-29): 選択中(on=true)は黄色背景になるため、colors.inkではなく
+                    // colors.yellowInk(ライト値固定)を使う。
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-1(藍トークン全撤去): build21の
+                    // 「黄は面として使わない」拡張判断を撤回し、黄地+yellowInk文字(build21以前の姿)
+                    // へ戻す。
+                    Text(cat.name).kyonoFont(.black900, size: 14).foregroundColor(on ? colors.yellowInk : colors.sub)
                         .padding(.horizontal, 13 * zoom).padding(.vertical, 10 * zoom)
-                        .background(RoundedRectangle(cornerRadius: 12 * zoom).fill(on ? (dark ? colors.yellow : Color(hex: 0x073A71)) : colors.line))
+                        .background(RoundedRectangle(cornerRadius: 12 * zoom).fill(on ? colors.yellow : colors.line))
                         .onTapGesture { activeCat = cat.key; activeTag = nil }
                 }
             }

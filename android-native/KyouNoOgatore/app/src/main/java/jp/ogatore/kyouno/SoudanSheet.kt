@@ -857,19 +857,18 @@ fun KyonoChip(label: String, onClick: () -> Unit, modifier: Modifier = Modifier)
     ) { Text(label, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }
 }
 
-// index.html:436-437 .catbtn/.catbtn.on(カテゴリタブ)の1:1移植。
-// TASK-C2-2026-08-04-build21-color-system-navy.md D2拡張判断: SearchScreen.ktのcatbtnと同じ扱いで
-// 選択時をライトのみ藍地+白文字へ(ダークは既存の黄地+darkink文字を維持)。
+// index.html:436-437 .catbtn/.catbtn.on(カテゴリタブ・選択時=yellow背景)の1:1移植。
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-1(藍トークン全撤去): build21の「黄は面として
+// 使わない」拡張判断を撤回し、build21以前の姿(黄地+ライト固定inkの文字)へ戻す。
 @Composable
 private fun KyonoCatButton(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalKyonoColors.current
-    val dark = colors.bg == KyonoDarkColors.bg
     Box(
         modifier = modifier
-            .background(if (selected) (if (dark) colors.yellow else Color(0xFF073A71)) else colors.line, RoundedCornerShape(12.dp))
+            .background(if (selected) colors.yellow else colors.line, RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 13.dp, vertical = 10.dp),
-    ) { Text(label, color = if (selected) (if (dark) Color(0xFF3A3A35) else Color.White) else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }
+    ) { Text(label, color = if (selected) Color(0xFF3A3A35) else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }
 }
 
 // 2週間プラン完走お祝いカード欠落修正タスク(TASK-C2-2026-07-27-plan-completion-celebration.md):

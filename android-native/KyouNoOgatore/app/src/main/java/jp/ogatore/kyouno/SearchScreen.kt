@@ -347,14 +347,16 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
             FadingChipRow(modifier = Modifier.fillMaxWidth(), testTag = "searchCatRow") {
                 items(TAG_CATS) { cat ->
                     val on = cat.key == activeCat
-                    // TASK-C2-2026-08-04-build21-color-system-navy.md D2拡張判断(「黄は面として
-                    // 使わない」原則の適用): 選択中(on=true)はライトのみ藍地+白文字へ。ダークは
-                    // 未検証のため既存(黄地+yellowInk文字)を維持。
+                    // B1(2026-07-29): 選択中(on=true)は黄色背景になるため、colors.inkではなく
+                    // colors.yellowInk(ライト値固定)を使う。
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-1(藍トークン全撤去): build21の
+                    // 「黄は面として使わない」拡張判断を撤回し、黄地+yellowInk文字(build21以前の姿)
+                    // へ戻す。
                     Text(
-                        cat.name, color = if (on) (if (dark) colors.yellowInk else Color.White) else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        cat.name, color = if (on) colors.yellowInk else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
                         lineHeight = 14.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier
-                            .background(if (on) (if (dark) colors.yellow else Color(0xFF073A71)) else colors.line, RoundedCornerShape(12.dp))
+                            .background(if (on) colors.yellow else colors.line, RoundedCornerShape(12.dp))
                             .clickable { activeCat = cat.key; activeTag = null }
                             .padding(horizontal = 13.dp, vertical = 10.dp)
                             .testTag("searchCat_${cat.key}"),
