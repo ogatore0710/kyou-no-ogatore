@@ -952,6 +952,41 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
     }
 }
 
+// TASK-C2-2026-08-04-build21-addendum.md Y-4: DexScreen.kt DexCellの簡略版(名前/フレーバー文言
+// なし・タップは呼び出し元のRow全体に付与するためこのcomposable自体は非タップ)。図鑑画面の未獲得
+// 表現(暗くティント/ノーマルは「？」)をそのまま流用する。
+@Composable
+private fun DexPreviewThumb(item: DexItem, modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    val context = LocalContext.current
+    Box(
+        modifier
+            .aspectRatio(1f)
+            .background(colors.bg, RoundedCornerShape(12.dp))
+            .border(1.5.dp, colors.line, RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (item.tier == "normal") {
+            val nc = CardDataLoader.shared.NORMAL_CARDS.find { n -> n.name == item.name }
+            if (item.got && nc != null) {
+                Box(Modifier.fillMaxSize(0.34f).background(Color(android.graphics.Color.parseColor(nc.main)), RoundedCornerShape(50)))
+            } else {
+                Text("？", color = colors.sub, fontSize = 22.sp, fontWeight = FontWeight.Black)
+            }
+        } else if (item.key != null) {
+            val resId = remember(item.key) { context.resources.getIdentifier(item.key, "drawable", context.packageName) }
+            if (resId != 0) {
+                Image(
+                    painter = painterResource(id = resId),
+                    contentDescription = item.name,
+                    colorFilter = if (item.got) null else ColorFilter.tint(Color.Black.copy(alpha = 0.55f), androidx.compose.ui.graphics.BlendMode.SrcAtop),
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun HomeScreen(
     store: RecordStore,
@@ -2456,6 +2491,37 @@ fun MyRecordScreen(
                 val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
                 val dexGot = dexAll.count { it.got }
                 KyonoPrimaryButton("カード図鑑（$dexGot/${dexAll.size}）", onOpenDex, Modifier.testTag("dexBtn"), icon = KyonoIcon.DexBook)
+                // TASK-C2-2026-08-04-build21-addendum.md Y-4(本人指示「前みたいに」): カードのミニ
+                // サムネイル4枚を横並びで表示(タップ挙動はカード図鑑ボタンと同じ)。獲得済みを新しい順に
+                // 優先。ノーマル/レアはrot(日付→抽選位置)を位置→最新日付へ反転して実際の獲得日で
+                // 並べる。記念日/季節カードは直接の獲得日を持たないため簡易的に末尾へ回す(実用上、
+                // コレクションの大半はノーマル/レアのため直近の見え方への影響は小さい)。
+                val dexPreview = remember(dexStatus) {
+                    val posToDate = mutableMapOf<Int, String>()
+                    for ((ds, pos) in rot) {
+                        val cur = posToDate[pos]
+                        if (cur == null || cur <= ds) posToDate[pos] = ds
+                    }
+                    val normalCount = CardDataLoader.shared.NORMAL_CARDS.size
+                    val normalDated = dexStatus.normal.mapIndexed { i, item -> item to (if (item.got) posToDate[i] ?: "" else "") }
+                    val rareDated = dexStatus.rare.mapIndexed { i, item -> item to (if (item.got) posToDate[normalCount + i] ?: "" else "") }
+                    val tokuDated = dexStatus.toku.map { item -> item to "" }
+                    val seasonDated = dexStatus.season.map { item -> item to "" }
+                    val gotSorted = (normalDated + rareDated + tokuDated + seasonDated)
+                        .filter { it.first.got }
+                        .sortedByDescending { it.second }
+                        .map { it.first }
+                    val preview = gotSorted.take(4).toMutableList()
+                    if (preview.size < 4) {
+                        val notGot = dexAll.filter { !it.got }
+                        preview += notGot.take(4 - preview.size)
+                    }
+                    preview
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenDex)) {
+                    dexPreview.forEach { item -> DexPreviewThumb(item, Modifier.weight(1f)) }
+                }
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     KyonoGhostButton("じまんカード", onOpenBrag, Modifier.weight(1f).testTag("bragBtn"))

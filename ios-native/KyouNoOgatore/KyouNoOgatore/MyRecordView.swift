@@ -189,13 +189,69 @@ struct MyRecordView: View {
 // TASK-C2-2026-08-01-build15-subtraction9.md #7: カード図鑑バナー(見本サムネイル付きの独立カード。
 // 旧DexBannerCardView/DexBannerCellView)と「お楽しみ機能」カードの2つの入口を1つに統合(引き算)。
 // 進捗件数(n/106)だけをお楽しみ機能カード内のボタンラベルへ残し、見本サムネイル行は削除。
-private func dexProgressCount(store: RecordStore, streak: RecordLogic.StreakData) -> (got: Int, total: Int) {
+// TASK-C2-2026-08-04-build21-addendum.md Y-4(本人指示「前みたいに」)で見本サムネイル4枚を
+// 復活させるにあたり、進捗件数とプレビュー対象を同じ1回の計算でまとめて返すよう拡張する。
+private func dexBannerData(store: RecordStore, streak: RecordLogic.StreakData) -> (got: Int, total: Int, preview: [DexItem]) {
+    let data = CardDataLoader.shared
     let existing: [String: Int] = store.get("rotAssign", default: [:])
     let rot = CardLottery.ensureRotAssign(dates: streak.dates, total: streak.total, existing: existing)
     if existing.isEmpty && !rot.isEmpty { store.set("rotAssign", rot) }
     let status = DexLogic.getDexStatus(dates: streak.dates, total: streak.total, rotAssign: rot)
     let all = status.toku + status.season + status.rare + status.normal
-    return (all.filter { $0.got }.count, all.count)
+
+    // Y-4: 獲得済みを新しい順に優先。ノーマル/レアはrot(日付→抽選位置)を位置→最新日付へ反転して
+    // 実際の獲得日で並べる。記念日/季節カードは直接の獲得日を持たないため簡易的に末尾へ回す
+    // (実用上、コレクションの大半はノーマル/レアのため直近の見え方への影響は小さい)。
+    var posToDate: [Int: String] = [:]
+    for (ds, pos) in rot {
+        if let cur = posToDate[pos], cur > ds { continue }
+        posToDate[pos] = ds
+    }
+    let normalCount = data.NORMAL_CARDS.count
+    let normalDated = status.normal.enumerated().map { i, item in (item, item.got ? (posToDate[i] ?? "") : "") }
+    let rareDated = status.rare.enumerated().map { i, item in (item, item.got ? (posToDate[normalCount + i] ?? "") : "") }
+    let tokuDated = status.toku.map { item in (item, "") }
+    let seasonDated = status.season.map { item in (item, "") }
+    let gotSorted = (normalDated + rareDated + tokuDated + seasonDated)
+        .filter { $0.0.got }
+        .sorted { $0.1 > $1.1 }
+        .map { $0.0 }
+    var preview = Array(gotSorted.prefix(4))
+    if preview.count < 4 {
+        let notGot = all.filter { !$0.got }
+        preview += Array(notGot.prefix(4 - preview.count))
+    }
+    return (all.filter { $0.got }.count, all.count, preview)
+}
+
+// TASK-C2-2026-08-04-build21-addendum.md Y-4: DexView.swift DexCellViewの簡略版(名前/フレーバー
+// 文言なし・タップは呼び出し元のカード全体に付与するためこのビュー自体は非タップ)。
+// 図鑑画面の未獲得表現(暗くティント/ノーマルは「？」)をそのまま流用する。
+private struct DexPreviewThumb: View {
+    @Environment(\.kyonoColors) private var colors
+    let item: DexItem
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12).fill(colors.bg)
+            RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5)
+            if item.tier == "normal" {
+                if item.got, let nc = CardDataLoader.shared.NORMAL_CARDS.first(where: { $0.name == item.name }) {
+                    Circle().fill(Color(hex: nc.main)).frame(width: 24, height: 24)
+                } else {
+                    Text("？").kyonoFont(.black900, size: 22).foregroundColor(colors.sub)
+                }
+            } else if let key = item.key, let uiImage = loadCardArt(key) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .colorMultiply(item.got ? .white : Color.black.opacity(0.55))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .frame(maxWidth: .infinity)
+    }
 }
 
 private struct MyRecordContentView: View {
@@ -372,8 +428,17 @@ private struct MyRecordContentView: View {
                     Spacer().frame(height: 8)
                     Text("カード図鑑やじまんカード、せんぱいの声をチェック").kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     Spacer().frame(height: 10)
-                    let dexProgress = dexProgressCount(store: store, streak: streak)
-                    KyonoPrimaryButton("カード図鑑（\(dexProgress.got)/\(dexProgress.total)）", icon: .dexBook, action: onOpenDex)
+                    let dexBanner = dexBannerData(store: store, streak: streak)
+                    KyonoPrimaryButton("カード図鑑（\(dexBanner.got)/\(dexBanner.total)）", icon: .dexBook, action: onOpenDex)
+                    // TASK-C2-2026-08-04-build21-addendum.md Y-4(本人指示「前みたいに」): カードの
+                    // ミニサムネイル4枚を横並びで表示(タップ挙動はカード図鑑ボタンと同じ)。
+                    Spacer().frame(height: 10)
+                    HStack(spacing: 8) {
+                        ForEach(Array(dexBanner.preview.enumerated()), id: \.offset) { _, item in
+                            DexPreviewThumb(item: item)
+                        }
+                    }
+                    .onTapGesture(perform: onOpenDex)
                     Spacer().frame(height: 10)
                     HStack(spacing: 8) {
                         KyonoGhostButton("じまんカード", action: onOpenBrag)

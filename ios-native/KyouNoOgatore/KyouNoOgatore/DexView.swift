@@ -146,7 +146,8 @@ private struct DexCellView: View {
 
 // PBXFileSystemSynchronizedRootGroup(Xcode26形式)はCardArt/サブフォルダをバンドルのビルド時に
 // フラット化してバンドルルート直下へ配置するため、subdirectory指定なしで探す(実測確認済み)。
-private func loadCardArt(_ key: String) -> UIImage? {
+// TASK-C2-2026-08-04-build21-addendum.md Y-4: マイ記録の図鑑看板プレビューからも呼ぶためnon-privateに。
+func loadCardArt(_ key: String) -> UIImage? {
     guard let url = Bundle.main.url(forResource: key, withExtension: "png") else { return nil }
     return UIImage(contentsOfFile: url.path)
 }
