@@ -36,6 +36,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -988,6 +989,41 @@ private fun DexPreviewThumb(item: DexItem, modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxSize(),
                 )
             }
+        }
+    }
+}
+
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-9(本人指示・FullSizeRender青線): 図鑑ボタンと
+// プレビュー4枚を1つの角丸枠に統合。配色は案B(Z-1/Z-2)のghost配色(じまんカード等と同じ
+// ミント地+濃緑枠)に整合させ、枠全体を1つのタップ領域にする。
+@Composable
+private fun DexBannerCard(got: Int, total: Int, preview: List<DexItem>, onClick: () -> Unit) {
+    val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val bg = if (dark) colors.tealSoft else Color(0xFFDFF5F2)
+    val borderColor = if (dark) colors.tealStrong else Color(0xFF177065)
+    val borderWidth = if (dark) 2.dp else 2.5.dp
+    val textColor = if (dark) colors.tealInk else Color(0xFF0F5A50)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(if (pressed) 0.85f else 1f)
+            .background(bg, KyonoButtonShape)
+            .border(borderWidth, borderColor, KyonoButtonShape)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            .padding(14.dp)
+            .testTag("dexBannerCard"),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            KyonoIconGlyph(KyonoIcon.DexBook, fill = Color.Transparent, accent = textColor, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("カード図鑑（$got/$total）", color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Black)
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            preview.forEach { item -> DexPreviewThumb(item, Modifier.weight(1f)) }
         }
     }
 }
@@ -2507,7 +2543,6 @@ fun MyRecordScreen(
                 val dexStatus = remember { DexLogic.getDexStatus(streak.dates, streak.total, rot) }
                 val dexAll = dexStatus.toku + dexStatus.season + dexStatus.rare + dexStatus.normal
                 val dexGot = dexAll.count { it.got }
-                KyonoPrimaryButton("カード図鑑（$dexGot/${dexAll.size}）", onOpenDex, Modifier.testTag("dexBtn"), icon = KyonoIcon.DexBook)
                 // TASK-C2-2026-08-04-build21-addendum.md Y-4(本人指示「前みたいに」): カードのミニ
                 // サムネイル4枚を横並びで表示(タップ挙動はカード図鑑ボタンと同じ)。獲得済みを新しい順に
                 // 優先。ノーマル/レアはrot(日付→抽選位置)を位置→最新日付へ反転して実際の獲得日で
@@ -2535,10 +2570,7 @@ fun MyRecordScreen(
                     }
                     preview
                 }
-                Spacer(Modifier.height(10.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenDex)) {
-                    dexPreview.forEach { item -> DexPreviewThumb(item, Modifier.weight(1f)) }
-                }
+                DexBannerCard(dexGot, dexAll.size, dexPreview, onOpenDex)
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     KyonoGhostButton("じまんカード", onOpenBrag, Modifier.weight(1f).testTag("bragBtn"))
