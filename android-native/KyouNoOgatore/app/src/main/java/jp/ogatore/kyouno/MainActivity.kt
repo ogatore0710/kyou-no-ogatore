@@ -662,7 +662,7 @@ class MainActivity : ComponentActivity() {
                                         .fillMaxHeight(0.92f)
                                         .clip(RoundedCornerShape(22.dp))
                                         .background(colors.bg)
-                                        .border(1.5.dp, colors.line, RoundedCornerShape(22.dp)),
+                                        .border(1.5.dp, colors.borderStrong, RoundedCornerShape(22.dp)),
                                 ) {
                                     OnboardingScreen(
                                         store = store,
@@ -925,7 +925,7 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
             .padding(vertical = 5.dp)
             .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
             .background(colors.card, RoundedCornerShape(16.dp))
-            .border(1.5.dp, colors.line, RoundedCornerShape(16.dp))
+            .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp))
             .padding(10.dp)
             .semantics(mergeDescendants = true) {}
             .testTag("video_${v.id}"),
@@ -968,7 +968,7 @@ private fun DexPreviewThumb(item: DexItem, modifier: Modifier = Modifier) {
         modifier
             .aspectRatio(1f)
             .background(colors.bg, RoundedCornerShape(12.dp))
-            .border(1.5.dp, colors.line, RoundedCornerShape(12.dp)),
+            .border(1.5.dp, colors.borderStrong, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center,
     ) {
         if (item.tier == "normal") {
@@ -1314,7 +1314,7 @@ fun HomeScreen(
                 Box(
                     Modifier.weight(1f)
                         .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                        .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                        .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                 ) {
                     Column {
@@ -1744,7 +1744,7 @@ fun HomeScreen(
                                     Modifier
                                         .fillMaxWidth()
                                         .background(colors.bg, RoundedCornerShape(12.dp))
-                                        .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+                                        .border(1.5.dp, colors.borderStrong, RoundedCornerShape(12.dp))
                                         .padding(horizontal = 12.dp, vertical = 9.dp),
                                 ) {
                                     Column {
@@ -2564,7 +2564,7 @@ fun MyRecordScreen(
                         Image(
                             painter = painterResource(id = resId), contentDescription = "前屈のお手本",
                             modifier = Modifier.fillMaxWidth(0.7f).background(colors.card, RoundedCornerShape(16.dp))
-                                .border(1.5.dp, colors.line, RoundedCornerShape(16.dp)).testTag("reachMeterImage"),
+                                .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp)).testTag("reachMeterImage"),
                         )
                     }
                 }
@@ -2588,7 +2588,7 @@ fun MyRecordScreen(
                             // 変えずheightInで下限だけ確保する。
                             modifier = Modifier.weight(1f).heightIn(min = 44.dp)
                                 .background(if (on) colors.tealStrong else colors.card, RoundedCornerShape(12.dp))
-                                .border(2.dp, if (on) colors.tealStrong else colors.line, RoundedCornerShape(12.dp))
+                                .border(2.dp, if (on) colors.tealStrong else colors.borderStrong, RoundedCornerShape(12.dp))
                                 .clickable {
                                     // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)

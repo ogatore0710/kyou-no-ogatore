@@ -134,7 +134,7 @@ struct VideoRow: View {
         }
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 16).fill(hero ? colors.pinkSoft : colors.card))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(hero ? colors.pink : colors.line, lineWidth: hero ? 2.5 : 1.5))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(hero ? colors.pink : colors.borderStrong, lineWidth: hero ? 2.5 : 1.5))
         // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: サムネイル(装飾)+バッジ+タイトル+
         // 補足を1回のVoiceOverスワイプで読める1つの単位にまとめる。
         .accessibilityElement(children: .combine)
@@ -312,7 +312,7 @@ private struct SearchContentView: View {
             }
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
                 .onChange(of: query) { _, _ in searchLimit = 24 }
             // index.html:436-437 .catbtn/.catbtn.on。TASK-C2-2026-07-27-chips-overflow-and-
             // bubble-pop.md §1: index.html:434 .catrow{overflow-x:auto}(検索画面のカテゴリ行は
@@ -538,7 +538,7 @@ private struct PlaylistRow: View {
         }
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 1.5))
         .accessibilityElement(children: .combine)
         .buttonStyle(.plain)
     }

@@ -98,7 +98,7 @@ struct KyonoTourMockup: View {
                     HStack(spacing: 8) {
                         KyonoCharaImage(name: "card-sample").frame(width: 52, height: 52)
                         ForEach(0..<3, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 10).stroke(colors.line, lineWidth: 1.5)
+                            RoundedRectangle(cornerRadius: 10).stroke(colors.borderStrong, lineWidth: 1.5)
                                 .frame(width: 52, height: 52)
                                 .overlay(Text("？").kyonoFont(.black900, size: 16).foregroundColor(colors.sub))
                         }
@@ -121,7 +121,7 @@ struct KyonoTourMockup: View {
                     Text("それはつらいね…！まずはこの1本からやってみよう").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(shape.fill(colors.card))
-                        .overlay(shape.stroke(colors.line, lineWidth: 1.5))
+                        .overlay(shape.stroke(colors.borderStrong, lineWidth: 1.5))
                 }
             }
         // 予告2) オガトレ通信をのぞく: 丸い写真アイコン+説明

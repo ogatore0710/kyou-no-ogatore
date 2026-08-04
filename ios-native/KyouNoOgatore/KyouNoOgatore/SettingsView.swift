@@ -215,7 +215,7 @@ struct SettingsView: View {
                         .tint(colors.ink)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
                         .onChange(of: nickname) { _, newValue in
                             let trimmed = String(newValue.prefix(6))
                             if trimmed != newValue { nickname = trimmed }
@@ -287,7 +287,7 @@ struct SettingsView: View {
                                 .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
                                 .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 2))
                         }
                         .accessibilityLabel("時を選ぶ、現在\(String(format: "%02d", icsHour))時")
                         Menu {
@@ -303,7 +303,7 @@ struct SettingsView: View {
                                 .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
                                 .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 2))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 2))
                         }
                         .accessibilityLabel("分を選ぶ、現在\(String(format: "%02d", icsMinute))分")
                     }
@@ -380,7 +380,7 @@ struct SettingsView: View {
                             .frame(height: 120)
                             .padding(4)
                             .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
                     }
                     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §5: index.html:837の1:1移植。
                     // コピーして終わり→保存されないまま機種変、が起きないよう保存先を促す。
@@ -415,7 +415,7 @@ struct SettingsView: View {
                         .foregroundColor(colors.ink)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
                     Spacer().frame(height: 8)
                     KyonoLineButton("よみこむ", icon: .importTray) {
                         // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: index.html:2082-2084

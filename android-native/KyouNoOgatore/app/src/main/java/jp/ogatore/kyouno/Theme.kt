@@ -63,6 +63,10 @@ data class KyonoColors(
     val bg: Color,
     val card: Color,
     val line: Color,
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-6(ダーク磨き込みA案): カード/入力欄/ラインボタン
+    // 等の「枠線」用途はline(トラック等の面色との兼用トークン)から分離。lineは面色用途を維持し
+    // 変更しない(ライトはlineと同値=無変更、ダークのみ背景比5:1以上へ底上げ)。
+    val borderStrong: Color,
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): build21で藍化した主ボタンを
     // 黄色へ復帰。地は`yellow`をそのまま使う(専用トークンは廃止)。btnPrimaryShadowのみ両テーマ
     // 同一の`#E8BE1E`(藍化以前の値)に戻す。
@@ -103,6 +107,7 @@ val KyonoLightColors = KyonoColors(
     bg = Color(0xFFF7EEDC),
     card = Color(0xFFFFFFFF),
     line = Color(0xFFEBDFC8),
+    borderStrong = Color(0xFFEBDFC8),
     btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFFC4BDA9),
     tabbarStrokeOff = Color(0xFF6E6B5F),
@@ -125,9 +130,16 @@ val KyonoDarkColors = KyonoColors(
     pink = Color(0xFFE56A9A),
     pinkInk = Color(0xFFE56A9A),
     pinkSoft = Color(0xFF3A2730),
-    bg = Color(0xFF211E19),
-    card = Color(0xFF2C2822),
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-6(ダーク磨き込みA案): bg/cardの明度差を実測
+    // 1.13:1→1.42:1へ拡大(背景から一段沈め・カードを一段浮かせ、白系ではなく暖色ブラウンの
+    // ままトーンだけ広げる=藍化・黒化はしない)。line(トラック等の面色)は据え置き。
+    bg = Color(0xFF1C1915),
+    card = Color(0xFF3A342C),
     line = Color(0xFF3D382F),
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-6: 既知のダーク枠線コントラスト不足
+    // (ラインボタン1.72:1・入力欄/カード等1.26〜1.43:1)を根治。同じ暖色ハイライトへ底上げし
+    // 新背景比7.70:1・新カード比5.41:1を確保(#B4AB9Aは旧lineと同色相・彩度を保ったまま明度のみ上げた値)。
+    borderStrong = Color(0xFFB4AB9A),
     btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFF3D382F),
     tabbarStrokeOff = Color(0xFF847D6C),

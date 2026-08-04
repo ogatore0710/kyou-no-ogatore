@@ -573,7 +573,7 @@ private struct OnboardingOverlayCard<Content: View>: View {
     var body: some View {
         content()
             .background(RoundedRectangle(cornerRadius: kyonoRadius).fill(colors.bg))
-            .overlay(RoundedRectangle(cornerRadius: kyonoRadius).stroke(colors.line, lineWidth: 1.5))
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius).stroke(colors.borderStrong, lineWidth: 1.5))
             .padding(14)
             .frame(maxHeight: UIScreen.main.bounds.height * 0.92)
     }

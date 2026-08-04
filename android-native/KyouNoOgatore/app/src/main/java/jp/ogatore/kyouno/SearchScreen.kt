@@ -198,7 +198,7 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
             .alpha(if (disabledLook) 0.5f else 1f)
             .clickable(enabled = !disabledLook) { openUrl("https://www.youtube.com/watch?v=${v.id}") }
             .background(if (hero) colors.pinkSoft else colors.card, RoundedCornerShape(16.dp))
-            .border(if (hero) 2.5.dp else 1.5.dp, if (hero) colors.pink else colors.line, RoundedCornerShape(16.dp))
+            .border(if (hero) 2.5.dp else 1.5.dp, if (hero) colors.pink else colors.borderStrong, RoundedCornerShape(16.dp))
             .padding(10.dp)
             // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: サムネイル(装飾)+バッジ+タイトル+
             // 補足を1回のTalkBackスワイプで読める1つの単位にまとめる。
@@ -598,7 +598,7 @@ private fun PlaylistRow(item: jp.ogatore.kyouno.catalog.PlaylistItem, openUrl: (
             .padding(vertical = 5.dp)
             .clickable { openUrl("https://www.youtube.com/playlist?list=${item.id}") }
             .background(colors.card, RoundedCornerShape(16.dp))
-            .border(1.5.dp, colors.line, RoundedCornerShape(16.dp))
+            .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp))
             .padding(10.dp)
             .semantics(mergeDescendants = true) {}
             .testTag("playlist_${item.id}"),

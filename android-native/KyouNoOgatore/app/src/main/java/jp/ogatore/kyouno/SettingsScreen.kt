@@ -404,7 +404,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                             "%02d時".format(icsHour), color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
                             modifier = Modifier
                                 .background(colors.card, RoundedCornerShape(12.dp))
-                                .border(2.dp, colors.line, RoundedCornerShape(12.dp))
+                                .border(2.dp, colors.borderStrong, RoundedCornerShape(12.dp))
                                 .clickable { showHourMenu = true }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                                 .testTag("icsHourBtn")
@@ -432,7 +432,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                             "%02d分".format(icsMinute), color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
                             modifier = Modifier
                                 .background(colors.card, RoundedCornerShape(12.dp))
-                                .border(2.dp, colors.line, RoundedCornerShape(12.dp))
+                                .border(2.dp, colors.borderStrong, RoundedCornerShape(12.dp))
                                 .clickable { showMinuteMenu = true }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                                 .testTag("icsMinuteBtn")

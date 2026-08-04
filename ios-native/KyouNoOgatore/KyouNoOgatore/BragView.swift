@@ -111,7 +111,7 @@ private struct BragContentView: View {
                     .tint(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
                     .onChange(of: daysText) { _, newValue in
                         let filtered = newValue.filter { $0.isNumber }
                         daysText = String(filtered.prefix(4))
@@ -131,7 +131,7 @@ private struct BragContentView: View {
                     .tint(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
 
                 // UX13案・案11(2026-07-30): A5でページ全体がScrollViewになった結果、検索結果だけが
                 // 内側ScrollView(maxHeight:240)の入れ子になっていた(ページを撫でるつもりが内側だけ
@@ -145,7 +145,7 @@ private struct BragContentView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(12)
                             .background(RoundedRectangle(cornerRadius: 12).fill(colors.bg))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 1.5))
                             .contentShape(Rectangle())
                             .onTapGesture { picked = v }
                     }

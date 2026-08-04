@@ -199,7 +199,7 @@ private struct DexPreviewThumb: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12).fill(colors.bg)
-            RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 1.5)
             if item.tier == "normal" {
                 if item.got, let nc = CardDataLoader.shared.NORMAL_CARDS.first(where: { $0.name == item.name }) {
                     Circle().fill(Color(hex: nc.main)).frame(width: 24, height: 24)
@@ -436,7 +436,7 @@ private struct MyRecordContentView: View {
                         .frame(width: 220)
                         .background(colors.card)
                         .cornerRadius(16)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 1.5))
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer().frame(height: 10)
                     if reachList.isEmpty {
@@ -459,7 +459,7 @@ private struct MyRecordContentView: View {
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .padding(.vertical, 13)
                                 .background(on ? colors.tealStrong : colors.card)
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(on ? colors.tealStrong : colors.line, lineWidth: 2))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(on ? colors.tealStrong : colors.borderStrong, lineWidth: 2))
                                 .cornerRadius(12)
                                 .contentShape(Rectangle())
                                 .onTapGesture {

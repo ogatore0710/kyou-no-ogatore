@@ -125,7 +125,7 @@ fun KyonoTourMockup(kind: TourMockKind) {
                     KyonoTourDrawable("card_sample", Modifier.size(52.dp), RoundedCornerShape(10.dp))
                     repeat(3) {
                         Box(
-                            Modifier.size(52.dp).border(1.5.dp, colors.line, RoundedCornerShape(10.dp)),
+                            Modifier.size(52.dp).border(1.5.dp, colors.borderStrong, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center,
                         ) { Text("？", color = colors.sub, fontWeight = FontWeight.Black) }
                     }
@@ -148,7 +148,7 @@ fun KyonoTourMockup(kind: TourMockKind) {
                     "それはつらいね…！まずはこの1本からやってみよう", color = colors.ink,
                     modifier = Modifier
                         .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                        .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                        .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                 )
             }

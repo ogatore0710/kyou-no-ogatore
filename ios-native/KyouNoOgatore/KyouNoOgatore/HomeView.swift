@@ -580,7 +580,7 @@ struct HomeView: View {
                 .padding(.horizontal, 14 * zoom).padding(.vertical, 10 * zoom)
                 .background(
                     RoundedRectangle(cornerRadius: 16 * zoom).fill(colors.card)
-                        .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
+                        .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
                 )
                 Spacer()
                 KyonoCharaImage(name: "chara-hitokoto").frame(height: 44 * zoom)
@@ -912,7 +912,7 @@ struct HomeView: View {
                             }
                             .padding(.horizontal, 12 * zoom).padding(.vertical, 9 * zoom)
                             .background(colors.bg)
-                            .overlay(RoundedRectangle(cornerRadius: 12 * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
+                            .overlay(RoundedRectangle(cornerRadius: 12 * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
                             .clipShape(RoundedRectangle(cornerRadius: 12 * zoom))
                         }
                         Spacer().frame(height: 10 * zoom)
@@ -1059,7 +1059,7 @@ private struct HomeMemoRow: View {
                 .foregroundColor(colors.ink)
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
             KyonoLineButton(saved ? "のこしました ✓" : "メモをのこす", enabled: !saved) {
                 // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -1314,7 +1314,7 @@ private struct HomeTodayVideoRow: View {
         }
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 1.5))
         .accessibilityElement(children: .combine)
         .buttonStyle(.plain)
     }
@@ -1332,7 +1332,7 @@ private struct HomeSoudanChip: View {
         Button(action: action) {
             Text(label).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                 .padding(.horizontal, 16 * zoom).padding(.vertical, 10 * zoom)
-                .overlay(Capsule().stroke(colors.line, lineWidth: 2 * zoom))
+                .overlay(Capsule().stroke(colors.borderStrong, lineWidth: 2 * zoom))
                 .background(Capsule().fill(colors.card))
         }
         .buttonStyle(.plain)

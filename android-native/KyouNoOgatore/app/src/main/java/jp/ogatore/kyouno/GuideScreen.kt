@@ -282,7 +282,7 @@ fun GuideScreen(
                 GStep("1", "かたさチェック（30秒）", "5問タップするだけ 写真とイラストのお手本つき") {
                     KyonoCharaImage(
                         "check_q1",
-                        Modifier.width(110.dp).border(1.5.dp, colors.line, RoundedCornerShape(12.dp)).padding(1.5.dp),
+                        Modifier.width(110.dp).border(1.5.dp, colors.borderStrong, RoundedCornerShape(12.dp)).padding(1.5.dp),
                     )
                 }
                 GStep("2", "あなたの「かたさタイプ」が出ます", "タイプに合わせた おすすめ3本つき")
@@ -465,7 +465,7 @@ fun GuideScreen(
                                 Modifier.fillMaxWidth().padding(vertical = 4.dp)
                                     .clickable { openItems[key] = !open }
                                     .background(colors.bg, RoundedCornerShape(14.dp))
-                                    .border(1.5.dp, colors.line, RoundedCornerShape(14.dp))
+                                    .border(1.5.dp, colors.borderStrong, RoundedCornerShape(14.dp))
                                     .padding(13.dp)
                                     .testTag("faqItem_$key"),
                             ) {
@@ -610,7 +610,7 @@ private fun GFlow(steps: List<String>) {
             Box(
                 Modifier.widthIn(min = 76.dp)
                     .background(colors.bg, RoundedCornerShape(14.dp))
-                    .border(1.5.dp, colors.line, RoundedCornerShape(14.dp))
+                    .border(1.5.dp, colors.borderStrong, RoundedCornerShape(14.dp))
                     .padding(horizontal = 10.dp, vertical = 10.dp),
                 contentAlignment = Alignment.Center,
             ) {

@@ -96,7 +96,7 @@ struct KyonoCard<Content: View>: View {
             .padding(20 * zoom)
             .background(colors.card)
             .cornerRadius(kyonoRadius * zoom)
-            .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
             .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
     }
 }
@@ -129,7 +129,7 @@ struct KyonoGradientCard<Content: View>: View {
             .padding(20 * zoom)
             .background(LinearGradient(colors: [from, to], startPoint: .topLeading, endPoint: .bottomTrailing))
             .cornerRadius(kyonoRadius * zoom)
-            .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.line, lineWidth: 1.5 * zoom))
+            .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
             .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
     }
 }
@@ -434,7 +434,9 @@ struct KyonoLineButton: View {
                 Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(textColor)
             }
         }
-        .buttonStyle(KyonoLineButtonStyle(borderColor: dark ? Color(hex: 0x4A443A) : Color(hex: 0x4A473D), zoom: zoom, enabled: enabled))
+        // TASK-C2-2026-08-04-build22-yellow-return.md Z-6: 既知の枠線コントラスト不足(実測1.72:1)を
+        // 根治。ダークはcolors.borderStrong(新背景比7.70:1)へ統一。
+        .buttonStyle(KyonoLineButtonStyle(borderColor: dark ? colors.borderStrong : Color(hex: 0x4A473D), zoom: zoom, enabled: enabled))
         .disabled(!enabled)
     }
 }
@@ -633,7 +635,7 @@ struct FadingChipRow<Content: View>: View {
                         .frame(width: 40)
                     Circle()
                         .fill(colors.card)
-                        .overlay(Circle().stroke(colors.line, lineWidth: 1))
+                        .overlay(Circle().stroke(colors.borderStrong, lineWidth: 1))
                         .frame(width: 22, height: 22)
                         .overlay(Text("›").foregroundColor(colors.sub).font(.system(size: 14, weight: .black)))
                         .padding(.trailing, 2)
@@ -650,7 +652,7 @@ struct FadingChipRow<Content: View>: View {
                         .frame(width: 40)
                     Circle()
                         .fill(colors.card)
-                        .overlay(Circle().stroke(colors.line, lineWidth: 1))
+                        .overlay(Circle().stroke(colors.borderStrong, lineWidth: 1))
                         .frame(width: 22, height: 22)
                         .overlay(Text("‹").foregroundColor(colors.sub).font(.system(size: 14, weight: .black)))
                         .padding(.leading, 2)

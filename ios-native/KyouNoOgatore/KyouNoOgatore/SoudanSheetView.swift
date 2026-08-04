@@ -571,7 +571,7 @@ private struct SoudanContentView: View {
         // .sd-ava(chara-hitokoto.pngアバター・botメッセージのみ)の1:1移植。
         case let .bot(text, red, videoId, videoBadge, fallbackCaution):
             let bg = red ? colors.coralSoft : colors.card
-            let border = red ? colors.coral : colors.line
+            let border = red ? colors.coral : colors.borderStrong
             HStack(alignment: .bottom) {
                 KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 6) {
@@ -609,7 +609,7 @@ private struct SoudanContentView: View {
                     .padding(.horizontal, 16).padding(.vertical, 14)
                     .background(
                         RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).fill(colors.card)
-                            .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.line, lineWidth: 1.5))
+                            .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.borderStrong, lineWidth: 1.5))
                     )
                 Spacer()
             }
@@ -622,7 +622,7 @@ private struct SoudanContentView: View {
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(
                         RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).fill(colors.card)
-                            .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.line, lineWidth: 1.5))
+                            .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.borderStrong, lineWidth: 1.5))
                     )
                     .frame(maxWidth: 320, alignment: .leading)
                 Spacer()
@@ -641,7 +641,7 @@ private struct SoudanContentView: View {
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(
                     RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).fill(colors.card)
-                        .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.line, lineWidth: 1.5))
+                        .overlay(RoundedCorner(radius: 16, corners: [.topLeft, .topRight, .bottomRight]).stroke(colors.borderStrong, lineWidth: 1.5))
                 )
                 .frame(maxWidth: 320, alignment: .leading)
                 Spacer()
@@ -729,7 +729,7 @@ private struct SoudanContentView: View {
                     .foregroundColor(colors.ink)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
                     .focused($inputFocused)
                 KyonoPrimaryButton("送信", enabled: !sdPending, action: onSend).frame(width: 90)
             }
@@ -818,7 +818,7 @@ private struct KyonoChip: View {
         Button(action: action) {
             Text(label).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                 .padding(.horizontal, 16).padding(.vertical, 10)
-                .overlay(Capsule().stroke(colors.line, lineWidth: 2))
+                .overlay(Capsule().stroke(colors.borderStrong, lineWidth: 2))
                 .background(Capsule().fill(colors.card))
         }
         .buttonStyle(.plain)

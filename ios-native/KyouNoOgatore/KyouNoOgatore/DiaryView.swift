@@ -72,7 +72,7 @@ private struct DiaryContentView: View {
                             // border-bottom:1px dashed var(--line)の1:1移植(以前は実線で近似としていた)。
                             // Web版は全行(最終行含む)に付くため、除外条件は付けない。
                             DashedDividerShape()
-                                .stroke(colors.line, style: StrokeStyle(lineWidth: 1 * zoom, dash: [4, 3]))
+                                .stroke(colors.borderStrong, style: StrokeStyle(lineWidth: 1 * zoom, dash: [4, 3]))
                                 .frame(height: 1 * zoom)
                         }
                     }

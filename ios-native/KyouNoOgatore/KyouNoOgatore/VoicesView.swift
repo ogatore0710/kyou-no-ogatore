@@ -159,6 +159,6 @@ private struct VoiceCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)
         .background(RoundedRectangle(cornerRadius: 22).fill(colors.card))
-        .overlay(RoundedRectangle(cornerRadius: 22).stroke(colors.line, lineWidth: 1.5))
+        .overlay(RoundedRectangle(cornerRadius: 22).stroke(colors.borderStrong, lineWidth: 1.5))
     }
 }

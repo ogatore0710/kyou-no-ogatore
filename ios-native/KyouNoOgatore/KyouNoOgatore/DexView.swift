@@ -115,7 +115,7 @@ private struct DexCellView: View {
             ZStack {
                 // index.html:236 .dex-thumb(bg/border/radius12)の1:1移植。
                 RoundedRectangle(cornerRadius: 12).fill(colors.bg)
-                RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 1.5)
                 if item.tier == "normal" {
                     if item.got, let nc = CardDataLoader.shared.NORMAL_CARDS.first(where: { $0.name == item.name }) {
                         Circle().fill(Color(hex: nc.main)).frame(width: 24, height: 24)

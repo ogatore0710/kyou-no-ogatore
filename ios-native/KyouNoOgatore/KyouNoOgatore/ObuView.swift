@@ -115,7 +115,7 @@ struct ObuPostCardView: View {
                         .containerRelativeFrame(.horizontal) { width, _ in width * photoWidthFraction }
                         .background(colors.card)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.borderStrong, lineWidth: 1.5))
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
                 if let text = post.text { Text(text).kyonoFont(.bold700, size: 14).foregroundColor(colors.ink).lineSpacing(6) }
@@ -214,7 +214,7 @@ struct ObuRadioPlayerView: View {
             }
             .padding(10)
             .background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 1.5))
             .onAppear { model.load(url: url) }
         } else {
             Text("音声を読み込めませんでした").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)

@@ -308,7 +308,7 @@ private struct OnboardingContentView: View {
                         Text(b.text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(7)
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(shape.fill(b.fromUser ? colors.yellowSoft : colors.card))
-                            .overlay(shape.stroke(b.fromUser ? Color.clear : colors.line, lineWidth: 1.5))
+                            .overlay(shape.stroke(b.fromUser ? Color.clear : colors.borderStrong, lineWidth: 1.5))
                         if !b.fromUser { Spacer(minLength: 40) }
                     }
                     .transition(.sdPop)
@@ -796,7 +796,7 @@ private struct QuizContentView: View {
                             QuizOptionCard(
                                 label: opt.label, note: opt.note,
                                 background: c?.bg ?? colors.card,
-                                borderColor: isPicked ? colors.teal : (c?.border ?? colors.line),
+                                borderColor: isPicked ? colors.teal : (c?.border ?? colors.borderStrong),
                                 // TASK-C2-2026-08-04-build22-yellow-return.md Z-3(棚卸し対象): このQ1-Q4
                                 // 段階色カードもobgColorsパレットを共有するため、同基準で文字も濃色化。
                                 labelColor: c?.text ?? colors.ink,

@@ -238,7 +238,7 @@ private struct GuideContentView: View {
                         GStep(marker: "1", title: "かたさチェック（30秒）", body: "5問タップするだけ 写真とイラストのお手本つき") {
                             KyonoCharaImage(name: "check-q1")
                                 .frame(width: 110)
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.line, lineWidth: 1.5))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(colors.borderStrong, lineWidth: 1.5))
                         }
                         GStep(marker: "2", title: "あなたの「かたさタイプ」が出ます", body: "タイプに合わせた おすすめ3本つき")
                         GStep(marker: "3", title: "まず1本 動画をやってみる", body: "おわったらホームの「きょうやった！」を押す")
@@ -346,7 +346,7 @@ private struct GuideContentView: View {
                     }
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 2))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
 
                     LazyVStack(alignment: .leading, spacing: 6) {
                         ForEach(faqGroups, id: \.title) { group in
@@ -395,7 +395,7 @@ private struct GuideContentView: View {
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .padding(13)
                                         .background(RoundedRectangle(cornerRadius: 14).fill(colors.bg))
-                                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
+                                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.borderStrong, lineWidth: 1.5))
                                         .contentShape(Rectangle())
                                         .onTapGesture { toggleItem(key) }
                                     }
@@ -531,7 +531,7 @@ private struct GFlow: View {
                     .padding(.horizontal, 10).padding(.vertical, 10)
                     .frame(minWidth: 76)
                     .background(RoundedRectangle(cornerRadius: 14).fill(colors.bg))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.line, lineWidth: 1.5))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.borderStrong, lineWidth: 1.5))
                 if i < steps.count - 1 {
                     Text("→").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                 }

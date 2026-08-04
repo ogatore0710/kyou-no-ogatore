@@ -126,7 +126,7 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
         Box(
             Modifier.fillMaxWidth().aspectRatio(1f)
                 .background(colors.bg, RoundedCornerShape(12.dp))
-                .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+                .border(1.5.dp, colors.borderStrong, RoundedCornerShape(12.dp))
                 .testTag("dexThumb_${item.tier}_${item.name}"),
             contentAlignment = Alignment.Center,
         ) {

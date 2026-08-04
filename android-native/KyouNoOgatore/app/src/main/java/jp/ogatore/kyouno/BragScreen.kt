@@ -146,7 +146,7 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
                             v.t, color = colors.ink, fontSize = 14.sp,
                             modifier = Modifier.fillMaxWidth()
                                 .background(colors.bg, RoundedCornerShape(12.dp))
-                                .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+                                .border(1.5.dp, colors.borderStrong, RoundedCornerShape(12.dp))
                                 .clickable { picked = v }
                                 .padding(12.dp)
                                 .testTag("bragHit_${v.id}"),

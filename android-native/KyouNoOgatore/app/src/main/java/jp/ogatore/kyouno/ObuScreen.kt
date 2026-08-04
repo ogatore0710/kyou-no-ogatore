@@ -147,7 +147,7 @@ fun ObuPostCard(post: ObuPost, today: String, photoWidthFraction: Float = 1f) {
                             modifier = Modifier.fillMaxWidth(photoWidthFraction).padding(top = 6.dp)
                                 .align(Alignment.CenterHorizontally)
                                 .background(colors.card, RoundedCornerShape(14.dp))
-                                .border(1.5.dp, colors.line, RoundedCornerShape(14.dp)),
+                                .border(1.5.dp, colors.borderStrong, RoundedCornerShape(14.dp)),
                         )
                     }
                 }
@@ -216,7 +216,7 @@ private fun ObuRadioPlayer(post: ObuPost, modifier: Modifier = Modifier) {
     Row(
         modifier.fillMaxWidth()
             .background(colors.card, RoundedCornerShape(12.dp))
-            .border(1.5.dp, colors.line, RoundedCornerShape(12.dp))
+            .border(1.5.dp, colors.borderStrong, RoundedCornerShape(12.dp))
             .padding(10.dp)
             .testTag("obuRadioPlayer_${post.id}"),
         verticalAlignment = Alignment.CenterVertically,

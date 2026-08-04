@@ -133,7 +133,7 @@ fun KyonoCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.()
                 },
             )
             .background(colors.card, KyonoCardShape)
-            .border(1.5.dp, colors.line, KyonoCardShape)
+            .border(1.5.dp, colors.borderStrong, KyonoCardShape)
             .padding(20.dp),
         content = content,
     )
@@ -168,7 +168,7 @@ fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, co
                 },
             )
             .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(from, to)), KyonoCardShape)
-            .border(1.5.dp, colors.line, KyonoCardShape)
+            .border(1.5.dp, colors.borderStrong, KyonoCardShape)
             .padding(20.dp),
         content = content,
     )
@@ -311,7 +311,9 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
     val dark = colors.bg == KyonoDarkColors.bg
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトは文字・枠とも
     // #4A473D(実測8.95:1)に統一。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
-    val borderColor = if (dark) Color(0xFF4A443A) else Color(0xFF4A473D)
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-6: 既知の枠線コントラスト不足(実測1.72:1)を
+    // 根治。ダークはcolors.borderStrong(新背景比7.70:1)へ統一。
+    val borderColor = if (dark) colors.borderStrong else Color(0xFF4A473D)
     val textColor = if (dark) colors.sub2 else Color(0xFF4A473D)
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()

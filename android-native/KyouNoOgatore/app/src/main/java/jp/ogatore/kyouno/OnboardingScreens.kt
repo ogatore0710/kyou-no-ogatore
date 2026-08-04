@@ -372,7 +372,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         Modifier.fillMaxWidth(0.82f)
                             .let {
                                 if (b.fromUser) it.background(colors.yellowSoft, RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp))
-                                else it.background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp)).border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                else it.background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp)).border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                             }
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     ) {

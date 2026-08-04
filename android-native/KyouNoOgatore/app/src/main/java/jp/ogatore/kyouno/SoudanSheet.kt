@@ -630,7 +630,7 @@ fun SoudanSheet(
                             Box(
                                 Modifier
                                     .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                                     .padding(horizontal = 16.dp, vertical = 14.dp)
                                     .testTag("sdTypingBubble"),
                             ) {
@@ -663,7 +663,7 @@ fun SoudanSheet(
                             Column(
                                 Modifier.fillMaxWidth(0.86f)
                                     .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                             ) {
                                 // アクセシビリティ対応: このFallbackLinks吹き出しには単独の本文Textが
@@ -705,7 +705,7 @@ fun SoudanSheet(
                             Column(
                                 Modifier.fillMaxWidth(0.86f)
                                     .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                                    .border(1.5.dp, colors.line, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                    .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                             ) {
                                 // アクセシビリティ対応: liveRegionは案内文Textのみに付け、下の2つの
@@ -851,7 +851,7 @@ fun KyonoChip(label: String, onClick: () -> Unit, modifier: Modifier = Modifier)
     Box(
         modifier = modifier
             .background(colors.card, RoundedCornerShape(99.dp))
-            .border(2.dp, colors.line, RoundedCornerShape(99.dp))
+            .border(2.dp, colors.borderStrong, RoundedCornerShape(99.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) { Text(label, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black) }

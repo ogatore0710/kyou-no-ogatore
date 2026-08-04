@@ -149,7 +149,7 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
                 }
                 .then(if (backVisible) Modifier.clickable { onToggle() } else Modifier)
                 .background(colors.card, RoundedCornerShape(22.dp))
-                .border(1.5.dp, colors.line, RoundedCornerShape(22.dp))
+                .border(1.5.dp, colors.borderStrong, RoundedCornerShape(22.dp))
                 .padding(18.dp)
                 .testTag("voiceCardBack_$index"),
             verticalArrangement = Arrangement.Center,
