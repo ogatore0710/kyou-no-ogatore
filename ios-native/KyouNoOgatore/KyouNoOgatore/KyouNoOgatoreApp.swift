@@ -223,10 +223,29 @@ struct RootView: View {
     // 開いている間、両FABを隠すための橋渡し(HomeView側で発生した状態をルートへ伝える。
     // scrollToTodayPendingらと逆方向)。
     @State private var homeCardModalOpen = false
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-590 #appSplashの
+    // 1:1移植(見た目+最低表示時間850ms)。Web版はdocument.fonts.readyを待つFOUT対策をしているが、
+    // ネイティブはフォントがバンドル同梱でネットワーク待ちが発生しないためその分岐は不要
+    // (最低表示時間の分岐だけ残す=起動が速い端末でも同じ長さブランドの一呼吸を見せる)。
+    @State private var showSplash = true
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
-            content
+            ZStack {
+                content
+                if showSplash {
+                    KyonoSplashView().transition(.opacity)
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
+                    if reduceMotion {
+                        showSplash = false
+                    } else {
+                        withAnimation(.easeOut(duration: 0.5)) { showSplash = false }
+                    }
+                }
+            }
         }
     }
 
@@ -547,6 +566,39 @@ struct RootView: View {
                 cardModalOpen: $homeCardModalOpen
             )
         }
+    }
+}
+
+// TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-560 #appSplash/
+// .spl-badge/.spl-innerの1:1移植。黄色い角丸バッジ(-8°回転+3D影)+「きょうの/オガトレ」+
+// サブコピーの3点構成。背景はcolors.bgでテーマに追従する。
+private struct KyonoSplashView: View {
+    @Environment(\.kyonoColors) private var colors
+    var body: some View {
+        colors.bg.ignoresSafeArea()
+            .overlay {
+                VStack(spacing: 0) {
+                    ZStack {
+                        // index.html:162 box-shadow:0 5px 0 #E8BE1Eの1:1移植(KyonoPrimaryButtonの
+                        // 面+影と同じ「オフセット塗りつぶし」手法)。
+                        RoundedRectangle(cornerRadius: 26).fill(Color(hex: 0xE8BE1E))
+                            .frame(width: 92, height: 92).offset(y: 5)
+                        RoundedRectangle(cornerRadius: 26).fill(colors.yellow)
+                            .frame(width: 92, height: 92)
+                        Text("#").kyonoFont(.black900, size: 60).foregroundColor(.white)
+                    }
+                    .rotationEffect(.degrees(-8))
+                    Text("きょうの\nオガトレ")
+                        .kyonoFont(.black900, size: 34)
+                        .foregroundColor(colors.ink)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 20)
+                    Text("みんなで一緒にストレッチを習慣化")
+                        .kyonoFont(.extraBold800, size: 12)
+                        .foregroundColor(colors.sub)
+                        .padding(.top, 12)
+                }
+            }
     }
 }
 
