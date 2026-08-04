@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -67,7 +68,12 @@ fun KyonoTourMockup(kind: TourMockKind) {
             } else {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(Modifier.fillMaxWidth().background(colors.card, RoundedCornerShape(12.dp)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.width(46.dp).aspectRatio(16f / 9f).background(colors.line, RoundedCornerShape(8.dp)))
+                        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-1(IMG_8780): グレー
+                        // 空箱のままだと未完成に見えるため、朝専用の看板動画(asa10=2EfFlQev4rg)の
+                        // サムネを仮アセット同梱して表示(GPT生成絵が届くまでの暫定)。
+                        Box(Modifier.width(46.dp).aspectRatio(16f / 9f).background(colors.line, RoundedCornerShape(8.dp))) {
+                            KyonoTourDrawable("tour_map_thumb", Modifier.fillMaxSize(), RoundedCornerShape(8.dp))
+                        }
                         Spacer(Modifier.width(8.dp))
                         Text("きょうの1本", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
