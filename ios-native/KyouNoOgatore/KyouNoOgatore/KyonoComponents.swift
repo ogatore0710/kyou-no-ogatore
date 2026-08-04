@@ -685,6 +685,28 @@ struct FadingChipRow<Content: View>: View {
     }
 }
 
+// TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-6(P-9完結・本人裁定): 押下ハローの
+// 意図的実装。対象は相談室のチップとかたさチェックの選択肢ボタンの2箇所のみ(他画面には広げない)。
+// 不透明度10〜15%・半径は要素の1.5倍程度・フェードイン/アウト各0.15秒・reduceMotion時は無効。
+// P-8(グロー消滅=シート背景の透けが正体だった件)とは別の、意図して足すハローであることに注意。
+struct KyonoPressHaloBackground: View {
+    let pressed: Bool
+    let color: Color
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        GeometryReader { geo in
+            Capsule()
+                .fill(color)
+                .opacity(reduceMotion ? 0 : (pressed ? 0.13 : 0))
+                .frame(width: geo.size.width * 1.5, height: geo.size.height * 1.5)
+                .position(x: geo.size.width / 2, y: geo.size.height / 2)
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.15), value: pressed)
+        .allowsHitTesting(false)
+    }
+}
+
 // GO-G5(5視点ワンループ): ObuPreviewPopupView(ObuView.swift)のスクリム+タップで閉じるパターンを
 // 記録カード各モーダル(HomeView/MyRecordView/BragView)へ横展開するための共通コンテナ。
 // 以前は.sheet()(下からのシート・スワイプでしか閉じられない)を使っており、背景タップでは

@@ -825,7 +825,16 @@ private struct KyonoChip: View {
                 .overlay(Capsule().stroke(colors.borderStrong, lineWidth: 2))
                 .background(Capsule().fill(colors.card))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(KyonoChipHaloButtonStyle(haloColor: colors.tealStrong))
+    }
+}
+
+// TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-6: 相談室チップ専用の押下ハロー付き
+// ButtonStyle。見た目自体はKyonoChip.body側で組んだままにし、押下時だけ背後にハローを足す。
+private struct KyonoChipHaloButtonStyle: ButtonStyle {
+    let haloColor: Color
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.background(KyonoPressHaloBackground(pressed: configuration.isPressed, color: haloColor))
     }
 }
 

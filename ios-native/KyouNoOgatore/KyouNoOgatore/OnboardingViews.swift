@@ -891,6 +891,7 @@ private struct QuizOptionCard: View {
 }
 
 private struct QuizOptionCardStyle: ButtonStyle {
+    @Environment(\.kyonoColors) private var colors
     let background: Color
     let borderColor: Color
     let pressedBackground: Color
@@ -906,6 +907,9 @@ private struct QuizOptionCardStyle: ButtonStyle {
             .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(pressed ? pressedBorderColor : borderColor, lineWidth: 2 * zoom))
             .contentShape(Rectangle())
             .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
+            // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-6: かたさチェック選択肢の
+            // 押下ハロー(相談室チップと同じ意図的実装)。
+            .background(KyonoPressHaloBackground(pressed: pressed, color: colors.teal))
     }
 }
 
