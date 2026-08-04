@@ -162,7 +162,7 @@ while true; do
 done
 ```
 
-⚠️ **既知の無害競合（2026-08-03実測）**: この読み取り専用fetch版でも`refs/remotes/origin/main`の更新自体はeven-syncと取り合いになり得る。実発生時の症状=even-syncログに「⚠衝突→同期見送り(unable to update local ref)」が1回出るが、**ローカルref・作業木とも無傷でeven-syncは次周期で自然復旧**（alan5がfsck・rev-parse一致まで確認済み）。単発なら本人報告は不要（連発したら上げる）。次に張り直す機会があれば、fetch先を専用ref（例:`+refs/heads/main:refs/kyono-monitor/main`）に分けると根治する。
+⚠️ **既知の無害競合（2026-08-03実測）**: この読み取り専用fetch版でも`refs/remotes/origin/main`の更新自体はeven-syncと取り合いになり得る。実発生時の症状=even-syncログに「⚠衝突→同期見送り(unable to update local ref)」が1回出るが、**ローカルref・作業木とも無傷でeven-syncは次周期で自然復旧**（alan5がfsck・rev-parse一致まで確認済み）。単発なら本人報告は不要（連発したら上げる）。**push側の同型もある**（2026-08-04実測: appdevのpushとeven-syncのpushが同時刻に衝突→「push失敗」警告1回・状態は収束済み・実害なし。判定手順は同じ: main⇔origin/main一致と発散なしを確認して単発なら黙認）。次に張り直す機会があれば、fetch先を専用ref（例:`+refs/heads/main:refs/kyono-monitor/main`）に分けると根治する。
 
 **張るのは正しい。ただし発火しても黙っていること。** メモリ
 `feedback-batch-reports-not-narrate`は**「通知が来たら中身は見る。ただし条件に当たらなければ
