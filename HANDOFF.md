@@ -1,6 +1,26 @@
 # kyou-no-ogatore 開発ハンドオフ
 
-最終更新: 2026-08-02
+最終更新: 2026-08-04
+
+## ℹ️ このMacのAndroidビルド環境: JDK/SDKは`~/android-toolchain/`配下(2026-08-04)
+
+`java`コマンドが素の状態(`/usr/bin/java`・Homebrew未導入)で「Unable to locate a Java Runtime」
+と出るため一見JDK不在に見えるが、**実際は`~/android-toolchain/`配下に一式揃っている**
+(alan5確認済み・新規導入不要・Homebrewでのopenjdk追加はしないこと)。
+
+- JDK: `~/android-toolchain/jdk/Contents/Home`(Temurin 17.0.19)
+- Android SDK: `~/android-toolchain/sdk`(build-tools/platform-tools等)
+
+Androidビルド/テストを実行するときは環境変数を明示すること:
+
+```
+JAVA_HOME=$HOME/android-toolchain/jdk/Contents/Home \
+ANDROID_HOME=$HOME/android-toolchain/sdk \
+./gradlew testDebugUnitTest --rerun-tasks
+```
+
+(`java_home`コマンドや`~/.gradle/jdks`、Android Studio同梱JBRを探しても見つからない。
+探し場所を間違えて「JDKが無い」と誤診しないこと。)
 
 ## ℹ️ ルール: グラデ予算制(`KyonoGradientCard`の使用枚数に上限あり)(C部・2026-08-02・本人GO)
 
