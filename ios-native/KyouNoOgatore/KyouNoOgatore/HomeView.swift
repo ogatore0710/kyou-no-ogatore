@@ -1224,7 +1224,7 @@ private struct TodayVideoSection: View {
             let dayNum = planDayNum(plan, today: today)
             let idx = ((dayIndex(now) % plan.videos.count) + plan.videos.count) % plan.videos.count
             if let v = lookupVideoById(plan.videos[idx]) {
-                VideoRow(v: v, openUrl: onVideoTap, badge: "プラン\(dayNum)日目/\(plan.days)日: \(plan.label)")
+                HomeTodayVideoRow(v: v, openUrl: onVideoTap, badge: "プラン\(dayNum)日目/\(plan.days)日: \(plan.label)")
                 Text("相談室でつくった2週間プランの1本だよ")
                     .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                     .frame(maxWidth: .infinity, alignment: .center).padding(.top, 6)
@@ -1237,7 +1237,7 @@ private struct TodayVideoSection: View {
             Text("きょうのあなた用").kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
             ForEach(rx, id: \.self) { key in
                 if let v = lookupVideoByKey(key) {
-                    VideoRow(v: v, openUrl: onVideoTap)
+                    HomeTodayVideoRow(v: v, openUrl: onVideoTap)
                 }
             }
             if !rx.isEmpty {
@@ -1252,12 +1252,60 @@ private struct TodayVideoSection: View {
             let list = effectiveMode == "asa" ? TODAY_ASA : TODAY_YORU
             let idx = ((dayIndex(now) % list.count) + list.count) % list.count
             if let v = lookupVideoByKey(list[idx]) {
-                VideoRow(v: v, openUrl: onVideoTap, badge: effectiveMode == "asa" ? "きょうのあさ" : "きょうのよる")
+                HomeTodayVideoRow(v: v, openUrl: onVideoTap, badge: effectiveMode == "asa" ? "きょうのあさ" : "きょうのよる")
             }
         }
         Text("動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね")
             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
             .frame(maxWidth: .infinity, alignment: .center).multilineTextAlignment(.center).padding(.top, 8)
+    }
+}
+
+// TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md H-1: ホーム「きょうの1本」専用の
+// 引き算カード。VideoRow(SearchView.swift)は探す/再生リスト/相談室/ツアー内チェック結果画面で
+// フル情報のまま使い続けるため触らず、ここだけ別コンポーネントに分離する。年・再生回数の
+// メタ行(v.s)を削除し、短タイトル(v.st)1行のみ表示(分数はst文中に既に含まれる想定)。
+// stが無い動画はフルタイトル(v.t)へフォールバックし、行数だけlineLimit(2)に広げる。
+private struct HomeTodayVideoRow: View {
+    @Environment(\.kyonoColors) private var colors
+    let v: CatalogVideo
+    let openUrl: (String) -> Void
+    var badge: String? = nil
+
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    private var badgeTextColor: Color { dark ? Color(hex: 0xF0A58E) : Color(hex: 0xB4462F) }
+
+    var body: some View {
+        Button {
+            openUrl("https://www.youtube.com/watch?v=\(v.id)")
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12).fill(colors.line)
+                    KyonoAsyncImage(url: youtubeThumbUrl(v.id))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .frame(width: 112, height: 112 * 9 / 16)
+                VStack(alignment: .leading, spacing: 2) {
+                    if let label = badge ?? v.tags?.first {
+                        Text(label).kyonoFont(.black900, size: 12).foregroundColor(badgeTextColor)
+                            .padding(.horizontal, 8).padding(.vertical, 1)
+                            .background(Capsule().fill(colors.coralSoft))
+                    }
+                    if let st = v.st {
+                        Text(st).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(1)
+                    } else {
+                        Text(v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(2)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.line, lineWidth: 1.5))
+        .accessibilityElement(children: .combine)
+        .buttonStyle(.plain)
     }
 }
 

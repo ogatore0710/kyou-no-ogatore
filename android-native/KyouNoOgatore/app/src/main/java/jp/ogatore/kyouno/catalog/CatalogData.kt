@@ -13,6 +13,10 @@ data class CatalogVideo(
     val y: Int,
     val s: String,
     val tags: List<String> = emptyList(),
+    // TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md H-2: ホームの「きょうの1本」に
+    // 出うる動画にだけ付与するねらい型短タイトル。videos.js(Web版)は不可触のためcatalog.json
+    // にのみ直接追記しており、全動画には無い(nullあり)。
+    val st: String? = null,
 )
 
 object CatalogLoader {

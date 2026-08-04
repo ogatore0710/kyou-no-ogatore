@@ -860,7 +860,7 @@ private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizT
         // index.html:1745-1748 m==="mine"&&plan分岐(planVideoHTML)の1:1移植。
         val idx = (((dayIndex(now) % plan.videos.size) + plan.videos.size) % plan.videos.size).toInt()
         lookupVideoById(plan.videos[idx])?.let { v ->
-            VideoRow(v, onVideoTap, badge = "プラン${planDayNum}日目/${plan.days}日: ${plan.label}")
+            HomeTodayVideoRow(v, onVideoTap, badge = "プラン${planDayNum}日目/${plan.days}日: ${plan.label}")
             Text(
                 "相談室でつくった2週間プランの1本だよ", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
                 modifier = Modifier.fillMaxWidth().padding(top = 6.dp), textAlign = TextAlign.Center,
@@ -872,7 +872,7 @@ private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizT
         // ここでは扱わない)。
         val rx = remember(typeResult.key) { currentRx(typeResult.key, now) }
         Text("きょうのあなた用", color = colors.sub, fontSize = 12.sp, fontWeight = FontWeight.Black)
-        rx.forEach { key -> lookupVideoByKey(key)?.let { v -> VideoRow(v, onVideoTap) } }
+        rx.forEach { key -> lookupVideoByKey(key)?.let { v -> HomeTodayVideoRow(v, onVideoTap) } }
         if (rx.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
             KyonoGhostButton(
@@ -889,7 +889,7 @@ private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizT
         val list = if (effectiveMode == "asa") TODAY_ASA else TODAY_YORU
         val idx = (((dayIndex(now) % list.size) + list.size) % list.size).toInt()
         lookupVideoByKey(list[idx])?.let { v ->
-            VideoRow(v, onVideoTap, badge = if (effectiveMode == "asa") "きょうのあさ" else "きょうのよる")
+            HomeTodayVideoRow(v, onVideoTap, badge = if (effectiveMode == "asa") "きょうのあさ" else "きょうのよる")
         }
     }
     Text(
@@ -897,6 +897,54 @@ private fun TodayVideoSection(mode: String, plan: SdPlanData?, typeResult: QuizT
         color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp), textAlign = TextAlign.Center,
     )
+}
+
+// TASK-C2-2026-08-04-build20-home-cards-and-tour-tiers.md H-1: ホーム「きょうの1本」専用の
+// 引き算カード。VideoRow(SearchScreen.kt)は探す/再生リスト/相談室/ツアー内チェック結果画面で
+// フル情報のまま使い続けるため触らず、ここだけ別コンポーネントに分離する。年・再生回数の
+// メタ行(v.s)を削除し、短タイトル(v.st)1行のみ表示(分数はst文中に既に含まれる想定)。
+// stが無い動画はフルタイトル(v.t)へフォールバックし、行数だけmaxLines=2に広げる。
+@Composable
+private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null) {
+    val colors = LocalKyonoColors.current
+    val dark = colors.bg == KyonoDarkColors.bg
+    val badgeTextColor = if (dark) Color(0xFFF0A58E) else Color(0xFFB4462F)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
+            .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
+            .background(colors.card, RoundedCornerShape(16.dp))
+            .border(1.5.dp, colors.line, RoundedCornerShape(16.dp))
+            .padding(10.dp)
+            .semantics(mergeDescendants = true) {}
+            .testTag("video_${v.id}"),
+    ) {
+        androidx.compose.foundation.layout.Box(
+            Modifier.width(112.dp).aspectRatio(16f / 9f)
+                .background(colors.line, RoundedCornerShape(12.dp)),
+        ) {
+            KyonoAsyncImage(
+                youtubeThumbUrl(v.id),
+                Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp)),
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            (badge ?: v.tags.firstOrNull())?.let { label ->
+                Text(
+                    label, color = badgeTextColor, fontSize = 12.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
+                )
+                Spacer(Modifier.height(4.dp))
+            }
+            if (v.st != null) {
+                Text(v.st, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            } else {
+                Text(v.t, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+        }
+    }
 }
 
 @Composable
