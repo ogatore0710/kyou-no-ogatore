@@ -1495,20 +1495,33 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     KyonoIconGlyph(KyonoIcon.CalendarCheck, fill = Color.Transparent, accent = colors.pink, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("続けた日数（通算）", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 見出しから「通算」の言葉を全廃。
+                    Text("つづけた日数", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 }
                 Spacer(Modifier.height(6.dp))
-                // TASK-C2-2026-08-02-build16-polish-and-ia.md P-7: 「通算N日」のピンク大見出しを
-                // pinkInk化(build15 #8で用意した小さい文字専用の濃さをここにも適用)。
-                Text(
-                    "通算 ${streak.total} 日" + when {
-                        streakBrokenNow -> "・きょうやると新しい章のスタート"
-                        streak.count >= 2 -> "・いま${streak.count}日連続"
-                        else -> ""
-                    },
-                    color = colors.pinkInk, fontSize = 20.sp, fontWeight = FontWeight.Black,
-                    modifier = Modifier.testTag("streakText"),
-                )
+                // TASK-C2-2026-08-04-build22-yellow-return.md Z-7(本人カード裁定「案1・数字が主役」):
+                // 「通算N日」の1行見出しを、記録カードと同じBanananum流儀の大きな数字を中央に主役
+                // 配置する形へ再設計。連続記録の付帯情報(いま○日連続/新しい章のスタート)は数字の
+                // 下の小さい1行へ格下げして情報は落とさない。
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            "${streak.total}", color = colors.pinkInk, fontSize = 56.sp,
+                            fontFamily = KyonoFonts.banana(), fontWeight = FontWeight.Normal,
+                            modifier = Modifier.testTag("streakText"),
+                        )
+                        Spacer(Modifier.width(3.dp))
+                        Text("日", color = colors.pinkInk, fontSize = 22.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(bottom = 6.dp))
+                    }
+                    val streakSubtitle = when {
+                        streakBrokenNow -> "きょうやると新しい章のスタート"
+                        streak.count >= 2 -> "いま${streak.count}日連続"
+                        else -> null
+                    }
+                    streakSubtitle?.let {
+                        Text(it, color = colors.pinkInk, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                }
                 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #home):
                 // index.html:693 #fdDoneStaticNudge(はじめの1本ガイド中・未記録のときだけ出す常時案内)の
                 // 1:1移植。HomeLogic.fdActive(fd/streakTotalのみ・fdday条件なし)をそのまま使う。
@@ -1533,8 +1546,17 @@ fun HomeScreen(
                         }
                     }
                 }
+                // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 完了時はグレー無効ボタンではなく、
+                // 数字の下に小さく1行(折り返しなし)で労いを表示する形へ変更(旧pillの折り返し問題も解消)。
+                if (did) {
+                    Text(
+                        "きょうの分は完了！おつかれさま", color = colors.ink, fontSize = 14.sp,
+                        fontWeight = FontWeight.Black, maxLines = 1,
+                        modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
+                    )
+                } else {
                 KyonoPrimaryButton(
-                    if (did) "きょうの分は完了！おつかれさまでした" else "きょうやった！",
+                    "きょうやった！",
                     {
                         if (!did) {
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
@@ -1634,6 +1656,7 @@ fun HomeScreen(
                     // (背景グレー・影なし・文字縮小)の1:1移植。
                     flatWhenDisabled = true,
                 )
+                }
                 // TASK-C2-2026-07-27-fd-guide-ui-branch.md: app-record.js:140-149 1日目クリア時の
                 // cheer差し替え(fd-cardpop=fdPop .5s cubic-bezier(.34,1.56,.64,1)バウンド付き
                 // ポップイン)の1:1移植。§D: index.html:214-220 fd-cardpopはprefers-reduced-motion:
