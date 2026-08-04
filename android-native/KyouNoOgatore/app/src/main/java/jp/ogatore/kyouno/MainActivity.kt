@@ -168,6 +168,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         store = RecordStore.forFile(File(filesDir, "kyono-store.json"))
         setContent {
+            // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-590
+            // #appSplashの1:1移植(見た目+最低表示時間850ms)。Web版はdocument.fonts.readyを待つ
+            // FOUT対策をしているが、ネイティブはフォントがバンドル同梱でネットワーク待ちが
+            // 発生しないためその分岐は不要(最低表示時間の分岐だけ残す)。
+            var showSplash by remember { mutableStateOf(true) }
+            val splashReduceMotion = rememberReducedMotion()
+            LaunchedEffect(Unit) {
+                delay(850)
+                showSplash = false
+            }
+            Box(Modifier.fillMaxSize()) {
             // index.html:4402 obIsFresh()相当。onboarded未設定=初回起動なのでオンボから開始する。
             // Fable監査D5-1(alan5差し戻し2026-07-28): 回転でActivity再生成されても画面位置を
             // 保つため、ScreenSaverを介したrememberSaveableにする(以前は素のremember)。
