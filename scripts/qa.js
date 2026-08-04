@@ -2234,11 +2234,23 @@ function checkPythonScripts() {
 const REQUIRED_IOS_INFOPLIST_KEYS = [
   // D2: 無いと共有シートから「写真に保存」系のアクティビティが黙って除外される。
   { key: "INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription", why: "D2(共有シートの「写真に保存」が消える)" },
-  // カレンダー登録(記録カード/使い方タブ)が黙って失敗する。
-  { key: "INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription", why: "カレンダーへの登録が失敗する" },
   // B7: 無いとアプリの表示名がバンドル名(英語)にフォールバックする。
   { key: "INFOPLIST_KEY_CFBundleDisplayName", why: "B7(表示名が英語のバンドル名に戻る)" },
 ];
+// TASK-C2-2026-08-04-build21-addendum.md Y-5(本人指示): カレンダー登録機能(EventKit)を削除した
+// ため、NSCalendarsWriteOnlyAccessUsageDescriptionは「無いのが正しい」状態になった。逆に、この
+// キーがまだ残っている(=削除し忘れて権限プロンプトが出てしまう)ことを検出する側にする。
+function checkCalendarPermissionKeyRemoved() {
+  const rel = "ios-native/KyouNoOgatore/KyouNoOgatore.xcodeproj/project.pbxproj";
+  if (!exists(rel)) return;
+  const pbxproj = read(rel);
+  const count = pbxproj.split("INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription").length - 1;
+  assert(
+    "iOS pbxproj: NSCalendarsWriteOnlyAccessUsageDescriptionが残っていない(Y-5カレンダー機能削除)",
+    count === 0,
+    `${count} occurrence(s) — 残っていると使っていない権限プロンプトが出る`
+  );
+}
 function checkNativeRequiredInfoPlistKeys() {
   const rel = "ios-native/KyouNoOgatore/KyouNoOgatore.xcodeproj/project.pbxproj";
   if (!exists(rel)) {
@@ -2633,6 +2645,7 @@ function main() {
   checkQuotesCoverage(mainScript);
   checkPythonScripts();
   checkNativeRequiredInfoPlistKeys();
+  checkCalendarPermissionKeyRemoved();
   checkNativeResourceReferencesExist();
   checkWebNativeTypeIconKeyParity();
   checkTypeArtAssetsByteMatchNativeCopies();
