@@ -44,9 +44,9 @@ struct KyonoTourMockup: View {
                     }
                     .padding(8).background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
                     Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
-                    Text("きょうやった！").kyonoFont(.black900, size: 14).foregroundColor(.white)
+                    Text("きょうやった！").kyonoFont(.black900, size: 14).foregroundColor(kyonoBtnPrimaryText)
                         .frame(maxWidth: .infinity).padding(.vertical, 8)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(colors.btnPrimaryBg))
+                        .background(RoundedRectangle(cornerRadius: 12).fill(colors.yellow))
                     Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
                     HStack {
                         Spacer()

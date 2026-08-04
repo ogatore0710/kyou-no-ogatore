@@ -39,11 +39,9 @@ struct KyonoColors {
     let bg: Color
     let card: Color
     let line: Color
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(本人裁定「藍地×白文字」): 主ボタンの地。
-    // ライトは本家色#073A71(白文字と実測11.33:1)。ダークは藍そのままだと沈む(#073A71は暗背景
-    // #211E19に対し実測1.47:1しか無い)ため、白文字4.5:1以上・面vs暗背景3:1以上の両立を条件に
-    // 実測選定した派生色#2278C0(白文字4.65:1・vs暗背景3.57:1)を採用。
-    let btnPrimaryBg: Color
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): build21で藍化した主ボタンを
+    // 黄色へ復帰。地は`colors.yellow`をそのまま使う(専用トークンは廃止)。btnPrimaryShadowのみ
+    // 両テーマ同一の`#E8BE1E`(藍化以前の値)に戻す。
     let btnPrimaryShadow: Color
     let tabbarIconOff: Color
     // GO-G1(5視点ワンループ): index.html:392,121 .tabbar button{color:var(--sub)}/
@@ -76,7 +74,7 @@ let kyonoLightColors = KyonoColors(
     tealInk: Color(hex: 0x177065), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0xFFE8E2),
     pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xC04570), pinkSoft: Color(hex: 0xFFEDF3),
     bg: Color(hex: 0xFFFAF3), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xF2EADB),
-    btnPrimaryBg: Color(hex: 0x073A71), btnPrimaryShadow: Color(hex: 0x052A52),
+    btnPrimaryShadow: Color(hex: 0xE8BE1E),
     tabbarIconOff: Color(hex: 0xC4BDA9),
     tabbarStrokeOff: Color(hex: 0x6E6B5F)
 )
@@ -89,7 +87,7 @@ let kyonoDarkColors = KyonoColors(
     tealInk: Color(hex: 0x7BD0C4), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0x3A2A24),
     pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0x3A2730),
     bg: Color(hex: 0x211E19), card: Color(hex: 0x2C2822), line: Color(hex: 0x3D382F),
-    btnPrimaryBg: Color(hex: 0x2278C0), btnPrimaryShadow: Color(hex: 0x19578B),
+    btnPrimaryShadow: Color(hex: 0xE8BE1E),
     tabbarIconOff: Color(hex: 0x3D382F),
     tabbarStrokeOff: Color(hex: 0x847D6C)
 )
@@ -170,6 +168,11 @@ extension EnvironmentValues {
 // (1.0→1.08・1.18→1.30)。
 let kyonoNormalTextScale: CGFloat = 1.08
 let kyonoBigTextScale: CGFloat = 1.30
+
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): 主ボタン(黄地)専用の
+// 文字・枠色。旧yellowInk(#3A3A35)より一段濃く実測11.05:1(黄面比)。両テーマ同一値。
+let kyonoBtnPrimaryText = Color(hex: 0x26261F)
+let kyonoBtnPrimaryBorder = Color(hex: 0x8A6D00)
 
 struct KyonoTheme<Content: View>: View {
     let themeSetting: String

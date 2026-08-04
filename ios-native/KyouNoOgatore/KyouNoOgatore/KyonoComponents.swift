@@ -252,18 +252,17 @@ struct KyonoPrimaryButton: View {
             Button(action: action) {
                 HStack(spacing: 6 * zoom) {
                     if let icon {
-                        // TASK-C2-2026-08-04-build21-color-system-navy.md D2: 藍背景の上に乗る
-                        // アイコンなので、塗り(fill)は無し(背景の藍がそのまま透ける)にして、
-                        // 線(stroke)は白固定で形を見せる。
-                        KyonoIconGlyph(icon: icon, fill: .clear, accent: .white)
+                        // TASK-C2-2026-08-04-build22-yellow-return.md Z-1: 黄背景の上に乗るアイコンな
+                        // ので、塗り(fill)は無し(黄がそのまま透ける)にして、線(stroke)は主ボタン文字
+                        // と同じ濃色固定で形を見せる。
+                        KyonoIconGlyph(icon: icon, fill: .clear, accent: kyonoBtnPrimaryText)
                             .frame(width: 20 * zoom, height: 20 * zoom)
                     }
                     // 同上: 折り返し許可(文言短縮ではなくレイアウト側で対応)。
                     Text(text).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 }
-                // D2(本人裁定「藍地×白文字」): 藍背景は常に白文字固定(テーマ非依存・実測11.33:1/
-                // ダーク側の派生色でも4.65:1)。
-                .kyonoFont(.black900, size: 20).foregroundColor(.white)
+                // Z-1(本人裁定「案B」): 黄背景は常に濃色文字固定(テーマ非依存・実測11.05:1)。
+                .kyonoFont(.black900, size: 20).foregroundColor(kyonoBtnPrimaryText)
             }
             .buttonStyle(KyonoPrimaryButtonStyle(colors: colors, zoom: zoom, alpha: alpha))
             .disabled(!enabled)
@@ -295,8 +294,11 @@ private struct KyonoPrimaryButtonStyle: ButtonStyle {
             configuration.label
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                 .frame(maxWidth: .infinity)
-                .background(colors.btnPrimaryBg.opacity(alpha))
+                .background(colors.yellow.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius * zoom)
+                // TASK-C2-2026-08-04-build22-yellow-return.md Z-1: 案B新設の縁(2pt・実測vs背景4.74:1・
+                // vs黄面3.57:1)。
+                .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(kyonoBtnPrimaryBorder.opacity(alpha), lineWidth: 2 * zoom))
                 .offset(y: faceOffset)
         }
         .contentShape(Rectangle())

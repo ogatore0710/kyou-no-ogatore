@@ -63,11 +63,9 @@ data class KyonoColors(
     val bg: Color,
     val card: Color,
     val line: Color,
-    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(本人裁定「藍地×白文字」): 主ボタンの地。
-    // ライトは本家色#073A71(白文字と実測11.33:1)。ダークは藍そのままだと沈む(#073A71は暗背景
-    // #211E19に対し実測1.47:1しか無い)ため、白文字4.5:1以上・面vs暗背景3:1以上の両立を条件に
-    // 実測選定した派生色#2278C0(白文字4.65:1・vs暗背景3.57:1)を採用。
-    val btnPrimaryBg: Color,
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): build21で藍化した主ボタンを
+    // 黄色へ復帰。地は`yellow`をそのまま使う(専用トークンは廃止)。btnPrimaryShadowのみ両テーマ
+    // 同一の`#E8BE1E`(藍化以前の値)に戻す。
     val btnPrimaryShadow: Color,
     val tabbarIconOff: Color,
     // GO-G1(5視点ワンループ): index.html:392,121 .tabbar button{color:var(--sub)}/
@@ -102,8 +100,7 @@ val KyonoLightColors = KyonoColors(
     bg = Color(0xFFFFFAF3),
     card = Color(0xFFFFFFFF),
     line = Color(0xFFF2EADB),
-    btnPrimaryBg = Color(0xFF073A71),
-    btnPrimaryShadow = Color(0xFF052A52),
+    btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFFC4BDA9),
     tabbarStrokeOff = Color(0xFF6E6B5F),
 )
