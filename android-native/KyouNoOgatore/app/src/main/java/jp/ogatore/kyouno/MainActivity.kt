@@ -925,8 +925,10 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
             .fillMaxWidth()
             .padding(vertical = 5.dp)
             .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
-            .background(colors.card, RoundedCornerShape(16.dp))
-            .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp))
+            // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: ダークでカードと同色に
+            // 沈んでいた動画行を、子面トークン(childFace/childBorder)へ差し替え。ライトは無変更。
+            .background(colors.childFace, RoundedCornerShape(16.dp))
+            .border(1.5.dp, colors.childBorder, RoundedCornerShape(16.dp))
             .padding(10.dp)
             .semantics(mergeDescendants = true) {}
             .testTag("video_${v.id}"),
@@ -2605,10 +2607,12 @@ fun MyRecordScreen(
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     val resId = remember { context.resources.getIdentifier("meter", "drawable", context.packageName) }
                     if (resId != 0) {
+                        // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: 子面をchildFace/
+                        // childBorderへ差し替え(ライトは無変更)。
                         Image(
                             painter = painterResource(id = resId), contentDescription = "前屈のお手本",
-                            modifier = Modifier.fillMaxWidth(0.7f).background(colors.card, RoundedCornerShape(16.dp))
-                                .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp)).testTag("reachMeterImage"),
+                            modifier = Modifier.fillMaxWidth(0.7f).background(colors.childFace, RoundedCornerShape(16.dp))
+                                .border(1.5.dp, colors.childBorder, RoundedCornerShape(16.dp)).testTag("reachMeterImage"),
                         )
                     }
                 }
@@ -2631,8 +2635,8 @@ fun MyRecordScreen(
                             // Web版の13px paddingのままだと44dpをわずかに割り込むため、見た目(padding値)は
                             // 変えずheightInで下限だけ確保する。
                             modifier = Modifier.weight(1f).heightIn(min = 44.dp)
-                                .background(if (on) colors.tealStrong else colors.card, RoundedCornerShape(12.dp))
-                                .border(2.dp, if (on) colors.tealStrong else colors.borderStrong, RoundedCornerShape(12.dp))
+                                .background(if (on) colors.tealStrong else colors.childFace, RoundedCornerShape(12.dp))
+                                .border(2.dp, if (on) colors.tealStrong else colors.childBorder, RoundedCornerShape(12.dp))
                                 .clickable {
                                     // GO-G7(5視点ワンループ): 「きょうやった！」と同じ軽いハプティクスを完了系操作に広げる。
                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)

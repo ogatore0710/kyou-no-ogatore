@@ -386,10 +386,14 @@ fun <T> KyonoSegmentedControl(
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトの選択中は白ノブ+
-    // 枠#6B6857 2dp+文字#26261F。ダークはbuild21から不変(card地+ink文字/sub未選択、枠なし)。
-    val onBg = if (dark) colors.card else Color.White
-    val onText = if (dark) colors.ink else Color(0xFF26261F)
-    val onBorder = if (dark) null else Color(0xFF6B6857)
+    // 枠#6B6857 2dp+文字#26261F。
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8(本人カード裁定「d1案」): ダークの
+    // 選択中ノブがトラック(colors.line)とほぼ同色(実測1.06:1)で判別不能だった問題を修正。
+    // 子面トークン相当の専用ノブ色#453D30+枠#9A9382(トラック比3.81:1)を新設し、文字は即判別用に
+    // 黄#FFD93Bへ。
+    val onBg = if (dark) Color(0xFF453D30) else Color.White
+    val onText = if (dark) colors.yellow else Color(0xFF26261F)
+    val onBorder = if (dark) Color(0xFF9A9382) else Color(0xFF6B6857)
     val offText = if (dark) colors.sub else Color(0xFF57544A)
     Row(
         modifier = modifier

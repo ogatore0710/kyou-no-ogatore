@@ -403,8 +403,10 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         Text(
                             "%02d時".format(icsHour), color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
                             modifier = Modifier
-                                .background(colors.card, RoundedCornerShape(12.dp))
-                                .border(2.dp, colors.borderStrong, RoundedCornerShape(12.dp))
+                                // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: 子面を
+                                // childFace/childBorderへ差し替え(ライトは無変更)。
+                                .background(colors.childFace, RoundedCornerShape(12.dp))
+                                .border(2.dp, colors.childBorder, RoundedCornerShape(12.dp))
                                 .clickable { showHourMenu = true }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                                 .testTag("icsHourBtn")
@@ -431,8 +433,10 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         Text(
                             "%02d分".format(icsMinute), color = colors.ink, fontWeight = FontWeight.Black, fontSize = 16.sp,
                             modifier = Modifier
-                                .background(colors.card, RoundedCornerShape(12.dp))
-                                .border(2.dp, colors.borderStrong, RoundedCornerShape(12.dp))
+                                // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: 子面を
+                                // childFace/childBorderへ差し替え(ライトは無変更)。
+                                .background(colors.childFace, RoundedCornerShape(12.dp))
+                                .border(2.dp, colors.childBorder, RoundedCornerShape(12.dp))
                                 .clickable { showMinuteMenu = true }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                                 .testTag("icsMinuteBtn")

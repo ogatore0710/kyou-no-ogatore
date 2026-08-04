@@ -67,6 +67,11 @@ data class KyonoColors(
     // 等の「枠線」用途はline(トラック等の面色との兼用トークン)から分離。lineは面色用途を維持し
     // 変更しない(ライトはlineと同値=無変更、ダークのみ背景比5:1以上へ底上げ)。
     val borderStrong: Color,
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8(ダーク階層化d1): カードの中の
+    // 子要素(動画行・とどくメーター写真枠・時分ピッカー等)がカードと同色で沈んでいた問題の修正用。
+    // ライトはcard/borderStrongと同値(無変更)、ダークのみ一段明るい子面色を新設。
+    val childFace: Color,
+    val childBorder: Color,
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): build21で藍化した主ボタンを
     // 黄色へ復帰。地は`yellow`をそのまま使う(専用トークンは廃止)。btnPrimaryShadowのみ両テーマ
     // 同一の`#E8BE1E`(藍化以前の値)に戻す。
@@ -108,6 +113,9 @@ val KyonoLightColors = KyonoColors(
     card = Color(0xFFFFFFFF),
     line = Color(0xFFEBDFC8),
     borderStrong = Color(0xFFEBDFC8),
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: ライトは不変(cardと同値)。
+    childFace = Color(0xFFFFFFFF),
+    childBorder = Color(0xFFEBDFC8),
     btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFFC4BDA9),
     tabbarStrokeOff = Color(0xFF6E6B5F),
@@ -140,6 +148,12 @@ val KyonoDarkColors = KyonoColors(
     // (ラインボタン1.72:1・入力欄/カード等1.26〜1.43:1)を根治。同じ暖色ハイライトへ底上げし
     // 新背景比7.70:1・新カード比5.41:1を確保(#B4AB9Aは旧lineと同色相・彩度を保ったまま明度のみ上げた値)。
     borderStrong = Color(0xFFB4AB9A),
+    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8(本人カード裁定「d1案」): 背景・
+    // カードの深さはbuild22のまま、カードの中の子要素(動画行・とどくメーター写真枠・時分ピッカー等)
+    // に階層をつける。子面はカードよりわずかに明るく(実測card比1.03:1・枠が実質の境界線を担う
+    // 設計はborderStrongと同じ考え方)、枠はcard比1.54:1・子面比1.49:1を確保。
+    childFace = Color(0xFF3D362C),
+    childBorder = Color(0xFF57503F),
     btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFF3D382F),
     tabbarStrokeOff = Color(0xFF847D6C),
