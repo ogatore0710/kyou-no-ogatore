@@ -1137,14 +1137,6 @@ private struct SoudanCard: View {
     let onOpenSoudan: (String?) -> Void
     private let kb = SafetyKBLoader.shared
 
-    private var picks: [SafetyKB.Intent] {
-        var base = Array(kb.intents.prefix(3))
-        if let extra = kb.intents.first(where: { $0.id == "jikan" }), !base.contains(where: { $0.id == extra.id }) {
-            base.append(extra)
-        }
-        return base
-    }
-
     var body: some View {
         if !kb.intents.isEmpty {
             KyonoCard {
@@ -1161,18 +1153,10 @@ private struct SoudanCard: View {
                         Spacer().frame(height: 10 * zoom)
                         // TASK-C2-2026-07-30-icon-system.md(I) 試作1件目: 💬→ふきだしアイコン
                         // (KyonoIcon.soudanBubble・タブバーと同じCanvas意匠を流用)。
+                        // TASK-C2-2026-08-04-build22-yellow-return.md Z-8(本人指示・IMG_8771・引き算):
+                        // 「タップでそのまま聞けるよ」の行とおすすめチップ4つを削除。カードは見出し+
+                        // 一言+「相談する」ボタンだけにする(モーダル内のチップ行は不変・そちらは触らない)。
                         KyonoPrimaryButton("相談する", icon: .soudanBubble) { onOpenSoudan(nil) }
-                        Spacer().frame(height: 10 * zoom)
-                        Text("タップでそのまま聞けるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
-                        Spacer().frame(height: 6 * zoom)
-                        // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §5: index.html:438
-                        // .chips{display:flex;flex-wrap:wrap}が既定(相談室フッターのチップ行だけが
-                        // 例外の横スクロール)。index.html:650のこのチップは既定どおり折り返し対象。
-                        FlowLayout(spacing: 8, lineSpacing: 8, alignment: .leading) {
-                            ForEach(picks, id: \.id) { intent in
-                                HomeSoudanChip(label: intent.chip) { onOpenSoudan(intent.id) }
-                            }
-                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -1338,25 +1322,8 @@ private struct HomeTodayVideoRow: View {
     }
 }
 
-// index.html:440 .chip(丸ピル・line枠・card背景)の1:1移植。SoudanSheetView.swiftのKyonoChipは
-// 同名衝突とfile-private境界を避けるためここに複製せず別名で用意する(見た目は同一)。
-private struct HomeSoudanChip: View {
-    @Environment(\.kyonoColors) private var colors
-    @Environment(\.kyonoBigText) private var bigText
-    private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
-    let label: String
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Text(label).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
-                .padding(.horizontal, 16 * zoom).padding(.vertical, 10 * zoom)
-                .overlay(Capsule().stroke(colors.borderStrong, lineWidth: 2 * zoom))
-                .background(Capsule().fill(colors.card))
-        }
-        .buttonStyle(.plain)
-    }
-}
-
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-8: ホーム相談室カードのチップ削除に伴い、
+// 呼び出し元が無くなったHomeSoudanChip(旧・index.html:440 .chip相当)を削除。
 // TASK-C2-2026-07-27-milestone-card-export-nudge.md: 記録カードシートの節目促し表示可否を
 // 呼び出し元が判定できるよう、描画結果と一緒にmilestone判定も返す。
 struct TodayCardResult {

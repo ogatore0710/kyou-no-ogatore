@@ -2182,12 +2182,9 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
     val colors = LocalKyonoColors.current
     val kb = remember { SafetyKBLoader.shared }
     if (kb.intents.isEmpty()) return
-    val picks = remember(kb) {
-        val base = kb.intents.take(3).toMutableList()
-        val extra = kb.intents.find { it.id == "jikan" }
-        if (extra != null && base.none { it.id == extra.id }) base.add(extra)
-        base
-    }
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-8(本人指示・IMG_8771・引き算): 「タップで
+    // そのまま聞けるよ」の行とおすすめチップ4つを削除。カードは見出し+一言+「相談する」ボタン
+    // だけにする(モーダル内のチップ行は不変・そちらは触らない)。
     KyonoCard(Modifier.testTag("soudanCard").clickable { onOpenSoudan(null) }) {
         KyonoSectionHeader(KyonoIcon.SoudanBubble, "オガトレ相談室", fill = colors.tealSoft, accent = colors.teal)
         Spacer(Modifier.height(10.dp))
@@ -2200,21 +2197,6 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
         }
         Spacer(Modifier.height(10.dp))
         KyonoPrimaryButton("相談する", { onOpenSoudan(null) }, Modifier.testTag("soudanBtn"), icon = KyonoIcon.SoudanBubble)
-        Spacer(Modifier.height(10.dp))
-        Text("タップでそのまま聞けるよ", color = colors.sub, fontSize = 12.sp)
-        Spacer(Modifier.height(6.dp))
-        // TASK-C2-2026-07-27-chips-overflow-and-bubble-pop.md §5: index.html:438
-        // .chips{display:flex;flex-wrap:wrap}が既定(相談室フッターのチップ行だけが例外の横スクロール)。
-        // index.html:650のこのチップ(からだの悩みチップ)は既定どおり折り返し対象。
-        FlowRow(
-            modifier = Modifier.fillMaxWidth().testTag("soudanCardChips"),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            picks.forEach { intent ->
-                KyonoChip(intent.chip, { onOpenSoudan(intent.id) }, Modifier.testTag("soudanCardChip_${intent.id}"))
-            }
-        }
     }
 }
 
