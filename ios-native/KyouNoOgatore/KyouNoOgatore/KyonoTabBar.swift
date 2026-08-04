@@ -60,11 +60,16 @@ struct KyonoTabBar: View {
         let selected = current == tab
         // GO-G1: index.html:397,123 .tabbar button.on{color:var(--ink)}の1:1移植。輪郭線(stroke)は
         // 選択時=ink・非選択時=tabbarStrokeOff(テーマ別)。
-        let stroke = selected ? colors.ink : colors.tabbarStrokeOff
+        // TASK-C2-2026-08-04-build21-color-system-navy.md D2(タブバー): 選択時の黄アイコン+ink文字は
+        // 現行維持(ブランドの黄の居場所)。ライトの非選択はラベル/輪郭を#57544Aへ、アイコンの
+        // 淡塗り(tabbarIconOff)は廃止して塗りなし(白抜き線画)にする。ダークは既存値を維持。
+        let stroke = selected ? colors.ink : (dark ? colors.tabbarStrokeOff : Color(hex: 0x57544A))
+        let unselectedLabel = dark ? colors.sub : Color(hex: 0x57544A)
+        let unselectedFill = dark ? colors.tabbarIconOff : Color.clear
         return Button(action: { onSelect(tab) }) {
             VStack(spacing: 2 * zoom) {
-                icon(selected ? colors.yellow : colors.tabbarIconOff, stroke).frame(width: 24 * zoom, height: 24 * zoom)
-                Text(label).kyonoFont(.black900, size: 12).foregroundColor(selected ? colors.ink : colors.sub)
+                icon(selected ? colors.yellow : unselectedFill, stroke).frame(width: 24 * zoom, height: 24 * zoom)
+                Text(label).kyonoFont(.black900, size: 12).foregroundColor(selected ? colors.ink : unselectedLabel)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 4 * zoom)

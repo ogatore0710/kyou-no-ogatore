@@ -252,18 +252,18 @@ struct KyonoPrimaryButton: View {
             Button(action: action) {
                 HStack(spacing: 6 * zoom) {
                     if let icon {
-                        // 黄色背景の上に乗るアイコンなので、塗り(fill)は無し(背景の黄色がそのまま
-                        // 透ける)にして、線(stroke・タブバーと同じinkColor固定)とアクセント
-                        // (yellowInk)だけで形を見せる。
-                        KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.yellowInk)
+                        // TASK-C2-2026-08-04-build21-color-system-navy.md D2: 藍背景の上に乗る
+                        // アイコンなので、塗り(fill)は無し(背景の藍がそのまま透ける)にして、
+                        // 線(stroke)は白固定で形を見せる。
+                        KyonoIconGlyph(icon: icon, fill: .clear, accent: .white)
                             .frame(width: 20 * zoom, height: 20 * zoom)
                     }
                     // 同上: 折り返し許可(文言短縮ではなくレイアウト側で対応)。
                     Text(text).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 }
-                // B1(2026-07-29): 黄色背景の文字はcolors.inkではなくcolors.yellowInk(ライト値
-                // 固定)を使う。ダークモードでcolors.inkが反転しても黄色背景の上では常に濃い文字色のまま。
-                .kyonoFont(.black900, size: 20).foregroundColor(colors.yellowInk)
+                // D2(本人裁定「藍地×白文字」): 藍背景は常に白文字固定(テーマ非依存・実測11.33:1/
+                // ダーク側の派生色でも4.65:1)。
+                .kyonoFont(.black900, size: 20).foregroundColor(.white)
             }
             .buttonStyle(KyonoPrimaryButtonStyle(colors: colors, zoom: zoom, alpha: alpha))
             .disabled(!enabled)
@@ -295,7 +295,7 @@ private struct KyonoPrimaryButtonStyle: ButtonStyle {
             configuration.label
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
                 .frame(maxWidth: .infinity)
-                .background(colors.yellow.opacity(alpha))
+                .background(colors.btnPrimaryBg.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius * zoom)
                 .offset(y: faceOffset)
         }
@@ -325,14 +325,19 @@ struct KyonoGhostButton: View {
     }
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(セカンダリボタン): ライトは白地+文字藍+
+    // 青枠2.5pt。ダークは藍がまだ実地検証されていない組み合わせのため、既に実測済みのteal系を
+    // そのまま維持する(本編C-1はライト限定の刷新)。
+    private var textColor: Color { dark ? colors.tealInk : Color(hex: 0x073A71) }
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6 * zoom) {
                 if let icon {
-                    KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.tealInk).frame(width: 18 * zoom, height: 18 * zoom)
+                    KyonoIconGlyph(icon: icon, fill: .clear, accent: textColor).frame(width: 18 * zoom, height: 18 * zoom)
                 }
-                Text(text).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+                Text(text).kyonoFont(.black900, size: 15).foregroundColor(textColor)
             }
         }
         // TASK-C2-2026-08-03-build18-tutorial-quality.md B-3: 実測でtealSoft(#DFF5F2)が地の
@@ -340,14 +345,17 @@ struct KyonoGhostButton: View {
         // (「ツアーをとばす」「記録カードを画像でのこす」等で発生)。tealSoftの背景色自体は
         // KyonoSectionHeaderの見出しアイコン地など他の用途でも広く共用されているため、そちらを
         // 変えると影響範囲が広すぎる。ゴーストボタンにだけtealStrongの2pt縁取りを足して輪郭を
-        // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。
-        .buttonStyle(KyonoGhostButtonStyle(background: colors.tealSoft, borderColor: colors.tealStrong, zoom: zoom))
+        // 確保する(背景色自体はtealSoftのまま・alan5指定の代替案)。ダークはこの構成を維持。
+        .buttonStyle(dark
+            ? KyonoGhostButtonStyle(background: colors.tealSoft, borderColor: colors.tealStrong, borderWidth: 2, zoom: zoom)
+            : KyonoGhostButtonStyle(background: colors.card, borderColor: Color(hex: 0x3E70F5), borderWidth: 2.5, zoom: zoom))
     }
 }
 
 private struct KyonoGhostButtonStyle: ButtonStyle {
     let background: Color
     let borderColor: Color
+    var borderWidth: CGFloat = 2
     let zoom: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -358,7 +366,7 @@ private struct KyonoGhostButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .background(background)
             .cornerRadius(kyonoButtonRadius * zoom)
-            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: 2))
+            .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: borderWidth))
             .opacity(pressed ? 0.85 : 1)
             .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())
@@ -417,21 +425,20 @@ struct KyonoLineButton: View {
     // index.html:104,105,143 .btn-line + .btn-line:active{transform:translateY(1px);opacity:.85}の
     // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
     // TASK-C2-2026-07-30-button-standard-migration.md: 標準Button+ButtonStyleへ移行(理由はKyonoPrimaryButton参照)。
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ラインボタン): ライトは文字#33322C・
+    // 枠#4A473D(実測8.95:1)。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
+    private var textColor: Color { dark ? colors.sub2 : Color(hex: 0x33322C) }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6 * zoom) {
                 if let icon {
-                    KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.sub2).frame(width: 20 * zoom, height: 20 * zoom)
+                    KyonoIconGlyph(icon: icon, fill: .clear, accent: textColor).frame(width: 20 * zoom, height: 20 * zoom)
                 }
-                Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(colors.sub2)
+                Text(text).kyonoFont(.extraBold800, size: 15).foregroundColor(textColor)
             }
         }
-        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-4: 実測でライトの枠#E0D5BEが地の
-        // colors.bg(#FFFAF3)に対しコントラスト比1.33:1しかなく、ボタンの輪郭がほぼ見えなかった
-        // (「もどる/とじる」等で発生。文字色sub2は5.12:1で合格済みのため枠だけ直す)。
-        // sub2(ライト0x6B6857)は既にこの文字色として合格実測済みの値そのものなので、枠にも
-        // 流用すれば同じ比率を確保できる。ダーク側(0x4A443A)はalan5未指摘のため変更しない。
-        .buttonStyle(KyonoLineButtonStyle(borderColor: dark ? Color(hex: 0x4A443A) : colors.sub2, zoom: zoom, enabled: enabled))
+        .buttonStyle(KyonoLineButtonStyle(borderColor: dark ? Color(hex: 0x4A443A) : Color(hex: 0x4A473D), zoom: zoom, enabled: enabled))
         .disabled(!enabled)
     }
 }
@@ -496,6 +503,13 @@ private struct SegmentedOptionButton: View {
     let zoom: CGFloat
     let action: () -> Void
 
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
+    // TASK-C2-2026-08-04-build21-color-system-navy.md D2(ホームの切り替えノブ): ライトの選択中は
+    // 藍地+白文字、未選択文字は#57544A。ダークは既存(card地+ink文字/sub未選択)を維持。
+    private var onBg: Color { dark ? colors.card : Color(hex: 0x073A71) }
+    private var onText: Color { dark ? colors.ink : .white }
+    private var offText: Color { dark ? colors.sub : Color(hex: 0x57544A) }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4 * zoom) {
@@ -508,12 +522,15 @@ private struct SegmentedOptionButton: View {
                 // ラベルが長くなる「あなた用」タブが3行に折り返っていた。1行固定+自動縮小
                 // (minimumScaleFactor)にして、短いラベル(あさ/よる等)には影響を与えず長い
                 // ラベルだけ縮んで収まるようにする。
-                Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? colors.ink : colors.sub)
-                    .lineLimit(1).minimumScaleFactor(0.6)
+                Text(label).kyonoFont(.black900, size: 15).foregroundColor(on ? onText : offText)
+                    .lineLimit(1).minimumScaleFactor(0.55)
             }
                 .frame(maxWidth: .infinity)
+                // TASK-C2-2026-08-04-build21-addendum.md Y-1(検収差し戻し): 横パディングが無く、
+                // よびな6文字時に文字がピル右端へ接触していた。左右にも余白を持たせる。
+                .padding(.horizontal, 10 * zoom)
                 .padding(.vertical, 13 * zoom)
-                .background(on ? colors.card : Color.clear)
+                .background(on ? onBg : Color.clear)
                 .cornerRadius(12 * zoom)
         }
         .buttonStyle(KyonoSegmentedOptionButtonStyle(on: on))
