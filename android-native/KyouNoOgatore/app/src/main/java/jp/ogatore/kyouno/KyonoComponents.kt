@@ -232,20 +232,23 @@ fun KyonoPrimaryButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = faceOffset)
-                .background(colors.btnPrimaryBg.copy(alpha = alpha), KyonoButtonShape)
+                .background(colors.yellow.copy(alpha = alpha), KyonoButtonShape)
                 .clickable(interactionSource = interactionSource, indication = null, enabled = enabled, onClick = onClick)
+                // TASK-C2-2026-08-04-build22-yellow-return.md Z-1: 案B新設の縁(2dp・実測vs背景
+                // 4.74:1・vs黄面3.57:1)。
+                .border(2.dp, KyonoBtnPrimaryBorder.copy(alpha = alpha), KyonoButtonShape)
                 .padding(16.dp, 18.dp),
             contentAlignment = Alignment.Center,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (icon != null) {
-                    // TASK-C2-2026-08-04-build21-color-system-navy.md D2: 藍背景の上に乗るアイコンは
-                    // 塗りなし・線は白固定。
-                    KyonoIconGlyph(icon, fill = Color.Transparent, accent = Color.White, modifier = Modifier.size(20.dp))
+                    // TASK-C2-2026-08-04-build22-yellow-return.md Z-1: 黄背景の上に乗るアイコンは
+                    // 塗りなし・線は主ボタン文字と同じ濃色固定。
+                    KyonoIconGlyph(icon, fill = Color.Transparent, accent = KyonoBtnPrimaryText, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
                 }
-                // D2(本人裁定「藍地×白文字」): 藍背景は常に白文字固定(テーマ非依存)。
-                Text(text, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                // Z-1(本人裁定「案B」): 黄背景は常に濃色文字固定(テーマ非依存・実測11.05:1)。
+                Text(text, color = KyonoBtnPrimaryText, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
     }

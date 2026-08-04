@@ -73,8 +73,8 @@ fun KyonoTourMockup(kind: TourMockKind) {
                     }
                     Text("↓", color = colors.sub, fontSize = 16.sp, modifier = Modifier.padding(vertical = 4.dp))
                     Text(
-                        "きょうやった！", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                        modifier = Modifier.fillMaxWidth().background(colors.btnPrimaryBg, RoundedCornerShape(12.dp)).padding(vertical = 8.dp),
+                        "きょうやった！", color = KyonoBtnPrimaryText, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.fillMaxWidth().background(colors.yellow, RoundedCornerShape(12.dp)).padding(vertical = 8.dp),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
                     Text("↓", color = colors.sub, fontSize = 16.sp, modifier = Modifier.padding(vertical = 4.dp))

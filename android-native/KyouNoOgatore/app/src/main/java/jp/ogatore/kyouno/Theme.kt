@@ -128,8 +128,7 @@ val KyonoDarkColors = KyonoColors(
     bg = Color(0xFF211E19),
     card = Color(0xFF2C2822),
     line = Color(0xFF3D382F),
-    btnPrimaryBg = Color(0xFF2278C0),
-    btnPrimaryShadow = Color(0xFF19578B),
+    btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFF3D382F),
     tabbarStrokeOff = Color(0xFF847D6C),
 )
