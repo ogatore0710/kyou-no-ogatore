@@ -73,7 +73,10 @@ let kyonoLightColors = KyonoColors(
     teal: Color(hex: 0x2BB3A3), tealStrong: Color(hex: 0x1E7B70), tealSoft: Color(hex: 0xDFF5F2),
     tealInk: Color(hex: 0x177065), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0xFFE8E2),
     pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xC04570), pinkSoft: Color(hex: 0xFFEDF3),
-    bg: Color(hex: 0xFFFAF3), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xF2EADB),
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-5(本人カード裁定): 背景を一段深いクリームへ
+    // (白カードを浮かせて立体感を出す)。line(トラック等の面色)は新背景に対し実測1.04:1まで差が
+    // 消えていたため、旧背景比の差(1.15:1)に近づく#EBDFC8へ半段調整(実測1.14:1)。
+    bg: Color(hex: 0xF7EEDC), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xEBDFC8),
     btnPrimaryShadow: Color(hex: 0xE8BE1E),
     tabbarIconOff: Color(hex: 0xC4BDA9),
     tabbarStrokeOff: Color(hex: 0x6E6B5F)

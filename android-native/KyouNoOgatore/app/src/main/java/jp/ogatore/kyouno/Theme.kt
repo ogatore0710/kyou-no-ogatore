@@ -97,9 +97,12 @@ val KyonoLightColors = KyonoColors(
     pink = Color(0xFFE56A9A),
     pinkInk = Color(0xFFC04570),
     pinkSoft = Color(0xFFFFEDF3),
-    bg = Color(0xFFFFFAF3),
+    // TASK-C2-2026-08-04-build22-yellow-return.md Z-5(本人カード裁定): 背景を一段深いクリームへ
+    // (白カードを浮かせて立体感を出す)。line(トラック等の面色)は新背景に対し実測1.04:1まで差が
+    // 消えていたため、旧背景比の差(1.15:1)に近づく#EBDFC8へ半段調整(実測1.14:1)。
+    bg = Color(0xFFF7EEDC),
     card = Color(0xFFFFFFFF),
-    line = Color(0xFFF2EADB),
+    line = Color(0xFFEBDFC8),
     btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFFC4BDA9),
     tabbarStrokeOff = Color(0xFF6E6B5F),
@@ -232,6 +235,11 @@ fun resolveKyonoColors(themeSetting: String, tick: Int = 0): KyonoColors {
 const val KYONO_NORMAL_TEXT_SCALE = 1.08f
 const val KYONO_BIG_TEXT_SCALE = 1.30f
 const val KYONO_MAX_FONT_SCALE = 2.2f
+
+// TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): 主ボタン(黄地)専用の文字・
+// 枠色。旧yellowInk(#3A3A35)より一段濃く実測11.05:1(黄面比)。両テーマ同一値。
+val KyonoBtnPrimaryText = Color(0xFF26261F)
+val KyonoBtnPrimaryBorder = Color(0xFF8A6D00)
 
 // UI/UXパリティ監査GO-3/G4差し戻し(2026-07-29): カスタムフォント(mplus1p)は、Web版のブラウザ既定
 // line-heightより内部の行送り(ascent+descent)が大きく、Compose Textの既定のまま1行ラベルを
