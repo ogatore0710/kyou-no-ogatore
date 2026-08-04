@@ -28,23 +28,31 @@ struct KyonoTourMockup: View {
         switch kind {
         // T-A: まいにちやることは1つだけ。動画カード→黄色「きょうやった！」ボタン→記録カードの
         // 3コマ縦並び簡略図(alan5指定)。
+        // TASK-C2-2026-08-04-build21-addendum.md Y-3: 本人がGPT生成イラストを`tour-map-illust.png`
+        // として用意し次第、1ファイル追加だけで差し替わるフォールバック構造(KyonoFabの
+        // photoResName方式と同じ考え方)。バンドルに無い間(今回のビルド時点)は現行モックのまま。
         case .map:
-            VStack(spacing: 6) {
-                HStack(spacing: 8) {
-                    RoundedRectangle(cornerRadius: 8).fill(colors.line).frame(width: 46, height: 46 * 9 / 16)
-                    Text("きょうの1本").kyonoFont(.bold700, size: 13).foregroundColor(colors.ink)
-                    Spacer()
-                }
-                .padding(8).background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
-                Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
-                Text("きょうやった！").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
-                    .frame(maxWidth: .infinity).padding(.vertical, 8)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(colors.yellow))
-                Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
-                HStack {
-                    Spacer()
-                    KyonoCharaImage(name: "card-sample").frame(width: 60, height: 60)
-                    Spacer()
+            if let url = Bundle.main.url(forResource: "tour-map-illust", withExtension: "png"),
+               let uiImage = UIImage(contentsOfFile: url.path) {
+                Image(uiImage: uiImage).resizable().scaledToFit()
+            } else {
+                VStack(spacing: 6) {
+                    HStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 8).fill(colors.line).frame(width: 46, height: 46 * 9 / 16)
+                        Text("きょうの1本").kyonoFont(.bold700, size: 13).foregroundColor(colors.ink)
+                        Spacer()
+                    }
+                    .padding(8).background(RoundedRectangle(cornerRadius: 12).fill(colors.card))
+                    Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
+                    Text("きょうやった！").kyonoFont(.black900, size: 14).foregroundColor(.white)
+                        .frame(maxWidth: .infinity).padding(.vertical, 8)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(colors.btnPrimaryBg))
+                    Image(systemName: "arrow.down").foregroundColor(colors.sub).font(.system(size: 14))
+                    HStack {
+                        Spacer()
+                        KyonoCharaImage(name: "card-sample").frame(width: 60, height: 60)
+                        Spacer()
+                    }
                 }
             }
         // 復活枚1) まいにち1本、動画をやる: 「きょうの1本」カードのミニチュア(動画サムネイル+タイトル+案内文)

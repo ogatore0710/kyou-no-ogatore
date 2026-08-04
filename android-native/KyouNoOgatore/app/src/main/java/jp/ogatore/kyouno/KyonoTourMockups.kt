@@ -50,20 +50,37 @@ fun KyonoTourMockup(kind: TourMockKind) {
     when (kind) {
         // T-A: まいにちやることは1つだけ。動画カード→黄色「きょうやった！」ボタン→記録カードの
         // 3コマ縦並び簡略図(alan5指定)。
-        TourMockKind.MAP -> Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(Modifier.fillMaxWidth().background(colors.card, RoundedCornerShape(12.dp)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(46.dp).aspectRatio(16f / 9f).background(colors.line, RoundedCornerShape(8.dp)))
-                Spacer(Modifier.width(8.dp))
-                Text("きょうの1本", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        // TASK-C2-2026-08-04-build21-addendum.md Y-3: 本人がGPT生成イラストを用意し次第、drawable
+        // 追加だけで差し替わるフォールバック構造(KyonoTourDrawableと同じgetIdentifier方式)。
+        // Androidのdrawable名はハイフン不可のためtour_map_illust(iOS側のtour-map-illust.pngに相当)。
+        // バンドルに無い間(今回のビルド時点)は現行モックのまま。
+        TourMockKind.MAP -> {
+            val context = LocalContext.current
+            val mapIllustResId = remember { context.resources.getIdentifier("tour_map_illust", "drawable", context.packageName) }
+            if (mapIllustResId != 0) {
+                Image(
+                    painter = painterResource(id = mapIllustResId),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(Modifier.fillMaxWidth().background(colors.card, RoundedCornerShape(12.dp)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.width(46.dp).aspectRatio(16f / 9f).background(colors.line, RoundedCornerShape(8.dp)))
+                        Spacer(Modifier.width(8.dp))
+                        Text("きょうの1本", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Text("↓", color = colors.sub, fontSize = 16.sp, modifier = Modifier.padding(vertical = 4.dp))
+                    Text(
+                        "きょうやった！", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                        modifier = Modifier.fillMaxWidth().background(colors.btnPrimaryBg, RoundedCornerShape(12.dp)).padding(vertical = 8.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    Text("↓", color = colors.sub, fontSize = 16.sp, modifier = Modifier.padding(vertical = 4.dp))
+                    KyonoTourDrawable("card_sample", Modifier.size(60.dp), RoundedCornerShape(12.dp))
+                }
             }
-            Text("↓", color = colors.sub, fontSize = 16.sp, modifier = Modifier.padding(vertical = 4.dp))
-            Text(
-                "きょうやった！", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                modifier = Modifier.fillMaxWidth().background(colors.yellow, RoundedCornerShape(12.dp)).padding(vertical = 8.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            )
-            Text("↓", color = colors.sub, fontSize = 16.sp, modifier = Modifier.padding(vertical = 4.dp))
-            KyonoTourDrawable("card_sample", Modifier.size(60.dp), RoundedCornerShape(12.dp))
         }
         // 復活枚1) まいにち1本、動画をやる: 「きょうの1本」カードのミニチュア(動画サムネイル+タイトル+案内文)
         TourMockKind.VIDEO_DAILY -> KyonoCard {
