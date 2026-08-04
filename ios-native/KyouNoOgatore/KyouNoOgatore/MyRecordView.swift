@@ -11,16 +11,15 @@
 //  Android版とロジック・見た目を対応させるため、ここも素朴なVStack+HStack(Column+Row)で組む
 //  (masterplan §1-4のLazyVerticalGrid禁じ手はAndroid固有の制約だが、両OSの実装方針を揃える)。
 //
-//  カレンダー連携(index.html:2001 renderIcs相当)はEventKitで日次リマインダーを追加する。
-//  Android版のIntent委譲(権限不要)と異なり、EventKitは書き込み権限が必要(iOS 17+の
-//  write-onlyアクセス。Info.plistにNSCalendarsWriteOnlyAccessUsageDescriptionを追加済み)。
-//
 //  ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 //  Phase 3: index.html:403-415 .cal/.cal .d.done/.cal .d.today/.bar(おやすみ券進捗)の1:1移植。
+//
+//  TASK-C2-2026-08-04-build21-addendum.md Y-5(本人指示): 端末カレンダー連携(EventKit)は
+//  Web版がPWAで通知を使えなかった頃の代替機能で、ネイティブは本物のローカル通知
+//  (DailyNotifications)があるため削除した。Web版(index.html)はそのまま残る(意図的な差分)。
 
 import Combine
 import SwiftUI
-import EventKit
 import RecordCore
 import CardCore
 
@@ -50,7 +49,6 @@ struct MyRecordView: View {
     @State private var month: Int
     @State private var reachList: [RecordLogic.ReachEntry]
     @State private var reachMsg: Text?
-    @State private var calendarMsg: String?
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Android版はremember(streak)で
     // streak変化のたびfreezeLeftを再計算するが、iOSはinit時の1回きり(private let)だった
     // ため、開きっぱなしで月が替わっても「のこり◯枚」が更新されなかった。streakと同様
@@ -108,9 +106,9 @@ struct MyRecordView: View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
             MyRecordContentView(
                 year: $year, month: $month, reachList: $reachList, reachMsg: $reachMsg,
-                calendarMsg: $calendarMsg, selectedDay: $selectedDay,
+                selectedDay: $selectedDay,
                 doneDates: doneDates, today: today, freezeLeft: freezeLeft,
-                streak: streak, store: store, onConnectCalendar: connectCalendar,
+                streak: streak, store: store,
                 onOpenDex: onOpenDex, onOpenBrag: onOpenBrag, onOpenVoices: onOpenVoices,
                 onOpenDiary: onOpenDiary, onOpenSettings: onOpenSettings,
                 onShowDayCard: { ds in dayCardResult = renderTodayCard(store: store, streak: streak, ds: ds) },
@@ -147,39 +145,6 @@ struct MyRecordView: View {
                             KyonoLineButton("とじる") { self.dayCardResult = nil }
                         }
                     }
-                }
-            }
-        }
-    }
-
-    // index.html:2001 renderIcs/saveIcsTime相当。Web版はICSファイルダウンロード/Googleカレンダー
-    // リンクだが、ネイティブはEventKitで実際のカレンダーへ日次リマインダーを追加する
-    // (マスタープラン§2-1「icstimeはEventKit/カレンダーIntentに接続」)。write-onlyアクセスのみ要求し、
-    // 既存の予定は読み取らない(Android版のIntent委譲=権限不要、と設計思想を揃えた最小権限)。
-    private func connectCalendar(completion: @escaping (Bool) -> Void) {
-        // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
-        // 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。以前はhour=20,minute=0固定で、
-        // 設定画面の「カレンダーのおしらせ時間」を無視していた。
-        let (hour, minute) = icsTimeFor(store)
-        let ekStore = EKEventStore()
-        ekStore.requestWriteOnlyAccessToEvents { granted, _ in
-            DispatchQueue.main.async {
-                guard granted else { completion(false); return }
-                let event = EKEvent(eventStore: ekStore)
-                event.title = "きょうのオガトレ（1本だけ）"
-                event.notes = "ストレッチの時間です"
-                var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-                comps.hour = hour; comps.minute = minute
-                let start = Calendar.current.date(from: comps) ?? Date()
-                event.startDate = start
-                event.endDate = start.addingTimeInterval(10 * 60)
-                event.recurrenceRules = [EKRecurrenceRule(recurrenceWith: .daily, interval: 1, end: nil)]
-                event.calendar = ekStore.defaultCalendarForNewEvents
-                do {
-                    try ekStore.save(event, span: .thisEvent)
-                    completion(true)
-                } catch {
-                    completion(false)
                 }
             }
         }
@@ -260,14 +225,12 @@ private struct MyRecordContentView: View {
     @Binding var month: Int
     @Binding var reachList: [RecordLogic.ReachEntry]
     @Binding var reachMsg: Text?
-    @Binding var calendarMsg: String?
     @Binding var selectedDay: String?
     let doneDates: Set<String>
     let today: String
     let freezeLeft: Int
     let streak: RecordLogic.StreakData
     let store: RecordStore
-    let onConnectCalendar: (@escaping (Bool) -> Void) -> Void
     let onOpenDex: () -> Void
     let onOpenBrag: () -> Void
     let onOpenVoices: () -> Void
@@ -593,19 +556,13 @@ private struct MyRecordContentView: View {
                     KyonoGhostButton("設定をひらく", action: onOpenSettings)
                 }
 
-                KyonoLineButton("カレンダーに登録する") {
-                    onConnectCalendar { ok in
-                        calendarMsg = ok ? "カレンダーに追加しました" : "カレンダーへの追加が許可されませんでした"
-                    }
-                }
-                if let calendarMsg { Text(calendarMsg).kyonoFont(.bold700, size: 15).foregroundColor(colors.pinkInk) }
                 // GO-G15(5視点ワンループ): 記録系画面に保存先の事実だけを目立たない位置に一言添える。
                 // 数字・達成率は書かない(デザイン原則どおり)。
                 Spacer().frame(height: 16)
                 Text("この記録はこの端末に保存されるよ").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §2: FABの表示範囲をWeb版に
-                // 合わせて拡げた結果、マイ記録タブの末尾要素(カレンダーに登録するボタン)が最大スクロール
-                // 時に右下固定FABと重なることを実機で確認したため、末尾に余白を足して回避する。
+                // 合わせて拡げた結果、マイ記録タブの末尾要素が最大スクロール時に右下固定FABと
+                // 重なることを実機で確認したため、末尾に余白を足して回避する。
                 Spacer().frame(height: 100)
             }
             // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}の
