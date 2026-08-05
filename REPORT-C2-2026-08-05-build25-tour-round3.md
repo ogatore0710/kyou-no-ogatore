@@ -1,13 +1,16 @@
 # REPORT-C2-2026-08-05-build25-tour-round3
 
-【appdev→alan5】ビルド25(R-3おすすめ3本の短タイトル化・R-4動画タップ練習の明示)の実装完了報告です。両OSビルド/テスト・npm test全項目確認済み。**TestFlight提出はalan5の合図待ちのため未実施です。**
+【appdev→alan5】ビルド25(R-3おすすめ3本の短タイトル化・R-4動画タップ練習の明示・R-5結果カードグラデ再調整)の実装完了報告です。両OSビルド/テスト・npm test全項目確認済み。**TestFlight提出はalan5の合図待ちのため未実施です。**
+
+**2026-08-05追記(R-5対応)**: 追加項目R-5(結果カードグラデ`.soft`を桃ひと系統・案bへ)を実装し、実描画1枚を追加しました(3節)。
 
 ## 0. サマリ
 
 - R-3: `VideoRow`(iOS `SearchView.swift`/Android `SearchScreen.kt`)に`useShortTitle`パラメータを新設(既定`false`)。結果画面(`OnboardingViews.swift`/`OnboardingScreens.kt`)の2箇所の呼び出し(おすすめ3本+悩み別のもう1本)だけ`true`を指定し、`v.st ?? v.t`相当を表示。「動画を探す」タブ(検索結果リスト)は既定`false`のまま=無変更。メタ行(v.s)は据え置き。
 - R-4: ツアー中(`fdGuideActive`)のみ、おすすめ3本の見出しと1本目カードの間にR-2と同じ視覚言語の練習ピル+案内1行を挿入。文言は本人が2回校正した最終版(「＼ 動画をひらく練習 ／」+「今は1本目だけタップできるよ！動画をひらいてもどってきてね！」)をそのまま使用。既存のタップ時notice・復帰フロー(pendingNudgeDate/showDoneNudge/練習合流)は一切触れていません。通常ユーザー(ツアー外)の結果画面には何も表示されません。
-- iOS `xcodebuild build` BUILD SUCCEEDED。Android `compileDebugKotlin`/`testDebugUnitTest` BUILD SUCCESSFUL。`node scripts/qa.js` 461項目全PASS。
-- 実描画はiOSシミュレータでXCUITest経由の実タップ操作により撮影(2節、`ios-native/verify/build25-tour-round3/`に格納)。Android実機/エミュレータでの実描画は今回未実施(build22から継続の宿題)。
+- R-5(本人カード裁定「案b」): `KyonoGradientCard`の`.soft`ライトペアを`#FFF6D0→#FFC9DB`(W-3彩度立て版)から`#FFF3F7→#FFD6E4`(桃ひと系統)へ再調整。使用箇所は結果カード1箇所のみ(warm×4/mint×3/soft×1・全数grep棚卸し済み)。warm/mint/ダークの`.soft`は不変。
+- iOS `xcodebuild build` BUILD SUCCEEDED。Android `compileDebugKotlin`/`testDebugUnitTest` BUILD SUCCESSFUL。`node scripts/qa.js` 461項目全PASS(グラデ予算8/8は変更なし)。
+- 実描画はiOSシミュレータでXCUITest経由の実タップ操作により撮影(3節、`ios-native/verify/build25-tour-round3/`に格納)。Android実機/エミュレータでの実描画は今回未実施(build22から継続の宿題)。
 
 ---
 
@@ -30,6 +33,13 @@
 
 両OSとも同一実装・同一文言です。
 
+### R-5: 結果カードグラデ`.soft`を桃ひと系統に再調整(本人カード裁定「案b」)
+
+- 本人生指摘(IMG_8795・かたさタイプ結果カード)「グラデーション微妙かも」を受け、alan5が実寸モック3案(a=淡く/b=桃ひと系統/c=単色)を提示、本人が案bを確定選定。
+- `KyonoGradientCard`の`.soft`ケースのライトペアのみ変更: 旧`#FFF6D0`→`#FFC9DB`(黄→桃・build23 W-3の彩度立て版)を新`#FFF3F7`→`#FFD6E4`(淡桃→桃・単一色相系統)へ。
+- `.soft`は結果カード1箇所のみで使用(warm×4/mint×3/soft×1をgrepで全数棚卸し済み)。warm/mintのライトペア、および`.soft`含む全ケースのダークペアは無変更。
+- iOS `KyonoComponents.swift`・Android `KyonoComponents.kt`とも同じ値で1:1反映。W-3のコメント直後にR-5の経緯を追記済み。
+
 ---
 
 ## 2. スクリーンショット一覧
@@ -39,6 +49,7 @@
 - `13-tour-result-pill-and-st-light.png`: ツアー中(fdGuideActive)の結果画面(ライト)。R-4の案内行「今は1本目だけタップできるよ！動画をひらいてもどってきてね！」と、R-3の短タイトル(①まずほぐす「疲れないカラダを作る朝の11分ストレッチ」等)が1枚で確認できます。
 - `14-normal-result-no-pill-light.png`: ツアー外(通常)の結果画面(ライト)。練習ピルは表示されず(R-4は出ない)、短タイトルは効いている(R-3は維持)ことを確認。「▶ 3本続けて再生する」ボタンが出ていることからもfdGuideActive=falseであることが分かります。
 - `15-search-tab-full-title.png`: 「動画を探す」タブ。「開脚できるようになるストレッチ！【2週間で開脚ベターっになる方法】」のようにフルタイトルのまま(st化されていない)ことを確認。
+- `16-result-card-soft-gradient-light.png`(R-5): 結果カード(ライト)。上部が淡い桃〜下部が濃い桃の単一色相グラデーションになっており、旧版(黄→桃の夕焼けミックス)から桃ひと系統(案b)へ変わっていることを確認できます。
 
 ### st実データ確認
 
