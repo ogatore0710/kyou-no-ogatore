@@ -122,12 +122,16 @@ struct KyonoGradientCard<Content: View>: View {
         // 0.898(暖色)/0.955(桃色)を実測抽出し、平均レート0.9265を全8箇所へ均等適用(彩度はどちらの
         // 基準ペアもS=100%のため、ミント系(元々S=54.8%)も含め全端点をS=100%へ底上げ)。ダークは
         // 対象外(現状維持)。
+        // TASK-C2-2026-08-05-build25-tour-round3.md R-5(本人カード裁定「案b・桃ひと系統」):
+        // softは結果カード1箇所のみで使われており(warm×4/mint×3/soft×1・全数grep棚卸し済み)、
+        // 本人指摘「グラデーション微妙かも」を受けてW-3の一律レートから独立に再調整(案a=淡く/
+        // 案b=桃ひと系統/案c=単色の3モックから本人が案bを選定)。warm/mint/ダークのsoftは不変。
         let (from, to): (Color, Color) = {
             switch gradient {
             case .warm: return dark ? (Color(hex: 0x37301C), Color(hex: 0x33232B)) : (Color(hex: 0xFFECA3), Color(hex: 0xFFC9DB))
             case .mint: return dark ? (Color(hex: 0x22403B), Color(hex: 0x33301C)) : (Color(hex: 0xBDFFE4), Color(hex: 0xFFF3B9))
             case .pink: return dark ? (Color(hex: 0x33232B), Color(hex: 0x33301C)) : (Color(hex: 0xFFC9DB), Color(hex: 0xFFF3B9))
-            case .soft: return dark ? (Color(hex: 0x2C2822), Color(hex: 0x33232B)) : (Color(hex: 0xFFF6D0), Color(hex: 0xFFC9DB))
+            case .soft: return dark ? (Color(hex: 0x2C2822), Color(hex: 0x33232B)) : (Color(hex: 0xFFF3F7), Color(hex: 0xFFD6E4))
             }
         }()
         VStack(alignment: .leading, spacing: 0) { content() }
