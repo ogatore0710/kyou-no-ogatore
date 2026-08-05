@@ -2599,6 +2599,44 @@ function checkGradientCardBudget() {
   }
 }
 
+// TASK-C2-2026-08-05-build28-round6.md R-17再発防止: KyonoPrimaryButtonの折り返し許可
+// (fixedSize(horizontal:false,...)・ComposeのText既定maxLines)は「✅ 1日目の記録をつけにいく」
+// 等、.frame(maxWidth:.infinity)の全幅ボタンで長文が尻切れしないための仕様。これを、幅を
+// 明示的に狭く固定した呼び出し(iOS `.frame(width:` チェーン)と組み合わせると、bigtext=
+// 「おおきめ」等で文字が収まらず「送/信」のように縦2行へ折り返り、ボタンが縦長化する
+// (相談室「送信」ボタンの実バグ)。singleLine: trueを付け忘れたまま.frame(width:)する呼び出しを
+// 機械検査で検出する(iOS限定・同一行での固定幅チェーンを対象。Android版はweight()の割合指定が
+// 中心で同じ狭幅固定パターンが無いため対象外)。
+function checkPrimaryButtonFixedWidthSingleLine() {
+  const dir = path.join(ROOT, "ios-native/KyouNoOgatore/KyouNoOgatore");
+  const hits = [];
+  const walk = (cur) => {
+    for (const entry of fs.readdirSync(cur, { withFileTypes: true })) {
+      const full = path.join(cur, entry.name);
+      if (entry.isDirectory()) { walk(full); continue; }
+      if (!entry.name.endsWith(".swift")) continue;
+      const rel = path.relative(ROOT, full);
+      const src = read(rel);
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        if (trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
+        if (!line.includes("KyonoPrimaryButton(")) continue;
+        if (!line.includes(".frame(width:")) continue;
+        if (line.includes("singleLine: true")) continue;
+        hits.push(`${rel}:${i + 1}`);
+      }
+    }
+  };
+  walk(dir);
+  assert(
+    "再発防止(R-17): KyonoPrimaryButtonへの.frame(width:)固定はsingleLine: true必須(折り返し2行化を防ぐ)",
+    hits.length === 0,
+    hits.length ? hits.join(", ") : "0 violations"
+  );
+}
+
 function main() {
   for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "app-card.js", "app-env.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
@@ -2652,6 +2690,7 @@ function main() {
   checkNoGroupIfLetTaskPattern();
   checkNoTempMarkers();
   checkGradientCardBudget();
+  checkPrimaryButtonFixedWidthSingleLine();
 
   if (failures.length) {
     console.error(`\nQA failed: ${failures.length} issue(s)`);
