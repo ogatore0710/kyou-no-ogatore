@@ -1261,16 +1261,30 @@ private struct ResultContentView: View {
                 // 「既に処理済みか」の判定にも使い、モーダル出現までの0.7秒間の再タップで
                 // performPracticeRecordが二重発火しないようにする。
                 if fdGuideActive && !videoTapped {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("この結果はほんもの！つぎは本番とおなじボタンで記録の練習")
-                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                    // TASK-C2-2026-08-05-build24-chip-clarity.md 追加項目R-2(本人生指摘「優しくない・
+                    // 練習だと分かるようにして」): 一行の言い切りをやめ、練習ピル+優しい2行構成にする。
+                    // ボタン自体(本番と同じ「きょうやった！」)と挙動は不変(Q-3/B-6の設計意図を維持)。
+                    VStack(alignment: .center, spacing: 10) {
+                        Text("＼ きろくの れんしゅう ／")
+                            .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
+                            .padding(.horizontal, 12).padding(.vertical, 4)
+                            .background(Capsule().fill(colors.tealSoft))
+                        VStack(alignment: .center, spacing: 4) {
+                            Text("けっかはほんもの！つぎは、ストレッチのあとにおすボタンをためしてみよう")
+                                .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
+                                .multilineTextAlignment(.center)
+                            Text("まだやってなくても だいじょうぶ。ためしに1回おしてみて！")
+                                .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
                         KyonoPrimaryButton("きょうやった！") {
                             guard !videoTapped else { return }
                             videoTapped = true
                             performPracticeRecord()
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .id("practiceBlock")
                 }
                 // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
