@@ -1163,6 +1163,24 @@ private struct ResultContentView: View {
                 KyonoCard {
                     Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
                         .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                    // TASK-C2-2026-08-05-build25-tour-round3.md R-4(本人生指摘「1本目タップが
+                    // 練習だと伝わらない」): ツアー中(fdGuideActive)だけ、見出しと1本目カードの間に
+                    // R-2と同じ視覚言語の練習ピル+案内1行を挟む。タップ時notice・復帰フローには
+                    // 一切触れない(表示を1つ足すだけ)。文言は本人校正済み(2026-08-05・2回の校正を
+                    // 経た最終版・一字一句このまま)。
+                    if fdGuideActive {
+                        Spacer().frame(height: 10)
+                        VStack(spacing: 6) {
+                            Text("＼ 動画をひらく練習 ／")
+                                .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
+                                .padding(.horizontal, 12).padding(.vertical, 4)
+                                .background(Capsule().fill(colors.tealSoft))
+                            Text("今は1本目だけタップできるよ！動画をひらいてもどってきてね！")
+                                .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
                     Spacer().frame(height: 10)
                     // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-4: ガイド中(fdGuideActive)は
                     // 動画サムネをタップ不可のままにする(本人裁定・離脱回避)。onVideoTapを差し替えず
@@ -1192,7 +1210,8 @@ private struct ResultContentView: View {
                                 v: v,
                                 openUrl: isFirst ? firstVideoTapHandler : videoTapHandler,
                                 badge: badges.indices.contains(i) ? badges[i] : nil,
-                                disabledLook: fdGuideActive && !isFirst
+                                disabledLook: fdGuideActive && !isFirst,
+                                useShortTitle: true
                             )
                         }
                     }
@@ -1213,7 +1232,7 @@ private struct ResultContentView: View {
                     // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
                     if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
                         Spacer().frame(height: 4)
-                        VideoRow(v: v, openUrl: videoTapHandler, badge: "＋ \(extra.label)", disabledLook: fdGuideActive)
+                        VideoRow(v: v, openUrl: videoTapHandler, badge: "＋ \(extra.label)", disabledLook: fdGuideActive, useShortTitle: true)
                     }
                     // index.html:740 #rRotateNoteの1:1移植。
                     Spacer().frame(height: 4)

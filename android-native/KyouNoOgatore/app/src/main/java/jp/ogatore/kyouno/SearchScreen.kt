@@ -178,7 +178,7 @@ fun searchCatalog(catalog: List<CatalogVideo>, query: String, activeTag: String?
 // TASK-C2-2026-07-26-result-video-recommendations.md)。badge指定時はvideoCard()と同じく
 // タグpillの代わりにbadge文言(「①まずほぐす」等)を表示する。
 @Composable
-fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, hero: Boolean = false, disabledLook: Boolean = false) {
+fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, hero: Boolean = false, disabledLook: Boolean = false, useShortTitle: Boolean = false) {
     val colors = LocalKyonoColors.current
     // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
     // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと
@@ -223,7 +223,7 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
                 )
                 Spacer(Modifier.height(4.dp))
             }
-            Text(v.t, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(if (useShortTitle) (v.st ?: v.t) else v.t, color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             Spacer(Modifier.height(2.dp))
             Text(v.s, color = colors.sub, fontSize = 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }

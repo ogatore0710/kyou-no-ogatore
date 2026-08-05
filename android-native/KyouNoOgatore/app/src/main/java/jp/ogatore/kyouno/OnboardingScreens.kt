@@ -1149,6 +1149,22 @@ fun ResultScreen(
                     "おすすめの3本: まずは「${info.area}」から！2週間続けてみて", color = colors.ink,
                     fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
                 )
+                // TASK-C2-2026-08-05-build25-tour-round3.md R-4(本人生指摘・本人校正済み文言):
+                // ツアー中(fdGuideActive)だけ、見出しと1本目カードの間にR-2と同じ視覚言語の
+                // 練習ピル+案内1行を挟む。タップ時notice・復帰フローには一切触れない。
+                if (fdGuideActive) {
+                    Spacer(Modifier.height(10.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "＼ 動画をひらく練習 ／", color = colors.tealInk, fontSize = 12.sp, fontWeight = FontWeight.Black,
+                            modifier = Modifier.background(colors.tealSoft, RoundedCornerShape(percent = 50)).padding(horizontal = 12.dp, vertical = 4.dp),
+                        )
+                        Text(
+                            "今は1本目だけタップできるよ！動画をひらいてもどってきてね！", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        )
+                    }
+                }
                 Spacer(Modifier.height(10.dp))
                 // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-4: ガイド中(fdGuideActive)は
                 // 動画サムネをタップ不可のままにする(本人裁定・離脱回避)。onVideoTapを差し替えず
@@ -1180,6 +1196,7 @@ fun ResultScreen(
                             VideoRow(
                                 v, if (isFirst) firstVideoTapHandler else videoTapHandler,
                                 badge = badges.getOrNull(i), disabledLook = fdGuideActive && !isFirst,
+                                useShortTitle = true,
                             )
                         }
                     }
@@ -1206,7 +1223,7 @@ fun ResultScreen(
                         if (extra.v !in rx) {
                             lookupVideo(extra.v)?.let { v ->
                                 Spacer(Modifier.height(4.dp))
-                                VideoRow(v, videoTapHandler, badge = "＋ ${extra.label}", disabledLook = fdGuideActive)
+                                VideoRow(v, videoTapHandler, badge = "＋ ${extra.label}", disabledLook = fdGuideActive, useShortTitle = true)
                             }
                         }
                     }

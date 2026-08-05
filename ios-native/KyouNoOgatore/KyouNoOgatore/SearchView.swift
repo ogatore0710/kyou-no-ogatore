@@ -102,6 +102,10 @@ struct VideoRow: View {
     // 見えており「押せるように見える嘘」になっていた(本人指摘)。no-op裁定自体は維持しつつ、
     // 減光+実際にdisabled(true)にして見た目でも押せないことを明示する。
     var disabledLook: Bool = false
+    // TASK-C2-2026-08-05-build25-tour-round3.md R-3: かたさチェック結果の「おすすめの3本」だけ
+    // 短タイトル(v.st・build20で本人と4ラウンド往復して確定した資産)を表示する。「動画を探す」
+    // タブの検索結果は今回のスコープ外のため、既定はfalse(フルタイトルのまま)。
+    var useShortTitle: Bool = false
 
     // index.html:137 body.dark .badge{color:#F0A58E}の1:1移植。ダークモード再確認タスク
     // (TASK-C2-2026-07-27-darkmode-recheck-and-nudges.md)で発覚: ライト固定色(#B4462F)のままだと
@@ -126,7 +130,7 @@ struct VideoRow: View {
                             .padding(.horizontal, 8).padding(.vertical, 1)
                             .background(Capsule().fill(colors.coralSoft))
                     }
-                    Text(v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(3)
+                    Text(useShortTitle ? (v.st ?? v.t) : v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(3)
                     Text(v.s).kyonoFont(.bold700, size: 14).foregroundColor(colors.sub).lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
