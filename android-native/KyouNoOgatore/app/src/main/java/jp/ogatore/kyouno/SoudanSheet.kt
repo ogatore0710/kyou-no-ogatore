@@ -837,7 +837,9 @@ fun SoudanSheet(
                         ),
                     )
                     Spacer(Modifier.width(8.dp))
-                    KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"), enabled = !sdPending)
+                    // TASK-C2-2026-08-05-build28-round6.md R-17: iOS版と同じ「送信」1行固定
+                    // (weight(0.4f)の狭い幅+システム文字サイズ拡大が重なった場合の折り返し事故予防)。
+                    KyonoPrimaryButton("送信", { sendText() }, Modifier.weight(0.4f).testTag("sdSendBtn"), enabled = !sdPending, singleLine = true)
                 }
                 // GO-G16(5視点ワンループ): 高さ92%のシートで✕が最上部右端40×40だけだったため、
                 // 入力欄の下にも「とじる」を1つ追加する。

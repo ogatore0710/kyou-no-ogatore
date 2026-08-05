@@ -250,9 +250,19 @@ struct KyonoPrimaryButton: View {
     // 欠落。「きょうやった!」ボタンだけtrueを渡し、完了後はグレー1枚のフラット表示に切り替える
     // (他の呼び出し元=相談室の送信ボタン等は従来どおりの半透明ディムのままでよいため既定false)。
     var flatWhenDisabled = false
+    // TASK-C2-2026-08-05-build28-round6.md R-17(バグ根治): 「同上: 折り返し許可」の
+    // fixedSize(horizontal: false, vertical: true)は元々「✅ 1日目の記録をつけにいく」等、
+    // .frame(maxWidth: .infinity)の全幅ボタンで長い文言が尻切れしないための対応(2026-07-31)。
+    // これが全KyonoPrimaryButtonへ一律適用されていたため、SoudanSheetViewの「送信」ボタン
+    // (.frame(width: 90)固定・全幅ではない)がbigtext=「おおきめ」(zoom 1.30)で文字がその幅に
+    // 収まらず「送/信」と縦2行に折り返り、ボタン自体も縦長化していた(alan5実機再現)。
+    // 「送信」のような短い固定文言のボタンはsingleLine: trueを渡して折り返しを禁止し、
+    // 幅も.frame(maxWidth:.infinity)を使わず内容(パディング込みの自然サイズ)に任せる
+    // ことで、どのzoom値でも1行に収まる(=マジックナンバーの固定幅を持たない根治)。
+    var singleLine = false
 
-    init(_ text: String, icon: KyonoIcon? = nil, enabled: Bool = true, flatWhenDisabled: Bool = false, action: @escaping () -> Void) {
-        self.text = text; self.icon = icon; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.action = action
+    init(_ text: String, icon: KyonoIcon? = nil, enabled: Bool = true, flatWhenDisabled: Bool = false, singleLine: Bool = false, action: @escaping () -> Void) {
+        self.text = text; self.icon = icon; self.enabled = enabled; self.flatWhenDisabled = flatWhenDisabled; self.singleLine = singleLine; self.action = action
     }
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
@@ -280,13 +290,18 @@ struct KyonoPrimaryButton: View {
                         KyonoIconGlyph(icon: icon, fill: .clear, accent: kyonoBtnPrimaryText)
                             .frame(width: 20 * zoom, height: 20 * zoom)
                     }
-                    // 同上: 折り返し許可(文言短縮ではなくレイアウト側で対応)。
-                    Text(text).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    if singleLine {
+                        // R-17: 「送信」等の短い固定文言専用。折り返し禁止・1行のまま。
+                        Text(text).fixedSize()
+                    } else {
+                        // 同上: 折り返し許可(文言短縮ではなくレイアウト側で対応)。
+                        Text(text).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 // Z-1(本人裁定「案B」): 黄背景は常に濃色文字固定(テーマ非依存・実測11.05:1)。
                 .kyonoFont(.black900, size: 20).foregroundColor(kyonoBtnPrimaryText)
             }
-            .buttonStyle(KyonoPrimaryButtonStyle(colors: colors, zoom: zoom, alpha: alpha))
+            .buttonStyle(KyonoPrimaryButtonStyle(colors: colors, zoom: zoom, alpha: alpha, singleLine: singleLine))
             .disabled(!enabled)
         }
     }
@@ -296,6 +311,9 @@ private struct KyonoPrimaryButtonStyle: ButtonStyle {
     let colors: KyonoColors
     let zoom: CGFloat
     let alpha: Double
+    // R-17: trueなら.frame(maxWidth: .infinity)を使わず、パディング込みの内容サイズに任せる
+    // (呼び出し元の固定幅指定と組み合わせて折り返す事故を防ぐ)。
+    var singleLine: Bool = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
@@ -308,14 +326,14 @@ private struct KyonoPrimaryButtonStyle: ButtonStyle {
             // VoiceOverが同じラベルを2回読み上げてしまっていた)。
             configuration.label.foregroundColor(.clear)
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: singleLine ? nil : .infinity)
                 .background(colors.btnPrimaryShadow.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius * zoom)
                 .offset(y: shadowOffset)
                 .accessibilityHidden(true)
             configuration.label
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: singleLine ? nil : .infinity)
                 .background(colors.yellow.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius * zoom)
                 // TASK-C2-2026-08-04-build22-yellow-return.md Z-1: 案B新設の縁(2pt・実測vs背景4.74:1・

@@ -261,6 +261,13 @@ fun KyonoPrimaryButton(
     // (37ee548で試作したiOS版のこの引数がAndroid側には未移植だったため、ここで揃える)。
     // nullなら従来どおりテキストのみ。影層(透明複製)には付けず、面(前景)層にだけ足す。
     icon: KyonoIcon? = null,
+    // TASK-C2-2026-08-05-build28-round6.md R-17: iOS版と揃える形で追加。ComposeのTextは既定で
+    // 折り返しあり(maxLines無指定=Int.MAX_VALUE)なので、weight()の狭い割り当て幅+システム側の
+    // 文字サイズ拡大設定が重なると理論上折り返しうる。「送信」等の短い固定文言のボタンは
+    // singleLine: trueで1行固定にする(iOSのfontSize.spがbigtext設定では未スケールなため今回の
+    // 実機再現条件そのものはAndroidでは起きないが、システム全体の文字サイズ拡大には変わらず
+    // さらされるため、念のため同じ安全策を入れる)。
+    singleLine: Boolean = false,
 ) {
     val colors = LocalKyonoColors.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -302,7 +309,7 @@ fun KyonoPrimaryButton(
                 .padding(16.dp, 18.dp)
                 .clearAndSetSemantics {},
             contentAlignment = Alignment.Center,
-        ) { Text(text, color = Color.Transparent, fontSize = 20.sp, fontWeight = FontWeight.Black) }
+        ) { Text(text, color = Color.Transparent, fontSize = 20.sp, fontWeight = FontWeight.Black, maxLines = if (singleLine) 1 else Int.MAX_VALUE) }
         // 面(前景)層
         Box(
             modifier = Modifier
@@ -324,7 +331,11 @@ fun KyonoPrimaryButton(
                     Spacer(Modifier.width(6.dp))
                 }
                 // Z-1(本人裁定「案B」): 黄背景は常に濃色文字固定(テーマ非依存・実測11.05:1)。
-                Text(text, color = KyonoBtnPrimaryText, fontSize = 20.sp, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(
+                    text, color = KyonoBtnPrimaryText, fontSize = 20.sp, fontWeight = FontWeight.Black,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    maxLines = if (singleLine) 1 else Int.MAX_VALUE,
+                )
             }
         }
     }

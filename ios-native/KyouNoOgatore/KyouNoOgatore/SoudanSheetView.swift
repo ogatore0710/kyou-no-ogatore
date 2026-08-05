@@ -735,7 +735,12 @@ private struct SoudanContentView: View {
                     .background(RoundedRectangle(cornerRadius: 16).fill(colors.card))
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderStrong, lineWidth: 2))
                     .focused($inputFocused)
-                KyonoPrimaryButton("送信", enabled: !sdPending, action: onSend).frame(width: 90)
+                // TASK-C2-2026-08-05-build28-round6.md R-17(バグ根治): 固定幅.frame(width: 90)を
+                // やめる。旧実装はKyonoPrimaryButtonの折り返し許可(build24以前から共通済み)と
+                // 組み合わさり、bigtext=「おおきめ」(zoom 1.30)で「送/信」と縦2行に折り返って
+                // ボタンが縦長化していた(alan5実機再現)。singleLine: trueで折り返しを禁止し、
+                // 幅もパディング込みの自然サイズに任せることで、どのzoom値でも1行で収まる。
+                KyonoPrimaryButton("送信", enabled: !sdPending, singleLine: true, action: onSend)
             }
             // GO-G16(5視点ワンループ): 高さ92%のシートで✕が最上部右端40×40だけだったため、
             // 入力欄の下にも「とじる」を1つ追加する。

@@ -27,6 +27,17 @@ final class TempBuild28R17Debug: XCTestCase {
         fab.tap()
 
         sleep(2)
-        attach("debug-soudan-input-row")
+        attach("42-r17-soudan-category-chips-fixed")
+
+        // 入力→送信して提案チップ(nearmiss)状態も確認する。
+        let input = app.textFields.firstMatch
+        XCTAssertTrue(input.waitForExistence(timeout: 5))
+        input.tap()
+        input.typeText("肩がこる")
+        let sendBtn = app.buttons["送信"]
+        XCTAssertTrue(sendBtn.waitForExistence(timeout: 5))
+        sendBtn.tap()
+        sleep(2)
+        attach("43-r17-soudan-suggestion-chips-fixed")
     }
 }
