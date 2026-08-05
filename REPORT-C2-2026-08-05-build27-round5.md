@@ -1,6 +1,6 @@
 # REPORT-C2-2026-08-05-build27-round5
 
-【appdev→alan5】ビルド27ラウンド5(R-10〜R-14)の実装完了報告です。両OSビルド/テスト・npm test全項目確認済み。**TestFlight提出はalan5の合図待ちのため未実施です。**(かたさ/悩み/時間帯の意味リンク配色=R-15は本人モック裁定待ちのため未着手)
+【appdev→alan5】ビルド27ラウンド5(R-10〜R-15)の実装完了報告です。これでR-10〜R-15が揃いました。両OSビルド/テスト・npm test全項目確認済み。**TestFlight提出はalan5の合図待ちのため未実施です。**
 
 ## 0. サマリ
 
@@ -9,6 +9,7 @@
 - R-12: 使い方ツアー中(結果画面)は「ペースの目安」カード(箇条書き4行+医療注意+相談室リンク)を丸ごと非表示に。通常ユーザーの結果画面では従来どおり表示。
 - R-13: ツアー中の練習記録カードの大数字表示を実際の通算日数ではなく常に「0日目！」に固定(表示だけの変更・実カウント計算には一切影響なし)。カードモーダルにシェアボタン付近の案内文言を追加。
 - R-14: 使い方ツアー完走後にホームで一度だけ出るポップアップの文言を、本人指定の2行に差し替え。ボタン「はじめる」は不変。
+- R-15: オンボチャットのかたさ/悩み/時間帯チップの配色を、並び順の巡回から「本人裁定の案①(硬い=赤)」に基づく意味リンク配色へ変更。新色purple/neutralを追加(ライト+ダーク値とも本人指定)。もじの大きさ設問・かたさチェック本体Q1-Q4は不変。設定画面「やるタイミング」は単色UIでこの配色パレットを使っていないことを確認(変更不要)。
 - iOS `xcodebuild build` BUILD SUCCEEDED。CardCoreパッケージの`swift test`(黄金テスト含む)全17件PASS。Android `compileDebugKotlin`/`testDebugUnitTest` BUILD SUCCESSFUL。`node scripts/qa.js` 461項目全PASS。
 - 実描画は全てiOSシミュレータでXCUITest経由の実タップ操作(オンボ→クイズ→結果→練習記録→ツアー完走までの一連のフロー)により撮影。Android実機/エミュレータでの実描画は今回も未実施(build22から継続の宿題。R-11のAndroid分はコード・リソース差し替えの確認のみで可、と発注書に明記あり)。
 
@@ -46,6 +47,17 @@
 
 - iOS `HomeView.swift`・Android `MainActivity.kt`の`tourFinishedPopupVisible`ポップアップの文言を、本人指定の2行「使い方ツアーはこれで終わり！」/「このあとストレッチしてみてね」へ一字一句そのまま差し替え。ボタン「はじめる」の文言・挙動は不変。
 
+### R-15: 選択肢チップの意味リンク配色(本人裁定・案①硬い=赤)
+
+- `ObChip`(iOS `OnboardingViews.swift`・Android `OnboardingScreens.kt`)に`colorKey`を追加(デフォルトnil)。`obQuestions`/`OB_QUESTIONS`のstiff/worry/anchorの各チップにだけ色キーを明示し、もじの大きさ(bigtext)は未指定のまま(=従来どおり並び順巡回にフォールバック)。
+- 色の割当は発注書どおり:
+  - かたさ: ガチガチかも=rose・ふつう=yellow・やわらかい=green・わからない=neutral
+  - 悩み: 肩こり・首=orange・腰=rose・前屈できない=blue・眠り=purple・とくにない=green
+  - 時間帯: 朝おきて=yellow・おふろ上がり=blue・寝るまえ=purple・きめてない=neutral
+- 名前引き用の辞書(`obgNamedColorsLight`/`obgNamedColorsDark`・Android `OBG_NAMED_LIGHT`/`OBG_NAMED_DARK`)を新設。既存5色(green/yellow/orange/rose/blue)は既存の`obgLight`/`obgDark`(Android `OBG_LIGHT`/`OBG_DARK`)配列をそのまま名前引きで再利用し、新色2つ(purple/neutral)だけ本人指定のライト・ダーク値を新規追加。
+- **既存の`obgLight`/`obgDark`配列自体は変更していません**(かたさチェック本体Q1-Q4は同じ配列を`palette[i % count]`で並び順巡回しており、これは意味順(柔=緑→硬=赤)に既に並んでいるため発注書どおり不変。並び順巡回のロジックにも触れていません)。
+- 設定画面「やるタイミング」(iOS `SettingsView.swift`・Android `SettingsScreen.kt`)を確認したところ、こちらは単色(`colors.tealSoft`/`tealInk`)のリスト形式UIで、そもそもこの配色パレット(`obgColors`)を使っていませんでした。そのため「同じ割当に揃える」対象が存在せず、変更は不要と判断しました(両OSで確認済み)。
+
 ---
 
 ## 2. スクリーンショット一覧
@@ -59,6 +71,11 @@
 - `34-r13-practice-card-0days-share-note.png`: ツアー練習カードモーダル。「0日目！」+シェア案内文言を確認。
 - `35-r14-tour-finished-popup.png`: ツアー完走後のホーム着地ポップアップ。新2行文言を確認。
 - `36-r12-result-normal-has-pace-card.png`: 通常ユーザー(ツアー外)の結果画面。ペースの目安カードが従来どおり出ていることを確認(R-12の対照)。
+- `37-r15-bigtext-unchanged-light.png`: もじの大きさ設問(ライト)。従来どおりの巡回配色(緑→黄)で不変であることを確認。
+- `38-r15-stiff-semantic-light.png`: かたさ設問(ライト)。ガチガチかも=赤・ふつう=黄・やわらかい=緑・わからない=グレー(neutral)を確認。
+- `39-r15-worry-semantic-light.png`: 悩み設問(ライト)。肩こり・首=橙・腰=赤・前屈できない=青・眠り=紫(purple)・とくにない=緑を確認。
+- `40-r15-anchor-semantic-light.png`: 時間帯設問(ライト)。朝おきて=黄・おふろ上がり=青・寝るまえ=紫・きめてない=グレー(neutral)を確認。
+- `41-r15-stiff-semantic-dark.png`: かたさ設問(ダーク)。ライトと同じ意味順でダーク配色(rose/yellow/green/neutralのダーク値)になっていることを確認。
 
 ---
 
@@ -70,6 +87,7 @@
 - R-12のツアー中/ツアー外の両方(カードの有無)
 - R-13の0日目表示+シェア案内文言
 - R-14のポップアップ新文言
+- R-15のかたさ/悩み/時間帯の意味リンク配色(ライト3画面+ダーク1画面)・もじの大きさ不変(ライト1画面)
 
 **未確認・限定的な確認**:
 - Android実機/エミュレータでの実描画全般(build22から継続の宿題)。R-11のAndroid分については発注書で「コードとリソース差し替えの確認でよい」と明記されていたため、`assembleDebug`のビルド成功までを確認済みです。
@@ -77,4 +95,4 @@
 
 ---
 
-以上、ビルド27ラウンド5(R-10〜R-14)の実装・検証完了報告です。R-15(配色の意味リンク)は本人モック裁定待ちのため引き続き待機します。ご確認をお願いします。**TestFlight提出は引き続きalan5の合図待ちです。**
+以上、ビルド27ラウンド5(R-10〜R-15)の実装・検証完了報告です。これでラウンド5の全項目が揃いました。ご確認をお願いします。**TestFlight提出は引き続きalan5の合図待ちです。**
