@@ -101,16 +101,16 @@ struct ObgColor {
     let border: Color
     let text: Color
 }
-// TASK-C2-2026-08-04-build22-yellow-return.md Z-3(IMG_8768): 淡色チップが背景クリームと同輝度で
-// 沈んでいた。地色のパステルは維持したまま、カテゴリごとの濃色を縁(2.5pt)と文字に足す
-// (基準: 縁vs背景3:1以上・文字vs地4.5:1以上)。ライトのみの変更(ダークのtextは既存のink固定値を
-// そのまま踏襲し、見た目を変えない)。
+// TASK-C2-2026-08-05-build24-chip-clarity.md(案A'・本人GO): ビルド23実機で選択肢チップが
+// 「見にくい」との指摘。黄CTA(#FFD93B・ink文字・濃縁)と同じ「高彩度の塗り+ink文字+カテゴリ濃縁」の
+// 文法へ、地色を淡パステルから高彩度へ刷新。縁は据え置き、文字はカテゴリ濃色ではなくink固定に統一。
+// ライトのみの変更(ダークのobgDarkは不変)。
 private let obgLight: [ObgColor] = [
-    ObgColor(bg: Color(hex: 0xEAF8F1), border: Color(hex: 0x177065), text: Color(hex: 0x177065)),
-    ObgColor(bg: Color(hex: 0xFFF3CB), border: Color(hex: 0x7A5E00), text: Color(hex: 0x7A5E00)),
-    ObgColor(bg: Color(hex: 0xFBE3C6), border: Color(hex: 0x995400), text: Color(hex: 0x995400)),
-    ObgColor(bg: Color(hex: 0xF2D7CD), border: Color(hex: 0x863213), text: Color(hex: 0x863213)),
-    ObgColor(bg: Color(hex: 0xD9ECF7), border: Color(hex: 0x006199), text: Color(hex: 0x006199)),
+    ObgColor(bg: Color(hex: 0x6FCDA6), border: Color(hex: 0x177065), text: Color(hex: 0x3A3A35)),
+    ObgColor(bg: Color(hex: 0xFFDB4D), border: Color(hex: 0x7A5E00), text: Color(hex: 0x3A3A35)),
+    ObgColor(bg: Color(hex: 0xFFB558), border: Color(hex: 0x995400), text: Color(hex: 0x3A3A35)),
+    ObgColor(bg: Color(hex: 0xEE9B82), border: Color(hex: 0x863213), text: Color(hex: 0x3A3A35)),
+    ObgColor(bg: Color(hex: 0x7BC2E8), border: Color(hex: 0x006199), text: Color(hex: 0x3A3A35)),
 ]
 // TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
 // ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
@@ -800,6 +800,10 @@ private struct QuizContentView: View {
                                 // TASK-C2-2026-08-04-build22-yellow-return.md Z-3(棚卸し対象): このQ1-Q4
                                 // 段階色カードもobgColorsパレットを共有するため、同基準で文字も濃色化。
                                 labelColor: c?.text ?? colors.ink,
+                                // TASK-C2-2026-08-05-build24-chip-clarity.md: 段階色カード(bgが高彩度化)
+                                // ではsub(#6E6B5F)がコントラスト不足(alan5実測2.45〜3.94:1)になるため、
+                                // noteもinkにする。通常カード(Q5 worry・c==nil)はcolors.subのまま。
+                                noteColor: c != nil ? colors.ink : nil,
                                 pressedBackground: colors.yellowSoft, pressedBorderColor: colors.yellow,
                                 colors: colors
                             ) { if !answering { onOptTap(q, opt) } }
@@ -858,6 +862,7 @@ private struct QuizOptionCard: View {
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-3(棚卸し対象): obgColorsパレット共有に伴い、
     // 濃色文字も選択可能に。未指定時はcolors.inkのまま(既存呼び出し元との後方互換)。
     var labelColor: Color? = nil
+    var noteColor: Color? = nil
     let pressedBackground: Color
     let pressedBorderColor: Color
     let colors: KyonoColors
@@ -875,7 +880,7 @@ private struct QuizOptionCard: View {
                 Text(label).kyonoFont(.black900, size: 18).foregroundColor(labelColor ?? colors.ink)
                 // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:297 .opt .crit{line-height:1.5}の
                 // 1:1移植。前回G2は検索チップのみに適用していたカスタムフォント行送り超過補正をここにも展開する。
-                Text(note).kyonoFont(.bold700, size: 13).foregroundColor(colors.sub).lineSpacing(7)
+                Text(note).kyonoFont(.bold700, size: 13).foregroundColor(noteColor ?? colors.sub).lineSpacing(7)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
