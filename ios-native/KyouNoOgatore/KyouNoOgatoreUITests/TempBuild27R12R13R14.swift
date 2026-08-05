@@ -29,8 +29,15 @@ final class TempBuild27R12R13R14: XCTestCase {
         let firstOptions = [
             "床にペタッとつく", "床にペタッと近い", "鼻より上まで上がる", "余裕でしゃがめる", "肩こり・首こり",
         ]
+        let scroll = app.scrollViews.firstMatch
         for label in firstOptions {
-            tapButton(app, label, timeout: 15)
+            let predicate = NSPredicate(format: "label CONTAINS[c] %@", label)
+            let btn = app.buttons.matching(predicate).firstMatch
+            if !btn.waitForExistence(timeout: 5) {
+                scroll.swipeUp()
+            }
+            XCTAssertTrue(btn.waitForExistence(timeout: 15), "quiz option not found: \(label)")
+            btn.tap()
             sleep(1)
         }
     }
