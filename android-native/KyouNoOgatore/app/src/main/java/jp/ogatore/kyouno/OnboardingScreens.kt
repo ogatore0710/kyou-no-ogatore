@@ -167,14 +167,15 @@ fun obDecideRoute(stiff: String, worry: String): String =
 private data class ObgColor(val bg: Color, val border: Color, val text: Color)
 // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-1: 5択の質問(部位選択など)で
 // i%4のため1番目と5番目が同色になっていた欠落。5色目(青系・色相約200)を追加し5色パレットにした。
-// TASK-C2-2026-08-04-build22-yellow-return.md Z-1(本人裁定「案B」): border/textをカテゴリ毎の
-// 濃縮色に刷新。text-vs-bg実測4.5:1以上・border-vsページ背景(#F7EEDC)実測3:1以上。
+// TASK-C2-2026-08-05-build24-chip-clarity.md(案A'・本人GO): ビルド23実機で「見にくい」指摘。
+// 黄CTA(#FFD93B・ink文字・濃縁)と同じ「高彩度の塗り+ink文字+カテゴリ濃縁」の文法へ刷新。
+// bgを淡パステルから高彩度へ、textはカテゴリ濃色でなくink固定に統一。border据え置き。ライトのみ。
 private val OBG_LIGHT = listOf(
-    ObgColor(Color(0xFFEAF8F1), Color(0xFF177065), Color(0xFF177065)),
-    ObgColor(Color(0xFFFFF3CB), Color(0xFF7A5E00), Color(0xFF7A5E00)),
-    ObgColor(Color(0xFFFBE3C6), Color(0xFF995400), Color(0xFF995400)),
-    ObgColor(Color(0xFFF2D7CD), Color(0xFF863213), Color(0xFF863213)),
-    ObgColor(Color(0xFFD9ECF7), Color(0xFF006199), Color(0xFF006199)),
+    ObgColor(Color(0xFF6FCDA6), Color(0xFF177065), Color(0xFF3A3A35)),
+    ObgColor(Color(0xFFFFDB4D), Color(0xFF7A5E00), Color(0xFF3A3A35)),
+    ObgColor(Color(0xFFFFB558), Color(0xFF995400), Color(0xFF3A3A35)),
+    ObgColor(Color(0xFFEE9B82), Color(0xFF863213), Color(0xFF3A3A35)),
+    ObgColor(Color(0xFF7BC2E8), Color(0xFF006199), Color(0xFF3A3A35)),
 )
 // TASK-C2-2026-08-01-build13-round3.md ②: 旧配色は4色の色相が29〜40度に密集し、
 // ダークでは「全部こげ茶」に潰れて見えた。4色目を茶系からローズ/マゼンタ(色相約320度)へ
@@ -883,8 +884,11 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                             opt.label, color = c?.text ?: colors.ink, fontSize = 18.sp, lineHeight = 18.sp,
                             style = KyonoTightLineTextStyle, fontWeight = FontWeight.Black,
                         )
+                        // TASK-C2-2026-08-05-build24-chip-clarity.md: 段階色カード(bgが高彩度化)では
+                        // sub(#6E6B5F)がコントラスト不足(alan5実測2.45〜3.94:1)になるためinkにする。
+                        // 通常カード(Q5 worry・c==null)はcolors.subのまま。
                         Text(
-                            opt.note, color = colors.sub, fontSize = 13.sp, lineHeight = 19.5.sp,
+                            opt.note, color = if (c != null) colors.ink else colors.sub, fontSize = 13.sp, lineHeight = 19.5.sp,
                             style = KyonoTightLineTextStyle, fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 2.dp),
                         )
