@@ -83,22 +83,29 @@ final class TempBuild29R20R21R22: XCTestCase {
         sleep(1)
         attach("54-r21-obu-mockup")
 
-        // 4枚目=マイ記録(R-21)。
+        // 4枚目=マイ記録(R-21)。ここではshowClosing:falseのためマイ記録が最終スライドで
+        // ボタンは既に「おわる」表示(締めスライドは別経路のみ・このテストでは対象外)。
         nextBtn.tap()
         sleep(1)
         attach("55-r21-myrecord-mockup")
 
-        // 締めスライドへ→おわるでホームへ。
-        nextBtn.tap()
-        sleep(1)
         let doneBtn = app.buttons["おわる"]
         XCTAssertTrue(doneBtn.waitForExistence(timeout: 10))
         doneBtn.tap()
 
-        // R-20: ホームの「つづけた日数」数字(black900化の確認)。
+        // ツアー終了ポップアップ「はじめる」を閉じてからホームを見る。
+        sleep(1)
+        let startBtn = app.buttons["はじめる"]
+        if startBtn.waitForExistence(timeout: 5) { startBtn.tap() }
+
+        // R-20: ホームの「つづけた日数」数字(black900化の確認)。カード表示位置まで
+        // スクロールしてから撮る。
         sleep(1)
         let streakLabel = app.staticTexts["つづけた日数"]
         XCTAssertTrue(streakLabel.waitForExistence(timeout: 15))
+        let homeScroll = app.scrollViews.firstMatch
+        homeScroll.swipeUp()
+        sleep(1)
         attach("56-r20-streak-number-black900")
     }
 }
