@@ -465,7 +465,9 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                             Spacer(Modifier.width(10.dp))
                         }
                         val labelSize = if (q.key == "bigtext" && chip.v == "big") 20.sp else 16.sp
-                        Text(chip.label, color = c.text, fontSize = labelSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                        // TASK-C2-2026-08-05-build29-round7.md R-22(本人指示・IMG_8823/8824):
+                        // 文字ウェイトをいちばん太いblack900へ。サイズ・色は不変。
+                        Text(chip.label, color = c.text, fontSize = labelSize, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
                     }
                 }
             }

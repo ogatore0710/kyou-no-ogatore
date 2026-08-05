@@ -382,7 +382,9 @@ private struct OnboardingContentView: View {
                         }
                         // TASK-C2-2026-08-04-build22-yellow-return.md Z-3: 文字もカテゴリの濃色
                         // (c.text)にして淡色地への沈みを解消。
-                        Text(chip.label).kyonoFont(.bold700, size: (q.key == "bigtext" && chip.v == "big") ? 20 : 16).foregroundColor(c.text)
+                        // TASK-C2-2026-08-05-build29-round7.md R-22(本人指示・IMG_8823/8824):
+                        // 文字ウェイトをいちばん太いblack900へ。サイズ・色は不変。
+                        Text(chip.label).kyonoFont(.black900, size: (q.key == "bigtext" && chip.v == "big") ? 20 : 16).foregroundColor(c.text)
                     }
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 18).padding(.vertical, 14)

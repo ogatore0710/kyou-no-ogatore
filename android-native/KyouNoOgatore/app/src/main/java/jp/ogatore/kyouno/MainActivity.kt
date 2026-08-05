@@ -1566,9 +1566,12 @@ fun HomeScreen(
                 // 下の小さい1行へ格下げして情報は落とさない。
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     Row(verticalAlignment = Alignment.Bottom) {
+                        // TASK-C2-2026-08-05-build29-round7.md R-20(本人指示・IMG_8821「1」が細く
+                        // 見える): banananumフォントに太ウェイト異体が無いため、black900(いちばん
+                        // 太い共通書体・Typographyのmplus1p適用に任せる)へ差し替える。サイズ・色は不変。
                         Text(
                             "${streak.total}", color = colors.pinkInk, fontSize = 56.sp,
-                            fontFamily = KyonoFonts.banana(), fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight.Black,
                             modifier = Modifier.testTag("streakText"),
                         )
                         Spacer(Modifier.width(3.dp))

@@ -196,7 +196,10 @@ struct KyonoStreakText: View {
     var body: some View {
         VStack(spacing: 2) {
             HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text("\(total)").kyonoFont(.banana, size: 56).foregroundColor(colors.pinkInk)
+                // TASK-C2-2026-08-05-build29-round7.md R-20(本人指示・IMG_8821「1」が細く見える):
+                // banananumフォントに太ウェイト異体が無いため、black900(いちばん太い共通書体)へ
+                // 差し替える。サイズ・色は不変。
+                Text("\(total)").kyonoFont(.black900, size: 56).foregroundColor(colors.pinkInk)
                 Text("日").kyonoFont(.black900, size: 22).foregroundColor(colors.pinkInk)
             }
             if let subtitle {

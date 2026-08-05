@@ -138,49 +138,120 @@ fun KyonoTourMockup(kind: TourMockKind) {
                 }
             }
         }
-        // 予告1) 悩みは相談室で質問: 実際のチャット吹き出し2つ(ユーザー発言→オガトレくんの返答、アバター付き)
-        TourMockKind.SOUDAN -> Column {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        // 予告1) 悩みは相談室で質問: TASK-C2-2026-08-05-build29-round7.md R-21(本人指示・IMG_8820)
+        // 相談室シート実UIの縮小再現(ヘッダー+吹き出し2つ+チップ行+入力欄+送信)。文字が読める
+        // 必要はなく「あの画面だ」と分かる密度でよい(本人指示どおり)。
+        TourMockKind.SOUDAN -> Column(
+            Modifier.fillMaxWidth().background(colors.card, RoundedCornerShape(14.dp)).border(1.2.dp, colors.borderStrong, RoundedCornerShape(14.dp)),
+        ) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                KyonoIconGlyph(KyonoIcon.SoudanBubble, fill = Color.Transparent, accent = colors.teal, modifier = Modifier.size(15.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("オガトレ相談室", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.weight(1f))
+                Box(
+                    Modifier.size(18.dp).background(colors.line, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { Text("✕", color = colors.ink, fontSize = 11.sp, fontWeight = FontWeight.Black) }
+            }
+            Box(Modifier.fillMaxWidth().height(1.dp).background(colors.line))
+            Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Text(
+                        "肩こりがつらい", color = colors.ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.background(colors.yellowSoft, RoundedCornerShape(12.dp, 12.dp, 4.dp, 12.dp)).padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.Bottom) {
+                    KyonoCharaImage("chara_hitokoto", Modifier.size(24.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "それはつらいね…！まずはこの1本", color = colors.ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(colors.card, RoundedCornerShape(12.dp, 12.dp, 12.dp, 4.dp))
+                            .border(1.2.dp, colors.borderStrong, RoundedCornerShape(12.dp, 12.dp, 12.dp, 4.dp))
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                for (label in listOf("肩こり", "腰", "前屈")) {
+                    Text(
+                        label, color = colors.tealInk, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.background(colors.tealSoft, RoundedCornerShape(50)).padding(horizontal = 8.dp, vertical = 4.dp),
+                    )
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "肩こりがつらい", color = colors.ink,
-                    modifier = Modifier.background(colors.yellowSoft, RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+                    "例: 肩がこる", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                        .background(colors.card, RoundedCornerShape(10.dp))
+                        .border(1.2.dp, colors.borderStrong, RoundedCornerShape(10.dp))
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
                 )
+                Text(
+                    "送信", color = KyonoBtnPrimaryText, fontSize = 12.sp, fontWeight = FontWeight.Black,
+                    modifier = Modifier.background(colors.yellow, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 8.dp),
+                )
+            }
+        }
+        // 予告2) オガトレ通信をのぞく: TASK-C2-2026-08-05-build29-round7.md R-21: オガトレ通信画面
+        // (ObuScreen)実UIの縮小再現(ヘッダー+投稿カード2種=文字投稿の黄ボックス/写真投稿)。
+        TourMockKind.OBU -> Column(Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                KyonoIconGlyph(KyonoIcon.ObuBubble, fill = Color.Transparent, accent = colors.pink, modifier = Modifier.size(15.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("オガトレ通信", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
             }
             Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.Bottom) {
-                KyonoCharaImage("chara_hitokoto", Modifier.size(34.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "それはつらいね…！まずはこの1本からやってみよう", color = colors.ink,
-                    modifier = Modifier
-                        .background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                        .border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                )
+            Column(
+                Modifier.fillMaxWidth().background(colors.yellowSoft, RoundedCornerShape(10.dp)).padding(10.dp),
+            ) {
+                Text("8/3", color = colors.sub2, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(4.dp))
+                Text("今日もおつかれさま！", color = colors.ink, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(8.dp))
+            Column(Modifier.fillMaxWidth()) {
+                Text("8/1", color = colors.sub, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(4.dp))
+                Box(Modifier.fillMaxWidth().height(40.dp).background(colors.line, RoundedCornerShape(10.dp)).border(1.2.dp, colors.borderStrong, RoundedCornerShape(10.dp)))
             }
         }
-        // 予告2) オガトレ通信をのぞく: 丸い写真アイコン+説明
-        TourMockKind.OBU -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            KyonoTourDrawable("obu_fab_photo", Modifier.size(56.dp).border(3.dp, colors.yellow, CircleShape), CircleShape)
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text("右下のこの写真ボタン", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
-                Text("ひとこと・写真・ラジオ", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-        // 予告3) マイ記録でふりかえる: カレンダーのミニチュア(5個の丸、3個が塗りつぶし=やった日)
+        // 予告3) マイ記録でふりかえる: TASK-C2-2026-08-05-build29-round7.md R-21: マイ記録画面の
+        // カレンダー実UIの縮小再現(見出し+月送りナビ+曜日行+日付グリッド)。
         TourMockKind.MY_RECORD -> KyonoCard {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("カレンダー", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    for (n in 1..5) {
-                        val done = n <= 3
-                        Box(
-                            Modifier.size(34.dp).background(if (done) colors.tealStrong else Color.Transparent, CircleShape),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text("$n", color = if (done) Color.White else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                Text("マイ記録", color = colors.ink, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(6.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("◀", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.weight(1f))
+                    Text("8月", color = colors.ink, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.weight(1f))
+                    Text("▶", color = colors.sub, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                }
+                Spacer(Modifier.height(6.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    for (w in listOf("日", "月", "火", "水", "木", "金", "土")) {
+                        Text(w, color = colors.sub, fontSize = 9.sp, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                }
+                val doneDays = setOf(2, 3, 5, 9, 10)
+                for (row in 0..1) {
+                    Spacer(Modifier.height(4.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        for (col in 0..6) {
+                            val n = row * 7 + col + 1
+                            val done = doneDays.contains(n)
+                            Box(
+                                Modifier.weight(1f).aspectRatio(1f).background(if (done) colors.tealStrong else Color.Transparent, CircleShape),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text("$n", color = if (done) Color.White else colors.sub, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }

@@ -113,49 +113,110 @@ struct KyonoTourMockup: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-        // 予告1) 悩みは相談室で質問: 実際のチャット吹き出し2つ(ユーザー発言→オガトレくんの返答、アバター付き)
+        // 予告1) 悩みは相談室で質問: TASK-C2-2026-08-05-build29-round7.md R-21(本人指示・IMG_8820)
+        // 相談室シート実UIの縮小再現(ヘッダー+吹き出し2つ+チップ行+入力欄+送信)。文字が読める
+        // 必要はなく「あの画面だ」と分かる密度でよい(本人指示どおり)。
         case .soudan:
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    KyonoIconGlyph(icon: .soudanBubble, fill: .clear, accent: colors.teal).frame(width: 15, height: 15)
+                    Text("オガトレ相談室").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                    Spacer()
+                    Text("✕").kyonoFont(.black900, size: 11).foregroundColor(colors.ink)
+                        .frame(width: 18, height: 18).background(Circle().fill(colors.line))
+                }
+                .padding(.horizontal, 10).padding(.vertical, 8)
+                Divider()
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Spacer()
+                        Text("肩こりがつらい").kyonoFont(.bold700, size: 12).foregroundColor(colors.ink)
+                            .padding(.horizontal, 10).padding(.vertical, 6)
+                            .background(UnevenRoundedRectangle(topLeadingRadius: 12, bottomLeadingRadius: 12, bottomTrailingRadius: 4, topTrailingRadius: 12).fill(colors.yellowSoft))
+                    }
+                    HStack(alignment: .bottom) {
+                        KyonoCharaImage(name: "chara-hitokoto").frame(width: 24, height: 24)
+                        let shape = UnevenRoundedRectangle(topLeadingRadius: 12, bottomLeadingRadius: 4, bottomTrailingRadius: 12, topTrailingRadius: 12)
+                        Text("それはつらいね…！まずはこの1本").kyonoFont(.bold700, size: 12).foregroundColor(colors.ink)
+                            .padding(.horizontal, 10).padding(.vertical, 6)
+                            .background(shape.fill(colors.card))
+                            .overlay(shape.stroke(colors.borderStrong, lineWidth: 1.2))
+                    }
+                }
+                .padding(.horizontal, 10).padding(.top, 8)
+                HStack(spacing: 5) {
+                    ForEach(["肩こり", "腰", "前屈"], id: \.self) { label in
+                        Text(label).kyonoFont(.bold700, size: 10).foregroundColor(colors.tealInk)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(Capsule().fill(colors.tealSoft))
+                    }
+                }
+                .padding(.horizontal, 10).padding(.top, 8)
+                HStack(spacing: 6) {
+                    Text("例: 肩がこる").kyonoFont(.bold700, size: 11).foregroundColor(colors.sub)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 10).padding(.vertical, 8)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(colors.card))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(colors.borderStrong, lineWidth: 1.2))
+                    Text("送信").kyonoFont(.black900, size: 12).foregroundColor(kyonoBtnPrimaryText)
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(colors.yellow))
+                }
+                .padding(10)
+            }
+            .background(RoundedRectangle(cornerRadius: 14).fill(colors.card))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(colors.borderStrong, lineWidth: 1.2))
+        // 予告2) オガトレ通信をのぞく: TASK-C2-2026-08-05-build29-round7.md R-21: オガトレ通信画面
+        // (ObuView)実UIの縮小再現(ヘッダー+投稿カード2種=文字投稿の黄ボックス/写真投稿)。
+        case .obu:
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
+                    KyonoIconGlyph(icon: .obuBubble, fill: .clear, accent: colors.pink).frame(width: 15, height: 15)
+                    Text("オガトレ通信").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
                     Spacer()
-                    Text("肩こりがつらい").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
-                        .padding(.horizontal, 14).padding(.vertical, 10)
-                        .background(UnevenRoundedRectangle(topLeadingRadius: 16, bottomLeadingRadius: 16, bottomTrailingRadius: 6, topTrailingRadius: 16).fill(colors.yellowSoft))
                 }
-                HStack(alignment: .bottom) {
-                    KyonoCharaImage(name: "chara-hitokoto").frame(width: 34, height: 34)
-                    let shape = UnevenRoundedRectangle(topLeadingRadius: 16, bottomLeadingRadius: 6, bottomTrailingRadius: 16, topTrailingRadius: 16)
-                    Text("それはつらいね…！まずはこの1本からやってみよう").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
-                        .padding(.horizontal, 14).padding(.vertical, 10)
-                        .background(shape.fill(colors.card))
-                        .overlay(shape.stroke(colors.borderStrong, lineWidth: 1.5))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("8/3").kyonoFont(.black900, size: 10).foregroundColor(colors.sub2)
+                    Text("今日もおつかれさま！").kyonoFont(.bold700, size: 12).foregroundColor(colors.ink)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(colors.yellowSoft))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("8/1").kyonoFont(.black900, size: 10).foregroundColor(colors.sub)
+                    RoundedRectangle(cornerRadius: 10).fill(colors.line)
+                        .frame(height: 40)
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(colors.borderStrong, lineWidth: 1.2))
                 }
             }
-        // 予告2) オガトレ通信をのぞく: 丸い写真アイコン+説明
-        case .obu:
-            HStack {
-                Spacer()
-                KyonoTourDrawable(name: "obu-fab-photo").frame(width: 56, height: 56).clipShape(Circle())
-                    .overlay(Circle().stroke(colors.yellow, lineWidth: 3))
-                Spacer().frame(width: 12)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("右下のこの写真ボタン").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
-                    Text("ひとこと・写真・ラジオ").kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                }
-                Spacer()
-            }
-        // 予告3) マイ記録でふりかえる: カレンダーのミニチュア(5個の丸、3個が塗りつぶし=やった日)
+        // 予告3) マイ記録でふりかえる: TASK-C2-2026-08-05-build29-round7.md R-21: マイ記録画面の
+        // カレンダー実UIの縮小再現(見出し+月送りナビ+曜日行+日付グリッド)。
         case .myRecord:
             KyonoCard {
-                VStack {
-                    Text("カレンダー").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
-                    Spacer().frame(height: 8)
-                    HStack(spacing: 7) {
-                        ForEach(1...5, id: \.self) { n in
-                            let done = n <= 3
-                            Circle().fill(done ? colors.tealStrong : Color.clear)
-                                .frame(width: 34, height: 34)
-                                .overlay(Text("\(n)").kyonoFont(.black900, size: 14).foregroundColor(done ? .white : colors.sub))
+                VStack(spacing: 6) {
+                    Text("マイ記録").kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                    HStack {
+                        Text("◀").kyonoFont(.black900, size: 11).foregroundColor(colors.sub)
+                        Spacer()
+                        Text(verbatim: "8月").kyonoFont(.black900, size: 13).foregroundColor(colors.ink)
+                        Spacer()
+                        Text("▶").kyonoFont(.black900, size: 11).foregroundColor(colors.sub)
+                    }
+                    HStack(spacing: 4) {
+                        ForEach(["日", "月", "火", "水", "木", "金", "土"], id: \.self) { w in
+                            Text(w).kyonoFont(.black900, size: 9).foregroundColor(colors.sub)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                    ForEach(0..<2, id: \.self) { row in
+                        HStack(spacing: 4) {
+                            ForEach(0..<7, id: \.self) { col in
+                                let n = row * 7 + col + 1
+                                let done = [2, 3, 5, 9, 10].contains(n)
+                                Circle().fill(done ? colors.tealStrong : Color.clear)
+                                    .frame(width: 20, height: 20)
+                                    .overlay(Text("\(n)").kyonoFont(.bold700, size: 9).foregroundColor(done ? .white : colors.sub))
+                            }
                         }
                     }
                 }
