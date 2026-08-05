@@ -85,7 +85,10 @@ let kyonoLightColors = KyonoColors(
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-5(本人カード裁定): 背景を一段深いクリームへ
     // (白カードを浮かせて立体感を出す)。line(トラック等の面色)は新背景に対し実測1.04:1まで差が
     // 消えていたため、旧背景比の差(1.15:1)に近づく#EBDFC8へ半段調整(実測1.14:1)。
-    bg: Color(hex: 0xF7EEDC), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xEBDFC8),
+    // TASK-C2-2026-08-05-build26-round4.md R-9(本人カード裁定「案c・ピーチ寄り」): bgを
+    // #F7EEDC→#FAEDE2へ。lineは旧bg→line差分(-12,-15,-20)を新bgに適用した#EEDECEへ玉突き。
+    // ダーク・スプラッシュ(#FFFAF3)は対象外。
+    bg: Color(hex: 0xFAEDE2), card: Color(hex: 0xFFFFFF), line: Color(hex: 0xEEDECE),
     borderStrong: Color(hex: 0xEBDFC8),
     // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: ライトは不変(cardと同値)。
     childFace: Color(hex: 0xFFFFFF), childBorder: Color(hex: 0xEBDFC8),
