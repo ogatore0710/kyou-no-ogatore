@@ -1339,44 +1339,19 @@ fun ResultScreen(
             // 未記録なら練習ブロックが復活するのは許容(本人裁定どおり)。
             if (fdGuideActive && !videoTapped && !showDoneNudge) {
                 Spacer(Modifier.height(16.dp))
-                // TASK-C2-2026-08-05-build24-chip-clarity.md 追加項目R-2(本人生指摘「優しくない・
-                // 練習だと分かるようにして」): 一行の言い切りをやめ、練習ピル+優しい2行構成にする。
-                // ボタン自体(本番と同じ「きょうやった！」)と挙動は不変(Q-3/B-6の設計意図を維持)。
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxWidth().testTag("fdPracticeBlock"),
-                ) {
-                    Text(
-                        "＼ きろくの れんしゅう ／", color = colors.tealInk, fontSize = 12.sp,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier
-                            .background(colors.tealSoft, RoundedCornerShape(percent = 50))
-                            .padding(horizontal = 12.dp, vertical = 4.dp),
-                    )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "けっかはほんもの！つぎは、ストレッチのあとにおすボタンをためしてみよう",
-                            color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                        )
-                        Text(
-                            "まだやってなくても だいじょうぶ。ためしに1回おしてみて！",
-                            color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                        )
-                    }
-                    KyonoPrimaryButton(
-                        "きょうやった！",
-                        {
-                            if (!videoTapped) {
-                                videoTapped = true
-                                performPracticeRecord()
-                            }
-                        },
-                        Modifier.testTag("fdPracticeNextBtn"),
-                    )
-                }
+                // TASK-C2-2026-08-05-build29-round7.md R-19(本人赤ペン指摘・IMG_8822): 練習ピル+
+                // 案内2行(R-2で追加した文言)を削除し、「きょうやった！」ボタンのみ残す。
+                // ボタン自体の挙動・表示条件(fdGuideActive && !videoTapped && !showDoneNudge)は不変。
+                KyonoPrimaryButton(
+                    "きょうやった！",
+                    {
+                        if (!videoTapped) {
+                            videoTapped = true
+                            performPracticeRecord()
+                        }
+                    },
+                    Modifier.fillMaxWidth().testTag("fdPracticeNextBtn"),
+                )
             }
             // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
             // はじめの1本ガイド中、結果画面を表示したまま動画を見に行って戻ってきたときに、

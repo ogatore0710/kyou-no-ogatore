@@ -1331,28 +1331,13 @@ private struct ResultContentView: View {
                 // 出ている間は練習ブロックを隠す(!showDoneNudgeガード追加)。復帰カードを閉じた後に
                 // 未記録なら練習ブロックが復活するのは許容(本人裁定どおり)。
                 if fdGuideActive && !videoTapped && !showDoneNudge {
-                    // TASK-C2-2026-08-05-build24-chip-clarity.md 追加項目R-2(本人生指摘「優しくない・
-                    // 練習だと分かるようにして」): 一行の言い切りをやめ、練習ピル+優しい2行構成にする。
-                    // ボタン自体(本番と同じ「きょうやった！」)と挙動は不変(Q-3/B-6の設計意図を維持)。
-                    VStack(alignment: .center, spacing: 10) {
-                        Text("＼ きろくの れんしゅう ／")
-                            .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
-                            .padding(.horizontal, 12).padding(.vertical, 4)
-                            .background(Capsule().fill(colors.tealSoft))
-                        VStack(alignment: .center, spacing: 4) {
-                            Text("けっかはほんもの！つぎは、ストレッチのあとにおすボタンをためしてみよう")
-                                .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
-                                .multilineTextAlignment(.center)
-                            Text("まだやってなくても だいじょうぶ。ためしに1回おしてみて！")
-                                .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        KyonoPrimaryButton("きょうやった！") {
-                            guard !videoTapped else { return }
-                            videoTapped = true
-                            performPracticeRecord()
-                        }
+                    // TASK-C2-2026-08-05-build29-round7.md R-19(本人赤ペン指摘・IMG_8822): 練習ピル+
+                    // 案内2行(R-2で追加した文言)を削除し、「きょうやった！」ボタンのみ残す。
+                    // ボタン自体の挙動・表示条件(fdGuideActive && !videoTapped && !showDoneNudge)は不変。
+                    KyonoPrimaryButton("きょうやった！") {
+                        guard !videoTapped else { return }
+                        videoTapped = true
+                        performPracticeRecord()
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                     .id("practiceBlock")
