@@ -25,6 +25,10 @@ import WidgetKit
 struct ObChip {
     let label: String
     let v: String
+    // TASK-C2-2026-08-05-build27-round5.md R-15(本人裁定・案①硬い=赤): 設問の意味と色を
+    // リンクさせるための色キー(obgNamedColors/obgNamedColorsDarkのキーに対応)。nilなら従来どおり
+    // 並び順の巡回(obgColors(dark:)[i % count])にフォールバックする(もじの大きさ設問はこちら)。
+    var colorKey: String? = nil
 }
 
 struct ObQuestionDef {
@@ -41,22 +45,25 @@ let obGreet = [
 
 // index.html:4093-4102 ONBOARDING_SCRIPT.questions の1:1移植。かたさチェック本体(QUESTIONS)とは
 // 別の、オンボ専用の簡易4問(bigtext/stiff/worry/anchor)。
+// TASK-C2-2026-08-05-build27-round5.md R-15(本人裁定・案①硬い=赤): 「文字の内容と色をリンク
+// させてほしい」という本人の生指摘を受け、stiff/worry/anchorの3設問だけ色キーを明示する
+// (もじの大きさ設問は対象外・従来どおり巡回)。
 let obQuestions = [
     ObQuestionDef(key: "bigtext", q: "もじの大きさ、どっちが見やすい？", chips: [
         ObChip(label: "大きめ（いまのまま）", v: "big"), ObChip(label: "ふつう", v: "normal"),
     ]),
     ObQuestionDef(key: "stiff", q: "体、硬いほう？", chips: [
-        ObChip(label: "ガチガチかも", v: "hard"), ObChip(label: "ふつう", v: "normal"),
-        ObChip(label: "やわらかい", v: "soft"), ObChip(label: "わからない", v: "unknown"),
+        ObChip(label: "ガチガチかも", v: "hard", colorKey: "rose"), ObChip(label: "ふつう", v: "normal", colorKey: "yellow"),
+        ObChip(label: "やわらかい", v: "soft", colorKey: "green"), ObChip(label: "わからない", v: "unknown", colorKey: "neutral"),
     ]),
     ObQuestionDef(key: "worry", q: "いちばん気になるのは？", chips: [
-        ObChip(label: "肩こり・首", v: "katakori"), ObChip(label: "腰", v: "youtsuu"),
-        ObChip(label: "前屈できない", v: "zenkutsu"), ObChip(label: "眠り", v: "nemuri"),
-        ObChip(label: "とくにない", v: "none"),
+        ObChip(label: "肩こり・首", v: "katakori", colorKey: "orange"), ObChip(label: "腰", v: "youtsuu", colorKey: "rose"),
+        ObChip(label: "前屈できない", v: "zenkutsu", colorKey: "blue"), ObChip(label: "眠り", v: "nemuri", colorKey: "purple"),
+        ObChip(label: "とくにない", v: "none", colorKey: "green"),
     ]),
     ObQuestionDef(key: "anchor", q: "ストレッチ、いつやる派？", chips: [
-        ObChip(label: "朝おきて", v: "asa"), ObChip(label: "おふろ上がり", v: "furo"),
-        ObChip(label: "寝るまえ", v: "neru"), ObChip(label: "きめてない", v: "free"),
+        ObChip(label: "朝おきて", v: "asa", colorKey: "yellow"), ObChip(label: "おふろ上がり", v: "furo", colorKey: "blue"),
+        ObChip(label: "寝るまえ", v: "neru", colorKey: "purple"), ObChip(label: "きめてない", v: "free", colorKey: "neutral"),
     ]),
 ]
 
@@ -123,6 +130,22 @@ private let obgDark: [ObgColor] = [
     ObgColor(bg: Color(hex: 0x1F3A4D), border: Color(hex: 0x2B5570), text: Color(hex: 0xF2EDE1)),
 ]
 func obgColors(dark: Bool) -> [ObgColor] { dark ? obgDark : obgLight }
+
+// TASK-C2-2026-08-05-build27-round5.md R-15: 意味リンク配色用の色キー辞書。既存obgLight/obgDarkの
+// 5色(green/yellow/orange/rose/blue)はそのまま名前引きできるようにし、新色2つ(purple/neutral・
+// 本人指定のダーク値込み)を追加する。obgLight/obgDark配列自体は変更しない(かたさチェック本体
+// Q1-Q4の並び順巡回・obgColors(dark:)[i % count]がそのまま使い続けるため)。
+private let obgNamedColorsLight: [String: ObgColor] = [
+    "green": obgLight[0], "yellow": obgLight[1], "orange": obgLight[2], "rose": obgLight[3], "blue": obgLight[4],
+    "purple": ObgColor(bg: Color(hex: 0xB1A6E6), border: Color(hex: 0x463B8C), text: Color(hex: 0x3A3A35)),
+    "neutral": ObgColor(bg: Color(hex: 0xE7E0D2), border: Color(hex: 0x6B6557), text: Color(hex: 0x3A3A35)),
+]
+private let obgNamedColorsDark: [String: ObgColor] = [
+    "green": obgDark[0], "yellow": obgDark[1], "orange": obgDark[2], "rose": obgDark[3], "blue": obgDark[4],
+    "purple": ObgColor(bg: Color(hex: 0x2E2847), border: Color(hex: 0x453C6B), text: Color(hex: 0xF2EDE1)),
+    "neutral": ObgColor(bg: Color(hex: 0x2F2C26), border: Color(hex: 0x4A463E), text: Color(hex: 0xF2EDE1)),
+]
+func obgNamedColor(_ key: String, dark: Bool) -> ObgColor? { (dark ? obgNamedColorsDark : obgNamedColorsLight)[key] }
 
 struct ChatBubble: Identifiable {
     let id = UUID()
@@ -341,7 +364,9 @@ private struct OnboardingContentView: View {
                 Text("タップしてえらんでね").kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 let palette = obgColors(dark: dark)
                 ForEach(Array(q.chips.enumerated()), id: \.offset) { i, chip in
-                    let c = palette[i % palette.count]
+                    // TASK-C2-2026-08-05-build27-round5.md R-15: colorKeyがあれば意味リンク配色を
+                    // 使う(かたさ/悩み/時間帯)。無ければ従来どおり並び順の巡回(もじの大きさ)。
+                    let c = chip.colorKey.flatMap { obgNamedColor($0, dark: dark) } ?? palette[i % palette.count]
                     // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
                     // 生成イラスト。ChipArt/chip-<v>.pngが存在するものだけ表示する
                     // (硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。

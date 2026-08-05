@@ -101,7 +101,9 @@ import java.time.Instant
 // 実装しない(マスタープラン§2-2・§6 Step5c検収基準3のgrep確認対象)。Web版は2026-07-21時点で
 // A2HSを起動シーケンスから既に切り離し済みのため、ネイティブ側もはじめから素通りできる。
 
-data class ObChip(val label: String, val v: String)
+// TASK-C2-2026-08-05-build27-round5.md R-15(本人裁定・案①硬い=赤): colorKeyがnullなら従来どおり
+// 並び順の巡回(obgColors(dark:)[i % count])にフォールバックする(もじの大きさ設問はこちら)。
+data class ObChip(val label: String, val v: String, val colorKey: String? = null)
 data class ObQuestionDef(val key: String, val q: String, val chips: List<ObChip>)
 
 // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-2: 固定フッターCTA(かたさチェックを
@@ -124,15 +126,25 @@ val OB_QUESTIONS = listOf(
     ),
     ObQuestionDef(
         "stiff", "体、硬いほう？",
-        listOf(ObChip("ガチガチかも", "hard"), ObChip("ふつう", "normal"), ObChip("やわらかい", "soft"), ObChip("わからない", "unknown")),
+        listOf(
+            ObChip("ガチガチかも", "hard", "rose"), ObChip("ふつう", "normal", "yellow"),
+            ObChip("やわらかい", "soft", "green"), ObChip("わからない", "unknown", "neutral"),
+        ),
     ),
     ObQuestionDef(
         "worry", "いちばん気になるのは？",
-        listOf(ObChip("肩こり・首", "katakori"), ObChip("腰", "youtsuu"), ObChip("前屈できない", "zenkutsu"), ObChip("眠り", "nemuri"), ObChip("とくにない", "none")),
+        listOf(
+            ObChip("肩こり・首", "katakori", "orange"), ObChip("腰", "youtsuu", "rose"),
+            ObChip("前屈できない", "zenkutsu", "blue"), ObChip("眠り", "nemuri", "purple"),
+            ObChip("とくにない", "none", "green"),
+        ),
     ),
     ObQuestionDef(
         "anchor", "ストレッチ、いつやる派？",
-        listOf(ObChip("朝おきて", "asa"), ObChip("おふろ上がり", "furo"), ObChip("寝るまえ", "neru"), ObChip("きめてない", "free")),
+        listOf(
+            ObChip("朝おきて", "asa", "yellow"), ObChip("おふろ上がり", "furo", "blue"),
+            ObChip("寝るまえ", "neru", "purple"), ObChip("きめてない", "free", "neutral"),
+        ),
     ),
 )
 
@@ -189,6 +201,22 @@ private val OBG_DARK = listOf(
     ObgColor(Color(0xFF1F3A4D), Color(0xFF2B5570), Color(0xFFF2EDE1)),
 )
 private fun obgColors(dark: Boolean) = if (dark) OBG_DARK else OBG_LIGHT
+
+// TASK-C2-2026-08-05-build27-round5.md R-15: 意味リンク配色用の色キー辞書。既存OBG_LIGHT/OBG_DARKの
+// 5色(green/yellow/orange/rose/blue)はそのまま名前引きできるようにし、新色2つ(purple/neutral・
+// 本人指定のダーク値込み)を追加する。OBG_LIGHT/OBG_DARK自体は変更しない(かたさチェック本体
+// Q1-Q4の並び順巡回・obgColors(dark:)[i % count]がそのまま使い続けるため)。
+private val OBG_NAMED_LIGHT: Map<String, ObgColor> = mapOf(
+    "green" to OBG_LIGHT[0], "yellow" to OBG_LIGHT[1], "orange" to OBG_LIGHT[2], "rose" to OBG_LIGHT[3], "blue" to OBG_LIGHT[4],
+    "purple" to ObgColor(Color(0xFFB1A6E6), Color(0xFF463B8C), Color(0xFF3A3A35)),
+    "neutral" to ObgColor(Color(0xFFE7E0D2), Color(0xFF6B6557), Color(0xFF3A3A35)),
+)
+private val OBG_NAMED_DARK: Map<String, ObgColor> = mapOf(
+    "green" to OBG_DARK[0], "yellow" to OBG_DARK[1], "orange" to OBG_DARK[2], "rose" to OBG_DARK[3], "blue" to OBG_DARK[4],
+    "purple" to ObgColor(Color(0xFF2E2847), Color(0xFF453C6B), Color(0xFFF2EDE1)),
+    "neutral" to ObgColor(Color(0xFF2F2C26), Color(0xFF4A463E), Color(0xFFF2EDE1)),
+)
+private fun obgNamedColor(key: String, dark: Boolean): ObgColor? = (if (dark) OBG_NAMED_DARK else OBG_NAMED_LIGHT)[key]
 
 // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの生成イラスト
 // (硬さチェック6タイプ=KyonoTypeArtはこの対象外)。ObChip.vの値と1:1対応させる
@@ -408,7 +436,9 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 Spacer(Modifier.height(6.dp))
                 val palette = obgColors(dark)
                 q.chips.forEachIndexed { i, chip ->
-                    val c = palette[i % palette.size]
+                    // TASK-C2-2026-08-05-build27-round5.md R-15: colorKeyがあれば意味リンク配色を
+                    // 使う(かたさ/悩み/時間帯)。無ければ従来どおり並び順の巡回(もじの大きさ)。
+                    val c = chip.colorKey?.let { obgNamedColor(it, dark) } ?: palette[i % palette.size]
                     // TASK-C2-2026-07-30-icon-system-addendum-chips.md: 部位・時間帯チップの
                     // 生成イラスト(硬さチェック6タイプ=KyonoTypeArtはこの対象外・触らない)。
                     // TASK-C2-2026-08-01-build13-round3.md ①: 「もじの大きさ」設問(key=="bigtext")は
