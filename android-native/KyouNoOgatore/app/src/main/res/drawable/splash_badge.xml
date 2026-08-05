@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TASK-C2-2026-08-05-build27-round5.md R-11: launch_badge.pngをsplash_chara.xmlと同じ
+     25%insetで包む(円形マスクで角が切れるのを防ぐ)。アプリ内スプラッシュ(KyonoSplashView)の
+     「#」バッジ部分をiOS版と同じ見た目(黄丸角92pt相当・影オフセット込み)でPNG化したもの。
+     Android 12+のSplashScreen APIは仕様上アイコン中央のみ・文字は載せられないため、
+     このバッジのみを表示してアプリ内スプラッシュへ図柄を接続する(R-11発注書の指示どおり)。 -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/launch_badge"
+    android:insetLeft="25%"
+    android:insetTop="25%"
+    android:insetRight="25%"
+    android:insetBottom="25%" />
