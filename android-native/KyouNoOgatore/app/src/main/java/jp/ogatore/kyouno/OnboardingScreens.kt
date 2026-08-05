@@ -1155,12 +1155,28 @@ fun ResultScreen(
                 if (fdGuideActive) {
                     Spacer(Modifier.height(10.dp))
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                        // TASK-C2-2026-08-05-build26-round4.md R-7(本人モック確認済み・
+                        // mock-pink-highlight-v3.png/pill-float-preview.gifが見た目の正解):
+                        // ピンク化+16sp拡大+ふわふわ(±4dp・周期1.6s・easeInOut・reduceMotion時静止)。
+                        val pillOffsetY = if (!rememberReducedMotion()) {
+                            val pillFloat = rememberInfiniteTransition(label = "r7PillFloat")
+                            val v by pillFloat.animateFloat(
+                                initialValue = 4f, targetValue = -4f,
+                                animationSpec = infiniteRepeatable(tween(800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                                label = "r7PillFloatY",
+                            )
+                            v
+                        } else 0f
                         Text(
-                            "＼ 動画をひらく練習 ／", color = colors.tealInk, fontSize = 12.sp, fontWeight = FontWeight.Black,
-                            modifier = Modifier.background(colors.tealSoft, RoundedCornerShape(percent = 50)).padding(horizontal = 12.dp, vertical = 4.dp),
+                            "＼ 動画をひらく練習 ／", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black,
+                            modifier = Modifier
+                                .offset(y = pillOffsetY.dp)
+                                .background(colors.pinkSoft, RoundedCornerShape(percent = 50))
+                                .padding(horizontal = 18.dp, vertical = 6.dp),
                         )
+                        // R-7: 案内行を自動折返しに任せず明示的に2行にする。
                         Text(
-                            "今は1本目だけタップできるよ！動画をひらいてもどってきてね！", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                            "今は1本目だけタップできるよ！\n動画をひらいてもどってきてね！", color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         )
                     }
@@ -1195,7 +1211,11 @@ fun ResultScreen(
                         lookupVideo(vk)?.let { v ->
                             VideoRow(
                                 v, if (isFirst) firstVideoTapHandler else videoTapHandler,
-                                badge = badges.getOrNull(i), disabledLook = fdGuideActive && !isFirst,
+                                badge = badges.getOrNull(i),
+                                // TASK-C2-2026-08-05-build26-round4.md R-7: ツアー中の1本目カードを
+                                // 既存のhero強調枠(pink 2.5dp+pinkSoft地)で目立たせる。
+                                hero = isFirst,
+                                disabledLook = fdGuideActive && !isFirst,
                                 useShortTitle = true,
                             )
                         }

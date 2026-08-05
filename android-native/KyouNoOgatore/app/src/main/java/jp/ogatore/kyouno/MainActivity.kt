@@ -1490,6 +1490,9 @@ fun HomeScreen(
                     TodaySegmentControl(store = store, mineAvail = mineAvail, mode = effectiveMode, onSelect = ::setMode)
                     // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
                     // 説明行を削除。
+                    // TASK-C2-2026-08-05-build26-round4.md R-8(本人指示「セグメントと動画カードが
+                    // 近い・はなして」): セグメントと動画カード群の間に+8dpの余白を追加。
+                    Spacer(Modifier.height(8.dp))
                     TodayVideoSection(
                         store = store,
                         mode = effectiveMode,
