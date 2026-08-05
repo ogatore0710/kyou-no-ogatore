@@ -1022,6 +1022,8 @@ private struct ResultContentView: View {
     // 冗長になったため)。代わりに「動画タップまで」タイプカードを見せ続け、タップした瞬間に
     // どうが(③)へ進段させる。
     @State private var videoTapped = false
+    // TASK-C2-2026-08-05-build26-round4.md R-7: 「動画をひらく練習」ピルのふわふわ演出用トグル。
+    @State private var pillFloatUp = false
     // A-3: YouTubeから戻ったあと「おかえりなさい」ブロックが画面外で気づけなかった。
     // HomeView.swift:600-621のパルス+スクロール作法をそのまま流用。
     @State private var doneNudgeScale: CGFloat = 1
@@ -1171,11 +1173,22 @@ private struct ResultContentView: View {
                     if fdGuideActive {
                         Spacer().frame(height: 10)
                         VStack(spacing: 6) {
+                            // TASK-C2-2026-08-05-build26-round4.md R-7(本人モック確認済み・
+                            // mock-pink-highlight-v3.png/pill-float-preview.gifが見た目の正解):
+                            // ピンク化+16pt拡大+ふわふわ(±4pt・周期1.6s・easeInOut・reduceMotion時静止)。
                             Text("＼ 動画をひらく練習 ／")
-                                .kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
-                                .padding(.horizontal, 12).padding(.vertical, 4)
-                                .background(Capsule().fill(colors.tealSoft))
-                            Text("今は1本目だけタップできるよ！動画をひらいてもどってきてね！")
+                                .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
+                                .padding(.horizontal, 18).padding(.vertical, 6)
+                                .background(Capsule().fill(colors.pinkSoft))
+                                .offset(y: reduceMotion ? 0 : (pillFloatUp ? -4 : 4))
+                                .onAppear {
+                                    guard !reduceMotion else { return }
+                                    withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                                        pillFloatUp = true
+                                    }
+                                }
+                            // R-7: 案内行を自動折返しに任せず明示的に2行にする。
+                            Text("今は1本目だけタップできるよ！\n動画をひらいてもどってきてね！")
                                 .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
                                 .multilineTextAlignment(.center)
                         }
@@ -1210,6 +1223,9 @@ private struct ResultContentView: View {
                                 v: v,
                                 openUrl: isFirst ? firstVideoTapHandler : videoTapHandler,
                                 badge: badges.indices.contains(i) ? badges[i] : nil,
+                                // TASK-C2-2026-08-05-build26-round4.md R-7: ツアー中の1本目カードを
+                                // 既存のhero強調枠(pink 2.5pt+pinkSoft地)で目立たせる。
+                                hero: isFirst,
                                 disabledLook: fdGuideActive && !isFirst,
                                 useShortTitle: true
                             )

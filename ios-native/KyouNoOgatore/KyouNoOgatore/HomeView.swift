@@ -648,6 +648,9 @@ struct HomeView: View {
                     TodaySegmentControl(store: store, mineAvail: mineAvail, mode: effectiveMode, onSelect: setMode)
                     // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
                     // 説明行を削除。
+                    // TASK-C2-2026-08-05-build26-round4.md R-8(本人指示「セグメントと動画カードが
+                    // 近い・はなして」): セグメントと動画カード群の間に+8ptの余白を追加。
+                    Spacer().frame(height: 8)
                     TodayVideoSection(store: store, mode: effectiveMode, plan: plan, typeResult: typeResult, onVideoTap: openTodayVideo)
                 }
                 // TASK-C2-2026-07-27-behavior-parity-audit.md §B: index.html:4392-4393
