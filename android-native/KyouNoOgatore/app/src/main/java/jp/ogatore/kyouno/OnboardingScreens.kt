@@ -1280,7 +1280,12 @@ fun ResultScreen(
             // 防ぐ(videoTappedをそのまま表示条件に使う)。B-8: QuizScreenのansweringガードと
             // 同じ考え方で、videoTapped自体を「既に処理済みか」の判定にも使い、ダイアログ出現
             // までの700ms間の再タップでperformPracticeRecordが二重発火しないようにする。
-            if (fdGuideActive && !videoTapped) {
+            // TASK-C2-2026-08-05-build26-round4.md R-6(本人赤ペン指摘): 動画タップ→YouTube→
+            // アプリ復帰の経路ではvideoTapped=trueにならないため、復帰カード(showDoneNudge)と
+            // この練習ブロックが同時に表示され「記録の入り口が二重」になっていた。復帰カードが
+            // 出ている間は練習ブロックを隠す(!showDoneNudgeガード追加)。復帰カードを閉じた後に
+            // 未記録なら練習ブロックが復活するのは許容(本人裁定どおり)。
+            if (fdGuideActive && !videoTapped && !showDoneNudge) {
                 Spacer(Modifier.height(16.dp))
                 // TASK-C2-2026-08-05-build24-chip-clarity.md 追加項目R-2(本人生指摘「優しくない・
                 // 練習だと分かるようにして」): 一行の言い切りをやめ、練習ピル+優しい2行構成にする。
