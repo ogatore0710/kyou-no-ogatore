@@ -2616,13 +2616,11 @@ fun MyRecordScreen(
                 Spacer(Modifier.height(8.dp))
                 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #reach):
                 // index.html:898-899 常時表示の説明文・注意書きの1:1移植。
+                // TASK-C2-2026-08-05-build27-round5.md R-10(本人指示・文字量ダイエット):
+                // 「毎週月曜日」は号令の言い回しでロジックは無く(記録は何曜日でも可・挙動不変)、
+                // いたみ注意行はこのカードからは削除(ペースの目安カード側の医療注意行は別途残存)。
                 Text(
-                    "ひざを伸ばして前屈 手はどこまで届く？\n届いたところのボタンを押すと記録されます（週1回でOK）",
-                    color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp,
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    "いたみがある日は むりしないでね（つよい痛みが続くときは お医者さんへ）",
+                    "毎週月曜日は前屈チェック！\n手はどこまでとどく？",
                     color = colors.sub, fontSize = 14.sp, lineHeight = 20.sp,
                 )
                 // index.html:900-902 assets/check/meter.jpg(前屈のお手本写真)の1:1移植。
