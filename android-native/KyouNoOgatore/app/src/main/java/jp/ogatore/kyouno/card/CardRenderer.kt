@@ -89,10 +89,14 @@ object CardRenderer {
         typeIconKey: String? = null,
         memoText: String? = null,
         streakCount: Int = 0,
+        displayTotal: Int? = null,
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        draw(canvas, ds, effTotal, theme, milestone, milestoneTitle, dateIdx, cardThemesV2From, context, pat, typeName, typeIconKey, memoText, streakCount)
+        // TASK-C2-2026-08-05-build27-round5.md R-13: displayTotalは「大数字の表示だけ」を差し替える
+        // ためのフック(ツアー練習カード用に0を渡す)。milestone判定・柄抽選(pat)は呼び出し元が
+        // effTotal(実データ)で計算済みの結果をそのまま渡しているため、ここでは一切影響しない。
+        draw(canvas, ds, displayTotal ?: effTotal, theme, milestone, milestoneTitle, dateIdx, cardThemesV2From, context, pat, typeName, typeIconKey, memoText, streakCount)
         return bitmap
     }
 

@@ -372,7 +372,9 @@ struct HomeView: View {
                     Color.black.opacity(0.55).ignoresSafeArea()
                         .onTapGesture {}
                     VStack(spacing: 14 * zoom) {
-                        Text("使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね")
+                        // TASK-C2-2026-08-05-build27-round5.md R-14(本人指定・一字一句このまま):
+                        // 旧文言「使い方ツアーは これでおわり！あしたからは ここで1日1本 たのしんでね」から差し替え。
+                        Text("使い方ツアーはこれで終わり！\nこのあとストレッチしてみてね")
                             .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                             .multilineTextAlignment(.center)
                         KyonoPrimaryButton("はじめる") {
@@ -1345,7 +1347,9 @@ struct TodayCardResult {
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
 // MyRecordView(dayInfoの記録カード表示)からも参照するため非privateにする
 // (全画面完全性監査タスク #history)。
-func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String) -> TodayCardResult? {
+// TASK-C2-2026-08-05-build27-round5.md R-13: displayTotalOverrideはツアー練習カードの大数字
+// 表示だけを0に差し替えるためのフック(実カウント・milestone判定・柄抽選には一切影響しない)。
+func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, displayTotalOverride: Int? = nil) -> TodayCardResult? {
     let data = CardDataLoader.shared
     let effTotal = streak.total
     let dateIdx = CardLottery.dateIdx(ds)
@@ -1382,7 +1386,8 @@ func renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: Str
     let png = CardRenderer.render(
         ds: ds, effTotal: effTotal, theme: theme, milestone: milestone, milestoneTitle: milestoneTitle,
         dateIdx: dateIdx, cardThemesV2From: data.CARD_THEMES_V2_FROM,
-        pat: pat, typeName: typeName, typeIconKey: typeIconKey, memoText: memos[ds], streakCount: streak.count
+        pat: pat, typeName: typeName, typeIconKey: typeIconKey, memoText: memos[ds], streakCount: streak.count,
+        displayTotal: displayTotalOverride
     )
     guard let image = UIImage(data: png) else { return nil }
     let specialTier = milestone || pat?.tier == "toku" || pat?.tier == "season" || pat?.tier == "rare"

@@ -2095,8 +2095,10 @@ fun HomeScreen(
                     horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                     modifier = Modifier.background(colors.card, RoundedCornerShape(20.dp)).padding(20.dp),
                 ) {
+                    // TASK-C2-2026-08-05-build27-round5.md R-14(本人指定・一字一句このまま):
+                    // 旧文言「使い方ツアーは これでおわり！あしたからは ここで1日1本 たのしんでね」から差し替え。
                     Text(
-                        "使い方ツアーは これでおわり！\nあしたからは ここで1日1本 たのしんでね",
+                        "使い方ツアーはこれで終わり！\nこのあとストレッチしてみてね",
                         color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black,
                         textAlign = TextAlign.Center,
                     )
@@ -2870,7 +2872,9 @@ data class TodayCardResult(val bitmap: android.graphics.Bitmap, val isMilestone:
 // 変換)をここで組み立てる。判定そのもの(cardPatternFor)はCardLotteryの純粋関数を呼ぶだけ。
 // TASK-C2-2026-07-31-build11-renshu-journey.md D: ResultScreen(結果画面)の練習モードその場記録
 // からも呼べるようprivateを外す(純粋関数・隠れた状態は持たない)。
-fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, context: Context): TodayCardResult {
+// TASK-C2-2026-08-05-build27-round5.md R-13: displayTotalOverrideはツアー練習カードの大数字
+// 表示だけを0に差し替えるためのフック(実カウント・milestone判定・柄抽選には一切影響しない)。
+fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: String, context: Context, displayTotalOverride: Int? = null): TodayCardResult {
     val data = CardDataLoader.shared
     val effTotal = streak.total
     val dateIdx = CardLottery.dateIdx(ds)
@@ -2900,7 +2904,7 @@ fun renderTodayCard(store: RecordStore, streak: RecordLogic.StreakData, ds: Stri
     val bitmap = CardRenderer.render(
         ds, effTotal, theme, milestone, milestoneTitle, dateIdx, data.CARD_THEMES_V2_FROM,
         context = context, pat = pat, typeName = typeName, typeIconKey = typeIconKey,
-        memoText = memoText, streakCount = streak.count,
+        memoText = memoText, streakCount = streak.count, displayTotal = displayTotalOverride,
     )
     val specialTier = milestone || pat?.tier == "toku" || pat?.tier == "season" || pat?.tier == "rare"
     return TodayCardResult(bitmap, milestone, specialTier)

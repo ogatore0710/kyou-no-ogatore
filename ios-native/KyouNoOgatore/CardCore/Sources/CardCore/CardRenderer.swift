@@ -87,7 +87,7 @@ public enum CardRenderer {
         ds: String, effTotal: Int, theme: ResolvedTheme, milestone: Bool, milestoneTitle: String?,
         dateIdx: Int, cardThemesV2From: Int,
         pat: CardPattern? = nil, typeName: String? = nil, typeIconKey: String? = nil,
-        memoText: String? = nil, streakCount: Int = 0
+        memoText: String? = nil, streakCount: Int = 0, displayTotal: Int? = nil
     ) -> Data {
         let width = 1000, height = 1000
         let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -103,8 +103,11 @@ public enum CardRenderer {
         ctx.translateBy(x: 0, y: CGFloat(height))
         ctx.scaleBy(x: 1, y: -1)
 
+        // TASK-C2-2026-08-05-build27-round5.md R-13: displayTotalは「大数字の表示だけ」を差し替える
+        // ためのフック(ツアー練習カード用に0を渡す)。milestone判定・柄抽選(pat)は呼び出し元が
+        // effTotal(実データ)で計算済みの結果をそのまま渡しているため、ここでは一切影響しない。
         draw(
-            in: ctx, ds: ds, effTotal: effTotal, theme: theme, milestone: milestone,
+            in: ctx, ds: ds, effTotal: displayTotal ?? effTotal, theme: theme, milestone: milestone,
             milestoneTitle: milestoneTitle, dateIdx: dateIdx, cardThemesV2From: cardThemesV2From,
             pat: pat, typeName: typeName, typeIconKey: typeIconKey, memoText: memoText, streakCount: streakCount
         )

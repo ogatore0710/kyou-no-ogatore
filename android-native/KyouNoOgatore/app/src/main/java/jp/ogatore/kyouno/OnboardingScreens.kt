@@ -1059,7 +1059,11 @@ fun ResultScreen(
         // 終わっている」欠陥を直した際と同じ再発がここにもあった(confettiTriggerが
         // fdCelebrationVisibleと同時=即時発火・cardResultだけ700ms後というズレ)。
         // MainActivity側の直し方どおり、confettiもcardResultと同じタイミング(700ms後)へ揃える。
-        val newCard = renderTodayCard(store, streak, today, resultContext)
+        // TASK-C2-2026-08-05-build27-round5.md R-13(本人指示「この画面は0日って表示させて。
+        // テストだから」): このComposable自体がfdGuide中の練習専用(通常ユーザーはMainActivity側の
+        // renderTodayCard呼び出しを使う)なので、大数字表示だけ常に0にする。markDone/
+        // recordDaylogは通常どおり実行済みで実カウントには一切影響しない(表示だけの変更)。
+        val newCard = renderTodayCard(store, streak, today, resultContext, displayTotalOverride = 0)
         if (resultReducedMotion) {
             cardResult = newCard
         } else {
@@ -1261,8 +1265,12 @@ fun ResultScreen(
             }
             // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-1: rPace/rSoudanLinkもガイド中だけ
             // 隠していたが、フル版統一のため常に表示する。
-            Spacer(Modifier.height(16.dp))
             // 全画面完全性監査タスク #result: index.html:741-742 #rPace/hint(ペースの目安・免責注意書き)の1:1移植。
+            // TASK-C2-2026-08-05-build27-round5.md R-12(本人赤ペン指摘): ツアー中はこのカード
+            // 丸ごと非表示にする(Spacerごと隠して余白も残さない)。通常の結果画面(!fdGuideActive)では
+            // 従来どおり表示。
+            if (!fdGuideActive) {
+            Spacer(Modifier.height(16.dp))
             KyonoCard {
                 Text("ペースの目安", color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(6.dp))
@@ -1290,6 +1298,7 @@ fun ResultScreen(
                         Text("この悩み、相談室で聞いてみる", color = colors.tealInk, fontSize = 14.sp, fontWeight = FontWeight.Black)
                     }
                 }
+            }
             }
             // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-3: 結果表示と同時/直後に出していた
             // 「練習モード」ポップアップ的な専用ブロック(旧「きょうは練習してみよう」カード)を廃止し、
@@ -1440,11 +1449,23 @@ fun ResultScreen(
                 },
                 text = {
                     KyonoInstantDialogAnimations()
-                    Image(
-                        bitmap = result.bitmap.asImageBitmap(),
-                        contentDescription = "記録カード",
-                        modifier = Modifier.fillMaxWidth().testTag("cardImage"),
-                    )
+                    Column {
+                        Image(
+                            bitmap = result.bitmap.asImageBitmap(),
+                            contentDescription = "記録カード",
+                            modifier = Modifier.fillMaxWidth().testTag("cardImage"),
+                        )
+                        // TASK-C2-2026-08-05-build27-round5.md R-13(本人指示・一字一句このまま):
+                        // 「自分用に画像を保存したり SNSでシェアしたりしてね！」をシェアボタン付近に
+                        // 追加。このダイアログはfdGuide練習カード専用(通常ユーザーはMainActivity側の
+                        // 別ダイアログを使う)ため、ツアー中限定の条件分岐は不要。
+                        Text(
+                            "自分用に画像を保存したり SNSでシェアしたりしてね！",
+                            color = colors.sub, fontSize = 13.sp,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 },
             )
         }

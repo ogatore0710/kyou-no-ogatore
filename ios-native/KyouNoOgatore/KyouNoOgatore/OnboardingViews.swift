@@ -1100,7 +1100,11 @@ private struct ResultContentView: View {
         // (confettiTriggerがfdCelebrationVisibleと同時=即時発火・cardResultだけ0.7秒後という
         // ズレ)。HomeView側の直し方どおり、confettiもcardResultと同じタイミング(0.7秒後)へ
         // 揃える。
-        let newCard = renderTodayCard(store: store, streak: streak, ds: today)
+        // TASK-C2-2026-08-05-build27-round5.md R-13(本人指示「この画面は0日って表示させて。
+        // テストだから」): このView自体がfdGuide中の練習専用(通常ユーザーはHomeView側の
+        // renderTodayCard呼び出しを使う)なので、大数字表示だけ常に0にする。markDone/
+        // recordDaylogは通常どおり実行済みで実カウントには一切影響しない(表示だけの変更)。
+        let newCard = renderTodayCard(store: store, streak: streak, ds: today, displayTotalOverride: 0)
         if reduceMotion {
             cardResult = newCard
         } else {
@@ -1261,6 +1265,9 @@ private struct ResultContentView: View {
                 }
                 // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-1: rPace/rSoudanLinkもガイド中だけ
                 // 隠していたが、フル版統一のため常に表示する。
+                // TASK-C2-2026-08-05-build27-round5.md R-12(本人赤ペン指摘): ツアー中はこのカード
+                // 丸ごと非表示にする。通常の結果画面(!fdGuideActive)では従来どおり表示。
+                if !fdGuideActive {
                 KyonoCard {
                     Text("ペースの目安").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
                     Spacer().frame(height: 6)
@@ -1284,6 +1291,7 @@ private struct ResultContentView: View {
                             .padding(.vertical, 12)
                             .onTapGesture { onOpenSoudan(intentId) }
                     }
+                }
                 }
                 // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-3: 結果表示と同時/直後に出していた
                 // 「練習モード」ポップアップ的な専用ブロック(旧「きょうは練習してみよう」カード)を廃止し、
@@ -1387,6 +1395,14 @@ private struct ResultContentView: View {
                     VStack {
                         Image(uiImage: cardResult.image).resizable().scaledToFit()
                             .accessibilityIdentifier("cardImage")
+                        // TASK-C2-2026-08-05-build27-round5.md R-13(本人指示・一字一句このまま):
+                        // 「自分用に画像を保存したり SNSでシェアしたりしてね！」をシェアボタン付近に追加。
+                        // このモーダルはfdGuide練習カード専用(通常ユーザーはHomeView側の別モーダルを使う)
+                        // ため、ツアー中限定の条件分岐は不要。
+                        Text("自分用に画像を保存したり SNSでシェアしたりしてね！")
+                            .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 8)
                         VStack(spacing: 12) {
                             KyonoPrimaryButton("保存・シェアする") {
                                 ShareImage.share(uiImage: cardResult.image, text: "#きょうのオガトレ 1日目！")
