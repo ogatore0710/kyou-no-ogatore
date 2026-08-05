@@ -1014,7 +1014,7 @@ struct ResultView: View {
         ResultContentView(
             store: store,
             info: info, typeKey: typeKey, autoReachLv: autoReachLv, rx: rx, worry: worry,
-            showDoneNudge: showDoneNudge, fdGuideActive: fdGuideActive, showTourBtn: showTourBtn,
+            showDoneNudge: $showDoneNudge, fdGuideActive: fdGuideActive, showTourBtn: showTourBtn,
             onVideoTap: { url in pendingNudgeDate = RecordLogic.todayStr(now: Date()); openUrl(url) },
             openUrl: openUrl, onDone: onDone, onDoneFromNudge: onDoneFromNudge ?? onDone,
             onStartQuiz: onStartQuiz, onOpenSoudan: onOpenSoudan, onStartTour: onStartTour
@@ -1031,7 +1031,9 @@ private struct ResultContentView: View {
     let autoReachLv: Int?
     let rx: [String]
     let worry: String?
-    let showDoneNudge: Bool
+    // TASK-C2-2026-08-05-build28-round6.md R-18: 親(ResultView)の@Stateを直接リセットできるよう
+    // let→Bindingへ変更(カードを閉じた瞬間にshowDoneNudgeを消し、出戻り描画を防ぐため)。
+    @Binding var showDoneNudge: Bool
     let fdGuideActive: Bool
     let showTourBtn: Bool
     let onVideoTap: (String) -> Void
@@ -1058,7 +1060,6 @@ private struct ResultContentView: View {
     // 通常ユーザー(!fdGuideActive)の「おかえりなさい」は従来どおりonDoneFromNudge(ホームへ)を使う。
     @State private var cardResult: TodayCardResult?
     @State private var confettiTrigger: Int?
-    @State private var fdCelebrationVisible = false
     // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-2: 1本目だけYouTube往復の練習に
     // 使えるようにする。案内を一拍見せてからopenUrlする間の再タップ二重発火を防ぐガード。
     @State private var youtubeNoticeVisible = false
@@ -1086,6 +1087,11 @@ private struct ResultContentView: View {
     // HomeView.swift:316-331 closeCardAndMaybeStartTourの1:1移植(結果画面版)。
     private func closeCardAndMaybeStartTour() {
         cardResult = nil
+        // TASK-C2-2026-08-05-build28-round6.md R-18(本人動画指摘・裁定GO): showDoneNudgeを
+        // 立てたままにしておくと、カードを閉じてからstep5(ツアー)へ遷移するまでの約350msの間、
+        // 済んだはずの「おかえり！／1日目の記録をつけにいく」画面が一瞬出戻って見えていた。
+        // このカード表示フロー自体がfdGuideActive時にしか到達しないため、常にリセットしてよい。
+        showDoneNudge = false
         let tourpend: Bool = store.get("tourpend", default: false)
         let tourseen: Bool = store.get("tourseen", default: false)
         if tourpend && !tourseen {
@@ -1099,6 +1105,14 @@ private struct ResultContentView: View {
 
     // HomeView.swift:505-599のwasGuide分岐だけを抜き出した版(日1目は必ずこの分岐を通る。
     // 節目/通常cheerの分岐はfdGuide初日には到達しないため移植不要)。
+    // TASK-C2-2026-08-05-build28-round6.md R-18(本人動画指摘・裁定GO): この関数はfdGuideActive時
+    // にしか呼ばれない(呼び出し元2箇所とも`fdGuideActive ?`ガード済み。通常ユーザーの記録演出=
+    // 労い→0.7秒→カードはHomeView側の別ロジックで別途担当・ここには一切触れていない)ため、
+    // ツアー中は労い演出(旧fdCelebrationVisible「1日目クリア！ナイスご自愛！」)と0.7秒の
+    // 待ち時間を省き、即カードモーダルを表示する。旧実装ではKyonoCardModalOverlayの
+    // .transition(.opacity)がwithAnimationで包まれて0.35秒かけてフェードインしていたため、
+    // 完全に不透明になるまでの間、背後の労いテキスト(0日目カードと矛盾する「1日目クリア！」)が
+    // 透けて見えていた。withAnimationを使わず即座に代入することでこのフェード自体を無くす。
     private func performPracticeRecord() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         _ = RecordLogic.markDone(store, now: Date())
@@ -1114,30 +1128,13 @@ private struct ResultContentView: View {
         }
         store.set("fd", "1")
         store.set("tourpend", true)
-        if reduceMotion {
-            fdCelebrationVisible = true
-        } else {
-            withAnimation(.easeOut(duration: 0.5)) { fdCelebrationVisible = true }
-        }
-        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-1: HomeView.swift(TASK-C2-2026-07-30-
-        // completion-moment-redesign.md)で「紙吹雪がカード入場より0.7秒も前に先発してしまい、
-        // カードが出る頃には見せ場が終わっている」欠陥を直した際と同じ再発がここにもあった
-        // (confettiTriggerがfdCelebrationVisibleと同時=即時発火・cardResultだけ0.7秒後という
-        // ズレ)。HomeView側の直し方どおり、confettiもcardResultと同じタイミング(0.7秒後)へ
-        // 揃える。
         // TASK-C2-2026-08-05-build27-round5.md R-13(本人指示「この画面は0日って表示させて。
         // テストだから」): このView自体がfdGuide中の練習専用(通常ユーザーはHomeView側の
         // renderTodayCard呼び出しを使う)なので、大数字表示だけ常に0にする。markDone/
         // recordDaylogは通常どおり実行済みで実カウントには一切影響しない(表示だけの変更)。
         let newCard = renderTodayCard(store: store, streak: streak, ds: today, displayTotalOverride: 0)
-        if reduceMotion {
-            cardResult = newCard
-        } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                withAnimation(.easeOut(duration: 0.35)) { cardResult = newCard }
-                confettiTrigger = (confettiTrigger ?? 0) + 1
-            }
-        }
+        cardResult = newCard
+        confettiTrigger = (confettiTrigger ?? 0) + 1
     }
 
     var body: some View {
@@ -1379,16 +1376,10 @@ private struct ResultContentView: View {
                     }
                     .id("doneNudgeCard")
                 }
-                if fdCelebrationVisible {
-                    // HomeView.swift:630-644 fdCelebrationVisibleの1:1移植(結果画面版)。
-                    KyonoCard {
-                        Text("1日目クリア！ナイスご自愛！")
-                            .kyonoFont(.black900, size: 16).foregroundColor(colors.pinkInk)
-                        Spacer().frame(height: 6)
-                        Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく")
-                            .kyonoFont(.bold700, size: 14).foregroundColor(colors.ink)
-                    }
-                }
+                // TASK-C2-2026-08-05-build28-round6.md R-18: 旧「1日目クリア！ナイスご自愛！」の
+                // 労いカード(fdCelebrationVisible)は削除。performPracticeRecordはfdGuideActive時
+                // にしか呼ばれず、ツアー中はこの労い演出自体を出さない裁定になったため(詳細は
+                // performPracticeRecordのコメント参照)。
                 // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。
                 if showTourBtn {
                     KyonoGhostButton("つづき：使い方ツアーへ", action: onStartTour)

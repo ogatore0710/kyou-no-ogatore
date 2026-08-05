@@ -1053,7 +1053,6 @@ fun ResultScreen(
     // 通常ユーザー(!fdGuideActive)の「おかえりなさい」は従来どおりonDoneFromNudge(ホームへ)を使う。
     var cardResult by remember { mutableStateOf<TodayCardResult?>(null) }
     var confettiTrigger by remember { mutableStateOf<Int?>(null) }
-    var fdCelebrationVisible by rememberSaveable { mutableStateOf(false) }
     // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-2: 1本目だけYouTube往復の練習に
     // 使えるようにする。案内を一拍見せてからopenUrlする間の再タップ二重発火を防ぐガード。
     var youtubeNoticeVisible by remember { mutableStateOf(false) }
@@ -1073,6 +1072,13 @@ fun ResultScreen(
     val resultHaptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     // MainActivity.kt:1400-1480のwasGuide分岐だけを抜き出した版(日1目は必ずこの分岐を通る。
     // 節目/通常cheerの分岐はfdGuide初日には到達しないため移植不要)。
+    // TASK-C2-2026-08-05-build28-round6.md R-18(本人動画指摘・裁定GO): この関数はfdGuideActive時
+    // にしか呼ばれない(呼び出し元2箇所とも`fdGuideActive`ガード済み。通常ユーザーの記録演出=
+    // 労い→700ms→カードはMainActivity側の別ロジックで別途担当・ここには一切触れていない)ため、
+    // ツアー中は労い演出(旧fdCelebrationVisible「1日目クリア！ナイスご自愛！」)と700msの
+    // 待ち時間を省き、即カードモーダルを表示する。旧実装ではカードダイアログの出現アニメーションが
+    // 完了するまでの間、背後の労いテキスト(0日目カードと矛盾する「1日目クリア！」)が透けて
+    // 見えていた。
     fun performPracticeRecord() {
         resultHaptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
         RecordLogic.markDone(store, Instant.now())
@@ -1083,26 +1089,13 @@ fun ResultScreen(
         rx.firstOrNull()?.let { vk -> lookupVideo(vk)?.let { v -> RecordLogic.recordDaylog(store, today, v.id, v.t, streak.count) } }
         store.set("fd", "1")
         store.set("tourpend", true)
-        fdCelebrationVisible = true
-        // TASK-C2-2026-08-03-build18-tutorial-quality.md B-1: MainActivity.kt(HomeScreen)で
-        // 「紙吹雪がカード入場より0.7秒も前に先発してしまい、カードが出る頃には見せ場が
-        // 終わっている」欠陥を直した際と同じ再発がここにもあった(confettiTriggerが
-        // fdCelebrationVisibleと同時=即時発火・cardResultだけ700ms後というズレ)。
-        // MainActivity側の直し方どおり、confettiもcardResultと同じタイミング(700ms後)へ揃える。
         // TASK-C2-2026-08-05-build27-round5.md R-13(本人指示「この画面は0日って表示させて。
         // テストだから」): このComposable自体がfdGuide中の練習専用(通常ユーザーはMainActivity側の
         // renderTodayCard呼び出しを使う)なので、大数字表示だけ常に0にする。markDone/
         // recordDaylogは通常どおり実行済みで実カウントには一切影響しない(表示だけの変更)。
         val newCard = renderTodayCard(store, streak, today, resultContext, displayTotalOverride = 0)
-        if (resultReducedMotion) {
-            cardResult = newCard
-        } else {
-            resultScope.launch {
-                delay(700)
-                cardResult = newCard
-                confettiTrigger = (confettiTrigger ?: 0) + 1
-            }
-        }
+        cardResult = newCard
+        confettiTrigger = (confettiTrigger ?: 0) + 1
     }
     // D(本丸): 練習モードジャーニーバー。fdGuide中だけ画面上部に固定表示(verticalScrollの外)。
     // バーの実測高さぶん本文側にtop paddingを入れて重なりを避ける(Box内でColumnの兄弟として
@@ -1410,15 +1403,10 @@ fun ResultScreen(
                     )
                 }
             }
-            if (fdCelebrationVisible) {
-                Spacer(Modifier.height(16.dp))
-                // MainActivity.kt:1522-1533 fdCelebrationVisibleの1:1移植(結果画面版)。
-                KyonoCard(Modifier.testTag("fdCelebration")) {
-                    Text("1日目クリア！ナイスご自愛！", color = colors.pinkInk, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.height(6.dp))
-                    Text("きょうの記録が1まい目のカードになったよ ためると図鑑がうまっていく", color = colors.ink, fontSize = 14.sp)
-                }
-            }
+            // TASK-C2-2026-08-05-build28-round6.md R-18: 旧「1日目クリア！ナイスご自愛！」の
+            // 労いカード(fdCelebrationVisible)は削除。performPracticeRecordはfdGuideActive時に
+            // しか呼ばれず、ツアー中はこの労い演出自体を出さない裁定になったため(詳細は
+            // performPracticeRecordのコメント参照)。
             Spacer(Modifier.height(16.dp))
             // index.html:746 #rTourBtn(オンボ→クイズ経由・ツアー未見のときだけ)の1:1移植。
             if (showTourBtn) {
@@ -1464,6 +1452,12 @@ fun ResultScreen(
         cardResult?.let { result ->
             val onCardClose = {
                 cardResult = null
+                // TASK-C2-2026-08-05-build28-round6.md R-18(本人動画指摘・裁定GO): showDoneNudgeを
+                // 立てたままにしておくと、カードを閉じてからstep5(ツアー)へ遷移するまでの約350msの
+                // 間、済んだはずの「おかえり！／1日目の記録をつけにいく」画面が一瞬出戻って見えて
+                // いた。このカード表示フロー自体がfdGuideActive時にしか到達しないため、常に
+                // リセットしてよい。
+                showDoneNudge = false
                 tryStartTour(store, resultScope) { onStartTour() }
             }
             AlertDialog(
