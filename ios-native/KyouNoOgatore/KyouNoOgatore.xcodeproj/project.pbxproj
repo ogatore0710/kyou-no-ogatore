@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		25F2D027FEC15A1FC4195062 /* SearchViewUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46132710479193E86203285 /* SearchViewUITests.swift */; };
-		9F918B202FEE4517B760D4C6 /* TempBuild29R20R21R22.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6B03BF1B3740B58D065CD3 /* TempBuild29R20R21R22.swift */; };
-		3FDE6D320B964576986F4A0D /* TempBuild29R19.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BEEE095DDF4BC1B737FB5A /* TempBuild29R19.swift */; };
 		4E186A6B7241E2BFDA2FF14F /* CardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5818E1CC197288CC2CC64AF6 /* CardCore */; };
 		5656707DCF8EE465F7D9CEF1 /* chara-congrats.png in Resources */ = {isa = PBXBuildFile; fileRef = BAA8A556CF2AA315E596EF36 /* chara-congrats.png */; };
 		5D07CDF387E775DC6FB4BFCA /* WidgetSummaryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F326A22BF1187D0D45DEECB /* WidgetSummaryReader.swift */; };
@@ -71,8 +69,6 @@
 		BAA8A556CF2AA315E596EF36 /* chara-congrats.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-congrats.png"; sourceTree = "<group>"; };
 		BDB406D2AAFCD3D0FE67AACB /* chara-good.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-good.png"; sourceTree = "<group>"; };
 		C46132710479193E86203285 /* SearchViewUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SearchViewUITests.swift; path = KyouNoOgatoreUITests/SearchViewUITests.swift; sourceTree = "<group>"; };
-		2F6B03BF1B3740B58D065CD3 /* TempBuild29R20R21R22.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TempBuild29R20R21R22.swift; path = KyouNoOgatoreUITests/TempBuild29R20R21R22.swift; sourceTree = "<group>"; };
-		62BEEE095DDF4BC1B737FB5A /* TempBuild29R19.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TempBuild29R19.swift; path = KyouNoOgatoreUITests/TempBuild29R19.swift; sourceTree = "<group>"; };
 		CBE743BE096F7B13A3A7B4AD /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		D3352044F6C350112CE7A976 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F580755EE5B3160657F65AB6 /* chara-cracker.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; path = "chara-cracker.png"; sourceTree = "<group>"; };
@@ -166,8 +162,6 @@
 			isa = PBXGroup;
 			children = (
 				C46132710479193E86203285 /* SearchViewUITests.swift */,
-				2F6B03BF1B3740B58D065CD3 /* TempBuild29R20R21R22.swift */,
-				62BEEE095DDF4BC1B737FB5A /* TempBuild29R19.swift */,
 			);
 			name = KyouNoOgatoreUITests;
 			sourceTree = SOURCE_ROOT;
@@ -361,8 +355,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				25F2D027FEC15A1FC4195062 /* SearchViewUITests.swift in Sources */,
-				9F918B202FEE4517B760D4C6 /* TempBuild29R20R21R22.swift in Sources */,
-				3FDE6D320B964576986F4A0D /* TempBuild29R19.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
