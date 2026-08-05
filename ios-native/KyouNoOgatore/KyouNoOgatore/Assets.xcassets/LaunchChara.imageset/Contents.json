@@ -1,17 +1,50 @@
 {
   "images" : [
     {
-      "filename" : "chara.png",
+      "filename" : "launch-badge.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "chara@2x.png",
+      "filename" : "launch-badge@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "chara@3x.png",
+      "filename" : "launch-badge@3x.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "launch-badge-dark.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "launch-badge-dark@2x.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "launch-badge-dark@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

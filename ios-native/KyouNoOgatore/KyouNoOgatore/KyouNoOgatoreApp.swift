@@ -569,6 +569,36 @@ struct RootView: View {
     }
 }
 
+// TASK-C2-2026-08-05-build27-round5.md R-11: バッジ+見出し+サブコピーの中身だけを切り出した版。
+// KyonoSplashView(背景colors.bg込み)と、R-11でLaunchScreen用静的画像を焼き出す際の
+// 透過コンテンツ(背景はLaunchBackground.colorsetが別途担当)の両方から使う。
+private struct KyonoLaunchBadgeContent: View {
+    @Environment(\.kyonoColors) private var colors
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                // index.html:162 box-shadow:0 5px 0 #E8BE1Eの1:1移植(KyonoPrimaryButtonの
+                // 面+影と同じ「オフセット塗りつぶし」手法)。
+                RoundedRectangle(cornerRadius: 26).fill(Color(hex: 0xE8BE1E))
+                    .frame(width: 92, height: 92).offset(y: 5)
+                RoundedRectangle(cornerRadius: 26).fill(colors.yellow)
+                    .frame(width: 92, height: 92)
+                Text("#").kyonoFont(.black900, size: 60).foregroundColor(.white)
+            }
+            .rotationEffect(.degrees(-8))
+            Text("きょうの\nオガトレ")
+                .kyonoFont(.black900, size: 34)
+                .foregroundColor(colors.ink)
+                .multilineTextAlignment(.center)
+                .padding(.top, 20)
+            Text("みんなで一緒にストレッチを習慣化")
+                .kyonoFont(.extraBold800, size: 12)
+                .foregroundColor(colors.sub)
+                .padding(.top, 12)
+        }
+    }
+}
+
 // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-560 #appSplash/
 // .spl-badge/.spl-innerの1:1移植。黄色い角丸バッジ(-8°回転+3D影)+「きょうの/オガトレ」+
 // サブコピーの3点構成。背景はcolors.bgでテーマに追従する。
@@ -576,29 +606,7 @@ private struct KyonoSplashView: View {
     @Environment(\.kyonoColors) private var colors
     var body: some View {
         colors.bg.ignoresSafeArea()
-            .overlay {
-                VStack(spacing: 0) {
-                    ZStack {
-                        // index.html:162 box-shadow:0 5px 0 #E8BE1Eの1:1移植(KyonoPrimaryButtonの
-                        // 面+影と同じ「オフセット塗りつぶし」手法)。
-                        RoundedRectangle(cornerRadius: 26).fill(Color(hex: 0xE8BE1E))
-                            .frame(width: 92, height: 92).offset(y: 5)
-                        RoundedRectangle(cornerRadius: 26).fill(colors.yellow)
-                            .frame(width: 92, height: 92)
-                        Text("#").kyonoFont(.black900, size: 60).foregroundColor(.white)
-                    }
-                    .rotationEffect(.degrees(-8))
-                    Text("きょうの\nオガトレ")
-                        .kyonoFont(.black900, size: 34)
-                        .foregroundColor(colors.ink)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 20)
-                    Text("みんなで一緒にストレッチを習慣化")
-                        .kyonoFont(.extraBold800, size: 12)
-                        .foregroundColor(colors.sub)
-                        .padding(.top, 12)
-                }
-            }
+            .overlay { KyonoLaunchBadgeContent() }
     }
 }
 
