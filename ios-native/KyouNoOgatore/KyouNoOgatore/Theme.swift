@@ -114,9 +114,12 @@ let kyonoDarkColors = KyonoColors(
     borderStrong: Color(hex: 0xB4AB9A),
     // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8(本人カード裁定「d1案」): 背景・
     // カードの深さはbuild22のまま、カードの中の子要素(動画行・とどくメーター写真枠・時分ピッカー等)
-    // に階層をつける。子面はカードよりわずかに明るく(実測card比1.03:1・枠が実質の境界線を担う
-    // 設計はborderStrongと同じ考え方)、枠はcard比1.54:1・子面比1.49:1を確保。
-    childFace: Color(hex: 0x3D362C), childBorder: Color(hex: 0x57503F),
+    // に階層をつける。
+    // TASK build32 R-43(本人カード裁定「案a」・2026-08-06): W-8の子面(card比1.03:1)は本人実機で
+    // 「動画の枠が溶け込んで見える」ため、面と枠の両方を持ち上げる:
+    // 子面#474032(card比1.20:1)+枠#6E6653(card比2.16:1)。子面トークン共通のため動画行以外
+    // (とどくメーター写真枠・時分ピッカー等)も同じだけ浮く。ライトは不変。
+    childFace: Color(hex: 0x474032), childBorder: Color(hex: 0x6E6653),
     btnPrimaryShadow: Color(hex: 0xE8BE1E),
     tabbarIconOff: Color(hex: 0x3D382F),
     tabbarStrokeOff: Color(hex: 0x847D6C)

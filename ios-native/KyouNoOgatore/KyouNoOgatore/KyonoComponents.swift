@@ -556,14 +556,14 @@ private struct SegmentedOptionButton: View {
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトの選択中は白ノブ+
     // 枠#6B6857 2pt+文字#26261F。
-    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8(本人カード裁定「d1案」): ダークの
-    // 選択中ノブがトラック(colors.line)とほぼ同色(実測1.06:1)で判別不能だった問題を修正。
-    // 子面トークン相当の専用ノブ色#453D30+枠#9A9382(トラック比3.81:1)を新設し、文字は即判別用に
-    // 黄#FFD93B(ダークのみ)へ。
-    private var onBg: Color { dark ? Color(hex: 0x453D30) : .white }
-    private var onText: Color { dark ? colors.yellow : Color(hex: 0x26261F) }
-    private var onBorder: Color? { dark ? Color(hex: 0x9A9382) : Color(hex: 0x6B6857) }
-    private var offText: Color { dark ? colors.sub : Color(hex: 0x57544A) }
+    // TASK build32 R-42(本人カード裁定「案A」・2026-08-06): W-8のダークノブ#453D30はトラック比
+    // 1.09:1でほぼ同化し「黄文字だけ浮く」見にくさの正体だった。ライトの白ノブと同じ文法の
+    // 明るいノブへ: ノブ#F2EDE1+文字#26261F(実測13.03:1・トラック比9.96:1)・枠なし。
+    // 未選択文字もsub→sub2(トラック比5.51→6.35:1)へ半段明るく。ライトは不変。
+    private var onBg: Color { dark ? Color(hex: 0xF2EDE1) : .white }
+    private var onText: Color { Color(hex: 0x26261F) }
+    private var onBorder: Color? { dark ? nil : Color(hex: 0x6B6857) }
+    private var offText: Color { dark ? colors.sub2 : Color(hex: 0x57544A) }
 
     var body: some View {
         Button(action: action) {
