@@ -909,7 +909,7 @@ struct KyonoMilestoneTrack: View {
     }
 
     @ViewBuilder
-    private func segment(filled: Bool, fraction: CGFloat = 1) -> some View {
+    private func segment(filled: Bool, fraction: CGFloat = 0) -> some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(colors.line)
