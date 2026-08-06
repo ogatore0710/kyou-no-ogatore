@@ -86,10 +86,15 @@ struct KyonoCard<Content: View>: View {
     // 対応する仕組みが無いため、共有部品ごとに@Environment(\.kyonoBigText)を読んで余白・角丸・
     // 枠線・影を手動で1.18倍する(フォントは既存の.kyonoFont()が既に1.18倍済みなので触らない)。
     @Environment(\.kyonoBigText) private var bigText
+    // TASK build33 R-49(本人カード裁定「案B・押し出し」・2026-08-06): 「きょうやった！」ボタンと
+    // 同じ「下にずれたベタ影」をカードにも敷いて立体化する差し込み口。まずホームだけ有効化して
+    // 本人確認→GOで他画面へ展開する段取りのため既定false。
+    var drop: Bool = false
     @ViewBuilder let content: () -> Content
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
+    private var dropColor: Color { dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content() }
@@ -98,7 +103,12 @@ struct KyonoCard<Content: View>: View {
             .background(colors.card)
             .cornerRadius(kyonoRadius * zoom)
             .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
-            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
+            .background {
+                if drop {
+                    RoundedRectangle(cornerRadius: kyonoRadius * zoom).fill(dropColor).offset(y: 5 * zoom)
+                }
+            }
+            .shadow(color: (dark || drop) ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
     }
 }
 
@@ -112,6 +122,8 @@ struct KyonoGradientCard<Content: View>: View {
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
     let gradient: KyonoGradient
+    // TASK build33 R-49: KyonoCardと同じ押し出し影の差し込み口(既定false・まずホームのみ)。
+    var drop: Bool = false
     @ViewBuilder let content: () -> Content
 
     var body: some View {
@@ -141,7 +153,14 @@ struct KyonoGradientCard<Content: View>: View {
             .background(LinearGradient(colors: [from, to], startPoint: .topLeading, endPoint: .bottomTrailing))
             .cornerRadius(kyonoRadius * zoom)
             .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
-            .shadow(color: dark ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
+            .background {
+                if drop {
+                    RoundedRectangle(cornerRadius: kyonoRadius * zoom)
+                        .fill(dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD))
+                        .offset(y: 5 * zoom)
+                }
+            }
+            .shadow(color: (dark || drop) ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
     }
 }
 
@@ -368,10 +387,12 @@ struct KyonoGhostButton: View {
     // おおきめ設定で2行に折り返すため、KyonoPrimaryButtonのsingleLine(R-17)と同じ
     // 1行固定+自動縮小の差し込み口を追加。既定falseで他の呼び出し元は不変。
     var singleLine: Bool = false
+    // TASK build33 R-49(本人カード裁定「案B・押し出し」): 押し出し影の差し込み口(既定false)。
+    var drop: Bool = false
     let action: () -> Void
 
-    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, action: @escaping () -> Void) {
-        self.text = text; self.icon = icon; self.singleLine = singleLine; self.action = action
+    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, drop: Bool = false, action: @escaping () -> Void) {
+        self.text = text; self.icon = icon; self.singleLine = singleLine; self.drop = drop; self.action = action
     }
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
@@ -397,8 +418,10 @@ struct KyonoGhostButton: View {
             }
         }
         .buttonStyle(dark
-            ? KyonoGhostButtonStyle(background: colors.teal, borderColor: .clear, borderWidth: 0, zoom: zoom)
-            : KyonoGhostButtonStyle(background: Color(hex: 0xDFF5F2), borderColor: Color(hex: 0x177065), borderWidth: 2.5, zoom: zoom))
+            ? KyonoGhostButtonStyle(background: colors.teal, borderColor: .clear, borderWidth: 0, zoom: zoom,
+                                    dropColor: drop ? colors.tealStrong : nil)
+            : KyonoGhostButtonStyle(background: Color(hex: 0xDFF5F2), borderColor: Color(hex: 0x177065), borderWidth: 2.5, zoom: zoom,
+                                    dropColor: drop ? Color(hex: 0xA8D3CA) : nil))
     }
 }
 
@@ -407,6 +430,8 @@ private struct KyonoGhostButtonStyle: ButtonStyle {
     let borderColor: Color
     var borderWidth: CGFloat = 2
     let zoom: CGFloat
+    // TASK build33 R-49: 押し出し影(nilなら従来どおり影なし)。
+    var dropColor: Color? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
@@ -417,6 +442,13 @@ private struct KyonoGhostButtonStyle: ButtonStyle {
             .background(background)
             .cornerRadius(kyonoButtonRadius * zoom)
             .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: borderWidth))
+            .background {
+                if let dropColor {
+                    // KyonoPrimaryButtonの黄影と同じ「オフセット塗りつぶし」。押下時は本体が
+                    // 1pt沈む(下の.offset)ので、影は据え置きのままで沈み込みが強調される。
+                    RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).fill(dropColor).offset(y: 4 * zoom)
+                }
+            }
             .opacity(pressed ? 0.85 : 1)
             .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())

@@ -630,7 +630,7 @@ struct HomeView: View {
             // 1:1移植。HomeView既存の`showDoneNudge`(動画から戻った直後の「おかえりなさい」)とは別物
             // (あちらはqbubbleの見出し差し替えのみ・こちらは3日以上あいた復帰を祝う専用カード)。
             if showWelcomeBack {
-                KyonoGradientCard(gradient: .mint) {
+                KyonoGradientCard(gradient: .mint, drop: true) {
                     KyonoCharaImage(name: "chara-good").frame(width: 84, height: 84)
                         .frame(maxWidth: .infinity, alignment: .center)
                     // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
@@ -647,7 +647,7 @@ struct HomeView: View {
             // 「とどくメーター」での再測定に誘う(ネイティブに独立したreach画面は無く、Web版navTo('reach')
             // 相当はMyRecordタブ内にインライン移植済みのため、そちらへ遷移させる)。
             if showRecheck {
-                KyonoGradientCard(gradient: .mint) {
+                KyonoGradientCard(gradient: .mint, drop: true) {
                     Text("チェックから2週間たったよ\n前屈 どこまで届くようになった？")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(9)
                     KyonoPrimaryButton("とどくメーターで測ってみる") { goRecheck() }
@@ -663,7 +663,7 @@ struct HomeView: View {
             // TASK-C2-2026-07-30-ux-batch-13-amend-segment.mdでセグメント切替UI(あなた用/あさ/よる)+
             // 当日限りの手動上書きを追加移植した。
             if !fdFocusOn {
-                KyonoCard {
+                KyonoCard(drop: true) {
                     KyonoSectionTitle("きょうの1本", icon: .play)
                     TodaySegmentControl(store: store, mineAvail: mineAvail, mode: effectiveMode, onSelect: setMode)
                     // TASK-C2-2026-08-04-build20-addendum.md A-2(本人指示・引き算): segMineHint
@@ -716,7 +716,7 @@ struct HomeView: View {
     // ---- 続けた日数＋きょうやった！ ----
     @ViewBuilder private func streakSection(proxy: ScrollViewProxy) -> some View {
             // index.html:686 #streakCard(続けた日数・通算)相当。
-            KyonoCard {
+            KyonoCard(drop: true) {
                 // TASK-C2-2026-08-04-build22-yellow-return.md Z-7: 見出しから「通算」の言葉を全廃。
                 KyonoSectionTitle("つづけた日数", icon: .calendarCheck)
                 KyonoStreakText(streak.total, streakCount: streak.count, brokenNow: streakBrokenNow)
@@ -1130,7 +1130,7 @@ private struct CkCard: View {
     let onStartQuiz: () -> Void
 
     var body: some View {
-        KyonoCard {
+        KyonoCard(drop: true) {
             KyonoSectionHeader(icon: .quizCheck, title: "かたさチェック", fill: colors.tealSoft, accent: colors.teal)
             Spacer().frame(height: 10 * zoom)
             HStack(alignment: .center) {
@@ -1162,7 +1162,7 @@ private struct SoudanCard: View {
 
     var body: some View {
         if !kb.intents.isEmpty {
-            KyonoCard {
+            KyonoCard(drop: true) {
                 Button(action: { onOpenSoudan(nil) }) {
                     VStack(alignment: .leading, spacing: 0) {
                         KyonoSectionHeader(icon: .soudanBubble, title: "オガトレ相談室", fill: colors.tealSoft, accent: colors.teal)
@@ -1277,7 +1277,8 @@ private struct TodayVideoSection: View {
                     // TASK build31 R-34(本人指示): 「(名前)への3本 連続再生はこちら」→
                     // 「(名前)専用の動画連続再生はこちら」(本数表記は撤去・実本数と無関係にする)。
                     // R-46: 本人指定文言のまま1行固定+自動縮小(おおきめ設定での2行折り返し解消)。
-                    KyonoGhostButton("▶ \(kyonoDisplayName(store))専用の動画連続再生はこちら", singleLine: true) {
+                    // R-49: 押し出し影(案B)。
+                    KyonoGhostButton("▶ \(kyonoDisplayName(store))専用の動画連続再生はこちら", singleLine: true, drop: true) {
                         let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
                         onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
                     }
@@ -1352,6 +1353,12 @@ private struct HomeTodayVideoRow: View {
         // いた動画行を、子面トークン(childFace/childBorder)へ差し替え。ライトは無変更。
         .background(RoundedRectangle(cornerRadius: 16).fill(colors.childFace))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.childBorder, lineWidth: 1.5))
+        // TASK build33 R-49(本人カード裁定「案B・押し出し」): 動画行にも下ずれベタ影。
+        .background {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(dark ? Color(hex: 0x262119) : Color(hex: 0xEBDCC9))
+                .offset(y: 4)
+        }
         .accessibilityElement(children: .combine)
         .buttonStyle(.plain)
     }

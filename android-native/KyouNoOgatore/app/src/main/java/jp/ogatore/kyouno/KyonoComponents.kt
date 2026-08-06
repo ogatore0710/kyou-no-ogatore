@@ -34,6 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -189,14 +192,25 @@ fun KyonoStatusBarScrim(modifier: Modifier = Modifier) {
 // UI/UXパリティ監査GO-4(2026-07-28): 枠線・影とも欠落していた(ダークモードは
 // Web版どおり影を出さず、枠線のみ)。
 @Composable
-fun KyonoCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+// TASK build33 R-49(本人カード裁定「案B・押し出し」・2026-08-06): drop=「きょうやった！」ボタンと
+// 同じ下ずれベタ影でカードを立体化する差し込み口。まずホームだけ有効化して本人確認→GOで展開する
+// 段取りのため既定false(iOS版KyonoCardと同じ)。
+fun KyonoCard(modifier: Modifier = Modifier, drop: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     Column(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (!dark) {
+                if (drop) {
+                    Modifier.drawBehind {
+                        drawRoundRect(
+                            color = if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD),
+                            topLeft = Offset(0f, 5.dp.toPx()),
+                            cornerRadius = CornerRadius(KyonoRadius.toPx()),
+                        )
+                    }
+                } else if (!dark) {
                     Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
                 } else {
                     Modifier
@@ -218,7 +232,8 @@ enum class KyonoGradient { Warm, Mint, Pink, Soft }
 val KyonoCardShadowColor = Color(0xFFA08C50)
 
 @Composable
-fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+// TASK build33 R-49: KyonoCardと同じ押し出し影の差し込み口(既定false・まずホームのみ)。
+fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, drop: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-3(本人裁定「案a・彩度を立てる」):
@@ -241,7 +256,15 @@ fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, co
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (!dark) {
+                if (drop) {
+                    Modifier.drawBehind {
+                        drawRoundRect(
+                            color = if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD),
+                            topLeft = Offset(0f, 5.dp.toPx()),
+                            cornerRadius = CornerRadius(KyonoRadius.toPx()),
+                        )
+                    }
+                } else if (!dark) {
                     Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
                 } else {
                     Modifier
