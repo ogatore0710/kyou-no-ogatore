@@ -12,6 +12,10 @@
 
 **休眠時点の現在地**: ビルド30=ラウンド8の8件(R-23〜R-29+R-31)+アイコン刷新(R-30)をappdevが実装中（発注書2本=`TASK-C2-2026-08-06-build30-round8.md`+`-addendum-R30-icon.md`・アイコンマスター=`art-raw/app-icon-master-1024.png`）。午前にC2 OAuth失効→本人承認で復旧済み。サブPC遅延commit(meter.jpg圧縮+sw v65)はQA462全緑・Webゲート越えは本人報告済み(戻さない判断)。残ボールと駐車中はHANDOFFファイル参照。
 
+### ⚡ 2026-08-06夜 build31/32配信済み（appdev直接ラリー・ラウンド9/10消化）
+
+**build31**(R-32〜R-41・ラウンド9全10件)と**build32**(R-42〜R-48・ラウンド10=ダーク視認性の詰め7件)を同日配信。両方version VALID/紐付け204/whatsNew200/Push 1/1裏取り済み。詳細=`REPORT-C2-2026-08-06-build31-round9.md`/`-build32-round10.md`。**裁定確定**: 練習記録の実カウント算入は現仕様のまま(本人「二はそのようにして」・build27申し送りクローズ)。ダークの意匠文法が確定: 行動ボタン=tealベタ塗り#2BB3A3+#26261F/弱ボタン=面#544D40+ink/セグメントノブ=明るいノブ#F2EDE1+#26261F/子面=#474032+枠#6E6653/スプラッシュ=常時ライト固定。**残課題**=本人と合意済みの棚卸しどおり: Android実機通し確認(ストア前宿題)・App Store提出準備一式(スクショ/説明文/プライバシー表示)・ストア前のalan5独立検収。
+
 ### ⚡ 2026-08-06夕 build31実装済み・提出GO待ち（appdev直接ラリー1巡目）
 
 **ラウンド9(R-32〜R-40・9件)を両OS実装・検証済み。TestFlight提出は本人GO待ち。** 詳細=`REPORT-C2-2026-08-06-build31-round9.md`。要点: ①足首動画の誤タグ10本除去（「足首」の「首」誤マッチ・Web版不変・gen-catalog.mjsに再混入防止） ②ホームあなた用「メインの一本/余裕があったら追加の一本」表記+連続再生ボタン文言 ③**R-39=SettingsViewが自巻きKyonoThemeの外側で@Environmentを読みライト色が漏れる実装バグ根治**（やるタイミング沈み・よびな欄白の正体・全16struct棚卸しで該当1件のみ・Android無罪） ④**R-38=ダークボタン案B**（本人カード裁定: 行動=tealベタ塗り#2BB3A3+#26261F 5.86:1・弱=面#544D40+ink 7.15:1・図鑑バナーは対象外判断） ⑤マイ設定改名・使い方ツアーボタン黄主ボタン化・続けた記録改行・初回チャット「！」締め（指定文言「すべて無料で登録はナシ！安心してね！」）。**検証ナレッジ**: iOS実描画はUITest(要pbxproj明示登録=同期フォルダではない！-only-testingが0件実行でも"SUCCEEDED"と出る罠)+NSLog→`simctl spawn log stream`検知→ホスト`simctl io screenshot`の型が確立（xcresult添付/ホスト直書き/ランナーコンテナ/UIPasteboardは全部空振り）。storeのseedは`Documents/kyono-store.json`直書き（二重JSONエンコード厳守）。証跡=`ios-native/verify/build31-round9/`79〜93番。
