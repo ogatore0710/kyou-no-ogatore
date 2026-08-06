@@ -572,6 +572,13 @@ struct RootView: View {
 // TASK-C2-2026-08-05-build27-round5.md R-11: バッジ+見出し+サブコピーの中身だけを切り出した版。
 // KyonoSplashView(背景colors.bg込み)と、R-11でLaunchScreen用静的画像を焼き出す際の
 // 透過コンテンツ(背景はLaunchBackground.colorsetが別途担当)の両方から使う。
+// TASK-C2-2026-08-06-build30-round8.md R-23(実機フレーム分解で確認済みのバグ修正):
+// 文字にkyonoFont(bigText環境値に連動して1.08/1.30倍)を使うと、OSのLaunchScreen静的画像
+// (焼き出し時点のサイズで固定・実行時のbigText設定を反映できない)と実スプラッシュ(bigText
+// 既定trueで1.30倍)のサイズがズレ、交差フェード中に文字が二重写りして見えていた。
+// LaunchScreenは本質的にアクセシビリティ設定に追従できない画面なので、実スプラッシュ側も
+// この0.85秒だけは固定サイズ(.font(.kyono(...))・bigText非依存)にして、両者を常に完全一致
+// させる(baked PNGの再焼き出しが要らなくなる根本修正)。
 private struct KyonoLaunchBadgeContent: View {
     @Environment(\.kyonoColors) private var colors
     var body: some View {
@@ -583,16 +590,16 @@ private struct KyonoLaunchBadgeContent: View {
                     .frame(width: 92, height: 92).offset(y: 5)
                 RoundedRectangle(cornerRadius: 26).fill(colors.yellow)
                     .frame(width: 92, height: 92)
-                Text("#").kyonoFont(.black900, size: 60).foregroundColor(.white)
+                Text("#").font(.kyono(.black900, size: 60)).foregroundColor(.white)
             }
             .rotationEffect(.degrees(-8))
             Text("きょうの\nオガトレ")
-                .kyonoFont(.black900, size: 34)
+                .font(.kyono(.black900, size: 34))
                 .foregroundColor(colors.ink)
                 .multilineTextAlignment(.center)
                 .padding(.top, 20)
             Text("みんなで一緒にストレッチを習慣化")
-                .kyonoFont(.extraBold800, size: 12)
+                .font(.kyono(.extraBold800, size: 12))
                 .foregroundColor(colors.sub)
                 .padding(.top, 12)
         }

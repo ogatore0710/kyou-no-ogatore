@@ -345,7 +345,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "PLIST=\"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Delete :UILaunchScreen\" \"$PLIST\" 2>/dev/null\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen dict\" \"$PLIST\"\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen:UIColorName string LaunchBackground\" \"$PLIST\"\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen:UIImageName string LaunchChara\" \"$PLIST\"\n";
+			shellScript = "PLIST=\"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Delete :UILaunchScreen\" \"$PLIST\" 2>/dev/null\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen dict\" \"$PLIST\"\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen:UIColorName string LaunchBackground\" \"$PLIST\"\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen:UIImageName string LaunchChara\" \"$PLIST\"\n/usr/libexec/PlistBuddy -c \"Add :UILaunchScreen:UIImageRespectsSafeAreaInsets bool false\" \"$PLIST\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
