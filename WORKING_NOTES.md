@@ -12,6 +12,10 @@
 
 **休眠時点の現在地**: ビルド30=ラウンド8の8件(R-23〜R-29+R-31)+アイコン刷新(R-30)をappdevが実装中（発注書2本=`TASK-C2-2026-08-06-build30-round8.md`+`-addendum-R30-icon.md`・アイコンマスター=`art-raw/app-icon-master-1024.png`）。午前にC2 OAuth失効→本人承認で復旧済み。サブPC遅延commit(meter.jpg圧縮+sw v65)はQA462全緑・Webゲート越えは本人報告済み(戻さない判断)。残ボールと駐車中はHANDOFFファイル参照。
 
+### ⚡ 2026-08-07 build34配信済み（R-53 ボタン影撤去=立体は枠のみ）
+
+**build34**=build33への本人フィードバック「ボタンの縁には無し。あくまで枠の縁だけ。うるさくなった」への即応。**立体(B3押し出し影)は枠のみに縮退**: KyonoCard/GradientCard/動画行(HomeTodayVideoRow・検索VideoRow)は維持、GhostButton(drop既定false)・図鑑バナーは影撤去、黄PrimaryButtonはR-49で足したふちぼかしを撤回して**元の硬いオフセット影に復元**。両OS。実描画8枚(ライト/ダーク)=`ios-native/verify/build31-round9/118〜125`、本人4枚提示→go。詳細=`REPORT-C2-2026-08-07-build34-r53.md`。**意匠文法の現在形はこれが最新**(下のbuild33記載の「drop既定true・全ボタン適用」は上書きされた)。
+
 ### ⚡ 2026-08-07未明 build33配信済み（立体化B3全画面展開+細かい直し3件）
 
 **build33**=本人発注「UIをもっと立体的に」の完結。裁定経緯: 3案モック→案B押し出し→ホーム実描画→「パッキリしすぎ」→派生4案→**B3ふち柔らか**(押し出し影+ふち3ptぼかし)→実物A/B比較→全画面展開GO。KyonoCard/GradientCard/GhostButtonのdrop既定true・PrimaryButton影もぼかし統一・VideoRow/図鑑バナー適用。**対象外=スプラッシュバッジ影**(LaunchScreen焼き画像パリティ=R-23再発防止)。+R-50 FAB余白(iOSのみ・Androidは元からbottom180dp)・R-51お楽しみ3ボタン1行化・R-52バッジ余白。VALID/紐付け204/whatsNew200/Push1/1裏取り済み。詳細=`REPORT-C2-2026-08-07-build33-depth.md`。**教訓**: 一括置換pythonは`open(w)`が先にファイルを切り詰めるため、例外でMainActivity.ktが0バイト化した(即git checkoutで復旧)。以後は書き込み前にassert+バックアップコピーを徹底。**意匠文法の現在形**: 立体=B3ふち柔らか押し出し(影色はREPORT参照)・ダークボタン=R-38案B・セグメント=明るいノブ・子面=#474032/#6E6653。
