@@ -925,9 +925,11 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
             Spacer(Modifier.height(4.dp + 7.dp))
             // TASK build31 R-34(本人指示): 「(名前)への3本 連続再生はこちら」→
             // 「(名前)専用の動画連続再生はこちら」(本数表記は撤去・実本数と無関係にする)。
+            // R-46: 本人指定文言のまま1行固定+自動縮小(おおきめ設定での2行折り返し解消)。
             KyonoGhostButton(
                 "▶ ${kyonoDisplayName(store)}専用の動画連続再生はこちら",
-                {
+                singleLine = true,
+                onClick = {
                     val ids = rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")
                     onVideoTap("https://www.youtube.com/watch_videos?video_ids=$ids")
                 },
@@ -986,8 +988,10 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             (badge ?: v.tags.firstOrNull())?.let { label ->
-                Text(
-                    label, color = badgeTextColor, fontSize = 12.sp, fontWeight = FontWeight.Black,
+                // TASK build32 R-46(本人指示・2026-08-06): 「余裕があったら追加の一本」が
+                // おおきめ設定で2行に折り返していた。文言は変えず1行固定+自動縮小。
+                KyonoAutoShrinkText(
+                    label, color = badgeTextColor, baseFontSize = 12.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
                 )
                 Spacer(Modifier.height(4.dp))
@@ -1045,16 +1049,17 @@ private fun DexBannerCard(got: Int, total: Int, preview: List<DexItem>, onClick:
     val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    val bg = if (dark) colors.tealSoft else Color(0xFFDFF5F2)
-    val borderColor = if (dark) colors.tealStrong else Color(0xFF177065)
-    val borderWidth = if (dark) 2.dp else 2.5.dp
-    val textColor = if (dark) colors.tealInk else Color(0xFF0F5A50)
+    // TASK build32 R-47(本人指示・2026-08-06): R-38案BでKyonoGhostButton系がtealベタ塗りへ
+    // 移行した際に対象外にしていた最後のghost配色。同じダーク語彙(tealベタ塗り+濃文字・
+    // 枠なし)へ統一する。ライトは不変。
+    val bg = if (dark) colors.teal else Color(0xFFDFF5F2)
+    val textColor = if (dark) KyonoBtnPrimaryText else Color(0xFF0F5A50)
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .alpha(if (pressed) 0.85f else 1f)
             .background(bg, KyonoButtonShape)
-            .border(borderWidth, borderColor, KyonoButtonShape)
+            .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFF177065), KyonoButtonShape))
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(14.dp)
             .testTag("dexBannerCard"),
@@ -2151,18 +2156,19 @@ fun HomeScreen(
             }
             AlertDialog(
                 onDismissRequest = onCardClose,
+                // TASK build32 R-48(本人指示): Material既定(紫系)をやめアプリ配色へ統一。
+                containerColor = LocalKyonoColors.current.card,
+                titleContentColor = LocalKyonoColors.current.ink,
+                textContentColor = LocalKyonoColors.current.ink,
                 confirmButton = {
-                    Button(
-                        onClick = onCardClose,
-                        modifier = Modifier.testTag("cardCloseBtn"),
-                    ) { Text("とじる") }
+                    KyonoDialogTextButton("とじる", Modifier.testTag("cardCloseBtn"), onClick = onCardClose)
                 },
                 dismissButton = {
                     // index.html shareCard()相当(Step7bで新規実装)。
-                    Button(
+                    KyonoDialogPrimaryButton(
+                        "保存・シェアする", Modifier.testTag("cardShareBtn"),
                         onClick = { ShareImage.shareBitmap(context, bmp, "kyono-ogatore-$today.png", "#きょうのオガトレ ${streak.total}日目！") },
-                        modifier = Modifier.testTag("cardShareBtn"),
-                    ) { Text("保存・シェアする") }
+                    )
                 },
                 text = {
                     // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の
@@ -2851,14 +2857,18 @@ fun MyRecordScreen(
             val bmp = result.bitmap
             AlertDialog(
                 onDismissRequest = { dayCardResult = null },
+                // TASK build32 R-48(本人指示): Material既定(紫系)をやめアプリ配色へ統一。
+                containerColor = LocalKyonoColors.current.card,
+                titleContentColor = LocalKyonoColors.current.ink,
+                textContentColor = LocalKyonoColors.current.ink,
                 confirmButton = {
-                    Button(onClick = { dayCardResult = null }, modifier = Modifier.testTag("dayCardCloseBtn")) { Text("とじる") }
+                    KyonoDialogTextButton("とじる", Modifier.testTag("dayCardCloseBtn"), onClick = { dayCardResult = null })
                 },
                 dismissButton = {
-                    Button(
+                    KyonoDialogPrimaryButton(
+                        "保存・シェアする", Modifier.testTag("dayCardShareBtn"),
                         onClick = { ShareImage.shareBitmap(context, bmp, "kyono-ogatore-day.png", "#きょうのオガトレ") },
-                        modifier = Modifier.testTag("dayCardShareBtn"),
-                    ) { Text("保存・シェアする") }
+                    )
                 },
                 text = {
                     // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の

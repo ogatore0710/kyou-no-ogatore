@@ -126,7 +126,10 @@ struct VideoRow: View {
                 .frame(width: 112, height: 112 * 9 / 16)
                 VStack(alignment: .leading, spacing: 2) {
                     if let label = badge ?? v.tags?.first {
+                        // TASK build32 R-46(本人指示・2026-08-06): 「余裕があったら追加の一本」等の
+                        // 長いバッジがおおきめ設定で2行に折り返す。文言は変えず1行固定+自動縮小。
                         Text(label).kyonoFont(.black900, size: 12).foregroundColor(badgeTextColor)
+                            .lineLimit(1).minimumScaleFactor(0.6)
                             .padding(.horizontal, 8).padding(.vertical, 1)
                             .background(Capsule().fill(colors.coralSoft))
                     }

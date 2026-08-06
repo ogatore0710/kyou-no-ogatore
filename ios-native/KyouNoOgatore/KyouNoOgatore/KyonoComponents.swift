@@ -364,10 +364,14 @@ struct KyonoGhostButton: View {
     // UX13案・案8(2026-07-30): KyonoLineButtonと同じ差し込み口。ボタン用途の残存絵文字を
     // Canvasアイコンへ置き換えるための穴。nilなら従来どおりテキストのみ。
     var icon: KyonoIcon? = nil
+    // TASK build32 R-46(本人指示・2026-08-06): ホームの連続再生ボタン(本人指定の長い文言)が
+    // おおきめ設定で2行に折り返すため、KyonoPrimaryButtonのsingleLine(R-17)と同じ
+    // 1行固定+自動縮小の差し込み口を追加。既定falseで他の呼び出し元は不変。
+    var singleLine: Bool = false
     let action: () -> Void
 
-    init(_ text: String, icon: KyonoIcon? = nil, action: @escaping () -> Void) {
-        self.text = text; self.icon = icon; self.action = action
+    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, action: @escaping () -> Void) {
+        self.text = text; self.icon = icon; self.singleLine = singleLine; self.action = action
     }
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
@@ -384,7 +388,12 @@ struct KyonoGhostButton: View {
                 if let icon {
                     KyonoIconGlyph(icon: icon, fill: .clear, accent: textColor).frame(width: 18 * zoom, height: 18 * zoom)
                 }
-                Text(text).kyonoFont(.black900, size: 15).foregroundColor(textColor)
+                if singleLine {
+                    Text(text).kyonoFont(.black900, size: 15).foregroundColor(textColor)
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                } else {
+                    Text(text).kyonoFont(.black900, size: 15).foregroundColor(textColor)
+                }
             }
         }
         .buttonStyle(dark

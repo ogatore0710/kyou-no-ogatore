@@ -217,8 +217,10 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             (badge ?: v.tags.firstOrNull())?.let { label ->
-                Text(
-                    label, color = badgeTextColor, fontSize = 12.sp, fontWeight = FontWeight.Black,
+                // TASK build32 R-46(本人指示・2026-08-06): 「余裕があったら追加の一本」等の
+                // 長いバッジがおおきめ設定で2行に折り返す。文言は変えず1行固定+自動縮小。
+                KyonoAutoShrinkText(
+                    label, color = badgeTextColor, baseFontSize = 12.sp, fontWeight = FontWeight.Black,
                     modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
                 )
                 Spacer(Modifier.height(4.dp))

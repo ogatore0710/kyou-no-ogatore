@@ -351,7 +351,9 @@ fun KyonoPrimaryButton(
 // 透明度低下)とは別の質感だった欠落。KyonoPrimaryButtonと同じinteractionSource.
 // collectIsPressedAsState()の手法をここにも展開する。
 @Composable
-fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null) {
+// TASK build32 R-46(本人指示・2026-08-06): singleLine=ホームの連続再生ボタン(本人指定の長い文言)
+// 用の1行固定+自動縮小(KyonoPrimaryButtonのR-17と同じ考え方)。既定falseで他の呼び出し元は不変。
+fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }
@@ -384,7 +386,11 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
                 KyonoIconGlyph(icon, fill = Color.Transparent, accent = textColor, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
             }
-            Text(text, color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Black)
+            if (singleLine) {
+                KyonoAutoShrinkText(text, color = textColor, baseFontSize = 15.sp, fontWeight = FontWeight.Black)
+            } else {
+                Text(text, color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Black)
+            }
         }
     }
 }
@@ -495,6 +501,30 @@ fun <T> KyonoSegmentedControl(
     }
 }
 
+// TASK build32 R-48(本人指示・2026-08-06): AlertDialog内ボタンがMaterial既定(紫系)のままで
+// アプリの見た目と不揃いだった。iOSのモーダル(黄主ボタン+ラインボタンの対)に揃える共通部品。
+// AlertDialog本体の面はcontainerColor=colors.card等を呼び出し側で指定する(こちらも統一)。
+@Composable
+fun KyonoDialogPrimaryButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val colors = LocalKyonoColors.current
+    androidx.compose.material3.Button(
+        onClick = onClick,
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+            containerColor = colors.yellow, contentColor = KyonoBtnPrimaryText,
+        ),
+        border = androidx.compose.foundation.BorderStroke(2.dp, KyonoBtnPrimaryBorder),
+        modifier = modifier,
+    ) { Text(text, fontWeight = FontWeight.Black) }
+}
+
+@Composable
+fun KyonoDialogTextButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val colors = LocalKyonoColors.current
+    androidx.compose.material3.TextButton(onClick = onClick, modifier = modifier) {
+        Text(text, color = colors.ink, fontWeight = FontWeight.Black)
+    }
+}
+
 // TASK-C2-2026-08-04-build20-addendum.md F-2②: Compose BOM 2024.06.00にはautoSizeが無いため、
 // onTextLayoutでオーバーフローを検知して1行に収まるまでフォントサイズを段階的に縮める簡易実装。
 // HomeScreen(MainActivity.kt)の小見出しからも共用するためfile-privateにしない。
@@ -508,10 +538,13 @@ fun KyonoAutoShrinkText(
     fontWeight: FontWeight,
     maxLines: Int = 1,
     lineHeight: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
+    // TASK build32 R-46: バッジピル(coralSoft地+padding)からも使うため差し込み口を追加。
+    modifier: Modifier = Modifier,
 ) {
     var fontSize by remember(text) { mutableStateOf(baseFontSize) }
     Text(
         text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lineHeight,
+        modifier = modifier,
         maxLines = maxLines, softWrap = maxLines > 1, overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
         onTextLayout = { result ->
             if (result.hasVisualOverflow && fontSize.value > baseFontSize.value * 0.6f) {

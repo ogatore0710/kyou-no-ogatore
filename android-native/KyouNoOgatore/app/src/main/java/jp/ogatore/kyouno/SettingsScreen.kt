@@ -663,10 +663,15 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
         if (confirmImport) {
             AlertDialog(
                 onDismissRequest = { confirmImport = false },
+                // TASK build32 R-48(本人指示): Material既定(紫系)をやめアプリ配色へ統一。
+                containerColor = LocalKyonoColors.current.card,
+                titleContentColor = LocalKyonoColors.current.ink,
+                textContentColor = LocalKyonoColors.current.ink,
                 title = { Text("いまの記録の上に書きかえるよ") },
                 text = { Text("だいじょうぶ？") },
                 confirmButton = {
-                    Button(
+                    KyonoDialogPrimaryButton(
+                        "書きかえる", Modifier.testTag("importConfirmBtn"),
                         onClick = {
                             confirmImport = false
                             try {
@@ -686,11 +691,10 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                                 importMessage = "読みこめませんでした（文字列が壊れているかも）"
                             }
                         },
-                        modifier = Modifier.testTag("importConfirmBtn"),
-                    ) { Text("書きかえる") }
+                    )
                 },
                 dismissButton = {
-                    Button(onClick = { confirmImport = false }, modifier = Modifier.testTag("importCancelBtn")) { Text("やめる") }
+                    KyonoDialogTextButton("やめる", Modifier.testTag("importCancelBtn"), onClick = { confirmImport = false })
                 },
             )
         }

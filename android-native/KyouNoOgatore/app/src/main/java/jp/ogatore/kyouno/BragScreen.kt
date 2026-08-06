@@ -203,15 +203,19 @@ fun BragScreen(store: RecordStore, onBack: () -> Unit) {
         cardBitmap?.let { bmp ->
             AlertDialog(
                 onDismissRequest = { cardBitmap = null },
-                confirmButton = { Button(onClick = { cardBitmap = null }, modifier = Modifier.testTag("bragCardCloseBtn")) { Text("とじる") } },
+                // TASK build32 R-48(本人指示): Material既定(紫系)をやめアプリ配色へ統一。
+                containerColor = LocalKyonoColors.current.card,
+                titleContentColor = LocalKyonoColors.current.ink,
+                textContentColor = LocalKyonoColors.current.ink,
+                confirmButton = { KyonoDialogTextButton("とじる", Modifier.testTag("bragCardCloseBtn"), onClick = { cardBitmap = null }) },
                 dismissButton = {
-                    Button(
+                    KyonoDialogPrimaryButton(
+                        "保存・シェアする", Modifier.testTag("bragCardShareBtn"),
                         onClick = {
                             val days = BragCardRenderer.clampDays(daysText.toIntOrNull() ?: 1)
                             ShareImage.shareBitmap(context, bmp, "kyono-ogatore-brag-${RecordLogic.todayStr(Instant.now())}.png", "#きょうのオガトレ ${days}日つづいてる！")
                         },
-                        modifier = Modifier.testTag("bragCardShareBtn"),
-                    ) { Text("保存・シェアする") }
+                    )
                 },
                 text = {
                     // UI/UXパリティ監査2巡目A6(2026-07-29): Web/iOSは瞬時開閉のため、Android既定の

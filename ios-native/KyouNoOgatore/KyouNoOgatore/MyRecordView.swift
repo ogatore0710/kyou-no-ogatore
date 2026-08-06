@@ -244,10 +244,13 @@ private struct DexBannerCard: View {
 
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
-    private var textColor: Color { dark ? colors.tealInk : Color(hex: 0x0F5A50) }
-    private var bg: Color { dark ? colors.tealSoft : Color(hex: 0xDFF5F2) }
-    private var borderColor: Color { dark ? colors.tealStrong : Color(hex: 0x177065) }
-    private var borderWidth: CGFloat { dark ? 2 : 2.5 }
+    // TASK build32 R-47(本人指示・2026-08-06): R-38案BでKyonoGhostButton系がtealベタ塗りへ
+    // 移行した際に対象外にしていた最後のghost配色。同じダーク語彙(tealベタ塗り+濃文字・
+    // 枠なし)へ統一する。ライトは不変。
+    private var textColor: Color { dark ? kyonoBtnPrimaryText : Color(hex: 0x0F5A50) }
+    private var bg: Color { dark ? colors.teal : Color(hex: 0xDFF5F2) }
+    private var borderColor: Color { dark ? .clear : Color(hex: 0x177065) }
+    private var borderWidth: CGFloat { dark ? 0 : 2.5 }
 
     var body: some View {
         Button(action: action) {

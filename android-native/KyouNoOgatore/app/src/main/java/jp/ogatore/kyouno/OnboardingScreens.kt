@@ -1448,14 +1448,18 @@ fun ResultScreen(
             }
             AlertDialog(
                 onDismissRequest = onCardClose,
+                // TASK build32 R-48(本人指示): Material既定(紫系)をやめアプリ配色へ統一。
+                containerColor = LocalKyonoColors.current.card,
+                titleContentColor = LocalKyonoColors.current.ink,
+                textContentColor = LocalKyonoColors.current.ink,
                 confirmButton = {
-                    Button(onClick = onCardClose, modifier = Modifier.testTag("cardCloseBtn")) { Text("とじる") }
+                    KyonoDialogTextButton("とじる", Modifier.testTag("cardCloseBtn"), onClick = onCardClose)
                 },
                 dismissButton = {
-                    Button(
+                    KyonoDialogPrimaryButton(
+                        "保存・シェアする", Modifier.testTag("cardShareBtn"),
                         onClick = { ShareImage.shareBitmap(resultContext, result.bitmap, "kyono-ogatore-$today.png", "#きょうのオガトレ 1日目！") },
-                        modifier = Modifier.testTag("cardShareBtn"),
-                    ) { Text("保存・シェアする") }
+                    )
                 },
                 text = {
                     KyonoInstantDialogAnimations()

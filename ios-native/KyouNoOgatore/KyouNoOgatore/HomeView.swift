@@ -1276,7 +1276,8 @@ private struct TodayVideoSection: View {
                 if !rx.isEmpty {
                     // TASK build31 R-34(本人指示): 「(名前)への3本 連続再生はこちら」→
                     // 「(名前)専用の動画連続再生はこちら」(本数表記は撤去・実本数と無関係にする)。
-                    KyonoGhostButton("▶ \(kyonoDisplayName(store))専用の動画連続再生はこちら") {
+                    // R-46: 本人指定文言のまま1行固定+自動縮小(おおきめ設定での2行折り返し解消)。
+                    KyonoGhostButton("▶ \(kyonoDisplayName(store))専用の動画連続再生はこちら", singleLine: true) {
                         let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
                         onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
                     }
@@ -1328,7 +1329,10 @@ private struct HomeTodayVideoRow: View {
                 .frame(width: 112, height: 112 * 9 / 16)
                 VStack(alignment: .leading, spacing: 2) {
                     if let label = badge ?? v.tags?.first {
+                        // TASK build32 R-46(本人指示・2026-08-06): 「余裕があったら追加の一本」が
+                        // おおきめ設定で2行に折り返していた。文言(本人指定)は変えず1行固定+自動縮小。
                         Text(label).kyonoFont(.black900, size: 12).foregroundColor(badgeTextColor)
+                            .lineLimit(1).minimumScaleFactor(0.6)
                             .padding(.horizontal, 8).padding(.vertical, 1)
                             .background(Capsule().fill(colors.coralSoft))
                     }
