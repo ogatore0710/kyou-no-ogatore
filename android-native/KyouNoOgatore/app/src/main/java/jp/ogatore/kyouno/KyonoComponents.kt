@@ -80,7 +80,10 @@ fun BoxScope.KyonoPressHaloBackground(pressed: Boolean, color: Color) {
 // サブコピーの3点構成。背景はcolors.bgでテーマに追従する。
 @Composable
 fun KyonoSplashView() {
-    val colors = LocalKyonoColors.current
+    // TASK build32 R-45(本人指示「一つの画像だけにして」→カード裁定・2026-08-06): 背景を
+    // テーマ追従にしていると、ダーク設定では「システムスプラッシュ(ライト)→暗いスプラッシュ」の
+    // 2枚に見える。起動画面と常に完全一致のライト固定へ(iOS側KyonoSplashViewと同じ対処)。
+    val colors = KyonoLightColors
     Box(Modifier.fillMaxSize().background(colors.bg), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(

@@ -608,12 +608,15 @@ private struct KyonoLaunchBadgeContent: View {
 
 // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-560 #appSplash/
 // .spl-badge/.spl-innerの1:1移植。黄色い角丸バッジ(-8°回転+3D影)+「きょうの/オガトレ」+
-// サブコピーの3点構成。背景はcolors.bgでテーマに追従する。
+// サブコピーの3点構成。
+// TASK build32 R-45(本人指示「一つの画像だけにして」→カード裁定・2026-08-06): 背景を
+// テーマ追従(colors.bg)にしていると、ダーク設定では「起動画像(R-16でライト固定)→暗い
+// スプラッシュ」の2枚に見える。起動画像と常に完全一致のライト固定へ(R-16と同じ理由の対)。
 private struct KyonoSplashView: View {
-    @Environment(\.kyonoColors) private var colors
     var body: some View {
-        colors.bg.ignoresSafeArea()
+        kyonoLightColors.bg.ignoresSafeArea()
             .overlay { KyonoLaunchBadgeContent() }
+            .environment(\.kyonoColors, kyonoLightColors)
     }
 }
 
