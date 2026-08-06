@@ -372,7 +372,10 @@ struct SettingsView: View {
                     // 同じ📦だったため、同じ`.exportBox`を再利用する(見出しは削除しない・付ける)。
                     HStack(spacing: 6) {
                         KyonoIconGlyph(icon: .exportBox, fill: .clear, accent: colors.pink).frame(width: 18, height: 18)
-                        Text("記録のひっこし").kyonoFont(.black900, size: 16)
+                        // TASK build31 R-41(本人指摘・2026-08-06): foregroundColor未指定だとSwiftUI既定の
+                        // .primary=端末システム配色準拠になり、アプリ内ダーク×端末ライトで黒文字が沈む。
+                        // Android版(SettingsScreen.kt)と同じ明示色へ(この画面の残り3箇所も同時修正)。
+                        Text("記録のひっこし").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                     }
                     Spacer().frame(height: 10)
                     KyonoLineButton("記録をコピーする", icon: .exportBox) {
@@ -386,7 +389,8 @@ struct SettingsView: View {
                         // コピーしてね」の1:1移植。ネイティブは自動コピーという機能差があるためWeb版と
                         // 文言はそのまま同じにはできないが、句点・コロンで終わる説明文調ではなく
                         // Web版と同じカジュアルな文体に寄せる。
-                        Text("クリップボードにコピーしたよ 下の文字は長押しでも選べるよ").kyonoFont(.bold700, size: 12)
+                        Text("クリップボードにコピーしたよ 下の文字は長押しでも選べるよ")
+                            .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                         // TASK-C2-2026-08-02-build17-feedback-fixes.md P-4: `.border(Color.gray...)`は
                         // 枠線のみで背景の塗りが無く、システム既定の(システム側ダーク/ライト設定に
                         // 追従する)背景がそのまま透けていた欠陥。他の入力欄と同じ自前スタイルに揃える。
@@ -408,7 +412,7 @@ struct SettingsView: View {
                         .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
 
                     Spacer().frame(height: 16)
-                    Text("よみこみ").kyonoFont(.black900, size: 16)
+                    Text("よみこみ").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
                     Spacer().frame(height: 8)
                     // TASK-C2-2026-07-27-settings-clipboard-import-and-hints.md: index.html:839,2067-2074
                     // importFromClipboard()の1:1移植。高齢者・デジタル機器が苦手な方向けに、長押しコピー→
@@ -455,7 +459,7 @@ struct SettingsView: View {
                         .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                     if let importMessage {
                         Spacer().frame(height: 8)
-                        Text(importMessage).kyonoFont(.bold700, size: 15)
+                        Text(importMessage).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     }
                     // GO-G9(5視点ワンループ): 「よみこむ」実行直後だけ出る取り消し導線。
                     if showImportUndo {
