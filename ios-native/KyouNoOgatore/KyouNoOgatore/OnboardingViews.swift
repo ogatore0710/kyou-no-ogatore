@@ -1329,21 +1329,13 @@ private struct ResultContentView: View {
                 // performPracticeRecordが二重発火しないようにする。
                 // TASK-C2-2026-08-05-build26-round4.md R-6(本人赤ペン指摘): 動画タップ→YouTube→
                 // アプリ復帰の経路ではvideoTapped=trueにならないため、復帰カード(showDoneNudge)と
-                // この練習ブロックが同時に表示され「記録の入り口が二重」になっていた。復帰カードが
-                // 出ている間は練習ブロックを隠す(!showDoneNudgeガード追加)。復帰カードを閉じた後に
-                // 未記録なら練習ブロックが復活するのは許容(本人裁定どおり)。
-                if fdGuideActive && !videoTapped && !showDoneNudge {
-                    // TASK-C2-2026-08-05-build29-round7.md R-19(本人赤ペン指摘・IMG_8822): 練習ピル+
-                    // 案内2行(R-2で追加した文言)を削除し、「きょうやった！」ボタンのみ残す。
-                    // ボタン自体の挙動・表示条件(fdGuideActive && !videoTapped && !showDoneNudge)は不変。
-                    KyonoPrimaryButton("きょうやった！") {
-                        guard !videoTapped else { return }
-                        videoTapped = true
-                        performPracticeRecord()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .id("practiceBlock")
-                }
+                // この練習ブロックが同時に表示され「記録の入り口が二重」になっていた過去の設計。
+                // TASK-C2-2026-08-06-build30-round8.md R-24(本人指示): ツアー中は上の「動画をひらく
+                // 練習」ピルが主役のため、この「きょうやった！」ボタン自体をツアー中は表示しない
+                // (R-19で文字を削って残った最後のボタンをここで削除)。videoTapped経由の記録は
+                // 動画サムネをタップ→復帰→showDoneNudgeカードの「1日目の記録をつけにいく」から
+                // 引き続き行える(performPracticeRecordの到達経路が1本に絞られるだけ)。
+                // 通常時(!fdGuideActive)のけっか画面はそもそもこのブロックの対象外(現状維持)。
                 // ダークモード再確認+rDoneNudge/rTourBtn実装タスク: index.html:745 #rDoneNudgeの1:1移植。
                 // はじめの1本ガイド中、結果画面を表示したまま動画を見に行って戻ってきたときに、
                 // ホームのcheerの代わりに結果画面内へ「やった？」の復帰案内を出す。
