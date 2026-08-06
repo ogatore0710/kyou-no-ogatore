@@ -2637,6 +2637,64 @@ function checkPrimaryButtonFixedWidthSingleLine() {
   );
 }
 
+// TASK-C2-2026-08-06-build30-round8.md R-31(本人指示): chara/chara-2/chara-3/chara-hitokotoの
+// 4枚はアプリ内全面廃止(使用可=cheer/congrats/cracker/crown/good/kaikyakuの6枚のみ)。
+// 参照が復活していないことを両ネイティブのソース全数で機械検査する(コメント行は除外・
+// 文字列リテラルとしての参照のみを違反とみなす)。命名規則がOS間で違う点に注意
+// (iOS: ハイフン区切り・Android: アンダースコア区切り)。
+function checkBannedCharaArt() {
+  const banned = {
+    swift: ['"chara"', '"chara-2"', '"chara-3"', '"chara-hitokoto"'],
+    kt: ['"chara"', '"chara_2"', '"chara_3"', '"chara_hitokoto"'],
+  };
+  const roots = [
+    { dir: "ios-native/KyouNoOgatore/KyouNoOgatore", ext: ".swift", pats: banned.swift },
+    { dir: "ios-native/KyouNoOgatore/KyonoWidgetExtension", ext: ".swift", pats: banned.swift },
+    { dir: "android-native/KyouNoOgatore/app/src/main/java", ext: ".kt", pats: banned.kt },
+  ];
+  const hits = [];
+  for (const { dir, ext, pats } of roots) {
+    const abs = path.join(ROOT, dir);
+    if (!fs.existsSync(abs)) continue;
+    const walk = (cur) => {
+      for (const entry of fs.readdirSync(cur, { withFileTypes: true })) {
+        const full = path.join(cur, entry.name);
+        if (entry.isDirectory()) { walk(full); continue; }
+        if (!entry.name.endsWith(ext)) continue;
+        const rel = path.relative(ROOT, full);
+        const lines = read(rel).split("\n");
+        for (let i = 0; i < lines.length; i += 1) {
+          const trimmed = lines[i].trim();
+          if (trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
+          for (const pat of pats) {
+            if (lines[i].includes(pat)) hits.push(`${rel}:${i + 1} (${pat})`);
+          }
+        }
+      }
+    };
+    walk(abs);
+  }
+  // アセットファイル自体も削除済みであることを確認する。
+  const bannedFiles = [
+    "ios-native/KyouNoOgatore/KyouNoOgatore/CharaArt/chara.png",
+    "ios-native/KyouNoOgatore/KyouNoOgatore/CharaArt/chara-2.png",
+    "ios-native/KyouNoOgatore/KyouNoOgatore/CharaArt/chara-3.png",
+    "ios-native/KyouNoOgatore/KyouNoOgatore/CharaArt/chara-hitokoto.png",
+    "android-native/KyouNoOgatore/app/src/main/res/drawable-nodpi/chara.png",
+    "android-native/KyouNoOgatore/app/src/main/res/drawable-nodpi/chara_2.png",
+    "android-native/KyouNoOgatore/app/src/main/res/drawable-nodpi/chara_3.png",
+    "android-native/KyouNoOgatore/app/src/main/res/drawable-nodpi/chara_hitokoto.png",
+  ];
+  for (const f of bannedFiles) {
+    if (exists(f)) hits.push(`${f} (ファイル残存)`);
+  }
+  assert(
+    "再発防止(R-31): 廃止4キャラ絵(chara/chara-2/chara-3/chara-hitokoto)への参照・ファイルが0件",
+    hits.length === 0,
+    hits.length ? hits.join(", ") : "0 violations"
+  );
+}
+
 function main() {
   for (const rel of ["index.html", "videos.js", "app-search.js", "obu-feed.js", "app-quiz.js", "app-record.js", "app-card.js", "app-env.js", "sw.js", "manifest.json"]) {
     assert(`${rel}: exists`, exists(rel), "required app file");
@@ -2691,6 +2749,7 @@ function main() {
   checkNoTempMarkers();
   checkGradientCardBudget();
   checkPrimaryButtonFixedWidthSingleLine();
+  checkBannedCharaArt();
 
   if (failures.length) {
     console.error(`\nQA failed: ${failures.length} issue(s)`);
