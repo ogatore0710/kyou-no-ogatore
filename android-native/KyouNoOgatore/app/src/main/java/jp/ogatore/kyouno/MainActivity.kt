@@ -796,6 +796,20 @@ private val CHEERS = listOf(
 
 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:2124 QUOTES
 // (45件)の1:1移植。手写し禁止(§1-2)のためindex.htmlから機械抽出した値をそのまま貼り付けている。
+// TASK-C2-2026-08-06-build30-round8.md R-31(本人指示・★): きょうのひとこと吹き出しの絵は
+// chara_hitokoto(廃止)から、言葉に合わせた5枚の使い分けへ(QUOTESと同indexで対応する本人指示の
+// 割り当て表。方針: 実技アドバイス系=kaikyaku/称賛系=congrats/応援系=cheer/寄り添い系=good/
+// 達成の瞬間系=cracker。crownは節目専用のため不使用)。iOS版QUOTE_CHARAと同一の並び。
+private val QUOTE_CHARA = listOf(
+    "chara_good", "chara_cheer", "chara_congrats", "chara_kaikyaku", "chara_kaikyaku", "chara_kaikyaku",
+    "chara_kaikyaku", "chara_cheer", "chara_good", "chara_cracker", "chara_cheer", "chara_cheer",
+    "chara_good", "chara_congrats", "chara_kaikyaku", "chara_kaikyaku", "chara_kaikyaku", "chara_kaikyaku",
+    "chara_good", "chara_good", "chara_good", "chara_cheer", "chara_good", "chara_cheer",
+    "chara_cheer", "chara_cheer", "chara_good", "chara_good", "chara_kaikyaku", "chara_kaikyaku",
+    "chara_congrats", "chara_cheer", "chara_cracker", "chara_cheer", "chara_good", "chara_good",
+    "chara_kaikyaku", "chara_good", "chara_cheer", "chara_cheer", "chara_congrats", "chara_kaikyaku",
+    "chara_congrats", "chara_kaikyaku", "chara_cheer",
+)
 private val QUOTES = listOf(
     "体がガチガチでもだいじょうぶ", "頑張ろうね", "がんばったね おつかれさまでした",
     "痛気持ちいいところで止めましょうね", "腹筋は無理に使わなくていいですよ", "きつい方は足首を触ってくださいね",
@@ -1389,7 +1403,13 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.width(10.dp))
-                KyonoCharaImage("chara_hitokoto", Modifier.height(44.dp))
+                // TASK-C2-2026-08-06-build30-round8.md R-31(★): ひとことは言葉に合わせて5枚を
+                // 使い分け(QUOTE_CHARA・同index)。おかえりなさい時は寄り添い系のgood(置換表どおり)。
+                val quoteCharaIdx = (dayIndex(Instant.now()) % QUOTES.size).toInt() % QUOTE_CHARA.size
+                KyonoCharaImage(
+                    if (showReturnNudge) "chara_good" else QUOTE_CHARA[quoteCharaIdx],
+                    Modifier.height(44.dp),
+                )
             }
 
         }
@@ -1434,7 +1454,7 @@ fun HomeScreen(
             if (showWelcomeBack) {
                 KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("welcomeBackCard")) {
                     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        KyonoCharaImage("chara", Modifier.size(84.dp))
+                        KyonoCharaImage("chara_good", Modifier.size(84.dp))
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(
@@ -2227,7 +2247,7 @@ private fun CkCard(onStartQuiz: () -> Unit) {
                 "タップするだけ30秒でチェック\nあなたに合うストレッチがわかります",
                 color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp, modifier = Modifier.weight(1f),
             )
-            KyonoCharaImage("chara_3", Modifier.size(74.dp))
+            KyonoCharaImage("chara_good", Modifier.size(74.dp))
         }
         Spacer(Modifier.height(12.dp))
         KyonoPrimaryButton("チェックをはじめる", onStartQuiz, Modifier.testTag("ckBtn"))
@@ -2259,7 +2279,7 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
                 "からだの悩み\nオガトレに聞いてみて", color = colors.sub2, fontSize = 15.sp, lineHeight = 22.sp,
                 modifier = Modifier.weight(1f),
             )
-            KyonoCharaImage("chara_hitokoto", Modifier.size(64.dp))
+            KyonoCharaImage("chara_good", Modifier.size(64.dp))
         }
         Spacer(Modifier.height(10.dp))
         KyonoPrimaryButton("相談する", { onOpenSoudan(null) }, Modifier.testTag("soudanBtn"), icon = KyonoIcon.SoudanBubble)

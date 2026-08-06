@@ -397,7 +397,7 @@ private struct SearchContentView: View {
                 // 出ないため「検索結果欄そのものが沈黙する」ように見えていた。
                 if hits.isEmpty {
                     VStack(spacing: 6) {
-                        KyonoCharaImage(name: "chara-2").frame(width: 84, height: 84)
+                        KyonoCharaImage(name: "chara-kaikyaku").frame(width: 84, height: 84)
                         Text("この条件のストレッチはまだないみたい…")
                             .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
                     }

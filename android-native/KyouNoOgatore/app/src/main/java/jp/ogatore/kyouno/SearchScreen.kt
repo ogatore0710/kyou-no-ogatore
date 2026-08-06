@@ -462,7 +462,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                         .testTag("searchEmptyCard"),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    KyonoCharaImage("chara_2", Modifier.size(84.dp))
+                    KyonoCharaImage("chara_kaikyaku", Modifier.size(84.dp))
                     Spacer(Modifier.height(6.dp))
                     Text("この条件のストレッチはまだないみたい…", color = colors.sub, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }

@@ -11,7 +11,7 @@ import SwiftUI
 // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
 // §2 キャラクター画像: assets/chara*.pngをCharaArt/へ同梱済みの前提で、複数画面(相談室・オンボ・
 // ホーム等)から共通で使えるオガトレくん画像コンポーネント。nameは拡張子なしのファイル名
-// (例: "chara-hitokoto")。PBXFileSystemSynchronizedRootGroupがCharaArt/をビルド時にバンドル
+// (例: "chara-good")。PBXFileSystemSynchronizedRootGroupがCharaArt/をビルド時にバンドル
 // ルートへフラット化するため、subdirectory指定なしで探す(DexView.swift loadCardArtと同じ考え方)。
 struct KyonoCharaImage: View {
     let name: String
@@ -29,10 +29,11 @@ struct KyonoCharaImage: View {
 // 実装が無く、他3タブ(マイ記録・動画を探す・使い方)には出ていなかった欠落の修正。4画面とも
 // このコンポーネント1つを呼ぶことで、以後のズレを構造的に防ぐ(seasonal mark<id="logoMark">は
 // ネイティブ側に対応する仕組みが元々無く、このタスクのスコープ外)。
+// TASK-C2-2026-08-06-build30-round8.md R-31(本人指示・★): ヘッダーの手を振るchara(廃止絵)は
+// イラストごと削除し、タイトル+サブタイトルのみに(レイアウト詰め=画像と間隔ぶんが自然に詰まる)。
 struct KyonoAppHeader: View {
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
-            KyonoCharaImage(name: "chara").frame(width: 52, height: 52)
             VStack(alignment: .leading, spacing: 1) {
                 // UI/UXパリティ監査GO-11(2026-07-28・前倒し): index.html:88-89 h1{font-size:20px;
                 // white-space:nowrap}の1:1移植。Web側は「22px→20pxへ意図的に縮小のうえnowrap」と

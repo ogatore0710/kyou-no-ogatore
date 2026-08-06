@@ -580,7 +580,7 @@ fun SoudanSheet(
                         // index.html:481,488,3080 .sd-b/.sd-row.sd-red .sd-b(通常=card+line枠・赤旗=coral-soft+coral枠)/
                         // .sd-ava(chara-hitokoto.pngアバター・botメッセージのみ)の1:1移植。
                         is SdBubble.Bot -> Row(verticalAlignment = Alignment.Bottom) {
-                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                            KyonoCharaImage("chara_good", Modifier.size(38.dp))
                             Spacer(Modifier.width(8.dp))
                             val bg = if (m.red) colors.coralSoft else colors.card
                             val border = if (m.red) colors.coral else colors.line
@@ -627,7 +627,7 @@ fun SoudanSheet(
                         // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の
                         // 1:1移植。「…」の3点を位相をずらして明滅させるタイピングドット。
                         is SdBubble.Typing -> Row(verticalAlignment = Alignment.Bottom) {
-                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                            KyonoCharaImage("chara_good", Modifier.size(38.dp))
                             Spacer(Modifier.width(8.dp))
                             Box(
                                 Modifier
@@ -656,7 +656,7 @@ fun SoudanSheet(
                         // index.html:3323-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。
                         // ①mailto(検索タブと同じopenMailIntent流用)②クリップボードコピー③検索タブへ遷移。
                         is SdBubble.FallbackLinks -> Row(verticalAlignment = Alignment.Bottom) {
-                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                            KyonoCharaImage("chara_good", Modifier.size(38.dp))
                             Spacer(Modifier.width(8.dp))
                             val context = LocalContext.current
                             val clipboard = LocalClipboardManager.current
@@ -702,7 +702,7 @@ fun SoudanSheet(
                             }
                         }
                         is SdBubble.PlanConfirm -> Row(verticalAlignment = Alignment.Bottom) {
-                            KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                            KyonoCharaImage("chara_good", Modifier.size(38.dp))
                             Spacer(Modifier.width(8.dp))
                             Column(
                                 Modifier.fillMaxWidth(0.86f)

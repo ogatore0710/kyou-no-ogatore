@@ -34,6 +34,20 @@ private let CHEERS = [
 // ホーム構造修正タスク(TASK-C2-2026-07-26-home-structure-fix.md §1): index.html:2124 QUOTES
 // (45件)の1:1移植。手写し禁止(§1-2)のためindex.htmlから機械抽出した値をそのまま貼り付けている
 // (Android版MainActivity.ktと同一のリスト。移植元はAndroid側で使ったのと同じ抽出スクリプト出力)。
+// TASK-C2-2026-08-06-build30-round8.md R-31(本人指示・★): きょうのひとこと吹き出しの絵は
+// chara-hitokoto(廃止)から、言葉に合わせた5枚の使い分けへ(QUOTESと同indexで対応する本人指示の
+// 割り当て表。方針: 実技アドバイス系=kaikyaku/称賛系=congrats/応援系=cheer/寄り添い系=good/
+// 達成の瞬間系=cracker。crownは節目専用のため不使用)。
+private let QUOTE_CHARA = [
+    "chara-good", "chara-cheer", "chara-congrats", "chara-kaikyaku", "chara-kaikyaku", "chara-kaikyaku",
+    "chara-kaikyaku", "chara-cheer", "chara-good", "chara-cracker", "chara-cheer", "chara-cheer",
+    "chara-good", "chara-congrats", "chara-kaikyaku", "chara-kaikyaku", "chara-kaikyaku", "chara-kaikyaku",
+    "chara-good", "chara-good", "chara-good", "chara-cheer", "chara-good", "chara-cheer",
+    "chara-cheer", "chara-cheer", "chara-good", "chara-good", "chara-kaikyaku", "chara-kaikyaku",
+    "chara-congrats", "chara-cheer", "chara-cracker", "chara-cheer", "chara-good", "chara-good",
+    "chara-kaikyaku", "chara-good", "chara-cheer", "chara-cheer", "chara-congrats", "chara-kaikyaku",
+    "chara-congrats", "chara-kaikyaku", "chara-cheer",
+]
 private let QUOTES = [
     "体がガチガチでもだいじょうぶ", "頑張ろうね", "がんばったね おつかれさまでした",
     "痛気持ちいいところで止めましょうね", "腹筋は無理に使わなくていいですよ", "きつい方は足首を触ってくださいね",
@@ -570,13 +584,14 @@ struct HomeView: View {
             // 無効化されたボタンを指して「押してね」と言い続ける矛盾が残っていた欠落)。
             // Web版と同じく状態から導出する(&& !didを足すだけ・showDoneNudge自体の寿命は変えない)。
             let showReturnNudge = showDoneNudge && !did
+            let quoteIdx = ((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 4 * zoom) {
                     Text(showReturnNudge ? "おかえりなさい" : "きょうのひとこと")
                         .kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                     Text(showReturnNudge
                         ? "おわったら下の「きょうやった！」を押してね"
-                        : "「\(QUOTES[((dayIndex(Date()) % QUOTES.count) + QUOTES.count) % QUOTES.count])」")
+                        : "「\(QUOTES[quoteIdx])」")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                 }
                 .padding(.horizontal, 14 * zoom).padding(.vertical, 10 * zoom)
@@ -585,7 +600,10 @@ struct HomeView: View {
                         .overlay(RoundedRectangle(cornerRadius: 16 * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
                 )
                 Spacer()
-                KyonoCharaImage(name: "chara-hitokoto").frame(height: 44 * zoom)
+                // TASK-C2-2026-08-06-build30-round8.md R-31(★): ひとことは言葉に合わせて5枚を
+                // 使い分け(QUOTE_CHARA・同index)。おかえりなさい時は寄り添い系のgood(置換表どおり)。
+                KyonoCharaImage(name: showReturnNudge ? "chara-good" : QUOTE_CHARA[quoteIdx % QUOTE_CHARA.count])
+                    .frame(height: 44 * zoom)
             }
     }
 
@@ -613,7 +631,7 @@ struct HomeView: View {
             // (あちらはqbubbleの見出し差し替えのみ・こちらは3日以上あいた復帰を祝う専用カード)。
             if showWelcomeBack {
                 KyonoGradientCard(gradient: .mint) {
-                    KyonoCharaImage(name: "chara").frame(width: 84, height: 84)
+                    KyonoCharaImage(name: "chara-good").frame(width: 84, height: 84)
                         .frame(maxWidth: .infinity, alignment: .center)
                     // Text連結(+)はText型のみ許容するため、ここだけ.font(.kyono(...))を直接使う
                     // (HomeView.swift既存の停滞期はげまし文言と同じ理由)。
@@ -1119,7 +1137,7 @@ private struct CkCard: View {
                 Text("タップするだけ30秒でチェック\nあなたに合うストレッチがわかります")
                     .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                 Spacer()
-                KyonoCharaImage(name: "chara-3").frame(width: 74 * zoom, height: 74 * zoom)
+                KyonoCharaImage(name: "chara-good").frame(width: 74 * zoom, height: 74 * zoom)
             }
             Spacer().frame(height: 12 * zoom)
             KyonoPrimaryButton("チェックをはじめる", action: onStartQuiz)
@@ -1153,7 +1171,7 @@ private struct SoudanCard: View {
                             Text("からだの悩み\nオガトレに聞いてみて")
                                 .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub2)
                             Spacer()
-                            KyonoCharaImage(name: "chara-hitokoto").frame(width: 64 * zoom, height: 64 * zoom)
+                            KyonoCharaImage(name: "chara-good").frame(width: 64 * zoom, height: 64 * zoom)
                         }
                         Spacer().frame(height: 10 * zoom)
                         // TASK-C2-2026-07-30-icon-system.md(I) 試作1件目: 💬→ふきだしアイコン

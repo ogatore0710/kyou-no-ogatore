@@ -135,7 +135,7 @@ struct KyonoTourMockup: View {
                             .background(UnevenRoundedRectangle(topLeadingRadius: 12, bottomLeadingRadius: 12, bottomTrailingRadius: 4, topTrailingRadius: 12).fill(colors.yellowSoft))
                     }
                     HStack(alignment: .bottom) {
-                        KyonoCharaImage(name: "chara-hitokoto").frame(width: 24, height: 24)
+                        KyonoCharaImage(name: "chara-good").frame(width: 24, height: 24)
                         let shape = UnevenRoundedRectangle(topLeadingRadius: 12, bottomLeadingRadius: 4, bottomTrailingRadius: 12, topTrailingRadius: 12)
                         Text("それはつらいね…！まずはこの1本").kyonoFont(.bold700, size: 12).foregroundColor(colors.ink)
                             .padding(.horizontal, 10).padding(.vertical, 6)

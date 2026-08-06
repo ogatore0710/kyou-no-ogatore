@@ -164,7 +164,7 @@ fun KyonoTourMockup(kind: TourMockKind) {
                 }
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
-                    KyonoCharaImage("chara_hitokoto", Modifier.size(24.dp))
+                    KyonoCharaImage("chara_good", Modifier.size(24.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(
                         "それはつらいね…！まずはこの1本", color = colors.ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,

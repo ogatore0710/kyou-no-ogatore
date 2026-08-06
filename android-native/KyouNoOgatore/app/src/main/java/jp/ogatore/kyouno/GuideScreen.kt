@@ -195,7 +195,7 @@ fun GuideScreen(
             // の1:1移植。
             KyonoGradientCard(KyonoGradient.Warm, Modifier.testTag("guideIntroCard")) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    KyonoCharaImage("chara", Modifier.size(84.dp))
+                    KyonoCharaImage("chara_cheer", Modifier.size(84.dp))
                     Spacer(Modifier.height(6.dp))
                     Text("おぼえるのはこれだけ！", color = colors.ink, fontSize = 19.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(8.dp))

@@ -394,7 +394,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     if (!b.fromUser) {
-                        KyonoCharaImage("chara_hitokoto", Modifier.size(38.dp))
+                        KyonoCharaImage("chara_good", Modifier.size(38.dp))
                         Spacer(Modifier.width(8.dp))
                     }
                     Box(

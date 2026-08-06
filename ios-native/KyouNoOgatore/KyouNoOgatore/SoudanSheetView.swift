@@ -573,7 +573,7 @@ private struct SoudanContentView: View {
             let bg = red ? colors.coralSoft : colors.card
             let border = red ? colors.coral : colors.borderStrong
             HStack(alignment: .bottom) {
-                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
+                KyonoCharaImage(name: "chara-good").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 6) {
                     // UI/UXパリティ監査GO-12(2026-07-28): index.html:481 .sd-b{font-size:15px;
                     // line-height:1.75}の1:1移植。
@@ -604,7 +604,7 @@ private struct SoudanContentView: View {
         // 「…」の3点を位相をずらして明滅させるタイピングドット。
         case .typing:
             HStack(alignment: .bottom) {
-                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
+                KyonoCharaImage(name: "chara-good").frame(width: 38, height: 38)
                 SdTypingDots()
                     .padding(.horizontal, 16).padding(.vertical, 14)
                     .background(
@@ -617,7 +617,7 @@ private struct SoudanContentView: View {
         // ①mailto(検索タブと同じopenMailTo流用)②クリップボードコピー③検索タブへ遷移。
         case let .fallbackLinks(rawUserText):
             HStack(alignment: .bottom) {
-                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
+                KyonoCharaImage(name: "chara-good").frame(width: 38, height: 38)
                 FallbackLinksView(rawUserText: rawUserText, onOpenSearch: onOpenSearch)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(
@@ -629,7 +629,7 @@ private struct SoudanContentView: View {
             }
         case let .planConfirm(intentId, label, replacing):
             HStack(alignment: .bottom) {
-                KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38)
+                KyonoCharaImage(name: "chara-good").frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 8) {
                     Text(replacing
                         ? "いまのプランと入れ替える？きょうの1本が、あなたの\(label)プランになるよ"

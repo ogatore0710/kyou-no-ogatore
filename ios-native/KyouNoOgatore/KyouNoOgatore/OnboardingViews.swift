@@ -321,7 +321,7 @@ private struct OnboardingContentView: View {
                     // chara-hitokotoアバターをオンボでも流用)の1:1移植。
                     HStack(alignment: .bottom) {
                         if b.fromUser { Spacer(minLength: 40) }
-                        if !b.fromUser { KyonoCharaImage(name: "chara-hitokoto").frame(width: 38, height: 38) }
+                        if !b.fromUser { KyonoCharaImage(name: "chara-good").frame(width: 38, height: 38) }
                         let shape = UnevenRoundedRectangle(
                             topLeadingRadius: 16, bottomLeadingRadius: b.fromUser ? 16 : 6,
                             bottomTrailingRadius: b.fromUser ? 6 : 16, topTrailingRadius: 16

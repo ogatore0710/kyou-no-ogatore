@@ -174,7 +174,7 @@ private struct GuideContentView: View {
                     // §2 キャラクター画像: index.html:973-978 .card.grad-warm(chara.png 84x84+「おぼえるのはこれだけ！」)の1:1移植。
                     KyonoGradientCard(gradient: .warm) {
                         VStack(spacing: 8) {
-                            KyonoCharaImage(name: "chara").frame(width: 84, height: 84)
+                            KyonoCharaImage(name: "chara-cheer").frame(width: 84, height: 84)
                             Text("おぼえるのはこれだけ！").kyonoFont(.black900, size: 19).foregroundColor(colors.ink)
                             Text("1日1本うごいて\n「きょうやった！」を押す")
                                 .kyonoFont(.black900, size: 16).foregroundColor(colors.ink)

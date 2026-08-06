@@ -115,7 +115,7 @@ fun KyonoSplashView() {
 // フォント適用漏れ・キャラ/タイプ画像の欠落修正タスク(TASK-C2-2026-07-26-visual-parity-fonts-characters.md)
 // §2 キャラクター画像: assets/chara*.pngをdrawable-nodpiへ同梱済みの前提で、複数画面(相談室・
 // オンボ・ホーム等)から共通で使えるオガトレくん画像コンポーネント。resNameは拡張子なしのdrawable名
-// (例: "chara_hitokoto")。
+// (例: "chara_good")。
 @Composable
 fun KyonoCharaImage(resName: String, modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -131,12 +131,12 @@ fun KyonoCharaImage(resName: String, modifier: Modifier = Modifier) {
 // 実装が無く、他3タブ(マイ記録・動画を探す・使い方)には出ていなかった欠落の修正。4画面とも
 // このコンポーネント1つを呼ぶことで、以後のズレを構造的に防ぐ(seasonal mark<id="logoMark">は
 // ネイティブ側に対応する仕組みが元々無く、このタスクのスコープ外)。
+// TASK-C2-2026-08-06-build30-round8.md R-31(本人指示・★): ヘッダーの手を振るchara(廃止絵)は
+// イラストごと削除し、タイトル+サブタイトルのみに(レイアウト詰め=画像と間隔ぶんが自然に詰まる)。
 @Composable
 fun KyonoAppHeader() {
     val colors = LocalKyonoColors.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.testTag("appHeader")) {
-        KyonoCharaImage("chara", Modifier.size(52.dp))
-        Spacer(Modifier.width(10.dp))
         Column {
             // UI/UXパリティ監査GO-11(2026-07-28・前倒し): index.html:88-89 h1{font-size:20px;
             // white-space:nowrap}の1:1移植。Web側は「22px→20pxへ意図的に縮小のうえnowrap」と
