@@ -79,3 +79,15 @@
 ## 次のアクション
 
 - 本人GOでTestFlight build31提出(30→31 bump→archive→upload→ASC裏取り→whatsNew→Push)。
+
+## TestFlight提出結果(2026-08-06・本人GO「ビルドお願い」受領後)
+
+1. `CURRENT_PROJECT_VERSION` 30→31(pbxproj 4箇所)
+2. `xcodebuild archive` → `** ARCHIVE SUCCEEDED **`
+3. `xcodebuild -exportArchive` → `** EXPORT SUCCEEDED **`・ipa内`CFBundleVersion="31"`実測確認
+4. `xcrun altool --upload-app` → `UPLOAD SUCCEEDED`(Delivery UUID: `67cf9c4c-4ef6-4906-86d6-51d66e0fd88c`)
+5. **ASC API裏取り(実照会)**: version=31 `processingState=VALID`・内部グループ紐付けPOST 204→逆方向照会で31の存在確認・`internalBuildState=IN_BETA_TESTING`(テスター配信中)
+6. **whatsNew(ja)**: 「動画のタグ間違いを直しました！おすすめはメインの一本と追加の一本の表記に！暗い画面のボタンと文字がはっきり見やすくなりました」PATCH 200→再取得で反映確認
+7. 本人へ`alan-push.py`でPush送信(「push送信 1/1」)
+
+**ビルド番号: 31**(内容=R-32〜R-41全10件)
