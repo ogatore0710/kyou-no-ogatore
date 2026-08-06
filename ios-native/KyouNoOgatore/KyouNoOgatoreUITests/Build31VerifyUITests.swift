@@ -16,15 +16,14 @@ final class Build31VerifyUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    // xcresultの添付抽出もホスト絶対パスへの直接書き込みも環境依存で空振りしたため、
-    // ランナー(xctrunner)自身のコンテナDocumentsへ書き出し、ホスト側で
-    // `simctl get_app_container ... jp.ogatore.kyouno.uitests.xctrunner data` から回収する。
-    private static let outDir = NSHomeDirectory() + "/Documents/b31-shots"
-
+    // xcresult添付・ホストパス直書き・ランナーコンテナ書き(テスト終了時にコンテナごと消える)・
+    // UIPasteboard(ホストへ届かず)がいずれも空振りしたため、unified logを同期チャネルにする:
+    // ここでNSLogにチェックポイント名を流し→ホスト側の監視(run-b31-verify.shの
+    // `simctl spawn ... log stream`)が検知して`simctl io screenshot`で撮る。
+    // 3秒はホスト側のログ検知+撮影の猶予。
     private func snap(_ name: String) {
-        let shot = XCUIScreen.main.screenshot()
-        try? FileManager.default.createDirectory(atPath: Self.outDir, withIntermediateDirectories: true)
-        try? shot.pngRepresentation.write(to: URL(fileURLWithPath: "\(Self.outDir)/\(name).png"))
+        NSLog("B31SNAP %@", name)
+        Thread.sleep(forTimeInterval: 3.0)
     }
 
     private func tapAny(_ app: XCUIApplication, _ label: String, timeout: TimeInterval = 8) {
@@ -86,9 +85,9 @@ final class Build31VerifyUITests: XCTestCase {
         XCTAssertTrue(anchorLine.waitForExistence(timeout: 10), "やるタイミング行が出ない")
         snap("06-r39-settings-light")
         tapAny(app, "変える")
-        _ = app.descendants(matching: .any)["おふろ上がり"].firstMatch.waitForExistence(timeout: 5)
+        _ = app.descendants(matching: .any)["おふろ上がりに"].firstMatch.waitForExistence(timeout: 5)
         snap("07-r38-settings-anchorpicker-light")
-        tapAny(app, "おふろ上がり") // 閉じる(値は同じ)
+        tapAny(app, "おふろ上がりに") // 閉じる(値は同じ)
 
         // ---- ダークへ切り替え(アプリ内設定・R-39の実バグ経路そのもの) ----
         tapAny(app, "暗い")
@@ -103,9 +102,9 @@ final class Build31VerifyUITests: XCTestCase {
         }
         snap("09-r38-settings-dark-buttons")
         tapAny(app, "変える", timeout: 5)
-        _ = app.descendants(matching: .any)["おふろ上がり"].firstMatch.waitForExistence(timeout: 5)
+        _ = app.descendants(matching: .any)["おふろ上がりに"].firstMatch.waitForExistence(timeout: 5)
         snap("10-r38-settings-anchorpicker-dark")
-        tapAny(app, "おふろ上がり")
+        tapAny(app, "おふろ上がりに")
 
         // ---- もどる→マイ記録(ダーク)→ホーム(ダーク)→使い方(両テーマ) ----
         var guard3 = 0
