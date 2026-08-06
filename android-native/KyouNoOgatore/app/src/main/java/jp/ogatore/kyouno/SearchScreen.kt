@@ -619,8 +619,10 @@ private fun PlaylistRow(item: jp.ogatore.kyouno.catalog.PlaylistItem, openUrl: (
 }
 
 // 「再生リスト」タブ本体。TASK-C2-2026-07-28-search-playlists-and-fullwidth-space.md §1の判断:
-// index.html:3498-3521 PLAYLISTS(手動キュレーション16本・3グループ)を主役として上に置き、
-// 「全部の動画を見たい」需要向けの平坦一覧(catalog.json 454本)は残しつつ下に従える。
+// index.html:3498-3521 PLAYLISTS(手動キュレーション16本・3グループ)を主役として上に置く。
+// TASK-C2-2026-08-06-build30-round8.md R-25(本人指示): 以前は下に「全部の動画を見たい」需要向けの
+// 平坦一覧(catalog.json 454本)を従えていたが、これを廃止しプレイリストのみの画面にする
+// (「動画を探す」タブが検索・全動画一覧の役目を引き続き担う)。
 // LazyColumnがそのまま仮想化するため検索画面のようなsearchLimit方式のページングは不要。
 @Composable
 fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Unit) {
@@ -630,7 +632,6 @@ fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () 
     KyonoTheme(themeSetting, bigText = store.get("bigtext", true)) {
         val colors = LocalKyonoColors.current
         val playlistGroups = remember { jp.ogatore.kyouno.catalog.PlaylistLoader.shared }
-        val catalog = remember { CatalogLoader.shared.sortedWith(compareByDescending<CatalogVideo> { it.y }.thenBy { it.t }) }
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
             Text("再生リスト", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(8.dp))
@@ -658,14 +659,6 @@ fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () 
                     }
                     items(group.items) { p -> PlaylistRow(p, openUrl) }
                 }
-                item {
-                    Text(
-                        "${catalog.size}本の動画すべてから探す",
-                        color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                        modifier = Modifier.padding(top = 18.dp, bottom = 4.dp),
-                    )
-                }
-                items(catalog) { v -> VideoRow(v, openUrl) }
                 // index.html:941 .hint(リストの一番下に流れる注記のため、固定表示ではなくリスト末尾項目にする。
                 // 固定表示にするとFAB2段(右下)と重なるバグの再発になる=とどくメーターの5番目ボタンで
                 // 既発見済みの教訓と同種)

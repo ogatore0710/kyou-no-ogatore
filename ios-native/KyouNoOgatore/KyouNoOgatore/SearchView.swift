@@ -551,20 +551,21 @@ private struct PlaylistRow: View {
 }
 
 // 「再生リスト」タブ本体。TASK-C2-2026-07-28-search-playlists-and-fullwidth-space.md §1の判断:
-// index.html:3498-3521 PLAYLISTS(手動キュレーション16本・3グループ)を主役として上に置き、
-// 「全部の動画を見たい」需要向けの平坦一覧(catalog.json 454本)は残しつつ下に従える。
+// index.html:3498-3521 PLAYLISTS(手動キュレーション16本・3グループ)を主役として上に置く。
+// TASK-C2-2026-08-06-build30-round8.md R-25(本人指示): 以前は下に「全部の動画を見たい」需要向けの
+// 平坦一覧(catalog.json 454本)を従えていたが、これを廃止しプレイリストのみの画面にする
+// (「動画を探す」タブが検索・全動画一覧の役目を引き続き担う)。
 struct CatalogListView: View {
     let store: RecordStore
     let openUrl: (String) -> Void
     let onBack: () -> Void
 
     private let playlistGroups = PlaylistLoader.shared
-    private let catalog = CatalogLoader.shared.sorted { a, b in a.y != b.y ? a.y > b.y : a.t < b.t }
     private var themeSetting: String { store.get("theme", default: "light") }
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
-            CatalogListContentView(playlistGroups: playlistGroups, catalog: catalog, onBack: onBack, openUrl: openUrl)
+            CatalogListContentView(playlistGroups: playlistGroups, onBack: onBack, openUrl: openUrl)
         }
         // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
         .edgeSwipeBack(onBack: onBack)
@@ -574,7 +575,6 @@ struct CatalogListView: View {
 private struct CatalogListContentView: View {
     @Environment(\.kyonoColors) private var colors
     let playlistGroups: [PlaylistGroup]
-    let catalog: [CatalogVideo]
     let onBack: () -> Void
     let openUrl: (String) -> Void
     // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。
@@ -601,9 +601,10 @@ private struct CatalogListContentView: View {
                             .padding(.top, 10).padding(.bottom, 4)
                         ForEach(gr.items, id: \.id) { p in PlaylistRow(item: p, openUrl: openUrl) }
                     }
-                    Text("\(catalog.count)本の動画すべてから探す").kyonoFont(.black900, size: 14).foregroundColor(colors.ink)
-                        .padding(.top, 18).padding(.bottom, 4)
-                    ForEach(catalog, id: \.id) { v in VideoRow(v: v, openUrl: openUrl) }
+                    // TASK-C2-2026-08-06-build30-round8.md R-25(本人指示): 再生リストタブは手動
+                    // キュレーションのプレイリストだけにする。下に続いていた全動画一覧(454本・
+                    // catalog.json)はセクションごと削除(「動画を探す」タブ側は不変・catalog.json
+                    // 自体も不変)。
                     // index.html:941 .hint(固定表示にするとFAB2段(右下)と重なるバグの再発になる=
                     // とどくメーターの5番目ボタンで既発見済みの教訓と同種のため、リスト末尾項目にする)
                     Text("タップするとYouTubeで開きます！テレビで流すのもおすすめ")
