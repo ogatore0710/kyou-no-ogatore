@@ -2349,12 +2349,15 @@ fun MyRecordScreen(
                 // (line-height指定なし=CSS既定の"normal")の1:1移植。他の箇所と同じくカスタムフォントの
                 // 行送り超過でCompose既定のままだと1行分余分に折り返す(Web2行→ネイティブ3行)ため、
                 // KyonoTightLineTextStyleをここにも展開する。
+                // TASK-C2-2026-08-06-build30-round8.md R-28(本人指示+裁定済み・モック案A):
+                // 見出しを「次のお祝いポイントは「◯◯」」に(◯◯=次の節目名・ピンク強調は現状踏襲)。
+                // 「は通算N日目」「マイペースでどうぞ」は削除。
                 if (next != null && ms != null) {
                     Text(
                         buildAnnotatedString {
-                            append("次のお祝い「")
+                            append("次のお祝いポイントは「")
                             withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append(ms.t) }
-                            append("」は通算${next}日目 マイペースでどうぞ")
+                            append("」")
                         },
                         color = colors.ink, fontSize = 15.sp, lineHeight = 15.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier.testTag("msNote"),
@@ -2365,14 +2368,10 @@ fun MyRecordScreen(
                         lineHeight = 15.sp, style = KyonoTightLineTextStyle, modifier = Modifier.testTag("msNote"),
                     )
                 }
-                Spacer(Modifier.height(8.dp))
-                // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A):
-                // index.html:415 .bar>div(transition:width .4s)の1:1移植。
-                val msProgress = if (next != null && next > 0) (streak.total.toFloat() / next).coerceIn(0f, 1f) else 1f
-                val animatedMsProgress by animateFloatAsState(msProgress, tween(400), label = "msBar")
-                Box(Modifier.fillMaxWidth().height(14.dp).background(colors.line, RoundedCornerShape2(99)).testTag("msBar")) {
-                    Box(Modifier.fillMaxWidth(animatedMsProgress).fillMaxHeight().background(colors.teal, RoundedCornerShape2(99)))
-                }
+                Spacer(Modifier.height(14.dp))
+                // R-28: 進捗バーをすごろく道に置き換え。節目一覧の正本はapp-card.js:23-41 MS
+                // (ネイティブ移植済みの同配列cardData.MILESTONES)。
+                KyonoMilestoneTrack(cardData.MILESTONES, streak.total)
                 Spacer(Modifier.height(14.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                     Row(verticalAlignment = Alignment.Bottom) {
@@ -2399,8 +2398,10 @@ fun MyRecordScreen(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
+                // TASK-C2-2026-08-06-build30-round8.md R-28: 「休んだ日に自動でつかわれて連続が
+                // つながります」の行を削除(「おやすみ券 のこり3枚」だけ残す)。
                 Text(
-                    "おやすみ券 のこり${freezeLeft}枚\n休んだ日に自動でつかわれて連続がつながります",
+                    "おやすみ券 のこり${freezeLeft}枚",
                     color = colors.sub, fontSize = 14.sp, modifier = Modifier.testTag("histFreeze"),
                 )
             }

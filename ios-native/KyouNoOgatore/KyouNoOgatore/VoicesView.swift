@@ -104,33 +104,54 @@ private struct VoiceCardView: View {
     // 切り替える(裏面が鏡像文字になるのを避けるため、切替後はさらに180度分を逆回転で打ち消す)。
     @State private var rotation: Double = 0
     @State private var showBack = false
+    // TASK-C2-2026-08-06-build30-round8.md R-29(本人指示「開く前サイズが違うのきになる おなじにして」):
+    // 旧実装は表裏を常時composeし「コンテナ高さ=大きい方(=裏の長文)」に固定していたため、閉じた
+    // カードの枠が裏文章の長さでバラバラだった。表裏それぞれの自然高さを測り、コンテナ高さは
+    // 「表示中の面」の高さに合わせる。初期値150は.vin{min-height:150px}(§8)相当のフォールバック。
+    @State private var frontHeight: CGFloat = 150
+    @State private var backHeight: CGFloat = 150
 
     var body: some View {
-        // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:351
-        // .vin{min-height:150px}の1:1移植。Web版は表裏を常に両方DOMに置き(絶対配置)、コンテナの
-        // 高さは常に一定に保たれる。以前は`if showBack`で片方だけをcomposeしていたため、
-        // 表裏で高さが違うとめくった瞬間に一覧全体がガタつく(前後のカードが上下に動く)不具合が
-        // あった。ZStackは既定で最大の子に合わせてサイズが決まるので、両面を常時composeし
-        // opacityだけで切り替えることでコンテナの高さを固定する。
+        // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8→R-29改訂: 表裏の常時composeは
+        // 維持(めくり途中で面が消えない)しつつ、コンテナ高さは大きい方固定→「表示中の面の高さ+
+        // 明示アニメーション」に変更。閉じた状態は全カード表面基準(min 150pt)の同一コンパクト高さに
+        // なり、めくると0.275秒でなめらかに伸びる(高さ変化を明示アニメーションにすることで、以前の
+        // 「めくった瞬間に一覧全体がガタつく」不具合は再発しない)。
         // Fable監査GO-3(視点B・Android版VoicesScreen.ktと同じ指摘): opacity(0)はSwiftUIでも
         // ヒットテストを止めない。backViewの中のKyonoGhostButtonが、表向き(front)の間も
         // ZStack内に重なったまま存在し続けるため、表面のタップが裏側のボタンに奪われうる。
         // allowsHitTestingで、見えていない面を構造的にタップ不可能にする(外側の.onTapGesture
         // だけがその領域で反応するようになる)。
-        ZStack {
-            frontView.opacity(showBack ? 0 : 1).allowsHitTesting(!showBack)
+        ZStack(alignment: .top) {
+            frontView
+                .background(heightReader($frontHeight))
+                .opacity(showBack ? 0 : 1).allowsHitTesting(!showBack)
             backView.rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                .background(heightReader($backHeight))
                 .opacity(showBack ? 1 : 0).allowsHitTesting(showBack)
         }
+        .frame(height: showBack ? backHeight : frontHeight, alignment: .top)
         .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0))
         .contentShape(Rectangle())
         .onTapGesture { onToggle() }
         .onChange(of: open) { _, newValue in
             withAnimation(.easeInOut(duration: 0.275)) { rotation += 90 }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.275) {
-                showBack = newValue
-                withAnimation(.easeInOut(duration: 0.275)) { rotation += 90 }
+                // R-29: showBack切替(=コンテナ高さの切替)もwithAnimationに含め、90度地点からの
+                // 後半回転と同時に高さがなめらかに伸縮するようにする。
+                withAnimation(.easeInOut(duration: 0.275)) {
+                    showBack = newValue
+                    rotation += 90
+                }
             }
+        }
+    }
+
+    private func heightReader(_ binding: Binding<CGFloat>) -> some View {
+        GeometryReader { geo in
+            Color.clear
+                .onAppear { binding.wrappedValue = max(150, geo.size.height) }
+                .onChange(of: geo.size.height) { _, h in binding.wrappedValue = max(150, h) }
         }
     }
 
@@ -144,6 +165,8 @@ private struct VoiceCardView: View {
             }
             .frame(maxWidth: .infinity)
         }
+        // R-29: 閉じた状態の全カード同一コンパクト高さの基準(.vin{min-height:150px}相当)。
+        .frame(minHeight: 150)
     }
 
     // index.html:358-359,362-363 .vback(card地・枠線)

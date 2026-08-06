@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -634,6 +635,86 @@ fun KyonoJourneyBar(labels: List<String>, currentIndex: Int, modifier: Modifier 
                         .background(if (done) colors.pink else colors.line),
                 )
             }
+        }
+    }
+}
+
+// TASK-C2-2026-08-06-build30-round8.md R-28(本人指示+裁定済み・モック案A「すごろく道」):
+// 「続けた記録」カードの進捗バーを、横一直線のトラックに節目ノードを並べる形へ置き換える。
+// 左端=達成済みの直近1個(あれば・teal塗り)→「いま」(現在通算・teal)→次の節目(★・ピンク縁の
+// 大きめノード)→その先の節目最大3個(薄いドット)→右端に「…」(まだ続きがあるときのみ)。
+// 全17個を並べるのではなく直近だけのウィンドウ表示にする(本人指示)。iOS版KyonoMilestoneTrackと同一ロジック。
+private enum class MsNodeKind { ACHIEVED, CURRENT, NEXT, UPCOMING }
+
+@Composable
+fun KyonoMilestoneTrack(milestones: List<Int>, total: Int, modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    val nextDay = milestones.firstOrNull { it > total } ?: return
+    val achievedDay = milestones.filter { it <= total }.maxOrNull()
+    val nextIdx = milestones.indexOf(nextDay)
+    val upcomingDays = milestones.drop(nextIdx + 1).take(3)
+    val hasMore = milestones.size > nextIdx + 1 + upcomingDays.size
+    // トラックの塗り(進捗)は 現在通算/次の節目の割合(既存のmsProgress計算をそのまま踏襲)。
+    val progress = (total.toFloat() / nextDay).coerceIn(0f, 1f)
+
+    Row(verticalAlignment = Alignment.Top, modifier = modifier.fillMaxWidth().testTag("msTrack")) {
+        if (achievedDay != null) {
+            MsNode("${achievedDay}日", MsNodeKind.ACHIEVED)
+            MsSegment(1f, Modifier.weight(1f))
+        }
+        MsNode("いま", MsNodeKind.CURRENT)
+        MsSegment(progress, Modifier.weight(1f))
+        MsNode("${nextDay}日", MsNodeKind.NEXT)
+        upcomingDays.forEach { d ->
+            MsSegment(0f, Modifier.weight(1f))
+            MsNode("${d}日", MsNodeKind.UPCOMING)
+        }
+        if (hasMore) {
+            MsSegment(0f, Modifier.weight(1f))
+            Text(
+                "…", color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MsNode(label: String, kind: MsNodeKind) {
+    val colors = LocalKyonoColors.current
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.height(28.dp), contentAlignment = Alignment.Center) {
+            when (kind) {
+                MsNodeKind.ACHIEVED, MsNodeKind.CURRENT ->
+                    Box(Modifier.size(14.dp).background(colors.teal, RoundedCornerShape(50)))
+                MsNodeKind.NEXT ->
+                    Box(
+                        Modifier.size(28.dp)
+                            .background(colors.card, RoundedCornerShape(50))
+                            .border(2.5.dp, colors.pink, RoundedCornerShape(50)),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("★", color = colors.pink, fontSize = 13.sp) }
+                MsNodeKind.UPCOMING ->
+                    Box(Modifier.size(10.dp).background(colors.line, RoundedCornerShape(50)))
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            label,
+            color = if (kind == MsNodeKind.NEXT) colors.pinkInk else colors.sub,
+            fontSize = if (kind == MsNodeKind.NEXT) 13.sp else 11.sp,
+            fontWeight = if (kind == MsNodeKind.NEXT) FontWeight.Black else FontWeight.Bold,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun MsSegment(fraction: Float, modifier: Modifier = Modifier) {
+    val colors = LocalKyonoColors.current
+    Box(modifier.padding(top = 12.dp).height(3.dp).background(colors.line, RoundedCornerShape(50))) {
+        if (fraction > 0f) {
+            Box(Modifier.fillMaxWidth(fraction).fillMaxHeight().background(colors.teal, RoundedCornerShape(50)))
         }
     }
 }

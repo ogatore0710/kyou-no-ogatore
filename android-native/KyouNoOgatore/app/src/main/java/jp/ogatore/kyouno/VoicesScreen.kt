@@ -98,20 +98,24 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
     // .vin(transition:transform .55s・rotateY(180deg))の1:1移植。タップでめくる瞬間が無演出で
     // 一気に切り替わっていたため3Dフリップを追加(裏面は逆回転で文字の鏡像を打ち消す)。
     val rotation by animateFloatAsState(if (open) 180f else 0f, tween(550), label = "vcardFlip")
-    // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:351 .vin{min-height:150px}
-    // +.vfront/.vback{position:absolute;inset:0}の1:1移植。Web版は表裏を常に両方DOMに置き、両方とも
-    // コンテナいっぱいに絶対配置されるため、コンテナの高さは表裏の最大値で常に一定に保たれる。
-    // 以前は表裏どちらか片方だけをif分岐で描画していたため、Boxが「いま見えている面」の
-    // コンテンツ高さだけで自分のサイズを決めてしまい、表裏で高さが違うとめくった瞬間に
-    // 一覧全体がガタつく(前後のカードが上下に動く)不具合があった。
-    // `Modifier.height(IntrinsicSize.Max)`で両面の高い方に合わせ、両面とも`fillMaxHeight()`で
-    // その高さまで実際に引き伸ばす(単にalphaで切り替えるだけだと、Boxの確保領域は最大値になっても
-    // 短い方の面の背景そのものは自分の内容分の高さにしか描かれず、余白が空いて見えてしまうため)。
+    // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8→TASK-C2-2026-08-06-build30-round8.md
+    // R-29改訂(本人指示「開く前サイズが違うのきになる おなじにして」): 旧実装は
+    // `Modifier.height(IntrinsicSize.Max)`で「コンテナ高さ=両面の高い方(=裏の長文)」に固定して
+    // いたため、閉じたカードの枠が裏文章の長さでバラバラだった。表裏それぞれの自然高さを
+    // onSizeChangedで実測し、コンテナ高さは「表示中の面」の高さへ明示アニメーション(tween 550・
+    // フリップと同尺)で追従させる。閉じた状態は全カード表面基準(min 150dp=.vin{min-height:150px}
+    // 相当)の同一コンパクト高さになり、めくるとなめらかに伸びる(高さ変化が常にアニメーション
+    // なので、以前の「めくった瞬間に一覧全体がガタつく」不具合は再発しない)。
+    val densityObj = LocalDensity.current
+    var frontHeight by remember { mutableStateOf(150.dp) }
+    var backHeight by remember { mutableStateOf(150.dp) }
+    val animatedHeight by animateDpAsState(if (open) backHeight else frontHeight, tween(550), label = "vcardHeight")
     Box(
-        Modifier.height(IntrinsicSize.Max).graphicsLayer {
+        Modifier.height(animatedHeight).clipToBounds().graphicsLayer {
             rotationY = rotation
             cameraDistance = 12 * density
         },
+        contentAlignment = Alignment.TopCenter,
     ) {
         // Fable監査GO-3(視点B): 両面を常時composeする形にした際、裏面(後に宣言された方が
         // 常に最前面)がalpha=0のまま最前面のヒットテスト対象に居座り、表面下部のタップを
@@ -119,16 +123,18 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
         // 付けない(Modifier.thenで条件付き付与)ことで、見えない面はポインタイベントを
         // 一切消費しない=素通りして下の面に届くようにする。
         val frontVisible = rotation <= 90f
-        // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)。Web版のjustify-content:center;
-        // align-items:centerと同じく、引き伸ばされた高さの中で内容を縦方向にも中央寄せする。
+        // index.html:355-357 .vfront(yellow-soft→pink-soft斜めグラデ)。表面はmin 150dpの中で
+        // 内容を縦方向にも中央寄せする(R-29: fillMaxHeightをやめ自然高さ+heightInで測定可能にする)。
         KyonoGradientCard(
             KyonoGradient.Warm,
-            Modifier.fillMaxHeight().graphicsLayer { alpha = if (frontVisible) 1f else 0f }
+            Modifier.heightIn(min = 150.dp)
+                .onSizeChanged { frontHeight = maxOf(150.dp, with(densityObj) { it.height.toDp() }) }
+                .graphicsLayer { alpha = if (frontVisible) 1f else 0f }
                 .then(if (frontVisible) Modifier.clickable { onToggle() } else Modifier)
                 .testTag("voiceCard_$index"),
         ) {
             Column(
-                Modifier.fillMaxWidth().fillMaxHeight(),
+                Modifier.fillMaxWidth().heightIn(min = 110.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -142,7 +148,8 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
         val backVisible = !frontVisible
         // index.html:358-359,362-363 .vback(card地・枠線・justify-content:centerで縦方向も中央寄せ)
         Column(
-            Modifier.fillMaxWidth().fillMaxHeight()
+            Modifier.fillMaxWidth()
+                .onSizeChanged { backHeight = maxOf(150.dp, with(densityObj) { it.height.toDp() }) }
                 .graphicsLayer {
                     rotationY = 180f
                     alpha = if (backVisible) 1f else 0f
