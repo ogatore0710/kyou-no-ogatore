@@ -1357,9 +1357,10 @@ private struct HomeTodayVideoRow: View {
         // kyonoDepthStyle=.softのときは案A(やわらか影)で描く(本人比較用スイッチ)。
         .background {
             if kyonoDepthStyle == .offset {
+                // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
                 RoundedRectangle(cornerRadius: 16)
                     .fill(dark ? Color(hex: 0x262119) : Color(hex: 0xEBDCC9))
-                    .offset(y: 4)
+                    .offset(y: 3).blur(radius: kyonoDepthEdgeBlur)
             }
         }
         .shadow(

@@ -976,15 +976,8 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
             // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: ダークでカードと同色に
             // 沈んでいた動画行を、子面トークン(childFace/childBorder)へ差し替え。ライトは無変更。
             // TASK build33 R-49(本人カード裁定「案B・押し出し」): 動画行にも下ずれベタ影。
-            .then(
-                Modifier.drawBehind {
-                    drawRoundRect(
-                        color = if (dark) Color(0xFF262119) else Color(0xFFEBDCC9),
-                        topLeft = Offset(0f, 4.dp.toPx()),
-                        cornerRadius = CornerRadius(16.dp.toPx()),
-                    )
-                },
-            )
+            // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
+            .then(Modifier.kyonoDropShadow(if (dark) Color(0xFF262119) else Color(0xFFEBDCC9), 3.dp, 16.dp))
             .background(colors.childFace, RoundedCornerShape(16.dp))
             .border(1.5.dp, colors.childBorder, RoundedCornerShape(16.dp))
             .padding(10.dp)

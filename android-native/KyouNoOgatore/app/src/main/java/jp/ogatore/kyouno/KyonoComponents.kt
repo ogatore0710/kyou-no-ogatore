@@ -35,6 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.rotate
@@ -191,10 +194,26 @@ fun KyonoStatusBarScrim(modifier: Modifier = Modifier) {
 // rgba(160,140,80,.06)} / body.dark .card{box-shadow:none}の1:1移植。
 // UI/UXパリティ監査GO-4(2026-07-28): 枠線・影とも欠落していた(ダークモードは
 // Web版どおり影を出さず、枠線のみ)。
-@Composable
+// TASK build33 R-49(本人裁定B3「ふち柔らか」・2026-08-07): 押し出し影のふちだけ軽くぼかして
+// 硬さをとる共通描画。BlurMaskFilterはComposeのDrawScopeに直接は無いためnativeCanvasで描く。
+fun Modifier.kyonoDropShadow(color: Color, offsetY: androidx.compose.ui.unit.Dp, cornerRadius: androidx.compose.ui.unit.Dp, blur: androidx.compose.ui.unit.Dp = 3.dp): Modifier = drawBehind {
+    val fp = android.graphics.Paint().apply {
+        this.color = color.toArgb()
+        isAntiAlias = true
+        if (blur.value > 0f) maskFilter = android.graphics.BlurMaskFilter(blur.toPx(), android.graphics.BlurMaskFilter.Blur.NORMAL)
+    }
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawRoundRect(
+            0f, offsetY.toPx(), size.width, size.height + offsetY.toPx(),
+            cornerRadius.toPx(), cornerRadius.toPx(), fp,
+        )
+    }
+}
+
 // TASK build33 R-49(本人カード裁定「案B・押し出し」・2026-08-06): drop=「きょうやった！」ボタンと
 // 同じ下ずれベタ影でカードを立体化する差し込み口。まずホームだけ有効化して本人確認→GOで展開する
 // 段取りのため既定false(iOS版KyonoCardと同じ)。
+@Composable
 fun KyonoCard(modifier: Modifier = Modifier, drop: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
@@ -203,13 +222,8 @@ fun KyonoCard(modifier: Modifier = Modifier, drop: Boolean = false, content: @Co
             .fillMaxWidth()
             .then(
                 if (drop) {
-                    Modifier.drawBehind {
-                        drawRoundRect(
-                            color = if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD),
-                            topLeft = Offset(0f, 5.dp.toPx()),
-                            cornerRadius = CornerRadius(KyonoRadius.toPx()),
-                        )
-                    }
+                    // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
+                    Modifier.kyonoDropShadow(if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD), 4.dp, KyonoRadius)
                 } else if (!dark) {
                     Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
                 } else {
@@ -257,13 +271,8 @@ fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, dr
             .fillMaxWidth()
             .then(
                 if (drop) {
-                    Modifier.drawBehind {
-                        drawRoundRect(
-                            color = if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD),
-                            topLeft = Offset(0f, 5.dp.toPx()),
-                            cornerRadius = CornerRadius(KyonoRadius.toPx()),
-                        )
-                    }
+                    // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
+                    Modifier.kyonoDropShadow(if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD), 4.dp, KyonoRadius)
                 } else if (!dark) {
                     Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
                 } else {
@@ -395,13 +404,8 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             .alpha(if (pressed) 0.85f else 1f)
             .then(
                 if (drop) {
-                    Modifier.drawBehind {
-                        drawRoundRect(
-                            color = if (dark) colors.tealStrong else Color(0xFFA8D3CA),
-                            topLeft = Offset(0f, 4.dp.toPx()),
-                            cornerRadius = CornerRadius(KyonoButtonRadius.toPx()),
-                        )
-                    }
+                    // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
+                    Modifier.kyonoDropShadow(if (dark) colors.tealStrong else Color(0xFFA8D3CA), 4.dp, KyonoButtonRadius)
                 } else Modifier,
             )
             .background(bg, KyonoButtonShape)

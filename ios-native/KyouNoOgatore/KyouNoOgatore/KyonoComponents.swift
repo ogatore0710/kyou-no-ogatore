@@ -105,7 +105,9 @@ struct KyonoCard<Content: View>: View {
             .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
             .background {
                 if drop && kyonoDepthStyle == .offset {
-                    RoundedRectangle(cornerRadius: kyonoRadius * zoom).fill(dropColor).offset(y: 5 * zoom)
+                    // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
+                    RoundedRectangle(cornerRadius: kyonoRadius * zoom).fill(dropColor)
+                        .offset(y: 4 * zoom).blur(radius: kyonoDepthEdgeBlur * zoom)
                 }
             }
             .shadow(
@@ -162,9 +164,10 @@ struct KyonoGradientCard<Content: View>: View {
             .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
             .background {
                 if drop && kyonoDepthStyle == .offset {
+                    // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
                     RoundedRectangle(cornerRadius: kyonoRadius * zoom)
                         .fill(dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD))
-                        .offset(y: 5 * zoom)
+                        .offset(y: 4 * zoom).blur(radius: kyonoDepthEdgeBlur * zoom)
                 }
             }
             .shadow(
@@ -458,9 +461,10 @@ private struct KyonoGhostButtonStyle: ButtonStyle {
             .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: borderWidth))
             .background {
                 if let dropColor, kyonoDepthStyle == .offset {
-                    // KyonoPrimaryButtonの黄影と同じ「オフセット塗りつぶし」。押下時は本体が
-                    // 1pt沈む(下の.offset)ので、影は据え置きのままで沈み込みが強調される。
-                    RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).fill(dropColor).offset(y: 4 * zoom)
+                    // KyonoPrimaryButtonの黄影と同じ「オフセット塗りつぶし」+B3のふちぼかし。
+                    // 押下時は本体が1pt沈む(下の.offset)ので、影は据え置きのまま。
+                    RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).fill(dropColor)
+                        .offset(y: 4 * zoom).blur(radius: kyonoDepthEdgeBlur * zoom)
                 }
             }
             .shadow(
