@@ -833,3 +833,93 @@ struct KyonoJourneyBar: View {
         .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: currentIndex)
     }
 }
+
+// TASK-C2-2026-08-06-build30-round8.md R-28(本人指示+裁定済み・モック案A「すごろく道」):
+// 「続けた記録」カードの進捗バーを、横一直線のトラックに節目ノードを並べる形へ置き換える。
+// 左端=達成済みの直近1個(あれば・teal塗り)→「いま」(現在通算・teal)→次の節目(★・ピンク縁の
+// 大きめノード)→その先の節目最大3個(薄いドット)→右端に「…」(まだ続きがあるときのみ)。
+// 全17個を並べるのではなく直近だけのウィンドウ表示にする(本人指示)。
+struct KyonoMilestoneTrack: View {
+    @Environment(\.kyonoColors) private var colors
+    let milestones: [Int]
+    let total: Int
+
+    private var achievedDay: Int? { milestones.filter { $0 <= total }.max() }
+    private var nextDay: Int? { milestones.first { $0 > total } }
+    private var upcomingDays: [Int] {
+        guard let idx = nextDay.flatMap({ milestones.firstIndex(of: $0) }) else { return [] }
+        return Array(milestones[(idx + 1)...].prefix(3))
+    }
+    private var hasMore: Bool {
+        guard let idx = nextDay.flatMap({ milestones.firstIndex(of: $0) }) else { return false }
+        return milestones.count > idx + 1 + upcomingDays.count
+    }
+    // トラックの塗り(進捗)は 現在通算/次の節目の割合(既存のmsProgress計算をそのまま踏襲)。
+    private var progress: CGFloat {
+        guard let nextDay, nextDay > 0 else { return 1 }
+        return min(1, max(0, CGFloat(total) / CGFloat(nextDay)))
+    }
+
+    var body: some View {
+        if let nextDay {
+            HStack(alignment: .top, spacing: 0) {
+                if let achievedDay {
+                    node(label: "\(achievedDay)日", kind: .achieved)
+                    segment(filled: true)
+                }
+                node(label: "いま", kind: .current)
+                segment(filled: false, fraction: progress)
+                node(label: "\(nextDay)日", kind: .next)
+                ForEach(upcomingDays, id: \.self) { d in
+                    segment(filled: false)
+                    node(label: "\(d)日", kind: .upcoming)
+                }
+                if hasMore {
+                    segment(filled: false)
+                    Text("…").kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
+                        .padding(.top, 6)
+                }
+            }
+        }
+    }
+
+    private enum NodeKind { case achieved, current, next, upcoming }
+
+    @ViewBuilder
+    private func node(label: String, kind: NodeKind) -> some View {
+        VStack(spacing: 4) {
+            ZStack {
+                switch kind {
+                case .achieved, .current:
+                    Circle().fill(colors.teal).frame(width: 14, height: 14)
+                case .next:
+                    Circle().fill(colors.card).frame(width: 28, height: 28)
+                        .overlay(Circle().stroke(colors.pink, lineWidth: 2.5))
+                    Image(systemName: "star.fill").font(.system(size: 12)).foregroundColor(colors.pink)
+                case .upcoming:
+                    Circle().fill(colors.line).frame(width: 10, height: 10)
+                }
+            }
+            .frame(height: 28)
+            Text(label)
+                .kyonoFont(kind == .next ? .black900 : .bold700, size: kind == .next ? 13 : 11)
+                .foregroundColor(kind == .next ? colors.pinkInk : colors.sub)
+                .fixedSize()
+        }
+    }
+
+    @ViewBuilder
+    private func segment(filled: Bool, fraction: CGFloat = 1) -> some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(colors.line)
+                if filled || fraction > 0 {
+                    Capsule().fill(colors.teal).frame(width: geo.size.width * (filled ? 1 : fraction))
+                }
+            }
+        }
+        .frame(height: 3)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 12)
+    }
+}

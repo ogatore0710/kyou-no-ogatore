@@ -312,26 +312,22 @@ private struct MyRecordContentView: View {
                     let data = CardDataLoader.shared
                     let next = data.MILESTONES.first { $0 > streak.total }
                     let ms = next.flatMap { n in data.MS.first { $0.d == n } }
-                    if let next, let ms {
-                        (Text("次のお祝い「")
+                    // TASK-C2-2026-08-06-build30-round8.md R-28(本人指示+裁定済み・モック案A):
+                    // 見出しを「次のお祝いポイントは「◯◯」」に(◯◯=次の節目名・ピンク強調は現状
+                    // 踏襲)。「は通算N日目」「マイペースでどうぞ」は削除。
+                    if let ms {
+                        (Text("次のお祝いポイントは「")
                             + Text(ms.t).foregroundColor(colors.pinkInk).fontWeight(.black)
-                            + Text("」は通算\(next)日目 マイペースでどうぞ"))
+                            + Text("」"))
                             .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     } else {
                         Text("全部の節目をたっせい！すごすぎます").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     }
-                    Spacer().frame(height: 8)
-                    // 挙動パリティ監査タスク(TASK-C2-2026-07-27-behavior-parity-audit.md §A):
-                    // index.html:415 .bar>div(transition:width .4s)の1:1移植。
-                    let msProgress = (next != nil && next! > 0) ? min(1, max(0, CGFloat(streak.total) / CGFloat(next!))) : 1
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(colors.line)
-                            Capsule().fill(colors.teal).frame(width: geo.size.width * msProgress)
-                                .animation(.easeOut(duration: 0.4), value: msProgress)
-                        }
-                    }
-                    .frame(height: 14)
+                    Spacer().frame(height: 14)
+                    // R-28: 進捗バーをすごろく道に置き換え。節目一覧の正本はapp-card.js:23-41 MS
+                    // (3/4/7/14/21/30/50/66/100/150/200/300/365/500/730/1000/1900・ネイティブ移植済みの
+                    // 同配列data.MILESTONES)。
+                    KyonoMilestoneTrack(milestones: data.MILESTONES, total: streak.total)
                     Spacer().frame(height: 14)
                     HStack(alignment: .lastTextBaseline, spacing: 20) {
                         HStack(alignment: .lastTextBaseline, spacing: 4) {
@@ -355,7 +351,9 @@ private struct MyRecordContentView: View {
                         }
                     }
                     Spacer().frame(height: 10)
-                    Text("おやすみ券 のこり\(freezeLeft)枚\n休んだ日に自動でつかわれて連続がつながります")
+                    // R-28: 「休んだ日に自動でつかわれて連続がつながります」の行を削除(「おやすみ券
+                    // のこり3枚」だけ残す)。
+                    Text("おやすみ券 のこり\(freezeLeft)枚")
                         .kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                 }
 
