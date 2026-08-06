@@ -52,6 +52,14 @@
 - 同族の環境バグをもう1件発見・修正: マイ記録の日別カードモーダル(`.overlay`)が**KyonoThemeの外側**に付いており、中のボタン群がライト用環境で描かれていた→テーマ内側へ移動+節目文言を環境読みの子Viewへ切り出し。
 - 実描画94番(記録のひっこし明色)・95番(よみこみ明色・ダーク)。
 
+### R-41追補: 同族バグの全数監査(本人指示「他に漏れないか確認して」)
+機械洗い出し+文脈確認で以下を全数監査し、**追加の漏れなし**を確認:
+1. **iOS: 色指定なしText**(修飾チェーン全体を文単位で判定): 残った検出は全て問題なし — 連結Textの外側で色指定(とどくメーター応援文・かたさ結果の太字解説)/絵文字のみ(タブFAB・⚠️)/システムAlert内(だいじょうぶ？=OS描画)/未使用テンプレート(ContentView・アプリ経路から参照なし)。
+2. **iOS: システム色の直接使用**: `Color.black.opacity(0.55)`系5件のみ=モーダル背景の意図的スクリム(テーマ非依存の設計)。
+3. **iOS: KyonoTheme外側に付くsheet/alert/overlay**: 相談室シート(App:414)は中身が自前KyonoTheme+presentationBackground明示で正常。設定の上書き確認alertはOS描画。overlay外付けはR-41で修正したマイ記録の1件のみ。
+4. **Android: color未指定Text**: Button内(contentColor明示継承)/Material AlertDialog(OS側surface・白文字既定で可読・初期ビルドからの既存仕様)/絵文字のみ、で実害なし。
+5. **Android: KyonoTheme外側でのLocalKyonoColors読み**: 機械判定で該当なし(CompositionLocalは構造上内側読みになる実装)。
+
 ## 検証(自分で確認済み)
 
 1. `node scripts/qa.js` exit 0(全項目緑)
