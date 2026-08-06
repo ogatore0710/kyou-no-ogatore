@@ -114,12 +114,13 @@ struct MyRecordView: View {
                 onShowDayCard: { ds in dayCardResult = renderTodayCard(store: store, streak: streak, ds: ds) },
                 typeResult: typeResult, onOpenQuiz: onOpenQuiz, onShowResult: onShowResult
             )
-        }
-        .onReceive(dayTicker) { _ in checkDayChange() }
-        // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
-        // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
-        // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
-        .overlay {
+            // 全画面完全性監査タスク #history: index.html:302 showDay()内「この日の記録カードを見る」の1:1移植。
+            // GO-G5(5視点ワンループ): ObuPreviewPopupの背景タップで閉じるパターンをこのカードモーダルにも
+            // 適用(以前は.sheet()でスワイプでしか閉じられなかった)。
+            // TASK build31 R-41(R-39の同族・2026-08-06): このoverlayは以前KyonoTheme{}の外側に
+            // 付いており、中のKyonoGhostButton/KyonoLineButton等が既定(ライト)環境で描かれていた
+            // (ダークで「とじる」枠が沈む等)。テーマ内側へ移動して環境を継がせる。
+            .overlay {
             KyonoCardModalOverlay(isPresented: dayCardResult != nil, onClose: { dayCardResult = nil }) {
                 if let dayCardResult {
                     VStack {
@@ -127,8 +128,8 @@ struct MyRecordView: View {
                         // TASK-C2-2026-07-27-milestone-card-export-nudge.md: index.html:1199,2783
                         // cardMsExportNudgeの1:1移植(この日別カードもmakeCard(ds)共通のためWeb版と同様に対象)。
                         if dayCardResult.isMilestone {
-                            Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
-                                .kyonoFont(.bold700, size: 13).multilineTextAlignment(.center)
+                            // R-41: foregroundColor未指定(=システム配色準拠)だったため明示色に。
+                            KyonoModalMilestoneNote()
                             KyonoGhostButton("記録のひかえを取る") {
                                 self.dayCardResult = nil
                                 onOpenSettings()
@@ -147,7 +148,20 @@ struct MyRecordView: View {
                     }
                 }
             }
+            }
         }
+        .onReceive(dayTicker) { _ in checkDayChange() }
+    }
+}
+
+// R-41: モーダル内の節目文言。overlay閉包を組むMyRecordViewは@Environmentのcolorsを持たない
+// (持てば旧R-39と同じ外側読みになる)ため、環境を正しく内側で読む小さな子Viewに切り出す。
+private struct KyonoModalMilestoneNote: View {
+    @Environment(\.kyonoColors) private var colors
+    var body: some View {
+        Text("せっかくの節目！記録のひかえを取っておくと あんしんです")
+            .kyonoFont(.bold700, size: 13).multilineTextAlignment(.center)
+            .foregroundColor(colors.ink)
     }
 }
 
