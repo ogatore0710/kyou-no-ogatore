@@ -10,6 +10,7 @@
 //  ネイティブ移植「見た目のWeb版パリティ移植」タスク(TASK-C2-2026-07-26-native-visual-design-parity.md)
 //  Phase 3: KyonoCard/KyonoSectionHeader(Clockアイコン)/KyonoSegmentedControlへ作り替え。
 
+import Combine
 import SwiftUI
 import UIKit
 import RecordCore
