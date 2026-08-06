@@ -1264,11 +1264,13 @@ private struct ResultContentView: View {
                     // 重複ガードのとおり2本のまま)。
                     // index.html:81-85,327-328 WORRY[saved.worry]の1:1移植(重複ガード踏襲)。
                     let worryExtra: WorryExtra? = worry.flatMap { worryExtraMap[$0] }.flatMap { rx.contains($0.v) ? nil : $0 }
-                    let badges = ["①メイン", "②しあげ"]
+                    // TASK build32 R-44(本人指示・2026-08-06): ①メイン/②しあげの番号ラベルを
+                    // やめ、ホームのあなた用(R-33)と同じ役割表記に統一する(ツアー内も同じ画面)。
+                    let badges = ["メインの一本", "余裕があったら追加の一本"]
                     let displayItems: [(key: String, badge: String)] = {
                         var items = zip(rx, badges).map { (key: $0, badge: $1) }
                         if let worryExtra {
-                            items.append((key: worryExtra.v, badge: "③おまけ: \(worryExtra.label)"))
+                            items.append((key: worryExtra.v, badge: "おまけ: \(worryExtra.label)"))
                         }
                         return items
                     }()

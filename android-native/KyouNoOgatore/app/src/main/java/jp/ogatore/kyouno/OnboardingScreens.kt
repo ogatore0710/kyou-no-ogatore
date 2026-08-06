@@ -1255,10 +1255,12 @@ fun ResultScreen(
                 // 重複ガードのとおり2本のまま)。
                 // index.html:81-85,327-328 WORRY[saved.worry]の1:1移植(重複ガード踏襲)。
                 val worryExtra = worry?.let { WORRY_EXTRA[it] }?.takeIf { it.v !in rx }
-                val badges = listOf("①メイン", "②しあげ")
+                // TASK build32 R-44(本人指示・2026-08-06): ①メイン/②しあげの番号ラベルを
+                // やめ、ホームのあなた用(R-33)と同じ役割表記に統一する(ツアー内も同じ画面)。
+                val badges = listOf("メインの一本", "余裕があったら追加の一本")
                 val displayItems = buildList {
                     rx.forEachIndexed { i, vk -> add(vk to (badges.getOrNull(i) ?: "")) }
-                    worryExtra?.let { add(it.v to "③おまけ: ${it.label}") }
+                    worryExtra?.let { add(it.v to "おまけ: ${it.label}") }
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
                     displayItems.forEachIndexed { i, (vk, badge) ->
