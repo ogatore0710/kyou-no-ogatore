@@ -269,6 +269,14 @@ const val KYONO_MAX_FONT_SCALE = 2.2f
 val KyonoBtnPrimaryText = Color(0xFF26261F)
 val KyonoBtnPrimaryBorder = Color(0xFF8A6D00)
 
+// TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークのボタンが「枠線だけの箱」でカード枠
+// (borderStrong)と同じ見た目文法になり区別がつかない、という本人指摘への対処。
+// ・弱ボタン(KyonoLineButton系): 枠線をやめ塗り面へ。実測: カード#3A342C比1.47:1
+//   (Z-6のbg/card分離1.42:1と同水準)・背景比2.10:1・文字ink#F2EDE1比7.15:1。
+// ・行動ボタン(KyonoGhostButton系): tealベタ塗り(colors.teal)+濃色文字KyonoBtnPrimaryText
+//   (実測5.86:1)。ライトは両者とも不変。
+val KyonoBtnLineDarkFace = Color(0xFF544D40)
+
 // UI/UXパリティ監査GO-3/G4差し戻し(2026-07-29): カスタムフォント(mplus1p)は、Web版のブラウザ既定
 // line-heightより内部の行送り(ascent+descent)が大きく、Compose Textの既定のまま1行ラベルを
 // paddingで包むと、paddingの数値がWeb版(.chip{padding:10px 16px})と一致していてもピル全体の

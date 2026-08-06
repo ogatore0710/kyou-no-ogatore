@@ -204,6 +204,14 @@ let kyonoBigTextScale: CGFloat = 1.30
 let kyonoBtnPrimaryText = Color(hex: 0x26261F)
 let kyonoBtnPrimaryBorder = Color(hex: 0x8A6D00)
 
+// TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークのボタンが「枠線だけの箱」でカード枠
+// (borderStrong)と同じ見た目文法になり区別がつかない、という本人指摘への対処。
+// ・弱ボタン(KyonoLineButton系): 枠線をやめ塗り面へ。実測: カード#3A342C比1.47:1
+//   (Z-6のbg/card分離1.42:1と同水準)・背景比2.10:1・文字ink#F2EDE1比7.15:1。
+// ・行動ボタン(KyonoGhostButton系): tealベタ塗り(colors.teal)+濃色文字kyonoBtnPrimaryText
+//   (実測5.86:1)。ライトは両者とも不変。
+let kyonoBtnLineDarkFace = Color(hex: 0x544D40)
+
 struct KyonoTheme<Content: View>: View {
     let themeSetting: String
     var bigText: Bool = true

@@ -54,7 +54,18 @@ struct SettingsView: View {
     // (0xFFFFFF/0xF2EADB/0xDFF5F2/0x177065/0xE56A9A)をテーマ変数に差し替えるために追加
     // (Android版SettingsScreen.ktはcolors.card/colors.line/colors.tealSoft/colors.tealInkで
     // 対応済みだったが、iOSだけ固定色のままダークで白いチップが浮いていた)。
-    @Environment(\.kyonoColors) private var colors
+    // TASK build31 R-39(本人指摘スクショで発覚・2026-08-06): この画面はbodyの内側で自分自身が
+    // KyonoThemeを巻くのに、@Environment(\.kyonoColors)は「巻く前の外側」の環境値を読むため、
+    // 常に既定値(ライトパレット)が返っていた(子部品KyonoBodyText等は内側で読むので正しく、
+    // 1画面内でライト/ダークが混在。ダークで「やるタイミング」行が沈む・よびな欄が白い実害)。
+    // 環境読みをやめ、KyonoThemeが注入するのと同じresolveKyonoColorsを同じ入力で直接呼ぶ。
+    // (themeは@Stateなので画面内でテーマを切り替えた瞬間から追従する)
+    @Environment(\.colorScheme) private var systemColorScheme
+    private var colors: KyonoColors { resolveKyonoColors(themeSetting: theme, systemColorScheme: systemColorScheme) }
+    // 「じどう」の19時/朝5時境界を開きっぱなしでもまたげるよう、KyonoTheme(Theme.swift)と同じ
+    // 60秒ティッカーでbody再評価を促す(tick自体は参照不要・@State変化で再評価される)。
+    @State private var themeTick = 0
+    private let themeTicker = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     let store: RecordStore
     let onBack: () -> Void
 
@@ -114,6 +125,7 @@ struct SettingsView: View {
         }
         // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
         .edgeSwipeBack(onBack: onBack)
+        .onReceive(themeTicker) { _ in themeTick += 1 }
     }
 
     private var content: some View {
@@ -122,7 +134,7 @@ struct SettingsView: View {
                 KyonoLineButton("◀ もどる", action: onBack)
 
                 KyonoCard {
-                    KyonoSectionHeader(icon: .clock, title: "続ける設定", fill: colors.tealSoft)
+                    KyonoSectionHeader(icon: .clock, title: "マイ設定", fill: colors.tealSoft)
                     Spacer().frame(height: 8)
 
                     // index.html:800 「やるタイミング: 現在値 変える」の1:1移植。Home側のanchorCard
@@ -147,18 +159,20 @@ struct SettingsView: View {
                                 // TASK-C2-2026-07-30-icon-system-addendum-chips.md ③: オンボの
                                 // anchor質問(asa/furo/neru/free)と同じキー・同じ絵を再利用する
                                 // (この画面用に新しく描き起こさない)。KyonoGhostButtonはアイコン
-                                // 引数を持たないため、同じ見た目(colors.tealSoft/tealInk・
-                                // kyonoButtonRadius)をこの場でだけ組む。
+                                // 引数を持たないため、同じ見た目をこの場でだけ組む。
+                                // TASK build31 R-38: KyonoGhostButtonのダーク案B(tealベタ塗り+
+                                // 濃色文字)に追従(ライトは従来どおりtealSoft/tealInk)。
                                 HStack(spacing: 10) {
                                     if let url = Bundle.main.url(forResource: "chip-\(info.key)", withExtension: "png"),
                                        let uiImage = UIImage(contentsOfFile: url.path) {
                                         Image(uiImage: uiImage).resizable().scaledToFit().frame(width: 28, height: 28)
                                     }
-                                    Text(info.label).kyonoFont(.black900, size: 15).foregroundColor(colors.tealInk)
+                                    Text(info.label).kyonoFont(.black900, size: 15)
+                                        .foregroundColor(colors.bg == kyonoDarkColors.bg ? kyonoBtnPrimaryText : colors.tealInk)
                                 }
                                 .padding(.horizontal, 18).padding(.vertical, 16)
                                 .frame(maxWidth: .infinity)
-                                .background(colors.tealSoft)
+                                .background(colors.bg == kyonoDarkColors.bg ? colors.teal : colors.tealSoft)
                                 .cornerRadius(kyonoButtonRadius)
                                 .contentShape(Rectangle())
                                 .onTapGesture {

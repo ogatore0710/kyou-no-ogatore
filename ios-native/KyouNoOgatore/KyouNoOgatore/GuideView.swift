@@ -162,10 +162,14 @@ private struct GuideContentView: View {
                     // 2ピル＋区別説明文は入口として二重で迷いやすい(5視点監査指摘)ため、「📖 使い方ツアー」
                     // 1本に統合(引き算)。はじめてガイド(質問のやり直し)への導線は下の「困ったときは」
                     // カード内へ移した(onReenterOnboarding呼び出し自体は変更なし)。
+                    // TASK build31 R-36(本人指摘・2026-08-06): yellowSoft地は背景と同化して
+                    // 「押せるボタン」に見えない。主ボタン(KyonoPrimaryButton)と同じ黄面+濃文字+
+                    // 濃枠の語彙へ格上げする(ピル形状・中央寄せは維持)。
                     Text("使い方ツアー")
-                        .kyonoFont(.extraBold800, size: 14).foregroundColor(dark ? Color(hex: 0xE8C74C) : Color(hex: 0x7E6400))
-                        .padding(.horizontal, 16).padding(.vertical, 9)
-                        .background(Capsule().fill(colors.yellowSoft))
+                        .kyonoFont(.black900, size: 15).foregroundColor(kyonoBtnPrimaryText)
+                        .padding(.horizontal, 20).padding(.vertical, 12)
+                        .background(Capsule().fill(colors.yellow))
+                        .overlay(Capsule().stroke(kyonoBtnPrimaryBorder, lineWidth: 2))
                         .onTapGesture(perform: onReenterTour)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.bottom, 8)
@@ -293,7 +297,7 @@ private struct GuideContentView: View {
                         GStep(marker: "2", title: "記録カードを画像で保存", body: "写真フォルダが自動でバックアップになります\nつくりかた: ①「きょうやった！」のあと「記録カードを画像でのこす」を押す　②「保存・シェアする」→「画像を保存」で写真フォルダへ（画像の長押しでもOK）　③SNSにも投稿OK 動画のコメント欄にも仲間が待ってます") {
                             KyonoCharaImage(name: "card-sample").frame(width: 140, height: 140)
                         }
-                        GStep(marker: "3", title: "機種変更のとき", body: "マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」")
+                        GStep(marker: "3", title: "機種変更のとき", body: "マイ記録→マイ設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」")
                     }
 
                     // ---- 5. 続けるしくみ（ここがやさしい）(index.html:1047-1059) ----
@@ -326,7 +330,7 @@ private struct GuideContentView: View {
                         GStep(marker: "", icon: .calendarCheck, title: "カレンダー", body: "やった日に印がつく（×はつきません）")
                         GStep(marker: "", icon: .mountainCheck, title: "とどくメーター", body: "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
                         GStep(marker: "", icon: .confettiBurst, title: "お楽しみ機能", body: "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                        GStep(marker: "", icon: .clock, title: "続ける設定", body: "毎日の合図（通知）や画面のみため（夜は暗く）はここ")
+                        GStep(marker: "", icon: .clock, title: "マイ設定", body: "毎日の合図（通知）や画面のみため（夜は暗く）はここ")
                         GStep(marker: "", icon: .play, title: "（こちらは下のタブ）「再生リスト」タブ", body: "連続再生できるまとめ 流しっぱなしでOK")
                         Spacer().frame(height: 4)
                         KyonoGhostButton("マイ記録タブをひらく", action: onOpenMyRecord)

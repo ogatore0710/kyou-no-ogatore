@@ -373,9 +373,10 @@ struct KyonoGhostButton: View {
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトはミント地#DFF5F2+
-    // 文字#0F5A50(実測7.11:1)+枠#177065 2.5pt(実測5.71:1)へ復帰。ダークはbuild21から不変
-    // (teal系のまま)。
-    private var textColor: Color { dark ? colors.tealInk : Color(hex: 0x0F5A50) }
+    // 文字#0F5A50(実測7.11:1)+枠#177065 2.5pt(実測5.71:1)へ復帰。
+    // TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークはtealSoft面(カードより暗く沈む)を
+    // やめ、tealベタ塗り+濃色文字(実測5.86:1)で「押せる行動ボタン」として最強調する。
+    private var textColor: Color { dark ? kyonoBtnPrimaryText : Color(hex: 0x0F5A50) }
 
     var body: some View {
         Button(action: action) {
@@ -387,7 +388,7 @@ struct KyonoGhostButton: View {
             }
         }
         .buttonStyle(dark
-            ? KyonoGhostButtonStyle(background: colors.tealSoft, borderColor: colors.tealStrong, borderWidth: 2, zoom: zoom)
+            ? KyonoGhostButtonStyle(background: colors.teal, borderColor: .clear, borderWidth: 0, zoom: zoom)
             : KyonoGhostButtonStyle(background: Color(hex: 0xDFF5F2), borderColor: Color(hex: 0x177065), borderWidth: 2.5, zoom: zoom))
     }
 }
@@ -466,8 +467,10 @@ struct KyonoLineButton: View {
     // 1:1移植。UI/UXパリティ監査GO-2(2026-07-28): KyonoGhostButtonと同じ欠落・同じ対処。
     // TASK-C2-2026-07-30-button-standard-migration.md: 標準Button+ButtonStyleへ移行(理由はKyonoPrimaryButton参照)。
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトは文字・枠とも
-    // #4A473D(実測8.95:1)に統一。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
-    private var textColor: Color { dark ? colors.sub2 : Color(hex: 0x4A473D) }
+    // #4A473D(実測8.95:1)に統一。
+    // TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークは「枠線だけ」(カード枠と同文法)を
+    // やめ、塗り面kyonoBtnLineDarkFace+ink文字へ(実測はTheme.swiftの定義コメント参照)。
+    private var textColor: Color { dark ? colors.ink : Color(hex: 0x4A473D) }
 
     var body: some View {
         Button(action: action) {
@@ -479,8 +482,10 @@ struct KyonoLineButton: View {
             }
         }
         // TASK-C2-2026-08-04-build22-yellow-return.md Z-6: 既知の枠線コントラスト不足(実測1.72:1)を
-        // 根治。ダークはcolors.borderStrong(新背景比7.70:1)へ統一。
-        .buttonStyle(KyonoLineButtonStyle(borderColor: dark ? colors.borderStrong : Color(hex: 0x4A473D), zoom: zoom, enabled: enabled))
+        // 根治(当時はborderStrongへ統一)。R-38でダークは枠なし・塗り面へ移行。
+        .buttonStyle(dark
+            ? KyonoLineButtonStyle(borderColor: .clear, zoom: zoom, enabled: enabled, background: kyonoBtnLineDarkFace)
+            : KyonoLineButtonStyle(borderColor: Color(hex: 0x4A473D), zoom: zoom, enabled: enabled))
         .disabled(!enabled)
     }
 }
@@ -489,6 +494,8 @@ private struct KyonoLineButtonStyle: ButtonStyle {
     let borderColor: Color
     let zoom: CGFloat
     let enabled: Bool
+    // TASK build31 R-38: ダーク用の塗り面(ライトは.clearのまま従来どおり枠線のみ)。
+    var background: Color = .clear
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
@@ -496,6 +503,7 @@ private struct KyonoLineButtonStyle: ButtonStyle {
         configuration.label
             .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
             .frame(maxWidth: .infinity)
+            .background(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).fill(background))
             .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: 2 * zoom))
             .opacity(enabled ? (pressed ? 0.85 : 1) : 0.5)
             .offset(y: pressed ? 1 * zoom : 0)

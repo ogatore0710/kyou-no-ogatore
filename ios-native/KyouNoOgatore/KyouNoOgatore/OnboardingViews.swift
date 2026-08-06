@@ -37,10 +37,13 @@ struct ObQuestionDef {
     let chips: [ObChip]
 }
 
+// TASK build31 R-40(本人指示・2026-08-06): 絵文字撤去後に語尾がぶつ切りだったため「！」で
+// 締めて適宜改行する。2行目後半は本人の指定文言そのまま(「すべて無料で登録はナシ！安心してね！」・
+// 漢字表記も指定どおり)。
 let obGreet = [
     "いつもありがとうございます！理学療法士のオガトレです！",
-    "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要 あんしんしてね",
-    "最初に4つだけ教えてね！あなた用にこのアプリをととのえます",
+    "ここは毎日のストレッチを応援する場所だよ！\nすべて無料で登録はナシ！安心してね！",
+    "最初に4つだけ教えてね！\nあなた用にこのアプリをととのえます！",
 ]
 
 // index.html:4093-4102 ONBOARDING_SCRIPT.questions の1:1移植。かたさチェック本体(QUESTIONS)とは
@@ -67,11 +70,12 @@ let obQuestions = [
     ]),
 ]
 
+// TASK build31 R-40: 相づちも同トーンで「！」締めに統一。
 let obAnchorAck: [String: String] = [
-    "asa": "朝おきてすぐだね ホームにも覚えさせたよ",
-    "furo": "おふろ上がりは体もほぐれてて効果的 覚えたよ",
-    "neru": "寝るまえの1本はねむりにも効くよ 覚えたよ",
-    "free": "きめなくてもOK！そのつどでだいじょうぶ",
+    "asa": "朝おきてすぐだね！ホームにも覚えさせたよ！",
+    "furo": "おふろ上がりは体もほぐれてて効果的！覚えたよ！",
+    "neru": "寝るまえの1本はねむりにも効くよ！覚えたよ！",
+    "free": "きめなくてもOK！そのつどでだいじょうぶ！",
 ]
 
 // app-quiz.js:193 WORRY_TIEBREAKと紐づくQ5語彙への対応表(index.html:4370 OB_WORRY_TO_QUIZ)。
@@ -90,7 +94,8 @@ struct ObRouteInfo {
 }
 let obRoutes: [String: ObRouteInfo] = [
     "quiz": ObRouteInfo(say: ["そしたら30秒で硬さチェックをしよう！下のボタンタップしてね！"], btn: "かたさチェックをはじめる"),
-    "today": ObRouteInfo(say: ["じゃあ今日の1本から！むずかしいことはなしだよ"], btn: "きょうの1本を見る"),
+    // TASK build31 R-40: 語尾「！」締め(quiz側は元から「！」で不変)。
+    "today": ObRouteInfo(say: ["じゃあ今日の1本から！むずかしいことはなしだよ！"], btn: "きょうの1本を見る"),
 ]
 
 // index.html:4377 obGo()内の条件式の1:1移植。
@@ -156,7 +161,7 @@ struct ChatBubble: Identifiable {
 // index.html:4395-4434 obOpen/obAskQ/obPick/obGoの1:1移植。「welcome」専用画面は無く、この会話UI
 // 自体があいさつ(greet)を最初の3吹き出しとして描画することでwelcome相当を兼ねる(index.html:4405)。
 // index.html:4211「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
-private let obBigtextAck = "OK！今後変えたくなったら「マイ記録」タブの「続ける設定」でいつでも変更できるよ！"
+private let obBigtextAck = "OK！今後変えたくなったら「マイ記録」タブの「マイ設定」でいつでも変更できるよ！"
 
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §1): index.html:4182 obSay()の
 // 「1.5秒間隔で吹き出しが1つずつ出る」演出を.task+Task.sleep(1.5秒)のコルーチンで1:1再現する。
@@ -241,7 +246,7 @@ struct OnboardingView: View {
             // アクセシビリティ対応: ユーザーが選んだチップの吹き出しも同様に、追加された瞬間だけ通知する。
             UIAccessibility.post(notification: .announcement, argument: picked.label)
             if q.key == "anchor" {
-                await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ"])
+                await say([obAnchorAck[picked.v] ?? "OK！おぼえたよ！"])
             } else if q.key == "bigtext" {
                 await say([obBigtextAck])
             }
@@ -1489,7 +1494,7 @@ let obTourPool: [TourSlideDef] = [
     // マイ記録に存在しない(お楽しみは🎉じまんカード/💬せんぱいの声/📔ひとことにっきの個別3ボタン)ため、
     // その3ボタンを直接指す文言に書きかえる(以前はWeb版UI前提の文言のまま移植されていた)。
     // B-10: 6機能列挙をやめて簡略化。
-    TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（通知）は続ける設定からいつでも入れられるよ", mock: .myRecord),
+    TourSlideDef(title: "マイ記録でふりかえる", desc: "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（通知）はマイ設定からいつでも入れられるよ", mock: .myRecord),
 ]
 // T-A: 初回は「地図(0)+予告3枚(4,5,6)」の4枚。「もう体験したことの再説明」(videoDaily/
 // todayDone/cardDex)は初回では引き続き省く(build19 T-2の判断を継承)。

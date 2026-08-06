@@ -178,14 +178,18 @@ fun GuideScreen(
             // 2ピル＋区別説明文は入口として二重で迷いやすい(5視点監査指摘)ため、「📖 使い方ツアー」
             // 1本に統合(引き算)。はじめてガイド(質問のやり直し)への導線は下の「困ったときは」
             // カード内へ移した(onReenterOnboarding呼び出し自体は変更なし)。
+            // TASK build31 R-36(本人指摘・2026-08-06): yellowSoft地は背景と同化して
+            // 「押せるボタン」に見えない。主ボタン(KyonoPrimaryButton)と同じ黄面+濃文字+
+            // 濃枠の語彙へ格上げする(ピル形状・中央寄せは維持)。
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), contentAlignment = Alignment.Center) {
                 Text(
-                    "使い方ツアー", color = if (dark) Color(0xFFE8C74C) else Color(0xFF7E6400), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 14.sp, style = KyonoTightLineTextStyle,
+                    "使い方ツアー", color = KyonoBtnPrimaryText, fontSize = 15.sp, fontWeight = FontWeight.Black,
+                    lineHeight = 15.sp, style = KyonoTightLineTextStyle,
                     modifier = Modifier
-                        .background(colors.yellowSoft, RoundedCornerShape(50))
+                        .background(colors.yellow, RoundedCornerShape(50))
+                        .border(2.dp, KyonoBtnPrimaryBorder, RoundedCornerShape(50))
                         .clickable(onClick = onReenterTour)
-                        .padding(horizontal = 16.dp, vertical = 9.dp)
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
                         .testTag("obTourLink"),
                 )
             }
@@ -348,7 +352,7 @@ fun GuideScreen(
                 ) {
                     KyonoCharaImage("card_sample", Modifier.size(140.dp))
                 }
-                GStep("3", "機種変更のとき", "マイ記録→続ける設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」")
+                GStep("3", "機種変更のとき", "マイ記録→マイ設定→「記録のひっこし」で「記録をコピー」→新しいスマホで「よみこむ」")
             }
             Spacer(Modifier.height(16.dp))
 
@@ -385,7 +389,7 @@ fun GuideScreen(
                 GStep("", icon = KyonoIcon.CalendarCheck, title = "カレンダー", body = "やった日に印がつく（×はつきません）")
                 GStep("", icon = KyonoIcon.MountainCheck, title = "とどくメーター", body = "前屈がどこまで届くか週1で記録 のびていく証拠が見えます")
                 GStep("", icon = KyonoIcon.ConfettiBurst, title = "お楽しみ機能", body = "じまんカード・せんぱいの声・ひとことにっきがまとまっています")
-                GStep("", icon = KyonoIcon.Clock, title = "続ける設定", body = "毎日の合図（通知）や画面のみため（夜は暗く）はここ")
+                GStep("", icon = KyonoIcon.Clock, title = "マイ設定", body = "毎日の合図（通知）や画面のみため（夜は暗く）はここ")
                 GStep("", icon = KyonoIcon.Play, title = "（こちらは下のタブ）「再生リスト」タブ", body = "連続再生できるまとめ 流しっぱなしでOK")
                 Spacer(Modifier.height(4.dp))
                 KyonoGhostButton("マイ記録タブをひらく", onOpenMyRecord, Modifier.testTag("gdMyrecOpenBtn"))

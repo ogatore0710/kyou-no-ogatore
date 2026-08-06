@@ -2826,7 +2826,7 @@ fun MyRecordScreen(
             // 導線のみ追加。
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("settingsBannerCard")) {
-                KyonoSectionHeader(KyonoIcon.Clock, "続ける設定", fill = colors.tealSoft)
+                KyonoSectionHeader(KyonoIcon.Clock, "マイ設定", fill = colors.tealSoft)
                 Spacer(Modifier.height(10.dp))
                 KyonoGhostButton("設定をひらく", onOpenSettings, Modifier.testTag("settingsBtn"))
             }

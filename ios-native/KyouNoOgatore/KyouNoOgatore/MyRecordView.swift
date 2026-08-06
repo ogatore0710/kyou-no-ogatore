@@ -603,7 +603,7 @@ private struct MyRecordContentView: View {
                 // index.html:792-800 続ける設定カード相当。画面の中身(SettingsView)はPhase 3実装済みのため
                 // 導線のみ追加。
                 KyonoCard {
-                    KyonoSectionHeader(icon: .clock, title: "続ける設定", fill: colors.tealSoft)
+                    KyonoSectionHeader(icon: .clock, title: "マイ設定", fill: colors.tealSoft)
                     Spacer().frame(height: 10)
                     KyonoGhostButton("設定をひらく", action: onOpenSettings)
                 }

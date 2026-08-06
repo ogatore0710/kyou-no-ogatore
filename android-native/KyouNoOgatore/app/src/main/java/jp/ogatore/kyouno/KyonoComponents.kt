@@ -354,19 +354,18 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトはミント地#DFF5F2+
-    // 文字#0F5A50(実測7.11:1)+枠#177065 2.5dp(実測5.71:1)へ復帰。ダークはbuild21から不変
-    // (teal系のまま)。
-    val bg = if (dark) colors.tealSoft else Color(0xFFDFF5F2)
-    val borderColor = if (dark) colors.tealStrong else Color(0xFF177065)
-    val borderWidth = if (dark) 2.dp else 2.5.dp
-    val textColor = if (dark) colors.tealInk else Color(0xFF0F5A50)
+    // 文字#0F5A50(実測7.11:1)+枠#177065 2.5dp(実測5.71:1)へ復帰。
+    // TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークはtealSoft面(カードより暗く沈む)を
+    // やめ、tealベタ塗り+濃色文字(実測5.86:1)・枠なしで「押せる行動ボタン」として最強調する。
+    val bg = if (dark) colors.teal else Color(0xFFDFF5F2)
+    val textColor = if (dark) KyonoBtnPrimaryText else Color(0xFF0F5A50)
     Box(
         modifier = modifier
             .fillMaxWidth()
             .offset(y = if (pressed) 1.dp else 0.dp)
             .alpha(if (pressed) 0.85f else 1f)
             .background(bg, KyonoButtonShape)
-            .border(borderWidth, borderColor, KyonoButtonShape)
+            .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFF177065), KyonoButtonShape))
             // Fable監査GO-3: enabled=falseのときは.clickable自体を付けない(clickable自身の
             // enabledフラグに頼らず、Modifier.thenで条件付き付与することで、隠れている間は
             // ポインタイベントを一切消費しないことを構造的に保証する)。VoicesScreenの
@@ -398,11 +397,12 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-2(本人裁定「案B」): ライトは文字・枠とも
-    // #4A473D(実測8.95:1)に統一。ダークはalan5未指摘のため既存値(sub2文字・0x4A443A枠)を維持。
+    // #4A473D(実測8.95:1)に統一。
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-6: 既知の枠線コントラスト不足(実測1.72:1)を
-    // 根治。ダークはcolors.borderStrong(新背景比7.70:1)へ統一。
-    val borderColor = if (dark) colors.borderStrong else Color(0xFF4A473D)
-    val textColor = if (dark) colors.sub2 else Color(0xFF4A473D)
+    // 根治(当時はborderStrongへ統一)。
+    // TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークは「枠線だけ」(カード枠と同文法)を
+    // やめ、塗り面KyonoBtnLineDarkFace+ink文字・枠なしへ(実測はTheme.ktの定義コメント参照)。
+    val textColor = if (dark) colors.ink else Color(0xFF4A473D)
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     Box(
@@ -410,8 +410,8 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
             .fillMaxWidth()
             .offset(y = if (pressed) 1.dp else 0.dp)
             .alpha(if (pressed) 0.85f else 1f)
-            .background(Color.Transparent, KyonoButtonShape)
-            .border(2.dp, borderColor, KyonoButtonShape)
+            .background(if (dark) KyonoBtnLineDarkFace else Color.Transparent, KyonoButtonShape)
+            .then(if (dark) Modifier else Modifier.border(2.dp, Color(0xFF4A473D), KyonoButtonShape))
             .clickable(interactionSource = interactionSource, indication = null, enabled = enabled, onClick = onClick)
             .padding(16.dp, 18.dp),
         contentAlignment = Alignment.Center,

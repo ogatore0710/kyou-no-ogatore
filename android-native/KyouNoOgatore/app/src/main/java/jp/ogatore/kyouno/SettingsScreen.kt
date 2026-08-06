@@ -219,7 +219,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
             Spacer(Modifier.height(16.dp))
 
             KyonoCard(Modifier.testTag("settingsCard")) {
-                KyonoSectionHeader(KyonoIcon.Clock, "続ける設定", fill = colors.tealSoft)
+                KyonoSectionHeader(KyonoIcon.Clock, "マイ設定", fill = colors.tealSoft)
                 Spacer(Modifier.height(16.dp))
 
                 // index.html:800 「やるタイミング: 現在値 変える」の1:1移植。Home側のanchorCard
@@ -249,14 +249,16 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                             // TASK-C2-2026-07-30-icon-system-addendum-chips.md ③: オンボの
                             // anchor質問(asa/furo/neru/free)と同じキー・同じ絵を再利用する
                             // (この画面用に新しく描き起こさない)。KyonoGhostButtonはアイコン
-                            // 引数を持たないため、同じ見た目(colors.tealSoft/tealInk・
-                            // KyonoButtonShape)をこの場でだけ組む。
+                            // 引数を持たないため、同じ見た目をこの場でだけ組む。
+                            // TASK build31 R-38: KyonoGhostButtonのダーク案B(tealベタ塗り+
+                            // 濃色文字)に追従(ライトは従来どおりtealSoft/tealInk)。
+                            val chipDark = colors.bg == KyonoDarkColors.bg
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(colors.tealSoft, KyonoButtonShape)
+                                    .background(if (chipDark) colors.teal else colors.tealSoft, KyonoButtonShape)
                                     .clickable {
                                         store.set("anchor", info.key)
                                         anchor = info.key
@@ -274,7 +276,7 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                                     )
                                     Spacer(Modifier.width(10.dp))
                                 }
-                                Text(info.label, color = colors.tealInk, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                                Text(info.label, color = if (chipDark) KyonoBtnPrimaryText else colors.tealInk, fontSize = 15.sp, fontWeight = FontWeight.Black)
                             }
                         }
                     }

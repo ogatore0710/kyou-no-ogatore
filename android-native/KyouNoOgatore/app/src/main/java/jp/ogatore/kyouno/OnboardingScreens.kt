@@ -111,10 +111,13 @@ data class ObQuestionDef(val key: String, val q: String, val chips: List<ObChip>
 // 自動スクロール着地位置に、この分の余白を確保するために使う。
 private val KYONO_ONBOARDING_CTA_INSET = 100.dp
 
+// TASK build31 R-40(本人指示・2026-08-06): 絵文字撤去後に語尾がぶつ切りだったため「！」で
+// 締めて適宜改行する。2行目後半は本人の指定文言そのまま(「すべて無料で登録はナシ！安心してね！」・
+// 漢字表記も指定どおり)。
 val OB_GREET = listOf(
     "いつもありがとうございます！理学療法士のオガトレです！",
-    "ここは毎日のストレッチを応援する場所だよ！ぜんぶ無料・とうろく不要 あんしんしてね",
-    "最初に4つだけ教えてね！あなた用にこのアプリをととのえます",
+    "ここは毎日のストレッチを応援する場所だよ！\nすべて無料で登録はナシ！安心してね！",
+    "最初に4つだけ教えてね！\nあなた用にこのアプリをととのえます！",
 )
 
 // index.html:4093-4102 ONBOARDING_SCRIPT.questions の1:1移植。かたさチェック本体(QUESTIONS)とは
@@ -149,10 +152,11 @@ val OB_QUESTIONS = listOf(
 )
 
 val OB_ANCHOR_ACK = mapOf(
-    "asa" to "朝おきてすぐだね ホームにも覚えさせたよ",
-    "furo" to "おふろ上がりは体もほぐれてて効果的 覚えたよ",
-    "neru" to "寝るまえの1本はねむりにも効くよ 覚えたよ",
-    "free" to "きめなくてもOK！そのつどでだいじょうぶ",
+    // TASK build31 R-40: 相づちも同トーンで「！」締めに統一。
+    "asa" to "朝おきてすぐだね！ホームにも覚えさせたよ！",
+    "furo" to "おふろ上がりは体もほぐれてて効果的！覚えたよ！",
+    "neru" to "寝るまえの1本はねむりにも効くよ！覚えたよ！",
+    "free" to "きめなくてもOK！そのつどでだいじょうぶ！",
 )
 
 // app-quiz.js:193 WORRY_TIEBREAKと紐づくQ5語彙(katakori/yotsu/tsukare/yawaraka)への対応表
@@ -164,7 +168,8 @@ val OB_WORRY_TO_QUIZ = mapOf("katakori" to "katakori", "youtsuu" to "yotsu", "ze
 data class ObRouteInfo(val say: List<String>, val btn: String)
 val OB_ROUTES = mapOf(
     "quiz" to ObRouteInfo(listOf("そしたら30秒で硬さチェックをしよう！下のボタンタップしてね！"), "かたさチェックをはじめる"),
-    "today" to ObRouteInfo(listOf("じゃあ今日の1本から！むずかしいことはなしだよ"), "きょうの1本を見る"),
+    // TASK build31 R-40: 語尾「！」締め(quiz側は元から「！」で不変)。
+    "today" to ObRouteInfo(listOf("じゃあ今日の1本から！むずかしいことはなしだよ！"), "きょうの1本を見る"),
 )
 
 // index.html:4377 obGo()内の条件式の1:1移植(stiff=hard/unknown、またはworry!=noneならquizへ)。
@@ -244,7 +249,7 @@ fun obChipIconRes(v: String): Int? = when (v) {
 data class ChatBubble(val text: String, val fromUser: Boolean)
 
 // index.html:4211 「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
-private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ記録」タブの「続ける設定」でいつでも変更できるよ！"
+private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ記録」タブの「マイ設定」でいつでも変更できるよ！"
 
 // index.html:4395-4434 obOpen/obAskQ/obPick/obGoの1:1移植。「welcome」専用画面は無く、この会話UI自体が
 // あいさつ(greet)を最初の3吹き出しとして描画することでwelcome相当を兼ねる(index.html:4405)。
@@ -303,7 +308,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             answers[q.key] = picked.v
             bubbles = bubbles + ChatBubble(picked.label, true) // index.html:4221 obPick内obBubble("user",...)は即時
             when (q.key) {
-                "anchor" -> say(listOf(OB_ANCHOR_ACK[picked.v] ?: "OK！おぼえたよ"))
+                "anchor" -> say(listOf(OB_ANCHOR_ACK[picked.v] ?: "OK！おぼえたよ！"))
                 "bigtext" -> say(listOf(OB_BIGTEXT_ACK))
             }
         }
@@ -1502,7 +1507,7 @@ val OB_TOUR_POOL = listOf(
     // TASK-C2-2026-08-02-build17-feedback-fixes.md P-2: 「尾形さん」→「尾形」(本人指示・改行と同時)。
     TourSlideDef("オガトレ通信をのぞく", "尾形からのお知らせが届くよ\nホームいちばん上の「きょうのひとこと」も毎日かわります", TourMockKind.OBU),
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: ...(既存コメント維持)...
-    TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（通知）は続ける設定からいつでも入れられるよ", TourMockKind.MY_RECORD),
+    TourSlideDef("マイ記録でふりかえる", "やった日に印がつくカレンダーがあるよ（×はつかないよ）\n毎日の合図（通知）はマイ設定からいつでも入れられるよ", TourMockKind.MY_RECORD),
 )
 // T-A: 初回は「地図(0)+予告3枚(4,5,6)」の4枚。「もう体験したことの再説明」(videoDaily/
 // todayDone/cardDex)は初回では引き続き省く(build19 T-2の判断を継承)。
