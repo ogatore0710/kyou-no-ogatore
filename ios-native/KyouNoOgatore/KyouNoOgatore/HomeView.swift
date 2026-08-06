@@ -1354,11 +1354,18 @@ private struct HomeTodayVideoRow: View {
         .background(RoundedRectangle(cornerRadius: 16).fill(colors.childFace))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.childBorder, lineWidth: 1.5))
         // TASK build33 R-49(本人カード裁定「案B・押し出し」): 動画行にも下ずれベタ影。
+        // kyonoDepthStyle=.softのときは案A(やわらか影)で描く(本人比較用スイッチ)。
         .background {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(dark ? Color(hex: 0x262119) : Color(hex: 0xEBDCC9))
-                .offset(y: 4)
+            if kyonoDepthStyle == .offset {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(dark ? Color(hex: 0x262119) : Color(hex: 0xEBDCC9))
+                    .offset(y: 4)
+            }
         }
+        .shadow(
+            color: kyonoDepthStyle == .soft ? kyonoSoftShadowColor(dark: dark) : .clear,
+            radius: 7, x: 0, y: 4
+        )
         .accessibilityElement(children: .combine)
         .buttonStyle(.plain)
     }

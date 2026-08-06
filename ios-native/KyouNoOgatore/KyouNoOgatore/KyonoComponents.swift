@@ -104,11 +104,18 @@ struct KyonoCard<Content: View>: View {
             .cornerRadius(kyonoRadius * zoom)
             .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
             .background {
-                if drop {
+                if drop && kyonoDepthStyle == .offset {
                     RoundedRectangle(cornerRadius: kyonoRadius * zoom).fill(dropColor).offset(y: 5 * zoom)
                 }
             }
-            .shadow(color: (dark || drop) ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
+            .shadow(
+                color: drop && kyonoDepthStyle == .soft
+                    ? kyonoSoftShadowColor(dark: dark)
+                    : ((dark || drop) ? .clear : kyonoCardShadowColor.opacity(0.06)),
+                radius: drop && kyonoDepthStyle == .soft ? 9 * zoom : 10 * zoom,
+                x: 0,
+                y: drop && kyonoDepthStyle == .soft ? 5 * zoom : 2 * zoom
+            )
     }
 }
 
@@ -154,13 +161,20 @@ struct KyonoGradientCard<Content: View>: View {
             .cornerRadius(kyonoRadius * zoom)
             .overlay(RoundedRectangle(cornerRadius: kyonoRadius * zoom).stroke(colors.borderStrong, lineWidth: 1.5 * zoom))
             .background {
-                if drop {
+                if drop && kyonoDepthStyle == .offset {
                     RoundedRectangle(cornerRadius: kyonoRadius * zoom)
                         .fill(dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD))
                         .offset(y: 5 * zoom)
                 }
             }
-            .shadow(color: (dark || drop) ? .clear : kyonoCardShadowColor.opacity(0.06), radius: 10 * zoom, x: 0, y: 2 * zoom)
+            .shadow(
+                color: drop && kyonoDepthStyle == .soft
+                    ? kyonoSoftShadowColor(dark: dark)
+                    : ((dark || drop) ? .clear : kyonoCardShadowColor.opacity(0.06)),
+                radius: drop && kyonoDepthStyle == .soft ? 9 * zoom : 10 * zoom,
+                x: 0,
+                y: drop && kyonoDepthStyle == .soft ? 5 * zoom : 2 * zoom
+            )
     }
 }
 
@@ -443,12 +457,16 @@ private struct KyonoGhostButtonStyle: ButtonStyle {
             .cornerRadius(kyonoButtonRadius * zoom)
             .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: borderWidth))
             .background {
-                if let dropColor {
+                if let dropColor, kyonoDepthStyle == .offset {
                     // KyonoPrimaryButtonの黄影と同じ「オフセット塗りつぶし」。押下時は本体が
                     // 1pt沈む(下の.offset)ので、影は据え置きのままで沈み込みが強調される。
                     RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).fill(dropColor).offset(y: 4 * zoom)
                 }
             }
+            .shadow(
+                color: dropColor != nil && kyonoDepthStyle == .soft ? kyonoSoftShadowColor(dark: false) : .clear,
+                radius: 8 * zoom, x: 0, y: 4 * zoom
+            )
             .opacity(pressed ? 0.85 : 1)
             .offset(y: pressed ? 1 * zoom : 0)
             .contentShape(Rectangle())

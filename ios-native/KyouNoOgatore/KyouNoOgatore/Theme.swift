@@ -215,6 +215,15 @@ let kyonoBtnPrimaryBorder = Color(hex: 0x8A6D00)
 //   (実測5.86:1)。ライトは両者とも不変。
 let kyonoBtnLineDarkFace = Color(hex: 0x544D40)
 
+// TASK build33 R-49: 立体化の方式スイッチ(本人比較用)。offset=案B押し出し(下ずれベタ影)/
+// soft=案A やわらか影(ぼかし影)。本人裁定で確定したらこの値を固定する。
+enum KyonoDepthStyle { case offset, soft }
+let kyonoDepthStyle: KyonoDepthStyle = .soft
+// 案Aやわらか影の色(ライト=暖色を帯びた焦げ茶を薄く/ダーク=黒を濃いめに)。
+func kyonoSoftShadowColor(dark: Bool) -> Color {
+    dark ? Color.black.opacity(0.55) : Color(hex: 0x5A3C28).opacity(0.22)
+}
+
 struct KyonoTheme<Content: View>: View {
     let themeSetting: String
     var bigText: Bool = true
