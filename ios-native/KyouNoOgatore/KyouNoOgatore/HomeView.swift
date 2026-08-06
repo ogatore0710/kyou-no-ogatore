@@ -480,6 +480,9 @@ struct HomeView: View {
         // HomeScreen Columnと同じ修正)。UI/UXパリティ監査GO-9・G6(2026-07-28)で共通定数化。
         .kyonoScreenPadding()
         }
+        // TASK build33 R-50(本人指示・細かい直し①): 相談室FABがスクロール末尾の
+        // ボタン類に重なるため、スクロール内容の下端にFABぶんの余白を足す。
+        .contentMargins(.bottom, 72, for: .scrollContent)
         .background(KyonoBackgroundColor().ignoresSafeArea())
         // app-env.js:60 refreshDay相当。visibilitychangeの代わりにscenePhaseの.active復帰で
         // 日付またぎ・pendingNudgeを確認する(Android版のON_RESUMEと同じ役割)。
@@ -1334,7 +1337,8 @@ private struct HomeTodayVideoRow: View {
                         // おおきめ設定で2行に折り返していた。文言(本人指定)は変えず1行固定+自動縮小。
                         Text(label).kyonoFont(.black900, size: 12).foregroundColor(badgeTextColor)
                             .lineLimit(1).minimumScaleFactor(0.6)
-                            .padding(.horizontal, 8).padding(.vertical, 1)
+                            // R-52(本人指示・細かい直し③): ピルの上下余白が詰まり気味だったため+2pt。
+                            .padding(.horizontal, 8).padding(.vertical, 3)
                             .background(Capsule().fill(colors.coralSoft))
                     }
                     if let st = v.st {

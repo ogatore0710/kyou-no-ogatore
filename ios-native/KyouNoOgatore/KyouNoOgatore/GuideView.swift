@@ -420,6 +420,9 @@ private struct GuideContentView: View {
                 .kyonoScreenPadding()
             }
         }
+        // TASK build33 R-50(本人指示・細かい直し①): 相談室FABがスクロール末尾の
+        // ボタン類に重なるため、スクロール内容の下端にFABぶんの余白を足す。
+        .contentMargins(.bottom, 72, for: .scrollContent)
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 

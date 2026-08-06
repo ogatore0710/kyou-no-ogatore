@@ -197,6 +197,8 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
             .padding(vertical = 5.dp)
             .alpha(if (disabledLook) 0.5f else 1f)
             .clickable(enabled = !disabledLook) { openUrl("https://www.youtube.com/watch?v=${v.id}") }
+            // TASK build33 R-49展開: VideoRowにもB3押し出し影。
+            .kyonoDropShadow(if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD), 3.dp, 16.dp)
             .background(if (hero) colors.pinkSoft else colors.card, RoundedCornerShape(16.dp))
             .border(if (hero) 2.5.dp else 1.5.dp, if (hero) colors.pink else colors.borderStrong, RoundedCornerShape(16.dp))
             .padding(10.dp)
@@ -221,7 +223,8 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
                 // 長いバッジがおおきめ設定で2行に折り返す。文言は変えず1行固定+自動縮小。
                 KyonoAutoShrinkText(
                     label, color = badgeTextColor, baseFontSize = 12.sp, fontWeight = FontWeight.Black,
-                    modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
+                    // R-52(本人指示・細かい直し③): ピルの上下余白+2dp。
+                    modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
                 )
                 Spacer(Modifier.height(4.dp))
             }

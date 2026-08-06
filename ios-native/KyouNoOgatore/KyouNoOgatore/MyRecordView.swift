@@ -252,6 +252,9 @@ private struct DexBannerCard: View {
     private var borderColor: Color { dark ? .clear : Color(hex: 0x177065) }
     private var borderWidth: CGFloat { dark ? 0 : 2.5 }
 
+    // TASK build33 R-49展開: 図鑑バナーにもB3押し出し影(teal面の下に濃tealを敷く)。
+    private var dropColor: Color { dark ? colors.tealStrong : Color(hex: 0xA8D3CA) }
+
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 10 * zoom) {
@@ -268,7 +271,7 @@ private struct DexBannerCard: View {
             }
             .padding(14 * zoom)
         }
-        .buttonStyle(DexBannerButtonStyle(background: bg, borderColor: borderColor, borderWidth: borderWidth, zoom: zoom))
+        .buttonStyle(DexBannerButtonStyle(background: bg, borderColor: borderColor, borderWidth: borderWidth, zoom: zoom, dropColor: dropColor))
     }
 }
 
@@ -277,6 +280,8 @@ private struct DexBannerButtonStyle: ButtonStyle {
     let borderColor: Color
     let borderWidth: CGFloat
     let zoom: CGFloat
+    // TASK build33 R-49展開: B3押し出し影。
+    var dropColor: Color? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
@@ -286,6 +291,12 @@ private struct DexBannerButtonStyle: ButtonStyle {
             .background(background)
             .cornerRadius(kyonoButtonRadius * zoom)
             .overlay(RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).stroke(borderColor, lineWidth: borderWidth))
+            .background {
+                if let dropColor {
+                    RoundedRectangle(cornerRadius: kyonoButtonRadius * zoom).fill(dropColor)
+                        .offset(y: 4 * zoom).blur(radius: kyonoDepthEdgeBlur * zoom)
+                }
+            }
             .opacity(pressed ? 0.85 : 1)
             .contentShape(Rectangle())
             .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: pressed)
@@ -471,16 +482,17 @@ private struct MyRecordContentView: View {
                     DexBannerCard(banner: dexBanner, action: onOpenDex)
                     Spacer().frame(height: 10)
                     HStack(spacing: 8) {
-                        KyonoGhostButton("じまんカード", action: onOpenBrag)
+                        // R-51(本人指示・細かい直し②): 横幅を分け合う2ボタンが2行に折り返して不揃いだったため1行固定+自動縮小。
+                        KyonoGhostButton("じまんカード", singleLine: true, action: onOpenBrag)
                         // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
                         // 自身の見出しアイコン(.envelope)と揃える。
-                        KyonoGhostButton("せんぱいの声", icon: .envelope, action: onOpenVoices)
+                        KyonoGhostButton("せんぱいの声", icon: .envelope, singleLine: true, action: onOpenVoices)
                     }
                     Spacer().frame(height: 8)
                     // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
                     // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
                     // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
-                    KyonoGhostButton("ひとことにっき", action: onOpenDiary)
+                    KyonoGhostButton("ひとことにっき", singleLine: true, action: onOpenDiary)
                 }
 
                 // UI/UXパリティ監査GO-9(2026-07-28): 独立した「おやすみ券」カードはWeb側に対応が
@@ -638,6 +650,9 @@ private struct MyRecordContentView: View {
             // 1:1移植。この画面だけ全辺20ptだった欠落を、共通のkyonoScreenPadding()へ統一する。
             .kyonoScreenPadding()
         }
+        // TASK build33 R-50(本人指示・細かい直し①): 相談室FABがスクロール末尾の
+        // ボタン類に重なるため、スクロール内容の下端にFABぶんの余白を足す。
+        .contentMargins(.bottom, 72, for: .scrollContent)
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 

@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -210,11 +211,10 @@ fun Modifier.kyonoDropShadow(color: Color, offsetY: androidx.compose.ui.unit.Dp,
     }
 }
 
-// TASK build33 R-49(本人カード裁定「案B・押し出し」・2026-08-06): drop=「きょうやった！」ボタンと
-// 同じ下ずれベタ影でカードを立体化する差し込み口。まずホームだけ有効化して本人確認→GOで展開する
-// 段取りのため既定false(iOS版KyonoCardと同じ)。
+// TASK build33 R-49(本人カード裁定・2026-08-06〜07): B3「ふち柔らか押し出し」影。
+// ホームでの本人確認を経て全画面へ展開(既定true)。重ね文脈で不要な場合だけfalseを渡す。
 @Composable
-fun KyonoCard(modifier: Modifier = Modifier, drop: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
+fun KyonoCard(modifier: Modifier = Modifier, drop: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     Column(
@@ -246,8 +246,8 @@ enum class KyonoGradient { Warm, Mint, Pink, Soft }
 val KyonoCardShadowColor = Color(0xFFA08C50)
 
 @Composable
-// TASK build33 R-49: KyonoCardと同じ押し出し影の差し込み口(既定false・まずホームのみ)。
-fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, drop: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
+// TASK build33 R-49: KyonoCardと同じB3押し出し影(展開済み・既定true)。
+fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, drop: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-3(本人裁定「案a・彩度を立てる」):
@@ -341,6 +341,8 @@ fun KyonoPrimaryButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = shadowOffset)
+                // R-49展開: 他のB3押し出し影とふちの硬さを揃える(API31未満はblur無効=従来どおり)。
+                .blur(3.dp)
                 .background(colors.btnPrimaryShadow.copy(alpha = alpha), KyonoButtonShape)
                 .padding(16.dp, 18.dp)
                 .clearAndSetSemantics {},
@@ -385,8 +387,8 @@ fun KyonoPrimaryButton(
 @Composable
 // TASK build32 R-46(本人指示・2026-08-06): singleLine=ホームの連続再生ボタン(本人指定の長い文言)
 // 用の1行固定+自動縮小(KyonoPrimaryButtonのR-17と同じ考え方)。既定falseで他の呼び出し元は不変。
-// TASK build33 R-49: drop=押し出し影の差し込み口(既定false・まずホームの連続再生ボタンのみ)。
-fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false, drop: Boolean = false) {
+// TASK build33 R-49: drop=B3押し出し影(展開済み・既定true)。
+fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false, drop: Boolean = true) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }

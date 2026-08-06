@@ -1000,8 +1000,7 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
                 // おおきめ設定で2行に折り返していた。文言は変えず1行固定+自動縮小。
                 KyonoAutoShrinkText(
                     label, color = badgeTextColor, baseFontSize = 12.sp, fontWeight = FontWeight.Black,
-                    // R-52(本人指示・細かい直し③): ピルの上下余白+2dp。
-                    modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+                    modifier = Modifier.background(colors.coralSoft, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 1.dp),
                 )
                 Spacer(Modifier.height(4.dp))
             }
@@ -1067,8 +1066,6 @@ private fun DexBannerCard(got: Int, total: Int, preview: List<DexItem>, onClick:
         modifier = Modifier
             .fillMaxWidth()
             .alpha(if (pressed) 0.85f else 1f)
-            // TASK build33 R-49展開: 図鑑バナーにもB3押し出し影。
-            .kyonoDropShadow(if (dark) colors.tealStrong else Color(0xFFA8D3CA), 4.dp, KyonoButtonRadius)
             .background(bg, KyonoButtonShape)
             .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFF177065), KyonoButtonShape))
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
@@ -2652,17 +2649,16 @@ fun MyRecordScreen(
                 DexBannerCard(dexGot, dexAll.size, dexPreview, onOpenDex)
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // R-51(本人指示・細かい直し②): 折り返しで高さ不揃いにならないよう1行固定+自動縮小。
-                    KyonoGhostButton("じまんカード", onOpenBrag, Modifier.weight(1f).testTag("bragBtn"), singleLine = true)
+                    KyonoGhostButton("じまんカード", onOpenBrag, Modifier.weight(1f).testTag("bragBtn"))
                     // UX13案・案8(2026-07-30): ボタン用途の残存絵文字をCanvasアイコンへ。せんぱいの声画面
                     // 自身の見出しアイコン(Envelope)と揃える。
-                    KyonoGhostButton("せんぱいの声", onOpenVoices, Modifier.weight(1f).testTag("voicesBtn"), icon = KyonoIcon.Envelope, singleLine = true)
+                    KyonoGhostButton("せんぱいの声", onOpenVoices, Modifier.weight(1f).testTag("voicesBtn"), icon = KyonoIcon.Envelope)
                 }
                 Spacer(Modifier.height(8.dp))
                 // ひとことにっき機能欠落修正タスク(TASK-C2-2026-07-26-diary-list-missing.md): index.html:884
                 // 「ひとことにっき」への導線をじまんカード・せんぱいの声と並列で追加(ツアーSlide7の
                 // 説明文が既にこの3機能をお楽しみ機能として案内しており、この導線が欠けていた)。
-                KyonoGhostButton("ひとことにっき", onOpenDiary, Modifier.testTag("diaryBtn"), singleLine = true)
+                KyonoGhostButton("ひとことにっき", onOpenDiary, Modifier.testTag("diaryBtn"))
             }
 
             Spacer(Modifier.height(16.dp))

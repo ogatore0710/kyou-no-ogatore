@@ -112,6 +112,8 @@ struct VideoRow: View {
     // ダークモードのcoralSoft背景に対してコントラストが低すぎて読みにくかった。
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     private var badgeTextColor: Color { dark ? Color(hex: 0xF0A58E) : Color(hex: 0xB4462F) }
+    // TASK build33 R-49展開: VideoRow(探す/再生リスト/けっか画面)にもB3押し出し影。
+    private var dropColor: Color { dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD) }
 
     var body: some View {
         Button {
@@ -130,7 +132,8 @@ struct VideoRow: View {
                         // 長いバッジがおおきめ設定で2行に折り返す。文言は変えず1行固定+自動縮小。
                         Text(label).kyonoFont(.black900, size: 12).foregroundColor(badgeTextColor)
                             .lineLimit(1).minimumScaleFactor(0.6)
-                            .padding(.horizontal, 8).padding(.vertical, 1)
+                            // R-52(本人指示・細かい直し③): ピルの上下余白が詰まり気味だったため+2pt。
+                            .padding(.horizontal, 8).padding(.vertical, 3)
                             .background(Capsule().fill(colors.coralSoft))
                     }
                     Text(useShortTitle ? (v.st ?? v.t) : v.t).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineLimit(3)
@@ -142,6 +145,11 @@ struct VideoRow: View {
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 16).fill(hero ? colors.pinkSoft : colors.card))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(hero ? colors.pink : colors.borderStrong, lineWidth: hero ? 2.5 : 1.5))
+        // TASK build33 R-49展開: B3ふち柔らか押し出し影。
+        .background {
+            RoundedRectangle(cornerRadius: 16).fill(dropColor)
+                .offset(y: 3).blur(radius: kyonoDepthEdgeBlur)
+        }
         // TASK-C2-2026-07-27-text-size-accessibility.md 項目4: サムネイル(装飾)+バッジ+タイトル+
         // 補足を1回のVoiceOverスワイプで読める1つの単位にまとめる。
         .accessibilityElement(children: .combine)
@@ -428,6 +436,9 @@ private struct SearchContentView: View {
         // 1:1移植。この画面だけ全辺16ptだった欠落を、共通のkyonoScreenPadding()へ統一する。
         .kyonoScreenPadding()
         }
+        // TASK build33 R-50(本人指示・細かい直し①): 相談室FABがスクロール末尾の
+        // ボタン類に重なるため、スクロール内容の下端にFABぶんの余白を足す。
+        .contentMargins(.bottom, 72, for: .scrollContent)
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }
@@ -617,6 +628,9 @@ private struct CatalogListContentView: View {
             }
         }
         .padding(16)
+        // TASK build33 R-50(本人指示・細かい直し①): 相談室FABがスクロール末尾の
+        // ボタン類に重なるため、スクロール内容の下端にFABぶんの余白を足す。
+        .contentMargins(.bottom, 72, for: .scrollContent)
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 }

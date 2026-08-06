@@ -86,10 +86,9 @@ struct KyonoCard<Content: View>: View {
     // 対応する仕組みが無いため、共有部品ごとに@Environment(\.kyonoBigText)を読んで余白・角丸・
     // 枠線・影を手動で1.18倍する(フォントは既存の.kyonoFont()が既に1.18倍済みなので触らない)。
     @Environment(\.kyonoBigText) private var bigText
-    // TASK build33 R-49(本人カード裁定「案B・押し出し」・2026-08-06): 「きょうやった！」ボタンと
-    // 同じ「下にずれたベタ影」をカードにも敷いて立体化する差し込み口。まずホームだけ有効化して
-    // 本人確認→GOで他画面へ展開する段取りのため既定false。
-    var drop: Bool = false
+    // TASK build33 R-49(本人カード裁定・2026-08-06〜07): B3「ふち柔らか押し出し」影。
+    // ホームでの本人確認を経て全画面へ展開(既定true)。重ね文脈で不要な場合だけfalseを渡す。
+    var drop: Bool = true
     @ViewBuilder let content: () -> Content
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
@@ -131,8 +130,8 @@ struct KyonoGradientCard<Content: View>: View {
     // UI/UXパリティ監査GO-3(iOS・2026-07-29): KyonoCardと同じズーム対応。
     @Environment(\.kyonoBigText) private var bigText
     let gradient: KyonoGradient
-    // TASK build33 R-49: KyonoCardと同じ押し出し影の差し込み口(既定false・まずホームのみ)。
-    var drop: Bool = false
+    // TASK build33 R-49: KyonoCardと同じB3押し出し影(展開済み・既定true)。
+    var drop: Bool = true
     @ViewBuilder let content: () -> Content
 
     var body: some View {
@@ -370,6 +369,8 @@ private struct KyonoPrimaryButtonStyle: ButtonStyle {
                 .background(colors.btnPrimaryShadow.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius * zoom)
                 .offset(y: shadowOffset)
+                // R-49展開: 他の押し出し影(B3)とふちの硬さを揃える。
+                .blur(radius: kyonoDepthEdgeBlur * zoom)
                 .accessibilityHidden(true)
             configuration.label
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
@@ -404,11 +405,11 @@ struct KyonoGhostButton: View {
     // おおきめ設定で2行に折り返すため、KyonoPrimaryButtonのsingleLine(R-17)と同じ
     // 1行固定+自動縮小の差し込み口を追加。既定falseで他の呼び出し元は不変。
     var singleLine: Bool = false
-    // TASK build33 R-49(本人カード裁定「案B・押し出し」): 押し出し影の差し込み口(既定false)。
-    var drop: Bool = false
+    // TASK build33 R-49(本人カード裁定): B3押し出し影(展開済み・既定true)。
+    var drop: Bool = true
     let action: () -> Void
 
-    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, drop: Bool = false, action: @escaping () -> Void) {
+    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, drop: Bool = true, action: @escaping () -> Void) {
         self.text = text; self.icon = icon; self.singleLine = singleLine; self.drop = drop; self.action = action
     }
 
