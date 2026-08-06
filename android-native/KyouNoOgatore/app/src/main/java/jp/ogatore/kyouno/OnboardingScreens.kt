@@ -605,11 +605,13 @@ private val TYPE_RX_POOL = mapOf(
 
 // app-quiz.js:81-85 WORRYの1:1移植(悩みキー→追加のおすすめ1本+ラベル。yawaraka=null相当は
 // マップに含めないことで表現)。
+// TASK-C2-2026-08-06-build30-round8.md R-26: おまけはリスト内「③おまけ: 〜」の形式で名乗るため、
+// 旧来の「＋1本」文脈で付けていた「もう1本」語尾は不要になった(labelから削除)。
 private data class WorryExtra(val v: String, val label: String)
 private val WORRY_EXTRA = mapOf(
-    "katakori" to WorryExtra("katakori", "肩こりさんへ もう1本"),
-    "yotsu" to WorryExtra("yotsu12", "腰痛さんへ もう1本"),
-    "tsukare" to WorryExtra("jiritsu10", "おつかれさんへ もう1本"),
+    "katakori" to WorryExtra("katakori", "肩こりさんへ"),
+    "yotsu" to WorryExtra("yotsu12", "腰痛さんへ"),
+    "tsukare" to WorryExtra("jiritsu10", "おつかれさんへ"),
 )
 
 // index.html:1458 V(かたさタイプおすすめ動画専用の小規模動画カタログ)のキー→YouTube動画IDの
@@ -638,12 +640,15 @@ val QUIZ_VIDEO_KEY_TO_ID = mapOf(
 // app-quiz.js:238-255 currentRx()の1:1移植(乱数不使用・rotationIndexのみで決定的な動画選出)。
 // CardLottery.rotationIndex(既存・CardCoreで移植済み)を再利用するだけで、選出ロジック自体は
 // ここで新規実装するが判定/安全ロジックではないため§3-2の対象外(表示用の推薦リスト生成)。
+// TASK-C2-2026-08-06-build30-round8.md R-26(本人裁定): 「メイン(固定1本)+しあげ(ローテ1本)」の
+// 計2本に減らす(旧仕様は「しあげ」枠が2本でメイン込み計3本になりうった)。ローテの決定的計算・
+// 重複回避ロジック自体は現行踏襲(需要本数が2→1になるだけ)。
 fun currentRx(typeKey: String, now: Instant): List<String> {
     val t = TYPE_RX_POOL[typeKey] ?: return emptyList()
-    val need = 3 - t.rx.size
-    if (need <= 0 || t.pool.isEmpty()) return t.rx.take(3)
+    val need = 2 - t.rx.size
+    if (need <= 0 || t.pool.isEmpty()) return t.rx.take(2)
     val r = jp.ogatore.kyouno.card.CardLottery.rotationIndex(now)
-    val spacing = t.pool.size / (if (need == 3) 3 else 2)
+    val spacing = t.pool.size / need
     val picks = mutableListOf<String>()
     for (i in 0 until need) {
         var idx = (r + i * spacing) % t.pool.size
@@ -1173,10 +1178,17 @@ fun ResultScreen(
             // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
             // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
             // Q-1: ガイド中専用の「①だけ練習」カードは廃止し、常にこの通常版を表示する。
+            // TASK-C2-2026-08-06-build30-round8.md R-26(本人指定見出し): 「おすすめの3本:〜」を
+            // 「あなたへのおすすめ再生リスト」に差し替え、タイプ別のサブ文(まずは「〜」から！
+            // 2週間続けてみて)は独立したサブ行として残す(仮案・本人が後日赤ペンする前提)。
             KyonoCard {
                 Text(
-                    "おすすめの3本: まずは「${info.area}」から！2週間続けてみて", color = colors.ink,
+                    "あなたへのおすすめ再生リスト", color = colors.ink,
                     fontSize = 15.sp, fontWeight = FontWeight.Black, modifier = Modifier.testTag("rxHead"),
+                )
+                Text(
+                    "まずは「${info.area}」から！2週間続けてみて", color = colors.sub,
+                    fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp),
                 )
                 // TASK-C2-2026-08-05-build25-tour-round3.md R-4(本人生指摘・本人校正済み文言):
                 // ツアー中(fdGuideActive)だけ、見出しと1本目カードの間にR-2と同じ視覚言語の
@@ -1231,16 +1243,27 @@ fun ResultScreen(
                         }
                     }
                 }
-                val badges = listOf("①まずほぐす", "②メインの1本", "③しあげ")
+                // TASK-C2-2026-08-06-build30-round8.md R-26(本人裁定・カードUIで確定):
+                // 「メイン+しあげ+おまけ」最大3本を1つのリストに統合する。旧仕様の「カード外の
+                // ＋もう1本」枠は廃止。おまけは悩み選択(肩こり/腰痛/疲れ)がある人だけ、かつ
+                // メイン/しあげと重複しないときだけ3本目としてリストに含める(重複時は現行の
+                // 重複ガードのとおり2本のまま)。
+                // index.html:81-85,327-328 WORRY[saved.worry]の1:1移植(重複ガード踏襲)。
+                val worryExtra = worry?.let { WORRY_EXTRA[it] }?.takeIf { it.v !in rx }
+                val badges = listOf("①メイン", "②しあげ")
+                val displayItems = buildList {
+                    rx.forEachIndexed { i, vk -> add(vk to (badges.getOrNull(i) ?: "")) }
+                    worryExtra?.let { add(it.v to "③おまけ: ${it.label}") }
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
-                    rx.forEachIndexed { i, vk ->
+                    displayItems.forEachIndexed { i, (vk, badge) ->
                         // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: no-op裁定は維持した
                         // まま、見た目でも押せないことを明示する。
                         val isFirst = fdGuideActive && i == 0
                         lookupVideo(vk)?.let { v ->
                             VideoRow(
                                 v, if (isFirst) firstVideoTapHandler else videoTapHandler,
-                                badge = badges.getOrNull(i),
+                                badge = badge,
                                 // TASK-C2-2026-08-05-build26-round4.md R-7: ツアー中の1本目カードを
                                 // 既存のhero強調枠(pink 2.5dp+pinkSoft地)で目立たせる。
                                 hero = isFirst,
@@ -1258,24 +1281,13 @@ fun ResultScreen(
                         modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                     )
                 }
-                if (rx.isNotEmpty() && !fdGuideActive) {
+                if (displayItems.isNotEmpty() && !fdGuideActive) {
                     Spacer(Modifier.height(8.dp))
                     KyonoGhostButton(
-                        "▶ 3本続けて再生する",
-                        { openUrl("https://www.youtube.com/watch_videos?video_ids=" + rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")) },
+                        "▶ ${displayItems.size}本続けて再生する",
+                        { openUrl("https://www.youtube.com/watch_videos?video_ids=" + displayItems.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it.first] }.joinToString(",")) },
                         Modifier.testTag("rxPlayAllBtn"),
                     )
-                }
-                // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
-                worry?.let { w ->
-                    WORRY_EXTRA[w]?.let { extra ->
-                        if (extra.v !in rx) {
-                            lookupVideo(extra.v)?.let { v ->
-                                Spacer(Modifier.height(4.dp))
-                                VideoRow(v, videoTapHandler, badge = "＋ ${extra.label}", disabledLook = fdGuideActive, useShortTitle = true)
-                            }
-                        }
-                    }
                 }
                 // index.html:740 #rRotateNoteの1:1移植。
                 Spacer(Modifier.height(4.dp))
@@ -1283,8 +1295,10 @@ fun ResultScreen(
                 // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
                 // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
                 // 30日超の古い投稿日付のみ・index.html:277-278)。
+                // TASK-C2-2026-08-06-build30-round8.md R-27(本人裁定): 実装は毎日ローテのまま
+                // (CardLottery.rotationIndex不変)。表記だけ「3日ごと」→「毎日」に修正。
                 Text(
-                    "おすすめは3日ごとに自動で入れ替わります", color = colors.sub, fontSize = 12.sp,
+                    "おすすめは毎日自動で入れ替わります", color = colors.sub, fontSize = 12.sp,
                     modifier = Modifier.testTag("rRotateNote"),
                 )
             }

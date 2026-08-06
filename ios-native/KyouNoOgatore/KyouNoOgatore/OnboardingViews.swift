@@ -557,10 +557,12 @@ let typeRxPool: [String: TypeRxPool] = [
 // app-quiz.js:81-85 WORRYの1:1移植(悩みキー→追加のおすすめ1本+ラベル。yawaraka=null相当は
 // マップに含めないことで表現)。
 struct WorryExtra { let v: String; let label: String }
+// TASK-C2-2026-08-06-build30-round8.md R-26: おまけはリスト内「③おまけ: 〜」の形式で名乗るため、
+// 旧来の「＋1本」文脈で付けていた「もう1本」語尾は不要になった(labelから削除)。
 let worryExtraMap: [String: WorryExtra] = [
-    "katakori": WorryExtra(v: "katakori", label: "肩こりさんへ もう1本"),
-    "yotsu": WorryExtra(v: "yotsu12", label: "腰痛さんへ もう1本"),
-    "tsukare": WorryExtra(v: "jiritsu10", label: "おつかれさんへ もう1本"),
+    "katakori": WorryExtra(v: "katakori", label: "肩こりさんへ"),
+    "yotsu": WorryExtra(v: "yotsu12", label: "腰痛さんへ"),
+    "tsukare": WorryExtra(v: "jiritsu10", label: "おつかれさんへ"),
 ]
 
 // index.html:1458 V(かたさタイプおすすめ動画専用の小規模動画カタログ)のキー→YouTube動画IDの
@@ -589,12 +591,15 @@ let quizVideoKeyToId: [String: String] = [
 // app-quiz.js:238-255 currentRx()の1:1移植(乱数不使用・rotationIndexのみで決定的な動画選出)。
 // CardLottery.rotationIndex(既存・CardCoreで移植済み)を再利用するだけで、選出ロジック自体は
 // ここで新規実装するが判定/安全ロジックではないため§3-2の対象外(表示用の推薦リスト生成)。
+// TASK-C2-2026-08-06-build30-round8.md R-26(本人裁定): 「メイン(固定1本)+しあげ(ローテ1本)」の
+// 計2本に減らす(旧仕様は「しあげ」枠が2本でメイン込み計3本になりうった)。ローテの決定的計算・
+// 重複回避ロジック自体は現行踏襲(需要本数が2→1になるだけ)。
 func currentRx(_ typeKey: String, now: Date) -> [String] {
     guard let t = typeRxPool[typeKey] else { return [] }
-    let need = 3 - t.rx.count
-    guard need > 0, !t.pool.isEmpty else { return Array(t.rx.prefix(3)) }
+    let need = 2 - t.rx.count
+    guard need > 0, !t.pool.isEmpty else { return Array(t.rx.prefix(2)) }
     let r = CardLottery.rotationIndex(now: now)
-    let spacing = t.pool.count / (need == 3 ? 3 : 2)
+    let spacing = t.pool.count / need
     var picks: [String] = []
     for i in 0..<need {
         var idx = (r + i * spacing) % t.pool.count
@@ -1190,9 +1195,15 @@ private struct ResultContentView: View {
                 // 診断結果画面「おすすめ動画3本」欠落修正タスク(TASK-C2-2026-07-26-result-video-recommendations.md):
                 // index.html:736-744 rxHead/rxList/worryExtra/rRotateNoteの1:1移植。
                 // Q-1: ガイド中専用の「①だけ練習」カードは廃止し、常にこの通常版を表示する。
+                // TASK-C2-2026-08-06-build30-round8.md R-26(本人指定見出し): 「おすすめの3本:〜」を
+                // 「あなたへのおすすめ再生リスト」に差し替え、タイプ別のサブ文(まずは「〜」から！
+                // 2週間続けてみて)は独立したサブ行として残す(仮案・本人が後日赤ペンする前提)。
                 KyonoCard {
-                    Text("おすすめの3本: まずは「\(info.area)」から！2週間続けてみて")
+                    Text("あなたへのおすすめ再生リスト")
                         .kyonoFont(.black900, size: 15).foregroundColor(colors.ink)
+                    Text("まずは「\(info.area)」から！2週間続けてみて")
+                        .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
+                        .padding(.top, 2)
                     // TASK-C2-2026-08-05-build25-tour-round3.md R-4(本人生指摘「1本目タップが
                     // 練習だと伝わらない」): ツアー中(fdGuideActive)だけ、見出しと1本目カードの間に
                     // R-2と同じ視覚言語の練習ピル+案内1行を挟む。タップ時notice・復帰フローには
@@ -1241,16 +1252,30 @@ private struct ResultContentView: View {
                             onVideoTap(url)
                         }
                     }
-                    let badges = ["①まずほぐす", "②メインの1本", "③しあげ"]
-                    ForEach(Array(rx.enumerated()), id: \.offset) { i, vk in
-                        if let v = lookupVideo(vk) {
+                    // TASK-C2-2026-08-06-build30-round8.md R-26(本人裁定・カードUIで確定):
+                    // 「メイン+しあげ+おまけ」最大3本を1つのリストに統合する。旧仕様の「カード外の
+                    // ＋もう1本」枠は廃止。おまけは悩み選択(肩こり/腰痛/疲れ)がある人だけ、かつ
+                    // メイン/しあげと重複しないときだけ3本目としてリストに含める(重複時は現行の
+                    // 重複ガードのとおり2本のまま)。
+                    // index.html:81-85,327-328 WORRY[saved.worry]の1:1移植(重複ガード踏襲)。
+                    let worryExtra: WorryExtra? = worry.flatMap { worryExtraMap[$0] }.flatMap { rx.contains($0.v) ? nil : $0 }
+                    let badges = ["①メイン", "②しあげ"]
+                    let displayItems: [(key: String, badge: String)] = {
+                        var items = zip(rx, badges).map { (key: $0, badge: $1) }
+                        if let worryExtra {
+                            items.append((key: worryExtra.v, badge: "③おまけ: \(worryExtra.label)"))
+                        }
+                        return items
+                    }()
+                    ForEach(Array(displayItems.enumerated()), id: \.offset) { i, item in
+                        if let v = lookupVideo(item.key) {
                             // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: no-op裁定は維持
                             // したまま、見た目でも押せないことを明示する。
                             let isFirst = fdGuideActive && i == 0
                             VideoRow(
                                 v: v,
                                 openUrl: isFirst ? firstVideoTapHandler : videoTapHandler,
-                                badge: badges.indices.contains(i) ? badges[i] : nil,
+                                badge: item.badge,
                                 // TASK-C2-2026-08-05-build26-round4.md R-7: ツアー中の1本目カードを
                                 // 既存のhero強調枠(pink 2.5pt+pinkSoft地)で目立たせる。
                                 hero: isFirst,
@@ -1266,17 +1291,12 @@ private struct ResultContentView: View {
                             .padding(.top, 6)
                             .transition(.opacity)
                     }
-                    if !rx.isEmpty && !fdGuideActive {
+                    if !displayItems.isEmpty && !fdGuideActive {
                         Spacer().frame(height: 8)
-                        KyonoGhostButton("▶ 3本続けて再生する") {
-                            let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
+                        KyonoGhostButton("▶ \(displayItems.count)本続けて再生する") {
+                            let ids = displayItems.compactMap { quizVideoKeyToId[$0.key] }.joined(separator: ",")
                             openUrl("https://www.youtube.com/watch_videos?video_ids=\(ids)")
                         }
-                    }
-                    // index.html:81-85,327-328 WORRY[saved.worry](悩み別の追加1本。3本と重複しない場合のみ)の1:1移植。
-                    if let worry, let extra = worryExtraMap[worry], !rx.contains(extra.v), let v = lookupVideo(extra.v) {
-                        Spacer().frame(height: 4)
-                        VideoRow(v: v, openUrl: videoTapHandler, badge: "＋ \(extra.label)", disabledLook: fdGuideActive, useShortTitle: true)
                     }
                     // index.html:740 #rRotateNoteの1:1移植。
                     Spacer().frame(height: 4)
@@ -1284,7 +1304,9 @@ private struct ResultContentView: View {
                     // subFaintは実測コントラスト不足(3.87:1)で、Web版でもここはvar(--sub)であり
                     // 元々subFaintの用途ではなかった(subFaintの正しい用途はオガトレ通信の
                     // 30日超の古い投稿日付のみ・index.html:277-278)。
-                    Text("おすすめは3日ごとに自動で入れ替わります")
+                    // TASK-C2-2026-08-06-build30-round8.md R-27(本人裁定): 実装は毎日ローテのまま
+                    // (CardLottery.rotationIndex不変)。表記だけ「3日ごと」→「毎日」に修正。
+                    Text("おすすめは毎日自動で入れ替わります")
                         .kyonoFont(.bold700, size: 12).foregroundColor(colors.sub)
                 }
                 // TASK-C2-2026-08-02-build17-feedback-fixes.md Q-1: rPace/rSoudanLinkもガイド中だけ
