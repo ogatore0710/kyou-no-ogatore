@@ -313,12 +313,13 @@ private struct MyRecordContentView: View {
                     let next = data.MILESTONES.first { $0 > streak.total }
                     let ms = next.flatMap { n in data.MS.first { $0.d == n } }
                     // TASK-C2-2026-08-06-build30-round8.md R-28(本人指示+裁定済み・モック案A):
-                    // 見出しを「次のお祝いポイントは「◯◯」」に(◯◯=次の節目名・ピンク強調は現状
-                    // 踏襲)。「は通算N日目」「マイペースでどうぞ」は削除。
+                    // 見出しは「次のお祝いポイントは◯◯」(◯◯=次の節目名・ピンク強調は現状踏襲)。
+                    // 「は通算N日目」「マイペースでどうぞ」は削除。
+                    // TASK build31 R-35(本人指示・2026-08-06): 「は」のあとで改行し、外側の「」は
+                    // 削除(節目名自身が持つ『』は正本MSのまま)。
                     if let ms {
-                        (Text("次のお祝いポイントは「")
-                            + Text(ms.t).foregroundColor(colors.pinkInk).fontWeight(.black)
-                            + Text("」"))
+                        (Text("次のお祝いポイントは\n")
+                            + Text(ms.t).foregroundColor(colors.pinkInk).fontWeight(.black))
                             .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                     } else {
                         Text("全部の節目をたっせい！すごすぎます").kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)

@@ -912,14 +912,21 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
         // TASK-C2-2026-08-04-build22-yellow-return.md Z-4: カード同士が詰まって見えていた欠落を
         // 修正。カード間隔+連続再生ボタン前の間隔を揃えて+7dp確保(旧比+1.5倍相当)。
         // HomeTodayVideoRow自体のpadding(カード内密度)は不変。
+        // TASK build31 R-33(本人指示・2026-08-06): タグバッジ(誤タグ露出の温床)をやめ、
+        // 役割の記載「メインの一本」「余裕があったら追加の一本」へ。currentRxは
+        // メイン→しあげの順(OnboardingScreens.kt currentRx参照)なので位置で確定する。
         rx.forEachIndexed { i, key ->
-            lookupVideoByKey(key)?.let { v -> HomeTodayVideoRow(v, onVideoTap) }
+            lookupVideoByKey(key)?.let { v ->
+                HomeTodayVideoRow(v, onVideoTap, badge = if (i == 0) "メインの一本" else "余裕があったら追加の一本")
+            }
             if (i < rx.size - 1) Spacer(Modifier.height(7.dp))
         }
         if (rx.isNotEmpty()) {
             Spacer(Modifier.height(4.dp + 7.dp))
+            // TASK build31 R-34(本人指示): 「(名前)への3本 連続再生はこちら」→
+            // 「(名前)専用の動画連続再生はこちら」(本数表記は撤去・実本数と無関係にする)。
             KyonoGhostButton(
-                "▶ ${kyonoDisplayName(store)}への3本 連続再生はこちら",
+                "▶ ${kyonoDisplayName(store)}専用の動画連続再生はこちら",
                 {
                     val ids = rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")
                     onVideoTap("https://www.youtube.com/watch_videos?video_ids=$ids")
@@ -2370,16 +2377,19 @@ fun MyRecordScreen(
                 // 行送り超過でCompose既定のままだと1行分余分に折り返す(Web2行→ネイティブ3行)ため、
                 // KyonoTightLineTextStyleをここにも展開する。
                 // TASK-C2-2026-08-06-build30-round8.md R-28(本人指示+裁定済み・モック案A):
-                // 見出しを「次のお祝いポイントは「◯◯」」に(◯◯=次の節目名・ピンク強調は現状踏襲)。
+                // 見出しは「次のお祝いポイントは◯◯」(◯◯=次の節目名・ピンク強調は現状踏襲)。
                 // 「は通算N日目」「マイペースでどうぞ」は削除。
+                // TASK build31 R-35(本人指示・2026-08-06): 「は」のあとで改行し、外側の「」は
+                // 削除(節目名自身が持つ『』は正本MSのまま)。
                 if (next != null && ms != null) {
                     Text(
                         buildAnnotatedString {
-                            append("次のお祝いポイントは「")
+                            append("次のお祝いポイントは\n")
                             withStyle(SpanStyle(color = colors.pinkInk, fontWeight = FontWeight.Black)) { append(ms.t) }
-                            append("」")
                         },
-                        color = colors.ink, fontSize = 15.sp, lineHeight = 15.sp, style = KyonoTightLineTextStyle,
+                        // R-35: 改行入りになったため、1行前提だったlineHeight 15.sp(密着値)から
+                        // 2行が読める行送りへ(iOSのkyonoFont既定行送りと目視で揃える)。
+                        color = colors.ink, fontSize = 15.sp, lineHeight = 21.sp, style = KyonoTightLineTextStyle,
                         modifier = Modifier.testTag("msNote"),
                     )
                 } else {

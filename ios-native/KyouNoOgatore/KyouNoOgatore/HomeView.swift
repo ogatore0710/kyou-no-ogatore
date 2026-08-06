@@ -1264,13 +1264,19 @@ private struct TodayVideoSection: View {
             // 見えていた欠落を修正。カード間隔+連続再生ボタン前の間隔を揃えて+7pt確保(旧比+1.5倍相当)。
             // カード内部の密度(HomeTodayVideoRowの.padding(10)等)は不変。
             VStack(alignment: .leading, spacing: 7) {
-                ForEach(rx, id: \.self) { key in
+                // TASK build31 R-33(本人指示・2026-08-06): タグバッジ(誤タグ露出の温床)をやめ、
+                // 役割の記載「メインの一本」「余裕があったら追加の一本」へ。currentRxは
+                // メイン→しあげの順(OnboardingViews.swift currentRx参照)なので位置で確定する。
+                ForEach(Array(rx.enumerated()), id: \.offset) { i, key in
                     if let v = lookupVideoByKey(key) {
-                        HomeTodayVideoRow(v: v, openUrl: onVideoTap)
+                        HomeTodayVideoRow(v: v, openUrl: onVideoTap,
+                                          badge: i == 0 ? "メインの一本" : "余裕があったら追加の一本")
                     }
                 }
                 if !rx.isEmpty {
-                    KyonoGhostButton("▶ \(kyonoDisplayName(store))への3本 連続再生はこちら") {
+                    // TASK build31 R-34(本人指示): 「(名前)への3本 連続再生はこちら」→
+                    // 「(名前)専用の動画連続再生はこちら」(本数表記は撤去・実本数と無関係にする)。
+                    KyonoGhostButton("▶ \(kyonoDisplayName(store))専用の動画連続再生はこちら") {
                         let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
                         onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
                     }

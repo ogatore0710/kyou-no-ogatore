@@ -14,6 +14,20 @@ function loadGlobal(path, globalName) {
 const CATALOG = loadGlobal("../videos.js", "CATALOG");
 const OBU_FEED = loadGlobal("../obu-feed.js", "OBU_FEED");
 
+// TASK build31 R-32(本人指摘・2026-08-06): Web版videos.jsのタグに「足首」の「首」が
+// 首・肩こりへ誤マッチした10本が混入している(タイトルに肩こり/頭痛/ストレートネック等の
+// 首肩要素なし)。Web版無変更の原則のため、ネイティブ向け出力でのみ除去する。
+// 正本の両OSバンドルcatalog.json(st入り)は直接修正済み。ここは再生成時の再混入防止。
+const WRONG_NECK_TAG_IDS = new Set([
+  "iXNAGygELPQ", "t3C-N5_828k", "86u3S-epkRg", "cs1A8W_HofI", "6U4fgJu0ZMw",
+  "99xdVf6lPWs", "nkvn6zyYx08", "B-vdrGt8hlA", "8vftEiHldF8", "riNaWEe4qp4",
+]);
+for (const v of CATALOG) {
+  if (WRONG_NECK_TAG_IDS.has(v.id) && Array.isArray(v.tags)) {
+    v.tags = v.tags.filter((t) => t !== "首・肩こり");
+  }
+}
+
 mkdirSync(new URL("./out/", import.meta.url), { recursive: true });
 writeFileSync(new URL("./out/catalog.json", import.meta.url), JSON.stringify(CATALOG, null, 2));
 writeFileSync(new URL("./out/obu-feed.json", import.meta.url), JSON.stringify(OBU_FEED, null, 2));
