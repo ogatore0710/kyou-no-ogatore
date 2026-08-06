@@ -369,8 +369,7 @@ private struct KyonoPrimaryButtonStyle: ButtonStyle {
                 .background(colors.btnPrimaryShadow.opacity(alpha))
                 .cornerRadius(kyonoButtonRadius * zoom)
                 .offset(y: shadowOffset)
-                // R-49展開: 他の押し出し影(B3)とふちの硬さを揃える。
-                .blur(radius: kyonoDepthEdgeBlur * zoom)
+                // R-53(本人フィードバック): ボタンの影は元の硬いオフセット影のまま(ぼかし撤回)。
                 .accessibilityHidden(true)
             configuration.label
                 .padding(.horizontal, 18 * zoom).padding(.vertical, 16 * zoom)
@@ -405,11 +404,12 @@ struct KyonoGhostButton: View {
     // おおきめ設定で2行に折り返すため、KyonoPrimaryButtonのsingleLine(R-17)と同じ
     // 1行固定+自動縮小の差し込み口を追加。既定falseで他の呼び出し元は不変。
     var singleLine: Bool = false
-    // TASK build33 R-49(本人カード裁定): B3押し出し影(展開済み・既定true)。
-    var drop: Bool = true
+    // TASK build34 R-53(本人フィードバック「ボタンの縁には無し・枠の縁だけ」・2026-08-07):
+    // 押し出し影はカード類のみに戻し、ボタンは影なしへ(既定false)。
+    var drop: Bool = false
     let action: () -> Void
 
-    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, drop: Bool = true, action: @escaping () -> Void) {
+    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, drop: Bool = false, action: @escaping () -> Void) {
         self.text = text; self.icon = icon; self.singleLine = singleLine; self.drop = drop; self.action = action
     }
 

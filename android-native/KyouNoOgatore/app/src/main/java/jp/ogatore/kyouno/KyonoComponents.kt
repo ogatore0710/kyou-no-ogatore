@@ -341,8 +341,7 @@ fun KyonoPrimaryButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = shadowOffset)
-                // R-49展開: 他のB3押し出し影とふちの硬さを揃える(API31未満はblur無効=従来どおり)。
-                .blur(3.dp)
+                // R-53(本人フィードバック): ボタンの影は元の硬いオフセット影のまま(ぼかし撤回)。
                 .background(colors.btnPrimaryShadow.copy(alpha = alpha), KyonoButtonShape)
                 .padding(16.dp, 18.dp)
                 .clearAndSetSemantics {},
@@ -387,8 +386,9 @@ fun KyonoPrimaryButton(
 @Composable
 // TASK build32 R-46(本人指示・2026-08-06): singleLine=ホームの連続再生ボタン(本人指定の長い文言)
 // 用の1行固定+自動縮小(KyonoPrimaryButtonのR-17と同じ考え方)。既定falseで他の呼び出し元は不変。
-// TASK build33 R-49: drop=B3押し出し影(展開済み・既定true)。
-fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false, drop: Boolean = true) {
+// TASK build34 R-53(本人フィードバック「ボタンの縁には無し・枠の縁だけ」・2026-08-07):
+// 押し出し影はカード類のみに戻し、ボタンは影なしへ(既定false)。
+fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false, drop: Boolean = false) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }

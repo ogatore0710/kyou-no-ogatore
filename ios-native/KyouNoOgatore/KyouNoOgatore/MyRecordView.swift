@@ -252,9 +252,6 @@ private struct DexBannerCard: View {
     private var borderColor: Color { dark ? .clear : Color(hex: 0x177065) }
     private var borderWidth: CGFloat { dark ? 0 : 2.5 }
 
-    // TASK build33 R-49展開: 図鑑バナーにもB3押し出し影(teal面の下に濃tealを敷く)。
-    private var dropColor: Color { dark ? colors.tealStrong : Color(hex: 0xA8D3CA) }
-
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 10 * zoom) {
@@ -271,7 +268,8 @@ private struct DexBannerCard: View {
             }
             .padding(14 * zoom)
         }
-        .buttonStyle(DexBannerButtonStyle(background: bg, borderColor: borderColor, borderWidth: borderWidth, zoom: zoom, dropColor: dropColor))
+        // R-53: ボタン類は影なしへ戻す(dropColor=nil)。
+        .buttonStyle(DexBannerButtonStyle(background: bg, borderColor: borderColor, borderWidth: borderWidth, zoom: zoom))
     }
 }
 

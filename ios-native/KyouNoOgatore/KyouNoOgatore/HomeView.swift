@@ -1281,7 +1281,7 @@ private struct TodayVideoSection: View {
                     // 「(名前)専用の動画連続再生はこちら」(本数表記は撤去・実本数と無関係にする)。
                     // R-46: 本人指定文言のまま1行固定+自動縮小(おおきめ設定での2行折り返し解消)。
                     // R-49: 押し出し影(案B)。
-                    KyonoGhostButton("▶ \(kyonoDisplayName(store))専用の動画連続再生はこちら", singleLine: true, drop: true) {
+                    KyonoGhostButton("▶ \(kyonoDisplayName(store))専用の動画連続再生はこちら", singleLine: true) {
                         let ids = rx.compactMap { quizVideoKeyToId[$0] }.joined(separator: ",")
                         onVideoTap("https://www.youtube.com/watch_videos?video_ids=\(ids)")
                     }

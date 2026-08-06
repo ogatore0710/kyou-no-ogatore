@@ -932,8 +932,6 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
             KyonoGhostButton(
                 "▶ ${kyonoDisplayName(store)}専用の動画連続再生はこちら",
                 singleLine = true,
-                // R-49: 押し出し影(案B)。
-                drop = true,
                 onClick = {
                     val ids = rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")
                     onVideoTap("https://www.youtube.com/watch_videos?video_ids=$ids")
@@ -1067,8 +1065,6 @@ private fun DexBannerCard(got: Int, total: Int, preview: List<DexItem>, onClick:
         modifier = Modifier
             .fillMaxWidth()
             .alpha(if (pressed) 0.85f else 1f)
-            // TASK build33 R-49展開: 図鑑バナーにもB3押し出し影。
-            .kyonoDropShadow(if (dark) colors.tealStrong else Color(0xFFA8D3CA), 4.dp, KyonoButtonRadius)
             .background(bg, KyonoButtonShape)
             .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFF177065), KyonoButtonShape))
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
