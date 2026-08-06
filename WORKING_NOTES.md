@@ -4484,3 +4484,11 @@ subPC 3便（総点検minor3-7／使い方タブ刷新／5レンズ磨き）の�
 - 📮 朝6時ブリーフに「kyou-no宛リクエスト集計」を追加する約束が**発動済み**（前提だったGmailフィルタは設定済みと本人確認 2026-07-15）。ただしこれは**ハブ側=alan本体の作業**でこのリポジトリの作業ではない。ハブへ申し送り済み
 - 将来: 節目用の本人30秒メッセージ動画（MILESTONE_MSG_VIDEOの受け皿は実装済み・素材待ち）
 - ※2026-07-15棚卸しで除去した項目: 茜さんイラスト「お祝い」待ち（chara-congrats.pngとして受領・CHARA_FILES接続済み・7/14にDrive正式版へ差し替え完了）／配布方法の判断+Gmailフィルタ（本人確認で決定・設定済み）。イラスト転用の正式許諾は本人↔茜さん間のマターとして開発保留リストから外した
+
+## 2026-08-06 ビルド30(ラウンド8)完了時点の現在地
+- 体制変更: 本人⇔appdev直接ラリー化(alan5は休眠頭・節目検収のみ)。本体モデルはFable常時(機械的大物はsonnetサブエージェント委譲)。引き継ぎ正本=`HANDOFF-alan5-to-appdev-2026-08-06.md`
+- ビルド30: R-23〜R-31全9件実装・検収済み(報告=`REPORT-C2-2026-08-06-build30-round8.md`・実描画57〜78番)。**TestFlight提出は本人/alan5検収待ち**
+- R-30でiOSアイコンアセット名を`AppIcon`→`AppIconGood30`へ改名(キャッシュ対策・次回また変えるときも名前ごと変える)。dark/tintedバリアント廃止
+- R-31でchara/chara-2/chara-3/chara-hitokoto全面廃止(qa.js `checkBannedCharaArt`が再発を機械検知)。使用可は cheer/congrats/cracker/crown/good/kaikyaku の6枚のみ
+- R-26でおすすめは「メイン+しあげ+おまけ最大3本」仕様(Web版は駐車中のため意図的に不一致・CurrentRxTestは新仕様の期待値)
+- シミュレータ起動失敗の定石: bundle IDは`jp.ogatore.kyouno`(`jp.ogatore.KyouNoOgatore`ではない・FBSOpenApplicationエラーの正体はこれだった)
