@@ -929,6 +929,8 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
             KyonoGhostButton(
                 "▶ ${kyonoDisplayName(store)}専用の動画連続再生はこちら",
                 singleLine = true,
+                // R-49: 押し出し影(案B)。
+                drop = true,
                 onClick = {
                     val ids = rx.mapNotNull { QUIZ_VIDEO_KEY_TO_ID[it] }.joinToString(",")
                     onVideoTap("https://www.youtube.com/watch_videos?video_ids=$ids")
@@ -970,6 +972,16 @@ private fun HomeTodayVideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge:
             .clickable { openUrl("https://www.youtube.com/watch?v=${v.id}") }
             // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-8: ダークでカードと同色に
             // 沈んでいた動画行を、子面トークン(childFace/childBorder)へ差し替え。ライトは無変更。
+            // TASK build33 R-49(本人カード裁定「案B・押し出し」): 動画行にも下ずれベタ影。
+            .then(
+                Modifier.drawBehind {
+                    drawRoundRect(
+                        color = if (dark) Color(0xFF262119) else Color(0xFFEBDCC9),
+                        topLeft = Offset(0f, 4.dp.toPx()),
+                        cornerRadius = CornerRadius(16.dp.toPx()),
+                    )
+                },
+            )
             .background(colors.childFace, RoundedCornerShape(16.dp))
             .border(1.5.dp, colors.childBorder, RoundedCornerShape(16.dp))
             .padding(10.dp)
@@ -1464,7 +1476,7 @@ fun HomeScreen(
             // 1:1移植。既存の`showDoneNudge`(動画から戻った直後の「おかえりなさい」)とは別物
             // (あちらはqbubbleの見出し差し替えのみ・こちらは3日以上あいた復帰を祝う専用カード)。
             if (showWelcomeBack) {
-                KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("welcomeBackCard")) {
+                KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("welcomeBackCard"), drop = true) {
                     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         KyonoCharaImage("chara_good", Modifier.size(84.dp))
                     }
@@ -1488,7 +1500,7 @@ fun HomeScreen(
             // 「とどくメーター」での再測定に誘う(ネイティブに独立したreach画面は無く、Web版navTo('reach')
             // 相当はMyRecordタブ内にインライン移植済みのため、そちらへ遷移させる)。
             if (showRecheck) {
-                KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("recheckCard")) {
+                KyonoGradientCard(KyonoGradient.Mint, Modifier.testTag("recheckCard"), drop = true) {
                     Text(
                         "チェックから2週間たったよ\n前屈 どこまで届くようになった？",
                         color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
@@ -1512,6 +1524,7 @@ fun HomeScreen(
                     Modifier
                         .testTag("todayCard")
                         .onGloballyPositioned { coords -> todayCardY = coords.positionInParent().y },
+                    drop = true,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         KyonoIconGlyph(KyonoIcon.Play, fill = Color.Transparent, accent = colors.pink, modifier = Modifier.size(18.dp))
@@ -1584,7 +1597,7 @@ fun HomeScreen(
 
         @Composable fun StreakSection() {
             // index.html:686 #streakCard(続けた日数・通算)相当。
-            KyonoCard(Modifier.testTag("streakCard")) {
+            KyonoCard(Modifier.testTag("streakCard"), drop = true) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     KyonoIconGlyph(KyonoIcon.CalendarCheck, fill = Color.Transparent, accent = colors.pink, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
@@ -2252,7 +2265,7 @@ fun HomeScreen(
 @Composable
 private fun CkCard(onStartQuiz: () -> Unit) {
     val colors = LocalKyonoColors.current
-    KyonoCard(Modifier.testTag("ckCard")) {
+    KyonoCard(Modifier.testTag("ckCard"), drop = true) {
         KyonoSectionHeader(KyonoIcon.QuizCheck, "かたさチェック", fill = colors.tealSoft)
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2284,7 +2297,7 @@ private fun SoudanCard(onOpenSoudan: (String?) -> Unit) {
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-8(本人指示・IMG_8771・引き算): 「タップで
     // そのまま聞けるよ」の行とおすすめチップ4つを削除。カードは見出し+一言+「相談する」ボタン
     // だけにする(モーダル内のチップ行は不変・そちらは触らない)。
-    KyonoCard(Modifier.testTag("soudanCard").clickable { onOpenSoudan(null) }) {
+    KyonoCard(Modifier.testTag("soudanCard").clickable { onOpenSoudan(null) }, drop = true) {
         KyonoSectionHeader(KyonoIcon.SoudanBubble, "オガトレ相談室", fill = colors.tealSoft, accent = colors.teal)
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {

@@ -376,7 +376,8 @@ fun KyonoPrimaryButton(
 @Composable
 // TASK build32 R-46(本人指示・2026-08-06): singleLine=ホームの連続再生ボタン(本人指定の長い文言)
 // 用の1行固定+自動縮小(KyonoPrimaryButtonのR-17と同じ考え方)。既定falseで他の呼び出し元は不変。
-fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false) {
+// TASK build33 R-49: drop=押し出し影の差し込み口(既定false・まずホームの連続再生ボタンのみ)。
+fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false, drop: Boolean = false) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }
@@ -392,6 +393,17 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             .fillMaxWidth()
             .offset(y = if (pressed) 1.dp else 0.dp)
             .alpha(if (pressed) 0.85f else 1f)
+            .then(
+                if (drop) {
+                    Modifier.drawBehind {
+                        drawRoundRect(
+                            color = if (dark) colors.tealStrong else Color(0xFFA8D3CA),
+                            topLeft = Offset(0f, 4.dp.toPx()),
+                            cornerRadius = CornerRadius(KyonoButtonRadius.toPx()),
+                        )
+                    }
+                } else Modifier,
+            )
             .background(bg, KyonoButtonShape)
             .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFF177065), KyonoButtonShape))
             // Fable監査GO-3: enabled=falseのときは.clickable自体を付けない(clickable自身の
