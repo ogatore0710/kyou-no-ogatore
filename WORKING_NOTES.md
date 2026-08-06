@@ -12,6 +12,10 @@
 
 **休眠時点の現在地**: ビルド30=ラウンド8の8件(R-23〜R-29+R-31)+アイコン刷新(R-30)をappdevが実装中（発注書2本=`TASK-C2-2026-08-06-build30-round8.md`+`-addendum-R30-icon.md`・アイコンマスター=`art-raw/app-icon-master-1024.png`）。午前にC2 OAuth失効→本人承認で復旧済み。サブPC遅延commit(meter.jpg圧縮+sw v65)はQA462全緑・Webゲート越えは本人報告済み(戻さない判断)。残ボールと駐車中はHANDOFFファイル参照。
 
+### ⚡ 2026-08-06夕 build31実装済み・提出GO待ち（appdev直接ラリー1巡目）
+
+**ラウンド9(R-32〜R-40・9件)を両OS実装・検証済み。TestFlight提出は本人GO待ち。** 詳細=`REPORT-C2-2026-08-06-build31-round9.md`。要点: ①足首動画の誤タグ10本除去（「足首」の「首」誤マッチ・Web版不変・gen-catalog.mjsに再混入防止） ②ホームあなた用「メインの一本/余裕があったら追加の一本」表記+連続再生ボタン文言 ③**R-39=SettingsViewが自巻きKyonoThemeの外側で@Environmentを読みライト色が漏れる実装バグ根治**（やるタイミング沈み・よびな欄白の正体・全16struct棚卸しで該当1件のみ・Android無罪） ④**R-38=ダークボタン案B**（本人カード裁定: 行動=tealベタ塗り#2BB3A3+#26261F 5.86:1・弱=面#544D40+ink 7.15:1・図鑑バナーは対象外判断） ⑤マイ設定改名・使い方ツアーボタン黄主ボタン化・続けた記録改行・初回チャット「！」締め（指定文言「すべて無料で登録はナシ！安心してね！」）。**検証ナレッジ**: iOS実描画はUITest(要pbxproj明示登録=同期フォルダではない！-only-testingが0件実行でも"SUCCEEDED"と出る罠)+NSLog→`simctl spawn log stream`検知→ホスト`simctl io screenshot`の型が確立（xcresult添付/ホスト直書き/ランナーコンテナ/UIPasteboardは全部空振り）。storeのseedは`Documents/kyono-store.json`直書き（二重JSONエンコード厳守）。証跡=`ios-native/verify/build31-round9/`79〜93番。
+
 ### ⚡ 2026-08-03時点の最新現在地（下の7/30節より先にこれを読む）
 
 **この4日でビルド8〜17を配信済み（10本）。** 全経緯はシフトログ（`ogatore-hub/shifts/log/2026-07-3{0,1}.md`・`2026-08-0{1,2,3}.md`）とTASK/REPORTファイル群（時系列で読める）にある。
