@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -156,17 +157,23 @@ fun KyonoCharaImage(resName: String, modifier: Modifier = Modifier) {
 @Composable
 fun KyonoAppHeader() {
     val colors = LocalKyonoColors.current
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.testTag("appHeader")) {
+    // R-73追補(エミュ実描画で発見): ホームの親ColumnがCenterHorizontallyのため、内容幅の
+    // ままだとヘッダーごと中央寄せされる(旧タイトル文字は幅が広く目立たなかった)。
+    // fillMaxWidthで常に左詰めにする(iOSのframe(maxWidth:.infinity, alignment:.leading)相当)。
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().testTag("appHeader")) {
         Column {
             // TASK build37 R-73(本人発案・裁定「めちゃいい。気持ち大きく」・2026-08-08):
             // タイトル文字列をロゴ画像(黄#バッジ+きょうのオガトレの一体型ワードマーク)へ。
             // 画像はアプリ同梱フォントM PLUS 1p(900)+実配色で描画生成(マスター=
             // art-raw/app-logo-master.png・drawable-nodpiの高解像度1枚を36dpへ縮小表示)。
             // 高さは初版30→36(本人指定「下のフォントより小さい気がする」への調整・iOS同値)。
+            // エミュ実描画で発見: height指定のみだとレイアウト幅がdrawableの固有幅のまま広く取られ、
+            // Fitの既定中央寄せでロゴが画面中央に描かれてしまう(iOSは左寄せ)。aspectRatioで
+            // レイアウト幅を実表示幅に一致させて左詰めにする(947x144=元画像の縦横比)。
             Image(
                 painter = painterResource(R.drawable.app_logo),
                 contentDescription = "#きょうのオガトレ",
-                modifier = Modifier.height(36.dp),
+                modifier = Modifier.height(36.dp).aspectRatio(947f / 144f),
                 contentScale = androidx.compose.ui.layout.ContentScale.Fit,
             )
             // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
