@@ -2526,18 +2526,9 @@ fun MyRecordScreen(
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier.testTag("calCell_$ds"),
                                             )
-                                            // GO-G13(5視点ワンループ): 「やった日」を色(teal塗り)だけでなく
-                                            // 形(✓)でも示す(色分けのみに頼らない)。
-                                            if (isDone) {
-                                                Text(
-                                                    "✓",
-                                                    color = Color.White,
-                                                    fontSize = 9.sp,
-                                                    fontWeight = FontWeight.Black,
-                                                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 1.dp, end = 3.dp)
-                                                        .testTag("calCellCheck_$ds"),
-                                                )
-                                            }
+                                            // GO-G13の✓補助バッジはR-77(本人指示・2026-08-08「日付の中のチェック
+                                            // マークいらないかも」)で削除。「やった日」は塗り丸そのものが
+                                            // 色+形の両方の手掛かりとして残る(色分けのみには戻らない)。
                                         }
                                     }
                                 }

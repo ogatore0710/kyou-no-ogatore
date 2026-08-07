@@ -702,16 +702,9 @@ private struct MyRecordContentView: View {
                                     .background(isDone ? colors.tealStrong : Color.clear)
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(isDone && selectedDay == ds ? colors.ink : (isToday ? colors.pink : .clear), lineWidth: 2.5))
-                                    // GO-G13(5視点ワンループ): 「やった日」を色(teal塗り)だけでなく
-                                    // 形(✓)でも示す(色分けのみに頼らない)。
-                                    .overlay(alignment: .bottomTrailing) {
-                                        if isDone {
-                                            // 装飾的な補助バッジのため、G12のbigtextフロア(読む文章向け)は
-                                            // 適用せず固定サイズにする(.kyonoFont()は使わない)。
-                                            Text("✓").font(.kyono(.black900, size: 9)).foregroundColor(.white)
-                                                .padding(.bottom, 1).padding(.trailing, 3)
-                                        }
-                                    }
+                                    // GO-G13の✓補助バッジはR-77(本人指示・2026-08-08「日付の中のチェック
+                                    // マークいらないかも」)で削除。「やった日」は塗り丸そのものが
+                                    // 色+形の両方の手掛かりとして残る(色分けのみには戻らない)。
                                     .contentShape(Circle())
                                     .onTapGesture { if isDone { selectedDay = ds } }
                             } else {
