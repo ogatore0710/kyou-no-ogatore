@@ -6,12 +6,16 @@ plugins {
 
 android {
     namespace = "jp.ogatore.kyouno"
-    compileSdk = 34
+    // TASK build36 R-64(Fable監査B-1・2026-08-07): Google Playの新規提出要件(API 35+)対応。
+    // targetSdk 35はAndroid 15+でedge-to-edgeが強制されるが、本アプリはテーマの
+    // statusBarColor方式のため、values-v35のwindowOptOutEdgeToEdgeEnforcementで
+    // 現状の見た目を維持している(themes.xml参照・targetSdk 36までの技術負債)。
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "jp.ogatore.kyouno"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }

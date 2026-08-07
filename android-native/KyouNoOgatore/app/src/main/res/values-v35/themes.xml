@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TASK build36 R-64(Fable監査B-1・2026-08-07): targetSdk 35のAndroid 15+ではedge-to-edgeが
+     強制され、statusBarColor/navigationBarColor方式(下のitem群)が無視されてコンテンツが
+     システムバー下へ潜り込む。本アプリはまだインセット対応をしておらず、Android 15実機/
+     エミュレータでの視覚検証手段も現時点で無いため、windowOptOutEdgeToEdgeEnforcementで
+     従来挙動を維持する。この属性はAPI 35でdeprecated(将来のtargetSdkで削除予定)のため、
+     targetSdk 36へ上げる前に本対応(enableEdgeToEdge+Compose WindowInsets)が必要=技術負債。
+     v31テーマのSplashScreen API項目もそのまま引き継ぐ(リソース修飾子は完全上書きのため)。 -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.KyouNoOgatore" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FFFAF3</item>
+        <item name="android:windowBackground">#FFFAF3</item>
+        <item name="android:navigationBarColor">#FFFAF3</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="android:windowSplashScreenBackground">#FFFAF3</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_badge</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#FFFAF3</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>
