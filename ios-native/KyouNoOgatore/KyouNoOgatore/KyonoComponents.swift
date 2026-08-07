@@ -32,6 +32,8 @@ struct KyonoCharaImage: View {
 // TASK-C2-2026-08-06-build30-round8.md R-31(本人指示・★): ヘッダーの手を振るchara(廃止絵)は
 // イラストごと削除し、タイトル+サブタイトルのみに(レイアウト詰め=画像と間隔ぶんが自然に詰まる)。
 struct KyonoAppHeader: View {
+    @Environment(\.kyonoColors) private var colors
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 1) {
@@ -45,7 +47,12 @@ struct KyonoAppHeader: View {
                 // 画像はアプリ同梱フォントM PLUS 1p(900)+実配色で描画生成したもので、マスターは
                 // art-raw/app-logo-master.png(スプラッシュ/アイコンと同じ意匠)。高さは初版30→36pt
                 // (本人指定「下のフォントより小さい気がする」への調整)。
-                Image("AppLogo").resizable().scaledToFit().frame(height: 36)
+                // R-73追補(Androidエミュ実描画で発見・iOSも同一アセットのため同罪): ロゴの文字色は
+                // ライトink(#3A3A35)焼き込みのため、ダークテーマでは背景に沈んでほぼ読めない。
+                // テーマはアプリ内設定(kyonoColors)でありシステムのcolorSchemeと独立なので、
+                // アセットカタログのダークバリアントではなく既存のdark判定イディオムで画像を選ぶ。
+                // AppLogoDark=文字だけダークink(#F2EDE1)へ差し替えたもの(黄バッジは共通)。
+                Image(dark ? "AppLogoDark" : "AppLogo").resizable().scaledToFit().frame(height: 36)
                 // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
                 KyonoBodyText("みんなで一緒にストレッチを習慣化").lineLimit(1)
             }

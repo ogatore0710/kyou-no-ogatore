@@ -170,8 +170,14 @@ fun KyonoAppHeader() {
             // エミュ実描画で発見: height指定のみだとレイアウト幅がdrawableの固有幅のまま広く取られ、
             // Fitの既定中央寄せでロゴが画面中央に描かれてしまう(iOSは左寄せ)。aspectRatioで
             // レイアウト幅を実表示幅に一致させて左詰めにする(947x144=元画像の縦横比)。
+            // R-73追補その2(エミュ実描画で発見): ロゴの文字色はライトink(#3A3A35)焼き込みのため、
+            // ダークテーマでは背景に沈んでほぼ読めない。テーマはアプリ内設定であり
+            // システムのnight qualifierと独立なので、drawable-nightではなく既存のdark判定
+            // イディオムで画像を選ぶ。app_logo_dark=文字だけダークink(#F2EDE1)版(黄バッジは共通)。
             Image(
-                painter = painterResource(R.drawable.app_logo),
+                painter = painterResource(
+                    if (colors.bg == KyonoDarkColors.bg) R.drawable.app_logo_dark else R.drawable.app_logo
+                ),
                 contentDescription = "#きょうのオガトレ",
                 modifier = Modifier.height(36.dp).aspectRatio(947f / 144f),
                 contentScale = androidx.compose.ui.layout.ContentScale.Fit,
