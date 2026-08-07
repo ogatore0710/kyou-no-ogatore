@@ -404,7 +404,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         textAlign = TextAlign.Center, lineHeight = 24.sp,
                     )
                     Spacer(Modifier.height(22.dp))
-                    KyonoPrimaryButton("はじめる", onClick = { obStarted = true }, modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp).testTag("obStartBtn"))
+                    KyonoPrimaryButton("はじめる", onClick = { obStarted = true }, modifier = Modifier.fillMaxWidth().testTag("obStartBtn"))
                 }
             }
             return@KyonoTheme
