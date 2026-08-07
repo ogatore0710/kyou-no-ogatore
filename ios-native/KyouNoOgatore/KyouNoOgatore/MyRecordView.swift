@@ -49,11 +49,6 @@ struct MyRecordView: View {
     @State private var month: Int
     @State private var reachList: [RecordLogic.ReachEntry]
     @State private var reachMsg: Text?
-    // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期状態は控えめに」):
-    // 実写のお手本写真が周囲のイラスト調カードから浮いて見える指摘を受け、GuideView.swiftの
-    // GdFoldSection(既存の折りたたみ文法・▴/▾トグル)と同じ考え方で開閉式にする。永続化はせず
-    // (設定項目ではないため)、この画面を開くたびに常に閉状態から始まる。
-    @State private var reachOpen = false
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Android版はremember(streak)で
     // streak変化のたびfreezeLeftを再計算するが、iOSはinit時の1回きり(private let)だった
     // ため、開きっぱなしで月が替わっても「のこり◯枚」が更新されなかった。streakと同様
@@ -313,6 +308,11 @@ private struct MyRecordContentView: View {
     @Binding var reachList: [RecordLogic.ReachEntry]
     @Binding var reachMsg: Text?
     @Binding var selectedDay: String?
+    // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期状態は控えめに」):
+    // 実写のお手本写真が周囲のイラスト調カードから浮いて見える指摘を受け、GuideView.swiftの
+    // GdFoldSection(既存の折りたたみ文法・▴/▾トグル)と同じ考え方で開閉式にする。永続化はせず
+    // (設定項目ではないため)、この画面を開くたびに常に閉状態から始まる。
+    @State private var reachOpen = false
     let doneDates: Set<String>
     let today: String
     let freezeLeft: Int
@@ -502,7 +502,17 @@ private struct MyRecordContentView: View {
                 // 無い重複表示だったため削除する(続けた記録カード内の説明文で既に触れている)。
 
                 KyonoCard {
-                    KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター（前屈チェック）", fill: colors.yellowSoft)
+                    // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期
+                    // 状態は控えめに」): GuideView.swiftのGdFoldSectionと同じ▴/▾トグル文法。実写の
+                    // お手本写真(下のKyonoCharaImage)を含む本体は開いたときだけ描画する。
+                    HStack {
+                        KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター（前屈チェック）", fill: colors.yellowSoft)
+                        Spacer()
+                        Text(reachOpen ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { reachOpen.toggle() }
+                    if reachOpen {
                     Spacer().frame(height: 8)
                     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #reach):
                     // index.html:898-899 常時表示の説明文・注意書きの1:1移植。
@@ -610,6 +620,7 @@ private struct MyRecordContentView: View {
                             }
                         }
                         .frame(height: 56, alignment: .bottom)
+                    }
                     }
                 }
 

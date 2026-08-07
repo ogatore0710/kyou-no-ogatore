@@ -2367,6 +2367,11 @@ fun MyRecordScreen(
 
         var reachList by remember { mutableStateOf(RecordLogic.getReach(store)) }
         var reachMsg by remember { mutableStateOf<androidx.compose.ui.text.AnnotatedString?>(null) }
+        // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期状態は控えめに」):
+        // 実写のお手本写真が周囲のイラスト調カードから浮いて見える指摘を受け、GuideScreen.ktの
+        // GdFoldSectionと同じ▴/▾トグル文法で開閉式にする。永続化はせず、この画面を開くたびに
+        // 常に閉状態から始まる。
+        var reachOpen by remember { mutableStateOf(false) }
         val freezeLeft = remember(streak) { RecordLogic.freezeLeft(store, Instant.now()) }
 
         // UI/UXパリティ監査GO-9・G6(2026-07-28): index.html:82 body{padding:20px 18px 180px}の
@@ -2663,7 +2668,17 @@ fun MyRecordScreen(
 
             Spacer(Modifier.height(16.dp))
             KyonoCard(Modifier.testTag("reachCard")) {
-                KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター（前屈チェック）", fill = colors.yellowSoft)
+                // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期
+                // 状態は控えめに」): GuideScreen.ktのGdFoldSectionと同じ▴/▾トグル文法。実写の
+                // お手本写真を含む本体は開いたときだけ描画する。
+                Row(
+                    Modifier.fillMaxWidth().clickable { reachOpen = !reachOpen }.testTag("reachToggle"),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター（前屈チェック）", fill = colors.yellowSoft, modifier = Modifier.weight(1f))
+                    Text(if (reachOpen) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
+                }
+                if (reachOpen) {
                 Spacer(Modifier.height(8.dp))
                 // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #reach):
                 // index.html:898-899 常時表示の説明文・注意書きの1:1移植。
@@ -2812,6 +2827,7 @@ fun MyRecordScreen(
                             )
                         }
                     }
+                }
                 }
             }
 
