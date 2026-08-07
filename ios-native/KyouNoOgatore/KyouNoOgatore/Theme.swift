@@ -79,9 +79,12 @@ let kyonoLightColors = KyonoColors(
     // 3.87:1でWCAG AA(4.5:1)未達だった(ダーク側の#8C8676は背景#211E19に対し4.58:1で元々AA達成
     // 済み・変更なし)。#757267へ底上げし4.64:1を確保(色味は保ったまま明度のみ下げた)。
     subFaint: Color(hex: 0x757267),
-    teal: Color(hex: 0x2BB3A3), tealStrong: Color(hex: 0x1E7B70), tealSoft: Color(hex: 0xDFF5F2),
-    tealInk: Color(hex: 0x177065), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0xFFE8E2),
-    pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xC04570), pinkSoft: Color(hex: 0xFFEDF3),
+    // TASK R-75(本人裁定・2026-08-08「緑はやめたい」→実機比較で「ピンク+こがね」確定):
+    // teal系トークンは名前を保ったまま値をピンク族へ、旧pink(お祝い系)はこがねへ玉突き
+    // (Android Theme.ktと同値・詳細コメントはそちら)。
+    teal: Color(hex: 0xE56A9A), tealStrong: Color(hex: 0xC04570), tealSoft: Color(hex: 0xFFEDF3),
+    tealInk: Color(hex: 0xA83860), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0xFFE8E2),
+    pink: Color(hex: 0xE0A400), pinkInk: Color(hex: 0x8A6D00), pinkSoft: Color(hex: 0xFFF3C4),
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-5(本人カード裁定): 背景を一段深いクリームへ
     // (白カードを浮かせて立体感を出す)。line(トラック等の面色)は新背景に対し実測1.04:1まで差が
     // 消えていたため、旧背景比の差(1.15:1)に近づく#EBDFC8へ半段調整(実測1.14:1)。
@@ -101,9 +104,10 @@ let kyonoDarkColors = KyonoColors(
     yellow: Color(hex: 0xFFD93B), yellowSoft: Color(hex: 0x3A3423), yellowInk: Color(hex: 0x3A3A35),
     ink: Color(hex: 0xF2EDE1),
     sub: Color(hex: 0xB9B2A0), sub2: Color(hex: 0xC6BFAE), subFaint: Color(hex: 0x8C8676),
-    teal: Color(hex: 0x2BB3A3), tealStrong: Color(hex: 0x1E7B70), tealSoft: Color(hex: 0x22403B),
-    tealInk: Color(hex: 0x7BD0C4), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0x3A2A24),
-    pink: Color(hex: 0xE56A9A), pinkInk: Color(hex: 0xE56A9A), pinkSoft: Color(hex: 0x3A2730),
+    // TASK R-75(本人裁定・2026-08-08): ダーク用のピンク+こがね(Android Theme.ktと同値)。
+    teal: Color(hex: 0xE56A9A), tealStrong: Color(hex: 0xC24B78), tealSoft: Color(hex: 0x3A2730),
+    tealInk: Color(hex: 0xF0A8C4), coral: Color(hex: 0xFF8A70), coralSoft: Color(hex: 0x3A2A24),
+    pink: Color(hex: 0xF2C230), pinkInk: Color(hex: 0xF2C230), pinkSoft: Color(hex: 0x3A3423),
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-6(ダーク磨き込みA案): bg/cardの明度差を実測
     // 1.13:1→1.42:1へ拡大(背景から一段沈め・カードを一段浮かせ、白系ではなく暖色ブラウンの
     // ままトーンだけ広げる=藍化・黒化はしない)。line(トラック等の面色)は据え置き。

@@ -247,9 +247,9 @@ private struct DexBannerCard: View {
     // TASK build32 R-47(本人指示・2026-08-06): R-38案BでKyonoGhostButton系がtealベタ塗りへ
     // 移行した際に対象外にしていた最後のghost配色。同じダーク語彙(tealベタ塗り+濃文字・
     // 枠なし)へ統一する。ライトは不変。
-    private var textColor: Color { dark ? kyonoBtnPrimaryText : Color(hex: 0x0F5A50) }
-    private var bg: Color { dark ? colors.teal : Color(hex: 0xDFF5F2) }
-    private var borderColor: Color { dark ? .clear : Color(hex: 0x177065) }
+    private var textColor: Color { dark ? kyonoBtnPrimaryText : Color(hex: 0x9C3158) }
+    private var bg: Color { dark ? colors.teal : Color(hex: 0xFFEDF3) }
+    private var borderColor: Color { dark ? .clear : Color(hex: 0xC04570) }
     private var borderWidth: CGFloat { dark ? 0 : 2.5 }
 
     var body: some View {
@@ -612,7 +612,7 @@ private struct MyRecordContentView: View {
                         Spacer().frame(height: 10)
                         HStack(alignment: .bottom, spacing: 4) {
                             ForEach(Array(reachList.suffix(14).enumerated()), id: \.offset) { _, entry in
-                                LinearGradient(colors: [Color(hex: 0x7BD0C4), colors.teal], startPoint: .top, endPoint: .bottom)
+                                LinearGradient(colors: [Color(hex: 0xF0A8C4), colors.teal], startPoint: .top, endPoint: .bottom)
                                     .frame(width: 16, height: 56 * CGFloat(entry.lv) / 5)
                                     .cornerRadius(4)
                             }

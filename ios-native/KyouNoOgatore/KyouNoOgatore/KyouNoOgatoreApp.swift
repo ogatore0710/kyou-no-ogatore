@@ -325,7 +325,7 @@ struct RootView: View {
                     if showSoudanFab {
                         // TASK-C2-2026-08-02-build16-polish-and-ia.md P-2: 相談FABの💬絵文字を
                         // タブバー調のCanvas線画アイコン(soudanBubble)へ差し替える。
-                        KyonoFab(emoji: "", borderColor: Color(hex: 0x2BB3A3), accessibilityLabelText: "オガトレ相談室", icon: .soudanBubble) { screen = .soudan() }
+                        KyonoFab(emoji: "", borderColor: resolveKyonoColors(themeSetting: themeSetting, systemColorScheme: systemColorScheme).teal, accessibilityLabelText: "オガトレ相談室", icon: .soudanBubble) { screen = .soudan() }
                     }
                     if showObuFab {
                         KyonoFab(

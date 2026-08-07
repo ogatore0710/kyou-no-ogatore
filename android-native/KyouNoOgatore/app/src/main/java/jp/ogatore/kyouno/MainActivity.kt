@@ -1059,14 +1059,14 @@ private fun DexBannerCard(got: Int, total: Int, preview: List<DexItem>, onClick:
     // TASK build32 R-47(本人指示・2026-08-06): R-38案BでKyonoGhostButton系がtealベタ塗りへ
     // 移行した際に対象外にしていた最後のghost配色。同じダーク語彙(tealベタ塗り+濃文字・
     // 枠なし)へ統一する。ライトは不変。
-    val bg = if (dark) colors.teal else Color(0xFFDFF5F2)
-    val textColor = if (dark) KyonoBtnPrimaryText else Color(0xFF0F5A50)
+    val bg = if (dark) colors.teal else Color(0xFFFFEDF3)
+    val textColor = if (dark) KyonoBtnPrimaryText else Color(0xFF9C3158)
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .alpha(if (pressed) 0.85f else 1f)
             .background(bg, KyonoButtonShape)
-            .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFF177065), KyonoButtonShape))
+            .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFFC04570), KyonoButtonShape))
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(14.dp)
             .testTag("dexBannerCard"),
@@ -2821,7 +2821,7 @@ fun MyRecordScreen(
                             Box(
                                 Modifier.width(16.dp).fillMaxHeight(entry.lv / 5f)
                                     .background(
-                                        androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF7BD0C4), colors.teal)),
+                                        androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFFF0A8C4), colors.teal)),
                                         RoundedCornerShape(4.dp),
                                     )
                                     .testTag("reachTrendBar_${entry.d}"),

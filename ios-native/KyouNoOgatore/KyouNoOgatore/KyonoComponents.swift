@@ -460,7 +460,7 @@ struct KyonoGhostButton: View {
     // 文字#0F5A50(実測7.11:1)+枠#177065 2.5pt(実測5.71:1)へ復帰。
     // TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークはtealSoft面(カードより暗く沈む)を
     // やめ、tealベタ塗り+濃色文字(実測5.86:1)で「押せる行動ボタン」として最強調する。
-    private var textColor: Color { dark ? kyonoBtnPrimaryText : Color(hex: 0x0F5A50) }
+    private var textColor: Color { dark ? kyonoBtnPrimaryText : Color(hex: 0x9C3158) }
 
     var body: some View {
         Button(action: action) {
@@ -479,7 +479,7 @@ struct KyonoGhostButton: View {
         .buttonStyle(dark
             ? KyonoGhostButtonStyle(background: colors.teal, borderColor: .clear, borderWidth: 0, zoom: zoom,
                                     dropColor: drop ? colors.tealStrong : nil)
-            : KyonoGhostButtonStyle(background: Color(hex: 0xDFF5F2), borderColor: Color(hex: 0x177065), borderWidth: 2.5, zoom: zoom,
+            : KyonoGhostButtonStyle(background: Color(hex: 0xFFEDF3), borderColor: Color(hex: 0xC04570), borderWidth: 2.5, zoom: zoom,
                                     dropColor: drop ? Color(hex: 0xA8D3CA) : nil))
     }
 }

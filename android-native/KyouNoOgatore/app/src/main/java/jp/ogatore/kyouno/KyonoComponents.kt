@@ -459,8 +459,8 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
     // 文字#0F5A50(実測7.11:1)+枠#177065 2.5dp(実測5.71:1)へ復帰。
     // TASK build31 R-38(本人裁定「案B」・2026-08-06): ダークはtealSoft面(カードより暗く沈む)を
     // やめ、tealベタ塗り+濃色文字(実測5.86:1)・枠なしで「押せる行動ボタン」として最強調する。
-    val bg = if (dark) colors.teal else Color(0xFFDFF5F2)
-    val textColor = if (dark) KyonoBtnPrimaryText else Color(0xFF0F5A50)
+    val bg = if (dark) colors.teal else Color(0xFFFFEDF3)
+    val textColor = if (dark) KyonoBtnPrimaryText else Color(0xFF9C3158)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -473,7 +473,7 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
                 } else Modifier,
             )
             .background(bg, KyonoButtonShape)
-            .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFF177065), KyonoButtonShape))
+            .then(if (dark) Modifier else Modifier.border(2.5.dp, Color(0xFFC04570), KyonoButtonShape))
             // Fable監査GO-3: enabled=falseのときは.clickable自体を付けない(clickable自身の
             // enabledフラグに頼らず、Modifier.thenで条件付き付与することで、隠れている間は
             // ポインタイベントを一切消費しないことを構造的に保証する)。VoicesScreenの
