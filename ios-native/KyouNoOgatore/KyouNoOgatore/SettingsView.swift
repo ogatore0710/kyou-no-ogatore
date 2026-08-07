@@ -249,19 +249,17 @@ struct SettingsView: View {
                     // 閉じていても状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
                     // TASK-C2-2026-08-04-build20-addendum.md A-4: 「おしらせの時間」を「通知」
                     // セクションへ格上げ(見える化・整理。曜日指定などの新機能は足さない)。
-                    HStack {
-                        KyonoBodyText("通知")
-                        Spacer()
-                        Text(notifEnabled ? "\(String(format: "%02d", icsHour)):\(String(format: "%02d", icsMinute)) オン" : "オフ")
-                            .kyonoFont(.bold700, size: 13).foregroundColor(notifEnabled ? colors.tealInk : colors.sub)
-                        Text(notifSectionExpanded ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
+                    // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                    KyonoFoldToggleRow(open: notifSectionExpanded, onToggle: {
                         notifSectionExpanded.toggle()
                         if notifSectionExpanded {
                             DailyNotifications.checkAuthorizationStatus { granted in notifAuthorized = granted }
                         }
+                    }) {
+                        KyonoBodyText("通知")
+                        Spacer()
+                        Text(notifEnabled ? "\(String(format: "%02d", icsHour)):\(String(format: "%02d", icsMinute)) オン" : "オフ")
+                            .kyonoFont(.bold700, size: 13).foregroundColor(notifEnabled ? colors.tealInk : colors.sub)
                     }
                     if notifSectionExpanded {
                     Spacer().frame(height: 6)

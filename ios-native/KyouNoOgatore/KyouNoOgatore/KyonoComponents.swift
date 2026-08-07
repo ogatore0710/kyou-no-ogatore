@@ -212,6 +212,35 @@ struct KyonoBodyText: View {
     }
 }
 
+// TASK build36 R-61(Fable監査A-4・2026-08-07): アプリ内の折りたたみトグル(▴/▾)が
+// VoiceOverに「ボタンであること」「開/閉状態」を伝えていなかった(単なるTextとして読まれるだけ)
+// のを共通部品化して一括修正。呼び出し側は既存どおり見出し部分(必要ならSpacer込み)を
+// headerクロージャに渡すだけで、▴/▾テキストの付与・タップ判定・a11y付与はここに一本化する。
+// header側に既にSpacer()が含まれるケース(GdFoldSection等)ではそのまま末尾に▴/▾が続き、
+// header側で既にレイアウトが完結しているケース(SettingsViewの通知行等)もそのまま連結される
+// だけなので、見た目(既存のHStack構成)は一切変えない。alignmentは呼び出し元のHStack
+// alignmentをそのまま渡せるようにして(FAQ項目行は.top)ピクセル差を出さない。
+struct KyonoFoldToggleRow<Header: View>: View {
+    @Environment(\.kyonoColors) private var colors
+    let open: Bool
+    var alignment: VerticalAlignment = .center
+    let onToggle: () -> Void
+    @ViewBuilder let header: () -> Header
+
+    var body: some View {
+        HStack(alignment: alignment) {
+            header()
+            Text(open ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
+                .accessibilityHidden(true)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onToggle)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue(open ? "ひらいています" : "とじています")
+    }
+}
+
 // TASK-C2-2026-08-04-build22-yellow-return.md Z-7(本人カード裁定「案1・数字が主役」): 「通算N日」の
 // 1行見出しを、記録カードと同じBanananum流儀の大きな数字を中央に主役配置する形へ再設計。
 // 「通算」の言葉は本文からも全廃(呼び出し元の見出しごと変更)し、連続記録の付帯情報(いま○日連続/

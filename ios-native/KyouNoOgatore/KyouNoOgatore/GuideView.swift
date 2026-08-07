@@ -369,24 +369,23 @@ private struct GuideContentView: View {
                             if !visible.isEmpty {
                                 let isOpen = openGroups.contains(group.title) || !nq.isEmpty
                                 // index.html:180-183 .faq-g(グループ見出し・開閉矢印)
-                                HStack {
+                                // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                                KyonoFoldToggleRow(open: isOpen, onToggle: { toggleGroup(group.title) }) {
                                     if let icon = group.icon {
                                         KyonoIconGlyph(icon: icon, fill: .clear, accent: colors.sub).frame(width: 16, height: 16)
                                     }
                                     Text(group.title).kyonoFont(.black900, size: 14).foregroundColor(colors.sub)
                                     Spacer()
-                                    Text(isOpen ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                                 }
                                 .padding(.top, 12)
-                                .contentShape(Rectangle())
-                                .onTapGesture { toggleGroup(group.title) }
                                 if isOpen {
                                     ForEach(visible, id: \.q) { item in
                                         let key = group.title + "|" + item.q
                                         let open = openItems.contains(key)
                                         // index.html:190-196 .faq details/summary(枠線ボックス・"Q"プレフィックス)
                                         VStack(alignment: .leading, spacing: 8) {
-                                            HStack(alignment: .top) {
+                                            // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                                            KyonoFoldToggleRow(open: open, alignment: .top, onToggle: { toggleItem(key) }) {
                                                 // TASK-C2-2026-08-01-build15-subtraction9.md #8: 小さい文字のpinkはcolors.pinkInk(AA対応)へ。
                                                 Text("Q").kyonoFont(.black900, size: 15).foregroundColor(colors.pinkInk)
                                                 // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:191 .faq summary
@@ -396,7 +395,6 @@ private struct GuideContentView: View {
                                                 // ここに展開する。
                                                 Text(item.q).kyonoFont(.extraBold800, size: 14).foregroundColor(colors.ink).lineSpacing(8)
                                                 Spacer()
-                                                Text(open ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                                             }
                                             if open {
                                                 // index.html:196 .faq .fa{font-size:14px;line-height:1.9}の1:1移植。
@@ -459,13 +457,11 @@ private struct GdFoldSection<Content: View>: View {
 
     var body: some View {
         KyonoCard {
-            HStack {
+            // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+            KyonoFoldToggleRow(open: open, onToggle: onToggle) {
                 KyonoSectionHeader(icon: icon, title: title, fill: fill, accent: accent ?? Color(hex: 0xE56A9A))
                 Spacer()
-                Text(open ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
             }
-            .contentShape(Rectangle())
-            .onTapGesture(perform: onToggle)
             if open {
                 Spacer().frame(height: 10)
                 VStack(alignment: .leading, spacing: 0, content: sectionContent)

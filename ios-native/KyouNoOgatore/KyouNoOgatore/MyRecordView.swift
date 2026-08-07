@@ -505,13 +505,11 @@ private struct MyRecordContentView: View {
                     // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期
                     // 状態は控えめに」): GuideView.swiftのGdFoldSectionと同じ▴/▾トグル文法。実写の
                     // お手本写真(下のKyonoCharaImage)を含む本体は開いたときだけ描画する。
-                    HStack {
+                    // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                    KyonoFoldToggleRow(open: reachOpen, onToggle: { reachOpen.toggle() }) {
                         KyonoSectionHeader(icon: .mountainCheck, title: "とどくメーター（前屈チェック）", fill: colors.yellowSoft)
                         Spacer()
-                        Text(reachOpen ? "▴" : "▾").kyonoFont(.bold700, size: 14).foregroundColor(colors.sub)
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture { reachOpen.toggle() }
                     if reachOpen {
                     Spacer().frame(height: 8)
                     // 全画面完全性監査タスク(TASK-C2-2026-07-26-full-completeness-audit.md #reach):

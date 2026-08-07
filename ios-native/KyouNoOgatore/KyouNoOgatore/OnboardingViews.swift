@@ -169,6 +169,34 @@ struct ChatBubble: Identifiable {
 // index.html:4211「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
 private let obBigtextAck = "OK！今後変えたくなったら「マイ記録」タブの「マイ設定」でいつでも変更できるよ！"
 
+// TASK build36 R-63(Fable監査A-6・2026-08-07): Android版OnboardingScreens.ktの
+// Channel(Channel.CONFLATED)に相当する、AsyncStreamベースのバッファ付きチャネル。
+// bufferingNewest(1)により受け手不在でも直近1件を保持し(=CONFLATED)、next()はタスク
+// キャンセルでnilを返す(Continuationのように永久サスペンド/リークしない)。
+private final class ObAsyncChannel<Element> {
+    private let continuation: AsyncStream<Element>.Continuation
+    private var iterator: AsyncStream<Element>.AsyncIterator
+
+    init() {
+        var c: AsyncStream<Element>.Continuation!
+        let stream = AsyncStream<Element>(bufferingPolicy: .bufferingNewest(1)) { c = $0 }
+        continuation = c
+        iterator = stream.makeAsyncIterator()
+    }
+
+    func send(_ value: Element) { continuation.yield(value) }
+
+    // 受信。値が来るまでサスペンドし、タスクキャンセル時はnil。
+    // (mutating asyncのnext()はプロパティ直呼びできないためローカルへ退避して呼ぶ。
+    // 消費者はrunFlowの1本だけ=直列なので、退避中に別のreceiveが走ることはない)
+    func receive() async -> Element? {
+        var it = iterator
+        let value = await it.next()
+        iterator = it
+        return value
+    }
+}
+
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §1): index.html:4182 obSay()の
 // 「1.5秒間隔で吹き出しが1つずつ出る」演出を.task+Task.sleep(1.5秒)のコルーチンで1:1再現する。
 // §D(TASK-C2-2026-07-27-behavior-parity-audit.md): index.html:4145 obReducedMotion()/4186
@@ -187,8 +215,12 @@ struct OnboardingView: View {
     @State private var routeCta: ObRouteInfo?
     @State private var answers: [String: String] = [:]
     // R-54: 選ばれたチップ本体だけでなく、実際にレンダリングされていた色(ObgColor)も一緒に受け取る。
-    @State private var pendingPick: CheckedContinuation<(ObChip, ObgColor), Never>?
-    @State private var pendingCta: CheckedContinuation<Void, Never>?
+    // TASK build36 R-63(Fable監査A-6・2026-08-07): CheckedContinuation方式からAndroid版
+    // (OnboardingScreens.ktのCONFLATED Channel)相当のバッファ付きチャネルへ変更。旧実装の穴:
+    // (a) チップ描画直後の高速タップがpendingPick代入前に来ると黙って落ちて無反応に見えた
+    // (b) 画面破棄時にwithCheckedContinuationがキャンセル非対応で永久サスペンド+リークした
+    @State private var pickChannel = ObAsyncChannel<(ObChip, ObgColor)>()
+    @State private var ctaChannel = ObAsyncChannel<Void>()
 
     init(store: RecordStore, onComplete: @escaping (String, String?) -> Void) {
         self.store = store
@@ -242,25 +274,14 @@ struct OnboardingView: View {
         }
     }
 
-    private func awaitPick() async -> (ObChip, ObgColor) {
-        await withCheckedContinuation { cont in
-            pendingPick = cont
-        }
-    }
-
-    private func awaitCta() async {
-        await withCheckedContinuation { cont in
-            pendingCta = cont
-        }
-    }
-
     private func runFlow() async {
         await say(obGreet)
         for q in obQuestions {
             // index.html:4197 obAskQ(): 質問文もobSay経由(1行)なので表示後に1.5秒待ってからチップを出す。
             await say([q.q])
             activeQuestion = q
-            let (picked, pickedColor) = await awaitPick()
+            // R-63: receive()はタスクキャンセル(画面破棄)でnilを返すので、そのままフローを終える。
+            guard let (picked, pickedColor) = await pickChannel.receive() else { return }
             activeQuestion = nil
             answers[q.key] = picked.v
             // R-54: obPick内obBubble("user",...)は即時(index.html:4221)。色は実際にタップされた
@@ -281,7 +302,8 @@ struct OnboardingView: View {
         let routeInfo = obRoutes[obDecideRoute(stiff: stiff, worry: worry)]!
         await say(routeInfo.say)
         routeCta = routeInfo
-        await awaitCta()
+        // R-63: 画面破棄でnil→finish()せず抜ける(旧実装は永久サスペンドしていた)。
+        guard await ctaChannel.receive() != nil else { return }
         routeCta = nil
         finish()
     }
@@ -294,12 +316,11 @@ struct OnboardingView: View {
                 bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
                 isFirstRun: isFirstRun,
                 onChipTap: { chip, color in
-                    pendingPick?.resume(returning: (chip, color))
-                    pendingPick = nil
+                    // R-63: 受け手がまだ居なくても直近1件がバッファされるため、先行タップも失われない。
+                    pickChannel.send((chip, color))
                 },
                 onCtaTap: {
-                    pendingCta?.resume(returning: ())
-                    pendingCta = nil
+                    ctaChannel.send(())
                 }
             )
         }
