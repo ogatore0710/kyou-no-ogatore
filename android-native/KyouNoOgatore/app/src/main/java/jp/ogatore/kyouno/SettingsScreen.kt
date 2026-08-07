@@ -349,17 +349,16 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                 // 状態がわかるよう、見出し行に現在時刻/オンオフの要約を残す。
                 // TASK-C2-2026-08-04-build20-addendum.md A-4: 「おしらせの時間」を「通知」
                 // セクションへ格上げ(見える化・整理。曜日指定などの新機能は足さない)。
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            notifSectionExpanded = !notifSectionExpanded
-                            if (notifSectionExpanded) {
-                                notifAuthorized = NotificationManagerCompat.from(context).areNotificationsEnabled()
-                            }
+                // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                KyonoFoldToggleRow(
+                    open = notifSectionExpanded,
+                    onToggle = {
+                        notifSectionExpanded = !notifSectionExpanded
+                        if (notifSectionExpanded) {
+                            notifAuthorized = NotificationManagerCompat.from(context).areNotificationsEnabled()
                         }
-                        .testTag("notifSectionHeader"),
+                    },
+                    modifier = Modifier.fillMaxWidth().testTag("notifSectionHeader"),
                 ) {
                     Text("通知", color = colors.ink, fontSize = 15.sp, modifier = Modifier.weight(1f))
                     Text(
@@ -367,7 +366,6 @@ fun SettingsScreen(store: RecordStore, onBack: () -> Unit) {
                         color = if (notifEnabled) colors.tealInk else colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text(if (notifSectionExpanded) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
                 }
                 if (notifSectionExpanded) {
                 Spacer(Modifier.height(6.dp))

@@ -444,12 +444,13 @@ fun GuideScreen(
                     if (visibleItems.isEmpty()) continue
                     // index.html:180-183 .faq-g(グループ見出し・開閉矢印)
                     val isOpen = openGroups[group.title] == true || nq.isNotEmpty()
-                    Row(
+                    // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                    KyonoFoldToggleRow(
+                        open = isOpen,
+                        onToggle = { openGroups[group.title] = !(openGroups[group.title] ?: false) },
                         modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp)
-                            .clickable { openGroups[group.title] = !(openGroups[group.title] ?: false) }
                             .testTag("faqGroup_${group.title}"),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (group.icon != null) {
@@ -458,7 +459,6 @@ fun GuideScreen(
                             }
                             Text(group.title, color = colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black)
                         }
-                        Text(if (isOpen) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
                     }
                     if (openGroups[group.title] == true || nq.isNotEmpty()) {
                         for (faqItem in visibleItems) {
@@ -473,7 +473,8 @@ fun GuideScreen(
                                     .padding(13.dp)
                                     .testTag("faqItem_$key"),
                             ) {
-                                Row(verticalAlignment = Alignment.Top) {
+                                // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                                KyonoFoldToggleRow(open = open, onToggle = { openItems[key] = !open }, verticalAlignment = Alignment.Top) {
                                     // TASK-C2-2026-08-01-build15-subtraction9.md #8: 小さい文字のpinkはcolors.pinkInk(AA対応)へ。
                                     Text("Q", color = colors.pinkInk, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 8.dp))
                                     // UI/UXパリティ監査2巡目A1(2026-07-29): index.html:191 .faq summary
@@ -485,7 +486,6 @@ fun GuideScreen(
                                         lineHeight = 22.4.sp, style = KyonoTightLineTextStyle,
                                         modifier = Modifier.weight(1f),
                                     )
-                                    Text(if (open) "▴" else "▾", color = colors.sub)
                                 }
                                 if (open) {
                                     // index.html:196 .faq .fa{font-size:14px;line-height:1.9}の1:1移植。
@@ -553,16 +553,17 @@ private fun GdFoldSection(
             .onGloballyPositioned { coords -> anchorY[id] = coords.positionInRoot().y }
             .testTag(id),
     ) {
-        Row(
-            Modifier.fillMaxWidth().clickable(onClick = onToggle).testTag("${id}Toggle"),
-            verticalAlignment = Alignment.CenterVertically,
+        // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+        KyonoFoldToggleRow(
+            open = open,
+            onToggle = onToggle,
+            modifier = Modifier.fillMaxWidth().testTag("${id}Toggle"),
         ) {
             if (accent != null) {
                 KyonoSectionHeader(icon, title, fill = fill, accent = accent, modifier = Modifier.weight(1f))
             } else {
                 KyonoSectionHeader(icon, title, fill = fill, modifier = Modifier.weight(1f))
             }
-            Text(if (open) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
         }
         if (open) {
             Spacer(Modifier.height(10.dp))

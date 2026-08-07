@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,7 +55,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -171,6 +176,46 @@ fun KyonoAppHeader() {
                 maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+// TASK build36 R-61(Fable監査A-4・2026-08-07): アプリ内の折りたたみトグル(▴/▾)が
+// TalkBackに「ボタンであること」「開/閉状態」を伝えていなかった(単なるTextとして読まれるだけ)
+// のを共通部品化して一括修正。呼び出し元は既存どおり見出し部分(必要ならSpacer/Arrangement込み)を
+// headerに渡すだけで、▴/▾テキストの付与・クリック判定・a11y付与はここに一本化する。
+// modifierはfillMaxWidth/testTag等の既存指定を呼び出し元からそのまま受け取り、clickable/semantics
+// はこの部品側で一元付与する(呼び出し元でclickableを二重に付けないこと)。監査で判明した別件
+// (Androidの▾/▴が現状フォントサイズ未指定でM3既定に振れており、GuideScreen.ktのFAQ項目行は
+// Boldも無かった)もあわせて解消するため、iOSのbold700 size14に揃えてfontSize/fontWeightを
+// 明示する(これが唯一の意図的な見た目変更)。
+@Composable
+fun KyonoFoldToggleRow(
+    open: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    header: @Composable RowScope.() -> Unit,
+) {
+    val colors = LocalKyonoColors.current
+    Row(
+        modifier
+            .clickable(onClick = onToggle)
+            .semantics {
+                role = Role.Button
+                stateDescription = if (open) "ひらいています" else "とじています"
+            },
+        horizontalArrangement = horizontalArrangement,
+        verticalAlignment = verticalAlignment,
+    ) {
+        header()
+        Text(
+            if (open) "▴" else "▾",
+            color = colors.sub,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
     }
 }
 

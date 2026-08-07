@@ -2671,12 +2671,13 @@ fun MyRecordScreen(
                 // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期
                 // 状態は控えめに」): GuideScreen.ktのGdFoldSectionと同じ▴/▾トグル文法。実写の
                 // お手本写真を含む本体は開いたときだけ描画する。
-                Row(
-                    Modifier.fillMaxWidth().clickable { reachOpen = !reachOpen }.testTag("reachToggle"),
-                    verticalAlignment = Alignment.CenterVertically,
+                // TASK build36 R-61(Fable監査A-4・2026-08-07): 共通部品KyonoFoldToggleRowへ置き換え。
+                KyonoFoldToggleRow(
+                    open = reachOpen,
+                    onToggle = { reachOpen = !reachOpen },
+                    modifier = Modifier.fillMaxWidth().testTag("reachToggle"),
                 ) {
                     KyonoSectionHeader(KyonoIcon.MountainCheck, "とどくメーター（前屈チェック）", fill = colors.yellowSoft, modifier = Modifier.weight(1f))
-                    Text(if (reachOpen) "▴" else "▾", color = colors.sub, fontWeight = FontWeight.Bold)
                 }
                 if (reachOpen) {
                 Spacer(Modifier.height(8.dp))
