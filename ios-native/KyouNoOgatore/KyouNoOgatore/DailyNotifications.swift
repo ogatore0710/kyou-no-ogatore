@@ -82,7 +82,6 @@ enum DailyNotifications {
             let body = notifBody(store)
             let calendar = Calendar.current
             let now = Date()
-            let today = RecordLogic.todayStr(now: now)
             let doneDates = Set(RecordLogic.loadStreak(store).dates)
             var dayOffset = 0
             var scheduled = 0
@@ -93,7 +92,12 @@ enum DailyNotifications {
                 comps.minute = minute
                 comps.second = 0
                 if let fireDate = calendar.date(from: comps) {
-                    let dayStr = RecordLogic.todayStr(now: day)
+                    // TASK build36 R-62(Fable監査A-5・2026-08-07): 記録済み判定と通知idは
+                    // 「ループ日(now+offset)のアプリ日」ではなく「発火時刻が属するアプリ日
+                    // (todayStrの3時境界)」で取る。従来は深夜(0:00-3:00)に前日ぶんを記録した
+                    // 直後のresyncで、これから始まる新しいアプリ日のリマインドまで誤って
+                    // スキップされ1回欠落していた(Android computeNextTriggerと同根・同修正)。
+                    let dayStr = RecordLogic.todayStr(now: fireDate)
                     let isToday = dayOffset == 0
                     let alreadyDone = doneDates.contains(dayStr)
                     let pastTimeToday = isToday && fireDate <= now
@@ -109,7 +113,6 @@ enum DailyNotifications {
                     } else if !isToday {
                         scheduled += 1
                     }
-                    _ = today
                 }
                 dayOffset += 1
                 if dayOffset > 14 { break } // 安全弁(通常はscheduleDaysですぐ埋まる)

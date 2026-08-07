@@ -70,14 +70,21 @@ object DailyNotifications {
         return RecordLogic.loadStreak(store).dates.contains(today)
     }
 
-    // 次回の発火時刻(epoch millis)を計算する。今日の時刻がまだ来ておらず今日が未記録ならその時刻、
-    // それ以外(時刻を過ぎた/今日はもう記録済み)は翌日の同時刻。
+    // 次回の発火時刻(epoch millis)を計算する。時刻がまだ来ていない直近の候補を選び、その候補が
+    // 属する「アプリ日」がもう記録済みならさらに翌日へ送る。
+    // TASK build36 R-62(Fable監査A-5・2026-08-07): 従来は「now時点のアプリ日が記録済みか」で
+    // スキップしていたため、深夜(0:00-3:00)に前日ぶんを記録した直後にscheduleNextが走ると、
+    // これから始まる新しいアプリ日(3:00起点)のリマインドまで誤ってスキップされ1回欠落した。
+    // 判定を「候補時刻が属するアプリ日(todayStrの3時境界)」に揃えて解消する。
     private fun computeNextTrigger(store: RecordStore, zone: ZoneId = ZoneId.systemDefault()): Long {
         val (hour, minute) = resolveTime(store)
         val now = ZonedDateTime.now(zone)
         var candidate = now.withHour(hour).withMinute(minute).withSecond(0).withNano(0)
-        val todayDone = isTodayDone(store, zone)
-        if (candidate.isBefore(now) || candidate.isEqual(now) || todayDone) {
+        if (!candidate.isAfter(now)) {
+            candidate = candidate.plusDays(1)
+        }
+        val doneDates = RecordLogic.loadStreak(store).dates
+        if (doneDates.contains(RecordLogic.todayStr(candidate.toInstant(), zone))) {
             candidate = candidate.plusDays(1)
         }
         return candidate.toInstant().toEpochMilli()
