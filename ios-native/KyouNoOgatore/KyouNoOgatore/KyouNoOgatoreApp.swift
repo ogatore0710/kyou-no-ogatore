@@ -223,29 +223,16 @@ struct RootView: View {
     // 開いている間、両FABを隠すための橋渡し(HomeView側で発生した状態をルートへ伝える。
     // scrollToTodayPendingらと逆方向)。
     @State private var homeCardModalOpen = false
-    // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-590 #appSplashの
-    // 1:1移植(見た目+最低表示時間850ms)。Web版はdocument.fonts.readyを待つFOUT対策をしているが、
-    // ネイティブはフォントがバンドル同梱でネットワーク待ちが発生しないためその分岐は不要
-    // (最低表示時間の分岐だけ残す=起動が速い端末でも同じ長さブランドの一呼吸を見せる)。
-    @State private var showSplash = true
+    // TASK R-78(本人裁定「スプラッシュ廃止で」・2026-08-08): W-7で移植したアプリ内スプラッシュ
+    // (最低表示時間850ms)を廃止。システムLaunchScreen→アプリ内スプラッシュの受け渡しが
+    // ピクセル一致せず「ズレて見える」問題がR-45/R-70の2度の修正でも解消しなかったため、
+    // 2枚のリレー自体をやめてLaunchScreen 1枚にまかせる(実機録画のフレーム差分で、同一
+    // アセットでもiOSの起動画面描画とSwiftUI描画で位置・寸法が一致しないことを実測確認済み)。
+    // AndroidはシステムスプラッシュがアイコンのみというOS制約のためアプリ内スプラッシュを維持。
 
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
-            ZStack {
-                content
-                if showSplash {
-                    KyonoSplashView().transition(.opacity)
-                }
-            }
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
-                    if reduceMotion {
-                        showSplash = false
-                    } else {
-                        withAnimation(.easeOut(duration: 0.5)) { showSplash = false }
-                    }
-                }
-            }
+            content
         }
     }
 
@@ -578,17 +565,8 @@ struct RootView: View {
 // テーマ追従(colors.bg)にしていると、ダーク設定では「起動画像(R-16でライト固定)→暗い
 // スプラッシュ」の2枚に見える。起動画像と常に完全一致のライト固定へ(R-16と同じ理由の対)。
 // TASK build37 R-70(本人指摘「スプラッシュ、まだ2つの画像出る」・2026-08-07): アプリ内スプラッシュを
-// SwiftUI再描画(KyonoLaunchBadgeContent)からLaunchScreenと同一の画像アセット(LaunchChara)表示へ
-// 変更。従来はシステムLaunchScreen(焼きPNG)→SwiftUI描画版という「デザインは同じだが描画結果が
-// 微妙に違う2枚」が連続して見えていた。同じアセットを同じ配置ルール(中央・固有サイズ)で出すことで
-// 受け渡しがピクセル一致になり、起動が1枚のスプラッシュに見える。背景色もLaunchBackground
-// (#FAEDE2=kyonoLightColors.bg)と同一。
-private struct KyonoSplashView: View {
-    var body: some View {
-        kyonoLightColors.bg.ignoresSafeArea()
-            .overlay { Image("LaunchChara") }
-    }
-}
+// (R-78でアプリ内スプラッシュ廃止。旧KyonoSplashViewはRootViewから参照されなくなったため削除。
+//  スプラッシュはシステムLaunchScreen(UILaunchScreen dict+LaunchChara/LaunchBackground)のみ)
 
 // TASK-C2-2026-08-02-build17-feedback-fixes.md P-1: オンボ表示中、背後のHome(かたさチェック
 // カードの黄色ボタン等)が角丸カードの外にうっすら透けて見えていた欠陥の修正。旧実装は
