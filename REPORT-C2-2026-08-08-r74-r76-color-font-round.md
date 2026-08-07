@@ -45,3 +45,16 @@ build37実機いじり→エミュ環境での確認中に本人から連続で�
   (verify証跡: scratchpad b31-final/87,102-108)。iOSはビルドgreen+同一トークンのコード保証
   (iOS実描画は未確認・次ビルドの実機確認でカバー)。
 - scripts/qa.js green・Android unit test green・両OSビルドgreen。
+
+## 追補: R-77+build38出荷(2026-08-08)
+- R-77: カレンダー日付内の✓補助バッジ削除(両OS・本人指示)。GO-G13の色分けのみ回避は
+  塗り丸の形で担保継続。
+- build38: CURRENT_PROJECT_VERSION 37→38・ARCHIVE/EXPORT成功・ipa CFBundleVersion=38実照会
+- altool upload エラーなし
+- ASC裏取り(実照会): processingState=VALID/expired=False
+  (build_id b4978c65-0bac-4329-8ad6-34816ad618d1)・ベータグループ紐付けPOST 204・
+  逆引きでgroup builds一覧に"38"を確認・internalBuildState=IN_BETA_TESTING
+- whatsNew PATCH 200・再取得で本文一致を確認・本人へPush 1/1
+- 本人実機確認ゲート: iOS側のR-75配色(ライト/ダーク)・R-74ピル・タブフェード(R-69)・
+  スプラッシュ(R-70)。緑の残存4箇所(カテゴリチップb/オンボ緑吹き出し/相談室パレット/
+  Mintグラデ)の消す・残す裁定もこのビルドで。
