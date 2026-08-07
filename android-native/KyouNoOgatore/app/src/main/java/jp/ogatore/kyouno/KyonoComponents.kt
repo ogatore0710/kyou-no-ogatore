@@ -324,7 +324,7 @@ fun KyonoPrimaryButton(
             modifier = modifier
                 .fillMaxWidth()
                 .background(colors.line, KyonoButtonShape)
-                .padding(16.dp, 18.dp),
+                .padding(horizontal = 18.dp, vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -348,7 +348,7 @@ fun KyonoPrimaryButton(
                 .offset(y = shadowOffset)
                 // R-53(本人フィードバック): ボタンの影は元の硬いオフセット影のまま(ぼかし撤回)。
                 .background(colors.btnPrimaryShadow.copy(alpha = alpha), KyonoButtonShape)
-                .padding(16.dp, 18.dp)
+                .padding(horizontal = 18.dp, vertical = 16.dp)
                 .clearAndSetSemantics {},
             contentAlignment = Alignment.Center,
         ) { Text(text, color = Color.Transparent, fontSize = 20.sp, fontWeight = FontWeight.Black, maxLines = if (singleLine) 1 else Int.MAX_VALUE) }
@@ -362,7 +362,7 @@ fun KyonoPrimaryButton(
                 // TASK-C2-2026-08-04-build22-yellow-return.md Z-1: 案B新設の縁(2dp・実測vs背景
                 // 4.74:1・vs黄面3.57:1)。
                 .border(2.dp, KyonoBtnPrimaryBorder.copy(alpha = alpha), KyonoButtonShape)
-                .padding(16.dp, 18.dp),
+                .padding(horizontal = 18.dp, vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -422,7 +422,7 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             // ポインタイベントを一切消費しないことを構造的に保証する)。VoicesScreenの
             // カードめくりで、裏返っている間もボタンだけ独立してタップされてしまう事故の対策。
             .then(if (enabled) Modifier.clickable(interactionSource = interactionSource, indication = null, onClick = onClick) else Modifier)
-            .padding(16.dp, 18.dp),
+            .padding(horizontal = 18.dp, vertical = 16.dp),
         contentAlignment = Alignment.Center,
     ) {
         // UX13案・案8(2026-07-30): KyonoLineButtonと同じ差し込み口。ボタン用途の残存絵文字を
@@ -468,7 +468,7 @@ fun KyonoLineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
             .background(if (dark) KyonoBtnLineDarkFace else Color.Transparent, KyonoButtonShape)
             .then(if (dark) Modifier else Modifier.border(2.dp, Color(0xFF4A473D), KyonoButtonShape))
             .clickable(interactionSource = interactionSource, indication = null, enabled = enabled, onClick = onClick)
-            .padding(16.dp, 18.dp),
+            .padding(horizontal = 18.dp, vertical = 16.dp),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

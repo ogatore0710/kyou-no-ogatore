@@ -103,9 +103,9 @@ public enum SoudanEngine {
         let intent = lastIntentId.flatMap { lid in kb.intents.first(where: { $0.id == lid }) }
         switch f.mode ?? "text" {
         case "shorter":
-            return pickAnotherVideo(intent, shownVideoIds, found: "それなら、みじかめのこれ！", noIntent: "どの悩みのことか、下のチップから教えてもらえたら ぴったりの短いのを出すよ😊")
+            return pickAnotherVideo(intent, shownVideoIds, found: "それなら、みじかめのこれ！", noIntent: "どの悩みのことか、下のチップから教えてもらえたら ぴったりの短いのを出すよ")
         case "more":
-            return pickAnotherVideo(intent, shownVideoIds, found: "こっちもおすすめ！", noIntent: "どの悩みか、下のチップから教えてくれたら おすすめを出すよ😊")
+            return pickAnotherVideo(intent, shownVideoIds, found: "こっちもおすすめ！", noIntent: "どの悩みか、下のチップから教えてくれたら おすすめを出すよ")
         default:
             return textOnly(f.answer ?? "")
         }
@@ -180,7 +180,7 @@ public enum SoudanEngine {
     private static func pickAnotherVideo(_ intent: SafetyKB.Intent?, _ shownVideoIds: [String], found foundMsg: String, noIntent noIntentMsg: String) -> SoudanResponse {
         guard let intent else { return textOnly(noIntentMsg) }
         guard let pick = (intent.videos ?? []).first(where: { v in !shownVideoIds.contains(v.v) }) else {
-            return textOnly("いま出せるおすすめは以上!まずはさっきの1本からどうぞ😊")
+            return textOnly("いま出せるおすすめは以上!まずはさっきの1本からどうぞ")
         }
         return SoudanResponse(
             verdict: .normal, empathy: "", message: foundMsg, hasVideo: true,
@@ -198,7 +198,7 @@ public enum SoudanEngine {
         let near = ranked.filter { $0.score > 0 }.prefix(3).map { SoudanChip(id: $0.intent.id, label: $0.intent.chip) }
         return SoudanResponse(
             verdict: .normal, empathy: "",
-            message: "ごめんね、その悩みはまだ勉強中🙏\n近いのはこのあたりかも！下のチップからどうぞ",
+            message: "ごめんね、その悩みはまだ勉強中\n近いのはこのあたりかも！下のチップからどうぞ",
             hasVideo: false, hasFollowup: false, nearmissChips: Array(near), needsReferral: false,
             isFallback: true
         )
