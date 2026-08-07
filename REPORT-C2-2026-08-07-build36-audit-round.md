@@ -44,5 +44,12 @@
   ARCHIVE/EXPORT成功・ipa CFBundleVersion=36を実照会で確認
 - altool upload: エラーなし
 
-## ASC裏取り
-(追記欄: VALID/紐付け/IN_BETA_TESTING/whatsNew/Push)
+## ASC裏取り(実照会・2026-08-07)
+- processingState=VALID / expired=False (build_id 5e747ce1-b299-410c-bb37-02445750dc6d)
+- ベータグループ紐付け POST 204・逆引きでgroupのbuilds一覧に "36" を確認
+- buildBetaDetails internalBuildState=IN_BETA_TESTING
+- whatsNew PATCH 200・再取得で本文一致を確認:
+  「アプリ全体の総点検を行いました！記録データの保護を強化し、深夜の記録でお知らせが
+  飛ばなくなる不具合や、細かな見た目のズレを直しています。音声読み上げにも対応を
+  広げました！」
+- 本人へPush配信 1/1

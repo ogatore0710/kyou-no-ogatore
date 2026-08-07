@@ -12,13 +12,13 @@
 
 **休眠時点の現在地**: ビルド30=ラウンド8の8件(R-23〜R-29+R-31)+アイコン刷新(R-30)をappdevが実装中（発注書2本=`TASK-C2-2026-08-06-build30-round8.md`+`-addendum-R30-icon.md`・アイコンマスター=`art-raw/app-icon-master-1024.png`）。午前にC2 OAuth失効→本人承認で復旧済み。サブPC遅延commit(meter.jpg圧縮+sw v65)はQA462全緑・Webゲート越えは本人報告済み(戻さない判断)。残ボールと駐車中はHANDOFFファイル参照。
 
-### ⚡ 2026-08-07夕 Fable 8軸監査→R-58〜R-66消化(未配信・build36候補)
+### ⚡ 2026-08-07夕 Fable 8軸監査→R-58〜R-66消化→build36配信済み
 
 本人指示「Fableぶん回し」で監査エージェント8機並列(文言/数値パリティ・ストア準備・a11y・死にコード・エッジケース・表記ゆれ・qa強化)→統合報告=`REPORT-C2-2026-08-07-fable-audit-8axis.md`。その場でA群(実バグ級6件)+B群(ストアブロッカー3件)を消化:
 - **R-58(最重要)**: 記録全消失シナリオ恒久対策。Androidをアトミック書き込み(tmp+fsync+rename)化、両OSにサルベージ(生bool/null自己修復)+破損隔離(.corrupt-*、2個保持)+隔離失敗時のみpersist封印。新規ユニット11本(途中切れ→保全の直接証明)。Fable設計レビュー裁定: AtomicFile不採用(素のJVMテスト維持)・自動復元不採用(サルベージが実質それ)・通知なし(静かなUX)。
 - R-59 iOS SafetyCore絵文字4箇所撤去(build16取り残し・KBの63個はWeb原典由来で対象外) / R-60 Androidボタン族padding縦横逆5箇所(Web=縦16横18) / R-61 折りたたみトグル10箇所をKyonoFoldToggleRow共通部品化(isButton+開閉状態読み上げ) / R-62 深夜記録でリマインド1回欠落(両OS・判定を発火時刻のアプリ日へ) / R-63 iOSオンボをObAsyncChannel(CONFLATED相当)化(高速タップ無反応+リーク解消・実機4設問即タップ通過=verify 132-133)。
 - **B群**: R-64 targetSdk/compileSdk 35(edge-to-edgeはvalues-v35のwindowOptOutEdgeToEdgeEnforcementで従来維持=**targetSdk 36前に要インセット対応の技術負債**。Robolectric 4.14.1へ)。R-65 upload keystore生成→`~/Claude/ogatore-hub/secrets/`保管(このリポ厳禁=auto-sync公開)・signingConfigs存在チェック付き・apksigner/AAB検証済み。R-66 ポリシー文面ドラフト=`DRAFT-privacy-policy-2026-08-07.md`(**本人チェック待ち→公開**)。
-- **残ボール**: build36出荷GO(本人)・iPad扱い裁定(family="1,2"のまま)・ポリシー文面OK。C群(中粒)/D群(掃除+qa.jsガード)は監査報告参照。
+- **build36出荷済み**(VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1)。**出荷時の学び**: R-63初版(AsyncStreamイテレータをクラスプロパティに持つ形)がReleaseアーカイブ時のみswift-frontend 6.3.3をクラッシュさせた(EarlyPerfInlinerの暗黙deinit処理・Debug/シミュレータでは無症状)→イテレータをasync関数ローカルへ移して回避。アーカイブはDebugビルドと別物として検証すること。**残ボール**: iPad扱い裁定(family="1,2"のまま)・ポリシー文面OK。C群(中粒)/D群(掃除+qa.jsガード)は監査報告参照。
 
 ### ⚡ 2026-08-07 build35配信済み（R-54〜R-57: ツアー色連動+タイピング演出+実バグ修正+折りたたみ）
 
