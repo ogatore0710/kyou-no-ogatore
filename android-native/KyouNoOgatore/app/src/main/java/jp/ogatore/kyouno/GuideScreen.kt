@@ -512,7 +512,10 @@ private fun GuideTocChipsFlow(chips: List<Pair<String, String>>, onTap: (String)
     val dark = colors.bg == KyonoDarkColors.bg
     // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-4(本人裁定「案A・白ピル+濃枠」):
     // ベージュ地(colors.line)が新背景#F7EEDCに同化していたため、ホームのセグメント選択ノブと
-    // 同じ文法(白地+枠#6B6857 2pt+文字#33322C)へライトのみ統一。ダークは現状維持。
+    // 同じ文法(白地+枠#6B6857 2pt+文字#33322C)へライトのみ統一。
+    // R-74(本人裁定「案B」・2026-08-08): W-4で据え置いたダークも同化していた(実測: 面vs背景
+    // 1.51:1・本人「少し見えにくい」)。Z-6のborderStrong(背景比7.70:1)の枠+ink文字で立たせる
+    // (ライトの「白ピル+濃枠」と同じ「枠で立たせる」文法のダーク対)。面はline据え置き。
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -520,10 +523,10 @@ private fun GuideTocChipsFlow(chips: List<Pair<String, String>>, onTap: (String)
     ) {
         chips.forEach { (label, id) ->
             Text(
-                label, color = if (dark) colors.sub else Color(0xFF33322C), fontSize = 13.sp, fontWeight = FontWeight.Black,
+                label, color = if (dark) colors.ink else Color(0xFF33322C), fontSize = 13.sp, fontWeight = FontWeight.Black,
                 modifier = Modifier
                     .background(if (dark) colors.line else Color.White, RoundedCornerShape(50))
-                    .then(if (dark) Modifier else Modifier.border(2.dp, Color(0xFF6B6857), RoundedCornerShape(50)))
+                    .border(2.dp, if (dark) colors.borderStrong else Color(0xFF6B6857), RoundedCornerShape(50))
                     .clickable { onTap(id) }
                     .padding(horizontal = 14.dp, vertical = 10.dp)
                     .testTag("gtocChip_$id"),
