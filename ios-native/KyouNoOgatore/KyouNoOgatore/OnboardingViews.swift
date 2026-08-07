@@ -173,28 +173,14 @@ private let obBigtextAck = "OK！今後変えたくなったら「マイ記録�
 // Channel(Channel.CONFLATED)に相当する、AsyncStreamベースのバッファ付きチャネル。
 // bufferingNewest(1)により受け手不在でも直近1件を保持し(=CONFLATED)、next()はタスク
 // キャンセルでnilを返す(Continuationのように永久サスペンド/リークしない)。
-private final class ObAsyncChannel<Element> {
-    private let continuation: AsyncStream<Element>.Continuation
-    private var iterator: AsyncStream<Element>.AsyncIterator
+// 実装形: 当初はイテレータをプロパティに持つクラスにしていたが、その暗黙deinitが
+// Releaseの最適化パス(EarlyPerfInliner)でswift-frontendをクラッシュさせた(Swift 6.3.3・
+// アーカイブ時のみ再現)。クラスをやめて「ストリーム+continuationのタプルを@Stateに、
+// イテレータは消費側async関数のローカル変数に」持つ形で回避する。
+private typealias ObChannel<Element> = (stream: AsyncStream<Element>, continuation: AsyncStream<Element>.Continuation)
 
-    init() {
-        var c: AsyncStream<Element>.Continuation!
-        let stream = AsyncStream<Element>(bufferingPolicy: .bufferingNewest(1)) { c = $0 }
-        continuation = c
-        iterator = stream.makeAsyncIterator()
-    }
-
-    func send(_ value: Element) { continuation.yield(value) }
-
-    // 受信。値が来るまでサスペンドし、タスクキャンセル時はnil。
-    // (mutating asyncのnext()はプロパティ直呼びできないためローカルへ退避して呼ぶ。
-    // 消費者はrunFlowの1本だけ=直列なので、退避中に別のreceiveが走ることはない)
-    func receive() async -> Element? {
-        var it = iterator
-        let value = await it.next()
-        iterator = it
-        return value
-    }
+private func obMakeChannel<Element>(_ type: Element.Type) -> ObChannel<Element> {
+    AsyncStream.makeStream(of: Element.self, bufferingPolicy: .bufferingNewest(1))
 }
 
 // 見た目パリティ第2弾(TASK-C2-2026-07-26-visual-parity-round2.md §1): index.html:4182 obSay()の
@@ -219,8 +205,8 @@ struct OnboardingView: View {
     // (OnboardingScreens.ktのCONFLATED Channel)相当のバッファ付きチャネルへ変更。旧実装の穴:
     // (a) チップ描画直後の高速タップがpendingPick代入前に来ると黙って落ちて無反応に見えた
     // (b) 画面破棄時にwithCheckedContinuationがキャンセル非対応で永久サスペンド+リークした
-    @State private var pickChannel = ObAsyncChannel<(ObChip, ObgColor)>()
-    @State private var ctaChannel = ObAsyncChannel<Void>()
+    @State private var pickChannel = obMakeChannel((ObChip, ObgColor).self)
+    @State private var ctaChannel = obMakeChannel(Void.self)
 
     init(store: RecordStore, onComplete: @escaping (String, String?) -> Void) {
         self.store = store
@@ -275,13 +261,17 @@ struct OnboardingView: View {
     }
 
     private func runFlow() async {
+        // R-63: イテレータは.taskのasyncコンテキストのローカル変数として持つ(クラスのプロパティに
+        // するとReleaseのdeinit最適化がコンパイラクラッシュを踏むため・型定義部コメント参照)。
+        // next()はタスクキャンセル(画面破棄)でnilを返すので、そのままフローを終える。
+        var pickIterator = pickChannel.stream.makeAsyncIterator()
+        var ctaIterator = ctaChannel.stream.makeAsyncIterator()
         await say(obGreet)
         for q in obQuestions {
             // index.html:4197 obAskQ(): 質問文もobSay経由(1行)なので表示後に1.5秒待ってからチップを出す。
             await say([q.q])
             activeQuestion = q
-            // R-63: receive()はタスクキャンセル(画面破棄)でnilを返すので、そのままフローを終える。
-            guard let (picked, pickedColor) = await pickChannel.receive() else { return }
+            guard let (picked, pickedColor) = await pickIterator.next() else { return }
             activeQuestion = nil
             answers[q.key] = picked.v
             // R-54: obPick内obBubble("user",...)は即時(index.html:4221)。色は実際にタップされた
@@ -303,7 +293,7 @@ struct OnboardingView: View {
         await say(routeInfo.say)
         routeCta = routeInfo
         // R-63: 画面破棄でnil→finish()せず抜ける(旧実装は永久サスペンドしていた)。
-        guard await ctaChannel.receive() != nil else { return }
+        guard await ctaIterator.next() != nil else { return }
         routeCta = nil
         finish()
     }
@@ -317,10 +307,10 @@ struct OnboardingView: View {
                 isFirstRun: isFirstRun,
                 onChipTap: { chip, color in
                     // R-63: 受け手がまだ居なくても直近1件がバッファされるため、先行タップも失われない。
-                    pickChannel.send((chip, color))
+                    pickChannel.continuation.yield((chip, color))
                 },
                 onCtaTap: {
-                    ctaChannel.send(())
+                    ctaChannel.continuation.yield(())
                 }
             )
         }
