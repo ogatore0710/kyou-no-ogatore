@@ -593,7 +593,7 @@ struct HomeView: View {
                     Text(showReturnNudge ? "おかえりなさい" : "きょうのひとこと")
                         .kyonoFont(.black900, size: 12).foregroundColor(colors.sub)
                     Text(showReturnNudge
-                        ? "おわったら下の「きょうやった！」を押してね"
+                        ? "おわったら「きょうやった！」を押してね"
                         : "「\(QUOTES[quoteIdx])」")
                         .kyonoFont(.bold700, size: 15).foregroundColor(colors.ink)
                 }
@@ -1296,7 +1296,7 @@ private struct TodayVideoSection: View {
                 HomeTodayVideoRow(v: v, openUrl: onVideoTap, badge: effectiveMode == "asa" ? "きょうのあさ" : "きょうのよる")
             }
         }
-        Text("動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね")
+        Text("動画がおわったら アプリにもどって\n「きょうやった！」を押してね")
             .kyonoFont(.bold700, size: 13).foregroundColor(colors.sub)
             .frame(maxWidth: .infinity, alignment: .center).multilineTextAlignment(.center).padding(.top, 8)
     }

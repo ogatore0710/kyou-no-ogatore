@@ -364,22 +364,17 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         // 最後の吹き出しの「中身」変化を監視し(差し替えでも発火)、bot発言はその行の頭
         // (=行のY位置)へ・ユーザー発言だけ最下部へ。内容が画面に収まっている間はクランプで
         // 動かず、あふれてからは下方向にだけ進む。
+        // R-79(本人指摘「初めにガイドのボタン押したあと、上下がうるさい」・2026-08-08): R-71は
+        // 「相談室と同じ型(botは行頭へ)」に揃えたが、Web正本を再確認するとそれは相談室(sdAutoScroll)
+        // だけの挙動で、オンボのobBubble()は常にscrollTop=scrollHeight(=最下部)だった。botの
+        // 行頭アンカーは「ユーザー発言で最下部→bot発言で上へ引き戻し」の上下往復を生む(実機録画で
+        // 確認)。Web正本どおり常に最下部へ・下方向にしか動かない形に戻す。
         val lastBubble = bubbles.lastOrNull()
         LaunchedEffect(bubbles.lastIndex, lastBubble?.isTyping, lastBubble?.text, lastBubble?.fromUser) {
-            val targetKey = bubbles.lastIndex
-            if (targetKey < 0) return@LaunchedEffect
-            var y = obRowPositions[targetKey]
-            var tries = 0
-            while (y == null && tries < 10) {
-                withFrameNanos {}
-                y = obRowPositions[targetKey]
-                tries++
-            }
-            val target = if (lastBubble?.fromUser == true) {
-                obScrollState.maxValue
-            } else {
-                (y ?: obScrollState.maxValue.toFloat()).toInt().coerceIn(0, obScrollState.maxValue)
-            }
+            if (bubbles.lastIndex < 0) return@LaunchedEffect
+            // 追加直後はmaxValueが未更新のことがあるため1フレーム待ってから最下部へ。
+            withFrameNanos {}
+            val target = obScrollState.maxValue
             if (obReducedMotion) obScrollState.scrollTo(target) else obScrollState.animateScrollTo(target)
         }
         // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourScreen(D6)と同じ構造。

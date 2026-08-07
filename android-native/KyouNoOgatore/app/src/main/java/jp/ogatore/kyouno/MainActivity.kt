@@ -948,7 +948,7 @@ private fun TodayVideoSection(store: RecordStore, mode: String, plan: SdPlanData
         }
     }
     Text(
-        "動画がおわったら アプリにもどって\n下の「きょうやった！」を押してね",
+        "動画がおわったら アプリにもどって\n「きょうやった！」を押してね",
         color = colors.sub, fontSize = 13.sp, fontWeight = FontWeight.Black,
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp), textAlign = TextAlign.Center,
     )
@@ -1414,7 +1414,7 @@ fun HomeScreen(
                             color = colors.sub, fontSize = kyonoFloorSp(12f), fontWeight = FontWeight.Black,
                         )
                         Text(
-                            if (showReturnNudge) "おわったら下の「きょうやった！」を押してね"
+                            if (showReturnNudge) "おわったら「きょうやった！」を押してね"
                             else "「${QUOTES[(dayIndex(Instant.now()) % QUOTES.size).toInt()]}」",
                             color = colors.ink, fontSize = 15.sp, lineHeight = 25.sp,
                             modifier = Modifier.testTag("qbubbleText"),

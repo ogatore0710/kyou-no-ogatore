@@ -408,13 +408,16 @@ private struct OnboardingContentView: View {
         // (差し替えでもidが変わるので発火する)、bot発言はその行の頭(.top)へ・ユーザー発言だけ
         // 最下部(.bottom)へ。内容が画面に収まっている間は.topアンカーのクランプで一切動かず、
         // あふれてからは下方向にだけ進む。
+        // R-79(本人指摘「初めにガイドのボタン押したあと、上下がうるさい」・2026-08-08): R-71の
+        // 「botは行頭(.top)へ」は相談室(sdAutoScroll)だけのWeb挙動で、オンボのobBubble()は
+        // 常にscrollTop=scrollHeight(=最下部)が正本。行頭アンカーは「ユーザー発言で最下部→
+        // bot発言で上へ引き戻し」の上下往復を生んでいた(実機録画で確認)。常に最下部へ。
         .onChange(of: bubbles.last?.id) { _, _ in
             guard let last = bubbles.last else { return }
-            let anchor: UnitPoint = last.fromUser ? .bottom : .top
             if reduceMotion {
-                proxy.scrollTo(last.id, anchor: anchor)
+                proxy.scrollTo(last.id, anchor: .bottom)
             } else {
-                withAnimation { proxy.scrollTo(last.id, anchor: anchor) }
+                withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
             }
         }
         }
