@@ -12,6 +12,10 @@
 
 **休眠時点の現在地**: ビルド30=ラウンド8の8件(R-23〜R-29+R-31)+アイコン刷新(R-30)をappdevが実装中（発注書2本=`TASK-C2-2026-08-06-build30-round8.md`+`-addendum-R30-icon.md`・アイコンマスター=`art-raw/app-icon-master-1024.png`）。午前にC2 OAuth失効→本人承認で復旧済み。サブPC遅延commit(meter.jpg圧縮+sw v65)はQA462全緑・Webゲート越えは本人報告済み(戻さない判断)。残ボールと駐車中はHANDOFFファイル参照。
 
+### ⚡ 2026-08-07 build35配信済み（R-54〜R-57: ツアー色連動+タイピング演出+実バグ修正+折りたたみ）
+
+**build35**=build34直後の本人フィードバック(TestFlight実機スクショ2枚)への対応。①**R-54**: 使い方ツアーの回答吹き出しを、タップしたチップと同じ色(bg/border/text)に。②**R-55**: ツアーチャットの演出を相談室と統一(固定1.5秒待ち→タイピングドット+文字数連動待機。SdTypingDots/sdMsgLenを相談室から共通化)。③**R-56(実バグ)**: せんぱいの声の長文コメントが1行+「…」で止まる不具合を発見・修正——原因はR-29(build30)の高さ統一実装で「外側frame(height:)の提案がGeometryReader/onSizeChangedの計測結果へそのまま返る自己参照ループ」。iOS`.fixedSize(vertical:true)`/Android独自`Modifier.layout{}`で解消。④**R-57(本人選定「②折りたたみ」)**: とどくメーターが実写写真で周りのイラスト調カードから浮いて見える指摘に、使い方タブ既存のGdFoldSectionと同じ▴/▾トグルを適用(初期閉・永続化なし)。実描画6枚=`ios-native/verify/build31-round9/126〜131`(R-56ビフォーアフター・R-57開閉・R-54色一致・R-55タイピングドット)。詳細=`REPORT-C2-2026-08-07-build35-r54-57.md`。**教訓**: シミュレータがxcodebuild test完了後に自動でShutdownすることがあり、その状態でlog stream/screenshotを打つと何も拾えず0件になる(エラーも出ない)——撮影前に`simctl bootstatus -b`で明示的に起動を確認する。
+
 ### ⚡ 2026-08-07 build34配信済み（R-53 ボタン影撤去=立体は枠のみ）
 
 **build34**=build33への本人フィードバック「ボタンの縁には無し。あくまで枠の縁だけ。うるさくなった」への即応。**立体(B3押し出し影)は枠のみに縮退**: KyonoCard/GradientCard/動画行(HomeTodayVideoRow・検索VideoRow)は維持、GhostButton(drop既定false)・図鑑バナーは影撤去、黄PrimaryButtonはR-49で足したふちぼかしを撤回して**元の硬いオフセット影に復元**。両OS。実描画8枚(ライト/ダーク)=`ios-native/verify/build31-round9/118〜125`、本人4枚提示→go。詳細=`REPORT-C2-2026-08-07-build34-r53.md`。**意匠文法の現在形はこれが最新**(下のbuild33記載の「drop既定true・全ボタン適用」は上書きされた)。
