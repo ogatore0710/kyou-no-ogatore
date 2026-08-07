@@ -124,7 +124,9 @@ struct SdMessage: Identifiable, Codable, Equatable {
 }
 
 // index.html:3053 sdMsgLen()の1:1移植(タイピング待ち時間の計算専用。空白を除いた文字数)。
-private func sdMsgLen(_ text: String) -> Int {
+// TASK build34 R-55(本人指示・2026-08-07): オンボ/ツアーのタイピング演出でも同じ計算式を
+// 使い回すため、file-privateを外してOnboardingViews.swiftからも参照できるようにする。
+func sdMsgLen(_ text: String) -> Int {
     text.filter { !$0.isWhitespace }.count
 }
 
@@ -757,7 +759,9 @@ private struct SoudanContentView: View {
 
 // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の中身
 // (「…」3点を位相をずらして明滅させるドット)。
-private struct SdTypingDots: View {
+// TASK build34 R-55(本人指示・2026-08-07): オンボ/ツアーのチャットにも同じ演出を出すため、
+// file-privateを外してOnboardingViews.swiftからも参照できるようにする。
+struct SdTypingDots: View {
     @Environment(\.kyonoColors) private var colors
     @State private var animate = false
 

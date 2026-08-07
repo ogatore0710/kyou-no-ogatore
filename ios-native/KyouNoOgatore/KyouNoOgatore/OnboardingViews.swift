@@ -154,8 +154,14 @@ func obgNamedColor(_ key: String, dark: Bool) -> ObgColor? { (dark ? obgNamedCol
 
 struct ChatBubble: Identifiable {
     let id = UUID()
-    let text: String
+    var text: String = ""
     let fromUser: Bool
+    // TASK build34 R-54(本人指示・2026-08-07「実際のタップしたボタンと同じ色にできる？」):
+    // ユーザーが選んだチップの色(bg/border/text)をそのまま回答吹き出しへ引き継ぐ。botの吹き出しはnil。
+    var color: ObgColor? = nil
+    // TASK build34 R-55(本人指示・2026-08-07「相談室と同じ挙動にして」): 相談室のsdTypingと同じ
+    // 「…」タイピングドット演出用フラグ。trueのときtext/colorは無視してSdTypingDots()を出す。
+    var isTyping: Bool = false
 }
 
 // index.html:4395-4434 obOpen/obAskQ/obPick/obGoの1:1移植。「welcome」専用画面は無く、この会話UI
@@ -180,7 +186,8 @@ struct OnboardingView: View {
     @State private var activeQuestion: ObQuestionDef?
     @State private var routeCta: ObRouteInfo?
     @State private var answers: [String: String] = [:]
-    @State private var pendingPick: CheckedContinuation<ObChip, Never>?
+    // R-54: 選ばれたチップ本体だけでなく、実際にレンダリングされていた色(ObgColor)も一緒に受け取る。
+    @State private var pendingPick: CheckedContinuation<(ObChip, ObgColor), Never>?
     @State private var pendingCta: CheckedContinuation<Void, Never>?
 
     init(store: RecordStore, onComplete: @escaping (String, String?) -> Void) {
@@ -207,9 +214,24 @@ struct OnboardingView: View {
         onComplete(route, presetWorry)
     }
 
+    // TASK build34 R-55(本人指示・2026-08-07「チャットが表示される時、相談室と同じ挙動にして」):
+    // 固定1.5秒待ちをやめ、SoudanSheetView.swift revealBotMessages()と同じ「タイピングドット→
+    // 文字数に応じた待機→実文へ差し替え」の型に統一する(sdMsgLen/SdTypingDotsをそのまま再利用)。
     private func say(_ lines: [String]) async {
-        let wait: UInt64 = reduceMotion ? 0 : 1_500_000_000
-        for line in lines {
+        if reduceMotion {
+            // §D: index.html:3051 sdReduced()と同じく、reduced-motion時は演出無しで即時表示。
+            for line in lines {
+                bubbles.append(ChatBubble(text: line, fromUser: false))
+                UIAccessibility.post(notification: .announcement, argument: line)
+            }
+            return
+        }
+        for (i, line) in lines.enumerated() {
+            bubbles.append(ChatBubble(fromUser: false, isTyping: true))
+            let base = min(1600, 500 + sdMsgLen(line) * 22)
+            let wait = i == 0 ? 400 : (i == 1 ? base : base * 2)
+            try? await Task.sleep(nanoseconds: UInt64(wait) * 1_000_000)
+            bubbles.removeLast()
             bubbles.append(ChatBubble(text: line, fromUser: false))
             // アクセシビリティ対応(スクリーンリーダー無音問題の解消): 吹き出しを配列に積んだ
             // その瞬間だけ、その1件のテキストをVoiceOverへ通知する。post(.announcement,...)は
@@ -217,11 +239,10 @@ struct OnboardingView: View {
             // 呼び出し側が渡した文字列そのものを1回読み上げるだけの命令的API。したがって
             // 過去に出た吹き出し(bubbles中の既存要素)には一切触れず、会話の再読み上げは起きない。
             UIAccessibility.post(notification: .announcement, argument: line)
-            try? await Task.sleep(nanoseconds: wait)
         }
     }
 
-    private func awaitPick() async -> ObChip {
+    private func awaitPick() async -> (ObChip, ObgColor) {
         await withCheckedContinuation { cont in
             pendingPick = cont
         }
@@ -239,10 +260,12 @@ struct OnboardingView: View {
             // index.html:4197 obAskQ(): 質問文もobSay経由(1行)なので表示後に1.5秒待ってからチップを出す。
             await say([q.q])
             activeQuestion = q
-            let picked = await awaitPick()
+            let (picked, pickedColor) = await awaitPick()
             activeQuestion = nil
             answers[q.key] = picked.v
-            bubbles.append(ChatBubble(text: picked.label, fromUser: true)) // index.html:4221 obPick内obBubble("user",...)は即時
+            // R-54: obPick内obBubble("user",...)は即時(index.html:4221)。色は実際にタップされた
+            // チップと同じ(pickedColor)にする。
+            bubbles.append(ChatBubble(text: picked.label, fromUser: true, color: pickedColor))
             // アクセシビリティ対応: ユーザーが選んだチップの吹き出しも同様に、追加された瞬間だけ通知する。
             UIAccessibility.post(notification: .announcement, argument: picked.label)
             if q.key == "anchor" {
@@ -270,8 +293,8 @@ struct OnboardingView: View {
             OnboardingContentView(
                 bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
                 isFirstRun: isFirstRun,
-                onChipTap: { chip in
-                    pendingPick?.resume(returning: chip)
+                onChipTap: { chip, color in
+                    pendingPick?.resume(returning: (chip, color))
                     pendingPick = nil
                 },
                 onCtaTap: {
@@ -291,7 +314,8 @@ private struct OnboardingContentView: View {
     let activeQuestion: ObQuestionDef?
     let routeCta: ObRouteInfo?
     let isFirstRun: Bool
-    let onChipTap: (ObChip) -> Void
+    // R-54: 実際にレンダリング中の色(ObgColor)も一緒に渡す。
+    let onChipTap: (ObChip, ObgColor) -> Void
     let onCtaTap: () -> Void
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
@@ -331,12 +355,25 @@ private struct OnboardingContentView: View {
                             topLeadingRadius: 16, bottomLeadingRadius: b.fromUser ? 16 : 6,
                             bottomTrailingRadius: b.fromUser ? 6 : 16, topTrailingRadius: 16
                         )
-                        // TASK-C2-2026-08-04-build19-tour-redesign.md T-7: lineSpacing 11@15ptだと
-                        // 行がバラけて痩せて見えていた → 7へ詰める。
-                        Text(b.text).kyonoFont(.bold700, size: 15).foregroundColor(colors.ink).lineSpacing(7)
-                            .padding(.horizontal, 14).padding(.vertical, 10)
-                            .background(shape.fill(b.fromUser ? colors.yellowSoft : colors.card))
-                            .overlay(shape.stroke(b.fromUser ? Color.clear : colors.borderStrong, lineWidth: 1.5))
+                        // R-55: 「…」タイピングドット(相談室SdTypingDotsを再利用)。
+                        if b.isTyping {
+                            SdTypingDots()
+                                .padding(.horizontal, 16).padding(.vertical, 14)
+                                .background(shape.fill(colors.card))
+                                .overlay(shape.stroke(colors.borderStrong, lineWidth: 1.5))
+                        } else {
+                            // TASK-C2-2026-08-04-build19-tour-redesign.md T-7: lineSpacing 11@15ptだと
+                            // 行がバラけて痩せて見えていた → 7へ詰める。
+                            // R-54: ユーザー吹き出しは既定のyellowSoft/inkではなく、選ばれたチップの
+                            // 色(b.color)があればそちらを優先する(bg/border/text丸ごと)。
+                            Text(b.text).kyonoFont(.bold700, size: 15)
+                                .foregroundColor(b.fromUser ? (b.color?.text ?? colors.ink) : colors.ink)
+                                .lineSpacing(7)
+                                .padding(.horizontal, 14).padding(.vertical, 10)
+                                .background(shape.fill(b.fromUser ? (b.color?.bg ?? colors.yellowSoft) : colors.card))
+                                .overlay(shape.stroke(b.fromUser ? (b.color?.border ?? Color.clear) : colors.borderStrong,
+                                                       lineWidth: b.fromUser ? (b.color != nil ? 2 : 0) : 1.5))
+                        }
                         if !b.fromUser { Spacer(minLength: 40) }
                     }
                     .transition(.sdPop)
@@ -396,7 +433,7 @@ private struct OnboardingContentView: View {
                         .background(RoundedRectangle(cornerRadius: 16).fill(c.bg))
                         // Z-3: 縁を2pt→2.5ptへ太く(視認性強化)。
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(c.border, lineWidth: 2.5))
-                        .onTapGesture { onChipTap(chip) }
+                        .onTapGesture { onChipTap(chip, c) }
                 }
             }
             .padding(.horizontal, 20).padding(.bottom, 20)

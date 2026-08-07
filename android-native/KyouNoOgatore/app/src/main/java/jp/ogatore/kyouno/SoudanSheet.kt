@@ -8,10 +8,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -193,7 +189,8 @@ sealed class SdBubble {
 }
 
 // index.html:3053 sdMsgLen()の1:1移植(タイピング待ち時間の計算専用。空白を除いた文字数)。
-private fun sdMsgLen(text: String) = text.replace(Regex("\\s+"), "").length
+// TASK build34 R-55(本人指示・2026-08-07): オンボ/ツアーのタイピング演出でも同じ計算式を
+// 使い回すため、KyonoComponents.ktの共通版(package公開)へ切り出した(ここでの再定義はやめる)。
 
 // タイピング待ち時間計算のために各吹き出しから代表テキストを取り出す。Web版はHTML文字列全体から
 // タグを除いた文字数を使うため、動画注記込みの吹き出しもその見出しテキストで近似する。
@@ -626,6 +623,8 @@ fun SoudanSheet(
                         }
                         // TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の
                         // 1:1移植。「…」の3点を位相をずらして明滅させるタイピングドット。
+                        // R-55: ドット本体はKyonoComponents.ktのSdTypingDots()へ共通化(オンボ/
+                        // ツアーからも同じ見た目・タイミングで呼べるようにするため)。
                         is SdBubble.Typing -> Row(verticalAlignment = Alignment.Bottom) {
                             KyonoCharaImage("chara_good", Modifier.size(38.dp))
                             Spacer(Modifier.width(8.dp))
@@ -636,21 +635,7 @@ fun SoudanSheet(
                                     .padding(horizontal = 16.dp, vertical = 14.dp)
                                     .testTag("sdTypingBubble"),
                             ) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    repeat(3) { dotIndex ->
-                                        val infinite = rememberInfiniteTransition(label = "sdTypingDot$dotIndex")
-                                        val alpha by infinite.animateFloat(
-                                            initialValue = 0.3f,
-                                            targetValue = 1f,
-                                            animationSpec = infiniteRepeatable(
-                                                animation = tween(600, delayMillis = dotIndex * 150, easing = LinearEasing),
-                                                repeatMode = RepeatMode.Reverse,
-                                            ),
-                                            label = "sdTypingDotAlpha$dotIndex",
-                                        )
-                                        Box(Modifier.size(7.dp).background(colors.sub.copy(alpha = alpha), androidx.compose.foundation.shape.CircleShape))
-                                    }
-                                }
+                                SdTypingDots()
                             }
                         }
                         // index.html:3323-3330 sdAnswerFallback2通目(逃げ道リンク3つ)の1:1移植。

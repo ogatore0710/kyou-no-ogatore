@@ -1,6 +1,11 @@
 package jp.ogatore.kyouno
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -795,3 +800,31 @@ private fun MsSegment(fraction: Float, modifier: Modifier = Modifier) {
         }
     }
 }
+
+// TASK-C2-2026-07-27-soudan-staged-reveal.md: index.html:3084 sdTypingNode()の中身
+// (「…」3点を位相をずらして明滅させるドット)。元はSoudanSheet.ktに直書きだったものを、
+// TASK build34 R-55(本人指示・2026-08-07「相談室と同じ挙動にして」)でオンボ/ツアーの
+// チャットからも呼べるよう共通部品として切り出した(見た目・タイミングは無変更)。
+@Composable
+fun SdTypingDots() {
+    val colors = LocalKyonoColors.current
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        repeat(3) { dotIndex ->
+            val infinite = rememberInfiniteTransition(label = "sdTypingDot$dotIndex")
+            val alpha by infinite.animateFloat(
+                initialValue = 0.3f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(600, delayMillis = dotIndex * 150, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+                label = "sdTypingDotAlpha$dotIndex",
+            )
+            Box(Modifier.size(7.dp).background(colors.sub.copy(alpha = alpha), androidx.compose.foundation.shape.CircleShape))
+        }
+    }
+}
+
+// index.html:3053 sdMsgLen()の1:1移植(タイピング待ち時間の計算専用。空白を除いた文字数)。
+// 元はSoudanSheet.ktに直書きだったものを、R-55でオンボ/ツアーからも呼べるよう共通化した。
+fun sdMsgLen(text: String): Int = text.count { !it.isWhitespace() }

@@ -181,7 +181,9 @@ fun obDecideRoute(stiff: String, worry: String): String =
 // (index.html:4211と同じ「obg"+(i%4)」方式)。ライト/ダークで別パレット。
 // TASK-C2-2026-08-04-build22-yellow-return.md Z-3: 淡色チップが背景に沈む問題(IMG_8768)を
 // 解消するため、境界線と対にした濃色文字(text)を追加。
-private data class ObgColor(val bg: Color, val border: Color, val text: Color)
+// TASK build34 R-54(本人指示・2026-08-07): ChatBubble.colorの型として使うためpublicへ
+// (private-in-fileのままだとChatBubbleが「exposes private type」でコンパイルエラーになる)。
+data class ObgColor(val bg: Color, val border: Color, val text: Color)
 // TASK-C2-2026-08-01-build14-fixes-and-5lens-audit.md A-1: 5択の質問(部位選択など)で
 // i%4のため1番目と5番目が同色になっていた欠落。5色目(青系・色相約200)を追加し5色パレットにした。
 // TASK-C2-2026-08-05-build24-chip-clarity.md(案A'・本人GO): ビルド23実機で「見にくい」指摘。
@@ -246,7 +248,11 @@ fun obChipIconRes(v: String): Int? = when (v) {
     else -> null
 }
 
-data class ChatBubble(val text: String, val fromUser: Boolean)
+// TASK build34 R-54(本人指示・2026-08-07「実際のタップしたボタンと同じ色にできる？」): colorは
+// ユーザーが選んだチップの色(bg/border/text)をそのまま引き継ぐ(botの吹き出しはnull)。
+// TASK build34 R-55(本人指示・2026-08-07「相談室と同じ挙動にして」): isTypingがtrueのときは
+// text/colorを無視してSdTypingDots()を出す(相談室SdBubble.Typingと同じ役割)。
+data class ChatBubble(val text: String = "", val fromUser: Boolean, val color: ObgColor? = null, val isTyping: Boolean = false)
 
 // index.html:4211 「今後変えたくなったら…」bigtext回答時の相槌の1:1移植(obPick内)。
 private const val OB_BIGTEXT_ACK = "OK！今後変えたくなったら「マイ記録」タブの「マイ設定」でいつでも変更できるよ！"
@@ -268,7 +274,8 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
     var activeQuestion by remember { mutableStateOf<ObQuestionDef?>(null) }
     var routeCta by remember { mutableStateOf<ObRouteInfo?>(null) }
     val answers = remember { mutableStateMapOf<String, String>() }
-    val pickChannel = remember { Channel<ObChip>(Channel.CONFLATED) }
+    // R-54: 選ばれたチップ本体だけでなく、実際にレンダリングされていた色(ObgColor)も一緒に受け取る。
+    val pickChannel = remember { Channel<Pair<ObChip, ObgColor>>(Channel.CONFLATED) }
     val ctaChannel = remember { Channel<Unit>(Channel.CONFLATED) }
 
     fun finish() {
@@ -290,12 +297,20 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
 
     val obReducedMotion = rememberReducedMotion()
     LaunchedEffect(Unit) {
-        // index.html:4182 obSay()の1:1移植: 1行ごとに表示→1.5秒待つ、を繰り返す。
+        // TASK build34 R-55(本人指示・2026-08-07「チャットが表示される時、相談室と同じ挙動にして」):
+        // 固定1.5秒待ちをやめ、SoudanSheet.kt revealBotMessages()と同じ「タイピングドット→
+        // 文字数に応じた待機→実文へ差し替え」の型に統一する(sdMsgLen/SdTypingDotsをそのまま再利用)。
         suspend fun say(lines: List<String>) {
-            val wait = if (obReducedMotion) 0L else 1500L
-            for (line in lines) {
-                bubbles = bubbles + ChatBubble(line, false)
+            if (obReducedMotion) {
+                for (line in lines) bubbles = bubbles + ChatBubble(line, false)
+                return
+            }
+            lines.forEachIndexed { i, line ->
+                bubbles = bubbles + ChatBubble(fromUser = false, isTyping = true)
+                val base = minOf(1600, 500 + sdMsgLen(line) * 22)
+                val wait = if (i == 0) 400L else if (i == 1) base.toLong() else (base * 2).toLong()
                 delay(wait)
+                bubbles = bubbles.dropLast(1) + ChatBubble(line, false)
             }
         }
         say(OB_GREET)
@@ -303,10 +318,12 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             // index.html:4197 obAskQ(): 質問文もobSay経由(1行)なので表示後に1.5秒待ってからチップを出す。
             say(listOf(q.q))
             activeQuestion = q
-            val picked = pickChannel.receive()
+            val (picked, pickedColor) = pickChannel.receive()
             activeQuestion = null
             answers[q.key] = picked.v
-            bubbles = bubbles + ChatBubble(picked.label, true) // index.html:4221 obPick内obBubble("user",...)は即時
+            // R-54: obPick内obBubble("user",...)は即時(index.html:4221)。色は実際にタップされた
+            // チップと同じ(pickedColor)にする。
+            bubbles = bubbles + ChatBubble(picked.label, true, color = pickedColor)
             when (q.key) {
                 "anchor" -> say(listOf(OB_ANCHOR_ACK[picked.v] ?: "OK！おぼえたよ！"))
                 "bigtext" -> say(listOf(OB_BIGTEXT_ACK))
@@ -402,14 +419,24 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         KyonoCharaImage("chara_good", Modifier.size(38.dp))
                         Spacer(Modifier.width(8.dp))
                     }
+                    // R-54: ユーザー吹き出しは既定のyellowSoftではなく、選ばれたチップの色
+                    // (b.color)があればそちらを優先する(bg/border/text丸ごと)。
+                    val userBg = b.color?.bg ?: colors.yellowSoft
                     Box(
                         Modifier.fillMaxWidth(0.82f)
                             .let {
-                                if (b.fromUser) it.background(colors.yellowSoft, RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp))
-                                else it.background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp)).border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
+                                if (b.fromUser) {
+                                    val shape = RoundedCornerShape(16.dp, 16.dp, 6.dp, 16.dp)
+                                    if (b.color != null) it.background(userBg, shape).border(2.dp, b.color.border, shape)
+                                    else it.background(userBg, shape)
+                                } else it.background(colors.card, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp)).border(1.5.dp, colors.borderStrong, RoundedCornerShape(16.dp, 16.dp, 16.dp, 6.dp))
                             }
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     ) {
+                        // R-55: 「…」タイピングドット(相談室SdTypingDotsを再利用)。
+                        if (b.isTyping) {
+                            SdTypingDots()
+                        } else {
                         // アクセシビリティ対応(スクリーンリーダー無音問題の解消): liveRegionはこの
                         // 「1つの吹き出しのTextコンポーザブル」自体に付ける(親のColumn/Rowコンテナには
                         // 付けない)。bubblesリストは常に末尾へのみ追加され、この for ループは
@@ -420,9 +447,10 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         // TASK-C2-2026-08-04-build19-tour-redesign.md T-7: lineHeight 26sp@15ptだと
                         // 行がバラけて痩せて見えていた(iOS版lineSpacing 11→7の等価値)ため詰める。
                         Text(
-                            b.text, color = colors.ink, fontSize = 15.sp, lineHeight = 22.sp,
+                            b.text, color = if (b.fromUser) (b.color?.text ?: colors.ink) else colors.ink, fontSize = 15.sp, lineHeight = 22.sp,
                             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                         )
+                        }
                     }
                 }
                 }
@@ -456,7 +484,7 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                         modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
                             .background(c.bg, RoundedCornerShape(16.dp))
                             .border(2.5.dp, c.border, RoundedCornerShape(16.dp))
-                            .clickable { pickChannel.trySend(chip) }
+                            .clickable { pickChannel.trySend(chip to c) }
                             .padding(horizontal = 18.dp, vertical = 14.dp)
                             .testTag("obChip_${q.key}_${chip.v}"),
                     ) {
