@@ -31,7 +31,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -155,7 +157,14 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
         val backVisible = !frontVisible
         // index.html:358-359,362-363 .vback(card地・枠線・justify-content:centerで縦方向も中央寄せ)
         Column(
-            Modifier.fillMaxWidth()
+            // TASK build34 R-56(本人指示「せんぱいの声、コメントが全部見れるように戻して」・
+            // 2026-08-07): 外側Boxの.height(animatedHeight)がBox経由でこのColumnへも高さの
+            // 「提案」として伝わり、直後のonSizeChangedがその提案値をそのまま計測結果として
+            // 送り返す自己参照ループに陥っていた(iOS版VoicesView.swiftと同じ構造のバグ・長文
+            // コメントほど途中で高さが更新されずクリップされたまま)。unboundedHeight()でこの
+            // Columnより内側を常にmaxHeight無制限で測定させ、実際に必要な高さをそのまま報告する。
+            Modifier.unboundedHeight()
+                .fillMaxWidth()
                 .onSizeChanged { backHeight = maxOf(150.dp, with(densityObj) { it.height.toDp() }) }
                 .graphicsLayer {
                     rotationY = 180f
@@ -184,4 +193,13 @@ private fun VoiceCard(v: Voice, open: Boolean, onToggle: () -> Unit, openUrl: (S
             )
         }
     }
+}
+
+// TASK build34 R-56(本人指示・2026-08-07): iOS版VoicesView.swiftのfixedSize(vertical: true)に
+// 相当するAndroid側の処置。このmodifierより内側は、外側から届く高さの提案(親Boxの
+// .height(animatedHeight)等)を無視し、常にmaxHeight無制限で測定して自分の理想の高さを
+// そのまま上へ報告する(自己参照的な高さロックの再発防止)。
+private fun Modifier.unboundedHeight(): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
+    layout(placeable.width, placeable.height) { placeable.placeRelative(0, 0) }
 }

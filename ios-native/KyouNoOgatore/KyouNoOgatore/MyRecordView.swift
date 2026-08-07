@@ -49,6 +49,11 @@ struct MyRecordView: View {
     @State private var month: Int
     @State private var reachList: [RecordLogic.ReachEntry]
     @State private var reachMsg: Text?
+    // TASK build34 R-57(本人指示・2026-08-07「②カード自体を折りたたみ式にして初期状態は控えめに」):
+    // 実写のお手本写真が周囲のイラスト調カードから浮いて見える指摘を受け、GuideView.swiftの
+    // GdFoldSection(既存の折りたたみ文法・▴/▾トグル)と同じ考え方で開閉式にする。永続化はせず
+    // (設定項目ではないため)、この画面を開くたびに常に閉状態から始まる。
+    @State private var reachOpen = false
     // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §6: Android版はremember(streak)で
     // streak変化のたびfreezeLeftを再計算するが、iOSはinit時の1回きり(private let)だった
     // ため、開きっぱなしで月が替わっても「のこり◯枚」が更新されなかった。streakと同様

@@ -126,7 +126,15 @@ private struct VoiceCardView: View {
             frontView
                 .background(heightReader($frontHeight))
                 .opacity(showBack ? 0 : 1).allowsHitTesting(!showBack)
-            backView.rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+            backView
+                // TASK build34 R-56(本人指示「せんぱいの声、コメントが全部見れるように戻して」・
+                // 2026-08-07): 外側.frame(height: backHeight)がZStack経由でbackViewへも高さの
+                // 「提案」として伝わり、直後のheightReader(GeometryReader)がその提案値をそのまま
+                // 計測結果として送り返す自己参照ループに陥っていた(=長文コメントほど1行+「…」に
+                // 切り詰められたまま高さが更新されない実バグ)。fixedSizeでbackViewに常に自分の
+                // 理想の高さで描画・計測させ、外側の提案とは無関係に正しい高さへ収束させる。
+                .fixedSize(horizontal: false, vertical: true)
+                .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
                 .background(heightReader($backHeight))
                 .opacity(showBack ? 1 : 0).allowsHitTesting(showBack)
         }
