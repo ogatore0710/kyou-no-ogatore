@@ -12,6 +12,10 @@
 
 **休眠時点の現在地**: ビルド30=ラウンド8の8件(R-23〜R-29+R-31)+アイコン刷新(R-30)をappdevが実装中（発注書2本=`TASK-C2-2026-08-06-build30-round8.md`+`-addendum-R30-icon.md`・アイコンマスター=`art-raw/app-icon-master-1024.png`）。午前にC2 OAuth失効→本人承認で復旧済み。サブPC遅延commit(meter.jpg圧縮+sw v65)はQA462全緑・Webゲート越えは本人報告済み(戻さない判断)。残ボールと駐車中はHANDOFFファイル参照。
 
+### ⚡ 2026-08-08 build37配信済み（実機フィードバック5件+ロゴヘッダー）
+
+**build37**=本人のbuild36実機いじりからのR-68〜R-73。①再生リストタブのヘッダー欠け追加 ②タブ切替をalan AIアプリ同等のフェードのみ0.3秒へ(実装をapp-boot.jsで実確認・スライド撤去) ③スプラッシュ2枚見えの根本対策=アプリ内スプラッシュをLaunchScreenと同一アセット(LaunchChara)表示へ(SwiftUI再描画版KyonoLaunchBadgeContentは削除) ④ツアー冒頭の上下揺れ=スクロールを相談室型(最後の吹き出しid監視・bot=.topアンカー)へ ⑤けっか画面の動画間隔12pt/dp ⑥**R-73ロゴヘッダー**(本人発案): M PLUS 1p(900)+実配色でPIL描画生成した一体型ワードマーク(黄#バッジ=語頭の#)、マスター=`art-raw/app-logo-master.png`、表示36pt/dp。実描画=verify/134〜138。VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1裏取り済み。詳細=`REPORT-C2-2026-08-08-build37-feedback-logo.md`。**ロゴ生成の型**: GPT不使用・同梱フォントでPIL描画=アプリ内文字と完全一致(ストア素材にも再利用可)。
+
 ### ⚡ 2026-08-07夕 Fable 8軸監査→R-58〜R-66消化→build36配信済み
 
 本人指示「Fableぶん回し」で監査エージェント8機並列(文言/数値パリティ・ストア準備・a11y・死にコード・エッジケース・表記ゆれ・qa強化)→統合報告=`REPORT-C2-2026-08-07-fable-audit-8axis.md`。その場でA群(実バグ級6件)+B群(ストアブロッカー3件)を消化:
