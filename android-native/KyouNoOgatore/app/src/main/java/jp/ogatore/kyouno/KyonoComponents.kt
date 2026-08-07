@@ -450,7 +450,10 @@ fun KyonoPrimaryButton(
 // 用の1行固定+自動縮小(KyonoPrimaryButtonのR-17と同じ考え方)。既定falseで他の呼び出し元は不変。
 // TASK build34 R-53(本人フィードバック「ボタンの縁には無し・枠の縁だけ」・2026-08-07):
 // 押し出し影はカード類のみに戻し、ボタンは影なしへ(既定false)。
-fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false, drop: Boolean = false) {
+// TASK R-85(本人指示・2026-08-08「相談する以外のボタンも立体的にして」): R-53で撤去した
+// 押し出し影を復活し既定ON(主ボタンと同じ立体文法)。ライトの影色はR-75の桃化に合わせ
+// 旧ミント#A8D3CA→桃#E3B4C7へ。
+fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: KyonoIcon? = null, singleLine: Boolean = false, drop: Boolean = true) {
     val colors = LocalKyonoColors.current
     val dark = colors.bg == KyonoDarkColors.bg
     val interactionSource = remember { MutableInteractionSource() }
@@ -469,7 +472,7 @@ fun KyonoGhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             .then(
                 if (drop) {
                     // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
-                    Modifier.kyonoDropShadow(if (dark) colors.tealStrong else Color(0xFFA8D3CA), 4.dp, KyonoButtonRadius)
+                    Modifier.kyonoDropShadow(if (dark) colors.tealStrong else Color(0xFFE3B4C7), 4.dp, KyonoButtonRadius)
                 } else Modifier,
             )
             .background(bg, KyonoButtonShape)

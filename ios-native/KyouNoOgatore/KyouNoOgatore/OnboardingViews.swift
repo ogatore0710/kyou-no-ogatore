@@ -300,21 +300,57 @@ struct OnboardingView: View {
 
     private var themeSetting: String { store.get("theme", default: "light") }
 
+    // TASK R-83(本人指示・2026-08-08「起動の後、すぐ始まってしまう。最初に…ポップを出して
+    // おさせてからやらせる」): 初回起動はチャットを自動開始せず、「使い方の設定をしましょう」の
+    // ようこそカードを出して「はじめる」を押してから開始する。使い方タブからの再入場は
+    // ユーザー自身の明示操作なのでゲート不要(従来どおり即開始)。
+    @State private var obStarted = false
+
     var body: some View {
         KyonoTheme(themeSetting: themeSetting, bigText: store.get("bigtext", default: true)) {
-            OnboardingContentView(
-                bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
-                isFirstRun: isFirstRun,
-                onChipTap: { chip, color in
-                    // R-63: 受け手がまだ居なくても直近1件がバッファされるため、先行タップも失われない。
-                    pickChannel.continuation.yield((chip, color))
-                },
-                onCtaTap: {
-                    ctaChannel.continuation.yield(())
+            ZStack {
+                OnboardingContentView(
+                    bubbles: bubbles, activeQuestion: activeQuestion, routeCta: routeCta,
+                    isFirstRun: isFirstRun,
+                    onChipTap: { chip, color in
+                        // R-63: 受け手がまだ居なくても直近1件がバッファされるため、先行タップも失われない。
+                        pickChannel.continuation.yield((chip, color))
+                    },
+                    onCtaTap: {
+                        ctaChannel.continuation.yield(())
+                    }
+                )
+                if isFirstRun && !obStarted {
+                    ObWelcomeGate { obStarted = true }
                 }
-            )
+            }
         }
-        .task { await runFlow() }
+        .task(id: obStarted) {
+            guard obStarted || !isFirstRun else { return }
+            await runFlow()
+        }
+    }
+}
+
+// R-83: 初回起動のようこそカード。背景は不透明なcolors.bg(下のチャット画面を完全に隠す=
+// OnboardingScrimと同じ理由でblack半透明は使わない)。
+private struct ObWelcomeGate: View {
+    @Environment(\.kyonoColors) private var colors
+    let onStart: () -> Void
+    var body: some View {
+        colors.bg.ignoresSafeArea()
+            .overlay {
+                VStack(spacing: 14) {
+                    KyonoCharaImage(name: "chara-cheer").frame(width: 96, height: 96)
+                    Text("ようこそ！").kyonoFont(.black900, size: 24).foregroundColor(colors.ink)
+                    Text("はじめに 使い方の設定をしましょう\n4つ答えるだけで あなた用にととのいます")
+                        .kyonoFont(.bold700, size: 15).foregroundColor(colors.sub)
+                        .multilineTextAlignment(.center)
+                    KyonoPrimaryButton("はじめる") { onStart() }
+                        .padding(.top, 8).padding(.horizontal, 32)
+                }
+                .padding(24)
+            }
     }
 }
 
@@ -412,13 +448,13 @@ private struct OnboardingContentView: View {
         // 「botは行頭(.top)へ」は相談室(sdAutoScroll)だけのWeb挙動で、オンボのobBubble()は
         // 常にscrollTop=scrollHeight(=最下部)が正本。行頭アンカーは「ユーザー発言で最下部→
         // bot発言で上へ引き戻し」の上下往復を生んでいた(実機録画で確認)。常に最下部へ。
+        // R-84(本人指摘「ボタンを押した後、上下にたくさん動く。動き減らして」・2026-08-08):
+        // Web正本のobBubble()はscrollTop=scrollHeightの瞬時代入でスクロールアニメが無い。
+        // タイピング差し替えのたびにwithAnimationが走ると視線が揺れるため、常に瞬時ジャンプ
+        // (=最下部に貼り付いたままに見える)へ。reduceMotion分岐も不要になる。
         .onChange(of: bubbles.last?.id) { _, _ in
             guard let last = bubbles.last else { return }
-            if reduceMotion {
-                proxy.scrollTo(last.id, anchor: .bottom)
-            } else {
-                withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
-            }
+            proxy.scrollTo(last.id, anchor: .bottom)
         }
         }
         // A2: 選択肢・CTAは固定フッター(スクロールしない)。

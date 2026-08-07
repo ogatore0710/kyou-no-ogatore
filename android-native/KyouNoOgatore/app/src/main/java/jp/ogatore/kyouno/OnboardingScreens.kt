@@ -270,6 +270,9 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
     // タイミング)だけ、見出しを「📖 使い方ツアー」+4点バーに差し替える。使い方タブ経由の再入場
     // (onboarded==true済み)は既存の「🌱 はじめてガイド」・バーなしのまま。
     val isFirstRun = remember { !store.get("onboarded", false) }
+    // TASK R-83(本人指示・2026-08-08): 初回起動はチャットを自動開始せず、ようこそカードの
+    // 「はじめる」を押してから開始する(再入場はユーザーの明示操作なので即開始)。
+    var obStarted by remember { mutableStateOf(store.get("onboarded", false)) }
     var bubbles by remember { mutableStateOf(listOf<ChatBubble>()) }
     var activeQuestion by remember { mutableStateOf<ObQuestionDef?>(null) }
     var routeCta by remember { mutableStateOf<ObRouteInfo?>(null) }
@@ -296,7 +299,8 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
     }
 
     val obReducedMotion = rememberReducedMotion()
-    LaunchedEffect(Unit) {
+    LaunchedEffect(obStarted) {
+        if (!obStarted) return@LaunchedEffect
         // TASK build34 R-55(本人指示・2026-08-07「チャットが表示される時、相談室と同じ挙動にして」):
         // 固定1.5秒待ちをやめ、SoudanSheet.kt revealBotMessages()と同じ「タイピングドット→
         // 文字数に応じた待機→実文へ差し替え」の型に統一する(sdMsgLen/SdTypingDotsをそのまま再利用)。
@@ -374,12 +378,37 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
             if (bubbles.lastIndex < 0) return@LaunchedEffect
             // 追加直後はmaxValueが未更新のことがあるため1フレーム待ってから最下部へ。
             withFrameNanos {}
-            val target = obScrollState.maxValue
-            if (obReducedMotion) obScrollState.scrollTo(target) else obScrollState.animateScrollTo(target)
+            // R-84(本人指摘「ボタンを押した後、上下にたくさん動く。動き減らして」・2026-08-08):
+            // Web正本のobBubble()はscrollTop=scrollHeightの瞬時代入でスクロールアニメが無い。
+            // タイピング差し替えのたびにanimateScrollToが走ると視線が上下に揺れるため、
+            // 常に瞬時ジャンプ(=最下部に貼り付いたままに見える)へ。
+            obScrollState.scrollTo(obScrollState.maxValue)
         }
         // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourScreen(D6)と同じ構造。
         // 選択肢・CTAボタンを本文と同じverticalScrollから外し、外側Columnの固定フッターにする。
         // これでCTAは常に画面内の同じ位置にあり、本文の長さに関わらず動かない。
+        // R-83: 初回起動のようこそゲート。押されるまでチャットは開始しない(上のLaunchedEffect参照)。
+        if (isFirstRun && !obStarted) {
+            Box(Modifier.fillMaxSize().background(colors.bg), contentAlignment = Alignment.Center) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth().padding(24.dp).testTag("obWelcomeGate"),
+                ) {
+                    KyonoCharaImage("chara_cheer", Modifier.size(96.dp))
+                    Spacer(Modifier.height(14.dp))
+                    Text("ようこそ！", color = colors.ink, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "はじめに 使い方の設定をしましょう\n4つ答えるだけで あなた用にととのいます",
+                        color = colors.sub, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center, lineHeight = 24.sp,
+                    )
+                    Spacer(Modifier.height(22.dp))
+                    KyonoPrimaryButton("はじめる", onClick = { obStarted = true }, modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp).testTag("obStartBtn"))
+                }
+            }
+            return@KyonoTheme
+        }
         Column(Modifier.fillMaxSize().background(colors.bg)) {
         // W1-a: 初回起動だけ見出しをverticalScroll外の固定上部へ移し「📖 使い方ツアー」を出す。
         // 再入場は既存どおり本文内に「🌱 はじめてガイド」を出す。

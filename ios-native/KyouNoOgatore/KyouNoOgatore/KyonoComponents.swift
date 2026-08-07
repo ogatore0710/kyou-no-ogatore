@@ -447,10 +447,12 @@ struct KyonoGhostButton: View {
     var singleLine: Bool = false
     // TASK build34 R-53(本人フィードバック「ボタンの縁には無し・枠の縁だけ」・2026-08-07):
     // 押し出し影はカード類のみに戻し、ボタンは影なしへ(既定false)。
-    var drop: Bool = false
+    // TASK R-85(本人指示・2026-08-08「相談する以外のボタンも立体的にして」): R-53で撤去した
+    // 押し出し影を復活し既定ON(主ボタンと同じ立体文法)。
+    var drop: Bool = true
     let action: () -> Void
 
-    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, drop: Bool = false, action: @escaping () -> Void) {
+    init(_ text: String, icon: KyonoIcon? = nil, singleLine: Bool = false, drop: Bool = true, action: @escaping () -> Void) {
         self.text = text; self.icon = icon; self.singleLine = singleLine; self.drop = drop; self.action = action
     }
 
@@ -480,7 +482,7 @@ struct KyonoGhostButton: View {
             ? KyonoGhostButtonStyle(background: colors.teal, borderColor: .clear, borderWidth: 0, zoom: zoom,
                                     dropColor: drop ? colors.tealStrong : nil)
             : KyonoGhostButtonStyle(background: Color(hex: 0xFFEDF3), borderColor: Color(hex: 0xC04570), borderWidth: 2.5, zoom: zoom,
-                                    dropColor: drop ? Color(hex: 0xA8D3CA) : nil))
+                                    dropColor: drop ? Color(hex: 0xE3B4C7) : nil))
     }
 }
 
