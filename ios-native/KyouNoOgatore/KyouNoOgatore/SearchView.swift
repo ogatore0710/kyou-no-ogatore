@@ -113,7 +113,7 @@ struct VideoRow: View {
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     private var badgeTextColor: Color { dark ? Color(hex: 0xF0A58E) : Color(hex: 0xB4462F) }
     // TASK build33 R-49展開: VideoRow(探す/再生リスト/けっか画面)にもB3押し出し影。
-    private var dropColor: Color { dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD) }
+    private var dropColor: Color { dark ? Color(hex: 0x050404) : Color(hex: 0xE4D0BD) }
 
     var body: some View {
         Button {

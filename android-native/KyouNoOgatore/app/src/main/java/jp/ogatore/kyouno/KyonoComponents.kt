@@ -285,7 +285,7 @@ fun KyonoCard(modifier: Modifier = Modifier, drop: Boolean = true, content: @Com
             .then(
                 if (drop) {
                     // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
-                    Modifier.kyonoDropShadow(if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD), 4.dp, KyonoRadius)
+                    Modifier.kyonoDropShadow(if (dark) Color(0xFF050404) else Color(0xFFE4D0BD), 4.dp, KyonoRadius)
                 } else if (!dark) {
                     Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
                 } else {
@@ -334,7 +334,7 @@ fun KyonoGradientCard(gradient: KyonoGradient, modifier: Modifier = Modifier, dr
             .then(
                 if (drop) {
                     // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
-                    Modifier.kyonoDropShadow(if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD), 4.dp, KyonoRadius)
+                    Modifier.kyonoDropShadow(if (dark) Color(0xFF050404) else Color(0xFFE4D0BD), 4.dp, KyonoRadius)
                 } else if (!dark) {
                     Modifier.shadow(3.dp, KyonoCardShape, ambientColor = KyonoCardShadowColor, spotColor = KyonoCardShadowColor)
                 } else {

@@ -105,7 +105,7 @@ struct KyonoCard<Content: View>: View {
 
     private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     private var zoom: CGFloat { bigText ? kyonoBigTextScale : kyonoNormalTextScale }
-    private var dropColor: Color { dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD) }
+    private var dropColor: Color { dark ? Color(hex: 0x050404) : Color(hex: 0xE4D0BD) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content() }
@@ -177,7 +177,7 @@ struct KyonoGradientCard<Content: View>: View {
                 if drop && kyonoDepthStyle == .offset {
                     // B3: ふちだけ軽くぼかして押し出しの硬さをとる。
                     RoundedRectangle(cornerRadius: kyonoRadius * zoom)
-                        .fill(dark ? Color(hex: 0x110F0C) : Color(hex: 0xE4D0BD))
+                        .fill(dark ? Color(hex: 0x050404) : Color(hex: 0xE4D0BD))
                         .offset(y: 4 * zoom).blur(radius: kyonoDepthEdgeBlur * zoom)
                 }
             }

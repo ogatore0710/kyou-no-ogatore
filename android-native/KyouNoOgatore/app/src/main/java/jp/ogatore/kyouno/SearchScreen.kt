@@ -198,7 +198,7 @@ fun VideoRow(v: CatalogVideo, openUrl: (String) -> Unit, badge: String? = null, 
             .alpha(if (disabledLook) 0.5f else 1f)
             .clickable(enabled = !disabledLook) { openUrl("https://www.youtube.com/watch?v=${v.id}") }
             // TASK build33 R-49展開: VideoRowにもB3押し出し影。
-            .kyonoDropShadow(if (dark) Color(0xFF110F0C) else Color(0xFFE4D0BD), 3.dp, 16.dp)
+            .kyonoDropShadow(if (dark) Color(0xFF050404) else Color(0xFFE4D0BD), 3.dp, 16.dp)
             .background(if (hero) colors.pinkSoft else colors.card, RoundedCornerShape(16.dp))
             .border(if (hero) 2.5.dp else 1.5.dp, if (hero) colors.pink else colors.borderStrong, RoundedCornerShape(16.dp))
             .padding(10.dp)

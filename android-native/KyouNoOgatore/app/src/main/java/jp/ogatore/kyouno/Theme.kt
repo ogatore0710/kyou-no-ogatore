@@ -153,8 +153,12 @@ val KyonoDarkColors = KyonoColors(
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-6(ダーク磨き込みA案): bg/cardの明度差を実測
     // 1.13:1→1.42:1へ拡大(背景から一段沈め・カードを一段浮かせ、白系ではなく暖色ブラウンの
     // ままトーンだけ広げる=藍化・黒化はしない)。line(トラック等の面色)は据え置き。
-    bg = Color(0xFF1C1915),
-    card = Color(0xFF3A342C),
+    // TASK R-82(本人エミュ実機ラリーで裁定・2026-08-08): ダーク基調を全体に一段沈める。
+    // 反転案(背景明・カード暗)も実機比較したうえで「向きは現行のまま両方を暗く」が最終裁定。
+    // 背景#1C1915→#0F0E0C・カード#3A342C→#1F1C19・子面(動画行)#474032→#302B25。
+    // line(セグメント帯)は本人確認のうえ据え置き。
+    bg = Color(0xFF0F0E0C),
+    card = Color(0xFF1F1C19),
     line = Color(0xFF3D382F),
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-6: 既知のダーク枠線コントラスト不足
     // (ラインボタン1.72:1・入力欄/カード等1.26〜1.43:1)を根治。同じ暖色ハイライトへ底上げし
@@ -167,7 +171,7 @@ val KyonoDarkColors = KyonoColors(
     // 「動画の枠が溶け込んで見える」ため、面と枠の両方を持ち上げる:
     // 子面#474032(card比1.20:1)+枠#6E6653(card比2.16:1)。子面トークン共通のため動画行以外
     // (とどくメーター写真枠・時分ピッカー等)も同じだけ浮く。ライトは不変。
-    childFace = Color(0xFF474032),
+    childFace = Color(0xFF302B25),
     childBorder = Color(0xFF6E6653),
     btnPrimaryShadow = Color(0xFFE8BE1E),
     tabbarIconOff = Color(0xFF3D382F),

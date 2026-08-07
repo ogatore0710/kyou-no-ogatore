@@ -111,7 +111,7 @@ let kyonoDarkColors = KyonoColors(
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-6(ダーク磨き込みA案): bg/cardの明度差を実測
     // 1.13:1→1.42:1へ拡大(背景から一段沈め・カードを一段浮かせ、白系ではなく暖色ブラウンの
     // ままトーンだけ広げる=藍化・黒化はしない)。line(トラック等の面色)は据え置き。
-    bg: Color(hex: 0x1C1915), card: Color(hex: 0x3A342C), line: Color(hex: 0x3D382F),
+    bg: Color(hex: 0x0F0E0C), card: Color(hex: 0x1F1C19), line: Color(hex: 0x3D382F),
     // TASK-C2-2026-08-04-build22-yellow-return.md Z-6: 既知のダーク枠線コントラスト不足
     // (ラインボタン1.72:1・入力欄/カード等1.26〜1.43:1)を根治。同じ暖色ハイライトへ底上げし
     // 新背景比7.70:1・新カード比5.41:1を確保(#B4AB9Aは旧lineと同色相・彩度を保ったまま明度のみ上げた値)。
@@ -123,7 +123,7 @@ let kyonoDarkColors = KyonoColors(
     // 「動画の枠が溶け込んで見える」ため、面と枠の両方を持ち上げる:
     // 子面#474032(card比1.20:1)+枠#6E6653(card比2.16:1)。子面トークン共通のため動画行以外
     // (とどくメーター写真枠・時分ピッカー等)も同じだけ浮く。ライトは不変。
-    childFace: Color(hex: 0x474032), childBorder: Color(hex: 0x6E6653),
+    childFace: Color(hex: 0x302B25), childBorder: Color(hex: 0x6E6653),
     btnPrimaryShadow: Color(hex: 0xE8BE1E),
     tabbarIconOff: Color(hex: 0x3D382F),
     tabbarStrokeOff: Color(hex: 0x847D6C)
