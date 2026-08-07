@@ -400,16 +400,23 @@ private struct OnboardingContentView: View {
             // (opacity0→1・translateY(4px)→0・.18s ease-out)の1:1移植。reduced-motion時は無演出即表示。
             .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: bubbles.count)
         }
-        // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A1: 固定60ms delay後に1回だけ
-        // scrollToする実装だと、バブルのポップイン(180ms)と競合し、レイアウト確定前に着地する
-        // ことがあった(スクロールが上がりきらない)。SoudanSheetView.swift:500-518の手法を移植:
-        // delayを使わず、状態変化のたびに即座に(同じフレーム内で)scrollTo(anchor:)を呼ぶ。
-        // SwiftUIはwithAnimationで包まれたレイアウト変化とscrollTo自体を同じアニメーションとして
-        // 解決するため、事前に「レイアウトが確定するのを待つ」猶予は不要。オンボは相談室と違って
-        // 全部ユーザー操作起点の追加のため、bot発言用の.top/ユーザー発言用.bottomという使い分けは
-        // 不要で、常に.bottomでよい。選択肢・CTAはA2でスクロール領域の外(固定フッター)に出た
-        // ため、ここでスクロール対象にする必要があるのはbubblesの増減だけになった。
-        .onChange(of: bubbles.count) { _, _ in scrollToBottom(proxy) }
+        // TASK build37 R-71(本人指摘「使い方ツアーの最初、画面が上下する」・2026-08-07):
+        // R-55でタイピングドット→実文の差し替えが入った結果、旧実装(bubbles.countの変化で
+        // 常に最下部へ)では「ドット追加で下へスクロール→差し替えで内容が伸びる(count不変=
+        // スクロールなし)→次のドットでまた下へ」と画面が上下に揺れて見えた。相談室
+        // (SoudanSheetView.swift:527-545)と同じ型に揃える: 最後の吹き出しのid変化を監視し
+        // (差し替えでもidが変わるので発火する)、bot発言はその行の頭(.top)へ・ユーザー発言だけ
+        // 最下部(.bottom)へ。内容が画面に収まっている間は.topアンカーのクランプで一切動かず、
+        // あふれてからは下方向にだけ進む。
+        .onChange(of: bubbles.last?.id) { _, _ in
+            guard let last = bubbles.last else { return }
+            let anchor: UnitPoint = last.fromUser ? .bottom : .top
+            if reduceMotion {
+                proxy.scrollTo(last.id, anchor: anchor)
+            } else {
+                withAnimation { proxy.scrollTo(last.id, anchor: anchor) }
+            }
+        }
         }
         // A2: 選択肢・CTAは固定フッター(スクロールしない)。
         if let q = activeQuestion {
@@ -457,13 +464,6 @@ private struct OnboardingContentView: View {
         .background(KyonoBackgroundColor().ignoresSafeArea())
     }
 
-    private func scrollToBottom(_ proxy: ScrollViewProxy) {
-        if reduceMotion {
-            proxy.scrollTo("obBottom", anchor: .bottom)
-        } else {
-            withAnimation { proxy.scrollTo("obBottom", anchor: .bottom) }
-        }
-    }
 }
 
 // MARK: - かたさチェック(診断)
@@ -1337,6 +1337,10 @@ private struct ResultContentView: View {
                                 disabledLook: fdGuideActive && !isFirst,
                                 useShortTitle: true
                             )
+                            // TASK build37 R-72(本人指摘「動画ボタン、上下の距離が近い」・2026-08-07):
+                            // コンテナのspacing 6だけだと動画枠どうしが密着して見えるため、2本目
+                            // 以降の上に+6pt(計12pt=ホームZ-4の動画カード間隔と同水準)を足す。
+                            .padding(.top, i == 0 ? 0 : 6)
                         }
                     }
                     if fdGuideActive && youtubeNoticeVisible {

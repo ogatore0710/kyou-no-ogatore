@@ -638,6 +638,10 @@ fun CatalogListScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () 
         val colors = LocalKyonoColors.current
         val playlistGroups = remember { jp.ogatore.kyouno.catalog.PlaylistLoader.shared }
         Column(Modifier.fillMaxSize().background(colors.bg).padding(16.dp)) {
+            // TASK build37 R-68(本人指摘・2026-08-07): 4タブ共通のグローバルヘッダー(GO-5)が
+            // この画面だけ欠けていた。他タブと同じく先頭に出す(iOS CatalogListContentViewと同修正)。
+            KyonoAppHeader()
+            Spacer(Modifier.height(8.dp))
             Text("再生リスト", color = colors.ink, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(8.dp))
             // GO-G14(5視点ワンループ): ホームと同じenvBanner(オフライン案内)をこの画面にも出す。

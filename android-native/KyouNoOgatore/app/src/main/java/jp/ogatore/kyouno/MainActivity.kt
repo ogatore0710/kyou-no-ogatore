@@ -328,15 +328,15 @@ class MainActivity : ComponentActivity() {
                                     AnimatedContent(
                                         targetState = mainScreen,
                                         transitionSpec = {
-                                            // UI/UXパリティ監査2巡目A7(2026-07-29): 退出がAndroidだけ
-                                            // 160ms/fadeのみでiOS(220ms/fade+slide)と食い違っていた
-                                            // (Web版に基準値の無い追加演出のため「揃える」ことが目的。
-                                            // 入退で対称なiOS側の値に寄せる)。
+                                            // TASK build37 R-69(本人指摘「右側スワイプなのは微妙。
+                                            // alan AIアプリと同じに」・2026-08-07): スライドを撤去し、
+                                            // alan AIアプリ(app-boot.js showTab=display切替+着信
+                                            // コンテンツfadeIn 0.3s)に合わせてフェードのみ0.3秒へ
+                                            // (iOS KyouNoOgatoreApp.swiftと同修正)。
                                             if (mainScreenReducedMotion) {
                                                 fadeIn(tween(0)).togetherWith(fadeOut(tween(0)))
                                             } else {
-                                                (fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 20 })
-                                                    .togetherWith(fadeOut(tween(220)) + slideOutHorizontally(tween(220)) { it / 20 })
+                                                fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
                                             }
                                         },
                                         label = "screenTransition",

@@ -596,6 +596,9 @@ private struct CatalogListContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // TASK build37 R-68(本人指摘・2026-08-07): 4タブ共通のグローバルヘッダー(GO-5)が
+            // この画面だけ欠けていた。他タブ(Home/MyRecord/Search/Guide)と同じく先頭に出す。
+            KyonoAppHeader()
             Text("再生リスト").kyonoFont(.black900, size: 16).foregroundColor(colors.ink)
             // GO-G14(5視点ワンループ): 文言・スタイルはホーム版(HomeView.swift)と完全に同じにする。
             if networkMonitor.isOffline {

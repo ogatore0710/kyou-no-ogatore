@@ -357,7 +357,15 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
         // スクロールする。選択肢・CTAはA2でスクロール領域の外(固定フッター)に出たため、
         // ここでスクロール対象にする必要があるのはbubblesの増減だけになった。
         val obRowPositions = remember { mutableStateMapOf<Int, Float>() }
-        LaunchedEffect(bubbles.size) {
+        // TASK build37 R-71(本人指摘「使い方ツアーの最初、画面が上下する」・2026-08-07):
+        // R-55のタイピングドット→実文差し替えで、旧実装(sizeの変化で常にmaxValueへ)は
+        // 「ドット追加で下へ→差し替えで内容が伸びる(size不変=スクロールなし)→次のドットで
+        // また下へ」と上下に揺れて見えた。iOS版OnboardingViews/相談室と同じ型に揃える:
+        // 最後の吹き出しの「中身」変化を監視し(差し替えでも発火)、bot発言はその行の頭
+        // (=行のY位置)へ・ユーザー発言だけ最下部へ。内容が画面に収まっている間はクランプで
+        // 動かず、あふれてからは下方向にだけ進む。
+        val lastBubble = bubbles.lastOrNull()
+        LaunchedEffect(bubbles.lastIndex, lastBubble?.isTyping, lastBubble?.text, lastBubble?.fromUser) {
             val targetKey = bubbles.lastIndex
             if (targetKey < 0) return@LaunchedEffect
             var y = obRowPositions[targetKey]
@@ -367,7 +375,12 @@ fun OnboardingScreen(store: RecordStore, onComplete: (route: String, presetWorry
                 y = obRowPositions[targetKey]
                 tries++
             }
-            if (obReducedMotion) obScrollState.scrollTo(obScrollState.maxValue) else obScrollState.animateScrollTo(obScrollState.maxValue)
+            val target = if (lastBubble?.fromUser == true) {
+                obScrollState.maxValue
+            } else {
+                (y ?: obScrollState.maxValue.toFloat()).toInt().coerceIn(0, obScrollState.maxValue)
+            }
+            if (obReducedMotion) obScrollState.scrollTo(target) else obScrollState.animateScrollTo(target)
         }
         // TASK-C2-2026-07-30-onboarding-scroll-and-copy.md A2: TourScreen(D6)と同じ構造。
         // 選択肢・CTAボタンを本文と同じverticalScrollから外し、外側Columnの固定フッターにする。
@@ -1290,7 +1303,10 @@ fun ResultScreen(
                     rx.forEachIndexed { i, vk -> add(vk to (badges.getOrNull(i) ?: "")) }
                     worryExtra?.let { add(it.v to "おまけ: ${it.label}") }
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("rxList")) {
+                // TASK build37 R-72(本人指摘「動画ボタン、上下の距離が近い」・2026-08-07):
+                // 4dpだと動画枠どうしが密着して見えるため12dpへ(ホームZ-4の動画カード間隔と
+                // 同水準・iOS OnboardingViewsと同修正)。
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.testTag("rxList")) {
                     displayItems.forEachIndexed { i, (vk, badge) ->
                         // TASK-C2-2026-08-03-build18-tutorial-quality.md B-7: no-op裁定は維持した
                         // まま、見た目でも押せないことを明示する。

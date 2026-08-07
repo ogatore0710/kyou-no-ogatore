@@ -253,16 +253,17 @@ struct RootView: View {
     private var content: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
-                // TASK-C2-2026-07-27-screen-transitions.md §一般画面: 画面切替が常に瞬時だったのに
-                // .22s程度のフェード+わずかなスライドを追加。Screen方式(手組みの状態機械)自体は
-                // 変更せず、.animation(value:)で外側から演出を被せるだけ(.id()は使わない=
-                // KyonoTheme tickの教訓どおり、部分木の強制再生成は状態リセットを招くため)。
-                // UI/UXパリティ監査2巡目A8(2026-07-29): 相談室・オンボのオーバーレイは既に
-                // §Dのreduce-motion分岐があるのに、この一般画面切替本体だけ抜けていた。同じ
-                // accessibilityReduceMotionで揃える。
+                // TASK-C2-2026-07-27-screen-transitions.md §一般画面: 画面切替の演出。Screen方式
+                // (手組みの状態機械)自体は変更せず、.animation(value:)で外側から被せるだけ
+                // (.id()は使わない=KyonoTheme tickの教訓どおり、部分木の強制再生成は状態リセットを招く)。
+                // UI/UXパリティ監査2巡目A8(2026-07-29): reduce-motion分岐を一般画面切替にも適用。
+                // TASK build37 R-69(本人指摘「右側スワイプなのは微妙。alan AIアプリと同じに」・
+                // 2026-08-07): 従来の「フェード+右からのスライド」からスライドを撤去。alan AI
+                // アプリの実装(app-boot.js showTab=display切替+着信コンテンツfadeIn 0.3s)に合わせ、
+                // フェードのみ0.3秒にする。
                 screenContent
-                    .transition(.opacity.combined(with: .move(edge: .trailing)))
-                    .animation(reduceMotion ? .easeInOut(duration: 0) : .easeInOut(duration: 0.22), value: effectiveScreen)
+                    .transition(.opacity)
+                    .animation(reduceMotion ? .easeInOut(duration: 0) : .easeInOut(duration: 0.3), value: effectiveScreen)
                 if screen.showsTabBar {
                     KyonoTabBar(current: screen.kyonoTab) { newTab in
                         // index.html:1562-1563 switchTab()先頭のfdTourMaybeStart()の1:1移植。
@@ -569,42 +570,6 @@ struct RootView: View {
     }
 }
 
-// TASK-C2-2026-08-05-build27-round5.md R-11: バッジ+見出し+サブコピーの中身だけを切り出した版。
-// KyonoSplashView(背景colors.bg込み)と、R-11でLaunchScreen用静的画像を焼き出す際の
-// 透過コンテンツ(背景はLaunchBackground.colorsetが別途担当)の両方から使う。
-// TASK-C2-2026-08-06-build30-round8.md R-23(実機フレーム分解で確認済みのバグ修正):
-// 文字にkyonoFont(bigText環境値に連動して1.08/1.30倍)を使うと、OSのLaunchScreen静的画像
-// (焼き出し時点のサイズで固定・実行時のbigText設定を反映できない)と実スプラッシュ(bigText
-// 既定trueで1.30倍)のサイズがズレ、交差フェード中に文字が二重写りして見えていた。
-// LaunchScreenは本質的にアクセシビリティ設定に追従できない画面なので、実スプラッシュ側も
-// この0.85秒だけは固定サイズ(.font(.kyono(...))・bigText非依存)にして、両者を常に完全一致
-// させる(baked PNGの再焼き出しが要らなくなる根本修正)。
-private struct KyonoLaunchBadgeContent: View {
-    @Environment(\.kyonoColors) private var colors
-    var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                // index.html:162 box-shadow:0 5px 0 #E8BE1Eの1:1移植(KyonoPrimaryButtonの
-                // 面+影と同じ「オフセット塗りつぶし」手法)。
-                RoundedRectangle(cornerRadius: 26).fill(Color(hex: 0xE8BE1E))
-                    .frame(width: 92, height: 92).offset(y: 5)
-                RoundedRectangle(cornerRadius: 26).fill(colors.yellow)
-                    .frame(width: 92, height: 92)
-                Text("#").font(.kyono(.black900, size: 60)).foregroundColor(.white)
-            }
-            .rotationEffect(.degrees(-8))
-            Text("きょうの\nオガトレ")
-                .font(.kyono(.black900, size: 34))
-                .foregroundColor(colors.ink)
-                .multilineTextAlignment(.center)
-                .padding(.top, 20)
-            Text("みんなで一緒にストレッチを習慣化")
-                .font(.kyono(.extraBold800, size: 12))
-                .foregroundColor(colors.sub)
-                .padding(.top, 12)
-        }
-    }
-}
 
 // TASK-C2-2026-08-05-build23-bg-tuning-and-tour-tap.md W-7: index.html:554-560 #appSplash/
 // .spl-badge/.spl-innerの1:1移植。黄色い角丸バッジ(-8°回転+3D影)+「きょうの/オガトレ」+
@@ -612,11 +577,16 @@ private struct KyonoLaunchBadgeContent: View {
 // TASK build32 R-45(本人指示「一つの画像だけにして」→カード裁定・2026-08-06): 背景を
 // テーマ追従(colors.bg)にしていると、ダーク設定では「起動画像(R-16でライト固定)→暗い
 // スプラッシュ」の2枚に見える。起動画像と常に完全一致のライト固定へ(R-16と同じ理由の対)。
+// TASK build37 R-70(本人指摘「スプラッシュ、まだ2つの画像出る」・2026-08-07): アプリ内スプラッシュを
+// SwiftUI再描画(KyonoLaunchBadgeContent)からLaunchScreenと同一の画像アセット(LaunchChara)表示へ
+// 変更。従来はシステムLaunchScreen(焼きPNG)→SwiftUI描画版という「デザインは同じだが描画結果が
+// 微妙に違う2枚」が連続して見えていた。同じアセットを同じ配置ルール(中央・固有サイズ)で出すことで
+// 受け渡しがピクセル一致になり、起動が1枚のスプラッシュに見える。背景色もLaunchBackground
+// (#FAEDE2=kyonoLightColors.bg)と同一。
 private struct KyonoSplashView: View {
     var body: some View {
         kyonoLightColors.bg.ignoresSafeArea()
-            .overlay { KyonoLaunchBadgeContent() }
-            .environment(\.kyonoColors, kyonoLightColors)
+            .overlay { Image("LaunchChara") }
     }
 }
 
