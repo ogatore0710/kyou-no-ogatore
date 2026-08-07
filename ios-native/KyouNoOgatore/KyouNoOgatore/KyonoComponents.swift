@@ -40,7 +40,12 @@ struct KyonoAppHeader: View {
                 // 明記されたコメントが残っており、マイ記録タブでG6(左右余白統一)前の幅ではこの
                 // タイトルが実機で2行に折り返す実害が確認された。22ptのままlineLimit無指定だった
                 // 欠落を修正する。
-                KyonoSectionTitle("#きょうのオガトレ", size: 20).lineLimit(1)
+                // TASK build37 R-73(本人発案・裁定「めちゃいい。気持ち大きく」・2026-08-08):
+                // タイトル文字列をロゴ画像(黄#バッジ+きょうのオガトレの一体型ワードマーク)へ。
+                // 画像はアプリ同梱フォントM PLUS 1p(900)+実配色で描画生成したもので、マスターは
+                // art-raw/app-logo-master.png(スプラッシュ/アイコンと同じ意匠)。高さは初版30→36pt
+                // (本人指定「下のフォントより小さい気がする」への調整)。
+                Image("AppLogo").resizable().scaledToFit().frame(height: 36)
                 // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
                 KyonoBodyText("みんなで一緒にストレッチを習慣化").lineLimit(1)
             }

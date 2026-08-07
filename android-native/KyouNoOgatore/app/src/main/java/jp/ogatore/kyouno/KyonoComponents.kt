@@ -158,17 +158,16 @@ fun KyonoAppHeader() {
     val colors = LocalKyonoColors.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.testTag("appHeader")) {
         Column {
-            // UI/UXパリティ監査GO-11(2026-07-28・前倒し): index.html:88-89 h1{font-size:20px;
-            // white-space:nowrap}の1:1移植。Web側は「22px→20pxへ意図的に縮小のうえnowrap」と
-            // 明記されたコメントが残っており、マイ記録タブでG6(左右余白統一)前の幅ではこの
-            // タイトルが実機で2行に折り返す実害が確認された。22spのままmaxLines無指定だった
-            // 欠落を修正する。
-            // UI/UXパリティ監査2巡目A9(2026-07-29): overflow未指定だと既定のTextOverflow.Clipで
-            // 文字が「…」無しに途中で切れる(OS最大文字サイズ+bigtext限定で発生)。iOSは既定で
-            // 「…」が出るため、Androidにも明示する。
-            Text(
-                "#きょうのオガトレ", color = colors.ink, fontSize = 20.sp, fontWeight = FontWeight.Black,
-                maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+            // TASK build37 R-73(本人発案・裁定「めちゃいい。気持ち大きく」・2026-08-08):
+            // タイトル文字列をロゴ画像(黄#バッジ+きょうのオガトレの一体型ワードマーク)へ。
+            // 画像はアプリ同梱フォントM PLUS 1p(900)+実配色で描画生成(マスター=
+            // art-raw/app-logo-master.png・drawable-nodpiの高解像度1枚を36dpへ縮小表示)。
+            // 高さは初版30→36(本人指定「下のフォントより小さい気がする」への調整・iOS同値)。
+            Image(
+                painter = painterResource(R.drawable.app_logo),
+                contentDescription = "#きょうのオガトレ",
+                modifier = Modifier.height(36.dp),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit,
             )
             // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
             Text(
