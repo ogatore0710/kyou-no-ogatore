@@ -291,6 +291,15 @@ val KyonoTightLineTextStyle = TextStyle(
     lineHeightStyle = LineHeightStyle(alignment = LineHeightStyle.Alignment.Center, trim = LineHeightStyle.Trim.Both),
 )
 
+// R-76(本人指摘「Androidだけ文字が細いところがある」・2026-08-08): Textのstyle=に上のvalを
+// 素で渡すとMaterialTheme Typography(mplus一括適用)を丸ごと置き換えてしまい、fontFamilyが
+// null=Roboto既定へ落ちる(かたさチェック選択肢・「次のお祝いポイントは」・FAQ質問行など
+// 全11箇所で発生していた)。fontFamilyだけ復元した合成スタイルを返すこちらを使うこと。
+// letterSpacing等はTextStyle既定のまま(LocalTextStyle.mergeにするとMaterialの
+// letterSpacing 0.5sp等が混入しWeb版CSS既定(0)からずれるため、あえてcopyで最小合成)。
+@Composable
+fun kyonoTightLineTextStyle(): TextStyle = KyonoTightLineTextStyle.copy(fontFamily = KyonoFonts.mplus1p())
+
 // GO-G11(5視点ワンループ): 「コピーしました」等の一時メッセージの自動消滅時間。既存のbigtext
 // シグナルを流用し、bigtext ONのときは読み切るまでの時間を確保して4秒へ延ばす(通常は2秒のまま)。
 fun kyonoTransientMessageMillis(store: jp.ogatore.kyouno.record.RecordStore): Long =

@@ -161,7 +161,7 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
             color = colors.ink,
             fontSize = nameFontSize,
             lineHeight = (nameFontSize.value * 1.3f).sp,
-            style = KyonoTightLineTextStyle,
+            style = kyonoTightLineTextStyle(),
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
@@ -172,7 +172,7 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
             val hintFontSize = kyonoFloorSp(12f)
             Text(
                 sub, fontSize = hintFontSize, lineHeight = (hintFontSize.value * 1.35f).sp,
-                style = KyonoTightLineTextStyle, color = colors.sub, textAlign = TextAlign.Center,
+                style = kyonoTightLineTextStyle(), color = colors.sub, textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

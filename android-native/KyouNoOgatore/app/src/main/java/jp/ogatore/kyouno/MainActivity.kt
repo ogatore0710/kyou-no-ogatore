@@ -2408,13 +2408,13 @@ fun MyRecordScreen(
                         },
                         // R-35: 改行入りになったため、1行前提だったlineHeight 15.sp(密着値)から
                         // 2行が読める行送りへ(iOSのkyonoFont既定行送りと目視で揃える)。
-                        color = colors.ink, fontSize = 15.sp, lineHeight = 21.sp, style = KyonoTightLineTextStyle,
+                        color = colors.ink, fontSize = 15.sp, lineHeight = 21.sp, style = kyonoTightLineTextStyle(),
                         modifier = Modifier.testTag("msNote"),
                     )
                 } else {
                     Text(
                         "全部の節目をたっせい！すごすぎます", color = colors.ink, fontSize = 15.sp,
-                        lineHeight = 15.sp, style = KyonoTightLineTextStyle, modifier = Modifier.testTag("msNote"),
+                        lineHeight = 15.sp, style = kyonoTightLineTextStyle(), modifier = Modifier.testTag("msNote"),
                     )
                 }
                 Spacer(Modifier.height(14.dp))

@@ -359,7 +359,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                     // へ戻す。
                     Text(
                         cat.name, color = if (on) colors.yellowInk else colors.sub, fontSize = 14.sp, fontWeight = FontWeight.Black,
-                        lineHeight = 14.sp, style = KyonoTightLineTextStyle,
+                        lineHeight = 14.sp, style = kyonoTightLineTextStyle(),
                         modifier = Modifier
                             .background(if (on) colors.yellow else colors.line, RoundedCornerShape(12.dp))
                             .clickable { activeCat = cat.key; activeTag = null }
@@ -418,7 +418,7 @@ fun SearchScreen(store: RecordStore, openUrl: (String) -> Unit, onBack: () -> Un
                         }
                         Text(
                             tag, color = if (on) cc.onText else cc.text, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                            lineHeight = 14.sp, style = KyonoTightLineTextStyle,
+                            lineHeight = 14.sp, style = kyonoTightLineTextStyle(),
                         )
                     }
                 }

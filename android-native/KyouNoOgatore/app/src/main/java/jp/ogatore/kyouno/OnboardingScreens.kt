@@ -965,14 +965,14 @@ fun QuizScreen(store: RecordStore, presetWorry: String?, onComplete: (typeKey: S
                             // TASK-C2-2026-08-04-build22-yellow-return.md Z-3(棚卸し対象): このQ1-Q4
                             // 段階色カードもobgColorsパレットを共有するため、同基準で文字も濃色化。
                             opt.label, color = c?.text ?: colors.ink, fontSize = 18.sp, lineHeight = 18.sp,
-                            style = KyonoTightLineTextStyle, fontWeight = FontWeight.Black,
+                            style = kyonoTightLineTextStyle(), fontWeight = FontWeight.Black,
                         )
                         // TASK-C2-2026-08-05-build24-chip-clarity.md: 段階色カード(bgが高彩度化)では
                         // sub(#6E6B5F)がコントラスト不足(alan5実測2.45〜3.94:1)になるためinkにする。
                         // 通常カード(Q5 worry・c==null)はcolors.subのまま。
                         Text(
                             opt.note, color = if (c != null) colors.ink else colors.sub, fontSize = 13.sp, lineHeight = 19.5.sp,
-                            style = KyonoTightLineTextStyle, fontWeight = FontWeight.Bold,
+                            style = kyonoTightLineTextStyle(), fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 2.dp),
                         )
                     }

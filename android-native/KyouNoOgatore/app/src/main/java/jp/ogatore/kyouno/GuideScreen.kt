@@ -184,7 +184,7 @@ fun GuideScreen(
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), contentAlignment = Alignment.Center) {
                 Text(
                     "使い方ツアー", color = KyonoBtnPrimaryText, fontSize = 15.sp, fontWeight = FontWeight.Black,
-                    lineHeight = 15.sp, style = KyonoTightLineTextStyle,
+                    lineHeight = 15.sp, style = kyonoTightLineTextStyle(),
                     modifier = Modifier
                         .background(colors.yellow, RoundedCornerShape(50))
                         .border(2.dp, KyonoBtnPrimaryBorder, RoundedCornerShape(50))
@@ -483,7 +483,7 @@ fun GuideScreen(
                                     // 指定したlineHeightどおりにする」ためのものなので、Web値そのまま渡す。
                                     Text(
                                         faqItem.q, color = colors.ink, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
-                                        lineHeight = 22.4.sp, style = KyonoTightLineTextStyle,
+                                        lineHeight = 22.4.sp, style = kyonoTightLineTextStyle(),
                                         modifier = Modifier.weight(1f),
                                     )
                                 }
@@ -491,7 +491,7 @@ fun GuideScreen(
                                     // index.html:196 .faq .fa{font-size:14px;line-height:1.9}の1:1移植。
                                     Text(
                                         faqItem.a, color = colors.sub, fontSize = 14.sp,
-                                        lineHeight = 26.6.sp, style = KyonoTightLineTextStyle,
+                                        lineHeight = 26.6.sp, style = kyonoTightLineTextStyle(),
                                         modifier = Modifier.padding(top = 8.dp, start = 18.dp),
                                     )
                                 }
