@@ -1,8 +1,8 @@
-# 【ドラフト・本人チェック待ち】プライバシーポリシー
+# 【公開済み】プライバシーポリシー(正本は privacy.html)
 
-> **これは公開前のドラフトです(R-66)。** 本人のOKが出たら、この文面をWebサイト(GitHub Pages)に
-> `privacy.html` として公開し、そのURLをApp Store Connect / Google Play Console の
-> プライバシーポリシー欄に登録します。アプリ内(マイ設定)からのリンク追加も推奨。
+> **2026-08-07 本人GO→公開済み。** 正本は `privacy.html`
+> (https://kyou-no.ogatore.net/privacy.html ・実照会200確認済み)。
+> 以後の文面変更はprivacy.htmlを直接編集すること(このファイルは経緯記録)。
 > 文面はアプリの実態(Fable監査で実コード確認済み: 収集ゼロ・端末ローカル保存のみ・
 > トラッキングなし・PrivacyInfo.xcprivacy収集項目空)に基づいています。
 
@@ -73,10 +73,10 @@
 ## (公開時の作業メモ・ページには載せない)
 
 - [x] 運営者表記: 株式会社OGATORE(本人指定・2026-08-07)
-- [ ] 本人チェック: 文面全体OKか+問い合わせ先メール kyou-no@ogatore.jp でよいか
-- [ ] 最終更新日を確定して `privacy.html` としてWebルートへ追加(Web版ファイル無変更の原則に
-      抵触しない「新規ファイル追加」だが、Webゲート確認は通す)
-- [ ] ASC: App情報 → プライバシーポリシーURL に登録
+- [x] 本人チェック: GO(2026-08-07)
+- [x] privacy.html公開(2026-08-07)。pages.ymlのallowlist方式に注意=新規公開ファイルは
+      ワークフローへの追加が必要(今回踏んだ・追加済み)
+- [x] ASC登録済み: appInfoLocalization(ja)へPATCH 200・再取得一致(2026-08-07)
 - [ ] Play Console: ストアの設定 → プライバシーポリシー に登録
 - [ ] ASCプライバシー質問=「データ収集なし」/ Playデータセーフティ=「収集なし・共有なし」で申告
       (PrivacyInfo.xcprivacy・AndroidManifestの実態と一致)
