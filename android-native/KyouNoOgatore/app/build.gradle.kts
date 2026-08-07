@@ -1,7 +1,17 @@
+// TASK build36 R-65: Gradle Kotlin DSLでは`java`がプロジェクト拡張に遮蔽されて
+// `java.util.Properties`を直接参照できないため、ファイル先頭でimportする。
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.serialization")
+}
+
+// TASK build36 R-65: 署名資格情報の読み込み(androidブロックの外)。
+val signingPropsFile = File(System.getProperty("user.home"), "Claude/ogatore-hub/secrets/android-signing.properties")
+val signingProps = Properties().apply {
+    if (signingPropsFile.exists()) signingPropsFile.inputStream().use { load(it) }
 }
 
 android {
@@ -41,6 +51,32 @@ android {
             isIncludeAndroidResources = true
         }
     }
+
+    // TASK build36 R-65(Fable監査B-2・2026-08-07): Play提出用のリリース署名(upload key)。
+    // 鍵と資格情報はこのリポジトリに置かない(auto-syncで10分ごとに公開されるため)。
+    // 保管場所はASC APIキーと同じ ~/Claude/ogatore-hub/secrets/(android-signing.properties+
+    // ogatore-upload.keystore)。ファイルが無い環境(CI等)ではrelease署名なしにフォールバックし、
+    // debugビルドには一切影響しない。鍵紛失時はPlay Consoleからアップロード鍵リセット申請可
+    // (Play App Signing前提)。
+    if (signingPropsFile.exists()) {
+        signingConfigs {
+            create("release") {
+                storeFile = File(signingPropsFile.parentFile, signingProps.getProperty("storeFile"))
+                storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            // minify(R8)はFable監査で「任意」判定のため現状維持(false)。挙動同一性を優先。
+            isMinifyEnabled = false
+            if (signingPropsFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -71,7 +107,9 @@ dependencies {
     // Robolectric(JVM上でAndroidフレームワークをシャドウ実装する定番テストライブラリ)でエミュレータ無しに
     // 実行する。Java2D/AWT代替実装で済ませてしまうと実機コードと別物になり後で丸ごと書き直しになるため、
     // 最初から実機と同じandroid.graphics APIをテストする方針にした。
-    testImplementation("org.robolectric:robolectric:4.13")
+    // R-64: 4.13はtargetSdk 35未対応(maxSdkVersion=34で全テストが構成エラー)のため、
+    // SDK 35対応の4.14.1へ更新。
+    testImplementation("org.robolectric:robolectric:4.14.1")
 
     // GO-H1(ホーム画面ウィジェット)・alan5指示の手段C: runGlanceAppWidgetUnitTestでComposeの
     // 実際の描画結果(どのImage/Textが出たか)までJVM単体テストで検証する。WidgetLogicTestが
