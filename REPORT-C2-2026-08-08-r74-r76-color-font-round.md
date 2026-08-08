@@ -71,3 +71,13 @@ build37実機いじり→エミュ環境での確認中に本人から連続で�
 - ASC裏取り(実照会): VALID/expired=False(build_id f77062eb-7a76-4d00-a417-59426e3c7c44)・
   紐付けPOST 204・group一覧に"39"確認・IN_BETA_TESTING・whatsNew PATCH 200(再取得一致)・Push 1/1
 - 本人実機確認ゲート: ダーク新基調(全画面)・スプラッシュ(LaunchScreen→即ホーム)・オンボスクロール
+
+## 追補3: R-83〜R-85+build40出荷(2026-08-08)
+- R-83: 初回起動ようこそゲート(自動開始→「はじめる」押下開始へ・エミュでpm clear→表示→
+  タップ→開始を実描画確認。ボタン2行折れを2度修正した上で確定)
+- R-84: オンボスクロールをWeb正本(scrollTop=scrollHeight)どおり瞬時ジャンプへ(両OS)
+- R-85: GhostButton押し出し影を復活・既定ON(ライト影色#A8D3CA→#E3B4C7・両OS)
+- build40: bump 39→40・ipa CFBundleVersion=40実照会・altoolエラーなし
+- ASC裏取り(実照会): VALID/expired=False(build_id a22fa938-4ce4-4a2f-bf89-20a2f4f2326e)・
+  紐付けPOST 204・group一覧に"40"確認・IN_BETA_TESTING・whatsNew PATCH 200(再取得一致)・Push 1/1
+- 本人実機確認ゲート: 初回ゲート(再インストールで確認可)・ツアーの静けさ・立体ボタン(両テーマ)
