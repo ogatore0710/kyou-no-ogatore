@@ -98,10 +98,43 @@ public final class RecordStore {
         }
     }
 
-    private func persist() {
-        guard let url = fileURL, !persistDisabled else { return }
-        guard let data = try? JSONEncoder().encode(raw) else { return }
-        try? data.write(to: url, options: .atomic)
+    // TASK 2026-08-10 A-2(C3総監査→alan5発注): 書き込み耐性をAndroid版RecordStore.kt(R-58)水準へ。
+    //  1) .atomic一発書きをやめ「一時ファイル→fsync→rename」に(atomicityに加えdurabilityを確保。
+    //     fsync無しだとrename順序がストレージへ届く前の電源断で更新が失われうる)
+    //  2) 失敗を握りつぶさず成否を返す(set()がそのまま呼び出し元へ返す)。失敗時は旧ファイルを
+    //     一切触らないので「黙って消える」ことはない(メモリ上のrawは保持され次のpersistで再試行)
+    // 失敗時のユーザー通知は出さない(R-58裁定の静かなUXを踏襲)。
+    @discardableResult
+    private func persist() -> Bool {
+        guard let url = fileURL else { return true } // メモリのみ(テスト用): 永続化なし=成功扱い
+        guard !persistDisabled else { return false }
+        guard let data = try? JSONEncoder().encode(raw) else { return false }
+        let tmp = url.deletingLastPathComponent()
+            .appendingPathComponent(url.lastPathComponent + ".tmp")
+        do {
+            try data.write(to: tmp, options: [])
+            // fsync(Android RecordStore.ktの out.fd.sync() と同じ狙い)。FileHandle.synchronize()は
+            // パッケージのデプロイ下限で使えないためPOSIX直呼び。
+            let fd = open(tmp.path, O_WRONLY)
+            guard fd >= 0 else { throw POSIXError(.EIO) }
+            let synced = fsync(fd) == 0
+            close(fd)
+            guard synced else { throw POSIXError(.EIO) }
+        } catch {
+            try? FileManager.default.removeItem(at: tmp)
+            return false
+        }
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                _ = try FileManager.default.replaceItemAt(url, withItemAt: tmp)
+            } else {
+                try FileManager.default.moveItem(at: tmp, to: url)
+            }
+            return true
+        } catch {
+            try? FileManager.default.removeItem(at: tmp)
+            return false
+        }
     }
 
     // Web版 store.get(k,d) 相当: "kyono_"+kの値をJSON.parseして返す。欠落/型不一致時はdefaultValue
@@ -112,12 +145,14 @@ public final class RecordStore {
     }
 
     // Web版 store.set(k,v) 相当: "kyono_"+kにJSON.stringify(v)を保存。成功可否を返す(Web版のtry/catch踏襲)。
+    // A-2: 従来はエンコード成否しか見ておらず、ディスク書き込みが失敗してもtrueを返していた。
+    // persist()の実際の成否を返す(失敗してもメモリ上のrawには反映済み=セッション内の表示は
+    // 正しく、次のset()/setRaw()で再persistが試みられる)。
     @discardableResult
     public func set<T: Encodable>(_ key: String, _ value: T) -> Bool {
         guard let data = try? JSONEncoder().encode(value), let s = String(data: data, encoding: .utf8) else { return false }
         raw["kyono_" + key] = s
-        persist()
-        return true
+        return persist()
     }
 
     // ---- インポート/エクスポート・未知キーpassthrough用の生アクセス(型を知らないキーもそのまま運べる) ----

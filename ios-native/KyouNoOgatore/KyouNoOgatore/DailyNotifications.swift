@@ -23,28 +23,23 @@ enum DailyNotifications {
 
     struct AnchorNotif {
         let key: String
-        let defaultHour: Int
-        let defaultMinute: Int
         let body: String
     }
 
+    // TASK 2026-08-10 B-3(C3総監査→alan5発注): 既定時刻はRecordCore.IcsTime.anchorDefaultsへ一本化し、
+    // ここには通知本文だけを残す(SettingsViewと二重実装で、片方だけ変えると設定画面の表示時刻と
+    // 実際に鳴る時刻が無言でずれる構造だったため)。
     static let anchorNotifs: [AnchorNotif] = [
-        AnchorNotif(key: "asa", defaultHour: 7, defaultMinute: 30, body: "おはようございます朝の1本いきましょう！"),
-        AnchorNotif(key: "furo", defaultHour: 20, defaultMinute: 30, body: "おふろ上がりの1本いきましょう"),
-        AnchorNotif(key: "neru", defaultHour: 21, defaultMinute: 30, body: "寝るまえの1本できょうをしめくくりましょう"),
+        AnchorNotif(key: "asa", body: "おはようございます朝の1本いきましょう！"),
+        AnchorNotif(key: "furo", body: "おふろ上がりの1本いきましょう"),
+        AnchorNotif(key: "neru", body: "寝るまえの1本できょうをしめくくりましょう"),
         // index.html:1978 ANCHORS.free.gは「すきな時間にきょうの1本をどうぞ🌿」(アプリ内挨拶用)。
         // 通知では本人指示により「夜がおすすめの時間」を伝える文言に差し替える(アプリ内挨拶自体は不変)。
-        AnchorNotif(key: "free", defaultHour: 20, defaultMinute: 0, body: "夜はストレッチにおすすめの時間だよ きょうの1本どうぞ"),
+        AnchorNotif(key: "free", body: "夜はストレッチにおすすめの時間だよ きょうの1本どうぞ"),
     ]
 
     private static func resolveTime(_ store: RecordStore) -> (hour: Int, minute: Int) {
-        let anchorKey: String? = store.get("anchor", default: nil)
-        let info = anchorNotifs.first { $0.key == anchorKey } ?? anchorNotifs.last!
-        let saved: String? = store.get("icstime", default: nil)
-        let parts = saved?.split(separator: ":").compactMap { Int($0) }
-        let hour = (parts?.count ?? 0) > 0 ? parts![0] : info.defaultHour
-        let minute = (parts?.count ?? 0) > 1 ? parts![1] : info.defaultMinute
-        return (hour, minute)
+        IcsTime.resolve(store: store)
     }
 
     private static func notifBody(_ store: RecordStore) -> String {

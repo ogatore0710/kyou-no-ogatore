@@ -19,13 +19,21 @@ import RecordCore
 // index.html:1974-1979 ANCHORSの1:1移植(ラベル+毎日の合図の既定時刻)。キー(asa/furo/neru/free)
 // 自体はOnboardingViews.swiftのanchor質問と共有(§1-2手写し禁止対象の機械抽出データではなく、
 // 短い固定UI文言なのでオンボ文言等と同じくUI copyとして直接記述)。
+// TASK 2026-08-10 B-3(C3総監査→alan5発注): 既定時刻の正本はRecordCore.IcsTime.anchorDefaultsへ
+// 一本化(DailyNotifications側と二重実装になっていて、片方だけ変えると設定画面の表示と実通知が
+// 無言でずれる構造だったため)。ここにはUIラベルだけを持ち、時刻はIcsTimeから引く。
 struct AnchorInfo { let key: String; let label: String; let defaultHour: Int; let defaultMinute: Int }
-let settingsAnchors: [AnchorInfo] = [
-    AnchorInfo(key: "asa", label: "朝おきてそのまま", defaultHour: 7, defaultMinute: 30),
-    AnchorInfo(key: "furo", label: "おふろ上がりに", defaultHour: 20, defaultMinute: 30),
-    AnchorInfo(key: "neru", label: "寝るまえふとんの上で", defaultHour: 21, defaultMinute: 30),
-    AnchorInfo(key: "free", label: "きめてない・そのつど", defaultHour: 20, defaultMinute: 0),
-]
+let settingsAnchors: [AnchorInfo] = {
+    let labels = [
+        "asa": "朝おきてそのまま",
+        "furo": "おふろ上がりに",
+        "neru": "寝るまえふとんの上で",
+        "free": "きめてない・そのつど",
+    ]
+    return IcsTime.anchorDefaults.map {
+        AnchorInfo(key: $0.key, label: labels[$0.key] ?? "", defaultHour: $0.hour, defaultMinute: $0.minute)
+    }
+}()
 
 // TASK-C2-2026-07-28-myrecord-settings-tour-parity.md §3: index.html:2001-2020 renderIcs()の
 // 「anchor別の既定＋保存済みicstimeを必ず反映」の1:1移植。毎日の合図(DailyNotifications)の
@@ -40,14 +48,9 @@ func kyonoDisplayName(_ store: RecordStore) -> String {
     return String(nickname.prefix(6))
 }
 
+// B-3: パースはIcsTime.resolveへ一本化(DailyNotifications側も同じ関数を使う)。
 func icsTimeFor(_ store: RecordStore) -> (Int, Int) {
-    let anchor: String? = store.get("anchor", default: nil)
-    let anchorInfo = settingsAnchors.first { $0.key == anchor }
-    let savedIcsTime: String? = store.get("icstime", default: nil)
-    let parts = savedIcsTime?.split(separator: ":").compactMap { Int($0) }
-    let hour = (parts?.count ?? 0) > 0 ? parts![0] : (anchorInfo?.defaultHour ?? settingsAnchors.last!.defaultHour)
-    let minute = (parts?.count ?? 0) > 1 ? parts![1] : (anchorInfo?.defaultMinute ?? settingsAnchors.last!.defaultMinute)
-    return (hour, minute)
+    IcsTime.resolve(store: store)
 }
 
 struct SettingsView: View {
@@ -112,8 +115,20 @@ struct SettingsView: View {
         // 既に保存済みのicstimeが15分刻みでない場合は、表示・保存とも最も近い15分に丸める
         // (既定値はすべて15分刻みなので影響なし)。
         _icsHour = State(initialValue: savedHour)
-        _icsMinute = State(initialValue: min(45, ((savedMinute + 7) / 15) * 15))
+        _icsMinute = State(initialValue: IcsTime.roundedMinute(savedMinute))
         _notifEnabled = State(initialValue: store.get("notif_enabled", default: false))
+    }
+
+    // TASK 2026-08-10 A-1(C3総監査→alan5発注): 丸めが表示用@Stateに入るだけで、storeと通知予約は
+    // 非15分刻みの旧値のままという乖離の自己修復(設定画面は丸めた07:45を表示するのに実通知は
+    // 07:37のまま鳴り、手で選び直すまで直らなかった)。Android SettingsScreen.ktの
+    // LaunchedEffect(Unit)と同じ「静かに直して書き戻し、通知も予約し直す」型。ダイアログ等は出さない。
+    private func selfHealIcsTime() {
+        let (_, savedMinute) = icsTimeFor(store)
+        if savedMinute != icsMinute {
+            store.set("icstime", IcsTime.format(hour: icsHour, minute: icsMinute))
+            DailyNotifications.resync(store: store)
+        }
     }
 
     private static let minuteOptions = [0, 15, 30, 45]
@@ -127,6 +142,7 @@ struct SettingsView: View {
         // iOSスワイプもどり導線追加タスク(EdgeSwipeBack.swift参照): アコーディオン状態を持たない画面。
         .edgeSwipeBack(onBack: onBack)
         .onReceive(themeTicker) { _ in themeTick += 1 }
+        .onAppear { selfHealIcsTime() } // A-1: Android版LaunchedEffect(Unit)相当
     }
 
     private var content: some View {
@@ -189,7 +205,7 @@ struct SettingsView: View {
                                     let savedIcsTime: String? = store.get("icstime", default: nil)
                                     if savedIcsTime == nil {
                                         icsHour = info.defaultHour
-                                        icsMinute = min(45, ((info.defaultMinute + 7) / 15) * 15)
+                                        icsMinute = IcsTime.roundedMinute(info.defaultMinute)
                                     }
                                 }
                             }

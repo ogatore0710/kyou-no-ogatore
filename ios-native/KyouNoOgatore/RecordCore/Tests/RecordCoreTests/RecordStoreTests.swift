@@ -92,4 +92,54 @@ final class RecordStoreTests: XCTestCase {
         try FileManager.default.removeItem(at: dir)
         store.set("anchor", "asa") // 例外にならないこと(戻り値は問わない)
     }
+
+    // ---- TASK 2026-08-10 A-2(C3総監査→alan5発注): 書き込み失敗の検知とデータ保全の直接証明 ----
+
+    // 6) 書き込み失敗はfalseで検知でき、ディスク上の旧データは無傷のまま残る
+    //    (従来は.atomic失敗をtry?で握りつぶしset()が無条件trueだった)
+    func testSetReturnsFalseOnWriteFailureAndKeepsPreviousFile() throws {
+        let store = RecordStore(fileURL: storeURL)
+        XCTAssertTrue(store.set("onboarded", true))
+        let before = try Data(contentsOf: storeURL)
+
+        // 失敗の注入: 親ディレクトリを読み取り専用にして一時ファイル作成を失敗させる
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: dir.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.path) }
+
+        XCTAssertFalse(store.set("anchor", "asa"))
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.path)
+        // 旧ファイルはバイト単位で無傷(黙って空になったり途中状態になったりしない)
+        XCTAssertEqual(try Data(contentsOf: storeURL), before)
+        XCTAssertEqual(RecordStore(fileURL: storeURL).get("onboarded", default: false), true)
+    }
+
+    // 7) 失敗した書き込みぶんはメモリに保持され、次に成功したpersistで一緒に回復する
+    func testFailedWriteRecoversOnNextSuccessfulPersist() throws {
+        let store = RecordStore(fileURL: storeURL)
+        XCTAssertTrue(store.set("onboarded", true))
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: dir.path)
+        XCTAssertFalse(store.set("anchor", "asa"))
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.path)
+
+        XCTAssertTrue(store.set("theme", "dark"))
+        let reloaded = RecordStore(fileURL: storeURL)
+        XCTAssertEqual(reloaded.get("anchor", default: ""), "asa") // 失敗時の値も一緒に保存されている
+        XCTAssertEqual(reloaded.get("theme", default: ""), "dark")
+    }
+
+    // 8) 成功パス: 一時ファイル(.tmp)が残らない・成否がtrueで返る
+    func testNoTmpLeftoverAfterSuccessfulPersist() throws {
+        let store = RecordStore(fileURL: storeURL)
+        XCTAssertTrue(store.set("onboarded", true))
+        let names = try FileManager.default.contentsOfDirectory(atPath: dir.path)
+        XCTAssertFalse(names.contains("kyono-store.json.tmp"))
+        XCTAssertTrue(names.contains("kyono-store.json"))
+    }
+
+    // 9) メモリのみ(テスト用init)のset()は従来どおりtrue(永続化なし=成功扱い)
+    func testInMemorySetStillReturnsTrue() {
+        let store = RecordStore(inMemory: [:])
+        XCTAssertTrue(store.set("onboarded", true))
+        XCTAssertEqual(store.get("onboarded", default: false), true)
+    }
 }
