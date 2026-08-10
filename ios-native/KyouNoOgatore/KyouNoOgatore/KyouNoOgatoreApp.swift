@@ -159,19 +159,7 @@ struct RootView: View {
     init(store: RecordStore) {
         self.store = store
         let onboarded: Bool = store.get("onboarded", default: false)
-        // 一時検証フック(build41実機FB② 図鑑ダーク実描画・撮影後にこのブロックは削除する):
-        // UITestから起動引数で図鑑を直接開き、テーマも固定する(バナー経由のXCUITestタップと
-        // コンテナ直書きシードがどちらも不安定なため)。
-        if ProcessInfo.processInfo.arguments.contains("-uitest-open-dex") {
-            if ProcessInfo.processInfo.arguments.contains("-uitest-theme-dark") {
-                store.set("theme", "dark")
-            } else if ProcessInfo.processInfo.arguments.contains("-uitest-theme-light") {
-                store.set("theme", "light")
-            }
-            _screen = State(initialValue: .dex)
-        } else {
         _screen = State(initialValue: onboarded ? .home : .onboarding)
-        }
         _obuSeen = State(initialValue: store.get("obu_seen", default: nil))
         // TASK-C2-2026-07-31-soudan-10min-memory.md(案7b): 判定は復元時のみ(タイマー・
         // バックグラウンド処理は作らない)。最後のやり取りから10分以内ならmessages/chipsMode/

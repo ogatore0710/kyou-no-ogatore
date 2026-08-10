@@ -122,28 +122,4 @@ final class SearchViewUITests: XCTestCase {
         XCTAssertEqual(blackCount, 0, "画面下端に黒い帯を検出した(\(blackCount)/\(sampled)点が黒・C1と同じ疑い)")
     }
 
-    // 一時撮影用(build41実機FB② 図鑑ダークの実描画検証・撮影後にこの3メソッドは削除する)
-    private func dexShot(themeArg: String) {
-        let app = XCUIApplication()
-        app.launchArguments += ["-uitest-open-dex", themeArg] // 一時フック(KyouNoOgatoreApp.init)
-        app.launch()
-        let locked = app.staticTexts["？？？"].firstMatch
-        XCTAssertTrue(locked.waitForExistence(timeout: 10), "図鑑画面が開かない(？？？が見つからない)")
-        sleep(1)
-        NSLog("DEXSHOT_READY1")
-        sleep(6) // ホストがshot1(図鑑先頭=タイプ別+記念日の頭)
-        app.swipeUp()
-        sleep(1)
-        NSLog("DEXSHOT_READY2")
-        sleep(8) // ホストがshot2(記念日カードのシルエット群)
-    }
-
-    func testDexScreenshotDark() throws {
-        dexShot(themeArg: "-uitest-theme-dark")
-    }
-
-    func testDexScreenshotLight() throws {
-        dexShot(themeArg: "-uitest-theme-light")
-    }
-
 }
