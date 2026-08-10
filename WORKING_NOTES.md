@@ -38,6 +38,12 @@ bulkdevから実装完了報告を受領(`ogatore-hub/2026-08-10-C3bulkdevから
 
 続けて出荷(Releaseアーカイブ検証+TestFlight提出=build41)をbulkdevへ発注しようとしたところ、`door-deliver.sh`の実行が**自動分類器にブロックされた**(外部提出を伴う操作のため)。本人へAskUserQuestionで確認し「GO(推奨)」を受領→再実行で配達成功(`OK: 7920.bulkdev 配達・処理開始を確認`)。発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-A1A2A4出荷ビルド.md`(R-63のRelease限定クラッシュ前例に注意喚起・バージョンはbuild41・whatsNewはbulkdevが視聴者コピー流儀で起票・**ASCの最終裏取りはalan5が独立して行う**)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-A1A2A4出荷.md`。
 
+### ✅ 2026-08-10夜 build41出荷完了・ASC独立裏取り済み
+
+bulkdevの出荷報告を受領: ARCHIVE SUCCEEDED(R-63型クラッシュ再発なし)→altool成功(Delivery `d4a0a63b`)→VALID(約2.5分)→グループ紐付け204→whatsNew PATCH200。**alan5が自分のPython+PyJWTでASC API照会し3点とも独立確認**: ①`GET /v1/builds?filter[app]=6795444019&filter[version]=41`→`processingState=VALID`/`expired=false`/`usesNonExemptEncryption=false` ②`GET /v1/betaGroups/3b3f7a0b-.../builds`→先頭がbuild41(グループ内builds一覧に確かに存在) ③`GET /v1/betaBuildLocalizations?filter[build]=d4a0a63b-...`→whatsNew本文が報告と一致(「合図の時間がずれることがあったのをなおしました⏰きろくを守るしくみを強くしました！こまかい文章もととのえました！」)。**学び共有**: bulkdevの報告どおりASCのwhatsNewは「✨」を409で拒否(invalid characters)・⏰は通る→今後のwhatsNew文言では✨を避ける。
+
+**残り**: 実機での通知時刻自己修復(A-1)確認・TestFlightインストール確認は本人のiPhoneでの作業のためBALLS.mdへ記帳し本人へPushする。A-3(Android約50箇所IOスレッド化)とB/C級14件は据え置きのまま(未発注)。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。
