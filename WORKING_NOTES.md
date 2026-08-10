@@ -66,6 +66,12 @@ bulkdevから差し戻し対応完了報告を受領。**切り分け結果**: �
 
 **本人へAskUserQuestionで出荷確認→GO受領**。発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-build42出荷ビルド.md`をbulkdevへ配達済み(`OK: 7920.bulkdev 配達・処理開始を確認`)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-build42出荷.md`。
 
+### ✅ 2026-08-10深夜 build42出荷完了・ASC独立裏取り済み
+
+bulkdevの出荷報告を受領: アーカイブ成功(plutilでCFBundleVersion=42確認・R-63型なし)→altool成功→VALID(約3分)→グループ紐付け204→whatsNew PATCH200。確定文言「ツアーの練習は本番のきろくに入らないようになりました！図鑑がくらい画面でも見やすくなりました！」。**学び**: 「🌙」もASCが409拒否(✨に続き2敗目・⏰は通る)→**今後のwhatsNewは絵文字なしを既定にし、使うなら⏰など実績のあるものだけにする**。
+
+**alan5が自分のPython+PyJWTでASC API照会し3点とも独立確認**: ①`GET /v1/builds?filter[version]=42`→VALID/expired=false/usesNonExemptEncryption=false ②`GET /v1/betaGroups/.../builds`→先頭がbuild42(41,40と続く) ③`GET /v1/betaBuildLocalizations?filter[build]=...`→whatsNew本文が報告と完全一致。**A-1/A-2/A-4(build41)+ツアー練習不算入/図鑑ダーク視認性(build42)の今回ラウンドはこれで完了**。BALLS.mdへbuild42の実機確認を記帳しPush済み。A-3・B/C級14件は据え置きのまま(未発注)。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。
