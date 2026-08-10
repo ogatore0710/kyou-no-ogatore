@@ -44,6 +44,14 @@ bulkdevの出荷報告を受領: ARCHIVE SUCCEEDED(R-63型クラッシュ再発�
 
 **残り**: 実機での通知時刻自己修復(A-1)確認・TestFlightインストール確認は本人のiPhoneでの作業のためBALLS.mdへ記帳し本人へPushする。A-3(Android約50箇所IOスレッド化)とB/C級14件は据え置きのまま(未発注)。
 
+### 🐛 2026-08-10深夜 build41実機フィードバック2件→発注
+
+本人がbuild41を実機で確認中に2件発見(スクショ添付):
+1. **使い方ツアー直後に1日目が完了扱いになる違和感**。原因調査: `OnboardingViews.swift`の`performPracticeRecord()`(Android`OnboardingScreens.kt`同名)がツアー内「きろくのれんしゅう」ボタンで実際に`RecordLogic.markDone()`/`recordDaylog()`を呼んでいる(R-13/build27の意図的設計・2026-08-06に一度「現仕様維持」で裁定済み)。**本人が実機で確認して違和感を表明→AskUserQuestionで確認し「仕様を見直す(ツアー内の練習はカウントしない)」で旧裁定を上書き**。
+2. **ダークモードで図鑑の記念日カード(未解放シルエット)が背景と同化**。原因確認: iOS`DexView.swift:124`/Android`DexScreen.kt:146`とも未解放カードを黒55%固定darkeningしており、ダーク背景(0x0F0E0C)に対して暗すぎる実バグ(ライトモードは問題なし・テーマ非対応が原因)。
+
+発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-build41実機フィードバック2件.md`をbulkdevへ配達済み(`OK: 7920.bulkdev 配達・処理開始を確認`)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-tourfix-dexdark.md`。ビルド・提出はスコープ外(出荷はalan5)。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。

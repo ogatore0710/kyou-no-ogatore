@@ -108,6 +108,7 @@ private struct DexSectionView: View {
 
 private struct DexCellView: View {
     @Environment(\.kyonoColors) private var colors
+    private var dark: Bool { colors.bg == kyonoDarkColors.bg }
     let item: DexItem
 
     var body: some View {
@@ -123,10 +124,15 @@ private struct DexCellView: View {
                         Text("？").kyonoFont(.black900, size: 22).foregroundColor(colors.sub)
                     }
                 } else if let key = item.key, let uiImage = loadCardArt(key) {
+                    // build41実機FB②(2026-08-10本人・実バグ): 未解放の暗化が黒multiply
+                    // (=一様な黒シルエット・alpha55%)固定のため、ダーク背景(0x0F0E0C)では
+                    // 背景と同化して見えなかった。ダーク時はグレーmultiply(絵柄を50%輝度に
+                    // 減光)へ切り替える(輪郭は分かるが解放済みとは明確に区別できる暗さ)。
+                    // ライトは従来どおり。Android DexScreen.ktのModulateと同値の修正。
                     Image(uiImage: uiImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .colorMultiply(item.got ? .white : Color.black.opacity(0.55))
+                        .colorMultiply(item.got ? .white : (dark ? Color(white: 0.5) : Color.black.opacity(0.55)))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }

@@ -1214,23 +1214,19 @@ private struct ResultContentView: View {
     // 透けて見えていた。withAnimationを使わず即座に代入することでこのフェード自体を無くす。
     private func performPracticeRecord() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        _ = RecordLogic.markDone(store, now: Date())
+        // 仕様変更(2026-08-10本人裁定・build41実機FB①): ツアーの練習は実記録に算入しない。
+        // markDone/recordDaylog/通知resync/ウィジェット書き出しを行わず、演出(0日目カード・紙吹雪)
+        // だけを出す。本物の1日目は、ツアー後に通常の「きょうやった!」を押した時点で初めて記録される。
+        // ツアー進行フラグ(fd/tourpend)は進行制御に使うため従来どおり残す。
+        // (旧仕様=実記録して表示だけ0日はR-13/build27。2026-08-06「現仕様維持」裁定を本人が
+        //  build41実機確認「ツアー終わってすぐやった事になってる」で上書き)
         let streak = RecordLogic.loadStreak(store)
-        DailyNotifications.resync(store: store)
-        WidgetSummaryWriter.write(store: store)
-        WidgetCenter.shared.reloadAllTimelines()
         let today = RecordLogic.todayStr(now: Date())
-        // 練習モードは「きょうはこれ1本でOK！」で示した動画がそのまま今日の1本なので、Home側の
-        // todayVideoIdAndTitle()より確実に特定できる。
-        if let vk = rx.first, let v = lookupVideo(vk) {
-            RecordLogic.recordDaylog(store, today: today, videoId: v.id, videoTitle: v.t, count: streak.count)
-        }
         store.set("fd", "1")
         store.set("tourpend", true)
-        // TASK-C2-2026-08-05-build27-round5.md R-13(本人指示「この画面は0日って表示させて。
-        // テストだから」): このView自体がfdGuide中の練習専用(通常ユーザーはHomeView側の
-        // renderTodayCard呼び出しを使う)なので、大数字表示だけ常に0にする。markDone/
-        // recordDaylogは通常どおり実行済みで実カウントには一切影響しない(表示だけの変更)。
+        // 0日目カードは演出のみ(streakは未記録のまま=total 0)。rotAssignの抽選台帳だけは
+        // renderTodayCard内で追記されるが、実記録日に本物の記録をしたとき同じ絵柄が再現される
+        // だけで、図鑑解放・日数には影響しない(解放は記録済み日付から導出される)。
         let newCard = renderTodayCard(store: store, streak: streak, ds: today, displayTotalOverride: 0)
         cardResult = newCard
         confettiTrigger = (confettiTrigger ?? 0) + 1

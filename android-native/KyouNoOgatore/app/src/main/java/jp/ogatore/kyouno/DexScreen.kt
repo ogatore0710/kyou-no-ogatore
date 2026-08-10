@@ -140,10 +140,17 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
             } else if (item.key != null) {
                 val resId = remember(item.key) { context.resources.getIdentifier(item.key, "drawable", context.packageName) }
                 if (resId != 0) {
+                    // build41実機FB②(2026-08-10本人・実バグ): 未解放の暗化が黒スクリム55%固定の
+                    // ため、ダーク背景(0x0F0E0C)では背景と同化して見えなかった。ダーク時は
+                    // Modulate(絵柄を50%輝度に減光=iOSのcolorMultiply(white:0.5)と同値)へ
+                    // 切り替える。ライトは従来どおり。iOS DexView.swiftと同一修正。
+                    val dark = colors.bg == KyonoDarkColors.bg
                     Image(
                         painter = painterResource(id = resId),
                         contentDescription = item.name,
-                        colorFilter = if (item.got) null else ColorFilter.tint(Color.Black.copy(alpha = 0.55f), androidx.compose.ui.graphics.BlendMode.SrcAtop),
+                        colorFilter = if (item.got) null
+                        else if (dark) ColorFilter.tint(Color(0xFF808080), androidx.compose.ui.graphics.BlendMode.Modulate)
+                        else ColorFilter.tint(Color.Black.copy(alpha = 0.55f), androidx.compose.ui.graphics.BlendMode.SrcAtop),
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
