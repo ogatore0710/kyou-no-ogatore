@@ -122,4 +122,34 @@ final class SearchViewUITests: XCTestCase {
         XCTAssertEqual(blackCount, 0, "画面下端に黒い帯を検出した(\(blackCount)/\(sampled)点が黒・C1と同じ疑い)")
     }
 
+    // 一時撮影用(build41実機FB② 図鑑ダークの実描画検証・撮影後にこのメソッドは削除する)
+    func testDexScreenshotPause() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let myTab = app.buttons["マイ記録"]
+        XCTAssertTrue(myTab.waitForExistence(timeout: 10), "タブバーに「マイ記録」が無い")
+        myTab.tap()
+        sleep(1)
+        app.swipeUp()
+        sleep(1)
+        let dex = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH 'カード図鑑'")).firstMatch
+        XCTAssertTrue(dex.waitForExistence(timeout: 8), "カード図鑑バナーが見つからない")
+        // 図鑑画面が実際に開くまでタップを繰り返す(スクロール直後のタップ空振り対策)。
+        // 図鑑にしか出ない「？？？」(未解放カード名)の出現で開いたことを確認する。
+        let locked = app.staticTexts["？？？"].firstMatch
+        for _ in 0..<3 {
+            dex.tap()
+            if locked.waitForExistence(timeout: 4) { break }
+        }
+        XCTAssertTrue(locked.exists, "図鑑画面が開かない(？？？が見つからない)")
+        sleep(1)
+        NSLog("DEXSHOT_READY1")
+        sleep(6) // ホストがshot1(図鑑先頭)
+        app.swipeUp()
+        sleep(1)
+        NSLog("DEXSHOT_READY2")
+        sleep(8) // ホストがshot2(スクロール後)
+    }
+
 }
