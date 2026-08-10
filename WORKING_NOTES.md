@@ -32,6 +32,12 @@ bulkdevの報告書(`ogatore-hub/2026-08-10-C3bulkdevからappdevへ報告-ス�
 
 発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-A1A2A4修正実装.md`を作成・door-deliver.shでbulkdevへ配達済み(`OK: 7920.bulkdev 配達・処理開始を確認`)。範囲: ①A-1+B-3(iOS合図時刻の表示⇔実通知の乖離根治・二重実装統合、Android`SettingsScreen.kt`のLaunchedEffect自己修復パターンを参考実装として明記) ②A-2(iOS RecordStore書き込み耐性=fsync追加+失敗検知、R-58の設計方針=AtomicFile不採用/通知なしの静かなUXを踏襲する旨を明記) ③A-4(index.html VOICES定数の完治断定3件を最小編集で弱める・投稿者発言の創作/大幅書き換えは禁止と明記・編集後`gen-voices.mjs`で3ファイル再生成必須・sw.js版数は上げない)。**ビルド・TestFlight提出はスコープ外**とし、bulkdevには実装+テストのみを依頼(出荷はalan5が引き取る)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-A1A2A4実装.md`。BALLS.mdの該当行は解消済み。A-3・B/C級14件は提出後の通常ラウンド送りのまま(今回未発注)。
 
+### ✅ 2026-08-10夜 A1A2A4実装完了・自分で検収済み→build41出荷発注
+
+bulkdevから実装完了報告を受領(`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-A1A2A4実装.md`)。**鵜呑みにせず自分で全項目検収**: `git show`で変更ファイル一覧が報告と完全一致することを確認/`git show`でindex.html diffが該当3行のみ・原文の他部分は無変更であることを確認/`md5`で3voices.jsonファイルの一致(`cb59adc2...`)を確認/sw.js無変更を`git diff`で確認/`IcsTime.swift`・`RecordStore.swift`のコードを実読し設計説明と一致することを確認/`node scripts/qa.js`を自分で再実行=463項目exit=0/`swift test`を自分で再実行=57件0 failures(失敗注入テスト`testSetReturnsFalseOnWriteFailureAndKeepsPreviousFile`の中身も読んで「旧ファイルがバイト単位で無傷」ことを直接証明する作りだと確認)。**3件とも報告どおりで実装品質良好と判断**。
+
+続けて出荷(Releaseアーカイブ検証+TestFlight提出=build41)をbulkdevへ発注しようとしたところ、`door-deliver.sh`の実行が**自動分類器にブロックされた**(外部提出を伴う操作のため)。本人へAskUserQuestionで確認し「GO(推奨)」を受領→再実行で配達成功(`OK: 7920.bulkdev 配達・処理開始を確認`)。発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-A1A2A4出荷ビルド.md`(R-63のRelease限定クラッシュ前例に注意喚起・バージョンはbuild41・whatsNewはbulkdevが視聴者コピー流儀で起票・**ASCの最終裏取りはalan5が独立して行う**)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-A1A2A4出荷.md`。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。
