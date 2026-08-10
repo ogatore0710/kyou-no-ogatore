@@ -130,16 +130,24 @@ final class SearchViewUITests: XCTestCase {
         XCTAssertTrue(myTab.waitForExistence(timeout: 10), "タブバーに「マイ記録」が無い")
         myTab.tap()
         sleep(1)
-        app.swipeUp()
-        sleep(1)
         let dex = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH 'カード図鑑'")).firstMatch
         XCTAssertTrue(dex.waitForExistence(timeout: 8), "カード図鑑バナーが見つからない")
-        // 図鑑画面が実際に開くまでタップを繰り返す(スクロール直後のタップ空振り対策)。
-        // 図鑑にしか出ない「？？？」(未解放カード名)の出現で開いたことを確認する。
+        // バナーが画面内に入るまでスクロールしてからタップ。開いたことは図鑑にしか出ない
+        // 「？？？」(未解放カード名)の出現で確認し、開くまで座標タップも試す。
+        var tries = 0
+        while !dex.isHittable && tries < 6 {
+            app.swipeUp()
+            sleep(1)
+            tries += 1
+        }
         let locked = app.staticTexts["？？？"].firstMatch
-        for _ in 0..<3 {
-            dex.tap()
+        for attempt in 0..<4 {
+            if attempt % 2 == 0 {
+                dex.tap()
+            } else {
+                dex.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
             if locked.waitForExistence(timeout: 4) { break }
         }
         XCTAssertTrue(locked.exists, "図鑑画面が開かない(？？？が見つからない)")
