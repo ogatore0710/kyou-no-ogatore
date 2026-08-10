@@ -26,6 +26,12 @@ bulkdevの報告書(`ogatore-hub/2026-08-10-C3bulkdevからappdevへ報告-ス�
 
 **裁定伺いをBALLS.mdへ記帳**(2026-08-10・「C3総監査(18件)の提出前ラウンド範囲の裁定」行): 推奨=A-1/A-2/A-4を提出前ラウンドでbulkdevへ発注(R-58と同系統の堅牢化+審査リスク低減)、A-3(Android約50箇所のIOスレッド化・改修範囲広め)は提出後ラウンドへ。**本人GOが出るまでbulkdevへの発注は保留**(「GO前に確認」原則・多ファイル横断の大きい開発に該当するため)。B/C級14件は提出前後どちらでも実害小のため通常ラウンド送り。
 
+### 🚀 2026-08-10夜 本人GO受領→A-1/A-2/A-4をbulkdevへ発注
+
+本人「goで」を受領。発注前に**A-4の実装経路を精査したところ新事実が判明**: voices.jsonはネイティブ両OS+`scripts-native/out/`の3ファイルとも完全一致(diff確認済み)で、正本は`gen-voices.mjs`が`index.html`のVOICES定数から生成する構造(`scripts-native/gen-voices.mjs`冒頭コメントで確認)。index.htmlは標準ルールで変更禁止ファイルのため、そのままでは発注できない→本人にAskUserQuestionで一言確認し「承認する(推奨)・今回1回限り」を受領(7/30のTYPE_IMG1行編集と同枠の一時例外)。
+
+発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-A1A2A4修正実装.md`を作成・door-deliver.shでbulkdevへ配達済み(`OK: 7920.bulkdev 配達・処理開始を確認`)。範囲: ①A-1+B-3(iOS合図時刻の表示⇔実通知の乖離根治・二重実装統合、Android`SettingsScreen.kt`のLaunchedEffect自己修復パターンを参考実装として明記) ②A-2(iOS RecordStore書き込み耐性=fsync追加+失敗検知、R-58の設計方針=AtomicFile不採用/通知なしの静かなUXを踏襲する旨を明記) ③A-4(index.html VOICES定数の完治断定3件を最小編集で弱める・投稿者発言の創作/大幅書き換えは禁止と明記・編集後`gen-voices.mjs`で3ファイル再生成必須・sw.js版数は上げない)。**ビルド・TestFlight提出はスコープ外**とし、bulkdevには実装+テストのみを依頼(出荷はalan5が引き取る)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-A1A2A4実装.md`。BALLS.mdの該当行は解消済み。A-3・B/C級14件は提出後の通常ラウンド送りのまま(今回未発注)。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。
