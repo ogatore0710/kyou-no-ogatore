@@ -142,14 +142,17 @@ private fun DexCell(item: DexItem, modifier: Modifier) {
                 if (resId != 0) {
                     // build41実機FB②(2026-08-10本人・実バグ): 未解放の暗化が黒スクリム55%固定の
                     // ため、ダーク背景(0x0F0E0C)では背景と同化して見えなかった。ダーク時は
-                    // Modulate(絵柄を50%輝度に減光=iOSのcolorMultiply(white:0.5)と同値)へ
-                    // 切り替える。ライトは従来どおり。iOS DexView.swiftと同一修正。
+                    // Modulate(絵柄を減光)へ切り替える。ライトは従来どおり。iOS DexView.swiftと同趣旨。
+                    // tint値0x94はalan5差し戻し(2026-08-10)を受けた実測較正値: 理論同値の0x80では
+                    // iOS(colorMultiply(white:0.5))より実描画が暗く出たため(色空間/合成順の差とみられる)、
+                    // エミュレータ実描画のタイル内明度をiOSシミュレータ実測(平均32.5/明比率24.0%)に
+                    // 合わせ込んだ(0x94で31.2/22.4%)。変える時は実測とセットで。
                     val dark = colors.bg == KyonoDarkColors.bg
                     Image(
                         painter = painterResource(id = resId),
                         contentDescription = item.name,
                         colorFilter = if (item.got) null
-                        else if (dark) ColorFilter.tint(Color(0xFF808080), androidx.compose.ui.graphics.BlendMode.Modulate)
+                        else if (dark) ColorFilter.tint(Color(0xFF949494), androidx.compose.ui.graphics.BlendMode.Modulate)
                         else ColorFilter.tint(Color.Black.copy(alpha = 0.55f), androidx.compose.ui.graphics.BlendMode.SrcAtop),
                         modifier = Modifier.fillMaxSize(),
                     )

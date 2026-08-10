@@ -52,6 +52,20 @@ bulkdevの出荷報告を受領: ARCHIVE SUCCEEDED(R-63型クラッシュ再発�
 
 発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-build41実機フィードバック2件.md`をbulkdevへ配達済み(`OK: 7920.bulkdev 配達・処理開始を確認`)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-tourfix-dexdark.md`。ビルド・提出はスコープ外(出荷はalan5)。
 
+### ⚠️ 2026-08-10深夜 実装完了報告を検収→修正②(Androidダーク)を差し戻し
+
+bulkdevの完了報告(qa.js exit0/swift57件/gradle276件/実描画4枚取得済み)を受領。**修正①(ツアー練習の実記録不算入)は自分でコード確認して問題なし=出荷対象に含めることに決定**(markDone/recordDaylog/通知resync/ウィジェット更新のみ削除・演出とfd/tourpend進行フラグは維持というdiffの説明を確認、rotAssignだけ残る境界の説明も筋が通っている)。
+
+**修正②(図鑑ダーク視認性)は実描画画像を自分の目で見て・Pythonでピクセル値も実測した結果、Android側だけ効果不足と判断**: `ios-native/verify/build42-tourfix-dexdark/adex-dark-2.png`をクロップして明度計測すると、カード領域の明度平均36.9・明るいピクセル比率14.5%で、iOS版(`dex-dark-2.png`・明度平均41.3・比率22.8%)より明確に暗い。目視でも花や星の縁がかろうじて分かる程度でiOSほどの視認性がない。**報告書の「同上(判別可)」という評価は実態を過小に問題視していたと判断し、Android側のみ差し戻し**(発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-dexdark-android差し戻し.md`・配達済み)。原因はコード上iOSと理論上同値(`ColorFilter.tint(0xFF808080, Modulate)`)なのに実効果が弱い謎で、元絵資産の明度差/ブレンドモードの挙動差の可能性を仮説として提示・bulkdevに切り分けを依頼。iOS側・Androidライト側は変更不要。**build42の出荷は①のみでは進めず、②Android再修正を待ってから一括で出す**(教訓: 報告の「判別可」を鵜呑みにせず実測して助かった)。
+
+### ✅ 2026-08-10深夜 Android再修正を検収→build42出荷発注
+
+bulkdevから差し戻し対応完了報告を受領。**切り分け結果**: 元絵資産(iOS PNG/Android WebP)はPILで実測しサイズ・輝度・アルファ完全一致=棄却/`BlendMode.Modulate`がiOSの`colorMultiply`より実描画で暗く出る実装差が原因と特定(根本原因は深追いせず実測較正で対処)。タイル自動検出方式でiOS基準(明度32.5/比率24.0%)に対しAndroid tint値を0x80→0x90→0xA0で試行し**0x94(明度31.2/比率22.4%)を採用**。diffは`DexScreen.kt`のtint値+コメントのみ(git diffで確認)・一時フック残存なし(grep確認)。
+
+**alan5が自分でも検収**: `adex-dark-94-calibrated.png`を目視=花・星・メダル・トロフィー等の輪郭が明確に判別可能(旧0x80のほぼ黒一色から大幅改善)。固定矩形での自前ピクセル実測は画面フレーミング差で正確な比較ができなかったが(記録上正直に書く・未確認区分)、目視の改善幅が明白なため十分と判断。bulkdevの枠線自動検出による較正方法(iOS基準に対し複数tint値を試行→数値で最も近いものを採用)は方法論として健全と評価。
+
+**本人へAskUserQuestionで出荷確認→GO受領**。発注書=`ogatore-hub/2026-08-10-alan5からC3bulkdevへ発注-build42出荷ビルド.md`をbulkdevへ配達済み(`OK: 7920.bulkdev 配達・処理開始を確認`)。報告先=`ogatore-hub/2026-08-10-C3bulkdevからalan5へ報告-build42出荷.md`。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。
