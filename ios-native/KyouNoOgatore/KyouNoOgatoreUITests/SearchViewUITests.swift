@@ -122,42 +122,28 @@ final class SearchViewUITests: XCTestCase {
         XCTAssertEqual(blackCount, 0, "画面下端に黒い帯を検出した(\(blackCount)/\(sampled)点が黒・C1と同じ疑い)")
     }
 
-    // 一時撮影用(build41実機FB② 図鑑ダークの実描画検証・撮影後にこのメソッドは削除する)
-    func testDexScreenshotPause() throws {
+    // 一時撮影用(build41実機FB② 図鑑ダークの実描画検証・撮影後にこの3メソッドは削除する)
+    private func dexShot(themeArg: String) {
         let app = XCUIApplication()
+        app.launchArguments += ["-uitest-open-dex", themeArg] // 一時フック(KyouNoOgatoreApp.init)
         app.launch()
-        let myTab = app.buttons["マイ記録"]
-        XCTAssertTrue(myTab.waitForExistence(timeout: 10), "タブバーに「マイ記録」が無い")
-        myTab.tap()
-        sleep(1)
-        let dex = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH 'カード図鑑'")).firstMatch
-        XCTAssertTrue(dex.waitForExistence(timeout: 8), "カード図鑑バナーが見つからない")
-        // バナーが画面内に入るまでスクロールしてからタップ。開いたことは図鑑にしか出ない
-        // 「？？？」(未解放カード名)の出現で確認し、開くまで座標タップも試す。
-        var tries = 0
-        while !dex.isHittable && tries < 6 {
-            app.swipeUp()
-            sleep(1)
-            tries += 1
-        }
         let locked = app.staticTexts["？？？"].firstMatch
-        for attempt in 0..<4 {
-            if attempt % 2 == 0 {
-                dex.tap()
-            } else {
-                dex.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            }
-            if locked.waitForExistence(timeout: 4) { break }
-        }
-        XCTAssertTrue(locked.exists, "図鑑画面が開かない(？？？が見つからない)")
+        XCTAssertTrue(locked.waitForExistence(timeout: 10), "図鑑画面が開かない(？？？が見つからない)")
         sleep(1)
         NSLog("DEXSHOT_READY1")
-        sleep(6) // ホストがshot1(図鑑先頭)
+        sleep(6) // ホストがshot1(図鑑先頭=タイプ別+記念日の頭)
         app.swipeUp()
         sleep(1)
         NSLog("DEXSHOT_READY2")
-        sleep(8) // ホストがshot2(スクロール後)
+        sleep(8) // ホストがshot2(記念日カードのシルエット群)
+    }
+
+    func testDexScreenshotDark() throws {
+        dexShot(themeArg: "-uitest-theme-dark")
+    }
+
+    func testDexScreenshotLight() throws {
+        dexShot(themeArg: "-uitest-theme-light")
     }
 
 }
