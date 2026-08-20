@@ -71,8 +71,11 @@ private struct DiaryContentView: View {
                             // TASK-C2-2026-07-28-obu-voices-diary-and-navigation.md §8: index.html:271
                             // border-bottom:1px dashed var(--line)の1:1移植(以前は実線で近似としていた)。
                             // Web版は全行(最終行含む)に付くため、除外条件は付けない。
+                            // 監査B-2(2026-08-10・R2で現存確認): var(--line)の移植なのにborderStrong
+                            // (高コントラスト枠線用・ダーク0xB4AB9A)を使っておりダークで線が浮いていた。
+                            // 正しくcolors.line(ダーク0x3D382F・Android DiaryScreen.ktと同じ)へ。
                             DashedDividerShape()
-                                .stroke(colors.borderStrong, style: StrokeStyle(lineWidth: 1 * zoom, dash: [4, 3]))
+                                .stroke(colors.line, style: StrokeStyle(lineWidth: 1 * zoom, dash: [4, 3]))
                                 .frame(height: 1 * zoom)
                         }
                     }
