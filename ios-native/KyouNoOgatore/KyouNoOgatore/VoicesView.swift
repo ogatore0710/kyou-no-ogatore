@@ -86,7 +86,9 @@ private struct VoiceTag: View {
     var body: some View {
         Text(text).kyonoFont(.black900, size: 12).foregroundColor(colors.tealInk)
             .padding(.horizontal, 8).padding(.vertical, 2)
-            .background(Capsule().fill(colors.tealSoft))
+            // 監査C-2(2026-08-10・R2で現存確認): iOSだけCapsule(完全ピル)だった。正本は8px角丸
+            // (index.html:364 border-radius:8px・Android VoicesScreen.ktと同じ)。
+            .background(RoundedRectangle(cornerRadius: 8).fill(colors.tealSoft))
     }
 }
 
