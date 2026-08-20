@@ -219,8 +219,15 @@ class MainActivity : ComponentActivity() {
             val sdRestoredMemory = remember {
                 val mem = store.get("soudan_memory", null as SoudanMemory?)
                 val fresh = mem != null && (Instant.now().epochSecond - mem.lastActivityEpochSeconds) <= 600L
-                if (!fresh && mem != null) store.set("soudan_memory", null as SoudanMemory?)
                 if (fresh) mem else null
+            }
+            // 監査B-6(2026-08-10・R2で現存確認): 期限切れメモリの破棄(store.set=fsync同期書き込み)が
+            // 初回コンポジション中に走っていた。10分判定はremember評価時のまま(挙動不変)、ディスク
+            // 書き込みだけを初回フレーム後(LaunchedEffect)へ移設する。
+            LaunchedEffect(Unit) {
+                if (sdRestoredMemory == null && store.get("soudan_memory", null as SoudanMemory?) != null) {
+                    store.set("soudan_memory", null as SoudanMemory?)
+                }
             }
             // TASK-C2-2026-07-27-soudan-safety-copy-and-links: index.html:3479 sdGreeted(モジュール
             // レベル変数)の1:1移植。相談室シートは開閉のたびに再合成されるため、「このセッションで
