@@ -52,7 +52,10 @@ struct KyonoAppHeader: View {
                 // テーマはアプリ内設定(kyonoColors)でありシステムのcolorSchemeと独立なので、
                 // アセットカタログのダークバリアントではなく既存のdark判定イディオムで画像を選ぶ。
                 // AppLogoDark=文字だけダークink(#F2EDE1)へ差し替えたもの(黄バッジは共通)。
+                // 監査B-1(2026-08-10・R2で現存確認): ロゴ画像にVoiceOverラベルが無く全タブ先頭の
+                // ヘッダーが無音だった。Android版KyonoComponents.ktのcontentDescriptionと同文言。
                 Image(dark ? "AppLogoDark" : "AppLogo").resizable().scaledToFit().frame(height: 36)
+                    .accessibilityLabel("#きょうのオガトレ")
                 // index.html:94 .logosub{...white-space:nowrap}の1:1移植。
                 KyonoBodyText("みんなで一緒にストレッチを習慣化").lineLimit(1)
             }
