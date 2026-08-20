@@ -72,6 +72,10 @@ bulkdevの出荷報告を受領: アーカイブ成功(plutilでCFBundleVersion=
 
 **alan5が自分のPython+PyJWTでASC API照会し3点とも独立確認**: ①`GET /v1/builds?filter[version]=42`→VALID/expired=false/usesNonExemptEncryption=false ②`GET /v1/betaGroups/.../builds`→先頭がbuild42(41,40と続く) ③`GET /v1/betaBuildLocalizations?filter[build]=...`→whatsNew本文が報告と完全一致。**A-1/A-2/A-4(build41)+ツアー練習不算入/図鑑ダーク視認性(build42)の今回ラウンドはこれで完了**。BALLS.mdへbuild42の実機確認を記帳しPush済み。A-3・B/C級14件は据え置きのまま(未発注)。
 
+### 📋 2026-08-20 factcheckへ第2ラウンド総監査を発注
+
+監督経由・本人GO(「C3大放出日」・本日限定factcheck満腹ゲート95%)で発注。着手前に現状確認=`git log`最新コミットが2026-08-10 23:33の`23942f8`のまま(=build42出荷後、変更なし)であることを確認済み。発注書=`ogatore-hub/2026-08-20-alan5からC3factcheckへ発注-第2ラウンド総監査.md`をfactcheckへ配達済み(`OK: 7774.factcheck 配達・処理開始を確認`)。3本柱: ①前回総監査(8/10)以降の変更差分検証(ed2656a6→23942f8のbuild41/42実装分) ②voices.json残り113件の断定表現再走査(前回は3件のみ確認) ③前回18件のうちA-3・B級6・C級8の未対応分の棚卸しと格上げ要否評価。報告先=`ogatore-hub/2026-08-20-C3factcheckからalan5へ報告-第2ラウンド総監査.md`。宛先確認は`~/srv/fleet-status.json`のscreenフィールドで実施(FLEET-RULES.md §6準拠)。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。
