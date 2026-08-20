@@ -165,13 +165,17 @@ public final class RecordStore {
     public func rawValue(fullKey: String) -> String? { raw[fullKey] }
 
     // 生JSON文字列のまま書き込む(インポート用。型を知らないpassthroughキーもこれで保存できる)
-    public func setRaw(_ fullKey: String, _ jsonString: String) {
+    // 監査R2-C1(2026-08-20): set()と同様にpersist()の実成否を返す(A-2改善との非対称の解消)。
+    // 既存呼び出しは戻り値を見ていないため@discardableResultで挙動不変・検知したい側だけ拾える。
+    @discardableResult
+    public func setRaw(_ fullKey: String, _ jsonString: String) -> Bool {
         raw[fullKey] = jsonString
-        persist()
+        return persist()
     }
 
-    public func removeRaw(_ fullKey: String) {
+    @discardableResult
+    public func removeRaw(_ fullKey: String) -> Bool {
         raw.removeValue(forKey: fullKey)
-        persist()
+        return persist()
     }
 }
