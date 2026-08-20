@@ -98,6 +98,16 @@ bulkdevの完了報告(commit`f914441`・13行ペア=26行diff・md5一致・qa.
 
 本人GO「ガンガンやろう」で監督が直発注フローの例外としてC3へ夜間6本投入。**alan5の検収担当分=アプリ修正実装**(出荷判断は従来どおりalan5)。検収は明朝でよいとの指示。ノック(door-deliver.sh alan5)が来たら通常どおり自分でgrep/テスト再実行して検収する。まだ着信なし(2026-08-20夜時点)。
 
+### ✅ 2026-08-20夜 監督直発注「監査指摘の修正実装」着信・検収完了
+
+bulkdevから完了報告受領(コミットe365360〜607dbfa・6件)。第2R監査のB-1/B-2/B-5/B-6/C-2/R2-C1を個別コミットで修正。alan5が全コミットの実diffをRead確認(いずれも1ファイル・数行の最小差分、コメントに監査番号と根拠明記): B-1(iOSロゴにVoiceOverラベル)/B-2(にっき点線をborderStrong→colors.line)/B-5(サムネ読込タイムアウト8秒)/C-2(せんぱいの声タグをCapsule→8px角丸)/R2-C1(setRaw/removeRawが実成否を返す・@discardableResultで既存呼び出し不変)/B-6(Android相談室メモリ破棄のfsync書込をLaunchedEffectへ移設)。
+
+**報告のAndroid未検証(JDK無し)を自分の環境で解消**: `~/android-toolchain/jdk`にJDK17が実在することを発見(`find`で`Contents/Home/bin/java`確認・`java -version`=Temurin 17.0.19)。`JAVA_HOME`/`ANDROID_SDK_ROOT`を設定し`./gradlew testDebugUnitTest --rerun-tasks`を自分で実走→**BUILD SUCCESSFUL・545件全緑**(前回8/10時点は276件・テスト増加は累次の追加によるものとみられ問題なし)。あわせて`node scripts/qa.js`(463 exit0)・iOS `swift test`(57件緑)も自分で再実行。**3環境すべて緑・B-6の検証漏れも解消済み・出荷対象に含めてよいと判断**。
+
+**直さなかった指摘の線引きも妥当と評価**: A-3(設計変更級)/B-4(保存設計要検討)/C-1・C-3・C-4(実描画なしでの視覚変更は事故リスク)/C-8(コンパイル不能環境)は見送り理由が納得的。R2-C3(worktree残骸3つ)は他艦作業中の可能性ありとして削除せず報告のみ=妥当な判断。
+
+**本人向け報告(`REPORT-2026-08-20-honnin-houkoku.md`)にこのバッチも追記**。voices13件+今回6件をまとめてbuild43として出荷するかを本人確認事項に追加。
+
 **appdev(C2)は当面休止**(監督→本人指示2026-08-10夕・再開目安=金曜16時C2リセット・本人判断)。以後の窓口=C1頭alan5、開発案件はC3へ発注書。休止時点の現在地:
 
 - **最新ビルド=build40配信済み**(2026-08-08夜・R-83初回ようこそゲート/R-84オンボスクロールWeb正本化/R-85 GhostButton立体復活)。ASC裏取り済み=VALID/紐付け204/IN_BETA_TESTING/whatsNew200/Push1/1(根拠: `REPORT-C2-2026-08-08-r74-r76-color-font-round.md`追補1〜3にbuild38/39/40の出荷証跡)。build38=R-74〜R-77(緑全廃→ピンク/こがね・Android細字化バグ修正)、build39=R-78〜R-82(iOSアプリ内スプラッシュ廃止・ダーク基調刷新bg#0F0E0C系)。出荷時点HEAD=ed2656a6。
