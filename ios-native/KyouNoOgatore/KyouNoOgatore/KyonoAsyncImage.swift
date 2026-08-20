@@ -60,7 +60,12 @@ struct KyonoAsyncImage: View {
             return image
         }
         guard let requestURL = URL(string: urlString) else { return nil }
-        guard let (data, _) = try? await URLSession.shared.data(from: requestURL) else { return nil }
+        // 監査B-5(2026-08-10・R2で現存確認): タイムアウト無指定(既定60秒)で低速回線時に
+        // 1枚のサムネイルが60秒固まりえた。Android版KyonoAsyncImage.ktの8秒に揃える
+        // (BragView.swiftの3秒はカード生成という別ユースケースの値のため踏襲しない)。
+        var request = URLRequest(url: requestURL)
+        request.timeoutInterval = 8
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else { return nil }
         guard let image = UIImage(data: data) else { return nil }
         cache.write(key: key, data: data)
         return image
